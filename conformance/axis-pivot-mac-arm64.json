@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-31",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "test_exit_code": 0,
+  "automation_summary": {
+    "succeeded": 17,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "passed",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "passed",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "passed",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Axis-pivot-tests.log",
+  "cause": "Projected-silhouette centring and fractional camera-plane pan recomputed the world target at every orbit angle, moving the actual box axis.",
+  "navigation": {
+    "full_view": "Fixed world pivot midway between Core and Sky; line through face centres remains horizontally anchored",
+    "close_view": "Pan moves a persistent viewing centre within the section; orbit holds that same world point fixed at screen centre",
+    "orbit": "Only yaw/elevation change; target, orbit radius and magnification remain fixed",
+    "zoom_out": "Viewing pivot moves back toward the original box centre; padded default-rotation box fit is the zoom-out limit",
+    "crop_constraints": "Pan only on clipped axes; clipped visible box edges are used, including near-plane intersections; focus remains inside the section",
+    "removed": "Per-angle projected bounding-box recentering"
+  },
+  "new_regression": {
+    "name": "Catalyst.Landform.Designer.CentreAxisPivot",
+    "aspects": [
+      0.45,
+      1,
+      1.6,
+      3
+    ],
+    "focus_modes": [
+      "Full Core-to-Sky centre",
+      "Panned close-up viewing centre"
+    ],
+    "elevations": [
+      15,
+      32,
+      45,
+      60,
+      75
+    ],
+    "yaw": "Full circuits with actual orbit calls",
+    "invariants": [
+      "Fixed world target",
+      "Target at screen centre",
+      "Constant orbit radius",
+      "Top-to-bottom focus axis horizontally anchored",
+      "Zoom-out restores original box axis"
+    ]
+  },
+  "updated_regressions": [
+    "Scale measured at the persistent inspection pivot",
+    "Default padded fit about the real centre axis",
+    "Crop-only pan and focus bounded inside section",
+    "Zoom-out recentres the actual box axis rather than its projected silhouette"
+  ],
+  "nonblocking_warnings": [
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+  ],
+  "edited_assets_preserved": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "5232335e58d576f33f21714f78d30fcac6aa885558551d284f5c14f9b7bc30e8",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "ab4293e6b9549b11ddf27b60ee755f049b16be262e7231726cc3919b06c9ee99"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLSectionNavigation.cpp": "cec47b78d8971c0d2048f7baba93da1958ab04257df34a3b3dea84b0b073cdc2",
+    "Source/CatalystLandformEditor/Public/CLSectionNavigation.h": "5d802f117e834b1366c5e95aa2a658949b287c3a321e8e365cc785cc5718258e",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "46ef088bff5f94f2d0c6211955b8986f9ad211d10983b9cdc0c75494d5ced278"
+  },
+  "limits": [
+    "The projected silhouette can change naturally during rotation; the actual centre/focus axis is the invariant",
+    "Close views may clip parts of the envelope at the near plane; the focus point remains at screen centre",
+    "Native mouse gesture automation unavailable; orbit/pan/zoom and projection exercised through UE APIs",
+    "No new runtime/cook/network/physical-walk qualification"
+  ],
+  "vendor_changes": "None",
+  "editor": "Reopened saved Mountain ridges/High relief comparison at 500m coverage. Render and controls visually inspected; centre-axis stability verified through UE world-pivot/projection regressions."
+}
