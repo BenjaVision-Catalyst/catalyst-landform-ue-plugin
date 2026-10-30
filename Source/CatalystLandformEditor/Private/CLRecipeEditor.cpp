@@ -52,6 +52,7 @@ namespace
 {
 const FLinearColor GuideLabelColor(.72, .72, .72, .3);
 constexpr double GuideTickWidth = 16;
+constexpr double GuideLabelHeight = 20;
 FLinearColor GuideTint(int32 Index, int32 Selected)
 {
     return GuideLabelColor.CopyWithNewOpacity(Index >= 0 && Selected == Index ? 1.f : .3f);
@@ -254,10 +255,10 @@ public:
         Index = Args._Index;
         SetToolTipText(FText::FromString(TEXT("Click to select; drag to move; Delete to remove; double-click a label or press F2 to rename")));
         if (Args._Label)
-            ChildSlot[SNew(SBorder).Padding(FMargin(3, 1)).BorderImage(FAppStyle::GetBrush("NoBorder"))
+            ChildSlot[SNew(SBorder).Padding(FMargin(3, 0)).VAlign(VAlign_Center).BorderImage(FAppStyle::GetBrush("NoBorder"))
                 [SNew(SHorizontalBox)
-                    + SHorizontalBox::Slot().AutoWidth()[SAssignNew(Name, SInlineEditableTextBlock)
-                        .Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).DelayedLeftClickEntersEditMode(false)
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(Name, SInlineEditableTextBlock)
+                        .Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).DelayedLeftClickEntersEditMode(false)
                         .Text_Lambda([this] { return FText::FromName(Session->Asset->Recipe.Strata.Stratum.IsValidIndex(Index) ?
                             Session->Asset->Recipe.Strata.Stratum[Index].Name : NAME_None); })
                         .ColorAndOpacity_Lambda([this] { return GuideTint(Index, Session->Selected); })
@@ -384,11 +385,11 @@ public:
         {
             const auto& I = Client->Indicators[K];
             X = FMath::Max(X, I.Position.X * Size.X + GuideTickWidth * 2 + 16);
-            Previous = FMath::Max(8.0, FMath::Max(I.Position.Y * Size.Y - 9, Previous + 24)); Ys.Add(Previous);
+            Previous = FMath::Max(8.0, FMath::Max(I.Position.Y * Size.Y - GuideLabelHeight * .5, Previous + 24)); Ys.Add(Previous);
             if (I.Index == Index) Found = K;
         }
         if (Found == INDEX_NONE) return FVector2D(-1000, -1000);
-        const double Overflow = FMath::Max(0.0, Ys.Last() - Size.Y + 24);
+        const double Overflow = FMath::Max(0.0, Ys.Last() - Size.Y + GuideLabelHeight + 2);
         return FVector2D(X, Ys[Found] - Overflow);
     }
     virtual void Tick(const FGeometry& Geometry, double Time, float Delta) override
@@ -403,15 +404,16 @@ public:
                 [SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I)];
             const auto LabelHandle = SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I).Label(true);
             Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); })
-                .Size_Lambda([LabelHandle] { return FVector2D(FMath::Min(300.0, double(LabelHandle->GetDesiredSize().X)), 22); })[LabelHandle];
+                .Size_Lambda([LabelHandle] { return FVector2D(FMath::Min(300.0, double(LabelHandle->GetDesiredSize().X)), GuideLabelHeight); })[LabelHandle];
         }
-        Canvas->AddSlot().Position_Lambda([this] { return Label(-3); }).Size(FVector2D(150, 22))
-            [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).Visibility(EVisibility::HitTestInvisible)
-                .Text(FText::FromString(TEXT("Sky boundary"))).ColorAndOpacity(GuideLabelColor)];
-        Canvas->AddSlot().Position_Lambda([this] { return Label(-2); }).Size(FVector2D(80, 22))
+        Canvas->AddSlot().Position_Lambda([this] { return Label(-3); }).Size(FVector2D(150, GuideLabelHeight))
+            [SNew(SBox).VAlign(VAlign_Center).Visibility(EVisibility::HitTestInvisible)
+                [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9))
+                    .Text(FText::FromString(TEXT("Sky boundary"))).ColorAndOpacity(GuideLabelColor)]];
+        Canvas->AddSlot().Position_Lambda([this] { return Label(-2); }).Size(FVector2D(80, GuideLabelHeight))
             [SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                    [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).Text(FText::FromString(TEXT("Core"))).ColorAndOpacity(GuideLabelColor)]
+                    [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).Text(FText::FromString(TEXT("Core"))).ColorAndOpacity(GuideLabelColor)]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6, 0)
                     [SNew(SBox).WidthOverride(16).HeightOverride(16).VAlign(VAlign_Center)
                         [SNew(SButton).ButtonStyle(FAppStyle::Get(), "SimpleButton").ContentPadding(0)
@@ -434,7 +436,8 @@ public:
             const FLinearColor Color = GuideTint(I.Index, Session->Selected) * Style.GetColorAndOpacityTint();
             TArray<FVector2D> Tick{A, A + FVector2D(GuideTickWidth, 0)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Tick, ESlateDrawEffect::None, Color, true, 2);
-            TArray<FVector2D> Leader{A + FVector2D(GuideTickWidth, 0), FVector2D(L.X - 8, L.Y + 9), FVector2D(L.X - 3, L.Y + 9)};
+            const double LabelCentreY = L.Y + GuideLabelHeight * .5;
+            TArray<FVector2D> Leader{A + FVector2D(GuideTickWidth, 0), FVector2D(L.X - 8, LabelCentreY), FVector2D(L.X - 3, LabelCentreY)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Leader, ESlateDrawEffect::None, Color, true, 1);
         }
         return SCompoundWidget::OnPaint(Args, Geometry, Clip, Elements, Layer + 1, Style, Enabled);
