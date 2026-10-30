@@ -28,7 +28,7 @@ bool FCLSectionTest::RunTest(const FString&)
     TArray<int32> Ids;
     for (const FVector& V : G.Vertices)
     {
-        bCore |= V.IsNearlyZero(); bTop |= V.Z > Plan->RadiusMeters * 100;
+        bCore |= V.IsNearlyZero(); bTop |= V.Z > 0 && V.Z <= Plan->RadiusMeters * 100;
         TestTrue(TEXT("Solid cutaway never extends below the centre plane"), V.Z >= 0);
         const FIntVector Key(FMath::RoundToInt(V.X * 10), FMath::RoundToInt(V.Y * 10), FMath::RoundToInt(V.Z * 10));
         if (!Welded.Contains(Key)) Welded.Add(Key, Welded.Num());
@@ -60,6 +60,20 @@ bool FCLSectionTest::RunTest(const FString&)
         FMath::Abs((DisplayCentre.Z - DisplayEdge.Z) * 3 - (Centre.Z - P.Z)) < .001);
     TestEqual(TEXT("Preview flattening preserves the centre height"), DisplayCentre.Z, Centre.Z);
     TestEqual(TEXT("Preview flattening preserves horizontal extent"), DisplayEdge.X, P.X);
+    const FVector2D Edge(G.HalfWidthMeters, G.HalfWidthMeters);
+    for (double Perspective : {0.0, .00001, -.00001})
+    {
+        FMatrix Projection = FMatrix::Identity;
+        Projection.M[2][1] = .0001; Projection.M[3][1] = -.5; Projection.M[2][3] = Perspective;
+        for (double N : {0.0, .05, .2, .3, .4, .6, .9, 1.0})
+        {
+            const FVector GuidePosition = FCLSectionGeometry::StratumPoint(*Plan, Edge, N);
+            const FVector4 Clip = Projection.TransformFVector4(FVector4(GuidePosition, 1));
+            const double ScreenY = .5 - .5 * Clip.Y / Clip.W;
+            TestTrue(TEXT("Dragging inverts the exact rendered guide height under perspective"),
+                FMath::Abs(FCLSectionGeometry::StratumAtScreenY(*Plan, Edge, Projection, ScreenY) - N) < 1.e-8);
+        }
+    }
     return true;
 }
 #endif

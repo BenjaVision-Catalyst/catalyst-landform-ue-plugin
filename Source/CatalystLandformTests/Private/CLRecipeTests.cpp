@@ -21,17 +21,17 @@ bool FCLGuideTest::RunTest(const FString&)
     FCLPlanetRecipe R = FCLPlanetCompiler::RollingPlains();
     const auto A = FCLPlanetCompiler::Compile(R, Error);
     if (!TestTrue(TEXT("Example compiles"), A.IsValid())) return false;
-    R.HeightGuides[0].HeightMeters = 12; // unused ocean reference
+    R.Strata.Stratum[0].NormalizedHeight = .5; // unused ocean reference
     const auto B = FCLPlanetCompiler::Compile(R, Error);
     TestEqual(TEXT("Guide alone creates no geometry"), A->SampleHeightMeters(FVector::ZAxisVector), B->SampleHeightMeters(FVector::ZAxisVector));
-    R.HeightGuides.RemoveAt(0); R.HeightGuides.RemoveAt(2);
+    R.Strata.Stratum.RemoveAt(0); R.Strata.Stratum.RemoveAt(2);
     TestTrue(TEXT("Unreferenced guides are optional"), FCLPlanetCompiler::Compile(R, Error).IsValid());
-    R.HeightGuides.RemoveAt(0);
+    R.Strata.Stratum.RemoveAt(0);
     TestFalse(TEXT("Required guide must exist"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     TestTrue(TEXT("Diagnostic names missing guide"), Error.Contains(TEXT("SurfaceMin")));
     R.NoiseLayers[0].bEnabled = false;
     TestTrue(TEXT("Disabled layer does not require its guides"), FCLPlanetCompiler::Compile(R, Error).IsValid());
-    R = FCLPlanetCompiler::RollingPlains(); R.HeightGuides[1].Name = TEXT("oceanheight");
+    R = FCLPlanetCompiler::RollingPlains(); R.Strata.Stratum[1].Name = TEXT("oceanheight");
     TestFalse(TEXT("Case-insensitive duplicate guide rejected"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     R = FCLPlanetCompiler::RollingPlains(); R.NoiseLayers[0].WavelengthMeters = 0;
     TestFalse(TEXT("Zero wavelength rejected"), FCLPlanetCompiler::Compile(R, Error).IsValid());
@@ -87,11 +87,11 @@ bool FCLRecipeLayersTest::RunTest(const FString&)
     FCLPlanetRecipe R; FString Error;
     auto Add = [&](FName Name, ECLNoiseBlend Blend, double Height)
     { FCLNoiseLayer L; L.Name = Name; L.Blend = Blend; L.Minimum.OffsetMeters = Height; L.Maximum.OffsetMeters = Height; R.NoiseLayers.Add(L); };
-    Add(TEXT("Base"), ECLNoiseBlend::Override, 3); Add(TEXT("Detail"), ECLNoiseBlend::Add, 2);
-    Add(TEXT("Carve"), ECLNoiseBlend::Min, 1);
-    TestEqual(TEXT("Override, Add, Min compose in order"), FCLPlanetCompiler::Compile(R, Error)->SampleHeightMeters(FVector::ZAxisVector), 1.0);
+    Add(TEXT("Base"), ECLNoiseBlend::Override, -30); Add(TEXT("Detail"), ECLNoiseBlend::Add, 2);
+    Add(TEXT("Carve"), ECLNoiseBlend::Min, -31);
+    TestEqual(TEXT("Override, Add, Min compose in order"), FCLPlanetCompiler::Compile(R, Error)->SampleHeightMeters(FVector::ZAxisVector), -31.0);
     R.NoiseLayers.Swap(1, 2);
-    TestEqual(TEXT("Reordering changes result"), FCLPlanetCompiler::Compile(R, Error)->SampleHeightMeters(FVector::ZAxisVector), 3.0);
+    TestEqual(TEXT("Reordering changes result"), FCLPlanetCompiler::Compile(R, Error)->SampleHeightMeters(FVector::ZAxisVector), -29.0);
     R.NoiseLayers[0].Minimum.OffsetMeters = -100; R.NoiseLayers[0].Maximum.OffsetMeters = -100;
     TestFalse(TEXT("Stack cannot invert the planet"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     return true;
@@ -119,16 +119,16 @@ bool FCLRecipeVPPTest::RunTest(const FString&)
     Positions.Set(0, D * (Plan->RadiusMeters * 100 + H[0]));
     TestTrue(TEXT("Same surface is zero in VPP volume"), FMath::Abs(Planet->GetSamplingRuntime()->SampleDistances(Query, Positions)[0]) < .001);
     const double Before = H[0];
-    Planet->RecipeAsset->Recipe.HeightGuides[1].HeightMeters += 2;
-    Planet->RecipeAsset->Recipe.HeightGuides[2].HeightMeters += 2;
+    Planet->RecipeAsset->Recipe.Strata.Stratum[1].NormalizedHeight += .02;
+    Planet->RecipeAsset->Recipe.Strata.Stratum[2].NormalizedHeight += .02;
     Planet->RecipeAsset->OnRecipeChanged.Broadcast();
     Planet->SampleRadialHeights({D}, H);
     TestTrue(TEXT("Guide edits rebuild live VPP terrain"), FMath::Abs(H[0] - Before - 200) < .001);
     {
         FScopedTransaction Transaction(NSLOCTEXT("CL", "GuideEditTest", "Edit Height Guides"));
         Planet->RecipeAsset->Modify();
-        Planet->RecipeAsset->Recipe.HeightGuides[1].HeightMeters += 1;
-        Planet->RecipeAsset->Recipe.HeightGuides[2].HeightMeters += 1;
+        Planet->RecipeAsset->Recipe.Strata.Stratum[1].NormalizedHeight += .01;
+        Planet->RecipeAsset->Recipe.Strata.Stratum[2].NormalizedHeight += .01;
         Planet->RecipeAsset->PostEditChange();
     }
     TArray<double> Edited; Planet->SampleRadialHeights({D}, Edited);
@@ -151,7 +151,10 @@ bool FCLRecipeVPPTest::RunTest(const FString&)
     Stamp->SetActorLocation(Pose.TransformPosition(D * 10000));
     Stamp->BlendMode = EVoxelHeightBlendMode::Override; Stamp->Smoothness = 0; Stamp->RefreshStamp();
     Planet->SampleRadialHeights({D, -D}, Edited);
-    TestTrue(TEXT("Native stamp overrides recipe height at its anchor"), FMath::Abs(Edited[0] - 100) < .001);
+    TestTrue(TEXT("Native stamp output is clipped at the outer radius"), FMath::Abs(Edited[0]) < .001);
+    FVoxelDoubleVectorBuffer Beyond; Beyond.Allocate(1); Beyond.Set(0, D * (Planet->RadiusMeters * 100 + 100));
+    TestTrue(TEXT("VPP volume is empty beyond outer radius after a positive native stamp"),
+        Planet->GetSamplingRuntime()->SampleDistances(Query, Beyond)[0] > 0);
     const auto Latest = FCLPlanetCompiler::Compile(Planet->RecipeAsset->Recipe, Error);
     TestTrue(TEXT("Outside native footprint the recipe remains intact"), FMath::Abs(Edited[1] - Latest->SampleHeightMeters(-D) * 100) < .001);
     World->DestroyActor(Stamp);

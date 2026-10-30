@@ -4,9 +4,12 @@
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 #include "UObject/UnrealType.h"
+#include "Serialization/CustomVersion.h"
 
 namespace
 {
+const FGuid RecipeAssetVersion(0x434C5250, 0x82B741FA, 0xA3482664, 0xC96741B2);
+FCustomVersionRegistration RegisterRecipeAssetVersion(RecipeAssetVersion, 1, TEXT("CLRecipeOuterSkyRadius"));
 uint32 Mix(uint32 V)
 {
     V ^= V >> 16; V *= 0x7feb352du; V ^= V >> 15; V *= 0x846ca68bu; return V ^ (V >> 16);
@@ -19,7 +22,7 @@ bool CheckFields(const FJsonObject& Object, const UStruct& Struct, FString& Erro
         for (TFieldIterator<FProperty> It(&Struct); It; ++It)
             if (It->GetName().Equals(Pair.Key, ESearchCase::IgnoreCase)) { Found = *It; break; }
         const FString Location = Path + TEXT("/") + Pair.Key;
-        if (!Found) { Error = TEXT("Unknown recipe field: ") + Location; return false; }
+        if (!Found || Found->HasAnyPropertyFlags(CPF_Deprecated)) { Error = TEXT("Unknown recipe field: ") + Location; return false; }
         auto CheckStruct = [&](const FProperty* Property, const TSharedPtr<FJsonValue>& Value) -> bool
         {
             const auto* S = CastField<FStructProperty>(Property);
@@ -39,7 +42,7 @@ double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) con
 {
     if (Direction.ContainsNaN() || Direction.IsNearlyZero()) return 0;
     const FVector Position = Direction.GetSafeNormal() * RadiusMeters;
-    double Height = 0;
+    double Height = BaseHeightMeters;
     for (const FNoise& Layer : Layers)
     {
         double Sum = 0, Weight = 1, Total = 0, Frequency = 1;
@@ -58,24 +61,31 @@ double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) con
         case ECLNoiseBlend::Min: Height = FMath::Min(Height, Value); break;
         }
     }
-    return Height;
+    return FMath::Min(Height, 0.0);
 }
 
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe, FString& Error)
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if (Recipe.SchemaVersion != 1 || Recipe.AlgorithmVersion != 1) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
-    if (!FMath::IsFinite(Recipe.ReferenceRadiusMeters) || Recipe.ReferenceRadiusMeters < 10 || Recipe.ReferenceRadiusMeters > 1.e7)
-        return Fail(TEXT("ReferenceRadiusMeters must be finite and between 10 and 10000000"));
-    if (Recipe.HeightGuides.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
+    if (Recipe.SchemaVersion != 2 || Recipe.AlgorithmVersion != 1) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
+        return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
+    if (Recipe.Strata.Stratum.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
     auto Plan = MakeShared<FCLCompiledPlanetRecipe>();
-    Plan->RadiusMeters = Recipe.ReferenceRadiusMeters;
+    Plan->RadiusMeters = Recipe.RadiusMeters;
+    if (!FMath::IsFinite(Recipe.BaseSurfaceNormalized) || Recipe.BaseSurfaceNormalized <= 0 || Recipe.BaseSurfaceNormalized > 1)
+        return Fail(TEXT("BaseSurfaceNormalized must be in (0, 1]"));
+    Plan->BaseHeightMeters = (Recipe.BaseSurfaceNormalized - 1) * Recipe.RadiusMeters;
+    Plan->MinimumHeightMeters = Plan->MaximumHeightMeters = Plan->BaseHeightMeters;
     TMap<FName, double> Guides;
-    for (const FCLHeightGuide& Guide : Recipe.HeightGuides)
+    if (!Recipe.Strata.Validate(Error)) return nullptr;
+    for (const FCLStratum& Stratum : Recipe.Strata.Stratum)
     {
+        FCLHeightGuide Guide; Guide.Name = Stratum.Name; Guide.Color = Stratum.Color;
+        Guide.HeightMeters = (Stratum.NormalizedHeight - 1) * Recipe.RadiusMeters;
         if (Guide.Name.IsNone() || Guides.Contains(Guide.Name)) return Fail(TEXT("Height Guide names must be nonempty and unique"));
-        if (!FMath::IsFinite(Guide.HeightMeters) || FMath::Abs(Guide.HeightMeters) > 1.e7 || Recipe.ReferenceRadiusMeters + Guide.HeightMeters <= 0 ||
+        if (!FMath::IsFinite(Guide.HeightMeters) || FMath::Abs(Guide.HeightMeters) > 1.e7 || Recipe.RadiusMeters + Guide.HeightMeters < 0 ||
             !FMath::IsFinite(Guide.Color.R) || !FMath::IsFinite(Guide.Color.G) ||
             !FMath::IsFinite(Guide.Color.B) || !FMath::IsFinite(Guide.Color.A)) return Fail(FString::Printf(TEXT("Invalid Height Guide: %s"), *Guide.Name.ToString()));
         Guides.Add(Guide.Name, Guide.HeightMeters);
@@ -108,7 +118,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             static_cast<uint8>(Layer.Shape) > static_cast<uint8>(ECLNoiseShape::Ridged) ||
             static_cast<uint8>(Layer.Blend) > static_cast<uint8>(ECLNoiseBlend::Min)) return Fail(TEXT("Invalid noise settings: ") + Layer.Name.ToString());
         // Keep float noise coordinates below 2^20, including eight octaves.
-        if (Recipe.ReferenceRadiusMeters / Layer.WavelengthMeters * (1 << (Layer.Octaves - 1)) > 1.e6)
+        if (Recipe.RadiusMeters / Layer.WavelengthMeters * (1 << (Layer.Octaves - 1)) > 1.e6)
             return Fail(TEXT("Noise wavelength/octaves exceed the supported coordinate precision"));
         Noise.Wavelength = Layer.WavelengthMeters; Noise.Persistence = Layer.Persistence;
         Noise.Octaves = Layer.Octaves; Noise.Shape = Layer.Shape; Noise.Blend = Layer.Blend;
@@ -128,18 +138,22 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             return Fail(TEXT("Noise stack exceeds supported radial bounds"));
         Plan->Layers.Add(Noise);
     }
+    Plan->MinimumHeightMeters = FMath::Min(Plan->MinimumHeightMeters, 0.0);
+    Plan->MaximumHeightMeters = FMath::Min(Plan->MaximumHeightMeters, 0.0);
     return Plan;
 }
 
 FCLPlanetRecipe FCLPlanetCompiler::RollingPlains()
 {
     FCLPlanetRecipe Recipe;
+    Recipe.Strata.Name = TEXT("Temperate"); Recipe.Strata.Id = FGuid(0x434C0001, 0, 0, 1);
     auto Guide = [&](FName Name, double Height, FLinearColor Color)
-    { FCLHeightGuide G; G.Name = Name; G.HeightMeters = Height; G.Color = Color; Recipe.HeightGuides.Add(G); };
-    Guide(TEXT("OceanHeight"), 0, FLinearColor(.1, .55, 1));
-    Guide(TEXT("SurfaceMin"), 1, FLinearColor(.8, .65, .3));
-    Guide(TEXT("SurfaceMax"), 7, FLinearColor(.4, .9, .45));
-    Guide(TEXT("AtmosphereMax"), 20, FLinearColor(.5, .7, 1));
+    { FCLStratum G; G.Name = Name; G.NormalizedHeight = Height;
+      G.Color = Color; Recipe.Strata.Stratum.Add(G); };
+    Guide(TEXT("OceanHeight"), .4, FLinearColor(.1, .55, 1));
+    Guide(TEXT("SurfaceMin"), .3, FLinearColor(.8, .65, .3));
+    Guide(TEXT("SurfaceMax"), .6, FLinearColor(.4, .9, .45));
+    Guide(TEXT("AtmosphereMax"), .9, FLinearColor(.5, .7, 1));
     FCLNoiseLayer Broad; Broad.Name = TEXT("Broad undulations"); Broad.Minimum.Guide = TEXT("SurfaceMin");
     Broad.Maximum.Guide = TEXT("SurfaceMax"); Broad.WavelengthMeters = 60; Recipe.NoiseLayers.Add(Broad);
     FCLNoiseLayer Detail; Detail.Name = TEXT("Ground detail"); Detail.Seed = 12; Detail.Blend = ECLNoiseBlend::Add;
@@ -148,9 +162,66 @@ FCLPlanetRecipe FCLPlanetCompiler::RollingPlains()
     return Recipe;
 }
 
+void FCLPlanetRecipe::MigrateLegacyGuides()
+{
+    if (HeightGuides_DEPRECATED.IsEmpty() && SchemaVersion != 1) return;
+    const double OldRadius = ReferenceRadiusMeters_DEPRECATED;
+    TMap<FName, double> Old; double Top = 0;
+    for (const auto& G : HeightGuides_DEPRECATED) { Old.Add(G.Name, G.HeightMeters); Top = FMath::Max(Top, G.HeightMeters); }
+    auto Resolve = [&](const FCLHeightReference& Ref) { return Ref.OffsetMeters + Old.FindRef(Ref.Guide); };
+    double High = 0;
+    for (const FCLNoiseLayer& L : NoiseLayers) if (L.bEnabled)
+    {
+        const double V = Resolve(L.Maximum);
+        switch (L.Blend)
+        {
+        case ECLNoiseBlend::Override: High = V; break;
+        case ECLNoiseBlend::Add: High += V; break;
+        case ECLNoiseBlend::Min: High = FMath::Min(High, V); break;
+        case ECLNoiseBlend::Max: High = FMath::Max(High, V); break;
+        }
+    }
+    // Retain the old physical terrain while moving its radius to a sky boundary.
+    RadiusMeters = OldRadius + FMath::Max(Top, High) + OldRadius * .05;
+    const double Shift = RadiusMeters - OldRadius;
+    BaseSurfaceNormalized = OldRadius / RadiusMeters;
+    Strata.Name = TEXT("Lab plains"); Strata.Id = FGuid(0x434C0001, 0, 0, 2); Strata.Stratum.Reset();
+    for (const FCLHeightGuide& G : HeightGuides_DEPRECATED)
+    { FCLStratum S; S.Name = G.Name; S.NormalizedHeight = (OldRadius + G.HeightMeters) / RadiusMeters;
+      S.Color = G.Color; Strata.Stratum.Add(S); }
+    for (FCLNoiseLayer& L : NoiseLayers)
+    {
+        L.WavelengthMeters *= RadiusMeters / OldRadius;
+        for (FCLHeightReference* Ref : {&L.Minimum, &L.Maximum})
+        {
+            if (L.Blend == ECLNoiseBlend::Add && !Ref->Guide.IsNone()) Ref->OffsetMeters += Shift;
+            if (L.Blend != ECLNoiseBlend::Add && Ref->Guide.IsNone()) Ref->OffsetMeters -= Shift;
+        }
+    }
+    HeightGuides_DEPRECATED.Reset(); SchemaVersion = 2;
+}
+void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
+{
+    if (Ar.IsLoading() && Ar.IsPersistent() && !Ar.IsTransacting() && Ar.CustomVer(RecipeAssetVersion) < 1 && !HasAnyFlags(RF_ClassDefaultObject))
+    {
+        // UE omits fields equal to native defaults. Restore the old defaults
+        // before tagged properties load, so missing tags do not adopt new ones.
+        Recipe = FCLPlanetCompiler::RollingPlains(); Recipe.SchemaVersion = 1;
+        Recipe.Strata = FCLStrata(); Recipe.ReferenceRadiusMeters_DEPRECATED = 100;
+        Recipe.HeightGuides_DEPRECATED.Reset();
+        const FName Names[] = {TEXT("OceanHeight"), TEXT("SurfaceMin"), TEXT("SurfaceMax"), TEXT("AtmosphereMax")};
+        const double Heights[] = {0, 1, 7, 20};
+        const FLinearColor Colors[] = {FLinearColor(.1, .55, 1), FLinearColor(.8, .65, .3), FLinearColor(.4, .9, .45), FLinearColor(.5, .7, 1)};
+        for (int32 I = 0; I < 4; ++I)
+        { FCLHeightGuide G; G.Name = Names[I]; G.HeightMeters = Heights[I]; G.Color = Colors[I]; Recipe.HeightGuides_DEPRECATED.Add(G); }
+    }
+    Ar.UsingCustomVersion(RecipeAssetVersion);
+    Super::Serialize(Ar);
+}
+void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); Version.SchemaVersion = 2; }
 UCLPlanetRecipeAsset::UCLPlanetRecipeAsset() { Recipe = FCLPlanetCompiler::RollingPlains(); }
 FString UCLPlanetRecipeAsset::GetSummaryText() const
-{ return FString::Printf(TEXT("%s: %d guides, %d noise layers"), *Recipe.Name, Recipe.HeightGuides.Num(), Recipe.NoiseLayers.Num()); }
+{ return FString::Printf(TEXT("%s: %d guides, %d noise layers"), *Recipe.Name, Recipe.Strata.Stratum.Num(), Recipe.NoiseLayers.Num()); }
 bool UCLPlanetRecipeAsset::ValidatePayload(FString& Error) const { return FCLPlanetCompiler::Compile(Recipe, Error).IsValid(); }
 void UCLPlanetRecipeAsset::CollectValidationMessages(TArray<FCFValidationMessage>& Messages) const
 {
@@ -166,10 +237,34 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     TSharedPtr<FJsonObject> Object;
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
-    if (!CheckFields(*Object, *FCLPlanetRecipe::StaticStruct(), Error, TEXT("Recipe"))) return false;
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || Schema != 1 || Algorithm != 1)
-    { Error = TEXT("Recipe requires supported schemaVersion and algorithmVersion (1)"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2) || Algorithm != 1)
+    { Error = TEXT("Recipe requires schemaVersion 1 or 2 and algorithmVersion 1"); return false; }
+    if (Schema == 1)
+    {
+        // Explicit, lossless conversion of the old metre-based document.
+        const TArray<TSharedPtr<FJsonValue>>* Old = nullptr;
+        FCLPlanetRecipe Legacy; Legacy.SchemaVersion = 1; Legacy.Strata.Stratum.Reset();
+        if (Object->TryGetArrayField(TEXT("heightGuides"), Old))
+            for (const auto& V : *Old)
+            {
+                FCLHeightGuide G;
+                if (V->Type != EJson::Object || !CheckFields(*V->AsObject(), *FCLHeightGuide::StaticStruct(), Error, TEXT("heightGuides")) ||
+                    !FJsonObjectConverter::JsonObjectToUStruct(V->AsObject().ToSharedRef(), &G)) return false;
+                Legacy.HeightGuides_DEPRECATED.Add(G);
+            }
+        Object->TryGetNumberField(TEXT("referenceRadiusMeters"), Legacy.ReferenceRadiusMeters_DEPRECATED);
+        // Convert the entire v1 payload so base, noise scales and absolute references migrate together.
+        TSharedPtr<FJsonObject> OldObject = MakeShared<FJsonObject>(*Object);
+        OldObject->RemoveField(TEXT("heightGuides")); OldObject->RemoveField(TEXT("referenceRadiusMeters"));
+        if (!CheckFields(*OldObject, *FCLPlanetRecipe::StaticStruct(), Error, TEXT("Recipe"))) return false;
+        const auto SavedGuides = Legacy.HeightGuides_DEPRECATED;
+        if (!FJsonObjectConverter::JsonObjectToUStruct(OldObject.ToSharedRef(), &Legacy)) return false;
+        Legacy.HeightGuides_DEPRECATED = SavedGuides;
+        Legacy.MigrateLegacyGuides();
+        Object = FJsonObjectConverter::UStructToJsonObject(Legacy);
+    }
+    if (!CheckFields(*Object, *FCLPlanetRecipe::StaticStruct(), Error, TEXT("Recipe"))) return false;
     // Fresh candidate prevents omitted fields inheriting previous document values.
     FCLPlanetRecipe Candidate;
     FText Reason;

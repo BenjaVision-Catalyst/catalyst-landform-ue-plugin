@@ -10,6 +10,35 @@ FVector FCLSectionGeometry::DisplaySurfacePoint(const FVector& P)
     return FVector(P.X, P.Y, P.Size() + (P.Z - P.Size()) / 3);
 }
 
+FVector FCLSectionGeometry::StratumPoint(const FCLCompiledPlanetRecipe& Plan, const FVector2D& Edge, double Normalized)
+{
+    const double R = Plan.RadiusMeters * Normalized;
+    const double Transition = Edge.Size() * 1.05;
+    if (Transition > 0 && R < Transition)
+    {
+        const FVector P = DisplaySurfacePoint(FVector(Edge.X, Edge.Y, FMath::Sqrt(Transition * Transition - Edge.SizeSquared())) * 100);
+        return FVector(Edge.X * 100, Edge.Y * 100, P.Z * FMath::Max(0.0, R) / Transition);
+    }
+    return DisplaySurfacePoint(FVector(Edge.X, Edge.Y, FMath::Sqrt(FMath::Max(0.0, R * R - Edge.SizeSquared()))) * 100);
+}
+
+double FCLSectionGeometry::StratumAtScreenY(const FCLCompiledPlanetRecipe& Plan, const FVector2D& Edge, const FMatrix& Projection, double Y)
+{
+    const double NdcY = 1 - 2 * Y;
+    const FVector4 Base = Projection.TransformFVector4(FVector4(Edge.X * 100, Edge.Y * 100, 0, 1));
+    const FVector4 Axis = Projection.TransformFVector4(FVector4(0, 0, 1, 0));
+    const double Denominator = NdcY * Axis.W - Axis.Y;
+    if (FMath::Abs(Denominator) < 1.e-9) return 0;
+    const double TargetZ = (Base.Y - NdcY * Base.W) / Denominator;
+    double Low = 0, High = 1;
+    for (int32 I = 0; I < 48; ++I)
+    {
+        const double Mid = (Low + High) * .5;
+        if (StratumPoint(Plan, Edge, Mid).Z < TargetZ) Low = Mid; else High = Mid;
+    }
+    return (Low + High) * .5;
+}
+
 FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading)
 {
     // Intersect a vertical section ray with the same radial field VPP uses.

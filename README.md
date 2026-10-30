@@ -71,14 +71,21 @@ radial field remains distinct from an exact Euclidean SDF.
 ## Recipe-driven Designer foundation
 
 `UCLPlanetRecipeAsset` extends Foundation's model asset. `FCLPlanetCompiler`
-resolves optional named Height Guides and ordered noise layers into immutable
+resolves planet-global Strata and ordered noise layers into immutable
 worker data, consumed by both the curved editor preview and the spherical VPP
-volume. Guides are height references, not geological layers. The existing native
-heightmap actors compose after this base field. `Examples/RollingPlains.json`
+volume. Each Strata is a reusable set of named Stratum: normalized radial
+references from centre (0) to outer sky boundary (1), rather than geological
+layers. Resizing scales their resolved heights. Native heightmap actors compose
+after this base field; recipe output is clipped at the outer radius.
+`Examples/RollingPlains.json`
 is the first versioned local recipe; it is not a backend wire contract.
 
 The editor module extends Foundation's toolkit with Details, Validation and an
-orbitable solid core-to-sky cutaway. The tests module covers compilation, serialization,
+orbitable solid core-to-sky cutaway. Select and drag guide ticks/labels, Delete
+to remove, drag a new Stratum from the bottom, and rename labels in place.
+The Strata popup selects a project catalog style; the contextual planet's applied
+copy is the default. Save persists both the recipe and catalog. Schema 1 recipes
+migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
 snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
 Perlin noise; native VPP graph and PCG adapters remain future work. The host's
 `Docs/RecipeDesigner.md` documents authoring and physical validation.

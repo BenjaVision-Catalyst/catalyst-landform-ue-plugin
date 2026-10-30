@@ -76,6 +76,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
             FMath::Abs(Placement.HeightOffset) + Placement.Source.Smoothness;
         Sources.Add(MoveTemp(Source));
     }
+    if (RecipePlan) Extent = Stamp.Radius;
     return true;
 }
 
@@ -117,6 +118,8 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleHeights(const FVoxelQuery& Query,
             Heights.Set(I, FMath::Lerp(Heights[I], Next[I], Weights[I]));
         }
     }
+    // A recipe radius is the outer sky boundary, including native stamp output.
+    if (RecipePlan) for (int32 I = 0; I < Heights.Num(); ++I) Heights.Set(I, FMath::Min(Heights[I], 0.f));
     return Heights;
 }
 

@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-30",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8 with existing local registration bridge",
+  "configuration": "Editor Development; non-Nanite, no tessellation or navigation",
+  "editor_build": "passed",
+  "recipe_schema": 2,
+  "algorithm_version": 1,
+  "radius_semantics": "Outer sky boundary; Stratum normalized radial distances in [0,1]; metres from centre = normalizedHeight * radiusMeters",
+  "strata_ownership": "Planet recipe owns applied snapshot; reusable local project catalog uses Foundation model asset; no backend protocol yet",
+  "tests": {
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "LandformLab.Recipes.PhysicalCircumnavigation": "passed"
+  },
+  "validation_runs": [
+    {
+      "suite": "Normalized Strata, recipes and physical circumnavigation",
+      "tests": 7,
+      "exit_code": 0,
+      "log": "Saved/Logs/Strata-final-tests.log"
+    },
+    {
+      "suite": "Final editor geometry/projection, recipes, Strata, serialization guard and undo",
+      "tests": 6,
+      "exit_code": 0,
+      "log": "Saved/Logs/Strata-editor-tests.log"
+    }
+  ],
+  "physical_walk": {
+    "passed": true,
+    "degrees": 360.014166,
+    "frames": 8551,
+    "ground_frames": 8551,
+    "voxel_ground_frames": 8551,
+    "max_gap_cm": 2.810936,
+    "min_relief_cm": -2220.773926,
+    "max_relief_cm": -2001.314453,
+    "min_up_dot": 0.999999367
+  },
+  "binary_asset_migration": {
+    "binary_asset_migration": "passed",
+    "radius_meters": 125.0,
+    "resolved_guides_metres_from_centre": {
+      "OceanHeight": 100.0,
+      "SurfaceMin": 101.0,
+      "SurfaceMax": 107.0,
+      "AtmosphereMax": 120.0
+    },
+    "styles": [
+      "Temperate",
+      "Lab plains"
+    ],
+    "saved": true
+  },
+  "source_sha256": {
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "30dce7a0c196957bc73b1e72320e0715ac8388552f52899bdcbf921df2c1f91e",
+    "Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Source/CatalystLandform/Private/CLPlanet.cpp": "fde616a0f7db5c4e536b33e4ef2cd7531191b3d9d2bf5cb83bca25b4c9f1c7aa",
+    "Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "cff0fc4feb8001b6c922d9da60b423acf3975eedaeccde7aceff63b1d5cb59d5",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "9398b0fe87f22bae66f474bf7792f5fb9a492157def5ebe52e4604be8754d52b",
+    "Source/CatalystLandform/Private/Model/CLStrata.cpp": "183e3abf593e5eeb743f298c7e6936ff0ce06b1c8d4d42e4e360021b62c3341d",
+    "Source/CatalystLandform/Public/CLPlanet.h": "8d0e302d13b9639fd5835a0d1ad982999079038f9057882864333f0a4189e2f8",
+    "Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Source/CatalystLandform/Public/CLPlanetStamp.h": "3b7e2fad7a3e6dfdf72dee1a4e944cc9a9ebe32f1aa140fbe764ed6a9b5a0be2",
+    "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "f29aa90cc195f79a805777e15ed095aa7dbdb7efcf7d50a71ffaf5fc91c582fc",
+    "Source/CatalystLandform/Public/Model/CLStrata.h": "92ad397e9a54dbdf8f1f319db475bdbcdaaf48624861cb4b95bbf393b4c92f82",
+    "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "a9694bf1338eb099ce732d3303dc6805403976a982054f853ce059163d87ae15",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "768338062e42c0b84ff4c256945cbe6744504382554e2dd9360d2fe764486451",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "320092c0ff4d8df9cc18b1ec9f41ea9a819598b9d0a4a0c61424b8833335a3be",
+    "Source/CatalystLandformEditor/Private/CLStrataEditing.cpp": "211bbe40901ae864cb3eea8b4748a3ccd5d29b3cf4103bb3d279ec66763b9650",
+    "Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "8b3d5f8e61c33f46adb48bd83b7e2004c1dec0fb9b1cc6e3daf7df7c3628856f",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "078d7dcf918af9863f6183b9a126dac08ccbc92bfbe3871e89607141a226da0f",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "395af4a8efaac4d4d702cc6902e45ee76ca573835088b702d7206b52caa0561c",
+    "Source/CatalystLandformTests/CatalystLandformTests.Build.cs": "02b0a17affda1e3fa562e8b0eb2253f77c61bb65a2e6805063feec1ea7ec1e18",
+    "Source/CatalystLandformTests/Private/CLRecipeTests.cpp": "cb08ff02547bd00b6f9449e38da5ae6c0e57483307f929252e6ed8a9a1b82ae2",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "28559350b8173708486befcd05631fdcc7d02a0e969af1767198bd18054eb0b7",
+    "Source/CatalystLandformTests/Private/CLStrataTests.cpp": "7e600703a0e15224638dc6a5cde8f525cf943a661c4646f7eb260cf07ce2ee20"
+  },
+  "example_sha256": "1923c22172a01b2d179a1548b198c76c11246265cbca5cfe019d5968ed3901ed",
+  "host_asset_sha256": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "7ba8bbf8a4a5d6cfa76b9ea93bcc25de05386ef762decc7163bb14d6c28dc045",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "e2ff4732f8deafcc2b938c432f009e253e9108d70fa95a8a9bbcd259a34c4b23",
+    "Content/LandformDesigner/RollingPlainsProof.umap": "d816134d74cfb0f4329e8fc023d4279f55357664ba36d6bdfd489afc53c6a3fe"
+  },
+  "visual_preview_verified": true,
+  "direct_pointer_gestures": "Awaiting manual confirmation; native computer-use clicks did not reach UE widgets, including standard buttons",
+  "limits": [
+    "Local catalog/applied snapshots only; backend delivery pending",
+    "CPU Perlin base evaluator; native VPP graphs and PCG adapters pending",
+    "Deep guide annotations continue schematically below the radius that intersects the Cartesian corner",
+    "Section preview excludes separately placed level stamps and authored geology",
+    "Outer clipping applies to recipe-driven planets; older standalone stamp proofs retain their legacy radius convention",
+    "No cook, network or cross-platform qualification"
+  ],
+  "vendor_changes": "None"
+}

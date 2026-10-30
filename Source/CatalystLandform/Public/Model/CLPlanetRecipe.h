@@ -2,9 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
+#include "Model/CLStrata.h"
 #include "CLPlanetRecipe.generated.h"
 
-/** Optional named radial heights. Presence supplies a reference, never geometry. */
+/** Resolved metre heights for compiler output and legacy schema migration. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLHeightGuide
 {
@@ -14,7 +15,7 @@ struct CATALYSTLANDFORM_API FCLHeightGuide
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FLinearColor Color = FLinearColor(.2, .65, 1);
 };
 
-/** An absolute height, or a named guide plus an offset, relative to the reference radius. */
+/** An absolute metre offset, or a named Stratum plus offset, relative to the outer radius. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLHeightReference
 {
@@ -49,12 +50,19 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 1;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 2;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m", ClampMin="10")) double ReferenceRadiusMeters = 100;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m", ClampMin="10")) double RadiusMeters = 100;
+    /** Initial solid sphere before ordered operations; fraction of outer radius. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.001", ClampMax="1")) double BaseSurfaceNormalized = 1;
+    UPROPERTY() double ReferenceRadiusMeters_DEPRECATED = 100;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Seed = 1729;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLHeightGuide> HeightGuides;
+    /** Applied planet-global snapshot, independent of its authoring catalog. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLStrata Strata;
+    /** Read old binary recipes once, then migrate to normalized Strata. */
+    UPROPERTY() TArray<FCLHeightGuide> HeightGuides_DEPRECATED;
+    void MigrateLegacyGuides();
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLNoiseLayer> NoiseLayers;
 };
 
@@ -70,6 +78,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
         int32 Octaves;
     };
     double RadiusMeters = 100;
+    double BaseHeightMeters = 0;
     double MinimumHeightMeters = 0, MaximumHeightMeters = 0;
     TArray<FCLHeightGuide> Guides;
     TArray<FNoise> Layers;
@@ -92,6 +101,8 @@ public:
     UCLPlanetRecipeAsset();
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Recipe") FCLPlanetRecipe Recipe;
     virtual FString GetSummaryText() const override;
+    virtual void Serialize(FArchive& Ar) override;
+    virtual void PostLoad() override;
     /** Transactional local import; Foundation's legacy importer mutates before validating. */
     UFUNCTION(BlueprintCallable, Category="Landform|Recipe") bool ImportRecipeJson(const FString& Json, FString& Error);
 #if WITH_EDITOR
@@ -101,7 +112,7 @@ public:
 #endif
 protected:
     virtual FString GetPluginNameForPaths() const override { return TEXT("CatalystLandform"); }
-    virtual int32 GetSchemaVersion() const override { return 1; }
+    virtual int32 GetSchemaVersion() const override { return 2; }
     virtual UScriptStruct* GetPayloadScriptStruct() const override { return FCLPlanetRecipe::StaticStruct(); }
     virtual void* GetPayloadMemory() override { return &Recipe; }
     virtual const void* GetPayloadMemory() const override { return &Recipe; }
