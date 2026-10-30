@@ -358,15 +358,17 @@ public:
             [SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
                     [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).Text(FText::FromString(TEXT("Core"))).ColorAndOpacity(GuideLabelColor)]
-                + SHorizontalBox::Slot().AutoWidth().Padding(6, 0)
-                    [SNew(SButton).ContentPadding(FMargin(5, 0)).Text(FText::FromString(TEXT("+")))
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6, 0)
+                    [SNew(SBox).WidthOverride(16).HeightOverride(16).VAlign(VAlign_Center)
+                        [SNew(SButton).ButtonStyle(FAppStyle::Get(), "SimpleButton").ContentPadding(0)
                         .ToolTipText(FText::FromString(TEXT("Add a Stratum just above Core, then drag it to the desired height")))
                         .IsEnabled_Lambda([this] { return Session->Asset->Recipe.Strata.Stratum.Num() < 128; })
                         .OnClicked_Lambda([this]
                         {
                             Client->bGuides = true; Session->Add();
                             return FReply::Handled().SetUserFocus(SharedThis(this));
-                        })]];
+                        })[SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9))
+                            .Text(FText::FromString(TEXT("+"))).ColorAndOpacity(GuideLabelColor)]]]];
     }
     virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Clip, FSlateWindowElementList& Elements,
         int32 Layer, const FWidgetStyle& Style, bool Enabled) const override
@@ -649,7 +651,7 @@ public:
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SBox).HeightOverride(42)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
                     FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
-                        TEXT("Left drag: orbit | Middle drag: pan | Right drag or wheel: zoom | + beside Core: add Stratum");
+                        TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom | + beside Core: add Stratum");
                     if (Preview && Preview->Client->Plan && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");

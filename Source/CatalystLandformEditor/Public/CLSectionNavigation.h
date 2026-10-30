@@ -7,13 +7,14 @@ struct FCLSectionCamera
     FRotator Rotation;
 };
 
-/** Object navigation only. Full core-to-sky bounds stay inside a reserved frame. */
+/** Object navigation only. Centred fit with crop-limited panning for close inspection. */
 struct CATALYSTLANDFORMEDITOR_API FCLSectionNavigation
 {
-    double Yaw = -51.34, Elevation = 32, Zoom = 1.08;
-    FVector2D Pan = FVector2D::ZeroVector;
+    double Yaw = -51.34, Elevation = 32, Zoom = 1.0;
+    FVector2D Pan = FVector2D::ZeroVector; // fraction of the currently clipped range
+    bool bCanPanX = false, bCanPanY = false;
     void Orbit(FVector2D Pixels);
     void PanBy(FVector2D Pixels);
     void Dolly(double Steps);
-    FCLSectionCamera Camera(double TanHorizontal, double TanVertical) const;
+    FCLSectionCamera Camera(double TanHorizontal, double TanVertical);
 };

@@ -14,7 +14,7 @@ struct CATALYSTLANDFORMEDITOR_API FCLSectionGeometry
     int32 SurfaceVertexCount = 0;
     double HalfWidthMeters = 0;
 
-    /** Twice the previous footprint, within the 100–1000m viewing range. */
+    /** Initial 500m square viewing area for every planet context. */
     static double DefaultWidth(const FCLCompiledPlanetRecipe& Plan);
     /** Great-circle distances are measured on the sphere through the patch centre. */
     static double ReferenceSurfaceRadius(const FCLCompiledPlanetRecipe& Plan);

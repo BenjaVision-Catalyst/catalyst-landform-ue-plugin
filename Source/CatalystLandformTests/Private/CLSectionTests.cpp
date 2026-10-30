@@ -81,6 +81,10 @@ bool FCLSectionAreaTest::RunTest(const FString&)
 {
     FCLPlanetRecipe Recipe = FCLPlanetCompiler::RollingPlains(); Recipe.RadiusMeters = 1000;
     FString Error; const auto Plan = FCLPlanetCompiler::Compile(Recipe, Error);
+    TestEqual(TEXT("Every Designer opens at 500m coverage"), FCLSectionGeometry::DefaultWidth(*Plan), 500.0);
+    TestEqual(TEXT("Default generated patch samples 500m"), FCLSectionGeometry::Build(*Plan, 0).HalfWidthMeters * 2, 500.0);
+    FCLPlanetRecipe Small = Recipe; Small.RadiusMeters = 100;
+    TestEqual(TEXT("Default coverage is independent of planet radius"), FCLSectionGeometry::DefaultWidth(*FCLPlanetCompiler::Compile(Small, Error)), 500.0);
     const double Reference = FCLSectionGeometry::ReferenceSurfaceRadius(*Plan);
     for (double Width : {100.0, 500.0, 1000.0})
     {
@@ -121,30 +125,77 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSectionNavigationTest, "Catalyst.Landform.De
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLSectionNavigationTest::RunTest(const FString&)
 {
-    FCLSectionNavigation N;
-    N.Orbit(FVector2D(1.e8, 1.e8)); N.PanBy(FVector2D(1.e8, -1.e8)); N.Dolly(1.e8);
-    TestTrue(TEXT("Orbit keeps the surface above the horizon"), N.Elevation >= 15 && N.Elevation <= 75);
-    TestTrue(TEXT("Pan is bounded"), FMath::Abs(N.Pan.X) <= .08 && FMath::Abs(N.Pan.Y) <= .08);
-    TestEqual(TEXT("Zoom in stops at the complete-object fit"), N.Zoom, 1.0);
-    N.Dolly(-1.e8); TestEqual(TEXT("Zoom out has a finite limit"), N.Zoom, 2.2);
     const double S = FCLSectionGeometry::DisplaySize * 100;
-    for (double Aspect : {.45, 1.0, 1.6, 3.0}) for (double Yaw : {-180.0, -120.0, -60.0, 0.0, 60.0, 120.0, 180.0})
-        for (double Elevation : {15.0, 32.0, 75.0}) for (double Pan : {-.08, .08}) for (double Zoom : {1.0, 2.2})
+    auto Bounds = [&](const FCLSectionCamera& C, double H, double V)
+    {
+        const FRotationMatrix Axes(C.Rotation);
+        FBox2D B(ForceInit);
+        for (double X : {-.5 * S, .5 * S}) for (double Y : {-.5 * S, .5 * S}) for (double Z : {0.0, S})
         {
-            N.Yaw = Yaw; N.Elevation = Elevation; N.Pan = FVector2D(Pan, -Pan); N.Zoom = Zoom;
-            const double H = FMath::Tan(FMath::DegreesToRadians(30.0)), V = H / Aspect;
-            const auto C = N.Camera(H, V); const FRotationMatrix Axes(C.Rotation);
-            for (double X : {-.5 * S, .5 * S}) for (double Y : {-.5 * S, .5 * S}) for (double Z : {0.0, S})
-            {
-                const FVector P = FVector(X, Y, Z) - C.Eye;
-                const double Depth = FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::X));
-                const double PX = FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::Y)) / (Depth * H);
-                const double PY = FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::Z)) / (Depth * V);
-                TestTrue(TEXT("Every core-to-sky corner stays in front of the camera"), Depth > 0);
-                TestTrue(TEXT("Full section remains in the horizontal frame with room for labels"), PX >= -.88 && PX <= .35);
-                TestTrue(TEXT("Full section remains in the vertical frame"), PY >= -.85 && PY <= .85);
-            }
+            const FVector P = FVector(X, Y, Z) - C.Eye;
+            const double Depth = FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::X));
+            TestTrue(TEXT("Every core-to-sky corner remains in front of the camera"), Depth > 0);
+            B += FVector2D(FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::Y)) / (Depth * H),
+                FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::Z)) / (Depth * V));
         }
+        return B;
+    };
+    FCLSectionNavigation N;
+    N.PanBy(FVector2D(1000, 1000));
+    TestTrue(TEXT("Default fitted view cannot pan"), N.Pan.IsNearlyZero());
+    N.Orbit(FVector2D(1.e8, 1.e8)); N.Dolly(1.e8);
+    TestTrue(TEXT("Orbit elevation is bounded"), N.Elevation >= 15 && N.Elevation <= 75);
+    TestEqual(TEXT("Zoom allows close inspection"), N.Zoom, .3);
+    N.Dolly(-1.e8); TestEqual(TEXT("Zoom out has a finite limit"), N.Zoom, 2.2);
+    for (double Aspect : {.45, 1.0, 1.6, 3.0}) for (double Yaw : {-180.0, -120.0, -60.0, 0.0, 60.0, 120.0, 180.0})
+        for (double Elevation : {15.0, 32.0, 75.0}) for (double PanSign : {-1.0, 1.0}) for (double Zoom : {.3, .5, .75, 1.0, 2.2})
+        {
+            N.Yaw = Yaw; N.Elevation = Elevation; N.Pan = FVector2D::ZeroVector; N.Zoom = Zoom;
+            const double H = FMath::Tan(FMath::DegreesToRadians(30.0)), V = H / Aspect;
+            const auto Centred = Bounds(N.Camera(H, V), H, V);
+            TestTrue(TEXT("Neutral projected bounds are horizontally centred"), FMath::Abs(Centred.Min.X + Centred.Max.X) < 1.e-8);
+            TestTrue(TEXT("Neutral projected bounds are vertically centred"), FMath::Abs(Centred.Min.Y + Centred.Max.Y) < 1.e-8);
+            N.PanBy(FVector2D(PanSign * 1.e8, PanSign * 1.e8));
+            const auto Panned = Bounds(N.Camera(H, V), H, V);
+            if (N.bCanPanX)
+            {
+                TestTrue(TEXT("Horizontal panning requires clipped edges"), Centred.Min.X < -1 && Centred.Max.X > 1);
+                TestTrue(TEXT("Horizontal pan cannot move the cutaway out of the viewport"), Panned.Min.X <= -1 + 1.e-8 && Panned.Max.X >= 1 - 1.e-8);
+            }
+            else
+            {
+                TestEqual(TEXT("Horizontal pan resets when the axis fits"), N.Pan.X, 0.0);
+                TestTrue(TEXT("Fitted horizontal view remains centred"), FMath::Abs(Panned.Min.X + Panned.Max.X) < 1.e-8);
+            }
+            if (N.bCanPanY)
+            {
+                TestTrue(TEXT("Vertical panning requires clipped edges"), Centred.Min.Y < -1 && Centred.Max.Y > 1);
+                TestTrue(TEXT("Vertical pan cannot move the cutaway out of the viewport"), Panned.Min.Y <= -1 + 1.e-8 && Panned.Max.Y >= 1 - 1.e-8);
+            }
+            else
+            {
+                TestEqual(TEXT("Vertical pan resets when the axis fits"), N.Pan.Y, 0.0);
+                TestTrue(TEXT("Fitted vertical view remains centred"), FMath::Abs(Panned.Min.Y + Panned.Max.Y) < 1.e-8);
+            }
+            if (Zoom >= 1) TestTrue(TEXT("Zoomed out view fits completely and cannot pan"),
+                !N.bCanPanX && !N.bCanPanY && Panned.Min.X >= -1 && Panned.Max.X <= 1 && Panned.Min.Y >= -1 && Panned.Max.Y <= 1);
+        }
+    FCLSectionNavigation Return;
+    const double H = FMath::Tan(FMath::DegreesToRadians(30.0)), V = H / 1.6;
+    Return.Dolly(100); Return.Camera(H, V); Return.PanBy(FVector2D(1000, 1000));
+    TestTrue(TEXT("Close inspection enables at least one pan axis"), Return.bCanPanX || Return.bCanPanY);
+    double PreviousOffset = TNumericLimits<double>::Max();
+    for (int32 I = 0; I < 20; ++I)
+    {
+        const auto Projected = Bounds(Return.Camera(H, V), H, V);
+        // Centre is a screen-space requirement. Perspective can increase the
+        // world-space target offset while its visible displacement decreases.
+        const double Offset = ((Projected.Min + Projected.Max) * .5).Size();
+        TestTrue(TEXT("Zooming out progressively recentres a panned view"), Offset <= PreviousOffset + 1.e-8);
+        PreviousOffset = Offset; Return.Dolly(-1);
+    }
+    TestTrue(TEXT("Returning to a fitted view clears pan"), Return.Pan.IsNearlyZero() && !Return.bCanPanX && !Return.bCanPanY);
+
     return true;
 }
 #endif

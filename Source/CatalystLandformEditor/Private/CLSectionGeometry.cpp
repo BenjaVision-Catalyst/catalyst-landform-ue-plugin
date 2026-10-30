@@ -1,10 +1,7 @@
 #include "CLSectionGeometry.h"
 
-double FCLSectionGeometry::DefaultWidth(const FCLCompiledPlanetRecipe& Plan)
-{
-    const double OldHalfWidth = FMath::Min(Plan.RadiusMeters * .42, (Plan.RadiusMeters + Plan.MinimumHeightMeters) * .6);
-    return FMath::Clamp(FMath::RoundToDouble(OldHalfWidth * 4 / 10) * 10, 100.0, 1000.0);
-}
+double FCLSectionGeometry::DefaultWidth(const FCLCompiledPlanetRecipe&)
+{ return 500; }
 
 double FCLSectionGeometry::ReferenceSurfaceRadius(const FCLCompiledPlanetRecipe& Plan)
 { return FMath::Max(.001, Plan.RadiusMeters + Plan.SampleHeightMeters(FVector::ZAxisVector)); }
