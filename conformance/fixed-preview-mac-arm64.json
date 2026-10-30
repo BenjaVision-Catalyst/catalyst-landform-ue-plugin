@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-31",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "test_exit_code": 0,
+  "automation_summary": {
+    "succeeded": 12,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Fixed-preview-tests.log",
+  "preview": {
+    "display_frame": "Fixed horizontal dimensions and normalized core-to-sky envelope, independent of selected coverage and physical planet radius",
+    "area": "100\u20131000m of source terrain fitted into the same frame",
+    "camera": "Framed once; coverage changes preserve location, rotation and orbit target",
+    "annotations": "Fixed normalized reference positions; light gray labels, values and ticks",
+    "layout": "Reserved caption width and status row heights prevent slider feedback from resizing the viewport",
+    "sampling": "Spherical surface-distance chart; same source evaluator as the preceding revision",
+    "vertical_scale": "Full planet radius, independent of horizontal coverage; schematic fixed shallow curvature"
+  },
+  "viewport_regression": {
+    "cases_metres": [
+      100,
+      500,
+      1000
+    ],
+    "actual_preview_widget": true,
+    "unchanged_mesh_bounds": true,
+    "preserves_manually_adjusted_camera": true,
+    "preserves_orbit_target": true,
+    "samples_different_source_data_at_same_display_corner": true,
+    "planet_resize_preserves_normalized_frame": true
+  },
+  "nonblocking_warnings": [
+    "Recipes.VPPAndLiveEdits: engine LineSetComponentMaterial uses a fallback because a function from the disabled Experimental Mesh Modeling Toolset is unavailable; vendor configuration left unchanged."
+  ],
+  "edited_assets_preserved": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "9005a5c6aa4ba762996195856ebe885141fe7455efd020fdca0ecf294c941064",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "2fa52fb233d83e619285996089eb540ebb932cb865ad2a52323ae86d2d2a5be9"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "b1adf468969c3d7bd99e85a4793dd46f2af0e88c229705f6ea708c08f87464df",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "96216f8a8bbd1079c9722f0b196475d435b4fd153ffcb8f82ac89525d5233541",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "422a21417869f8fb2c54b03d8bdaa5fa3ca7f800a9a0c736c1e75fd1cc87788d",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "d885952dd825a2a886b419f42175f0fc90b9cc355cd9a35bd35931d8038eb9ce"
+  },
+  "limits": [
+    "Coverage rebuild exercised through actual viewport API; native mouse injection into the slider remains unavailable",
+    "Full vertical guide scale is maintained while horizontal coverage changes; display has separate horizontal and vertical scales",
+    "Height-only CPU preview; level stamps, VPP surface materials, caves and PCG pending",
+    "No new runtime, cook, networking or physical-walk qualification"
+  ],
+  "vendor_changes": "None",
+  "editor": "Corrected fixed-size Hills preview reopened in LandformLab; gray guides and layout visually inspected."
+}

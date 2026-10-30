@@ -26,6 +26,8 @@
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SSlider.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
+#include "Misc/AutomationTest.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/SLeafWidget.h"
@@ -59,7 +61,7 @@ public:
     double StratumHeightMeters(double Normalized) const { return (Normalized - 1) * Plan->RadiusMeters; }
     double NormalizedAtScreenY(double Y) const
     {
-        return bHasProjection && Plan ? FCLSectionGeometry::StratumAtScreenY(*Plan, RightEdge, ViewProjection, Y) : 0;
+        return bHasProjection && Plan ? FCLSectionGeometry::StratumAtScreenY(RightEdge, ViewProjection, Y) : 0;
     }
     struct FIndicator { FString Text; FLinearColor Color; FVector2D Position; int32 Index = INDEX_NONE; };
     TArray<FIndicator> Indicators;
@@ -75,11 +77,11 @@ public:
     }
     double TopHeight() const
     {
-        return Plan->RadiusMeters;
+        return FCLSectionGeometry::DisplaySize;
     }
     bool GuidePoint(double X, double Y, double Height, FVector& Point) const
     {
-        Point = FCLSectionGeometry::StratumPoint(*Plan, FVector2D(X, Y), 1 + Height / Plan->RadiusMeters);
+        Point = FCLSectionGeometry::StratumPoint(FVector2D(X, Y), 1 + Height / Plan->RadiusMeters);
         return true;
     }
     virtual FLinearColor GetBackgroundColor() const override { return FLinearColor(.075, .09, .11); }
@@ -87,7 +89,7 @@ public:
     {
         FEditorViewportClient::Draw(View, PDI);
         if (!Plan) return;
-        const double W = AreaWidthMeters * .5;
+        const double W = FCLSectionGeometry::DisplaySize * .5;
         const FLinearColor Frame(.24, .34, .44);
         for (double X : {-W, W}) for (double Y : {-W, W})
         { FVector P; GuidePoint(X, Y, 0, P); PDI->DrawLine(FVector(X, Y, 0) * 100, P, Frame, SDPG_World, 1); }
@@ -106,7 +108,7 @@ public:
         for (double X : {-W, W}) for (double Y : {-W, W})
         {
             FVector2D Screen;
-            if (View->WorldToPixel(FVector(X, Y, Plan->RadiusMeters) * 100, Screen) && Screen.X > Rightmost)
+            if (View->WorldToPixel(FVector(X, Y, TopHeight()) * 100, Screen) && Screen.X > Rightmost)
             { Rightmost = Screen.X; Edge = FVector2D(X, Y); }
         }
         RightEdge = Edge; ViewProjection = View->ViewMatrices.GetViewProjectionMatrix();
@@ -338,7 +340,7 @@ public:
     FAdvancedPreviewScene Scene{FPreviewScene::ConstructionValues()};
     TStrongObjectPtr<UProceduralMeshComponent> Mesh;
     TSharedPtr<FCLSectionClient> Client;
-    double LastRadius = 0, LastWidth = 0;
+    bool bCameraFramed = false;
     void Construct(const FArguments& Args)
     {
         Scene.SetFloorVisibility(false); Scene.SetEnvironmentVisibility(false);
@@ -365,10 +367,10 @@ public:
         UV.Init(FVector2D::ZeroVector, G.Vertices.Num());
         UKismetProceduralMeshLibrary::CalculateTangentsForMesh(G.Vertices, G.Triangles, {}, N, Tangents);
         Mesh->CreateMeshSection_LinearColor(0, G.Vertices, G.Triangles, N, UV, G.Colors, Tangents, false);
-        if (!FMath::IsNearlyEqual(LastRadius, Plan->RadiusMeters) || !FMath::IsNearlyEqual(LastWidth, Client->AreaWidthMeters))
+        if (!bCameraFramed)
         {
-            LastRadius = Plan->RadiusMeters; LastWidth = Client->AreaWidthMeters;
-            const double R = FMath::Max(Plan->RadiusMeters, Client->AreaWidthMeters * 1.2) * 100;
+            bCameraFramed = true;
+            const double R = FCLSectionGeometry::DisplaySize * 120;
             const FVector Target(0, 0, Client->TopHeight() * 45);
             Client->SetViewLocation(Target + FVector(.8 * R, -1.0 * R, .8 * R));
             Client->SetViewRotation((Target - Client->GetViewLocation()).Rotation());
@@ -545,10 +547,10 @@ public:
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).OnValueChanged_Lambda([this](float Value)
                     { Preview->Client->Heading = Value * 2 * UE_PI; Preview->Rebuild(Preview->Client->Plan); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(200)[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("100 m")))]
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider)
-                    .ToolTipText(FText::FromString(TEXT("Square surface-distance footprint. Release to resample terrain; this does not change the planet recipe.")))
+                    .ToolTipText(FText::FromString(TEXT("Terrain area fitted into the fixed cutaway. Release to resample; camera and guide scale stay fixed.")))
                     .Value_Lambda([this] { return float((PendingAreaWidth - 100) / 900); })
                     .OnMouseCaptureBegin_Lambda([this] { bAreaDragging = true; })
                     .OnMouseCaptureEnd_Lambda([this] { bAreaDragging = false; ApplyPreviewArea(); })
@@ -558,22 +560,22 @@ public:
                     { PendingAreaWidth = FMath::Clamp(FMath::RoundToDouble((100 + 900 * Value) / 10) * 10, 100.0, 1000.0);
                       if (!bAreaDragging) ApplyPreviewArea(); })]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("1 km")))]]
-            + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).Text_Lambda([this]
-                { return bAreaDragging ? FText::FromString(FString::Printf(TEXT("Release to view %.0f m × %.0f m"), PendingAreaWidth, PendingAreaWidth)) : FText(); })]
+            + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(SBox).HeightOverride(18)[SNew(STextBlock).Text_Lambda([this]
+                { return bAreaDragging ? FText::FromString(FString::Printf(TEXT("Release to view %.0f m × %.0f m"), PendingAreaWidth, PendingAreaWidth)) : FText(); })]]
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(StrataSession)]]
             + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right).Padding(8)
                 [SNew(SCLStratumHandle).Session(StrataSession).Client(Preview->Client).Overlay(Annotations).New(true)]
-            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
+            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SBox).HeightOverride(42)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
                     FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
-                        TEXT("Surface-distance square, unwrapped | Core-to-sky curvature 1/3 (schematic) | Alt + mouse: orbit/pan/zoom");
+                        TEXT("Fixed cutaway | Area controls horizontal coverage; heights use the full planet radius | Alt + mouse: orbit/pan/zoom");
                     if (Preview && Preview->Client->Plan && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
                     return FText::FromString(Legend);
-                })]];
+                })]]];
     }
 };
 const FName FCLRecipeToolkit::SectionTab(TEXT("CLRecipeSection"));
@@ -620,3 +622,42 @@ EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& A
     return EAssetCommandResult::Handled;
 }
 IMPLEMENT_MODULE(FCLDesignerModule, CatalystLandformEditor)
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLFixedDesignerFrameTest, "Catalyst.Landform.Designer.FixedDisplayFrame",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLFixedDesignerFrameTest::RunTest(const FString&)
+{
+    FString Error;
+    FCLPlanetRecipe Recipe; Recipe.RadiusMeters = 1000;
+    const auto Plan = FCLPlanetCompiler::Compile(Recipe, Error);
+    const TSharedRef<SCLSectionViewport> Preview = SNew(SCLSectionViewport);
+    Preview->Rebuild(Plan);
+    // Changing coverage must also preserve a user's manually adjusted camera.
+    const FVector Eye = Preview->Client->GetViewLocation() + FVector(200, 300, 400);
+    const FRotator Rotation = Preview->Client->GetViewRotation() + FRotator(2, 3, 0);
+    Preview->Client->SetViewLocation(Eye); Preview->Client->SetViewRotation(Rotation);
+    const FVector Target = Preview->Client->GetLookAtLocation();
+    const FBox InitialBounds = Preview->Mesh->GetProcMeshSection(0)->SectionLocalBox;
+    FVector PreviousCorner; bool bPrevious = false;
+    for (double Width : {100.0, 500.0, 1000.0})
+    {
+        Preview->Client->AreaWidthMeters = Width;
+        Preview->Rebuild(Plan);
+        TestTrue(TEXT("Coverage preserves the user's camera position"), Preview->Client->GetViewLocation().Equals(Eye, .001));
+        TestTrue(TEXT("Coverage preserves the user's camera rotation"), Preview->Client->GetViewRotation().Equals(Rotation, .001));
+        TestTrue(TEXT("Coverage preserves the orbit target"), Preview->Client->GetLookAtLocation().Equals(Target, .001));
+        const FBox Bounds = Preview->Mesh->GetProcMeshSection(0)->SectionLocalBox;
+        TestTrue(TEXT("Coverage leaves the displayed block bounds unchanged"), Bounds.Min.Equals(InitialBounds.Min, .01) && Bounds.Max.Equals(InitialBounds.Max, .01));
+        const FVector Corner = FCLSectionGeometry::SourceSurfacePoint(*Plan, Width / 2, Width / 2, 0);
+        if (bPrevious) TestFalse(TEXT("Larger coverage samples different data at the same displayed corner"), Corner.Equals(PreviousCorner, .01));
+        PreviousCorner = Corner; bPrevious = true;
+    }
+    Recipe.RadiusMeters = 100;
+    Preview->Rebuild(FCLPlanetCompiler::Compile(Recipe, Error));
+    TestTrue(TEXT("Resizing a planet preserves the display camera"), Preview->Client->GetViewLocation().Equals(Eye, .001));
+    const FBox ResizedBounds = Preview->Mesh->GetProcMeshSection(0)->SectionLocalBox;
+    TestTrue(TEXT("Normalized display bounds are independent of planet radius"), ResizedBounds.Min.Equals(InitialBounds.Min, .01) && ResizedBounds.Max.Equals(InitialBounds.Max, .01));
+    return true;
+}
+#endif

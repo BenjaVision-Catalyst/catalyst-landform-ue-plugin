@@ -21,19 +21,19 @@ FVector FCLSectionGeometry::SourceSurfacePoint(const FCLCompiledPlanetRecipe& Pl
     return Direction * (Plan.RadiusMeters + Plan.SampleHeightMeters(Direction)) * 100;
 }
 
-FVector FCLSectionGeometry::StratumPoint(const FCLCompiledPlanetRecipe& Plan, const FVector2D& Edge, double Normalized)
+FVector FCLSectionGeometry::StratumPoint(const FVector2D& Edge, double Normalized)
 {
-    const double Reference = ReferenceSurfaceRadius(Plan);
+    const double Reference = DisplaySize;
     const double Sag = Reference * (1 - FMath::Cos(Edge.Size() / Reference)) / 3;
-    const double Height = FMath::Max(0.0, Plan.RadiusMeters * Normalized);
-    // Apply the same additive sag to terrain and guides, preserving radial relief.
-    // Deep references continue schematically to the centre plane, rather than
-    // disappearing where their small concentric spheres cannot reach the edge.
+    const double Height = FMath::Max(0.0, DisplaySize * Normalized);
+    // Fixed schematic curvature and normalized vertical scale keep the frame
+    // and reference ticks stationary while the sampling window changes.
+    // Deep references continue to the centre plane.
     const double Blend = Sag > .000001 ? FMath::Min(1.0, Height / (2 * Sag)) : 1;
     return FVector(Edge.X, Edge.Y, Height - Sag * Blend) * 100;
 }
 
-double FCLSectionGeometry::StratumAtScreenY(const FCLCompiledPlanetRecipe& Plan, const FVector2D& Edge, const FMatrix& Projection, double Y)
+double FCLSectionGeometry::StratumAtScreenY(const FVector2D& Edge, const FMatrix& Projection, double Y)
 {
     const double NdcY = 1 - 2 * Y;
     const FVector4 Base = Projection.TransformFVector4(FVector4(Edge.X * 100, Edge.Y * 100, 0, 1));
@@ -45,15 +45,16 @@ double FCLSectionGeometry::StratumAtScreenY(const FCLCompiledPlanetRecipe& Plan,
     for (int32 I = 0; I < 48; ++I)
     {
         const double Mid = (Low + High) * .5;
-        if (StratumPoint(Plan, Edge, Mid).Z < TargetZ) Low = Mid; else High = Mid;
+        if (StratumPoint(Edge, Mid).Z < TargetZ) Low = Mid; else High = Mid;
     }
     return (Low + High) * .5;
 }
 
-FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading)
+FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading, double WidthMeters)
 {
     const FVector Source = SourceSurfacePoint(Plan, X, Y, Heading);
-    return StratumPoint(Plan, FVector2D(X, Y), Source.Size() / (100 * Plan.RadiusMeters));
+    const double Width = FMath::Clamp(WidthMeters > 0 ? WidthMeters : DefaultWidth(Plan), 100.0, 1000.0);
+    return StratumPoint(FVector2D(X, Y) * (DisplaySize / Width), Source.Size() / (100 * Plan.RadiusMeters));
 }
 
 FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan, double Heading, double WidthMeters)
@@ -71,7 +72,8 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
             const FVector2D XY(G.HalfWidthMeters * (2.0 * X / N - 1), G.HalfWidthMeters * (2.0 * Y / N - 1));
             const FVector Source = SourceSurfacePoint(Plan, XY.X, XY.Y, Heading);
             G.SourceSurfacePoints.Add(Source);
-            const FVector P = StratumPoint(Plan, XY, Source.Size() / (100 * Plan.RadiusMeters));
+            const FVector2D DisplayXY = XY * (DisplaySize / (G.HalfWidthMeters * 2));
+            const FVector P = StratumPoint(DisplayXY, Source.Size() / (100 * Plan.RadiusMeters));
             const double H = Source.Size() / 100 - Plan.RadiusMeters;
             const double Shade = FMath::Clamp((H - Plan.MinimumHeightMeters) /
                 FMath::Max(.001, Plan.MaximumHeightMeters - Plan.MinimumHeightMeters), 0.0, 1.0);
