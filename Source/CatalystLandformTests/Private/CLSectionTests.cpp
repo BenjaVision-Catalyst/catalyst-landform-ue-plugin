@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "CLSectionGeometry.h"
+#include "CLSectionNavigation.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSectionTest, "Catalyst.Landform.Designer.CoreToSkySection",
@@ -114,6 +115,36 @@ bool FCLSectionAreaTest::RunTest(const FString&)
                 FCLSectionGeometry::StratumAtScreenY(XY, Projection, .5 - .5 * Clip.Y / Clip.W) - Height) < 1.e-8);
         }
     }
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSectionNavigationTest, "Catalyst.Landform.Designer.BoundedNavigation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLSectionNavigationTest::RunTest(const FString&)
+{
+    FCLSectionNavigation N;
+    N.Orbit(FVector2D(1.e8, 1.e8)); N.PanBy(FVector2D(1.e8, -1.e8)); N.Dolly(1.e8);
+    TestTrue(TEXT("Orbit keeps the surface above the horizon"), N.Elevation >= 15 && N.Elevation <= 75);
+    TestTrue(TEXT("Pan is bounded"), FMath::Abs(N.Pan.X) <= .08 && FMath::Abs(N.Pan.Y) <= .08);
+    TestEqual(TEXT("Zoom in stops at the complete-object fit"), N.Zoom, 1.0);
+    N.Dolly(-1.e8); TestEqual(TEXT("Zoom out has a finite limit"), N.Zoom, 2.2);
+    const double S = FCLSectionGeometry::DisplaySize * 100;
+    for (double Aspect : {.45, 1.0, 1.6, 3.0}) for (double Yaw : {-180.0, -120.0, -60.0, 0.0, 60.0, 120.0, 180.0})
+        for (double Elevation : {15.0, 32.0, 75.0}) for (double Pan : {-.08, .08}) for (double Zoom : {1.0, 2.2})
+        {
+            N.Yaw = Yaw; N.Elevation = Elevation; N.Pan = FVector2D(Pan, -Pan); N.Zoom = Zoom;
+            const double H = FMath::Tan(FMath::DegreesToRadians(30.0)), V = H / Aspect;
+            const auto C = N.Camera(H, V); const FRotationMatrix Axes(C.Rotation);
+            for (double X : {-.5 * S, .5 * S}) for (double Y : {-.5 * S, .5 * S}) for (double Z : {0.0, S})
+            {
+                const FVector P = FVector(X, Y, Z) - C.Eye;
+                const double Depth = FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::X));
+                const double PX = FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::Y)) / (Depth * H);
+                const double PY = FVector::DotProduct(P, Axes.GetUnitAxis(EAxis::Z)) / (Depth * V);
+                TestTrue(TEXT("Every core-to-sky corner stays in front of the camera"), Depth > 0);
+                TestTrue(TEXT("Full section remains in the horizontal frame with room for labels"), PX >= -.88 && PX <= .35);
+                TestTrue(TEXT("Full section remains in the vertical frame"), PY >= -.85 && PY <= .85);
+            }
+        }
     return true;
 }
 #endif

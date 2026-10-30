@@ -33,6 +33,7 @@ public:
     void Changed();
     void Height(int32 Index, double Height);
     void Remove(int32 Index);
+    int32 Add(double Height = .05);
     void Apply(FGuid Id);
     void NewSet();
     void RemoveSet();

@@ -1,5 +1,9 @@
 #include "CLRecipeAssetTools.h"
 #include "CLSectionGeometry.h"
+#include "CLSectionNavigation.h"
+#include "Framework/Application/IInputProcessor.h"
+#include "Layout/WidgetPath.h"
+#include "InputKeyEventArgs.h"
 #include "CLStrataEditing.h"
 #include "CLPlanet.h"
 #include "Engine/Selection.h"
@@ -50,6 +54,38 @@ class FCLSectionClient : public FEditorViewportClient
 {
 public:
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
+    FCLSectionNavigation Navigation;
+    FIntPoint NavigationSize = FIntPoint::ZeroValue;
+    void ApplyNavigation()
+    {
+        FIntPoint Size = Viewport ? Viewport->GetSizeXY() : FIntPoint(1600, 1000);
+        if (Size.X < 1 || Size.Y < 1) Size = FIntPoint(1600, 1000);
+        NavigationSize = Size; AspectRatio = double(Size.X) / Size.Y;
+        const double TanH = FMath::Tan(FMath::DegreesToRadians(double(ViewFOV) * .5));
+        const auto Camera = Navigation.Camera(TanH, TanH / AspectRatio);
+        SetViewLocation(Camera.Eye); SetViewRotation(Camera.Rotation); SetLookAtLocation(Camera.Target);
+        Invalidate();
+    }
+    virtual void Tick(float) override
+    {
+        if (Viewport && Viewport->GetSizeXY().X > 0 && Viewport->GetSizeXY().Y > 0 && Viewport->GetSizeXY() != NavigationSize) ApplyNavigation();
+    }
+    // All camera gestures are object navigation. Never enter editor flight mode.
+    virtual bool InputKey(const FInputKeyEventArgs& E) override
+    {
+        if (E.Event == IE_Pressed && (E.Key == EKeys::MouseScrollUp || E.Key == EKeys::MouseScrollDown))
+        { Navigation.Dolly(E.Key == EKeys::MouseScrollUp ? 1 : -1); ApplyNavigation(); }
+        return true;
+    }
+    virtual bool InputAxis(const FInputKeyEventArgs&) override { return true; }
+    virtual void MouseMove(FViewport*, int32, int32) override {}
+    virtual void CapturedMouseMove(FViewport*, int32, int32) override {}
+    virtual bool InputGesture(FViewport*, FInputDeviceId, EGestureEvent Type, const FVector2D& Delta, bool Inverted, uint64) override
+    {
+        if (Type == EGestureEvent::Magnify) Navigation.Dolly(Delta.X * 6);
+        else if (Type == EGestureEvent::Scroll) Navigation.PanBy(Delta * (Inverted ? -10 : 10));
+        ApplyNavigation(); return true;
+    }
     double Heading = 0;
     double AreaWidthMeters = 0;
     bool bGuides = true;
@@ -68,7 +104,7 @@ public:
     FCLSectionClient(FPreviewScene* Scene, const TSharedRef<SEditorViewport>& Viewport)
         : FEditorViewportClient(nullptr, Scene, Viewport)
     {
-        SetViewMode(VMI_Lit); SetRealtime(false);
+        SetViewMode(VMI_Lit); SetRealtime(false); ViewFOV = FOVAngle = 60;
         ExposureSettings.bFixed = true; ExposureSettings.FixedEV100 = 0;
         SetViewLocation(FVector(8500, -10500, 8000));
         SetViewRotation((FVector(0, 0, -1500) - GetViewLocation()).Rotation());
@@ -126,9 +162,9 @@ public:
                 FVector2D((Screen.X - ViewRect.Min.X) / FMath::Max(1, ViewRect.Width()),
                     (Screen.Y - ViewRect.Min.Y) / FMath::Max(1, ViewRect.Height())), Index});
         };
-        Indicator(FVector(RightEdge.X, RightEdge.Y, 0) * 100, TEXT("Core / centre plane"), FLinearColor(.9, .7, .5), -2);
+        Indicator(FVector(RightEdge.X, RightEdge.Y, 0) * 100, TEXT("Core"), FLinearColor(.9, .7, .5), -2);
         FVector Sky; GuidePoint(RightEdge.X, RightEdge.Y, 0, Sky);
-        Indicator(Sky, TEXT("Sky boundary (1.0)"), FLinearColor(.65, .8, 1), -3);
+        Indicator(Sky, TEXT("Sky boundary"), FLinearColor(.65, .8, 1), -3);
         if (bGuides) for (int32 I = 0; I < Strata.Stratum.Num(); ++I)
         {
             const auto& G = Strata.Stratum[I]; FVector P;
@@ -143,12 +179,11 @@ public:
 class SCLStratumHandle : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS(SCLStratumHandle) : _Index(INDEX_NONE), _New(false), _Label(false) {}
+    SLATE_BEGIN_ARGS(SCLStratumHandle) : _Index(INDEX_NONE), _Label(false) {}
         SLATE_ARGUMENT(TSharedPtr<FCLStrataSession>, Session)
         SLATE_ARGUMENT(TSharedPtr<FCLSectionClient>, Client)
         SLATE_ARGUMENT(TWeakPtr<SWidget>, Overlay)
         SLATE_ARGUMENT(int32, Index)
-        SLATE_ARGUMENT(bool, New)
         SLATE_ARGUMENT(bool, Label)
     SLATE_END_ARGS()
     TSharedPtr<FCLStrataSession> Session;
@@ -156,16 +191,14 @@ public:
     TWeakPtr<SWidget> Overlay;
     TSharedPtr<SInlineEditableTextBlock> Name;
     int32 Index = INDEX_NONE;
-    bool bNew = false, bDragging = false;
+    bool bDragging = false;
     FVector2D MouseStart;
     void Construct(const FArguments& Args)
     {
         Session = Args._Session; Client = Args._Client; Overlay = Args._Overlay;
-        Index = Args._Index; bNew = Args._New;
-        SetToolTipText(FText::FromString(bNew ? TEXT("Drag onto the section to create a Stratum") :
-            TEXT("Click to select; drag to move; Delete to remove; double-click a label or press F2 to rename")));
-        if (bNew) ChildSlot[SNew(SBorder).Padding(8)[SNew(STextBlock).Text(FText::FromString(TEXT("+ New Stratum — drag up to create")))]];
-        else if (Args._Label)
+        Index = Args._Index;
+        SetToolTipText(FText::FromString(TEXT("Click to select; drag to move; Delete to remove; double-click a label or press F2 to rename")));
+        if (Args._Label)
             ChildSlot[SNew(SBorder).Padding(FMargin(3, 1)).BorderImage(FAppStyle::GetBrush("WhiteBrush"))
                 .BorderBackgroundColor_Lambda([this] { return Session->Selected == Index ? FLinearColor(.1, .3, .5, .65) : FLinearColor::Transparent; })
                 [SNew(SHorizontalBox)
@@ -186,13 +219,7 @@ public:
                             Session->Begin(NSLOCTEXT("CL", "RenameStratum", "Rename Stratum"));
                             FCLStrataEditing::Rename(Session->Asset->Recipe, Index, Text.ToString(), Error); Session->Changed(); Session->End();
                         })]
-                    + SHorizontalBox::Slot().AutoWidth().Padding(6, 0)[SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).ColorAndOpacity(GuideLabelColor)
-                        .Text_Lambda([this]
-                        {
-                            if (!Session->Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return FText();
-                            const double N = Session->Asset->Recipe.Strata.Stratum[Index].NormalizedHeight;
-                            return FText::FromString(FString::Printf(TEXT("%.3f · %.1f m"), N, N * Client->Plan->RadiusMeters));
-                        })]]];
+                ]];
         else ChildSlot[SNew(SBorder).Padding(0).BorderImage(FAppStyle::GetBrush("WhiteBrush"))
             .BorderBackgroundColor_Lambda([this] { return Session->Selected == Index ? FLinearColor(.2, .6, 1, .4) : FLinearColor::Transparent; })];
     }
@@ -201,7 +228,7 @@ public:
     {
         if (E.GetEffectingButton() != EKeys::LeftMouseButton) return FReply::Unhandled();
         MouseStart = E.GetScreenSpacePosition(); bDragging = false;
-        if (!bNew) Session->Selected = Index;
+        Session->Selected = Index;
         return FReply::Handled().CaptureMouse(SharedThis(this)).SetUserFocus(SharedThis(this));
     }
     virtual FReply OnMouseButtonDoubleClick(const FGeometry&, const FPointerEvent&) override
@@ -212,16 +239,10 @@ public:
         const auto Layer = Overlay.Pin(); if (!Layer) return FReply::Handled();
         const auto& G = Layer->GetCachedGeometry();
         const FVector2D Local = G.AbsoluteToLocal(E.GetScreenSpacePosition());
-        if (!bDragging && FVector2D::Distance(MouseStart, E.GetScreenSpacePosition()) > 3 &&
-            (!bNew || (Local.Y >= 0 && Local.Y < G.GetLocalSize().Y)))
+        if (!bDragging && FVector2D::Distance(MouseStart, E.GetScreenSpacePosition()) > 3)
         {
-            Session->Begin(bNew ? NSLOCTEXT("CL", "CreateStratum", "Create Stratum") : NSLOCTEXT("CL", "MoveStratum", "Move Stratum"));
+            Session->Begin(NSLOCTEXT("CL", "MoveStratum", "Move Stratum"));
             bDragging = true;
-            if (bNew)
-            {
-                Index = FCLStrataEditing::Add(Session->Asset->Recipe.Strata, Client->NormalizedAtScreenY(Local.Y / G.GetLocalSize().Y));
-                Session->Selected = Index;
-            }
         }
         if (bDragging) Session->Height(Index, Client->NormalizedAtScreenY(Local.Y / FMath::Max(1.0, G.GetLocalSize().Y)));
         return FReply::Handled();
@@ -229,27 +250,44 @@ public:
     virtual FReply OnMouseButtonUp(const FGeometry&, const FPointerEvent& E) override
     {
         if (E.GetEffectingButton() != EKeys::LeftMouseButton || !HasMouseCapture()) return FReply::Unhandled();
-        bool bCancel = false;
-        if (bNew && bDragging) if (auto Layer = Overlay.Pin())
-        {
-            const auto& G = Layer->GetCachedGeometry(); const FVector2D P = G.AbsoluteToLocal(E.GetScreenSpacePosition());
-            bCancel = P.X < 0 || P.Y < 0 || P.X > G.GetLocalSize().X || P.Y > G.GetLocalSize().Y;
-        }
-        Session->End(bCancel); bDragging = false;
-        FReply Reply = FReply::Handled().ReleaseMouseCapture();
-        if (bNew) if (auto Layer = Overlay.Pin()) Reply.SetUserFocus(Layer.ToSharedRef());
-        return Reply;
+        Session->End(); bDragging = false;
+        return FReply::Handled().ReleaseMouseCapture();
     }
     virtual void OnMouseCaptureLost(const FCaptureLostEvent&) override { Session->End(true); bDragging = false; }
     virtual FReply OnKeyDown(const FGeometry&, const FKeyEvent& E) override
     {
-        if ((E.GetKey() == EKeys::Delete || E.GetKey() == EKeys::BackSpace) && !bNew)
+        if ((E.GetKey() == EKeys::Delete || E.GetKey() == EKeys::BackSpace) && Session->Selected == Index)
         { Session->Remove(Index); return FReply::Handled(); }
-        if (E.GetKey() == EKeys::F2 && Name) { Name->EnterEditingMode(); return FReply::Handled(); }
+        if (E.GetKey() == EKeys::F2 && Name && Session->Selected == Index) { Name->EnterEditingMode(); return FReply::Handled(); }
         if (E.GetKey() == EKeys::Escape && bDragging)
         { Session->End(true); bDragging = false; return FReply::Handled().ReleaseMouseCapture(); }
         return FReply::Unhandled();
     }
+};
+
+/** Observe actual Slate paths, including editable label children, without consuming input. */
+class FCLSelectionInput : public IInputProcessor
+{
+public:
+    TWeakPtr<FCLStrataSession> Session;
+    explicit FCLSelectionInput(TSharedPtr<FCLStrataSession> InSession) : Session(InSession) {}
+    virtual void Tick(float, FSlateApplication&, TSharedRef<ICursor>) override {}
+    void ObservePath(const FWidgetPath& Path)
+    {
+        const auto S = Session.Pin(); if (!S || S->Selected == INDEX_NONE) return;
+        for (const FArrangedWidget& W : Path.Widgets.GetInternalArray())
+            if (W.Widget->GetType() == FName(TEXT("SCLStratumHandle")) &&
+                StaticCastSharedRef<SCLStratumHandle>(W.Widget)->Session == S) return;
+        S->Selected = INDEX_NONE;
+        if (S->OnPreviewChanged) S->OnPreviewChanged();
+    }
+    virtual bool HandleMouseButtonDownEvent(FSlateApplication& App, const FPointerEvent& E) override
+    {
+        ObservePath(App.LocateWindowUnderMouse(E.GetScreenSpacePosition(), App.GetInteractiveTopLevelWindows(), false, E.GetUserIndex()));
+        return false;
+    }
+    virtual bool HandleMouseButtonDoubleClickEvent(FSlateApplication& App, const FPointerEvent& E) override
+    { return HandleMouseButtonDownEvent(App, E); }
 };
 
 /** Interactive annotations share the render's projection; empty space passes through to orbit. */
@@ -277,6 +315,8 @@ public:
         { Session->Remove(Session->Selected); return FReply::Handled(); }
         return FReply::Unhandled();
     }
+    virtual FReply OnMouseWheel(const FGeometry&, const FPointerEvent& E) override
+    { Client->Navigation.Dolly(E.GetWheelDelta()); Client->ApplyNavigation(); return FReply::Handled(); }
     const FCLSectionClient::FIndicator* Indicator(int32 Index) const
     { return Client->Indicators.FindByPredicate([&](const auto& I) { return I.Index == Index; }); }
     FVector2D Anchor(int32 Index) const
@@ -307,14 +347,26 @@ public:
         {
             Canvas->AddSlot().Position_Lambda([this, I] { return Anchor(I) - FVector2D(5, 9); }).Size(FVector2D(24, 18))
                 [SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I)];
-            Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); }).Size(FVector2D(300, 22))
-                [SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I).Label(true)];
+            const auto LabelHandle = SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I).Label(true);
+            Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); })
+                .Size_Lambda([LabelHandle] { return FVector2D(FMath::Min(300.0, double(LabelHandle->GetDesiredSize().X)), 22); })[LabelHandle];
         }
-        for (int32 I : {-2, -3})
-            Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); }).Size(FVector2D(210, 22))
-                [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).Visibility(EVisibility::HitTestInvisible)
-                    .Text_Lambda([this, I] { const auto* P = Indicator(I); return P ? FText::FromString(P->Text) : FText(); })
-                    .ColorAndOpacity_Lambda([this, I] { const auto* P = Indicator(I); return FSlateColor(P ? P->Color : FLinearColor::White); })];
+        Canvas->AddSlot().Position_Lambda([this] { return Label(-3); }).Size(FVector2D(150, 22))
+            [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).Visibility(EVisibility::HitTestInvisible)
+                .Text(FText::FromString(TEXT("Sky boundary"))).ColorAndOpacity(GuideLabelColor)];
+        Canvas->AddSlot().Position_Lambda([this] { return Label(-2); }).Size(FVector2D(80, 22))
+            [SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                    [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).Text(FText::FromString(TEXT("Core"))).ColorAndOpacity(GuideLabelColor)]
+                + SHorizontalBox::Slot().AutoWidth().Padding(6, 0)
+                    [SNew(SButton).ContentPadding(FMargin(5, 0)).Text(FText::FromString(TEXT("+")))
+                        .ToolTipText(FText::FromString(TEXT("Add a Stratum just above Core, then drag it to the desired height")))
+                        .IsEnabled_Lambda([this] { return Session->Asset->Recipe.Strata.Stratum.Num() < 128; })
+                        .OnClicked_Lambda([this]
+                        {
+                            Client->bGuides = true; Session->Add();
+                            return FReply::Handled().SetUserFocus(SharedThis(this));
+                        })]];
     }
     virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Clip, FSlateWindowElementList& Elements,
         int32 Layer, const FWidgetStyle& Style, bool Enabled) const override
@@ -341,6 +393,33 @@ public:
     TStrongObjectPtr<UProceduralMeshComponent> Mesh;
     TSharedPtr<FCLSectionClient> Client;
     bool bCameraFramed = false;
+    FKey NavigationButton;
+    FVector2D PreviousMouse;
+    virtual FReply OnPreviewMouseButtonDown(const FGeometry&, const FPointerEvent& E) override
+    {
+        const FKey Button = E.GetEffectingButton();
+        if (Button != EKeys::LeftMouseButton && Button != EKeys::MiddleMouseButton && Button != EKeys::RightMouseButton) return FReply::Unhandled();
+        NavigationButton = Button; PreviousMouse = E.GetScreenSpacePosition();
+        return FReply::Handled().CaptureMouse(SharedThis(this)).SetUserFocus(SharedThis(this));
+    }
+    virtual FReply OnMouseMove(const FGeometry&, const FPointerEvent& E) override
+    {
+        if (!HasMouseCapture()) return FReply::Unhandled();
+        const FVector2D Delta = E.GetScreenSpacePosition() - PreviousMouse; PreviousMouse = E.GetScreenSpacePosition();
+        if (NavigationButton == EKeys::LeftMouseButton) Client->Navigation.Orbit(Delta);
+        else if (NavigationButton == EKeys::MiddleMouseButton) Client->Navigation.PanBy(Delta);
+        else if (NavigationButton == EKeys::RightMouseButton) Client->Navigation.Dolly(-Delta.Y * .05);
+        Client->ApplyNavigation(); return FReply::Handled();
+    }
+    virtual FReply OnMouseButtonUp(const FGeometry&, const FPointerEvent& E) override
+    {
+        if (!HasMouseCapture() || E.GetEffectingButton() != NavigationButton) return FReply::Unhandled();
+        NavigationButton = FKey(); return FReply::Handled().ReleaseMouseCapture();
+    }
+    virtual void OnMouseCaptureLost(const FCaptureLostEvent&) override { NavigationButton = FKey(); }
+    virtual FReply OnMouseWheel(const FGeometry&, const FPointerEvent& E) override
+    { Client->Navigation.Dolly(E.GetWheelDelta()); Client->ApplyNavigation(); return FReply::Handled(); }
+    virtual FReply OnKeyDown(const FGeometry&, const FKeyEvent&) override { return FReply::Unhandled(); }
     void Construct(const FArguments& Args)
     {
         Scene.SetFloorVisibility(false); Scene.SetEnvironmentVisibility(false);
@@ -370,11 +449,7 @@ public:
         if (!bCameraFramed)
         {
             bCameraFramed = true;
-            const double R = FCLSectionGeometry::DisplaySize * 120;
-            const FVector Target(0, 0, Client->TopHeight() * 45);
-            Client->SetViewLocation(Target + FVector(.8 * R, -1.0 * R, .8 * R));
-            Client->SetViewRotation((Target - Client->GetViewLocation()).Rotation());
-            Client->SetLookAtLocation(Target);
+            Client->ApplyNavigation();
         }
         Client->Invalidate();
     }
@@ -385,6 +460,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SCLSectionViewport> Preview;
     TSharedPtr<SCLHeightAnnotations> Annotations;
     TSharedPtr<FCLStrataSession> StrataSession;
+    TSharedPtr<FCLSelectionInput> SelectionInput;
     TStrongObjectPtr<UCLTerrainTypeAsset> TerrainSource;
     FString Status;
     double PendingAreaWidth = 0;
@@ -404,11 +480,16 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     static const FName SectionTab;
 public:
     virtual ~FCLRecipeToolkit()
-    { if (auto* Asset = Cast<UCLPlanetRecipeAsset>(EditingAsset)) Asset->OnRecipeChanged.Remove(Changed); }
+    {
+        if (SelectionInput && FSlateApplication::IsInitialized()) FSlateApplication::Get().UnregisterInputPreProcessor(SelectionInput);
+        if (auto* Asset = Cast<UCLPlanetRecipeAsset>(EditingAsset)) Asset->OnRecipeChanged.Remove(Changed);
+    }
     void Open(UCLPlanetRecipeAsset* Asset, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         EditingAsset = Asset;
         StrataSession = MakeShared<FCLStrataSession>(); StrataSession->Open(Asset);
+        SelectionInput = MakeShared<FCLSelectionInput>(StrataSession);
+        FSlateApplication::Get().RegisterInputPreProcessor(SelectionInput);
         StrataSession->OnPreviewChanged = [this]
         {
             if (!Preview) return;
@@ -541,7 +622,7 @@ public:
                 + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Remove Strata")))
                     .OnClicked_Lambda([this] { StrataSession->RemoveSet(); return FReply::Handled(); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked(ECheckBoxState::Checked).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked_Lambda([this] { return !Preview || Preview->Client->bGuides ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
                     { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Height Guides")))]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("Section heading")))]
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).OnValueChanged_Lambda([this](float Value)
@@ -565,12 +646,10 @@ public:
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(StrataSession)]]
-            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right).Padding(8)
-                [SNew(SCLStratumHandle).Session(StrataSession).Client(Preview->Client).Overlay(Annotations).New(true)]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SBox).HeightOverride(42)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
                     FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
-                        TEXT("Fixed cutaway | Area controls horizontal coverage; heights use the full planet radius | Alt + mouse: orbit/pan/zoom");
+                        TEXT("Left drag: orbit | Middle drag: pan | Right drag or wheel: zoom | + beside Core: add Stratum");
                     if (Preview && Preview->Client->Plan && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
@@ -658,6 +737,48 @@ bool FCLFixedDesignerFrameTest::RunTest(const FString&)
     TestTrue(TEXT("Resizing a planet preserves the display camera"), Preview->Client->GetViewLocation().Equals(Eye, .001));
     const FBox ResizedBounds = Preview->Mesh->GetProcMeshSection(0)->SectionLocalBox;
     TestTrue(TEXT("Normalized display bounds are independent of planet radius"), ResizedBounds.Min.Equals(InitialBounds.Min, .01) && ResizedBounds.Max.Equals(InitialBounds.Max, .01));
+    const FVector BeforeKeys = Preview->Client->GetViewLocation();
+    Preview->Client->InputKey(FInputKeyEventArgs::CreateSimulated(EKeys::W, IE_Pressed, 1));
+    Preview->Client->InputAxis(FInputKeyEventArgs::CreateSimulated(EKeys::MouseX, IE_Axis, 200));
+    Preview->Client->Tick(1);
+    TestTrue(TEXT("Editor flight keys and raw mouse axes cannot move the camera"), Preview->Client->GetViewLocation().Equals(BeforeKeys, .001));
+    return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDesignerSelectionTest, "Catalyst.Landform.Designer.SelectionAndCoreAdd",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLDesignerSelectionTest::RunTest(const FString&)
+{
+    const auto Session = MakeShared<FCLStrataSession>();
+    Session->Asset = NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional);
+    Session->Library.Reset(NewObject<UCLStrataLibraryAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
+    Session->Library->Library.Sets.Add(Session->Asset->Recipe.Strata);
+    const int32 Before = Session->Asset->Recipe.Strata.Stratum.Num();
+    int32 Changes = 0; Session->Asset->OnRecipeChanged.AddLambda([&] { ++Changes; });
+    const int32 New = Session->Add();
+    TestEqual(TEXT("Core + creates one guide"), Session->Asset->Recipe.Strata.Stratum.Num(), Before + 1);
+    TestEqual(TEXT("Core + selects the new guide"), Session->Selected, New);
+    TestEqual(TEXT("New guide starts just above Core"), Session->Asset->Recipe.Strata.Stratum[New].NormalizedHeight, .05);
+    TestEqual(TEXT("Core + commits one authoring change"), Changes, 1);
+    const TSharedRef<SCLStratumHandle> Handle = SNew(SCLStratumHandle).Session(Session).Index(New).Label(true);
+    FWidgetPath StratumPath; StratumPath.Widgets.AddWidget(FArrangedWidget(Handle, FGeometry()));
+    StratumPath.Widgets.AddWidget(FArrangedWidget(Handle->Name.ToSharedRef(), FGeometry()));
+    FCLSelectionInput Observer(Session); Observer.ObservePath(StratumPath);
+    TestEqual(TEXT("Clicking a Stratum or its editable text preserves selection"), Session->Selected, New);
+    FWidgetPath OtherPath; OtherPath.Widgets.AddWidget(FArrangedWidget(SNew(SButton), FGeometry()));
+    Observer.ObservePath(OtherPath);
+    TestEqual(TEXT("Clicking another control deselects"), Session->Selected, INDEX_NONE);
+    Handle->OnKeyDown(FGeometry(), FKeyEvent(EKeys::Delete, FModifierKeysState(), 0, false, 0, 0));
+    TestEqual(TEXT("Delete cannot remove a previously selected guide after deselection"), Session->Asset->Recipe.Strata.Stratum.Num(), Before + 1);
+    Session->Selected = New; Observer.ObservePath(FWidgetPath());
+    TestEqual(TEXT("Clicking empty space deselects"), Session->Selected, INDEX_NONE);
+    TestEqual(TEXT("Selection changes do not notify terrain generation"), Changes, 1);
+    GEditor->UndoTransaction();
+    TestEqual(TEXT("One undo removes the added planet guide"), Session->Asset->Recipe.Strata.Stratum.Num(), Before);
+    TestEqual(TEXT("One undo restores the catalog"), Session->Library->Library.Sets[0].Stratum.Num(), Before);
+    Session->Asset->OnRecipeChanged.Clear();
     return true;
 }
 #endif

@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-31",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "test_exit_code": 0,
+  "automation_summary": {
+    "succeeded": 14,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Designer-controls-final-tests.log",
+  "annotations": {
+    "core": "Core",
+    "sky": "Sky boundary",
+    "stratum_labels": "Names only, light gray; numeric editing retained in Details",
+    "add": "+ immediately after Core; selected new Stratum at normalized height 0.05; one undo restores planet and catalog",
+    "deselection": "Non-consuming Slate path observer clears selection outside this editor's Stratum handles, including editable label descendants; label hit areas fit their visible names",
+    "removed": "Bottom add/drag control"
+  },
+  "navigation": {
+    "default": "Left drag orbits, middle drag pans, right drag or wheel zooms; no modifiers required",
+    "trackpad": "Scroll pans; magnify zooms",
+    "free_flight": "Disabled; native key/axis handling bypassed",
+    "orbit_elevation_degrees": [
+      15,
+      75
+    ],
+    "pan_normalized_limit": 0.08,
+    "zoom_relative_to_full_object_fit": [
+      1,
+      2.2
+    ],
+    "fit": "All eight corners of fixed core-to-sky box inside perspective frustum with margin and right annotation region; recalculated for orbit/pan/viewport aspect",
+    "coverage": "Changing sampling area preserves the camera"
+  },
+  "regressions": [
+    "Add/select/undo across planet and catalog",
+    "Stratum label descendants preserve selection",
+    "Clicks on controls and empty space deselect",
+    "Delete after deselection cannot remove old focused handle",
+    "Selection changes do not notify terrain generation",
+    "Extreme gestures clamp orbit/pan/zoom",
+    "All eight corners remain visible across aspect ratios 0.45, 1, 1.6 and 3; seven yaw angles, three elevations, pan extremes and zoom extremes",
+    "Actual preview viewport rejects flight keys and raw mouse axes; fixed-area/camera regression retained"
+  ],
+  "editor": "Mountain ridges preview visually inspected: Core +, names only, no bottom add control; full cutaway and labels visible.",
+  "native_input_limit": "Automation drags produced no visible orbit movement; camera math, preview key handling, selection paths and transactional add are exercised through UE APIs. Physical mouse gestures remain for user verification.",
+  "nonblocking_warnings": [
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+  ],
+  "edited_assets_preserved": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "5232335e58d576f33f21714f78d30fcac6aa885558551d284f5c14f9b7bc30e8",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "80863adf58bba45fd8993199085eb16316bf274d280aa6af00ceab903a92529b"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "8782f5adbf001bd6c292d2e059a556b773d07921009dc5734998c0303d60823f",
+    "Source/CatalystLandformEditor/Private/CLSectionNavigation.cpp": "60ee0390e3a57271aeff93c9050163cd997dde1932a212fa1310b806365a0f1d",
+    "Source/CatalystLandformEditor/Public/CLSectionNavigation.h": "732504d81bc900f70c1a9d205d05fec4e5fb2b0e49004b181e03d25893950159",
+    "Source/CatalystLandformEditor/Private/CLStrataEditing.cpp": "348392bf970c6103c262cb3db07d2b43d2fe5bc9e5340f5c867273cc0f2281df",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "fb881fb54b029e0d47d51dcd53183eef2b81310a8965a83ef4b1bad5af92ea32",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "611d6d4e5a7c3729a9f99cbc4142fea543537b826ede7f8649a84c687320649e"
+  },
+  "vendor_changes": "None",
+  "limits": [
+    "Height-only CPU preview; separate level stamps, caves, VPP surface materials and PCG pending",
+    "No new cook, networking, cross-platform or physical-walk qualification"
+  ]
+}

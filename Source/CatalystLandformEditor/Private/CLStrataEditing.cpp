@@ -100,6 +100,14 @@ void FCLStrataSession::Height(int32 Index, double Height)
     Current = Height; Changed();
 }
 
+int32 FCLStrataSession::Add(double Height)
+{
+    if (!FMath::IsFinite(Height) || Height < 0 || Height > 1 || Asset->Recipe.Strata.Stratum.Num() >= 128) return INDEX_NONE;
+    Begin(NSLOCTEXT("CL", "AddStratum", "Add Stratum"));
+    Selected = FCLStrataEditing::Add(Asset->Recipe.Strata, Height);
+    Changed(); End(); return Selected;
+}
+
 void FCLStrataSession::Remove(int32 Index)
 {
     if (!Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return;
