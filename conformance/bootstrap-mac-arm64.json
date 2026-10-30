@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-30",
+  "engine": "5.8.4",
+  "engine_changelist": 58902052,
+  "platform": "Mac arm64",
+  "connect_revision": "70a59b6117aa0be34927a6af1b3f4e385b663ecc",
+  "editor_build": "passed",
+  "game_build": "passed",
+  "editor_startup": "passed",
+  "landform_runtime_loaded": true,
+  "vpp_installer_initialized": true,
+  "vpp_download": "pending",
+  "limits": [
+    "Build and startup qualification only; no terrain implementation, cook, gameplay, or server interoperability claim."
+  ]
+}

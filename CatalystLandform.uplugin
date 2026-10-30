@@ -1,0 +1,19 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "Catalyst:Landform",
+  "Description": "Server-defined planetary terrain presented through Voxel Plugin.",
+  "Category": "BenjaVision",
+  "CreatedBy": "BenjaVision",
+  "CanContainContent": true,
+  "IsExperimentalVersion": true,
+  "Installed": false,
+  "Plugins": [
+    { "Name": "CatalystFoundation", "Enabled": true },
+    { "Name": "CatalystConnect", "Enabled": true }
+  ],
+  "Modules": [
+    { "Name": "CatalystLandform", "Type": "Runtime", "LoadingPhase": "Default" }
+  ]
+}
