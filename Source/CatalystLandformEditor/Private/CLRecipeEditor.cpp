@@ -1,7 +1,5 @@
 #include "CLRecipeAssetTools.h"
 #include "CLSectionGeometry.h"
-#include "CanvasItem.h"
-#include "Engine/Canvas.h"
 #include "SceneView.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Toolkits/CFModelEditorToolkit.h"
@@ -18,6 +16,9 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Widgets/SLeafWidget.h"
+#include "Widgets/Layout/SBox.h"
+#include "Rendering/DrawElements.h"
 #include "Framework/Docking/TabManager.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Modules/ModuleManager.h"
@@ -36,6 +37,8 @@ public:
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     double Heading = 0;
     bool bGuides = true;
+    struct FIndicator { FString Text; FLinearColor Color; double Y; };
+    TArray<FIndicator> Indicators;
     FCLSectionClient(FPreviewScene* Scene, const TSharedRef<SEditorViewport>& Viewport)
         : FEditorViewportClient(nullptr, Scene, Viewport)
     {
@@ -57,7 +60,7 @@ public:
         const double R = Plan->RadiusMeters + Height;
         const double Z2 = R * R - X * X - Y * Y;
         if (Z2 < 0) return false;
-        Point = FVector(X, Y, FMath::Sqrt(Z2)) * 100;
+        Point = FCLSectionGeometry::DisplaySurfacePoint(FVector(X, Y, FMath::Sqrt(Z2)) * 100);
         return true;
     }
     virtual FLinearColor GetBackgroundColor() const override { return FLinearColor(.075, .09, .11); }
@@ -74,47 +77,61 @@ public:
             PDI->DrawLine(FVector(-W, Side, TopHeight()) * 100, FVector(W, Side, TopHeight()) * 100, Frame, SDPG_World, 1);
             PDI->DrawLine(FVector(Side, -W, TopHeight()) * 100, FVector(Side, W, TopHeight()) * 100, Frame, SDPG_World, 1);
         }
-        if (!bGuides) return;
-        for (const FCLHeightGuide& G : Plan->Guides)
-            for (int32 Side = 0; Side < 4; ++Side)
-                for (int32 I = 0; I < 64; ++I)
-                {
-                    const double A = W * (2.0 * I / 64 - 1), B = W * (2.0 * (I + 1) / 64 - 1);
-                    FVector P, Q;
-                    const bool Valid = Side < 2 ?
-                        GuidePoint(A, Side == 0 ? -W : W, G.HeightMeters, P) && GuidePoint(B, Side == 0 ? -W : W, G.HeightMeters, Q) :
-                        GuidePoint(Side == 2 ? -W : W, A, G.HeightMeters, P) && GuidePoint(Side == 2 ? -W : W, B, G.HeightMeters, Q);
-                    if (Valid) PDI->DrawLine(P, Q, G.Color, SDPG_Foreground, 2);
-                }
-    }
-    virtual void Draw(FViewport* InViewport, FCanvas* Canvas) override
-    {
-        FEditorViewportClient::Draw(InViewport, Canvas);
-        if (!Plan) return;
-        FSceneViewFamilyContext Family(FSceneViewFamily::ConstructionValues(InViewport, GetScene(), EngineShowFlags));
-        FSceneView* View = CalcSceneView(&Family);
-        auto Label = [&](const FVector& P, const FString& Text, FLinearColor Color)
+        Indicators.Reset();
+        auto Indicator = [&](const FVector& P, const FString& Text, FLinearColor Color)
         {
             FVector2D Screen;
-            if (View->WorldToPixel(P, Screen)) Canvas->DrawShadowedString(Screen.X / Canvas->GetDPIScale() + 8,
-                Screen.Y / Canvas->GetDPIScale(), *Text, GEngine->GetSmallFont(), Color);
+            if (View->WorldToPixel(P, Screen)) Indicators.Add({Text, Color,
+                (Screen.Y - View->UnscaledViewRect.Min.Y) / FMath::Max(1, View->UnscaledViewRect.Height())});
         };
-        const double W = FCLSectionGeometry::HalfWidth(*Plan);
-        Label(FVector(-W, -W, 0) * 100, TEXT("Core / centre plane"), FLinearColor(.9, .7, .5));
-        Label(FVector(-W, -W, TopHeight()) * 100, TEXT("Sky"), FLinearColor(.65, .8, 1));
-        TArray<FCLHeightGuide> Sorted = Plan->Guides;
-        Sorted.Sort([](const FCLHeightGuide& A, const FCLHeightGuide& B) { return A.HeightMeters > B.HeightMeters; });
-        double LastY = -1.e9;
-        if (bGuides) for (const FCLHeightGuide& G : Sorted)
+        Indicator(FVector(W, -W, 0) * 100, TEXT("Core / centre plane"), FLinearColor(.9, .7, .5));
+        Indicator(FVector(W, -W, TopHeight()) * 100, TEXT("Sky"), FLinearColor(.65, .8, 1));
+        if (bGuides) for (const auto& G : Plan->Guides)
         {
-            FVector P; FVector2D Screen;
-            if (GuidePoint(W, -W, G.HeightMeters, P) && View->WorldToPixel(P, Screen))
-            {
-                LastY = FMath::Max(Screen.Y / Canvas->GetDPIScale(), LastY + 18);
-                Canvas->DrawShadowedString(Screen.X / Canvas->GetDPIScale() + 8, LastY,
-                    *FString::Printf(TEXT("%s  %.1f m"), *G.Name.ToString(), G.HeightMeters), GEngine->GetSmallFont(), G.Color);
-            }
+            FVector P;
+            if (GuidePoint(W, -W, G.HeightMeters, P)) Indicator(P,
+                FString::Printf(TEXT("%s  %.1f m"), *G.Name.ToString(), G.HeightMeters), G.Color);
         }
+        Indicators.Sort([](const FIndicator& A, const FIndicator& B) { return A.Y < B.Y; });
+    }
+};
+
+/** A separate gutter keeps every guide tick and label outside the diagram. */
+class SCLGuideColumn : public SLeafWidget
+{
+public:
+    SLATE_BEGIN_ARGS(SCLGuideColumn) {} SLATE_ARGUMENT(TWeakPtr<FCLSectionClient>, Client) SLATE_END_ARGS()
+    TWeakPtr<FCLSectionClient> Client;
+    void Construct(const FArguments& Args) { Client = Args._Client; ForceVolatile(true); }
+    virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D(220, 200); }
+    virtual int32 OnPaint(const FPaintArgs&, const FGeometry& Geometry, const FSlateRect&, FSlateWindowElementList& Elements,
+        int32 Layer, const FWidgetStyle& Style, bool) const override
+    {
+        const auto Pinned = Client.Pin();
+        if (!Pinned || Pinned->Indicators.IsEmpty()) return Layer;
+        const auto Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+        const double Height = Geometry.GetLocalSize().Y;
+        const double Spacing = FMath::Min(24.0, FMath::Max(12.0, (Height - 32) / Pinned->Indicators.Num()));
+        TArray<double> Ys;
+        double Previous = 8 - Spacing;
+        for (const auto& I : Pinned->Indicators)
+        {
+            const double Y = FMath::Max(8.0, FMath::Max(I.Y * Height - 8, Previous + Spacing));
+            Ys.Add(Y); Previous = Y;
+        }
+        const double Overflow = FMath::Max(0.0, Ys.Last() - Height + 24);
+        for (int32 I = 0; I < Ys.Num(); ++I)
+        {
+            const double Y = Ys[I] - Overflow;
+            const auto& Indicator = Pinned->Indicators[I];
+            TArray<FVector2D> Tick{FVector2D(6, Y + 7), FVector2D(24, Y + 7)};
+            FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Tick,
+                ESlateDrawEffect::None, Indicator.Color * Style.GetColorAndOpacityTint(), true, 2);
+            FSlateDrawElement::MakeText(Elements, Layer + 1,
+                Geometry.ToPaintGeometry(FVector2D(190, 20), FSlateLayoutTransform(FVector2D(32, Y))),
+                FText::FromString(Indicator.Text), Font, ESlateDrawEffect::None, Indicator.Color * Style.GetColorAndOpacityTint());
+        }
+        return Layer + 1;
     }
 };
 
@@ -148,9 +165,11 @@ public:
         if (!Plan) return;
         const FCLSectionGeometry G = FCLSectionGeometry::Build(*Plan, Client->Heading);
         TArray<FVector> N; TArray<FVector2D> UV; TArray<FProcMeshTangent> Tangents;
-        UKismetProceduralMeshLibrary::CalculateTangentsForMesh(G.Vertices, G.Triangles, UV, N, Tangents);
         UV.Init(FVector2D::ZeroVector, G.Vertices.Num());
-        Mesh->CreateMeshSection_LinearColor(0, G.Vertices, G.Triangles, N, UV, G.Colors, Tangents, false);
+        TArray<FVector> DisplayVertices = G.Vertices;
+        for (FVector& V : DisplayVertices) if (V.Z > 0) V = FCLSectionGeometry::DisplaySurfacePoint(V);
+        UKismetProceduralMeshLibrary::CalculateTangentsForMesh(DisplayVertices, G.Triangles, {}, N, Tangents);
+        Mesh->CreateMeshSection_LinearColor(0, DisplayVertices, G.Triangles, N, UV, G.Colors, Tangents, false);
         if (!FMath::IsNearlyEqual(LastRadius, Plan->RadiusMeters))
         {
             LastRadius = Plan->RadiusMeters;
@@ -210,7 +229,7 @@ public:
         const auto Plan = FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         if (Plan)
         {
-            Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | actual scale"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num());
+            Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | preview curvature 1/3"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num());
             if (Preview) Preview->Rebuild(Plan);
         }
         else Status = TEXT("Keeping last valid preview: ") + Status;
@@ -226,12 +245,12 @@ public:
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("Section heading")))]
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).OnValueChanged_Lambda([this](float Value)
                     { Preview->Client->Heading = Value * 2 * UE_PI; Refresh(); })]]
-            + SVerticalBox::Slot().FillHeight(1)[SAssignNew(Preview, SCLSectionViewport)]
+            + SVerticalBox::Slot().FillHeight(1)[SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1)[SAssignNew(Preview, SCLSectionViewport)]
+                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SCLGuideColumn).Client(Preview->Client)]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
-                    FString Legend = TEXT("Core-to-sky cutaway | Alt + mouse: orbit/pan/zoom | Height Guides: ");
-                    for (const auto& G : CastChecked<UCLPlanetRecipeAsset>(EditingAsset)->Recipe.HeightGuides)
-                        Legend += FString::Printf(TEXT("%s %.2f m   "), *G.Name.ToString(), G.HeightMeters);
+                    const FString Legend = TEXT("Core-to-sky cutaway | Alt + mouse: orbit/pan/zoom | Preview curvature 1/3");
                     return FText::FromString(Legend);
                 })]];
     }

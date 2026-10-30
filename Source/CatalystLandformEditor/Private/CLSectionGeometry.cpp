@@ -3,6 +3,13 @@
 double FCLSectionGeometry::HalfWidth(const FCLCompiledPlanetRecipe& Plan)
 { return FMath::Min(Plan.RadiusMeters * .42, (Plan.RadiusMeters + Plan.MinimumHeightMeters) * .6); }
 
+FVector FCLSectionGeometry::DisplaySurfacePoint(const FVector& P)
+{
+    // The lab's tiny walkable sphere exaggerates curvature for a Designer section.
+    // Keep its sampled relief and horizontal footprint; flatten only radial sag.
+    return FVector(P.X, P.Y, P.Size() + (P.Z - P.Size()) / 3);
+}
+
 FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading)
 {
     // Intersect a vertical section ray with the same radial field VPP uses.

@@ -12,6 +12,8 @@ struct CATALYSTLANDFORMEDITOR_API FCLSectionGeometry
     double HalfWidthMeters = 0;
 
     static double HalfWidth(const FCLCompiledPlanetRecipe& Plan);
+    /** Preview only: retain radial height while displaying one third of its sag. */
+    static FVector DisplaySurfacePoint(const FVector& SourcePoint);
     static FVector SurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading);
     static FCLSectionGeometry Build(const FCLCompiledPlanetRecipe& Plan, double Heading);
 };

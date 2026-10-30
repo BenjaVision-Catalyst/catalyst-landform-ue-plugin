@@ -53,6 +53,13 @@ bool FCLSectionTest::RunTest(const FString&)
     FCLPlanetRecipe Sphere; const auto Constant = FCLPlanetCompiler::Compile(Sphere, Error);
     const FVector P = FCLSectionGeometry::SurfacePoint(*Constant, 30, 40, 0);
     TestTrue(TEXT("Vertical intersection preserves actual sphere curvature"), FMath::Abs(P.Z / 100 - FMath::Sqrt(10000.0 - 900 - 1600)) < 1.e-5);
+    const FVector Centre = FCLSectionGeometry::SurfacePoint(*Constant, 0, 0, 0);
+    const FVector DisplayCentre = FCLSectionGeometry::DisplaySurfacePoint(Centre);
+    const FVector DisplayEdge = FCLSectionGeometry::DisplaySurfacePoint(P);
+    TestTrue(TEXT("Designer displays one third of the original curvature"),
+        FMath::Abs((DisplayCentre.Z - DisplayEdge.Z) * 3 - (Centre.Z - P.Z)) < .001);
+    TestEqual(TEXT("Preview flattening preserves the centre height"), DisplayCentre.Z, Centre.Z);
+    TestEqual(TEXT("Preview flattening preserves horizontal extent"), DisplayEdge.X, P.X);
     return true;
 }
 #endif
