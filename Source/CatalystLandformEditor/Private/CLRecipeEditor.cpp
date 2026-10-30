@@ -40,85 +40,6 @@
 
 namespace
 {
-class FCLStrataSession : public TSharedFromThis<FCLStrataSession>
-{
-public:
-    UCLPlanetRecipeAsset* Asset = nullptr;
-    TStrongObjectPtr<UCLStrataLibraryAsset> Library;
-    int32 Selected = INDEX_NONE;
-    TUniquePtr<FScopedTransaction> Gesture;
-    FCLPlanetRecipe BeforeRecipe; FCLStrataLibrary BeforeLibrary;
-    void Open(UCLPlanetRecipeAsset* InAsset)
-    {
-        Asset = InAsset; Asset->SetFlags(RF_Transactional);
-        const TCHAR* Path = TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary");
-        Library.Reset(LoadObject<UCLStrataLibraryAsset>(nullptr, Path));
-        if (!Library)
-        {
-            Library.Reset(NewObject<UCLStrataLibraryAsset>(CreatePackage(TEXT("/Game/LandformDesigner/DA_StrataLibrary")),
-                TEXT("DA_StrataLibrary"), RF_Public | RF_Standalone | RF_Transactional));
-            FAssetRegistryModule::AssetCreated(Library.Get());
-            Library->Library.Sets.Add(FCLPlanetCompiler::RollingPlains().Strata); Library->MarkPackageDirty();
-        }
-        Library->SetFlags(RF_Transactional);
-        if (!Asset->Recipe.Strata.Id.IsValid()) Asset->Recipe.Strata.Id = FGuid::NewGuid();
-        if (!Library->Library.Sets.ContainsByPredicate([&](const FCLStrata& S) { return S.Id == Asset->Recipe.Strata.Id; }))
-        { Library->Modify(); Library->Library.Sets.Add(Asset->Recipe.Strata); Library->MarkPackageDirty(); }
-    }
-    void Begin(const FText& Text)
-    {
-        if (Gesture) return;
-        Gesture = MakeUnique<FScopedTransaction>(Text); BeforeRecipe = Asset->Recipe; BeforeLibrary = Library->Library; Asset->Modify(); Library->Modify();
-    }
-    void End(bool bCancel = false)
-    {
-        if (!Gesture) return;
-        if (bCancel) { Asset->Recipe = BeforeRecipe; Library->Library = BeforeLibrary; Asset->PostEditChange(); Gesture->Cancel(); }
-        Gesture.Reset();
-    }
-    void Changed()
-    {
-        if (FCLStrata* S = Library->Library.Sets.FindByPredicate([&](const FCLStrata& V) { return V.Id == Asset->Recipe.Strata.Id; }))
-            *S = Asset->Recipe.Strata;
-        Library->MarkPackageDirty(); Asset->MarkPackageDirty(); Asset->PostEditChange();
-    }
-    void Height(int32 Index, double Height)
-    {
-        if (!Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return;
-        Asset->Recipe.Strata.Stratum[Index].NormalizedHeight = Height; Changed();
-    }
-    void Remove(int32 Index)
-    {
-        if (!Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return;
-        Begin(NSLOCTEXT("CL", "RemoveStratum", "Remove Stratum"));
-        FCLStrataEditing::Remove(Asset->Recipe.Strata, Index); Selected = INDEX_NONE; Changed(); End();
-    }
-    void Apply(FGuid Id)
-    {
-        const auto* S = Library->Library.Sets.FindByPredicate([&](const FCLStrata& V) { return V.Id == Id; });
-        if (!S) return;
-        Begin(NSLOCTEXT("CL", "ApplyStrata", "Apply Strata to planet"));
-        Asset->Recipe.Strata = *S; Selected = INDEX_NONE; Changed(); End();
-    }
-    void NewSet()
-    {
-        Begin(NSLOCTEXT("CL", "NewStrata", "Create Strata"));
-        FCLStrata S = Asset->Recipe.Strata; S.Id = FGuid::NewGuid();
-        int32 N = 1;
-        do { S.Name = FString::Printf(TEXT("New Strata %d"), N++); }
-        while (Library->Library.Sets.ContainsByPredicate([&](const FCLStrata& V) { return V.Name.Equals(S.Name, ESearchCase::IgnoreCase); }));
-        Library->Library.Sets.Add(S); Asset->Recipe.Strata = S; Selected = INDEX_NONE; Changed(); End();
-    }
-    void RemoveSet()
-    {
-        Begin(NSLOCTEXT("CL", "RemoveStrata", "Remove Strata"));
-        const FGuid Id = Asset->Recipe.Strata.Id;
-        Library->Library.Sets.RemoveAll([&](const FCLStrata& S) { return S.Id == Id; });
-        if (!Library->Library.Sets.IsEmpty()) Asset->Recipe.Strata = Library->Library.Sets[0];
-        else { Asset->Recipe.Strata = FCLStrata(); Asset->Recipe.Strata.Id = FGuid::NewGuid(); }
-        Selected = INDEX_NONE; Changed(); End();
-    }
-};
 class SCLSectionViewport;
 class FCLSectionClient : public FEditorViewportClient
 {
@@ -141,7 +62,7 @@ public:
     FCLSectionClient(FPreviewScene* Scene, const TSharedRef<SEditorViewport>& Viewport)
         : FEditorViewportClient(nullptr, Scene, Viewport)
     {
-        SetViewMode(VMI_Lit); SetRealtime(true);
+        SetViewMode(VMI_Lit); SetRealtime(false);
         ExposureSettings.bFixed = true; ExposureSettings.FixedEV100 = 0;
         SetViewLocation(FVector(8500, -10500, 8000));
         SetViewRotation((FVector(0, 0, -1500) - GetViewLocation()).Rotation());
@@ -186,20 +107,26 @@ public:
         }
         RightEdge = Edge; ViewProjection = View->ViewMatrices.GetViewProjectionMatrix();
         ViewRect = View->UnscaledViewRect; bHasProjection = true;
+        UpdateIndicators();
+    }
+    void UpdateIndicators()
+    {
+        if (!Plan || !bHasProjection) return;
+        Indicators.Reset();
         auto Indicator = [&](const FVector& P, const FString& Text, FLinearColor Color, int32 Index = INDEX_NONE)
         {
             FVector2D Screen;
-            if (View->WorldToPixel(P, Screen)) Indicators.Add({Text, Color,
-                FVector2D((Screen.X - View->UnscaledViewRect.Min.X) / FMath::Max(1, View->UnscaledViewRect.Width()),
-                    (Screen.Y - View->UnscaledViewRect.Min.Y) / FMath::Max(1, View->UnscaledViewRect.Height())), Index});
+            if (FSceneView::ProjectWorldToScreen(P, ViewRect, ViewProjection, Screen)) Indicators.Add({Text, Color,
+                FVector2D((Screen.X - ViewRect.Min.X) / FMath::Max(1, ViewRect.Width()),
+                    (Screen.Y - ViewRect.Min.Y) / FMath::Max(1, ViewRect.Height())), Index});
         };
-        Indicator(FVector(Edge.X, Edge.Y, 0) * 100, TEXT("Core / centre plane"), FLinearColor(.9, .7, .5), -2);
-        FVector Sky; GuidePoint(Edge.X, Edge.Y, 0, Sky);
+        Indicator(FVector(RightEdge.X, RightEdge.Y, 0) * 100, TEXT("Core / centre plane"), FLinearColor(.9, .7, .5), -2);
+        FVector Sky; GuidePoint(RightEdge.X, RightEdge.Y, 0, Sky);
         Indicator(Sky, TEXT("Sky boundary (1.0)"), FLinearColor(.65, .8, 1), -3);
         if (bGuides) for (int32 I = 0; I < Strata.Stratum.Num(); ++I)
         {
             const auto& G = Strata.Stratum[I]; FVector P;
-            if (GuidePoint(Edge.X, Edge.Y, StratumHeightMeters(G.NormalizedHeight), P))
+            if (GuidePoint(RightEdge.X, RightEdge.Y, StratumHeightMeters(G.NormalizedHeight), P))
                 Indicator(P, G.Name.ToString(), G.Color, I);
         }
         Indicators.Sort([](const FIndicator& A, const FIndicator& B) { return A.Position.Y < B.Position.Y; });
@@ -464,6 +391,13 @@ public:
     {
         EditingAsset = Asset;
         StrataSession = MakeShared<FCLStrataSession>(); StrataSession->Open(Asset);
+        StrataSession->OnPreviewChanged = [this]
+        {
+            if (!Preview) return;
+            Preview->Client->Strata = StrataSession->Asset->Recipe.Strata;
+            Preview->Client->UpdateIndicators();
+            if (Annotations) Annotations->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
+        };
         BuildDetailsPanel();
         Changed = Asset->OnRecipeChanged.AddSP(this, &FCLRecipeToolkit::Refresh);
         const auto Layout = FTabManager::NewLayout("CLRecipeDesigner_v2")->AddArea(
@@ -556,7 +490,8 @@ public:
                 [SNew(SCLStratumHandle).Session(StrataSession).Client(Preview->Client).Overlay(Annotations).New(true)]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
-                    const FString Legend = TEXT("Core-to-sky cutaway | Alt + mouse: orbit/pan/zoom | Preview curvature 1/3");
+                    const FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
+                        TEXT("Core-to-sky cutaway | Alt + mouse: orbit/pan/zoom | Preview curvature 1/3");
                     return FText::FromString(Legend);
                 })]];
     }

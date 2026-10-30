@@ -30,6 +30,8 @@ struct CATALYSTLANDFORM_API FCLStrataLibrary
 {
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLStrata> Sets;
+    /** Seed each built-in catalog revision once; deleted styles stay deleted. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 PresetRevision = 0;
 };
 
 /** Project authoring catalog; applied planet recipes remain self-contained. */
@@ -46,4 +48,12 @@ protected:
     virtual void* GetPayloadMemory() override { return &Library; }
     virtual const void* GetPayloadMemory() const override { return &Library; }
     virtual bool ValidatePayload(FString& Error) const override;
+};
+
+/** Reference layouts only: choosing a style does not generate water or atmosphere. */
+struct CATALYSTLANDFORM_API FCLStrataPresets
+{
+    static TArray<FCLStrata> Defaults();
+    /** Add missing built-ins once, preserving edited styles and name collisions. */
+    static bool Seed(FCLStrataLibrary& Library);
 };

@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Model/CLPlanetRecipe.h"
 #include "CLStrataEditing.h"
+#include "CLSectionGeometry.h"
 #include "Misc/AutomationTest.h"
 #include "Editor.h"
 #include "ScopedTransaction.h"
@@ -76,6 +77,77 @@ bool FCLStrataTest::RunTest(const FString&)
 
     FCLPlanetRecipe Cap; FCLNoiseLayer L; L.Name = TEXT("Beyond sky"); L.Minimum.OffsetMeters = 20; L.Maximum.OffsetMeters = 20; Cap.NoiseLayers.Add(L);
     TestEqual(TEXT("Generator cannot render beyond radius"), FCLPlanetCompiler::Compile(Cap, Error)->SampleHeightMeters(FVector::ZAxisVector), 0.0);
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLStrataPresetTest, "Catalyst.Landform.Strata.Presets",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLStrataPresetTest::RunTest(const FString&)
+{
+    FCLStrataLibrary Library; FCLStrata Edited = FCLStrataPresets::Defaults()[0];
+    Edited.Stratum[0].NormalizedHeight = .42; Library.Sets.Add(Edited);
+    FCLStrata Collision; Collision.Id = FGuid::NewGuid(); Collision.Name = TEXT("Oceanic"); Library.Sets.Add(Collision);
+    TestTrue(TEXT("First catalog upgrade seeds presets"), FCLStrataPresets::Seed(Library));
+    TestEqual(TEXT("User-edited built-in is preserved"), Library.Sets[0].Stratum[0].NormalizedHeight, .42);
+    TestEqual(TEXT("User-named style is preserved"), Library.Sets[1].Name, FString(TEXT("Oceanic")));
+    TestEqual(TEXT("Existing style plus custom style and four new presets"), Library.Sets.Num(), 6);
+    TSet<FGuid> Ids; TSet<FString> Names;
+    for (const auto& Preset : FCLStrataPresets::Defaults())
+    {
+        FString Error; TestTrue(TEXT("Preset guides validate"), Preset.Validate(Error));
+        TestFalse(TEXT("Preset identities are unique"), Ids.Contains(Preset.Id)); Ids.Add(Preset.Id);
+        TestFalse(TEXT("Preset names are unique"), Names.Contains(Preset.Name.ToLower())); Names.Add(Preset.Name.ToLower());
+        auto R = FCLPlanetCompiler::RollingPlains(); R.Strata = Preset;
+        TestTrue(TEXT("Every preset supports base SurfaceMin/SurfaceMax layers"), FCLPlanetCompiler::Compile(R, Error).IsValid());
+        if (Preset.Name == TEXT("Airless rocky"))
+            TestFalse(TEXT("Airless preset invents no ocean or atmosphere guides"),
+                Preset.Stratum.ContainsByPredicate([](const FCLStratum& G) { return G.Name == TEXT("OceanHeight") || G.Name == TEXT("AtmosphereMax"); }));
+    }
+    Library.Sets.RemoveAt(2);
+    const int32 Remaining = Library.Sets.Num();
+    TestFalse(TEXT("Presets are not re-seeded after a user deletion"), FCLStrataPresets::Seed(Library));
+    TestEqual(TEXT("Deleted preset stays deleted"), Library.Sets.Num(), Remaining);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLStrataGestureTest, "Catalyst.Landform.Designer.DeferredGesture",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLStrataGestureTest::RunTest(const FString&)
+{
+    auto* Asset = NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional);
+    auto* Catalog = NewObject<UCLStrataLibraryAsset>(GetTransientPackage(), NAME_None, RF_Transactional);
+    Catalog->Library.Sets.Add(Asset->Recipe.Strata);
+    FCLStrataSession Session; Session.Asset = Asset; Session.Library.Reset(Catalog);
+    int32 GuideFeedback = 0, SceneChanges = 0, MeshBuilds = 0;
+    Session.OnPreviewChanged = [&] { ++GuideFeedback; };
+    const auto Handle = Asset->OnRecipeChanged.AddLambda([&]
+    {
+        ++SceneChanges; FString Error; auto Plan = FCLPlanetCompiler::Compile(Asset->Recipe, Error);
+        if (Plan) { FCLSectionGeometry::Build(*Plan, 0); ++MeshBuilds; }
+    });
+    Session.Begin(NSLOCTEXT("CL", "DeferredDragTest", "Move Stratum"));
+    const double Start = FPlatformTime::Seconds();
+    for (int32 I = 1; I <= 200; ++I) Session.Height(0, .4 + I * .0005);
+    const double DragMs = (FPlatformTime::Seconds() - Start) * 1000;
+    TestEqual(TEXT("All 200 mouse positions update the guide immediately"), GuideFeedback, 200);
+    TestEqual(TEXT("No recipe scene notifications during drag"), SceneChanges, 0);
+    TestEqual(TEXT("No section mesh builds during drag"), MeshBuilds, 0);
+    Session.End();
+    TestEqual(TEXT("Release commits exactly one scene change"), SceneChanges, 1);
+    TestEqual(TEXT("Release produces one section build"), MeshBuilds, 1);
+    TestEqual(TEXT("Final height is committed"), Asset->Recipe.Strata.Stratum[0].NormalizedHeight, .5);
+    GEditor->UndoTransaction();
+    TestEqual(TEXT("One undo restores all 200 positions on planet"), Asset->Recipe.Strata.Stratum[0].NormalizedHeight, .4);
+    TestEqual(TEXT("One undo restores catalog"), Catalog->Library.Sets[0].Stratum[0].NormalizedHeight, .4);
+    const int32 BeforeCancel = SceneChanges;
+    Session.Begin(NSLOCTEXT("CL", "CancelDeferredDragTest", "Move Stratum"));
+    Session.Height(0, .7); Session.End(true);
+    TestEqual(TEXT("Cancel restores guide without a terrain rebuild"), Asset->Recipe.Strata.Stratum[0].NormalizedHeight, .4);
+    TestEqual(TEXT("Cancel sends no scene change"), SceneChanges, BeforeCancel);
+    Session.Begin(NSLOCTEXT("CL", "NoOpDeferredDragTest", "Move Stratum"));
+    Session.Height(0, .4); Session.End();
+    TestEqual(TEXT("No-op gesture sends no scene change"), SceneChanges, BeforeCancel);
+    Asset->OnRecipeChanged.Remove(Handle);
+    AddInfo(FString::Printf(TEXT("200 guide-only updates: %.3f ms; mesh rebuilds while dragging: 0; after release: 1"), DragMs));
     return true;
 }
 #endif

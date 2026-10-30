@@ -89,3 +89,9 @@ migrate to schema 2 while preserving physical terrain. The tests cover compilati
 snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
 Perlin noise; native VPP graph and PCG adapters remain future work. The host's
 `Docs/RecipeDesigner.md` documents authoring and physical validation.
+
+Guide dragging updates cached projected ticks and labels immediately; it commits
+one recipe/mesh/VPP update on release. The scene preview does not render
+continuously while idle. Built-in reference layouts are Temperate, Oceanic,
+High relief, Airless rocky and Deep atmosphere. They seed once without replacing
+edited presets or reintroducing deleted ones.

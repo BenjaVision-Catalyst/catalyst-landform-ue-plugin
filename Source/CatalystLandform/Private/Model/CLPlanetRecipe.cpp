@@ -146,14 +146,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 FCLPlanetRecipe FCLPlanetCompiler::RollingPlains()
 {
     FCLPlanetRecipe Recipe;
-    Recipe.Strata.Name = TEXT("Temperate"); Recipe.Strata.Id = FGuid(0x434C0001, 0, 0, 1);
-    auto Guide = [&](FName Name, double Height, FLinearColor Color)
-    { FCLStratum G; G.Name = Name; G.NormalizedHeight = Height;
-      G.Color = Color; Recipe.Strata.Stratum.Add(G); };
-    Guide(TEXT("OceanHeight"), .4, FLinearColor(.1, .55, 1));
-    Guide(TEXT("SurfaceMin"), .3, FLinearColor(.8, .65, .3));
-    Guide(TEXT("SurfaceMax"), .6, FLinearColor(.4, .9, .45));
-    Guide(TEXT("AtmosphereMax"), .9, FLinearColor(.5, .7, 1));
+    Recipe.Strata = FCLStrataPresets::Defaults()[0];
     FCLNoiseLayer Broad; Broad.Name = TEXT("Broad undulations"); Broad.Minimum.Guide = TEXT("SurfaceMin");
     Broad.Maximum.Guide = TEXT("SurfaceMax"); Broad.WavelengthMeters = 60; Recipe.NoiseLayers.Add(Broad);
     FCLNoiseLayer Detail; Detail.Name = TEXT("Ground detail"); Detail.Seed = 12; Detail.Blend = ECLNoiseBlend::Add;

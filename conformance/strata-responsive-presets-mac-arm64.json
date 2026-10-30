@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-30",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "platform": "Mac arm64, Apple M3 Max",
+  "build": "passed",
+  "test_exit_code": 0,
+  "tests": {
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed"
+  },
+  "test_log": "Saved/Logs/Strata-responsive-tests.log",
+  "gesture_regression": {
+    "height_changes": 200,
+    "guide_callbacks_during_drag": 200,
+    "recipe_scene_notifications_during_drag": 0,
+    "section_mesh_builds_during_drag": 0,
+    "recipe_scene_notifications_on_release": 1,
+    "section_mesh_builds_on_release": 1,
+    "undo_and_cancel": "passed",
+    "scope": "Production session event boundary plus one real section build; not a GUI FPS benchmark"
+  },
+  "rendering": "Editor section viewport is non-realtime; guide-only edits reproject cached camera data without requesting a scene draw",
+  "presets": [
+    "Temperate",
+    "Lab plains",
+    "Oceanic",
+    "High relief",
+    "Airless rocky",
+    "Deep atmosphere"
+  ],
+  "preset_revision": 1,
+  "seed_validation": "Existing edited identities and custom name collisions preserved; deleted presets remain deleted after seeding",
+  "editor_open_verification": {
+    "active_strata": "Lab plains",
+    "saved_recipe_preserved": true,
+    "catalog_saved": true,
+    "visual_preview_verified": true
+  },
+  "user_edits": "Saved and backed up before editor close; recipe/catalog binary edits left uncommitted",
+  "pointer_verification": "User confirmed selection and dragging on the preceding revision; synthetic UI clicks remain unavailable",
+  "source_sha256": {
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "30dce7a0c196957bc73b1e72320e0715ac8388552f52899bdcbf921df2c1f91e",
+    "Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Source/CatalystLandform/Private/CLPlanet.cpp": "fde616a0f7db5c4e536b33e4ef2cd7531191b3d9d2bf5cb83bca25b4c9f1c7aa",
+    "Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "cff0fc4feb8001b6c922d9da60b423acf3975eedaeccde7aceff63b1d5cb59d5",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "e90a81659368763f038987abba8cd275dd9e68a126b00ea95d505bbd1b87aaf5",
+    "Source/CatalystLandform/Private/Model/CLStrata.cpp": "d00b219d8f9494ea40f36d9e05d2348ec94e8f90702229c2c8ef536ccadd72e3",
+    "Source/CatalystLandform/Public/CLPlanet.h": "8d0e302d13b9639fd5835a0d1ad982999079038f9057882864333f0a4189e2f8",
+    "Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Source/CatalystLandform/Public/CLPlanetStamp.h": "3b7e2fad7a3e6dfdf72dee1a4e944cc9a9ebe32f1aa140fbe764ed6a9b5a0be2",
+    "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "f29aa90cc195f79a805777e15ed095aa7dbdb7efcf7d50a71ffaf5fc91c582fc",
+    "Source/CatalystLandform/Public/Model/CLStrata.h": "a78098c693aca2c74be4ef7e7a913322b618f803cea59e89cec11cb7f426601d",
+    "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "a9694bf1338eb099ce732d3303dc6805403976a982054f853ce059163d87ae15",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "cd8dedca6fa6990f8d6367435ed7667c2b1092d79b365c2904c7c4d8bb28556d",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "320092c0ff4d8df9cc18b1ec9f41ea9a819598b9d0a4a0c61424b8833335a3be",
+    "Source/CatalystLandformEditor/Private/CLStrataEditing.cpp": "c9fbebb09df8a449ba9164c0e5236930660971b98b83fbafd6ba1969d19e7fee",
+    "Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "8b3d5f8e61c33f46adb48bd83b7e2004c1dec0fb9b1cc6e3daf7df7c3628856f",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "078d7dcf918af9863f6183b9a126dac08ccbc92bfbe3871e89607141a226da0f",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "dbb32112c6f1886b6704b19ec835e5f84200effd9ff1674524423c07aa307cb2",
+    "Source/CatalystLandformTests/CatalystLandformTests.Build.cs": "02b0a17affda1e3fa562e8b0eb2253f77c61bb65a2e6805063feec1ea7ec1e18",
+    "Source/CatalystLandformTests/Private/CLRecipeTests.cpp": "cb08ff02547bd00b6f9449e38da5ae6c0e57483307f929252e6ed8a9a1b82ae2",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "28559350b8173708486befcd05631fdcc7d02a0e969af1767198bd18054eb0b7",
+    "Source/CatalystLandformTests/Private/CLStrataTests.cpp": "9af4556df6e4e3701718e8e80fdc911737eea460a1571746cc9eb799906734ce"
+  },
+  "limits": [
+    "No measured GUI frame-rate claim",
+    "No terrain evaluator or native VPP source changes",
+    "Terrain-type interval interpolation, native graph adapter and PCG placement remain next increments"
+  ]
+}
