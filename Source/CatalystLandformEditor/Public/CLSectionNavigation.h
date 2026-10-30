@@ -7,7 +7,7 @@ struct FCLSectionCamera
     FRotator Rotation;
 };
 
-/** Object navigation only. Centred fit with crop-limited panning for close inspection. */
+/** Object navigation only. Rotation-independent zoom with centred framing and crop-limited panning. */
 struct CATALYSTLANDFORMEDITOR_API FCLSectionNavigation
 {
     double Yaw = -51.34, Elevation = 32, Zoom = 1.0;

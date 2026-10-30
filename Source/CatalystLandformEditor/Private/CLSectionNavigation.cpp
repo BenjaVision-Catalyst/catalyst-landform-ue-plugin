@@ -29,15 +29,17 @@ FCLSectionCamera FCLSectionNavigation::Camera(double TanHorizontal, double TanVe
     const FVector Forward = Axes.GetUnitAxis(EAxis::X), Right = Axes.GetUnitAxis(EAxis::Y), Up = Axes.GetUnitAxis(EAxis::Z);
     const double H = FMath::Max(.01, TanHorizontal), V = FMath::Max(.01, TanVertical);
     TArray<FVector, TInlineAllocator<8>> Points;
-    double FitDistance = S, NearDistance = 0;
+    // A sphere enclosing the fixed box gives the same fit at every orbit angle.
+    // Fitting individual projected corners made rotation silently change zoom.
+    const double Radius = S * FMath::Sqrt(3.0) * .5;
+    const double FrustumSlope = FMath::Min(.65 * H, .85 * V);
+    const double FitDistance = Radius * FMath::Sqrt(1 + 1 / FMath::Square(FrustumSlope));
+    const double NearDistance = Radius + S * .05;
     for (double X : {-.5 * S, .5 * S}) for (double YPos : {-.5 * S, .5 * S}) for (double Z : {-.5 * S, .5 * S})
     {
         const FVector P(X, YPos, Z);
         const FVector Q(FVector::DotProduct(P, Right), FVector::DotProduct(P, Up), FVector::DotProduct(P, Forward));
         Points.Add(Q);
-        NearDistance = FMath::Max(NearDistance, -Q.Z + S * .05);
-        FitDistance = FMath::Max(FitDistance, FMath::Abs(Q.X) / (.65 * H) - Q.Z);
-        FitDistance = FMath::Max(FitDistance, FMath::Abs(Q.Y) / (.85 * V) - Q.Z);
     }
     const double Distance = FMath::Max(FitDistance * 1.04 * Zoom, NearDistance);
     auto Offset = [&](int32 Axis, double Tangent, double& PanValue, bool& CanPan)

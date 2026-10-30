@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-31",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "test_exit_code": 0,
+  "automation_summary": {
+    "succeeded": 15,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "passed",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Stable-orbit-tests.log",
+  "cause": "Fit distance and near-distance guard were recomputed from rotated corners, coupling orbit to apparent zoom.",
+  "source_math_reproduction": {
+    "aspect_ratio": 1.6,
+    "horizontal_fov_degrees": 60,
+    "yaw_step_degrees": 15,
+    "elevation_range_degrees": [
+      15,
+      75
+    ],
+    "elevation_step_degrees": 5,
+    "old_min_distance_cm": 239761.81952889473,
+    "old_max_distance_cm": 306999.71385899506,
+    "old_distance_ratio": 1.2804362031545111
+  },
+  "fix": "Enclosing-sphere fit and close-zoom guard independent of rotation; distance depends on selected zoom and viewport/FOV, with existing centring and crop-aware pan retained.",
+  "new_regression": {
+    "name": "Catalyst.Landform.Designer.StableOrbitZoom",
+    "aspects": [
+      0.45,
+      1,
+      1.6,
+      3
+    ],
+    "zoom_levels": [
+      0.3,
+      0.5,
+      0.75,
+      1,
+      2.2
+    ],
+    "elevations_degrees": [
+      15,
+      32,
+      45,
+      60,
+      75
+    ],
+    "yaw_circuit": "24 actual orbit calls at 15 degrees per step for each case",
+    "pan": "Exercised during orbit",
+    "invariants": [
+      "Chosen zoom",
+      "Camera-to-target distance",
+      "Focal depth at display centre",
+      "Horizontal and vertical projected magnification of view-aligned reference segments"
+    ]
+  },
+  "nonblocking_warnings": [
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+  ],
+  "edited_assets_preserved": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "a7bc5dec4b6b39cfdbccbf276018392bd3da50e26861b447560f850273f2b6ec",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "d24df29459d9ebc5b09ac453b409ac09ab370ad37930426753fd994c63fd07dc"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLSectionNavigation.cpp": "b2b45507c7e6b253a1aea70673db72febb10af2641fe7ad5ae2c4fa32d75326a",
+    "Source/CatalystLandformEditor/Public/CLSectionNavigation.h": "4d4138fd6088112801599d6569e8b15126d399c476b0f6855af0ab9496a28995",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "0a92a7e464984dc7db56fdd7cf3dd22b2b2db258579f64c07abbc626e41ef665"
+  },
+  "limits": [
+    "Natural perspective foreshortening of rotating terrain remains; the reference segment test isolates magnification",
+    "Native mouse gestures remain unavailable to UI automation; orbit is exercised through its UE navigation API",
+    "No new runtime/cook/network/physical-walk qualification"
+  ],
+  "vendor_changes": "None",
+  "editor": "LandformLab reopened on the saved Mountain ridges recipe at 500m coverage; render and controls visually inspected. Orbit scale verified through the UE navigation/projection regression."
+}

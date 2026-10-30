@@ -198,4 +198,48 @@ bool FCLSectionNavigationTest::RunTest(const FString&)
 
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLStableOrbitTest, "Catalyst.Landform.Designer.StableOrbitZoom",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLStableOrbitTest::RunTest(const FString&)
+{
+    const FVector Pivot(0, 0, FCLSectionGeometry::DisplaySize * 50);
+    for (double Aspect : {.45, 1.0, 1.6, 3.0}) for (double Zoom : {.3, .5, .75, 1.0, 2.2})
+    {
+        FCLSectionNavigation Nav; Nav.Zoom = Zoom;
+        const double H = FMath::Tan(FMath::DegreesToRadians(30.0)), V = H / Aspect;
+        const auto Initial = Nav.Camera(H, V);
+        const double Distance = (Initial.Eye - Initial.Target).Size();
+        const double ExpectedXScale = 1000 / (Distance * H), ExpectedYScale = 1000 / (Distance * V);
+        // Exercise the real orbit operation over complete yaw circuits and the
+        // full elevation range, including close zoom's near-distance guard.
+        for (double Elevation : {15.0, 32.0, 45.0, 60.0, 75.0})
+        {
+            Nav.Orbit(FVector2D(0, (Elevation - Nav.Elevation) / .3));
+            for (int32 I = 0; I < 24; ++I)
+            {
+                Nav.Orbit(FVector2D(50, 0));
+                auto C = Nav.Camera(H, V);
+                Nav.PanBy(FVector2D(20, -10)); C = Nav.Camera(H, V);
+                const FRotationMatrix Axes(C.Rotation);
+                const FVector Forward = Axes.GetUnitAxis(EAxis::X), Right = Axes.GetUnitAxis(EAxis::Y), Up = Axes.GetUnitAxis(EAxis::Z);
+                const double Depth = FVector::DotProduct(Pivot - C.Eye, Forward);
+                TestTrue(TEXT("Orbit preserves camera-to-target distance"), FMath::Abs((C.Eye - C.Target).Size() - Distance) < 1.e-7);
+                TestTrue(TEXT("Orbit preserves depth of the planet display centre"), FMath::Abs(Depth - Distance) < 1.e-7);
+                TestEqual(TEXT("Orbit never changes the chosen zoom"), Nav.Zoom, Zoom);
+                auto Project = [&](FVector P)
+                {
+                    P -= C.Eye; const double Z = FVector::DotProduct(P, Forward);
+                    return FVector2D(FVector::DotProduct(P, Right) / (Z * H), FVector::DotProduct(P, Up) / (Z * V));
+                };
+                // View-aligned reference segments isolate magnification from
+                // the natural foreshortening of a rotating terrain surface.
+                const double XScale = (Project(Pivot + Right * 500) - Project(Pivot - Right * 500)).Size();
+                const double YScale = (Project(Pivot + Up * 500) - Project(Pivot - Up * 500)).Size();
+                TestTrue(TEXT("Horizontal magnification stays fixed throughout orbit"), FMath::Abs(XScale - ExpectedXScale) < 1.e-10);
+                TestTrue(TEXT("Vertical magnification stays fixed throughout orbit"), FMath::Abs(YScale - ExpectedYScale) < 1.e-10);
+            }
+        }
+    }
+    return true;
+}
 #endif
