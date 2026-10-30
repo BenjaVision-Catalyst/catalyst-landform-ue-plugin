@@ -114,8 +114,8 @@ bool FCLTerrainProfileTest::RunTest(const FString&)
         const auto G = FCLSectionGeometry::Build(*A, .3); double MaximumError = 0;
         for (int32 I = 0; I < G.SurfaceVertexCount; ++I)
         {
-            const FVector P = G.Vertices[I] / 100;
-            MaximumError = FMath::Max(MaximumError, FMath::Abs(P.Size() - A->RadiusMeters - A->SampleHeightMeters(FQuat(FVector::ZAxisVector, .3).RotateVector(P))));
+            const FVector P = G.SourceSurfacePoints[I] / 100;
+            MaximumError = FMath::Max(MaximumError, FMath::Abs(P.Size() - A->RadiusMeters - A->SampleHeightMeters(P)));
         }
         AddInfo(FString::Printf(TEXT("%s section maximum field error: %.3f cm"), Name, MaximumError * 100));
         TestTrue(TEXT("Kilometre-scale section agrees within 5 cm with CPU float noise field"), MaximumError < .05);

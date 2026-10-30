@@ -1,25 +1,36 @@
 #include "CLSectionGeometry.h"
 
-double FCLSectionGeometry::HalfWidth(const FCLCompiledPlanetRecipe& Plan)
-{ return FMath::Min(Plan.RadiusMeters * .42, (Plan.RadiusMeters + Plan.MinimumHeightMeters) * .6); }
-
-FVector FCLSectionGeometry::DisplaySurfacePoint(const FVector& P)
+double FCLSectionGeometry::DefaultWidth(const FCLCompiledPlanetRecipe& Plan)
 {
-    // The lab's tiny walkable sphere exaggerates curvature for a Designer section.
-    // Keep its sampled relief and horizontal footprint; flatten only radial sag.
-    return FVector(P.X, P.Y, P.Size() + (P.Z - P.Size()) / 3);
+    const double OldHalfWidth = FMath::Min(Plan.RadiusMeters * .42, (Plan.RadiusMeters + Plan.MinimumHeightMeters) * .6);
+    return FMath::Clamp(FMath::RoundToDouble(OldHalfWidth * 4 / 10) * 10, 100.0, 1000.0);
+}
+
+double FCLSectionGeometry::ReferenceSurfaceRadius(const FCLCompiledPlanetRecipe& Plan)
+{ return FMath::Max(.001, Plan.RadiusMeters + Plan.SampleHeightMeters(FVector::ZAxisVector)); }
+
+FVector FCLSectionGeometry::SourceSurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading)
+{
+    // Exponential map at the north pole: distance along either centre axis is
+    // exactly the requested number of metres on the reference surface sphere.
+    const double Distance = FMath::Sqrt(X * X + Y * Y);
+    const double Angle = Distance / ReferenceSurfaceRadius(Plan);
+    const double S = Distance > .000001 ? FMath::Sin(Angle) / Distance : 0;
+    const FVector Local(X * S, Y * S, FMath::Cos(Angle));
+    const FVector Direction = FQuat(FVector::ZAxisVector, Heading).RotateVector(Local);
+    return Direction * (Plan.RadiusMeters + Plan.SampleHeightMeters(Direction)) * 100;
 }
 
 FVector FCLSectionGeometry::StratumPoint(const FCLCompiledPlanetRecipe& Plan, const FVector2D& Edge, double Normalized)
 {
-    const double R = Plan.RadiusMeters * Normalized;
-    const double Transition = Edge.Size() * 1.05;
-    if (Transition > 0 && R < Transition)
-    {
-        const FVector P = DisplaySurfacePoint(FVector(Edge.X, Edge.Y, FMath::Sqrt(Transition * Transition - Edge.SizeSquared())) * 100);
-        return FVector(Edge.X * 100, Edge.Y * 100, P.Z * FMath::Max(0.0, R) / Transition);
-    }
-    return DisplaySurfacePoint(FVector(Edge.X, Edge.Y, FMath::Sqrt(FMath::Max(0.0, R * R - Edge.SizeSquared()))) * 100);
+    const double Reference = ReferenceSurfaceRadius(Plan);
+    const double Sag = Reference * (1 - FMath::Cos(Edge.Size() / Reference)) / 3;
+    const double Height = FMath::Max(0.0, Plan.RadiusMeters * Normalized);
+    // Apply the same additive sag to terrain and guides, preserving radial relief.
+    // Deep references continue schematically to the centre plane, rather than
+    // disappearing where their small concentric spheres cannot reach the edge.
+    const double Blend = Sag > .000001 ? FMath::Min(1.0, Height / (2 * Sag)) : 1;
+    return FVector(Edge.X, Edge.Y, Height - Sag * Blend) * 100;
 }
 
 double FCLSectionGeometry::StratumAtScreenY(const FCLCompiledPlanetRecipe& Plan, const FVector2D& Edge, const FMatrix& Projection, double Y)
@@ -41,33 +52,27 @@ double FCLSectionGeometry::StratumAtScreenY(const FCLCompiledPlanetRecipe& Plan,
 
 FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading)
 {
-    // Intersect a vertical section ray with the same radial field VPP uses.
-    // Cartesian cut planes remain straight even though the terrain is spherical.
-    double Low = 0, High = Plan.RadiusMeters + Plan.MaximumHeightMeters;
-    const FQuat Rotation(FVector::ZAxisVector, Heading);
-    for (int32 I = 0; I < 32; ++I)
-    {
-        const double Z = (Low + High) * .5;
-        const FVector P(X, Y, Z);
-        const double Field = P.Size() - Plan.RadiusMeters - Plan.SampleHeightMeters(Rotation.RotateVector(P));
-        if (Field > 0) High = Z; else Low = Z;
-    }
-    return FVector(X, Y, (Low + High) * .5) * 100;
+    const FVector Source = SourceSurfacePoint(Plan, X, Y, Heading);
+    return StratumPoint(Plan, FVector2D(X, Y), Source.Size() / (100 * Plan.RadiusMeters));
 }
 
-FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan, double Heading)
+FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan, double Heading, double WidthMeters)
 {
     FCLSectionGeometry G;
-    G.HalfWidthMeters = HalfWidth(Plan);
-    const int32 N = 48;
+    G.HalfWidthMeters = FMath::Clamp(WidthMeters > 0 ? WidthMeters : DefaultWidth(Plan), 100.0, 1000.0) * .5;
+    // Keep spacing at most 5m as the viewed area grows.
+    const int32 N = FMath::Clamp(FMath::CeilToInt(G.HalfWidthMeters * 2 / 5), 48, 200);
     auto Add = [&](const FVector& P, FLinearColor C) { G.Vertices.Add(P); G.Colors.Add(C); };
     // Arguments use mathematical outward CCW; UE renders the reverse winding.
     auto Triangle = [&](int32 A, int32 B, int32 C) { G.Triangles.Append({A, C, B}); };
     for (int32 Y = 0; Y <= N; ++Y)
         for (int32 X = 0; X <= N; ++X)
         {
-            const FVector P = SurfacePoint(Plan, G.HalfWidthMeters * (2.0 * X / N - 1), G.HalfWidthMeters * (2.0 * Y / N - 1), Heading);
-            const double H = P.Size() / 100 - Plan.RadiusMeters;
+            const FVector2D XY(G.HalfWidthMeters * (2.0 * X / N - 1), G.HalfWidthMeters * (2.0 * Y / N - 1));
+            const FVector Source = SourceSurfacePoint(Plan, XY.X, XY.Y, Heading);
+            G.SourceSurfacePoints.Add(Source);
+            const FVector P = StratumPoint(Plan, XY, Source.Size() / (100 * Plan.RadiusMeters));
+            const double H = Source.Size() / 100 - Plan.RadiusMeters;
             const double Shade = FMath::Clamp((H - Plan.MinimumHeightMeters) /
                 FMath::Max(.001, Plan.MaximumHeightMeters - Plan.MinimumHeightMeters), 0.0, 1.0);
             Add(P, FLinearColor::LerpUsingHSV(FLinearColor(.19, .24, .11), FLinearColor(.63, .59, .36), Shade));

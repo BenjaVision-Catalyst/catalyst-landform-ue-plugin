@@ -42,12 +42,14 @@
 
 namespace
 {
+const FLinearColor GuideLabelColor(.72, .72, .72);
 class SCLSectionViewport;
 class FCLSectionClient : public FEditorViewportClient
 {
 public:
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     double Heading = 0;
+    double AreaWidthMeters = 0;
     bool bGuides = true;
     FCLStrata Strata;
     FVector2D RightEdge;
@@ -85,7 +87,7 @@ public:
     {
         FEditorViewportClient::Draw(View, PDI);
         if (!Plan) return;
-        const double W = FCLSectionGeometry::HalfWidth(*Plan);
+        const double W = AreaWidthMeters * .5;
         const FLinearColor Frame(.24, .34, .44);
         for (double X : {-W, W}) for (double Y : {-W, W})
         { FVector P; GuidePoint(X, Y, 0, P); PDI->DrawLine(FVector(X, Y, 0) * 100, P, Frame, SDPG_World, 1); }
@@ -118,7 +120,7 @@ public:
         auto Indicator = [&](const FVector& P, const FString& Text, FLinearColor Color, int32 Index = INDEX_NONE)
         {
             FVector2D Screen;
-            if (FSceneView::ProjectWorldToScreen(P, ViewRect, ViewProjection, Screen)) Indicators.Add({Text, Color,
+            if (FSceneView::ProjectWorldToScreen(P, ViewRect, ViewProjection, Screen)) Indicators.Add({Text, GuideLabelColor,
                 FVector2D((Screen.X - ViewRect.Min.X) / FMath::Max(1, ViewRect.Width()),
                     (Screen.Y - ViewRect.Min.Y) / FMath::Max(1, ViewRect.Height())), Index});
         };
@@ -169,8 +171,7 @@ public:
                         .Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).DelayedLeftClickEntersEditMode(false)
                         .Text_Lambda([this] { return FText::FromName(Session->Asset->Recipe.Strata.Stratum.IsValidIndex(Index) ?
                             Session->Asset->Recipe.Strata.Stratum[Index].Name : NAME_None); })
-                        .ColorAndOpacity_Lambda([this] { return FSlateColor(Session->Asset->Recipe.Strata.Stratum.IsValidIndex(Index) ?
-                            Session->Asset->Recipe.Strata.Stratum[Index].Color : FLinearColor::White); })
+                        .ColorAndOpacity(GuideLabelColor)
                         .IsSelected_Lambda([this] { return Session->Selected == Index; })
                         .OnVerifyTextChanged_Lambda([this](const FText& Text, FText& Error)
                         { FString E; const bool bOK = FCLStrataEditing::CanRename(Session->Asset->Recipe.Strata, Index, Text.ToString(), E);
@@ -183,7 +184,7 @@ public:
                             Session->Begin(NSLOCTEXT("CL", "RenameStratum", "Rename Stratum"));
                             FCLStrataEditing::Rename(Session->Asset->Recipe, Index, Text.ToString(), Error); Session->Changed(); Session->End();
                         })]
-                    + SHorizontalBox::Slot().AutoWidth().Padding(6, 0)[SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9))
+                    + SHorizontalBox::Slot().AutoWidth().Padding(6, 0)[SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).ColorAndOpacity(GuideLabelColor)
                         .Text_Lambda([this]
                         {
                             if (!Session->Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return FText();
@@ -337,7 +338,7 @@ public:
     FAdvancedPreviewScene Scene{FPreviewScene::ConstructionValues()};
     TStrongObjectPtr<UProceduralMeshComponent> Mesh;
     TSharedPtr<FCLSectionClient> Client;
-    double LastRadius = 0;
+    double LastRadius = 0, LastWidth = 0;
     void Construct(const FArguments& Args)
     {
         Scene.SetFloorVisibility(false); Scene.SetEnvironmentVisibility(false);
@@ -358,17 +359,16 @@ public:
     {
         Client->Plan = Plan;
         if (!Plan) return;
-        const FCLSectionGeometry G = FCLSectionGeometry::Build(*Plan, Client->Heading);
+        if (Client->AreaWidthMeters <= 0) Client->AreaWidthMeters = FCLSectionGeometry::DefaultWidth(*Plan);
+        const FCLSectionGeometry G = FCLSectionGeometry::Build(*Plan, Client->Heading, Client->AreaWidthMeters);
         TArray<FVector> N; TArray<FVector2D> UV; TArray<FProcMeshTangent> Tangents;
         UV.Init(FVector2D::ZeroVector, G.Vertices.Num());
-        TArray<FVector> DisplayVertices = G.Vertices;
-        for (FVector& V : DisplayVertices) if (V.Z > 0) V = FCLSectionGeometry::DisplaySurfacePoint(V);
-        UKismetProceduralMeshLibrary::CalculateTangentsForMesh(DisplayVertices, G.Triangles, {}, N, Tangents);
-        Mesh->CreateMeshSection_LinearColor(0, DisplayVertices, G.Triangles, N, UV, G.Colors, Tangents, false);
-        if (!FMath::IsNearlyEqual(LastRadius, Plan->RadiusMeters))
+        UKismetProceduralMeshLibrary::CalculateTangentsForMesh(G.Vertices, G.Triangles, {}, N, Tangents);
+        Mesh->CreateMeshSection_LinearColor(0, G.Vertices, G.Triangles, N, UV, G.Colors, Tangents, false);
+        if (!FMath::IsNearlyEqual(LastRadius, Plan->RadiusMeters) || !FMath::IsNearlyEqual(LastWidth, Client->AreaWidthMeters))
         {
-            LastRadius = Plan->RadiusMeters;
-            const double R = Plan->RadiusMeters * 100;
+            LastRadius = Plan->RadiusMeters; LastWidth = Client->AreaWidthMeters;
+            const double R = FMath::Max(Plan->RadiusMeters, Client->AreaWidthMeters * 1.2) * 100;
             const FVector Target(0, 0, Client->TopHeight() * 45);
             Client->SetViewLocation(Target + FVector(.8 * R, -1.0 * R, .8 * R));
             Client->SetViewRotation((Target - Client->GetViewLocation()).Rotation());
@@ -385,6 +385,19 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<FCLStrataSession> StrataSession;
     TStrongObjectPtr<UCLTerrainTypeAsset> TerrainSource;
     FString Status;
+    double PendingAreaWidth = 0;
+    bool bAreaDragging = false;
+    void ApplyPreviewArea()
+    {
+        if (!Preview || !Preview->Client->Plan) return;
+        Preview->Client->AreaWidthMeters = PendingAreaWidth;
+        Preview->Rebuild(Preview->Client->Plan);
+    }
+    FText AreaCaption() const
+    {
+        const double Width = Preview ? Preview->Client->AreaWidthMeters : 0;
+        return FText::FromString(FString::Printf(TEXT("Viewing %.0f m × %.0f m"), Width, Width));
+    }
     FDelegateHandle Changed;
     static const FName SectionTab;
 public:
@@ -476,7 +489,11 @@ public:
         if (Plan)
         {
             Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | preview curvature 1/3"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num());
-            if (Preview) Preview->Rebuild(Plan);
+            if (Preview)
+            {
+                Preview->Rebuild(Plan);
+                if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
+            }
         }
         else Status = TEXT("Keeping last valid preview: ") + Status;
         RefreshAllUI(EditingAsset, false);
@@ -526,7 +543,23 @@ public:
                     { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Height Guides")))]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("Section heading")))]
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).OnValueChanged_Lambda([this](float Value)
-                    { Preview->Client->Heading = Value * 2 * UE_PI; Refresh(); })]]
+                    { Preview->Client->Heading = Value * 2 * UE_PI; Preview->Rebuild(Preview->Client->Plan); })]]
+            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]
+                + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("100 m")))]
+                + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider)
+                    .ToolTipText(FText::FromString(TEXT("Square surface-distance footprint. Release to resample terrain; this does not change the planet recipe.")))
+                    .Value_Lambda([this] { return float((PendingAreaWidth - 100) / 900); })
+                    .OnMouseCaptureBegin_Lambda([this] { bAreaDragging = true; })
+                    .OnMouseCaptureEnd_Lambda([this] { bAreaDragging = false; ApplyPreviewArea(); })
+                    .OnControllerCaptureBegin_Lambda([this] { bAreaDragging = true; })
+                    .OnControllerCaptureEnd_Lambda([this] { bAreaDragging = false; ApplyPreviewArea(); })
+                    .OnValueChanged_Lambda([this](float Value)
+                    { PendingAreaWidth = FMath::Clamp(FMath::RoundToDouble((100 + 900 * Value) / 10) * 10, 100.0, 1000.0);
+                      if (!bAreaDragging) ApplyPreviewArea(); })]
+                + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("1 km")))]]
+            + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).Text_Lambda([this]
+                { return bAreaDragging ? FText::FromString(FString::Printf(TEXT("Release to view %.0f m × %.0f m"), PendingAreaWidth, PendingAreaWidth)) : FText(); })]
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(StrataSession)]]
@@ -534,8 +567,11 @@ public:
                 [SNew(SCLStratumHandle).Session(StrataSession).Client(Preview->Client).Overlay(Annotations).New(true)]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
-                    const FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
-                        TEXT("Core-to-sky cutaway | Alt + mouse: orbit/pan/zoom | Preview curvature 1/3");
+                    FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
+                        TEXT("Surface-distance square, unwrapped | Core-to-sky curvature 1/3 (schematic) | Alt + mouse: orbit/pan/zoom");
+                    if (Preview && Preview->Client->Plan && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
+                        UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
+                        Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
                     return FText::FromString(Legend);
                 })]];
     }

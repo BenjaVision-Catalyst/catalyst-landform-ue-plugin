@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-31",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "test_exit_code": 0,
+  "tests": {
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Preview-area-tests.log",
+  "preview": {
+    "area_range_metres": [
+      100,
+      1000
+    ],
+    "square_footprint": true,
+    "step_metres": 10,
+    "default": "twice previous width and length, rounded to 10m and clamped to range",
+    "sampling": "Exponential map at north pole; centre-axis great-circle distances on sphere through centre terrain",
+    "display": "Unwrapped XY with one-third reference sag; deep references continue to core plane",
+    "resolution": "48\u2013200 cells per side, at most 5m spacing",
+    "updates": "Once on area slider release; preview only, no recipe or VPP update",
+    "annotations": "Light gray names, values and ticks; selection background retained"
+  },
+  "verification": {
+    "area_metres": [
+      100,
+      500,
+      1000
+    ],
+    "axis_arc_lengths": true,
+    "finite_geometry": true,
+    "guide_inverse": true,
+    "reference_relief": true,
+    "closed_mesh_and_outward_winding": true,
+    "retained_source_field_agreement": true
+  },
+  "editor": "1000m x 1000m Hills preview, guide color and right-edge alignment visually inspected. Native automation drag did not reach the slider; interactive slider gesture remains for user verification.",
+  "edited_assets_preserved": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "9005a5c6aa4ba762996195856ebe885141fe7455efd020fdca0ecf294c941064",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "2fa52fb233d83e619285996089eb540ebb932cb865ad2a52323ae86d2d2a5be9"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "becafc641d0f3678ddeec12fd12124a26c1b2147c275f51918e00f541ea27faa",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "8c1850dc934adaeaa700d3f587ae26b74314681d2e4df7afc7fec426aaab94c0",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "4188a7a5e94cd8e0e0388bf859f6ccd58f90a1970ec8d72fedcf060ebe10768a",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "dc7802dc12f8e7ce389e6bc499ff3007971089171a171205d98364175526e433",
+    "Source/CatalystLandformTests/Private/CLTerrainTypeTests.cpp": "75dea95bc5a18da852768ef05b63aef6224ac9a4f19c3a627b6c8e4be76b2455"
+  },
+  "limits": [
+    "Height-only CPU reference preview; separate level stamps, caves, VPP surface materials and PCG pending",
+    "Map projection distorts distances away from the two centre axes; shallow curvature is schematic",
+    "Areas past the antipode show a repetition warning for tiny planets",
+    "Finite 5m-or-finer grid; no sub-grid detail guarantee",
+    "No new runtime planet, cook, networking or physical-walk qualification"
+  ],
+  "vendor_changes": "None",
+  "automation_summary": {
+    "succeeded": 11,
+    "succeeded_with_warnings": 1,
+    "failed": 0
+  },
+  "nonblocking_warnings": [
+    "Recipes.VPPAndLiveEdits: engine LineSetComponentMaterial lacks a material function from the disabled Experimental Mesh Modeling Toolset; fallback material used. No vendor or engine settings changed."
+  ]
+}
