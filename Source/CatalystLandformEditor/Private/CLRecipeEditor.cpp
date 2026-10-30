@@ -51,6 +51,7 @@
 namespace
 {
 const FLinearColor GuideLabelColor(.72, .72, .72, .3);
+constexpr double GuideTickWidth = 16;
 FLinearColor GuideTint(int32 Index, int32 Selected)
 {
     return GuideLabelColor.CopyWithNewOpacity(Index >= 0 && Selected == Index ? 1.f : .3f);
@@ -382,7 +383,7 @@ public:
         for (int32 K = 0; K < Client->Indicators.Num(); ++K)
         {
             const auto& I = Client->Indicators[K];
-            X = FMath::Max(X, I.Position.X * Size.X + 28);
+            X = FMath::Max(X, I.Position.X * Size.X + GuideTickWidth * 2 + 16);
             Previous = FMath::Max(8.0, FMath::Max(I.Position.Y * Size.Y - 9, Previous + 24)); Ys.Add(Previous);
             if (I.Index == Index) Found = K;
         }
@@ -398,7 +399,7 @@ public:
         Rows = Count; Canvas->ClearChildren();
         for (int32 I = 0; I < Count; ++I)
         {
-            Canvas->AddSlot().Position_Lambda([this, I] { return Anchor(I) - FVector2D(5, 9); }).Size(FVector2D(24, 18))
+            Canvas->AddSlot().Position_Lambda([this, I] { return Anchor(I) + FVector2D(GuideTickWidth - 4, -9); }).Size(FVector2D(GuideTickWidth + 8, 18))
                 [SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I)];
             const auto LabelHandle = SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I).Label(true);
             Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); })
@@ -428,11 +429,12 @@ public:
     {
         for (const auto& I : Client->Indicators)
         {
-            const FVector2D A = I.Position * Geometry.GetLocalSize(), L = Label(I.Index);
+            // Leave one full tick width clear between the projected edge and tick.
+            const FVector2D A = I.Position * Geometry.GetLocalSize() + FVector2D(GuideTickWidth, 0), L = Label(I.Index);
             const FLinearColor Color = GuideTint(I.Index, Session->Selected) * Style.GetColorAndOpacityTint();
-            TArray<FVector2D> Tick{A - FVector2D(4, 0), A + FVector2D(12, 0)};
+            TArray<FVector2D> Tick{A, A + FVector2D(GuideTickWidth, 0)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Tick, ESlateDrawEffect::None, Color, true, 2);
-            TArray<FVector2D> Leader{A + FVector2D(12, 0), FVector2D(L.X - 8, L.Y + 9), FVector2D(L.X - 3, L.Y + 9)};
+            TArray<FVector2D> Leader{A + FVector2D(GuideTickWidth, 0), FVector2D(L.X - 8, L.Y + 9), FVector2D(L.X - 3, L.Y + 9)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Leader, ESlateDrawEffect::None, Color, true, 1);
         }
         return SCompoundWidget::OnPaint(Args, Geometry, Clip, Elements, Layer + 1, Style, Enabled);

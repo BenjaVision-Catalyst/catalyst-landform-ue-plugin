@@ -85,6 +85,7 @@ orbitable solid core-to-sky cutaway. Select and drag guide ticks/labels, Delete
 to remove, use the small Core + to add a Stratum, and rename labels in place.
 Ticks, leaders and labels use light gray at 30% opacity; the selected Stratum
 becomes fully opaque, with no selection box or change in tick thickness.
+Each tick is separated from the cross-section edge by one tick width.
 The Strata popup selects a project catalog style; the contextual planet's applied
 copy is the default. Save persists both the recipe and catalog. Schema 1 recipes
 migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
