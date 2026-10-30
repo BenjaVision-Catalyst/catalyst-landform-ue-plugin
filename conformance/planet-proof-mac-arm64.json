@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-30",
+  "engine": "5.7.4",
+  "engine_build_id": "47537391",
+  "platform": "Mac arm64",
+  "vpp": "2.0p8 with existing UE registration bridge",
+  "radius_cm": 10000,
+  "flat_stamp_resolution": [
+    65,
+    65
+  ],
+  "flat_stamp_size_cm": [
+    6000,
+    4000
+  ],
+  "flat_stamp_peak_cm": 800,
+  "voxel_size_cm": 50,
+  "editor_build": "passed",
+  "geodesic_field_test": "passed",
+  "physical_circumnavigation_test": "passed",
+  "physical_measurements": {
+    "degrees_walked": 360.03609019892144,
+    "minimum_radial_up_dot": 0.9999992275332852,
+    "minimum_gravity_dot": 0.9999999950517551,
+    "maximum_camera_right_radial_dot": 2.449291089545269e-16,
+    "maximum_stamp_height_cm": 799.7990302718229,
+    "underside_jump_peak_cm": 92.24166875956325,
+    "ground_frames": 4452,
+    "voxel_ground_frames": 4452,
+    "total_frames": 4528
+  },
+  "limits": [
+    "Single unit-scale planet in editor PIE; non-Nanite rendering.",
+    "Adapts rectangular height samples, not arbitrary VPP graph/stamp classes.",
+    "Radial implicit field is not an exact Euclidean SDF.",
+    "No cook, multiplayer, multi-planet gravity selection, water or AI navigation qualification."
+  ],
+  "plugin_source_sha256": "4fe76b5dcefcdbee49ecb4bb371b782399021473fa485bfa76582966b92cdebb"
+}
