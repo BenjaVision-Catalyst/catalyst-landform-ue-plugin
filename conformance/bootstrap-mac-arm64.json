@@ -9,7 +9,16 @@
   "editor_startup": "passed",
   "landform_runtime_loaded": true,
   "vpp_installer_initialized": true,
-  "vpp_download": "pending",
+  "vpp_download": "blocked_no_ue58_mac_build",
+  "vpp_catalogue_check": {
+    "date": "2026-10-30",
+    "endpoint": "https://api.voxelplugin.com/version/list",
+    "total_versions": 1606,
+    "ue58_mac_versions": 0,
+    "ue58_windows_versions": 22,
+    "installer_message": "No available plugin for this engine version",
+    "dev_and_unstable_versions_enabled": true
+  },
   "limits": [
     "Build and startup qualification only; no terrain implementation, cook, gameplay, or server interoperability claim."
   ]
