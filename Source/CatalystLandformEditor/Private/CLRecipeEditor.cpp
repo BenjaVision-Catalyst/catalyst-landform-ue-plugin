@@ -50,7 +50,11 @@
 
 namespace
 {
-const FLinearColor GuideLabelColor(.72, .72, .72);
+const FLinearColor GuideLabelColor(.72, .72, .72, .3);
+FLinearColor GuideTint(int32 Index, int32 Selected)
+{
+    return GuideLabelColor.CopyWithNewOpacity(Index >= 0 && Selected == Index ? 1.f : .3f);
+}
 // A private studio rig: preview lighting must not inherit another asset editor's
 // environment profile or animate continuously while the designer is idle.
 class FCLSectionScene : public FPreviewScene
@@ -249,14 +253,13 @@ public:
         Index = Args._Index;
         SetToolTipText(FText::FromString(TEXT("Click to select; drag to move; Delete to remove; double-click a label or press F2 to rename")));
         if (Args._Label)
-            ChildSlot[SNew(SBorder).Padding(FMargin(3, 1)).BorderImage(FAppStyle::GetBrush("WhiteBrush"))
-                .BorderBackgroundColor_Lambda([this] { return Session->Selected == Index ? FLinearColor(.1, .3, .5, .65) : FLinearColor::Transparent; })
+            ChildSlot[SNew(SBorder).Padding(FMargin(3, 1)).BorderImage(FAppStyle::GetBrush("NoBorder"))
                 [SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().AutoWidth()[SAssignNew(Name, SInlineEditableTextBlock)
                         .Font(FCoreStyle::GetDefaultFontStyle("Regular", 10)).DelayedLeftClickEntersEditMode(false)
                         .Text_Lambda([this] { return FText::FromName(Session->Asset->Recipe.Strata.Stratum.IsValidIndex(Index) ?
                             Session->Asset->Recipe.Strata.Stratum[Index].Name : NAME_None); })
-                        .ColorAndOpacity(GuideLabelColor)
+                        .ColorAndOpacity_Lambda([this] { return GuideTint(Index, Session->Selected); })
                         .IsSelected_Lambda([this] { return Session->Selected == Index; })
                         .OnVerifyTextChanged_Lambda([this](const FText& Text, FText& Error)
                         { FString E; const bool bOK = FCLStrataEditing::CanRename(Session->Asset->Recipe.Strata, Index, Text.ToString(), E);
@@ -270,10 +273,10 @@ public:
                             FCLStrataEditing::Rename(Session->Asset->Recipe, Index, Text.ToString(), Error); Session->Changed(); Session->End();
                         })]
                 ]];
-        else ChildSlot[SNew(SBorder).Padding(0).BorderImage(FAppStyle::GetBrush("WhiteBrush"))
-            .BorderBackgroundColor_Lambda([this] { return Session->Selected == Index ? FLinearColor(.2, .6, 1, .4) : FLinearColor::Transparent; })];
+        else ChildSlot[SNew(SBorder).Padding(0).BorderImage(FAppStyle::GetBrush("NoBorder"))];
     }
     virtual bool SupportsKeyboardFocus() const override { return true; }
+    virtual TOptional<bool> OnQueryShowFocus(EFocusCause) const override { return false; }
     virtual FReply OnMouseButtonDown(const FGeometry&, const FPointerEvent& E) override
     {
         if (E.GetEffectingButton() != EKeys::LeftMouseButton) return FReply::Unhandled();
@@ -426,10 +429,9 @@ public:
         for (const auto& I : Client->Indicators)
         {
             const FVector2D A = I.Position * Geometry.GetLocalSize(), L = Label(I.Index);
-            const FLinearColor Color = I.Color * Style.GetColorAndOpacityTint();
+            const FLinearColor Color = GuideTint(I.Index, Session->Selected) * Style.GetColorAndOpacityTint();
             TArray<FVector2D> Tick{A - FVector2D(4, 0), A + FVector2D(12, 0)};
-            FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Tick, ESlateDrawEffect::None, Color, true,
-                I.Index >= 0 && Session->Selected == I.Index ? 4 : 2);
+            FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Tick, ESlateDrawEffect::None, Color, true, 2);
             TArray<FVector2D> Leader{A + FVector2D(12, 0), FVector2D(L.X - 8, L.Y + 9), FVector2D(L.X - 3, L.Y + 9)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Leader, ESlateDrawEffect::None, Color, true, 1);
         }
