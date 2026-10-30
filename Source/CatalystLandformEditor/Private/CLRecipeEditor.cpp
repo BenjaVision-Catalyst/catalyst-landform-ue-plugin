@@ -573,7 +573,7 @@ public:
         const auto Plan = FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         if (Plan)
         {
-            Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | preview curvature 1/3"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num());
+            Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | flat terrain preview"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num());
             if (Preview)
             {
                 Preview->Rebuild(Plan);

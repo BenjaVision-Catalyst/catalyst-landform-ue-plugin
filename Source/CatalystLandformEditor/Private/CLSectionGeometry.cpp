@@ -20,14 +20,9 @@ FVector FCLSectionGeometry::SourceSurfacePoint(const FCLCompiledPlanetRecipe& Pl
 
 FVector FCLSectionGeometry::StratumPoint(const FVector2D& Edge, double Normalized)
 {
-    const double Reference = DisplaySize;
-    const double Sag = Reference * (1 - FMath::Cos(Edge.Size() / Reference)) / 3;
-    const double Height = FMath::Max(0.0, DisplaySize * Normalized);
-    // Fixed schematic curvature and normalized vertical scale keep the frame
-    // and reference ticks stationary while the sampling window changes.
-    // Deep references continue to the centre plane.
-    const double Blend = Sag > .000001 ? FMath::Min(1.0, Height / (2 * Sag)) : 1;
-    return FVector(Edge.X, Edge.Y, Height - Sag * Blend) * 100;
+    // Unwrap radial height onto a flat reference plane. Terrain relief remains
+    // in the sampled height; no planetary sag is added to the Designer display.
+    return FVector(Edge.X, Edge.Y, FMath::Max(0.0, DisplaySize * Normalized)) * 100;
 }
 
 double FCLSectionGeometry::StratumAtScreenY(const FVector2D& Edge, const FMatrix& Projection, double Y)
@@ -38,13 +33,7 @@ double FCLSectionGeometry::StratumAtScreenY(const FVector2D& Edge, const FMatrix
     const double Denominator = NdcY * Axis.W - Axis.Y;
     if (FMath::Abs(Denominator) < 1.e-9) return 0;
     const double TargetZ = (Base.Y - NdcY * Base.W) / Denominator;
-    double Low = 0, High = 1;
-    for (int32 I = 0; I < 48; ++I)
-    {
-        const double Mid = (Low + High) * .5;
-        if (StratumPoint(Edge, Mid).Z < TargetZ) Low = Mid; else High = Mid;
-    }
-    return (Low + High) * .5;
+    return FMath::Clamp(TargetZ / (DisplaySize * 100), 0.0, 1.0);
 }
 
 FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading, double WidthMeters)

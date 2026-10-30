@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-31",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "test_exit_code": 0,
+  "automation_summary": {
+    "succeeded": 16,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "passed",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "passed",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Flat-preview-tests.log",
+  "display": "Flat reference terrain, sky and Stratum planes. Sampled radial height maps directly to normalized display height, with no presentation sag.",
+  "terrain_relief": "Retained; flattening removes planetary curvature rather than generated hills/ridges.",
+  "source_and_runtime": "Spherical source coordinates and native VPP planet field unchanged; no runtime source edits.",
+  "regressions": [
+    "Constant-radius sphere displays a planar top at 100m, 500m and 1000m coverage",
+    "Spherical source sampling remains curved",
+    "Every variable-terrain display height retains its sampled radial height",
+    "Generated terrain still has nonzero relief",
+    "Core-to-sky reference planes are level and linear in normalized height",
+    "Perspective guide dragging inverts the flat guide positions",
+    "Existing closed mesh, area, selection, camera fit, stable orbit, compiler, Strata and VPP checks pass"
+  ],
+  "nonblocking_warnings": [
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+  ],
+  "edited_assets_preserved": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "5232335e58d576f33f21714f78d30fcac6aa885558551d284f5c14f9b7bc30e8",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "d1f77ee1bcdee67c8e63a333f1aa8c697763a9516db5750d4b029a63fb154b1c"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "87f016c1ba09efc6d6860845850996e637ebafc5eb555513ef4b64c1cf4b5c47",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "376258cb18136ab39192cfc3171775256859da745b6ae7db532a4fbac4442f46",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "e2ee0868d2368c3299f6c93aadc121618d688203a33615f82767f00cf59a7f4c",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "cffc54987427248d8f6f35fd58dbc148c333f797b2d8b1cff3e2bb6ce2c10cf7"
+  },
+  "limits": [
+    "Flat Designer is an unwrapped view; spherical source distances still use the existing chart",
+    "Native mouse gesture automation remains unavailable; geometry/projection exercised through UE APIs",
+    "No new runtime/cook/network/physical-walk qualification"
+  ],
+  "vendor_changes": "None",
+  "editor": "Reopened saved Hills/Lab plains comparison at 500m coverage. Flat reference presentation, straight framing and updated status visually inspected."
+}

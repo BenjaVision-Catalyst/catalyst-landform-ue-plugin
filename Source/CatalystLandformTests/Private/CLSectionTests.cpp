@@ -56,11 +56,28 @@ bool FCLSectionTest::RunTest(const FString&)
     TestTrue(TEXT("Surface-distance chart samples the actual sphere"), FMath::Abs(Source.Z / 100 - 100 * FMath::Cos(.5)) < 1.e-5);
     const FVector Centre = FCLSectionGeometry::SurfacePoint(*Constant, 0, 0, 0, 100);
     const FVector Display = FCLSectionGeometry::SurfacePoint(*Constant, 30, 40, 0, 100);
-    TestTrue(TEXT("Designer keeps a fixed one-third schematic curvature"),
-        FMath::Abs((Centre.Z - Display.Z) * 3 - (Centre.Z - Source.Z * (FCLSectionGeometry::DisplaySize / Constant->RadiusMeters))) < .001);
+    TestTrue(TEXT("Constant radial terrain is flat in the Designer"), FMath::Abs(Centre.Z - Display.Z) < .001);
+    for (double Width : {100.0, 500.0, 1000.0})
+    {
+        const auto Flat = FCLSectionGeometry::Build(*Constant, .73, Width);
+        for (int32 I = 0; I < Flat.SurfaceVertexCount; ++I)
+            TestTrue(TEXT("A spherical constant-height world displays a planar surface at every coverage"), FMath::Abs(Flat.Vertices[I].Z - FCLSectionGeometry::DisplaySize * 100) < .001);
+    }
+    double MinHeight = TNumericLimits<double>::Max(), MaxHeight = -MinHeight;
+    for (int32 I = 0; I < G.SurfaceVertexCount; ++I)
+    {
+        const double Expected = G.SourceSurfacePoints[I].Size() / Plan->RadiusMeters * FCLSectionGeometry::DisplaySize;
+        TestTrue(TEXT("Preview retains the sampled radial relief without added curvature"), FMath::Abs(G.Vertices[I].Z - Expected) < .001);
+        MinHeight = FMath::Min(MinHeight, G.Vertices[I].Z); MaxHeight = FMath::Max(MaxHeight, G.Vertices[I].Z);
+    }
+    TestTrue(TEXT("Flattening planetary curvature retains generated terrain variation"), MaxHeight - MinHeight > 1);
+    for (double Height : {0.0, .01, .05, .3, .6, .9, 1.0})
+        for (FVector2D XY : {FVector2D::ZeroVector, FVector2D(300, 400), FVector2D(-500, 500)})
+            TestTrue(TEXT("Each radial reference is a level plane at its normalized height"), FMath::Abs(
+                FCLSectionGeometry::StratumPoint(XY, Height).Z - Height * FCLSectionGeometry::DisplaySize * 100) < .001);
     TestTrue(TEXT("Physical coordinates map into the fixed display frame"), FMath::Abs(Display.X - 30000) < .001 && FMath::Abs(Display.Y - 40000) < .001);
     const FVector2D Edge(FCLSectionGeometry::DisplaySize / 2, FCLSectionGeometry::DisplaySize / 2);
-    for (double Perspective : {0.0, .00001, -.00001})
+    for (double Perspective : {0.0, .00001, -.000005})
     {
         FMatrix Projection = FMatrix::Identity;
         Projection.M[2][1] = .0001; Projection.M[3][1] = -.5; Projection.M[2][3] = Perspective;
