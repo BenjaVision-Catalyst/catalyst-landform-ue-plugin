@@ -16,7 +16,7 @@ void FCLSectionNavigation::PanBy(FVector2D Pixels)
 void FCLSectionNavigation::Dolly(double Steps)
 {
     if (!FMath::IsFinite(Steps)) return;
-    Zoom = FMath::Clamp(Zoom * FMath::Exp(FMath::Clamp(-Steps * .12, -10.0, 10.0)), .3, 2.2);
+    Zoom = FMath::Clamp(Zoom * FMath::Exp(FMath::Clamp(-Steps * .12, -10.0, 10.0)), .3, 1.0);
     if (Zoom >= 1) { Pan = FVector2D::ZeroVector; bCanPanX = bCanPanY = false; }
 }
 FCLSectionCamera FCLSectionNavigation::Camera(double TanHorizontal, double TanVertical)
@@ -29,19 +29,33 @@ FCLSectionCamera FCLSectionNavigation::Camera(double TanHorizontal, double TanVe
     const FVector Forward = Axes.GetUnitAxis(EAxis::X), Right = Axes.GetUnitAxis(EAxis::Y), Up = Axes.GetUnitAxis(EAxis::Z);
     const double H = FMath::Max(.01, TanHorizontal), V = FMath::Max(.01, TanVertical);
     TArray<FVector, TInlineAllocator<8>> Points;
-    // A sphere enclosing the fixed box gives the same fit at every orbit angle.
-    // Fitting individual projected corners made rotation silently change zoom.
-    const double Radius = S * FMath::Sqrt(3.0) * .5;
-    const double FrustumSlope = FMath::Min(.65 * H, .85 * V);
-    const double FitDistance = Radius * FMath::Sqrt(1 + 1 / FMath::Square(FrustumSlope));
-    const double NearDistance = Radius + S * .05;
+    // Fit the core-to-sky box at the DEFAULT rotation, never the current orbit.
+    // The distance is the smallest one permitting the padded projected bounds
+    // to be centred independently on both axes.
+    const FRotationMatrix DefaultAxes(FRotator(-DefaultElevation, DefaultYaw + 180, 0));
+    double LowerX = -TNumericLimits<double>::Max(), LowerY = LowerX;
+    double UpperX = TNumericLimits<double>::Max(), UpperY = UpperX;
+    for (double X : {-.5 * S, .5 * S}) for (double YPos : {-.5 * S, .5 * S}) for (double Z : {-.5 * S, .5 * S})
+    {
+        const FVector P(X, YPos, Z);
+        const double Depth = FVector::DotProduct(P, DefaultAxes.GetUnitAxis(EAxis::X));
+        const double PX = FVector::DotProduct(P, DefaultAxes.GetUnitAxis(EAxis::Y));
+        const double PY = FVector::DotProduct(P, DefaultAxes.GetUnitAxis(EAxis::Z));
+        LowerX = FMath::Max(LowerX, PX - FitFrame * H * Depth);
+        UpperX = FMath::Min(UpperX, PX + FitFrame * H * Depth);
+        LowerY = FMath::Max(LowerY, PY - FitFrame * V * Depth);
+        UpperY = FMath::Min(UpperY, PY + FitFrame * V * Depth);
+    }
+    const double NearDistance = S * (FMath::Sqrt(3.0) * .5 + .05);
+    const double FitDistance = FMath::Max(NearDistance, FMath::Max(
+        (LowerX - UpperX) / (2 * FitFrame * H), (LowerY - UpperY) / (2 * FitFrame * V)));
     for (double X : {-.5 * S, .5 * S}) for (double YPos : {-.5 * S, .5 * S}) for (double Z : {-.5 * S, .5 * S})
     {
         const FVector P(X, YPos, Z);
         const FVector Q(FVector::DotProduct(P, Right), FVector::DotProduct(P, Up), FVector::DotProduct(P, Forward));
         Points.Add(Q);
     }
-    const double Distance = FMath::Max(FitDistance * 1.04 * Zoom, NearDistance);
+    const double Distance = FMath::Max(FitDistance * Zoom, NearDistance);
     auto Offset = [&](int32 Axis, double Tangent, double& PanValue, bool& CanPan)
     {
         // Centre the projected bounds, including perspective asymmetry.
@@ -68,7 +82,7 @@ FCLSectionCamera FCLSectionNavigation::Camera(double TanHorizontal, double TanVe
             Start = FMath::Min(Start, P[Axis] + Extent);
             End = FMath::Max(End, P[Axis] - Extent);
         }
-        CanPan = Start < Centre - .001 && End > Centre + .001;
+        CanPan = Zoom < 1 && Start < Centre - .001 && End > Centre + .001;
         if (!CanPan) { PanValue = 0; return Centre; }
         PanValue = FMath::Clamp(PanValue, -1.0, 1.0);
         return Centre + PanValue * (PanValue < 0 ? Centre - Start : End - Centre);

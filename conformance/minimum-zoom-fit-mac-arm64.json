@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-31",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "test_exit_code": 0,
+  "automation_summary": {
+    "succeeded": 16,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "passed",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "passed",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Minimum-zoom-fit-tests.log",
+  "zoom_out_limit": {
+    "frame": "Full fixed core-to-sky bounding box",
+    "pose": {
+      "yaw": -51.34,
+      "elevation": 32
+    },
+    "minimum_viewport_padding_per_edge": 0.075,
+    "centred": true,
+    "initial_view_is_limit": true,
+    "distance_factor_range": [
+      0.3,
+      1
+    ],
+    "further_zoom_out": "Clamped; cannot shrink the preview below this default-pose padded fit",
+    "orbit": "Retains the fixed default-pose fit distance; no per-angle zoom changes",
+    "pan": "Only during close zoom and only on cropped axes; limit clears pan"
+  },
+  "regression": {
+    "name": "Catalyst.Landform.Designer.MinimumZoomFit",
+    "viewport_aspects": [
+      0.45,
+      1,
+      1.6,
+      3
+    ],
+    "checks": [
+      "All eight corners visible with padding at default rotation",
+      "Projected box centred on both axes",
+      "Available padded frame used on at least one axis",
+      "Repeated zoom-out stops at initial distance",
+      "Zoom-out from a panned close-up restores initial centred view",
+      "Orbit retains default-pose fit distance"
+    ]
+  },
+  "nonblocking_warnings": [
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits: LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+  ],
+  "edited_assets_preserved": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "a7bc5dec4b6b39cfdbccbf276018392bd3da50e26861b447560f850273f2b6ec",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "e7cad20c853524149f9d99a1f73f826113ff23edaacc1241b4692cf7c7477827"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLSectionNavigation.cpp": "304574773a5d714e51a49e8967014c98e163326fc0cff55f18d74c8f99870ec7",
+    "Source/CatalystLandformEditor/Public/CLSectionNavigation.h": "f872891bf14b9d2b92c8b99ce0909a556da6e58bf5d4d900db78f8c8955f8fdc",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "58ff3ddcd9c7f01280ac846fb3afa43b0cb6de843e34b29578708e0c8def56d4"
+  },
+  "limits": [
+    "The fit/padding guarantee is at the default rotation; other angles may change projected extent without changing zoom",
+    "Native mouse gesture automation remains unavailable; navigation and projection exercised through UE APIs",
+    "No new runtime/cook/network/physical-walk qualification"
+  ],
+  "vendor_changes": "None",
+  "editor": "LandformLab reopened on the saved comparison recipe at 500m coverage. Live UI changed during inspection; the padded default fit and zoom-out stop are qualified through the UE navigation/projection tests."
+}
