@@ -142,7 +142,6 @@ public:
         else if (Type == EGestureEvent::Scroll) Navigation.PanBy(Delta * (Inverted ? -10 : 10));
         ApplyNavigation(); return true;
     }
-    double Heading = 0;
     double AreaWidthMeters = 0;
     bool bGuides = true;
     FCLStrata Strata;
@@ -498,7 +497,7 @@ public:
         Client->Plan = Plan;
         if (!Plan) return;
         if (Client->AreaWidthMeters <= 0) Client->AreaWidthMeters = FCLSectionGeometry::DefaultWidth(*Plan);
-        const FCLSectionGeometry G = FCLSectionGeometry::Build(*Plan, Client->Heading, Client->AreaWidthMeters);
+        const FCLSectionGeometry G = FCLSectionGeometry::Build(*Plan, 0, Client->AreaWidthMeters);
         TArray<FVector> N; TArray<FVector2D> UV; TArray<FProcMeshTangent> Tangents;
         UV.Init(FVector2D::ZeroVector, G.Vertices.Num());
         UKismetProceduralMeshLibrary::CalculateTangentsForMesh(G.Vertices, G.Triangles, {}, N, Tangents);
@@ -680,10 +679,7 @@ public:
                     .OnClicked_Lambda([this] { StrataSession->RemoveSet(); return FReply::Handled(); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked_Lambda([this] { return !Preview || Preview->Client->bGuides ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
-                    { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Height Guides")))]]
-                + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("Section heading")))]
-                + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).OnValueChanged_Lambda([this](float Value)
-                    { Preview->Client->Heading = Value * 2 * UE_PI; Preview->Rebuild(Preview->Client->Plan); })]]
+                    { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Height Guides")))]]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(200)[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("100 m")))]
