@@ -17,7 +17,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/SLeafWidget.h"
-#include "Widgets/Layout/SBox.h"
+#include "Widgets/SOverlay.h"
 #include "Rendering/DrawElements.h"
 #include "Framework/Docking/TabManager.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -37,7 +37,7 @@ public:
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     double Heading = 0;
     bool bGuides = true;
-    struct FIndicator { FString Text; FLinearColor Color; double Y; };
+    struct FIndicator { FString Text; FLinearColor Color; FVector2D Position; };
     TArray<FIndicator> Indicators;
     FCLSectionClient(FPreviewScene* Scene, const TSharedRef<SEditorViewport>& Viewport)
         : FEditorViewportClient(nullptr, Scene, Viewport)
@@ -78,32 +78,43 @@ public:
             PDI->DrawLine(FVector(Side, -W, TopHeight()) * 100, FVector(Side, W, TopHeight()) * 100, Frame, SDPG_World, 1);
         }
         Indicators.Reset();
+        // Use the visible right silhouette, rather than the front corner or the
+        // viewport border. Every tick stays at its exact projected radial height.
+        FVector2D Edge(W, -W);
+        double Rightmost = -TNumericLimits<double>::Max();
+        for (double X : {-W, W}) for (double Y : {-W, W})
+        {
+            FVector2D Screen;
+            if (View->WorldToPixel(FVector(X, Y, Plan->RadiusMeters) * 100, Screen) && Screen.X > Rightmost)
+            { Rightmost = Screen.X; Edge = FVector2D(X, Y); }
+        }
         auto Indicator = [&](const FVector& P, const FString& Text, FLinearColor Color)
         {
             FVector2D Screen;
             if (View->WorldToPixel(P, Screen)) Indicators.Add({Text, Color,
-                (Screen.Y - View->UnscaledViewRect.Min.Y) / FMath::Max(1, View->UnscaledViewRect.Height())});
+                FVector2D((Screen.X - View->UnscaledViewRect.Min.X) / FMath::Max(1, View->UnscaledViewRect.Width()),
+                    (Screen.Y - View->UnscaledViewRect.Min.Y) / FMath::Max(1, View->UnscaledViewRect.Height()))});
         };
-        Indicator(FVector(W, -W, 0) * 100, TEXT("Core / centre plane"), FLinearColor(.9, .7, .5));
-        Indicator(FVector(W, -W, TopHeight()) * 100, TEXT("Sky"), FLinearColor(.65, .8, 1));
+        Indicator(FVector(Edge.X, Edge.Y, 0) * 100, TEXT("Core / centre plane"), FLinearColor(.9, .7, .5));
+        Indicator(FVector(Edge.X, Edge.Y, TopHeight()) * 100, TEXT("Sky"), FLinearColor(.65, .8, 1));
         if (bGuides) for (const auto& G : Plan->Guides)
         {
             FVector P;
-            if (GuidePoint(W, -W, G.HeightMeters, P)) Indicator(P,
+            if (GuidePoint(Edge.X, Edge.Y, G.HeightMeters, P)) Indicator(P,
                 FString::Printf(TEXT("%s  %.1f m"), *G.Name.ToString(), G.HeightMeters), G.Color);
         }
-        Indicators.Sort([](const FIndicator& A, const FIndicator& B) { return A.Y < B.Y; });
+        Indicators.Sort([](const FIndicator& A, const FIndicator& B) { return A.Position.Y < B.Position.Y; });
     }
 };
 
-/** A separate gutter keeps every guide tick and label outside the diagram. */
-class SCLGuideColumn : public SLeafWidget
+/** Ticks attach to the rendered edge; leaders preserve exact heights when labels crowd. */
+class SCLHeightAnnotations : public SLeafWidget
 {
 public:
-    SLATE_BEGIN_ARGS(SCLGuideColumn) {} SLATE_ARGUMENT(TWeakPtr<FCLSectionClient>, Client) SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SCLHeightAnnotations) {} SLATE_ARGUMENT(TWeakPtr<FCLSectionClient>, Client) SLATE_END_ARGS()
     TWeakPtr<FCLSectionClient> Client;
     void Construct(const FArguments& Args) { Client = Args._Client; ForceVolatile(true); }
-    virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D(220, 200); }
+    virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D::ZeroVector; }
     virtual int32 OnPaint(const FPaintArgs&, const FGeometry& Geometry, const FSlateRect&, FSlateWindowElementList& Elements,
         int32 Layer, const FWidgetStyle& Style, bool) const override
     {
@@ -112,11 +123,14 @@ public:
         const auto Font = FCoreStyle::GetDefaultFontStyle("Regular", 10);
         const double Height = Geometry.GetLocalSize().Y;
         const double Spacing = FMath::Min(24.0, FMath::Max(12.0, (Height - 32) / Pinned->Indicators.Num()));
+        const FVector2D Size = Geometry.GetLocalSize();
+        double LabelX = 0;
+        for (const auto& I : Pinned->Indicators) LabelX = FMath::Max(LabelX, I.Position.X * Size.X + 28);
         TArray<double> Ys;
         double Previous = 8 - Spacing;
         for (const auto& I : Pinned->Indicators)
         {
-            const double Y = FMath::Max(8.0, FMath::Max(I.Y * Height - 8, Previous + Spacing));
+            const double Y = FMath::Max(8.0, FMath::Max(I.Position.Y * Height - 8, Previous + Spacing));
             Ys.Add(Y); Previous = Y;
         }
         const double Overflow = FMath::Max(0.0, Ys.Last() - Height + 24);
@@ -124,11 +138,16 @@ public:
         {
             const double Y = Ys[I] - Overflow;
             const auto& Indicator = Pinned->Indicators[I];
-            TArray<FVector2D> Tick{FVector2D(6, Y + 7), FVector2D(24, Y + 7)};
+            const FVector2D Anchor = Indicator.Position * Size;
+            // Neither collision avoidance nor label clamping can move the tick.
+            TArray<FVector2D> Tick{Anchor - FVector2D(4, 0), Anchor + FVector2D(12, 0)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Tick,
                 ESlateDrawEffect::None, Indicator.Color * Style.GetColorAndOpacityTint(), true, 2);
+            TArray<FVector2D> Leader{Anchor + FVector2D(12, 0), FVector2D(LabelX - 8, Y + 7), FVector2D(LabelX - 3, Y + 7)};
+            FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Leader,
+                ESlateDrawEffect::None, Indicator.Color * Style.GetColorAndOpacityTint(), true, 1);
             FSlateDrawElement::MakeText(Elements, Layer + 1,
-                Geometry.ToPaintGeometry(FVector2D(190, 20), FSlateLayoutTransform(FVector2D(32, Y))),
+                Geometry.ToPaintGeometry(FVector2D(190, 20), FSlateLayoutTransform(FVector2D(LabelX, Y))),
                 FText::FromString(Indicator.Text), Font, ESlateDrawEffect::None, Indicator.Color * Style.GetColorAndOpacityTint());
         }
         return Layer + 1;
@@ -245,9 +264,9 @@ public:
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("Section heading")))]
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).OnValueChanged_Lambda([this](float Value)
                     { Preview->Client->Heading = Value * 2 * UE_PI; Refresh(); })]]
-            + SVerticalBox::Slot().FillHeight(1)[SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1)[SAssignNew(Preview, SCLSectionViewport)]
-                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SCLGuideColumn).Client(Preview->Client)]]
+            + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
+                + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
+                + SOverlay::Slot()[SNew(SCLHeightAnnotations).Client(Preview->Client).Visibility(EVisibility::HitTestInvisible)]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
                     const FString Legend = TEXT("Core-to-sky cutaway | Alt + mouse: orbit/pan/zoom | Preview curvature 1/3");

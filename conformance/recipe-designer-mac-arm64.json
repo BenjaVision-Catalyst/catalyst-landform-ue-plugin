@@ -51,7 +51,7 @@
     "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4",
     "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "35dafd6b5e0fd3caa643abdb3f2bf0d858ad01544c323f1cbefac9aa4ffd4297",
     "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "3b1e20efcf825c4850a76f03a248e0831a29e2320b75d6585b2f49221f1c6240",
-    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "0eff722b302c61f1b73130e05601e53d5b47b050febf326e939fc3e6cb5dbf59",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "85c54723f5ef941601425037513f78ee957245655876618dbe386ffeef56bd11",
     "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "921f6de277d9dd070d5ee3b20f0636a3281609b8ab58d536cba70fd9f4684687",
     "Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "8b3d5f8e61c33f46adb48bd83b7e2004c1dec0fb9b1cc6e3daf7df7c3628856f",
     "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "a1415df4b319e0d5928b5dfa23c208ef6e82a690370bdb432699d5b4e6db7f3e",
@@ -103,15 +103,21 @@
       "tests": 5,
       "exit_code": 0,
       "log": "Saved/Logs/Recipe-layout-tests.log"
+    },
+    {
+      "suite": "Edge-anchored height annotations; geometry and recipes",
+      "tests": 5,
+      "exit_code": 0,
+      "log": "Saved/Logs/Recipe-edge-label-tests.log"
     }
   ],
   "section_maximum_field_error_cm": 0.062636,
   "visual_preview_verified": true,
   "preview_material": "Owned neutral lit vertex-color material; Base Color and Roughness connections checked, visually inspected in final editor session",
   "designer_presentation": {
-    "guide_layout": "Separate right-hand column, collision-spaced ticks and labels",
+    "guide_layout": "Ticks anchored to exact projected radial heights on visible right edge; labels aligned beside render, leaders for crowded labels",
     "curvature": "One third of sampled spherical sag; preview-only transform",
     "walkable_planet": "Recipe radius and VPP collision unchanged",
-    "visual_verification": "Confirmed in UE Designer: six labels in the right gutter, no guide overlays over terrain, flatter top surface"
+    "visual_verification": "Confirmed in UE Designer: ticks meet right silhouette at true heights; labels beside render, including separate SurfaceMin and OceanHeight ticks"
   }
 }
