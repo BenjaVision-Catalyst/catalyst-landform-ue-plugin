@@ -10,11 +10,38 @@
   "IsExperimentalVersion": true,
   "Installed": false,
   "Plugins": [
-    { "Name": "CatalystFoundation", "Enabled": true },
-    { "Name": "CatalystConnect", "Enabled": true },
-    { "Name": "Voxel", "Enabled": true }
+    {
+      "Name": "CatalystFoundation",
+      "Enabled": true
+    },
+    {
+      "Name": "CatalystConnect",
+      "Enabled": true
+    },
+    {
+      "Name": "Voxel",
+      "Enabled": true
+    },
+    {
+      "Name": "ProceduralMeshComponent",
+      "Enabled": true
+    }
   ],
   "Modules": [
-    { "Name": "CatalystLandform", "Type": "Runtime", "LoadingPhase": "Default" }
+    {
+      "Name": "CatalystLandform",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "CatalystLandformEditor",
+      "Type": "Editor",
+      "LoadingPhase": "PostEngineInit"
+    },
+    {
+      "Name": "CatalystLandformTests",
+      "Type": "Editor",
+      "LoadingPhase": "PostEngineInit"
+    }
   ]
 }

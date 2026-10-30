@@ -54,7 +54,25 @@ void ACLPlanet::RebuildTerrain()
 {
     if (bRebuilding || !GetWorld() || GetWorld()->bIsTearingDown) return;
     TGuardValue<bool> Guard(bRebuilding, true);
+#if WITH_EDITOR
+    if (BoundRecipe.Get() != RecipeAsset)
+    {
+        if (BoundRecipe.IsValid()) BoundRecipe->OnRecipeChanged.Remove(RecipeChangedHandle);
+        BoundRecipe = RecipeAsset;
+        if (RecipeAsset) RecipeChangedHandle = RecipeAsset->OnRecipeChanged.AddUObject(this, &ACLPlanet::RebuildTerrain);
+    }
+#endif
     FCLPlanetStamp Stamp;
+    if (RecipeAsset)
+    {
+        const auto Plan = FCLPlanetCompiler::Compile(RecipeAsset->Recipe, RecipeStatus);
+        if (!Plan) { RecipeStatus = TEXT("Keeping last valid terrain: ") + RecipeStatus; return; }
+        RadiusMeters = Plan->RadiusMeters;
+        Stamp.bUseRecipe = true;
+        Stamp.Recipe = RecipeAsset->Recipe;
+        RecipeStatus = TEXT("Compiled recipe: ") + RecipeAsset->Recipe.Name;
+    }
+    else RecipeStatus = TEXT("No recipe: spherical base with authored stamps");
     Stamp.Radius = FMath::IsFinite(RadiusMeters) ? FMath::Max(10.0, RadiusMeters) * 100 : 10000;
     Stamp.Layer = UVoxelVolumeLayer::Default();
     Stamp.Behavior = EVoxelStampBehavior::AffectShape;

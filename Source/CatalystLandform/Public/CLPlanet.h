@@ -37,6 +37,11 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Planet")
     TObjectPtr<UVoxelStampComponent> TerrainStamp;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet|Recipe")
+    TObjectPtr<UCLPlanetRecipeAsset> RecipeAsset;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient, Category="Planet|Recipe")
+    FString RecipeStatus;
+
     UFUNCTION(CallInEditor, BlueprintCallable, Category="Planet")
     virtual void RebuildTerrain();
 
@@ -55,6 +60,10 @@ public:
 private:
     bool bRebuilding = false;
     TSharedPtr<const FCLPlanetStampRuntime> SamplingRuntime;
+#if WITH_EDITOR
+    TWeakObjectPtr<UCLPlanetRecipeAsset> BoundRecipe;
+    FDelegateHandle RecipeChangedHandle;
+#endif
 };
 
 /** Move on the sphere, rotate about local Z, scale XY footprint/Z relief. */

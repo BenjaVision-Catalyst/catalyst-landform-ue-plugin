@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-30",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8 with existing local registration bridge",
+  "configuration": "Editor Development, non-Nanite, no tessellation/navigation",
+  "editor_build": "passed",
+  "test_run_exit_code": 0,
+  "tests": {
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "LandformLab.MountainProof.HalfWorldStamp": "passed",
+    "LandformLab.MountainProof.PhysicalCircumnavigation": "passed",
+    "LandformLab.NativeStamps.AuthoringEdits": "passed",
+    "LandformLab.NativeStamps.MappingAndBlending": "passed",
+    "LandformLab.NativeStamps.WalkBlendedJoins": "passed",
+    "LandformLab.PlanetProof.GeodesicField": "passed",
+    "LandformLab.PlanetProof.PhysicalCircumnavigation": "passed",
+    "LandformLab.Recipes.PhysicalCircumnavigation": "passed",
+    "LandformLab.VPP.NativeFunctionRegistration": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed"
+  },
+  "recipe_schema": 1,
+  "algorithm_version": 1,
+  "noise_backend": "UE FMath::PerlinNoise3D, evaluated by spherical VPP volume",
+  "height_guides": "Optional named heights; reference-only, no implied geometry",
+  "physical_walk": {
+    "passed": true,
+    "degrees": 360.009635,
+    "frames": 6942,
+    "ground_frames": 6942,
+    "voxel_ground_frames": 6942,
+    "max_gap_cm": 2.769588,
+    "min_relief_cm": 279.250702,
+    "max_relief_cm": 498.656738,
+    "min_up_dot": 0.999999192
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "30dce7a0c196957bc73b1e72320e0715ac8388552f52899bdcbf921df2c1f91e",
+    "Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Source/CatalystLandform/Private/CLPlanet.cpp": "fde616a0f7db5c4e536b33e4ef2cd7531191b3d9d2bf5cb83bca25b4c9f1c7aa",
+    "Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "2f483d971399bf9440bc2c2ba4604589ba0bb784f34057011b5871ef106d3894",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "baa75a01fdca1c6b3338205e3c0291f67d35dca2ba793b586261cd3277fdf764",
+    "Source/CatalystLandform/Public/CLPlanet.h": "8d0e302d13b9639fd5835a0d1ad982999079038f9057882864333f0a4189e2f8",
+    "Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Source/CatalystLandform/Public/CLPlanetStamp.h": "3b7e2fad7a3e6dfdf72dee1a4e944cc9a9ebe32f1aa140fbe764ed6a9b5a0be2",
+    "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "35dafd6b5e0fd3caa643abdb3f2bf0d858ad01544c323f1cbefac9aa4ffd4297",
+    "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "3b1e20efcf825c4850a76f03a248e0831a29e2320b75d6585b2f49221f1c6240",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "231dc259c9b63e233ed4574b8402e586a5f11d536d50d5a4c8967b08c7f40d1b",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "0005e65a012a3fa5f149f141213393c44ce2bf9e41dd9e0e2e2c8a308565cfe2",
+    "Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "8b3d5f8e61c33f46adb48bd83b7e2004c1dec0fb9b1cc6e3daf7df7c3628856f",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "534b8b652fe13ef3850cf66a37ed776371e35260a5388afb67be417d3fe5c3ba",
+    "Source/CatalystLandformTests/CatalystLandformTests.Build.cs": "02b0a17affda1e3fa562e8b0eb2253f77c61bb65a2e6805063feec1ea7ec1e18",
+    "Source/CatalystLandformTests/Private/CLRecipeTests.cpp": "c6f46a734d4ca3327b21dccad9b50f097498d9a2189d7355326adee28a4c5c07",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "fff667083a678b4dab0ced675510cf50df193644c74a516159b3b142b87a1499"
+  },
+  "component_asset_sha256": {
+    "Content/Designer/M_Section.uasset": "552096555819d99a4d9bb0a50174634736b955c96559a32ef6c0a1861235d332"
+  },
+  "example_sha256": "b8d4a1ce8261b5dda01a7530a970026276664cb0e21d969b45aeb20bdfdfa0ee",
+  "host_source_sha256": {
+    "Source/LandformLab/Private/CLRecipeProofTests.cpp": "09a30f6b23c3f9f2362dbd2ea465d71048783c4e82090735151ed8b330f10805",
+    "scripts/create-recipe-proof.py": "46acf8a848a1b1d9ae826d128aca4802ea08b96d2d231fdd65e975d6492836ae",
+    "scripts/stage-plugins.py": "9d47c306effe5f4e214f89d67d33220685d5afc8d605079520869847b4a8b91b"
+  },
+  "host_asset_sha256": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "915f629a59ce85e76e95985cbd062a891dbd223e06be50413d9bdbe2e506ff21",
+    "Content/LandformDesigner/RollingPlainsProof.umap": "d816134d74cfb0f4329e8fc023d4279f55357664ba36d6bdfd489afc53c6a3fe"
+  },
+  "limits": [
+    "Editor Development only; no cook/network/platform parity qualification",
+    "Not native VPP graph noise; graph and PCG adapters pending",
+    "Section preview samples recipe base field, not separately placed level stamp actors",
+    "Neutral cut faces are preview geometry, not geological layers",
+    "No bit-identical promise across different engine builds or platforms",
+    "Core-to-sky interior tint is presentation, not authored geological layers",
+    "Cartesian vertical section intersection qualified for initial height-only recipe"
+  ],
+  "vendor_changes": "None; retained existing non-Nanite proof configuration and registration bridge",
+  "observations": [
+    "Initial creation emitted a handled VPP invalidation-callstack ensure; generation continued. Full 13-test qualification passed without that ensure."
+  ],
+  "validation_runs": [
+    {
+      "suite": "Full runtime/physical regressions and recipes",
+      "tests": 13,
+      "exit_code": 0,
+      "log": "Saved/Logs/Recipe-tests.log"
+    },
+    {
+      "suite": "Final editor geometry and recipe checks",
+      "tests": 5,
+      "exit_code": 0,
+      "log": "Saved/Logs/Recipe-core-sky-final.log"
+    }
+  ],
+  "section_maximum_field_error_cm": 0.062636,
+  "visual_preview_verified": true,
+  "preview_material": "Owned neutral lit vertex-color material; Base Color and Roughness connections checked, visually inspected in final editor session"
+}

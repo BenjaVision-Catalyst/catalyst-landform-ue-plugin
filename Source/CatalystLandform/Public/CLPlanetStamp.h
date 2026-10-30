@@ -4,6 +4,7 @@
 #include "Heightmap/VoxelHeightmapStamp.h"
 #include "VoxelVolumeStamp.h"
 #include "VoxelStampRef.h"
+#include "Model/CLPlanetRecipe.h"
 #include "CLPlanetStamp.generated.h"
 
 /** Immutable placement copied from an authoring actor; all distances are cm. */
@@ -32,6 +33,8 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     GENERATED_VIRTUAL_STRUCT_BODY()
 
     UPROPERTY() double Radius = 10000;
+    UPROPERTY() bool bUseRecipe = false;
+    UPROPERTY() FCLPlanetRecipe Recipe;
     UPROPERTY() TArray<FCLSphericalHeightmapPlacement> Placements;
 };
 
@@ -54,6 +57,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     };
     TArray<FSource> Sources;
     double Extent = 10000;
+    TSharedPtr<const FCLCompiledPlanetRecipe> RecipePlan;
 
     virtual bool Initialize(FVoxelDependencyCollector& Dependencies) override;
     virtual FVoxelBox GetLocalBounds() const override;

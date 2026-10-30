@@ -3,7 +3,8 @@
 Catalyst Landform presents server-defined planetary terrain through Voxel Plugin.
 The runtime provides a spherical volume shape, geodesic placement of flat height
 data, and radial character movement alongside explicit Foundation/Connect/VPP
-dependencies. The Designer and server recipe compiler remain future work.
+dependencies. The first local recipe compiler and Designer section preview are
+implemented; backend delivery and the full Designer remain future work.
 
 `FCLFlatStampGrid` holds ordinary rectangular height samples. `FCLPlanetShape`
 maps surface directions into that flat grid using the spherical logarithm map,
@@ -17,11 +18,11 @@ Characters using VPP collision must also use VPP's character/base handling.
 
 The development host is `Landform/Projects/LandformLab` in catalyst-workspace.
 Its staging script copies this repository into the project's ignored Plugins
-directory alongside the current Connect plugin and Foundation runtime. Edit this
+directory alongside the current Connect plugin and Foundation runtime/editor. Edit this
 repository, close the lab editor, stage the plugins, then rebuild the host.
 
-Runtime code uses the CL prefix. Editor and automation modules will be introduced
-when they have responsibilities. Module registration owns no connections or world
+Runtime code uses the CL prefix. Editor and automation modules contain authoring
+and compiler checks respectively. Module registration owns no connections or world
 state; those owners must have explicit GameInstance/world/planet context.
 
 Commercial VPP sources and binaries are supplied through the vendor installer and
@@ -66,3 +67,18 @@ This covers native height geometry. Surface-type weightmaps/metadata, graph and
 mesh stamp adapters, cooking, networking and multi-planet gravity transfer remain
 unqualified. Chart widths compress away from their anchor, and the resulting
 radial field remains distinct from an exact Euclidean SDF.
+
+## Recipe-driven Designer foundation
+
+`UCLPlanetRecipeAsset` extends Foundation's model asset. `FCLPlanetCompiler`
+resolves optional named Height Guides and ordered noise layers into immutable
+worker data, consumed by both the curved editor preview and the spherical VPP
+volume. Guides are height references, not geological layers. The existing native
+heightmap actors compose after this base field. `Examples/RollingPlains.json`
+is the first versioned local recipe; it is not a backend wire contract.
+
+The editor module extends Foundation's toolkit with Details, Validation and an
+orbitable solid core-to-sky cutaway. The tests module covers compilation, serialization,
+snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
+Perlin noise; native VPP graph and PCG adapters remain future work. The host's
+`Docs/RecipeDesigner.md` documents authoring and physical validation.

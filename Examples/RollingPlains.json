@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "algorithmVersion": 1,
+  "name": "Rolling plains",
+  "referenceRadiusMeters": 100,
+  "seed": 1729,
+  "heightGuides": [
+    {"name": "OceanHeight", "heightMeters": 0, "color": {"r": 0.1, "g": 0.55, "b": 1, "a": 1}},
+    {"name": "SurfaceMin", "heightMeters": 1, "color": {"r": 0.8, "g": 0.65, "b": 0.3, "a": 1}},
+    {"name": "SurfaceMax", "heightMeters": 7, "color": {"r": 0.4, "g": 0.9, "b": 0.45, "a": 1}},
+    {"name": "AtmosphereMax", "heightMeters": 20, "color": {"r": 0.5, "g": 0.7, "b": 1, "a": 1}}
+  ],
+  "noiseLayers": [
+    {
+      "name": "Broad undulations", "bEnabled": true, "seed": 0,
+      "shape": "Smooth", "blend": "Override",
+      "minimum": {"guide": "SurfaceMin", "offsetMeters": 0},
+      "maximum": {"guide": "SurfaceMax", "offsetMeters": 0},
+      "wavelengthMeters": 60, "octaves": 3, "persistence": 0.5
+    },
+    {
+      "name": "Ground detail", "bEnabled": true, "seed": 12,
+      "shape": "Smooth", "blend": "Add",
+      "minimum": {"guide": "None", "offsetMeters": -0.2},
+      "maximum": {"guide": "None", "offsetMeters": 0.2},
+      "wavelengthMeters": 8, "octaves": 2, "persistence": 0.5
+    }
+  ]
+}

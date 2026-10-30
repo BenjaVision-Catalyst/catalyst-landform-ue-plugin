@@ -41,6 +41,13 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
     check(IsInGameThread());
     if (!FMath::IsFinite(Stamp.Radius) || Stamp.Radius < 1000) return false;
     Extent = Stamp.Radius;
+    if (Stamp.bUseRecipe)
+    {
+        FString Error;
+        RecipePlan = FCLPlanetCompiler::Compile(Stamp.Recipe, Error);
+        if (!RecipePlan) return false;
+        Extent += FMath::Max(FMath::Abs(RecipePlan->MinimumHeightMeters), FMath::Abs(RecipePlan->MaximumHeightMeters)) * 100;
+    }
     for (const FCLSphericalHeightmapPlacement& Placement : Stamp.Placements)
     {
         UVoxelHeightmap* Heightmap = Placement.Source.Heightmap;
@@ -78,7 +85,8 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleHeights(const FVoxelQuery& Query,
 {
     FVoxelFloatBuffer Heights;
     Heights.Allocate(Directions.Num());
-    for (int32 I = 0; I < Heights.Num(); ++I) Heights.Set(I, 0);
+    for (int32 I = 0; I < Heights.Num(); ++I)
+        Heights.Set(I, RecipePlan ? RecipePlan->SampleHeightMeters(Directions[I]) * 100 : 0);
     for (const FSource& Source : Sources)
     {
         FVoxelDoubleVector2DBuffer Positions;
