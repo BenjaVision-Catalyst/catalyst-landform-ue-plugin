@@ -72,7 +72,7 @@ radial field remains distinct from an exact Euclidean SDF.
 
 `UCLPlanetRecipeAsset` extends Foundation's model asset. `FCLPlanetCompiler`
 resolves planet-global Strata and ordered noise layers into immutable
-worker data, consumed by both the curved editor preview and the spherical VPP
+worker data, consumed by both the flat reference preview and the spherical VPP
 volume. Each Strata is a reusable set of named Stratum: normalized radial
 references from centre (0) to outer sky boundary (1), rather than geological
 layers. Resizing scales their resolved heights. Native heightmap actors compose
@@ -82,7 +82,7 @@ is the first versioned local recipe; it is not a backend wire contract.
 
 The editor module extends Foundation's toolkit with Details, Validation and an
 orbitable solid core-to-sky cutaway. Select and drag guide ticks/labels, Delete
-to remove, drag a new Stratum from the bottom, and rename labels in place.
+to remove, use the small Core + to add a Stratum, and rename labels in place.
 The Strata popup selects a project catalog style; the contextual planet's applied
 copy is the default. Save persists both the recipe and catalog. Schema 1 recipes
 migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
@@ -95,6 +95,12 @@ one recipe/mesh/VPP update on release. The scene preview does not render
 continuously while idle. Built-in reference layouts are Temperate, Oceanic,
 High relief, Airless rocky and Deep atmosphere. They seed once without replacing
 edited presets or reintroducing deleted ones.
+
+The section has its own dark studio lighting: warm front-left key, cool right
+fill and high rear rim, with restrained ambient light and fixed exposure.
+The lights follow the camera's azimuth as you orbit, keeping their composition
+without rebuilding terrain. Only the key casts shadows. The rig is independent
+of other asset editors' environment profiles; idle redraw remains disabled.
 
 `UCLTerrainTypeAsset` supplies reusable base noise profiles through Foundation.
 The Designer's Terrain selector applies a layer snapshot while retaining the

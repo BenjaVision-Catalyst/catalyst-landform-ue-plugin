@@ -19,7 +19,9 @@
 #include "Model/CLTerrainType.h"
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Toolkits/CFModelEditorToolkit.h"
-#include "AdvancedPreviewScene.h"
+#include "PreviewScene.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Engine/TextureCube.h"
 #include "SEditorViewport.h"
 #include "EditorViewportClient.h"
 #include "ProceduralMeshComponent.h"
@@ -49,9 +51,55 @@
 namespace
 {
 const FLinearColor GuideLabelColor(.72, .72, .72);
+// A private studio rig: preview lighting must not inherit another asset editor's
+// environment profile or animate continuously while the designer is idle.
+class FCLSectionScene : public FPreviewScene
+{
+    UDirectionalLightComponent* Fill = nullptr;
+    UDirectionalLightComponent* Rim = nullptr;
+public:
+    FCLSectionScene() : FPreviewScene(ConstructionValues())
+    {
+        SetSkyCubemap(LoadObject<UTextureCube>(nullptr, TEXT("/Engine/MapTemplates/Sky/SunsetAmbientCubemap.SunsetAmbientCubemap")));
+        SetSkyBrightness(.12f);
+        DirectionalLight->SetMobility(EComponentMobility::Movable);
+        DirectionalLight->SetIntensity(1.9f);
+        DirectionalLight->SetLightColor(FLinearColor(1, .94, .86));
+        DirectionalLight->SetForwardShadingPriority(1);
+        DirectionalLight->SetLightSourceAngle(4);
+        // Presentation dimensions are fixed at 1 km, independently of coverage.
+        DirectionalLight->SetDynamicShadowDistanceMovableLight(FCLSectionGeometry::DisplaySize * 100 * 6);
+        DirectionalLight->DynamicShadowCascades = 4;
+        DirectionalLight->SetShadowBias(.35f);
+        auto AddSoftLight = [this](float Intensity, FLinearColor Color)
+        {
+            auto* Light = NewObject<UDirectionalLightComponent>(GetTransientPackage(), NAME_None, RF_Transient);
+            Light->SetMobility(EComponentMobility::Movable);
+            Light->SetIntensity(Intensity); Light->SetLightColor(Color);
+            Light->SetCastShadows(false);
+            AddComponent(Light, FTransform::Identity);
+            return Light;
+        };
+        Fill = AddSoftLight(.55f, FLinearColor(.65, .79, 1));
+        Rim = AddSoftLight(1.2f, FLinearColor(.58, .79, 1));
+    }
+    void AimLights(const FRotator& ViewRotation)
+    {
+        // Keep lights on their camera side throughout an orbit. World-up keeps
+        // the key and rear strip above the landscape even at steep view angles.
+        const FVector Back = -FVector(ViewRotation.Vector().X, ViewRotation.Vector().Y, 0).GetSafeNormal();
+        const FVector Right = FRotationMatrix(ViewRotation).GetUnitAxis(EAxis::Y);
+        auto Aim = [](UDirectionalLightComponent* Light, FVector ToSource)
+        { Light->SetWorldRotation((-ToSource).Rotation()); };
+        Aim(DirectionalLight, Back * .5 - Right * .95 + FVector::UpVector * .65);
+        Aim(Fill, Back * .4 + Right + FVector::UpVector * .35);
+        Aim(Rim, -Back * .9 + FVector::UpVector * .9);
+    }
+};
 class SCLSectionViewport;
 class FCLSectionClient : public FEditorViewportClient
 {
+    FCLSectionScene* SectionScene;
 public:
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     FCLSectionNavigation Navigation;
@@ -64,10 +112,12 @@ public:
         const double TanH = FMath::Tan(FMath::DegreesToRadians(double(ViewFOV) * .5));
         const auto Camera = Navigation.Camera(TanH, TanH / AspectRatio);
         SetViewLocation(Camera.Eye); SetViewRotation(Camera.Rotation); SetLookAtLocation(Camera.Target);
+        SectionScene->AimLights(Camera.Rotation);
         Invalidate();
     }
     virtual void Tick(float) override
     {
+        SectionScene->UpdateCaptureContents();
         if (Viewport && Viewport->GetSizeXY().X > 0 && Viewport->GetSizeXY().Y > 0 && Viewport->GetSizeXY() != NavigationSize) ApplyNavigation();
     }
     // All camera gestures are object navigation. Never enter editor flight mode.
@@ -101,8 +151,8 @@ public:
     }
     struct FIndicator { FString Text; FLinearColor Color; FVector2D Position; int32 Index = INDEX_NONE; };
     TArray<FIndicator> Indicators;
-    FCLSectionClient(FPreviewScene* Scene, const TSharedRef<SEditorViewport>& Viewport)
-        : FEditorViewportClient(nullptr, Scene, Viewport)
+    FCLSectionClient(FCLSectionScene* Scene, const TSharedRef<SEditorViewport>& Viewport)
+        : FEditorViewportClient(nullptr, Scene, Viewport), SectionScene(Scene)
     {
         SetViewMode(VMI_Lit); SetRealtime(false); ViewFOV = FOVAngle = 60;
         ExposureSettings.bFixed = true; ExposureSettings.FixedEV100 = 0;
@@ -120,13 +170,13 @@ public:
         Point = FCLSectionGeometry::StratumPoint(FVector2D(X, Y), 1 + Height / Plan->RadiusMeters);
         return true;
     }
-    virtual FLinearColor GetBackgroundColor() const override { return FLinearColor(.075, .09, .11); }
+    virtual FLinearColor GetBackgroundColor() const override { return FLinearColor(.012, .018, .028); }
     virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override
     {
         FEditorViewportClient::Draw(View, PDI);
         if (!Plan) return;
         const double W = FCLSectionGeometry::DisplaySize * .5;
-        const FLinearColor Frame(.24, .34, .44);
+        const FLinearColor Frame(.16, .23, .29);
         for (double X : {-W, W}) for (double Y : {-W, W})
         { FVector P; GuidePoint(X, Y, 0, P); PDI->DrawLine(FVector(X, Y, 0) * 100, P, Frame, SDPG_World, 1); }
         for (double Side : {-W, W}) for (int32 I = 0; I < 32; ++I)
@@ -391,7 +441,7 @@ class SCLSectionViewport : public SEditorViewport
 {
 public:
     SLATE_BEGIN_ARGS(SCLSectionViewport) {} SLATE_END_ARGS()
-    FAdvancedPreviewScene Scene{FPreviewScene::ConstructionValues()};
+    FCLSectionScene Scene;
     TStrongObjectPtr<UProceduralMeshComponent> Mesh;
     TSharedPtr<FCLSectionClient> Client;
     bool bCameraFramed = false;
@@ -424,8 +474,6 @@ public:
     virtual FReply OnKeyDown(const FGeometry&, const FKeyEvent&) override { return FReply::Unhandled(); }
     void Construct(const FArguments& Args)
     {
-        Scene.SetFloorVisibility(false); Scene.SetEnvironmentVisibility(false);
-        Scene.SetLightDirection(FRotator(-35, 135, 0)); Scene.SetLightBrightness(4); Scene.SetSkyBrightness(1);
         Mesh.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));
         Scene.AddComponent(Mesh.Get(), FTransform::Identity);
         Mesh->SetMaterial(0, LoadObject<UMaterial>(nullptr, TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
