@@ -12,6 +12,8 @@
 #include "Framework/Application/SlateApplication.h"
 #include "SceneView.h"
 #include "Model/CLPlanetRecipe.h"
+#include "Model/CLTerrainType.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "Toolkits/CFModelEditorToolkit.h"
 #include "AdvancedPreviewScene.h"
 #include "SEditorViewport.h"
@@ -381,6 +383,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SCLSectionViewport> Preview;
     TSharedPtr<SCLHeightAnnotations> Annotations;
     TSharedPtr<FCLStrataSession> StrataSession;
+    TStrongObjectPtr<UCLTerrainTypeAsset> TerrainSource;
     FString Status;
     FDelegateHandle Changed;
     static const FName SectionTab;
@@ -418,6 +421,26 @@ public:
     }
     virtual void GetSaveableObjects(TArray<UObject*>& Objects) const override
     { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (StrataSession) Objects.AddUnique(StrataSession->Library.Get()); }
+    TSharedRef<SWidget> TerrainMenu()
+    {
+        FMenuBuilder Menu(true, nullptr); TArray<FAssetData> Assets;
+        FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().GetAssetsByClass(UCLTerrainTypeAsset::StaticClass()->GetClassPathName(), Assets, true);
+        Assets.Sort([](const FAssetData& A, const FAssetData& B) { return A.AssetName.LexicalLess(B.AssetName); });
+        if (Assets.IsEmpty()) Menu.AddMenuEntry(FText::FromString(TEXT("No terrain types found")), FText(), FSlateIcon(), FUIAction());
+        for (const FAssetData& Data : Assets)
+        {
+            auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); if (!Source) continue;
+            const TWeakObjectPtr<UCLTerrainTypeAsset> Weak(Source);
+            Menu.AddMenuEntry(FText::FromString(Source->TerrainType.Name), FText::FromString(Source->TerrainType.Description), FSlateIcon(),
+                FUIAction(FExecuteAction::CreateLambda([this, Weak]
+                {
+                    if (!Weak.IsValid()) return;
+                    const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyTerrainType", "Apply terrain type")); FString Error;
+                    if (!Weak->ApplyToRecipe(CastChecked<UCLPlanetRecipeAsset>(EditingAsset), Error)) Status = TEXT("Terrain type was not applied: ") + Error;
+                })));
+        }
+        return Menu.MakeWidget();
+    }
     TSharedRef<SWidget> StrataMenu()
     {
         FMenuBuilder Menu(true, nullptr);
@@ -440,6 +463,14 @@ public:
     void Refresh()
     {
         auto* Asset = CastChecked<UCLPlanetRecipeAsset>(EditingAsset);
+        if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
+        else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
+        {
+            TerrainSource.Reset(); TArray<FAssetData> Assets;
+            FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().GetAssetsByClass(UCLTerrainTypeAsset::StaticClass()->GetClassPathName(), Assets, true);
+            for (const auto& Data : Assets) if (auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); Source && Source->TerrainType.Id == Asset->Recipe.TerrainTypeId)
+            { TerrainSource.Reset(Source); break; }
+        }
         if (Preview) Preview->Client->Strata = Asset->Recipe.Strata;
         const auto Plan = FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         if (Plan)
@@ -454,6 +485,19 @@ public:
     {
         return SNew(SDockTab)[SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text_Lambda([this] { return FText::FromString(Status); })]
+            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::TerrainMenu)
+                    .ToolTipText(FText::FromString(TEXT("Apply a terrain type's noise layers using this planet's Strata, radius and seed")))
+                    .ButtonContent()[SNew(STextBlock).Text_Lambda([this]
+                    { const FString& Name = CastChecked<UCLPlanetRecipeAsset>(EditingAsset)->Recipe.TerrainTypeName;
+                      return FText::FromString(TEXT("Terrain: ") + (Name.IsEmpty() ? TEXT("Custom") : Name)); })]]
+                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Edit source")))
+                    .IsEnabled_Lambda([this] { return TerrainSource.IsValid(); })
+                    .ToolTipText(FText::FromString(TEXT("Edit the reusable terrain type. Reapply it to update this planet's copy.")))
+                    .OnClicked_Lambda([this]
+                    { if (TerrainSource) GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(TerrainSource.Get()); return FReply::Handled(); })]
+                + SHorizontalBox::Slot().FillWidth(1).Padding(8, 0)[SNew(STextBlock).AutoWrapText(true)
+                    .Text(FText::FromString(TEXT("Edit this planet's base noise layers in Details")))]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::StrataMenu)
                     .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Strata")))]]

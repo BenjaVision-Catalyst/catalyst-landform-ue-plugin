@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-30",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "configuration": "Editor Development; non-Nanite; no tessellation/navigation",
+  "build": "passed",
+  "recipe_schema": 3,
+  "terrain_type_schema": 1,
+  "noise_algorithm": 1,
+  "test_exit_code": 0,
+  "tests": {
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Terrain-types-final-tests.log",
+  "asset_verification": {
+    "assets": {
+      "Plains": {
+        "binary_matches_json": true,
+        "applies_to_planet_context": true
+      },
+      "Hills": {
+        "binary_matches_json": true,
+        "applies_to_planet_context": true
+      },
+      "MountainRidges": {
+        "binary_matches_json": true,
+        "applies_to_planet_context": true
+      }
+    },
+    "edited_recipe_and_strata_files_preserved": true
+  },
+  "asset_check_exit_code": 0,
+  "asset_check_log": "Saved/Logs/Terrain-assets-verify.log",
+  "profile_measurements": {
+    "outer_radius_metres": 1000,
+    "seed": 314,
+    "directions": 2048,
+    "Rolling plains": {
+      "sampled_relief_metres": 15.895,
+      "section_max_field_error_cm": 0.444
+    },
+    "Hills": {
+      "sampled_relief_metres": 57.046,
+      "section_max_field_error_cm": 1.731
+    },
+    "Mountain ridges": {
+      "sampled_relief_metres": 78.306,
+      "section_max_field_error_cm": 1.997
+    }
+  },
+  "vpp_surface_check": "16 directions per profile on a 100m outer-radius planet; less than 1cm distance from the compiled surface; undo checked",
+  "context": "Terrain type applies a self-contained layer snapshot while preserving planet Strata, radius, name and seed",
+  "editor": "Terrain selector, source editor and 1000m comparison recipe created; plains preview visually inspected",
+  "component_source_sha256": {
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "30dce7a0c196957bc73b1e72320e0715ac8388552f52899bdcbf921df2c1f91e",
+    "Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Source/CatalystLandform/Private/CLPlanet.cpp": "fde616a0f7db5c4e536b33e4ef2cd7531191b3d9d2bf5cb83bca25b4c9f1c7aa",
+    "Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "cff0fc4feb8001b6c922d9da60b423acf3975eedaeccde7aceff63b1d5cb59d5",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9",
+    "Source/CatalystLandform/Private/Model/CLModelJson.h": "52bb7889829d5a96bde347d338afb59d5ba44558953ba2b6b9adb136485483c5",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "6a947eeb2c13a3cccb6c5e23d078cfef94ffe37745892eea742f3f164c0fa52a",
+    "Source/CatalystLandform/Private/Model/CLStrata.cpp": "d00b219d8f9494ea40f36d9e05d2348ec94e8f90702229c2c8ef536ccadd72e3",
+    "Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "d515d25c4f87d1d08d92d6135f499898cd1f1b46d21dc3a97767f6cd4fecbe7d",
+    "Source/CatalystLandform/Public/CLPlanet.h": "8d0e302d13b9639fd5835a0d1ad982999079038f9057882864333f0a4189e2f8",
+    "Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Source/CatalystLandform/Public/CLPlanetStamp.h": "3b7e2fad7a3e6dfdf72dee1a4e944cc9a9ebe32f1aa140fbe764ed6a9b5a0be2",
+    "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "d872ab58e485ccca19ac853ec9223a4525dfdbdbd83278134726d9c21a02c66d",
+    "Source/CatalystLandform/Public/Model/CLStrata.h": "a78098c693aca2c74be4ef7e7a913322b618f803cea59e89cec11cb7f426601d",
+    "Source/CatalystLandform/Public/Model/CLTerrainType.h": "9c25f04c14b24c4e33db8f23b9ff1c5c5aab63e4555646441289147aa2d3a970",
+    "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "a9694bf1338eb099ce732d3303dc6805403976a982054f853ce059163d87ae15",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "084e29bdf88ddae867e0944ac12d80e235c411f6ef813abc40721073b7186c85",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "320092c0ff4d8df9cc18b1ec9f41ea9a819598b9d0a4a0c61424b8833335a3be",
+    "Source/CatalystLandformEditor/Private/CLStrataEditing.cpp": "d2f1fff6cf7707cc06b4d714f9b0e6e48938aed887952cefa3f2acb384c968d5",
+    "Source/CatalystLandformEditor/Private/CLTerrainTypeEditor.cpp": "a335615b804469a1fffba9055a4ddcc71cc6c81185e29a4243a7f7d3db4df586",
+    "Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "721e6870aacbae2eddd9dbb04643809239777e96a8e2641b07d9d2e34ac37c18",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "078d7dcf918af9863f6183b9a126dac08ccbc92bfbe3871e89607141a226da0f",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "dbb32112c6f1886b6704b19ec835e5f84200effd9ff1674524423c07aa307cb2",
+    "Source/CatalystLandformTests/CatalystLandformTests.Build.cs": "f7198a5ccadef1d6ef4ea3ac8392833923f202a7be83cb0c2bfc6cb358dffeb6",
+    "Source/CatalystLandformTests/Private/CLRecipeTests.cpp": "cb08ff02547bd00b6f9449e38da5ae6c0e57483307f929252e6ed8a9a1b82ae2",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "28559350b8173708486befcd05631fdcc7d02a0e969af1767198bd18054eb0b7",
+    "Source/CatalystLandformTests/Private/CLStrataTests.cpp": "9af4556df6e4e3701718e8e80fdc911737eea460a1571746cc9eb799906734ce",
+    "Source/CatalystLandformTests/Private/CLTerrainTypeTests.cpp": "877e43d85670917ce580839c229c3a68aefaeb8676e4ef3e3fe7ed43194b1433"
+  },
+  "terrain_source_sha256": {
+    "Examples/TerrainTypes/Hills.json": "d02f56b85e7a299721972c4566159187a3a3087e3e36f672476540911d00ec16",
+    "Examples/TerrainTypes/MountainRidges.json": "59ab2653807dfbf1951f1fe3a11e62c3a297d3251d40a5980d40b006505da511",
+    "Examples/TerrainTypes/Plains.json": "16ba0199588da913a090df74af917a04800008752ba5484c89addaca58dea59f"
+  },
+  "terrain_asset_sha256": {
+    "Content/TerrainTypes/DA_Hills.uasset": "c2edf27c0d7040491b71e867eae2d1f965ba4319aea87fcbf5ad7fd1555c8aa5",
+    "Content/TerrainTypes/DA_MountainRidges.uasset": "a0a5ece5612a6138d7cf1fb075e6599fa74b272ea1a0637dd45c43da8d64a487",
+    "Content/TerrainTypes/DA_Plains.uasset": "5df21ea0355feae268af1dd2c1925b927d3b1af12588d1092b70e5e1452bc1e5"
+  },
+  "host_source_sha256": {
+    "scripts/create-terrain-types.py": "29416b82e14c164f1672f5acf927afb2008eb4e9034718505dbc6ecd5b3df9ec",
+    "scripts/verify-terrain-types.py": "842d0ad58df7ec810cbe75674aa4ff0a7a556dfba239586d08433c097b86def1"
+  },
+  "comparison_asset_sha256": "77d7a5ba8eea539cff562dd332748d9b9a2e25abf8d0944b61da8cf63cc27408",
+  "limits": [
+    "CPU UE Perlin reference, not native VPP graph noise",
+    "One global terrain-profile snapshot; regional masks/composition and PCG pending",
+    "Comparison is a standalone Designer asset, not a new walkable level",
+    "No erosion, new surface-material, cook, networking or cross-platform qualification",
+    "No bit-identity promise across engine builds/platforms; kilometre-scale section error qualified within 5cm"
+  ],
+  "vendor_changes": "None"
+}

@@ -95,3 +95,13 @@ one recipe/mesh/VPP update on release. The scene preview does not render
 continuously while idle. Built-in reference layouts are Temperate, Oceanic,
 High relief, Airless rocky and Deep atmosphere. They seed once without replacing
 edited presets or reintroducing deleted ones.
+
+`UCLTerrainTypeAsset` supplies reusable base noise profiles through Foundation.
+The Designer's Terrain selector applies a layer snapshot while retaining the
+planet's global Strata, radius and seed. Shipped sources are Rolling plains,
+Hills and Mountain ridges (`Examples/TerrainTypes`, with assets under
+`Content/TerrainTypes`). Schema 3 adds guide-interval heights/deltas and
+planet-relative wavelengths, resolved to scalars before worker/VPP evaluation.
+Schema 1/2 imports preserve their old field semantics and upgrade for export.
+The terrain evaluator still uses the CPU Perlin reference; native VPP graphs,
+regional composition and PCG remain subsequent work.

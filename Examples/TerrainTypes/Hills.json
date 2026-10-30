@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "434C1001000000000000000000000065",
+  "name": "Hills",
+  "description": "Smooth broad and middle-scale variation with a wider relief range.",
+  "noiseLayers": [
+    {
+      "name": "Broad hills",
+      "bEnabled": true,
+      "seed": 0,
+      "shape": "Smooth",
+      "blend": "Override",
+      "minimum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.4,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.75,
+        "offsetMeters": 0
+      },
+      "scale": "PlanetRadius",
+      "wavelengthRadiusFraction": 0.4,
+      "octaves": 3,
+      "persistence": 0.5
+    },
+    {
+      "name": "Hill detail",
+      "bEnabled": true,
+      "seed": 12,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.012,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.012,
+        "offsetMeters": 0
+      },
+      "scale": "PlanetRadius",
+      "wavelengthRadiusFraction": 0.12,
+      "octaves": 2,
+      "persistence": 0.5
+    }
+  ]
+}

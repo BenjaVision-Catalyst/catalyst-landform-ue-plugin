@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "434C1001000000000000000000000064",
+  "name": "Rolling plains",
+  "description": "Broad smooth undulations with restrained detail, occupying a narrow lower-middle portion of the global relief interval.",
+  "noiseLayers": [
+    {
+      "name": "Broad undulations",
+      "bEnabled": true,
+      "seed": 0,
+      "shape": "Smooth",
+      "blend": "Override",
+      "minimum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.35,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.45,
+        "offsetMeters": 0
+      },
+      "scale": "PlanetRadius",
+      "wavelengthRadiusFraction": 0.8,
+      "octaves": 2,
+      "persistence": 0.5
+    },
+    {
+      "name": "Ground detail",
+      "bEnabled": true,
+      "seed": 12,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.003,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.003,
+        "offsetMeters": 0
+      },
+      "scale": "PlanetRadius",
+      "wavelengthRadiusFraction": 0.08,
+      "octaves": 2,
+      "persistence": 0.5
+    }
+  ]
+}
