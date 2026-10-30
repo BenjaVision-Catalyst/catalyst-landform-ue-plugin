@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-30",
+  "platform": "Mac arm64, Apple M3 Max, macOS 26.6.1",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8 with existing local registration bridge",
+  "configuration": "Editor Development, non-Nanite, no tessellation/navigation",
+  "editor_build": "passed",
+  "test_run_exit_code": 0,
+  "tests": {
+    "LandformLab.MountainProof.HalfWorldStamp": "passed",
+    "LandformLab.MountainProof.PhysicalCircumnavigation": "passed",
+    "LandformLab.NativeStamps.AuthoringEdits": "passed",
+    "LandformLab.NativeStamps.MappingAndBlending": "passed",
+    "LandformLab.NativeStamps.WalkBlendedJoins": "passed",
+    "LandformLab.PlanetProof.GeodesicField": "passed",
+    "LandformLab.PlanetProof.PhysicalCircumnavigation": "passed",
+    "LandformLab.VPP.NativeFunctionRegistration": "passed"
+  },
+  "native_source_count": 3,
+  "native_runtime": "FVoxelHeightmapStampRuntime, geometry queries with native interpolation and blending",
+  "walk_speed_metres_per_second": 6,
+  "physical_walk": {
+    "passed": true,
+    "degrees_walked": 360.0340147158229,
+    "ground_frames": 7884,
+    "voxel_ground_frames": 7884,
+    "total_frames": 7884,
+    "ridge_plateau_join_ground_frames": 843,
+    "plateau_crater_join_ground_frames": 982,
+    "maximum_relief_cm": 653.4850463867188,
+    "minimum_relief_cm": -630.005859375,
+    "maximum_ground_foot_gap_cm": 6.674947108593187,
+    "minimum_up_dot": 0.9999992866848502,
+    "minimum_gravity_dot": 0.9999999989757594,
+    "maximum_camera_roll_dot": 2.4492914150254033e-16
+  },
+  "source_validation": {
+    "byte_reproducible": true,
+    "png16_crc_and_dimensions_valid": true,
+    "source_sha256": {
+      "Ridge": "dc41d2a723d6946d8c3c76582d51c6ec1ee4a1e5a16637222da972ab6469065b",
+      "Plateau": "831ed6d962df66a5945e079b040774365601107237b808b529189dfdded839ac",
+      "Crater": "2d7f8fd4c632c1034536be2903cd5e441e379b1121c233af5a5236f8f8ed6b04"
+    }
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Source/CatalystLandform/Private/CLPlanet.cpp": "d6c44bada6f2c6397713647a35e3c6fa720caf0e94a6a99f3372fd2363dcf7c5",
+    "Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "93fc0533b1eb4a60b84388f9df05d93568eda495bf25e33e06352abc578b3471",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9",
+    "Source/CatalystLandform/Public/CLPlanet.h": "44b400ec79d5eb73d91f333e7f5c544ce0edcbcfc8925788ee27b900226a9136",
+    "Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Source/CatalystLandform/Public/CLPlanetStamp.h": "b44ba725633e8dd213bb2383d5c2ebfb345b12b3f15aaadfcffe07d92cf2f685",
+    "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4"
+  },
+  "host_source_sha256": {
+    "Source/LandformLab/Private/CLNativeStampTests.cpp": "ce0daaf0c5097be2daf0ffbe350592ac0a04f706b386e36cbed68b235a79df4f",
+    "Source/LandformLab/Private/CLPlanetProof.cpp": "d251b73b71c2737e7868fef54d3b42cc9aae53543b08d6f68339a945ac55a24e",
+    "Source/LandformLab/Public/CLPlanetProof.h": "3960409e97027bcc02dd4e5c606cd341d8b0f52ff276d290c099f66a765c71a3"
+  },
+  "asset_sha256": {
+    "Content/LandformProof/NativeStampProof.umap": "797d3e6dd78885e051422d408acb1b748c0860fcd2513093e89c3ed066845619",
+    "Content/LandformProof/NativeStamps/HM_Crater.uasset": "932e31771817977a6b918c64f393fc7523ab65aa30a398538251fdfb86cee953",
+    "Content/LandformProof/NativeStamps/HM_Plateau.uasset": "476d33997e8ae0274a7f8db1f6f483f139f739e0ac15106e43b70c401c1a802a",
+    "Content/LandformProof/NativeStamps/HM_Ridge.uasset": "f4f0be49082fdacd3d27acbda82feb9ec6baeae4aaa5c8c308a35b5e0a9219b8",
+    "Content/LandformProof/NativeStamps/T_Crater_Height.uasset": "c9322e798833d19588d3332895d1a33214317ac19a6990ff04165f11cd2a2018",
+    "Content/LandformProof/NativeStamps/T_Plateau_Height.uasset": "361c80ccbbc8e01eb382d891deb65575f52a9ea41df7bd93fe62f145cbfe7ae4",
+    "Content/LandformProof/NativeStamps/T_Ridge_Height.uasset": "2fa7f19b410869e385efd2c80dc6a96df8adfac1e00c0cc0d5216e980aa83f8d"
+  },
+  "limits": [
+    "Geometry-only native heightmap adapter; surface weightmaps/metadata, graph and mesh stamp adapters unqualified.",
+    "Planet actor scale must be one; positive stamp scales and footprint excluding antipode.",
+    "Charts compress transverse width away from anchor; radial field is not exact Euclidean SDF.",
+    "Cooking, networking, multi-planet gravity, navigation and water unqualified.",
+    "Known VPP Nanite material hook warning remains.",
+    "Initial scene creation uses empty Entry map to avoid observed pending-collision startup cleanup crash."
+  ]
+}
