@@ -73,7 +73,7 @@ public:
             if (Field != TEXT("Guide") && Field != TEXT("UpperGuide")) { Children.AddProperty(Property).Visibility(Visible); continue; }
             Children.AddCustomRow(Property->GetPropertyDisplayName()).NameContent()[Property->CreatePropertyNameWidget()]
                 .Visibility(Visible).ValueContent().MinDesiredWidth(130)[SNew(SComboButton)
-                    .ButtonContent()[SNew(STextBlock).Text_Lambda([Property]
+                    .ButtonContent()[SNew(STextBlock).Font(IPropertyTypeCustomizationUtils::GetRegularFont()).Text_Lambda([Property]
                     { FName Value; Property->GetValue(Value); return FText::FromName(Value); })]
                     .OnGetMenuContent_Lambda([Weak = Session, Property]
                     {
