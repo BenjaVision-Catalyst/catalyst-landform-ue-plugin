@@ -28,6 +28,11 @@ public:
     virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
     UFUNCTION(BlueprintCallable, Category="Landform") bool ApplyToRecipe(UCLPlanetRecipeAsset* Asset, FString& Error) const;
     UFUNCTION(BlueprintCallable, Category="Landform") bool ImportTerrainTypeJson(const FString& Json, FString& Error);
+#if WITH_EDITOR
+    FSimpleMulticastDelegate OnTerrainChanged;
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& Event) override;
+    virtual void PostEditUndo() override;
+#endif
 protected:
     virtual FString GetPluginNameForPaths() const override { return TEXT("CatalystLandform/TerrainTypes"); }
     virtual UScriptStruct* GetPayloadScriptStruct() const override { return FCLTerrainType::StaticStruct(); }

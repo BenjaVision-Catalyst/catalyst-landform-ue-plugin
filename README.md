@@ -115,3 +115,30 @@ planet-relative wavelengths, resolved to scalars before worker/VPP evaluation.
 Schema 1/2 imports preserve their old field semantics and upgrade for export.
 The terrain evaluator still uses the CPU Perlin reference; native VPP graphs,
 regional composition and PCG remain subsequent work.
+
+Terrain assets now open in the shared cross-section Designer with a **Noise
+layers** tab. Select, add, duplicate, remove, reorder or enable layers; the
+selected layer exposes shape, blend, seed, wavelength, octaves, persistence and
+guide-based height bounds. Guide pickers use the preview context's Stratum.
+Finished property edits are transactional; invalid drafts leave the definition
+unchanged. Undo/redo refreshes the stack and preview.
+
+The terrain editor owns the reusable definition, with an independent snapshot
+of the optional planet context. Preview radius, seed and Strata selection do not
+change the planet or the project catalog. Stratum editing remains in the planet
+Designer. **Apply to planet** explicitly applies the full layer stack while
+preserving that planet's radius, seed and Strata. **Solo** isolates a layer over
+the underlying height at the preview centre and is never saved or applied.
+**New** and **Save as variant…** create project assets; duplication gives a new
+terrain identity. Normal Save and Foundation export operate on the terrain asset.
+Shipped plugin presets open as project working copies under
+`/Game/LandformDesigner/TerrainTypes`. Each copy is seeded once and subsequently
+reused, so authoring changes survive plugin staging and templates remain intact.
+
+Terrain-mode previews build geometry and normals on one background worker with
+one replaceable pending request. Obsolete results cannot replace the current
+scene. UObject/mesh work remains on the editor thread, and camera framing stays
+fixed across completion. The `Landform.TerrainDesigner` command opens Mountain
+ridges by default; optional arguments are a terrain asset path and planet recipe
+path. This is authoring support for the existing schema/algorithm, not native VPP
+graph or PCG generation.

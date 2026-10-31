@@ -4,6 +4,13 @@
 #include "Serialization/JsonSerializer.h"
 #include "Validation/CFValidationTypes.h"
 
+#if WITH_EDITOR
+void UCLTerrainTypeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
+{ Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnTerrainChanged.Broadcast(); }
+void UCLTerrainTypeAsset::PostEditUndo()
+{ Super::PostEditUndo(); OnTerrainChanged.Broadcast(); }
+#endif
+
 bool FCLTerrainType::Validate(FString& Error) const
 {
     if (SchemaVersion != 1 || !Id.IsValid() || Name.TrimStartAndEnd().IsEmpty())

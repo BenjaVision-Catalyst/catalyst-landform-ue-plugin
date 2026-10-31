@@ -51,8 +51,8 @@ struct CATALYSTLANDFORM_API FCLNoiseLayer
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference Minimum;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference Maximum;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLNoiseScale Scale = ECLNoiseScale::Meters;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m", ClampMin="0.1", EditCondition="Scale == ECLNoiseScale::Meters")) double WavelengthMeters = 50;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.000001", EditCondition="Scale == ECLNoiseScale::PlanetRadius")) double WavelengthRadiusFraction = .5;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m", ClampMin="0.1", EditCondition="Scale == ECLNoiseScale::Meters", EditConditionHides)) double WavelengthMeters = 50;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.000001", EditCondition="Scale == ECLNoiseScale::PlanetRadius", EditConditionHides)) double WavelengthRadiusFraction = .5;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="1", ClampMax="8")) int32 Octaves = 3;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", ClampMax="1")) double Persistence = .5;
 };

@@ -1,4 +1,14 @@
 #include "CLRecipeAssetTools.h"
+#include "CLTerrainDesigner.h"
+#include "CLTerrainEditing.h"
+#include "CLNoiseLayerStack.h"
+#include "IDetailsView.h"
+#include "AssetToolsModule.h"
+#include "IAssetTools.h"
+#include "FileHelpers.h"
+#include "Misc/PackageName.h"
+#include "Widgets/Input/SNumericEntryBox.h"
+#include "Async/Async.h"
 #include "CLSectionGeometry.h"
 #include "CLSectionNavigation.h"
 #include "Framework/Application/IInputProcessor.h"
@@ -415,6 +425,7 @@ public:
                     [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).Text(FText::FromString(TEXT("Core"))).ColorAndOpacity(GuideLabelColor)]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6, 0)
                     [SNew(SBox).WidthOverride(16).HeightOverride(16).VAlign(VAlign_Center)
+                        .Visibility_Lambda([this] { return Session->bReadOnly ? EVisibility::Collapsed : EVisibility::Visible; })
                         [SNew(SButton).ButtonStyle(FAppStyle::Get(), "SimpleButton").ContentPadding(0)
                         .ToolTipText(FText::FromString(TEXT("Add a Stratum just above Core, then drag it to the desired height")))
                         .IsEnabled_Lambda([this] { return Session->Asset->Recipe.Strata.Stratum.Num() < 128; })
@@ -443,6 +454,21 @@ public:
     }
 };
 
+struct FCLSectionBuffers
+{
+    FCLSectionGeometry Geometry;
+    TArray<FVector> Normals;
+    TArray<FVector2D> UV;
+    TArray<FProcMeshTangent> Tangents;
+    static FCLSectionBuffers Build(const FCLCompiledPlanetRecipe& Plan, double Width)
+    {
+        FCLSectionBuffers B; B.Geometry = FCLSectionGeometry::Build(Plan, 0, Width);
+        B.UV.Init(FVector2D::ZeroVector, B.Geometry.Vertices.Num());
+        // Pure array math: no scene components or other UObject state on the worker.
+        UKismetProceduralMeshLibrary::CalculateTangentsForMesh(B.Geometry.Vertices, B.Geometry.Triangles, {}, B.Normals, B.Tangents);
+        return B;
+    }
+};
 class SCLSectionViewport : public SEditorViewport
 {
 public:
@@ -451,6 +477,11 @@ public:
     TStrongObjectPtr<UProceduralMeshComponent> Mesh;
     TSharedPtr<FCLSectionClient> Client;
     bool bCameraFramed = false;
+    TFuture<FCLSectionBuffers> BuildTask;
+    TSharedPtr<const FCLCompiledPlanetRecipe> PendingPlan;
+    double PendingWidth = 500;
+    uint64 Revision = 0, TaskRevision = 0;
+    int32 StartedBuilds = 0, AppliedBuilds = 0;
     FKey NavigationButton;
     FVector2D PreviousMouse;
     virtual FReply OnPreviewMouseButtonDown(const FGeometry&, const FPointerEvent& E) override
@@ -492,16 +523,45 @@ public:
     }
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
     { Client = MakeShared<FCLSectionClient>(&Scene, SharedThis(this)); return Client.ToSharedRef(); }
+    bool IsUpdating() const { return BuildTask.IsValid() || PendingPlan.IsValid(); }
+    void CancelPendingBuild()
+    { ++Revision; PendingPlan.Reset(); }
+    void PumpBuild()
+    {
+        if (BuildTask.IsValid() && BuildTask.IsReady())
+        {
+            auto Buffers = BuildTask.Get(); BuildTask = TFuture<FCLSectionBuffers>();
+            if (TaskRevision == Revision) ApplyBuffers(Buffers);
+        }
+        if (!BuildTask.IsValid() && PendingPlan)
+        {
+            const auto Plan = PendingPlan; const double Width = PendingWidth;
+            PendingPlan.Reset(); TaskRevision = Revision; ++StartedBuilds;
+            BuildTask = Async(EAsyncExecution::ThreadPool, [Plan, Width] { return FCLSectionBuffers::Build(*Plan, Width); });
+        }
+    }
+    virtual void Tick(const FGeometry& G, double T, float D) override
+    { SEditorViewport::Tick(G, T, D); PumpBuild(); }
+    void RebuildAsync(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
+    {
+        if (!Plan) { CancelPendingBuild(); return; }
+        Client->Plan = Plan;
+        if (Client->AreaWidthMeters <= 0) Client->AreaWidthMeters = FCLSectionGeometry::DefaultWidth(*Plan);
+        ++Revision; PendingPlan = MoveTemp(Plan); PendingWidth = Client->AreaWidthMeters;
+        PumpBuild();
+    }
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
     {
+        CancelPendingBuild();
         Client->Plan = Plan;
         if (!Plan) return;
         if (Client->AreaWidthMeters <= 0) Client->AreaWidthMeters = FCLSectionGeometry::DefaultWidth(*Plan);
-        const FCLSectionGeometry G = FCLSectionGeometry::Build(*Plan, 0, Client->AreaWidthMeters);
-        TArray<FVector> N; TArray<FVector2D> UV; TArray<FProcMeshTangent> Tangents;
-        UV.Init(FVector2D::ZeroVector, G.Vertices.Num());
-        UKismetProceduralMeshLibrary::CalculateTangentsForMesh(G.Vertices, G.Triangles, {}, N, Tangents);
-        Mesh->CreateMeshSection_LinearColor(0, G.Vertices, G.Triangles, N, UV, G.Colors, Tangents, false);
+        ApplyBuffers(FCLSectionBuffers::Build(*Plan, Client->AreaWidthMeters));
+    }
+    void ApplyBuffers(const FCLSectionBuffers& B)
+    {
+        ++AppliedBuilds; const auto& G = B.Geometry;
+        Mesh->CreateMeshSection_LinearColor(0, G.Vertices, G.Triangles, B.Normals, B.UV, G.Colors, B.Tangents, false);
         if (!bCameraFramed)
         {
             bCameraFramed = true;
@@ -518,6 +578,13 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<FCLStrataSession> StrataSession;
     TSharedPtr<FCLSelectionInput> SelectionInput;
     TStrongObjectPtr<UCLTerrainTypeAsset> TerrainSource;
+    TSharedPtr<FCLTerrainEditing> TerrainEditing;
+    TStrongObjectPtr<UCLPlanetRecipeAsset> PreviewContext;
+    TWeakObjectPtr<UCLPlanetRecipeAsset> ContextPlanet;
+    TSharedPtr<SCLNoiseLayerStack> NoiseStack;
+    FDelegateHandle TerrainChanged;
+    UCLPlanetRecipeAsset* RecipeAsset() const
+    { return PreviewContext ? PreviewContext.Get() : CastChecked<UCLPlanetRecipeAsset>(EditingAsset); }
     FString Status;
     double PendingAreaWidth = 0;
     bool bAreaDragging = false;
@@ -525,7 +592,8 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     {
         if (!Preview || !Preview->Client->Plan) return;
         Preview->Client->AreaWidthMeters = PendingAreaWidth;
-        Preview->Rebuild(Preview->Client->Plan);
+        if (TerrainEditing) Preview->RebuildAsync(Preview->Client->Plan);
+        else Preview->Rebuild(Preview->Client->Plan);
     }
     FText AreaCaption() const
     {
@@ -534,16 +602,58 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     }
     FDelegateHandle Changed;
     static const FName SectionTab;
+    static const FName NoiseTab;
 public:
     virtual ~FCLRecipeToolkit()
     {
         if (SelectionInput && FSlateApplication::IsInitialized()) FSlateApplication::Get().UnregisterInputPreProcessor(SelectionInput);
-        if (auto* Asset = Cast<UCLPlanetRecipeAsset>(EditingAsset)) Asset->OnRecipeChanged.Remove(Changed);
+        if (EditingAsset) RecipeAsset()->OnRecipeChanged.Remove(Changed);
+        if (TerrainEditing) TerrainEditing->Asset->OnTerrainChanged.Remove(TerrainChanged);
     }
     void Open(UCLPlanetRecipeAsset* Asset, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         EditingAsset = Asset;
-        StrataSession = MakeShared<FCLStrataSession>(); StrataSession->Open(Asset);
+        OpenDesigner(Mode, Host);
+    }
+    void OpenTerrain(UCLTerrainTypeAsset* Asset, UCLPlanetRecipeAsset* Context, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
+    {
+        EditingAsset = Asset; ContextPlanet = Context;
+        TerrainEditing = MakeShared<FCLTerrainEditing>(); TerrainEditing->Open(Asset, Context ? &Context->Recipe : nullptr);
+        PreviewContext.Reset(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
+        PreviewContext->Recipe = TerrainEditing->Context;
+        TerrainChanged = Asset->OnTerrainChanged.AddSP(this, &FCLRecipeToolkit::RefreshTerrain);
+        OpenDesigner(Mode, Host);
+    }
+    void RefreshTerrain()
+    {
+        TerrainEditing->Reconcile();
+        if (NoiseStack) NoiseStack->Refresh();
+        Refresh();
+    }
+    void UsePlanetContext(UCLPlanetRecipeAsset* Planet)
+    {
+        if (!TerrainEditing || !Planet) return;
+        ContextPlanet = Planet; PreviewContext->Recipe = Planet->Recipe;
+        if (NoiseStack) NoiseStack->Refresh();
+        Refresh();
+    }
+    void OpenDesigner(EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
+    {
+        auto* Asset = RecipeAsset();
+        StrataSession = MakeShared<FCLStrataSession>();
+        if (TerrainEditing)
+        {
+            // A terrain preview may select styles but never writes the planet or
+            // the project's authoring catalog. Those retain their own editors.
+            StrataSession->Asset = Asset; StrataSession->bReadOnly = true;
+            StrataSession->Library.Reset(NewObject<UCLStrataLibraryAsset>(GetTransientPackage()));
+            if (const auto* Catalog = LoadObject<UCLStrataLibraryAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary")))
+                StrataSession->Library->Library = Catalog->Library;
+            else StrataSession->Library->Library.Sets = FCLStrataPresets::Defaults();
+            if (!StrataSession->Library->Library.Sets.ContainsByPredicate([&](const auto& S) { return S.Id == Asset->Recipe.Strata.Id; }))
+                StrataSession->Library->Library.Sets.Add(Asset->Recipe.Strata);
+        }
+        else StrataSession->Open(Asset);
         SelectionInput = MakeShared<FCLSelectionInput>(StrataSession);
         FSlateApplication::Get().RegisterInputPreProcessor(SelectionInput);
         StrataSession->OnPreviewChanged = [this]
@@ -554,25 +664,29 @@ public:
             if (Annotations) Annotations->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
         };
         BuildDetailsPanel();
+        if (TerrainEditing) DetailsView->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
+        { return P.Property.GetFName() != GET_MEMBER_NAME_CHECKED(FCLTerrainType, NoiseLayers); }));
         Changed = Asset->OnRecipeChanged.AddSP(this, &FCLRecipeToolkit::Refresh);
-        const auto Layout = FTabManager::NewLayout("CLRecipeDesigner_v2")->AddArea(
+        const auto Layout = FTabManager::NewLayout(TerrainEditing ? "CLTerrainDesigner_v1" : "CLRecipeDesigner_v2")->AddArea(
             FTabManager::NewPrimaryArea()->SetOrientation(Orient_Horizontal)
-            ->Split(FTabManager::NewStack()->SetSizeCoefficient(.32)->AddTab(DetailsTabId, ETabState::OpenedTab)->AddTab(ValidationTabId, ETabState::OpenedTab)->SetForegroundTab(DetailsTabId))
+            ->Split(FTabManager::NewStack()->SetSizeCoefficient(.34)->AddTab(TerrainEditing ? NoiseTab : DetailsTabId, ETabState::OpenedTab)
+                ->AddTab(TerrainEditing ? DetailsTabId : NoiseTab, TerrainEditing ? ETabState::OpenedTab : ETabState::ClosedTab)
+                ->AddTab(ValidationTabId, ETabState::OpenedTab)->SetForegroundTab(TerrainEditing ? NoiseTab : DetailsTabId))
             ->Split(FTabManager::NewStack()->SetSizeCoefficient(.68)->AddTab(SectionTab, ETabState::OpenedTab)->SetHideTabWell(true)));
-        InitAssetEditor(Mode, Host, GetToolkitFName(), Layout, true, true, Asset);
+        InitAssetEditor(Mode, Host, GetToolkitFName(), Layout, true, true, EditingAsset.Get());
         const auto Extender = MakeShared<FExtender>();
         Extender->AddToolBarExtension(TEXT("Asset"), EExtensionHook::After, nullptr,
             FToolBarExtensionDelegate::CreateLambda([this](FToolBarBuilder& Builder)
             {
                 Builder.AddToolBarButton(FUIAction(FExecuteAction::CreateSP(this, &FCLRecipeToolkit::Export)), NAME_None,
-                    FText::FromString(TEXT("Export recipe")), FText::FromString(TEXT("Export through Foundation to Saved/CatalystLandform/Model.json")));
+                    FText::FromString(TerrainEditing ? TEXT("Export terrain type") : TEXT("Export recipe")), FText::FromString(TEXT("Export the authored definition through Foundation")));
             }));
         AddToolbarExtender(Extender); RegenerateMenusAndToolbars();
         // Explicit asset target; don't use Foundation's legacy first-PIE-service lookup.
         Refresh();
     }
     virtual void GetSaveableObjects(TArray<UObject*>& Objects) const override
-    { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (StrataSession) Objects.AddUnique(StrataSession->Library.Get()); }
+    { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (StrataSession && !TerrainEditing) Objects.AddUnique(StrataSession->Library.Get()); }
     TSharedRef<SWidget> TerrainMenu()
     {
         FMenuBuilder Menu(true, nullptr); TArray<FAssetData> Assets;
@@ -583,12 +697,15 @@ public:
         {
             auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); if (!Source) continue;
             const TWeakObjectPtr<UCLTerrainTypeAsset> Weak(Source);
-            Menu.AddMenuEntry(FText::FromString(Source->TerrainType.Name), FText::FromString(Source->TerrainType.Description), FSlateIcon(),
+            const bool bTemplate = Data.PackagePath.ToString().StartsWith(TEXT("/CatalystLandform/"));
+            Menu.AddMenuEntry(FText::FromString(Source->TerrainType.Name + (bTemplate ? TEXT(" (template)") : TEXT(""))),
+                FText::FromString(Source->TerrainType.Description + TEXT("\n") + Source->GetPathName()), FSlateIcon(),
                 FUIAction(FExecuteAction::CreateLambda([this, Weak]
                 {
                     if (!Weak.IsValid()) return;
+                    if (TerrainEditing) { CLOpenTerrainDesigner(Weak.Get(), ContextPlanet.Get()); return; }
                     const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyTerrainType", "Apply terrain type")); FString Error;
-                    if (!Weak->ApplyToRecipe(CastChecked<UCLPlanetRecipeAsset>(EditingAsset), Error)) Status = TEXT("Terrain type was not applied: ") + Error;
+                    if (!Weak->ApplyToRecipe(RecipeAsset(), Error)) Status = TEXT("Terrain type was not applied: ") + Error;
                 })));
         }
         return Menu.MakeWidget();
@@ -601,21 +718,43 @@ public:
                 FUIAction(FExecuteAction::CreateLambda([Session = StrataSession, Id = S.Id] { Session->Apply(Id); })));
         return Menu.MakeWidget();
     }
-    virtual FName GetToolkitFName() const override { return TEXT("CLRecipeDesigner"); }
-    virtual FText GetBaseToolkitName() const override { return NSLOCTEXT("CL", "Designer", "Landform Designer"); }
+    virtual FName GetToolkitFName() const override { return TerrainEditing ? TEXT("CLTerrainType") : TEXT("CLRecipeDesigner"); }
+    virtual FText GetBaseToolkitName() const override { return TerrainEditing ? NSLOCTEXT("CL", "TerrainDesigner", "Landform Terrain Type") : NSLOCTEXT("CL", "Designer", "Landform Designer"); }
     virtual FString GetWorldCentricTabPrefix() const override { return TEXT("Landform"); }
     void Export() { HandleExportJson(); }
     virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& Manager) override
     {
         FCFModelEditorToolkit::RegisterTabSpawners(Manager);
         Manager->RegisterTabSpawner(SectionTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnSection));
+        Manager->RegisterTabSpawner(NoiseTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnNoise)).SetDisplayName(FText::FromString(TEXT("Noise layers")));
     }
     virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& Manager) override
-    { Manager->UnregisterTabSpawner(SectionTab); FCFModelEditorToolkit::UnregisterTabSpawners(Manager); }
+    { Manager->UnregisterTabSpawner(SectionTab); Manager->UnregisterTabSpawner(NoiseTab); FCFModelEditorToolkit::UnregisterTabSpawners(Manager); }
+    TSharedRef<SDockTab> SpawnNoise(const FSpawnTabArgs&)
+    {
+        if (!TerrainEditing) return SNew(SDockTab)[SNew(STextBlock).Text(FText::FromString(TEXT("Use Edit source to author a reusable terrain type.")))];
+        return SNew(SDockTab)[SAssignNew(NoiseStack, SCLNoiseLayerStack).Session(TerrainEditing)
+            .OnPreviewChanged(FSimpleDelegate::CreateSP(this, &FCLRecipeToolkit::Refresh))];
+    }
+    void CreateTerrain(bool bDuplicate)
+    {
+        auto& Tools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+        UObject* New = bDuplicate ? Tools.DuplicateAssetWithDialog(TEXT("DA_TerrainVariant"), TEXT("/Game/LandformDesigner/TerrainTypes"), TerrainEditing->Asset) :
+            Tools.CreateAssetWithDialog(TEXT("DA_NewTerrain"), TEXT("/Game/LandformDesigner/TerrainTypes"), UCLTerrainTypeAsset::StaticClass(), NewObject<UCLTerrainTypeFactory>());
+        if (auto* Terrain = Cast<UCLTerrainTypeAsset>(New))
+        {
+            Terrain->TerrainType.Name = bDuplicate ? TerrainEditing->Asset->TerrainType.Name + TEXT(" variant") : TEXT("New terrain");
+            Terrain->MarkPackageDirty(); Terrain->PostEditChange();
+            TArray<UPackage*> Packages{Terrain->GetOutermost()};
+            FEditorFileUtils::PromptForCheckoutAndSave(Packages, false, false);
+            CLOpenTerrainDesigner(Terrain, ContextPlanet.Get());
+        }
+    }
     void Refresh()
     {
-        auto* Asset = CastChecked<UCLPlanetRecipeAsset>(EditingAsset);
-        if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
+        auto* Asset = RecipeAsset();
+        if (TerrainEditing) TerrainSource.Reset(TerrainEditing->Asset);
+        else if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
         else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
         {
             TerrainSource.Reset(); TArray<FAssetData> Assets;
@@ -624,17 +763,20 @@ public:
             { TerrainSource.Reset(Source); break; }
         }
         if (Preview) Preview->Client->Strata = Asset->Recipe.Strata;
-        const auto Plan = FCLPlanetCompiler::Compile(Asset->Recipe, Status);
+        if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
+        const auto Plan = TerrainEditing ? TerrainEditing->CompilePreview(Status) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         if (Plan)
         {
-            Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | flat terrain preview"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num());
+            Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | %s"),
+                TerrainEditing ? *TerrainEditing->Asset->TerrainType.Name : *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num(),
+                TerrainEditing && TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("flat terrain preview"));
             if (Preview)
             {
-                Preview->Rebuild(Plan);
+                if (TerrainEditing) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
-        else Status = TEXT("Keeping last valid preview: ") + Status;
+        else { if (TerrainEditing && Preview) Preview->CancelPendingBuild(); Status = TEXT("Keeping last valid preview: ") + Status; }
         RefreshAllUI(EditingAsset, false);
     }
     TSharedRef<SDockTab> SpawnSection(const FSpawnTabArgs&)
@@ -645,19 +787,44 @@ public:
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::TerrainMenu)
                     .ToolTipText(FText::FromString(TEXT("Apply a terrain type's noise layers using this planet's Strata, radius and seed")))
                     .ButtonContent()[SNew(STextBlock).Text_Lambda([this]
-                    { const FString& Name = CastChecked<UCLPlanetRecipeAsset>(EditingAsset)->Recipe.TerrainTypeName;
+                    { const FString& Name = TerrainEditing ? TerrainEditing->Asset->TerrainType.Name : RecipeAsset()->Recipe.TerrainTypeName;
                       return FText::FromString(TEXT("Terrain: ") + (Name.IsEmpty() ? TEXT("Custom") : Name)); })]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Edit source")))
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
                     .IsEnabled_Lambda([this] { return TerrainSource.IsValid(); })
                     .ToolTipText(FText::FromString(TEXT("Edit the reusable terrain type. Reapply it to update this planet's copy.")))
                     .OnClicked_Lambda([this]
-                    { if (TerrainSource) GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(TerrainSource.Get()); return FReply::Handled(); })]
+                    { if (TerrainSource) CLOpenTerrainDesigner(TerrainSource.Get(), RecipeAsset()); return FReply::Handled(); })]
+                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("New")))
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
+                    .OnClicked_Lambda([this] { CreateTerrain(false); return FReply::Handled(); })]
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Save as variant…")))
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
+                    .OnClicked_Lambda([this] { CreateTerrain(true); return FReply::Handled(); })]
                 + SHorizontalBox::Slot().FillWidth(1).Padding(8, 0)[SNew(STextBlock).AutoWrapText(true)
-                    .Text(FText::FromString(TEXT("Edit this planet's base noise layers in Details")))]]
+                    .Text_Lambda([this] { return FText::FromString(TerrainEditing ? TEXT("Save edits to this reusable terrain type") : TEXT("Edit this planet's base noise layers in Details")); })]]
+            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
+                .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text(FText::FromString(TEXT("Preview radius (m)")))]
+                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SBox).WidthOverride(100)[SNew(SNumericEntryBox<double>).MinValue(10).MaxValue(1.e7)
+                    .Value_Lambda([this] { return TOptional<double>(RecipeAsset()->Recipe.RadiusMeters); })
+                    .OnValueCommitted_Lambda([this](double Value, ETextCommit::Type)
+                    { if (!FMath::IsFinite(Value) || Value < 10 || Value > 1.e7) return; RecipeAsset()->Recipe.RadiusMeters = Value; Refresh(); })]]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text(FText::FromString(TEXT("Seed")))]
+                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SBox).WidthOverride(100)[SNew(SNumericEntryBox<int32>)
+                    .Value_Lambda([this] { return TOptional<int32>(RecipeAsset()->Recipe.Seed); })
+                    .OnValueCommitted_Lambda([this](int32 Value, ETextCommit::Type) { RecipeAsset()->Recipe.Seed = Value; Refresh(); })]]
+                + SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center)[SNew(STextBlock).Text_Lambda([this]
+                    { return FText::FromString(ContextPlanet.IsValid() ? TEXT("Context: ") + ContextPlanet->Recipe.Name : TEXT("Standalone preview context")); })]
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Apply to planet")))
+                    .IsEnabled_Lambda([this] { return ContextPlanet.IsValid(); })
+                    .ToolTipText(FText::FromString(TEXT("Apply all saved layers, ignoring Solo. Planet radius, seed and Strata are preserved.")))
+                    .OnClicked_Lambda([this] { TerrainEditing->ApplyToPlanet(ContextPlanet.Get()); return FReply::Handled(); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::StrataMenu)
                     .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Strata")))]]
                 + SHorizontalBox::Slot().FillWidth(1).Padding(8, 0)[SNew(SInlineEditableTextBlock)
+                    .IsReadOnly_Lambda([this] { return TerrainEditing.IsValid(); })
                     .Text_Lambda([this] { return FText::FromString(StrataSession->Asset->Recipe.Strata.Name); })
                     .OnVerifyTextChanged_Lambda([this](const FText& Text, FText& Error)
                     {
@@ -674,8 +841,10 @@ public:
                         StrataSession->Asset->Recipe.Strata.Name = Text.ToString().TrimStartAndEnd(); StrataSession->Changed(); StrataSession->End();
                     })]
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("New Strata")))
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
                     .OnClicked_Lambda([this] { StrataSession->NewSet(); return FReply::Handled(); })]
                 + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Remove Strata")))
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
                     .OnClicked_Lambda([this] { StrataSession->RemoveSet(); return FReply::Handled(); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked_Lambda([this] { return !Preview || Preview->Client->bGuides ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
@@ -698,11 +867,14 @@ public:
                 { return bAreaDragging ? FText::FromString(FString::Printf(TEXT("Release to view %.0f m × %.0f m"), PendingAreaWidth, PendingAreaWidth)) : FText(); })]]
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
-                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(StrataSession)]]
+                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(StrataSession)
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SBox).HeightOverride(42)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
                     FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
-                        TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom | + beside Core: add Stratum");
+                        TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
+                    if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Stratum");
+                    if (Preview && Preview->IsUpdating()) Legend = TEXT("Updating terrain preview… | ") + Legend;
                     if (Preview && Preview->Client->Plan && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
@@ -711,6 +883,7 @@ public:
     }
 };
 const FName FCLRecipeToolkit::SectionTab(TEXT("CLRecipeSection"));
+const FName FCLRecipeToolkit::NoiseTab(TEXT("CLNoiseLayers"));
 
 void OpenExample()
 {
@@ -723,11 +896,19 @@ void OpenExample()
 class FCLDesignerModule : public IModuleInterface
 {
     TUniquePtr<FAutoConsoleCommand> Command;
+    TUniquePtr<FAutoConsoleCommand> TerrainCommand;
     FDelegateHandle MenuHandle;
 public:
     virtual void StartupModule() override
     {
         Command = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.Designer"), TEXT("Open selected planet recipe or rolling-plains example"), FConsoleCommandDelegate::CreateStatic(&OpenExample));
+        TerrainCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.TerrainDesigner"), TEXT("Open terrain type [asset path] [optional planet recipe path]"),
+            FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+            {
+                auto* Terrain = LoadObject<UCLTerrainTypeAsset>(nullptr, Args.IsEmpty() ? TEXT("/CatalystLandform/TerrainTypes/DA_MountainRidges.DA_MountainRidges") : *Args[0]);
+                auto* Context = Args.Num() > 1 ? LoadObject<UCLPlanetRecipeAsset>(nullptr, *Args[1]) : nullptr;
+                if (Terrain) CLOpenTerrainDesigner(Terrain, Context);
+            }));
         MenuHandle = UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateLambda([]
         {
             FToolMenuOwnerScoped Owner(TEXT("CatalystLandformDesigner"));
@@ -738,8 +919,49 @@ public:
         }));
     }
     virtual void ShutdownModule() override
-    { Command.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
+    { Command.Reset(); TerrainCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
 };
+}
+
+void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, UCLPlanetRecipeAsset* Context, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
+{
+    if (!GEditor || !Terrain) return;
+    if (Terrain->GetOutermost()->GetName().StartsWith(TEXT("/CatalystLandform/")))
+    {
+        // The plugin is a replaceable staged copy in development hosts. Author
+        // under /Game so saved work survives restaging, and seed each slot once.
+        const FString Folder = TEXT("/Game/LandformDesigner/TerrainTypes");
+        const FString Package = Folder / Terrain->GetName();
+        const FString Path = Package + TEXT(".") + Terrain->GetName();
+        auto* Existing = FindObject<UObject>(nullptr, *Path);
+        const bool bPackageExists = FPackageName::DoesPackageExist(Package);
+        auto* Working = Existing ? Cast<UCLTerrainTypeAsset>(Existing) : bPackageExists ? LoadObject<UCLTerrainTypeAsset>(nullptr, *Path) : nullptr;
+        if ((Existing || bPackageExists) && !Working)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Cannot open terrain working copy: %s is not a readable terrain asset; existing content was preserved"), *Path);
+            return;
+        }
+        if (!Working)
+        {
+            auto& Tools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+            Working = Cast<UCLTerrainTypeAsset>(Tools.DuplicateAsset(Terrain->GetName(), Folder, Terrain));
+            if (Working)
+            {
+                TArray<UPackage*> Packages{Working->GetOutermost()};
+                FEditorFileUtils::PromptForCheckoutAndSave(Packages, false, false);
+            }
+        }
+        if (!Working) return;
+        Terrain = Working;
+    }
+    if (auto* Existing = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->FindEditorForAsset(Terrain, true))
+    {
+        if (Context && Existing->GetEditorName() == FName(TEXT("CLTerrainType")))
+            static_cast<FCLRecipeToolkit*>(Existing)->UsePlanetContext(Context);
+        return;
+    }
+    MakeShared<FCLRecipeToolkit>()->OpenTerrain(Terrain, Context, Mode, Host);
+    UE_LOG(LogTemp, Display, TEXT("CL_TERRAIN_DESIGNER_READY: %s"), *Terrain->GetPathName());
 }
 
 UCLPlanetRecipeFactory::UCLPlanetRecipeFactory()
@@ -756,6 +978,72 @@ EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& A
 IMPLEMENT_MODULE(FCLDesignerModule, CatalystLandformEditor)
 
 #if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDeferredTerrainPreviewTest, "Catalyst.Landform.Designer.DeferredTerrainPreview",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLDeferredTerrainPreviewTest::RunTest(const FString&)
+{
+    FString Error; auto Recipe = FCLPlanetCompiler::RollingPlains(); Recipe.RadiusMeters = 1000;
+    const auto First = FCLPlanetCompiler::Compile(Recipe, Error);
+    Recipe.NoiseLayers[0].Minimum.OffsetMeters = 30;
+    const auto Latest = FCLPlanetCompiler::Compile(Recipe, Error);
+    const TSharedRef<SCLSectionViewport> Preview = SNew(SCLSectionViewport);
+    Preview->Client->AreaWidthMeters = 100;
+    Preview->RebuildAsync(First);
+    for (int32 I = 0; I < 50; ++I) Preview->RebuildAsync(Latest);
+    TestEqual(TEXT("Only one worker starts while changes coalesce"), Preview->StartedBuilds, 1);
+    while (Preview->IsUpdating())
+    { if (Preview->BuildTask.IsValid()) Preview->BuildTask.Wait(); Preview->PumpBuild(); }
+    TestEqual(TEXT("Only the final pending snapshot starts a second worker"), Preview->StartedBuilds, 2);
+    TestEqual(TEXT("Obsolete geometry never reaches the scene"), Preview->AppliedBuilds, 1);
+    const auto Expected = FCLSectionGeometry::Build(*Latest, 0, 100);
+    TestTrue(TEXT("Displayed mesh matches latest settings"), Preview->Mesh->GetProcMeshSection(0)->ProcVertexBuffer[0].Position.Equals(Expected.Vertices[0], .01));
+    const auto Eye = Preview->Client->GetViewLocation();
+    Preview->RebuildAsync(First); Preview->CancelPendingBuild();
+    while (Preview->IsUpdating())
+    { if (Preview->BuildTask.IsValid()) Preview->BuildTask.Wait(); Preview->PumpBuild(); }
+    TestEqual(TEXT("Invalid settings can cancel pending geometry without replacing the valid scene"), Preview->AppliedBuilds, 1);
+    TestTrue(TEXT("Background completion does not reset camera framing"), Preview->Client->GetViewLocation().Equals(Eye));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTerrainWorkspaceTest, "Catalyst.Landform.Designer.TerrainWorkspace",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLTerrainWorkspaceTest::RunTest(const FString&)
+{
+    auto* Package = CreatePackage(*(TEXT("/Temp/CLTerrainWorkspace_") + FGuid::NewGuid().ToString(EGuidFormats::Digits)));
+    TStrongObjectPtr<UCLTerrainTypeAsset> Terrain(NewObject<UCLTerrainTypeAsset>(Package, TEXT("Terrain"), RF_Public | RF_Standalone | RF_Transactional));
+    Terrain->TerrainType.Id = FGuid::NewGuid(); Terrain->TerrainType.Name = TEXT("Authoring workspace test");
+    Terrain->TerrainType.NoiseLayers = FCLPlanetCompiler::RollingPlains().NoiseLayers;
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Planet(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
+    Planet->Recipe = FCLPlanetCompiler::RollingPlains(); Planet->Recipe.RadiusMeters = 1400; Planet->Recipe.Seed = 829;
+    const auto TypeId = Planet->Recipe.TerrainTypeId;
+    auto Editor = MakeShared<FCLRecipeToolkit>(); Editor->OpenTerrain(Terrain.Get(), Planet.Get(), EToolkitMode::Standalone, nullptr);
+    const auto Layers = Editor->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLNoiseLayers")));
+    const auto Section = Editor->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLRecipeSection")));
+    TestTrue(TEXT("Layer stack and cross-section are in the same editor"), Layers.IsValid() && Section.IsValid());
+    TestTrue(TEXT("Layer tab contains the actual stack widget"), Layers && Layers->GetContent()->GetType() == FName(TEXT("SCLNoiseLayerStack")));
+    TArray<UObject*> Saved; Editor->GetSaveableObjects(Saved);
+    TestTrue(TEXT("Save owns the terrain definition"), Saved.Contains(Terrain.Get()));
+    TestFalse(TEXT("Save cannot write the contextual planet"), Saved.Contains(Planet.Get()));
+    TestEqual(TEXT("Opening terrain never applies it to the planet"), Planet->Recipe.TerrainTypeId, TypeId);
+    TestEqual(TEXT("Opening terrain preserves radius"), Planet->Recipe.RadiusMeters, 1400.0);
+    TestEqual(TEXT("Opening terrain preserves seed"), Planet->Recipe.Seed, 829);
+    TStrongObjectPtr<UCLPlanetRecipeAsset> OtherPlanet(NewObject<UCLPlanetRecipeAsset>());
+    OtherPlanet->Recipe = Planet->Recipe; OtherPlanet->Recipe.Name = TEXT("Second preview planet"); OtherPlanet->Recipe.Seed = 319;
+    CLOpenTerrainDesigner(Terrain.Get(), OtherPlanet.Get());
+    TFunction<bool(const TSharedRef<SWidget>&)> ShowsNewContext = [&](const TSharedRef<SWidget>& Widget)
+    {
+        if (Widget->GetType() == FName(TEXT("STextBlock")) && StaticCastSharedRef<STextBlock>(Widget)->GetText().ToString().Contains(TEXT("Context: Second preview planet"))) return true;
+        FChildren* Children = Widget->GetChildren();
+        for (int32 I = 0; I < Children->Num(); ++I) if (ShowsNewContext(Children->GetChildAt(I))) return true;
+        return false;
+    };
+    TestTrue(TEXT("Reopening an existing terrain editor uses the explicitly requested planet context"), Section && ShowsNewContext(Section->GetContent()));
+    TestEqual(TEXT("Switching context does not write the new planet"), OtherPlanet->Recipe.Seed, 319);
+    TestTrue(TEXT("Editor closes cleanly with pending preview work"), Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLFixedDesignerFrameTest, "Catalyst.Landform.Designer.FixedDisplayFrame",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLFixedDesignerFrameTest::RunTest(const FString&)

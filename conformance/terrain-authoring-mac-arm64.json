@@ -1,0 +1,102 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "automation_summary": {
+    "succeeded": 22,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "passed",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.DeferredTerrainPreview": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.LayerPropertyDraft": "passed",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "passed",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "passed",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Designer.TerrainWorkspace": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.LayerAuthoring": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "test_log": "Saved/Logs/Terrain-authoring-tests.log",
+  "acceptance": [
+    "Ordered layer add/duplicate/remove/reorder/enable",
+    "Selected property draft: interactive updates isolated, finished commit, undo and correction after rejected edit",
+    "Solo excluded from export and application; contribution isolated over the underlying centre height",
+    "Authoring JSON roundtrip reproduces generation",
+    "Explicit apply preserves planet radius, seed and Strata and is undoable",
+    "Actual asset editor contains both layer stack and cross-section; Save owns the terrain asset",
+    "Existing editor accepts the explicitly requested new planet context",
+    "One active worker plus one replaceable pending snapshot; obsolete results never reach the scene",
+    "Editor closes safely with pending immutable preview work"
+  ],
+  "asset_persistence": {
+    "edited_variant_saved": true,
+    "reloaded_in_fresh_editor_process": true,
+    "fresh_variant_identity": true,
+    "shipped_source_preserved": true,
+    "disposable_fixture_cleaned_up": true,
+    "logs": [
+      "Saved/Logs/Terrain-authoring-save.log",
+      "Saved/Logs/Terrain-authoring-reload.log"
+    ]
+  },
+  "working_copy": {
+    "asset": "/Game/LandformDesigner/TerrainTypes/DA_MountainRidges",
+    "new_project_copy": true,
+    "reused_in_fresh_process": true,
+    "file_sha256_unchanged_on_reopen": "c43ea7dfe4634da78628a7888cc50bc2bed273c7ec047e0756c52a9e1a38a655",
+    "outside_replaceable_plugin_directory": true
+  },
+  "visual_inspection": "Layer stack, selected settings, interval summaries, guide labels and lit cross-section inspected at 500 m coverage. Project working copy reopened with comparison-planet context.",
+  "edited_assets_preserved": {
+    "Config/DefaultEngine.ini": "81750862dff126e8f06b7889194edaa3e6d17579bc7881d892d7fd3a52351192",
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "575c9349781d7e63dec531f66a158a23569b92575588f93d5eb010153145979c",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "7f5f21133d189354d50c36cceb9e08ab395fbafc469d6dac1a693967086d0db0"
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "8dd4c35b24a31bbaf4b0c58a3ceec0f512f6a74ce0d4e7d64a3ddfc3316f5578",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "3bcff90a984ed18b2bfd4f202ca90da52c944717155e06874a10e49c2baad45d",
+    "Source/CatalystLandform/Public/Model/CLTerrainType.h": "6bb523e3bccf9f2d92e9205d5f4a3b5f0c807d45ca7c93391f66bfdd0101a76c",
+    "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "67cf7d4d2d9ca8f32f26d2a750a82d332dd2c3e3d96f4f51b9b941cc2fe689a2",
+    "Source/CatalystLandformEditor/Private/CLNoiseLayerStack.cpp": "764f4213becd977a7b7e30f068072d9774bda0564c7676edb8faef6c6321724b",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "d7d22f7f0fcca9a41b0dac0506df0d4c5129cd70a1c464b3437870d9fa3258e7",
+    "Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "4244cb4ee056d94b5df9369f217430a00afc07d89773f741a3ee7cf56c67d32c",
+    "Source/CatalystLandformEditor/Private/CLTerrainTypeEditor.cpp": "2687e4d089c9ae3843a744ccec13a5e2585c268096a887b9dc46461e7f61c347",
+    "Source/CatalystLandformEditor/Public/CLNoiseLayerStack.h": "5c608c425c9da44e45dca1e2abc797a1febad904cc068cfe6b3b6a2c9a42facf",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "7154f23cbf876c4878ca2ef7c86edd20e77a4893b2476185dcc6a3c6b5fef683",
+    "Source/CatalystLandformEditor/Public/CLTerrainDesigner.h": "ad90b4a3b1d1964c330e181e52c0a25067f469108ca3da845917d6deeae3436f",
+    "Source/CatalystLandformEditor/Public/CLTerrainEditing.h": "e95eb65cc6942af33dff51cf2935120ab08db4d7fa1a4023e4ef94f259e92fa9",
+    "Source/CatalystLandformTests/Private/CLTerrainEditingTests.cpp": "cbd95172de94ba0cded7ce120f3b4705aa72215a1924f6fcacefd3344a0d0ff7"
+  },
+  "nonblocking_warnings": [
+    "LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n",
+    "LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+  ],
+  "limits": [
+    "Current CPU Perlin reference, terrain schema 1 / recipe schema 3 / algorithm 1; no native VPP graph or PCG adapter",
+    "Preview context is copied; Stratum editing remains in planet Designer",
+    "Native pointer injection does not reach Unreal widgets in this environment; operation and property-event paths verified through UE automation, layout visually inspected",
+    "No new packaged/cook, server/Connect delivery, cross-platform determinism or physical walking qualification"
+  ],
+  "vendor_changes": "None",
+  "editor": "Left open on the project Mountain ridges working copy"
+}

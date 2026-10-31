@@ -22,6 +22,7 @@ public:
     UCLPlanetRecipeAsset* Asset = nullptr;
     TStrongObjectPtr<UCLStrataLibraryAsset> Library;
     int32 Selected = INDEX_NONE;
+    bool bReadOnly = false; // terrain-type preview uses an independent context snapshot
     TUniquePtr<FScopedTransaction> Gesture;
     FCLPlanetRecipe BeforeRecipe;
     FCLStrataLibrary BeforeLibrary;
