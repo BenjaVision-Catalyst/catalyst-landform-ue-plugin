@@ -13,16 +13,18 @@ void UCLTerrainTypeAsset::PostEditUndo()
 
 bool FCLTerrainType::Validate(FString& Error) const
 {
-    if ((SchemaVersion != 1 && SchemaVersion != 2) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
+    if ((SchemaVersion < 1 || SchemaVersion > 3) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
         (SchemaVersion == 1 && AlgorithmVersion != 1) || !Id.IsValid() || Name.TrimStartAndEnd().IsEmpty())
-    { Error = TEXT("Terrain type requires schema 1/2, a supported algorithm, a valid ID and a nonempty name"); return false; }
+    { Error = TEXT("Terrain type requires schema 1/2/3, a supported algorithm, a valid ID and a nonempty name"); return false; }
+    if (SchemaVersion < 3 && NoiseLayers.ContainsByPredicate([](const auto& L) { return L.Operation != ECLTerrainOperation::Noise; }))
+    { Error = TEXT("Terracing requires terrain type schema 3"); return false; }
     return FCLPlanetCompiler::ValidateNoiseLayers(NoiseLayers, Error);
 }
 bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error) const
 {
     if (!Validate(Error)) return false;
     FCLPlanetRecipe Candidate = Recipe;
-    Candidate.SchemaVersion = 3; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
+    Candidate.SchemaVersion = 4; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
     Recipe = MoveTemp(Candidate); return true;
@@ -37,6 +39,12 @@ bool UCLTerrainTypeAsset::ApplyToRecipe(UCLPlanetRecipeAsset* Asset, FString& Er
     Asset->PostEditChange(); Asset->MarkPackageDirty();
 #endif
     return true;
+}
+void UCLTerrainTypeAsset::PostLoad()
+{
+    Super::PostLoad();
+    if (TerrainType.SchemaVersion == 1 || TerrainType.SchemaVersion == 2) TerrainType.SchemaVersion = 3;
+    Version.SchemaVersion = TerrainType.SchemaVersion;
 }
 void UCLTerrainTypeAsset::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 {
@@ -61,13 +69,13 @@ bool UCLTerrainTypeAsset::ImportTerrainTypeJson(const FString& Json, FString& Er
     { Error = TEXT("Invalid terrain type JSON object"); return false; }
     if (!CLModelJson::CheckFields(*Object, *FCLTerrainType::StaticStruct(), Error, TEXT("TerrainType"))) return false;
     double Schema = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2))
-    { Error = TEXT("Terrain type requires schemaVersion 1 or 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3))
+    { Error = TEXT("Terrain type requires schemaVersion 1, 2 or 3"); return false; }
     FCLTerrainType Candidate; FText Reason;
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!Candidate.Validate(Error)) return false;
-    Candidate.SchemaVersion = 2;
+    Candidate.SchemaVersion = 3;
     Modify(); TerrainType = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

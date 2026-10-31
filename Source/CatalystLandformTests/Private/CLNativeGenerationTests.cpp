@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Model/CLTerrainType.h"
+#include "VoxelISPCNodeHelpers.h"
 #include <limits>
 #include "CLSectionGeometry.h"
 #include "CLPlanet.h"

@@ -8,7 +8,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLTerrainType
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 2;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 3;
     /** 1 preserves the original CPU field; 2 is the pinned native VPP kernel. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay) int32 AlgorithmVersion = 1;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid Id;
@@ -27,6 +27,7 @@ class CATALYSTLANDFORM_API UCLTerrainTypeAsset : public UCFModelAsset
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform") FCLTerrainType TerrainType;
     virtual FString GetSummaryText() const override;
+    virtual void PostLoad() override;
     virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
     UFUNCTION(BlueprintCallable, Category="Landform") bool ApplyToRecipe(UCLPlanetRecipeAsset* Asset, FString& Error) const;
     UFUNCTION(BlueprintCallable, Category="Landform") bool ImportTerrainTypeJson(const FString& Json, FString& Error);

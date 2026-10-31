@@ -19,7 +19,7 @@ bool FCLStrataEditing::Rename(FCLPlanetRecipe& Recipe, int32 Index, const FStrin
     Recipe.Strata.Stratum[Index].Name = New;
     for (FCLNoiseLayer& L : Recipe.NoiseLayers)
     {
-        for (FCLHeightReference* Ref : {&L.Minimum, &L.Maximum})
+        for (FCLHeightReference* Ref : {&L.Minimum, &L.Maximum, &L.Terrace.StepHeight, &L.Terrace.Origin})
         {
             if (Ref->Guide == Old) Ref->Guide = New;
             if (Ref->UpperGuide == Old) Ref->UpperGuide = New;

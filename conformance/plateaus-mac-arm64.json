@@ -1,0 +1,246 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "schemas": {
+    "recipe": 4,
+    "terrain_type": 3,
+    "noise_algorithm": 2
+  },
+  "implementation": {
+    "operation": "Terrace transforms the accumulated preceding height field, before later noise detail",
+    "parameters": [
+      "guide/absolute step height",
+      "guide/absolute origin",
+      "softness 0..1",
+      "strength 0..1"
+    ],
+    "legacy": "Old noise recipes preserve algorithm and sampled field; no automatic switch to VPP noise",
+    "native_adapter": "VPP buffer ABI is private to an immutable runtime kernel owner; vendor sources unchanged"
+  },
+  "component_automation": {
+    "succeeded": 28,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "host_automation": {
+    "succeeded": 2,
+    "succeededWithWarnings": 0,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+    "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+    "Catalyst.Landform.Designer.DeferredGesture": "Success",
+    "Catalyst.Landform.Designer.DeferredTerrainPreview": "Success",
+    "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+    "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+    "Catalyst.Landform.Designer.SurfaceArea": "Success",
+    "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+    "Catalyst.Landform.NativeGeneration.DesignerSphereParity": "Success",
+    "Catalyst.Landform.NativeGeneration.KernelAndVersioning": "Success",
+    "Catalyst.Landform.Plateaus.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Plateaus.DesignerSphereParity": "Success",
+    "Catalyst.Landform.Plateaus.TerraceSemantics": "Success",
+    "Catalyst.Landform.Recipes.HeightGuides": "Success",
+    "Catalyst.Landform.Recipes.OrderedLayers": "Success",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "Success",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "Success",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Strata.Presets": "Success",
+    "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+    "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success",
+    "LandformLab.NativeGeneration.DesignerCollisionParity": "Success",
+    "LandformLab.NativeGeneration.PlateauCollisionParity": "Success"
+  },
+  "authoring": [
+    "actual Details finished-property delegate commits terrace softness; interactive gestures remain drafts; invalid edit preserves source; undo",
+    "add/duplicate/reorder/remove terracing",
+    "terrace Solo retains upstream field and omits downstream detail; saved definition unaffected",
+    "guide-scaled step and field resize proportionally",
+    "guide rename updates step and origin",
+    "JSON type and recipe roundtrips",
+    "hard steps, smooth risers, partial/zero strength, negative offsets and bounds",
+    "old schemas refuse new operations; schema extension preserves both legacy noise algorithms"
+  ],
+  "designer_spherical_field": {
+    "samples": 216124,
+    "maximum_residual_cm": 0.0041,
+    "tolerance_cm": 5,
+    "widths_m": [
+      100,
+      500,
+      1000
+    ],
+    "sky_radii_m": [
+      100,
+      1000
+    ],
+    "coverage": [
+      "preset",
+      "hard steps with detail disabled",
+      "edited step/origin/softness/strength",
+      "changed seed and absolute wavelength",
+      "whole globe",
+      "poles",
+      "longitude seam"
+    ]
+  },
+  "physical_collision": {
+    "passed": true,
+    "designer_width_m": 500,
+    "sky_radius_m": 1000,
+    "voxel_size_cm": 50,
+    "sampled_vertices": 33,
+    "riser_vertices": 8,
+    "max_collision_error_cm": 0.704864298,
+    "collision_source": "VPP Chaos triangles"
+  },
+  "mountain_ridges_regression": {
+    "passed": true,
+    "designer_width_m": 500,
+    "sky_radius_m": 1000,
+    "voxel_size_cm": 50,
+    "sampled_vertices": 25,
+    "riser_vertices": 0,
+    "max_collision_error_cm": 12.386168367,
+    "collision_source": "VPP Chaos triangles"
+  },
+  "asset_reload": {
+    "shipped_presets_match_json": true,
+    "plateau_variant_and_recipe_reloaded": true,
+    "snapshot_matches_type": true,
+    "map_bound_to_recipe": true,
+    "algorithm_version": 2,
+    "terrain_schema": 3,
+    "recipe_schema": 4,
+    "preserved_files": {
+      "Config/DefaultEngine.ini": "81750862dff126e8f06b7889194edaa3e6d17579bc7881d892d7fd3a52351192",
+      "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+      "Content/LandformDesigner/DA_StrataLibrary.uasset": "575c9349781d7e63dec531f66a158a23569b92575588f93d5eb010153145979c",
+      "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "7f5f21133d189354d50c36cceb9e08ab395fbafc469d6dac1a693967086d0db0",
+      "Content/LandformDesigner/DA_MountainRidgesNativePlanet.uasset": "2649ec565aeed94128223b9c2e8078cba0fcf2366d1be9d411b86fbb12946dd4",
+      "Content/LandformDesigner/TerrainTypes/DA_MountainRidgesNative.uasset": "8038b58cdc3b30ee963548cc033f10fba9adb09c8f6d85fb747be272cccfdb7b",
+      "Content/LandformDesigner/TerrainTypes/DA_MountainRidges.uasset": "1cf7ac8df318e6c9bd89bd19a752644fe2e58fecdada1a6c4c4cd6c71a084451",
+      "Content/LandformDesigner/RollingPlainsProof.umap": "d816134d74cfb0f4329e8fc023d4279f55357664ba36d6bdfd489afc53c6a3fe",
+      "Content/LandformDesigner/MountainRidgesNativeProof.umap": "7f520c42689c0697a732c17db33e9454fc52a31b45d513acbfe6717cc5b2cfa1"
+    },
+    "sample_heights_cm": [
+      -55605.48828125,
+      -55605.07421875,
+      -59547.44921875,
+      -59552.375,
+      -55619.23046875
+    ],
+    "edited_fixture_reloaded": true,
+    "saved_edits_change_vpp_field": true
+  },
+  "edited_fixture": {
+    "saved": true,
+    "reloaded_in_fresh_process": true,
+    "saved_edits_change_vpp_field": true,
+    "cleaned_up": true,
+    "values": {
+      "step_interval_fraction": 0.17,
+      "origin_offset_m": 2.5,
+      "softness": 0.63,
+      "strength": 0.8
+    }
+  },
+  "preserved_user_files": {
+    "Config/DefaultEngine.ini": "81750862dff126e8f06b7889194edaa3e6d17579bc7881d892d7fd3a52351192",
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "575c9349781d7e63dec531f66a158a23569b92575588f93d5eb010153145979c",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "7f5f21133d189354d50c36cceb9e08ab395fbafc469d6dac1a693967086d0db0",
+    "Content/LandformDesigner/DA_MountainRidgesNativePlanet.uasset": "2649ec565aeed94128223b9c2e8078cba0fcf2366d1be9d411b86fbb12946dd4",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidgesNative.uasset": "8038b58cdc3b30ee963548cc033f10fba9adb09c8f6d85fb747be272cccfdb7b",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidges.uasset": "1cf7ac8df318e6c9bd89bd19a752644fe2e58fecdada1a6c4c4cd6c71a084451",
+    "Content/LandformDesigner/RollingPlainsProof.umap": "d816134d74cfb0f4329e8fc023d4279f55357664ba36d6bdfd489afc53c6a3fe",
+    "Content/LandformDesigner/MountainRidgesNativeProof.umap": "7f520c42689c0697a732c17db33e9454fc52a31b45d513acbfe6717cc5b2cfa1"
+  },
+  "source_sha256": {
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "30dce7a0c196957bc73b1e72320e0715ac8388552f52899bdcbf921df2c1f91e",
+    "Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Source/CatalystLandform/Private/CLPlanet.cpp": "fde616a0f7db5c4e536b33e4ef2cd7531191b3d9d2bf5cb83bca25b4c9f1c7aa",
+    "Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "4b7c70095dd303f08d5fa2d9c08eb567c1466bed896277e3eff9520489164a82",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9",
+    "Source/CatalystLandform/Private/Model/CLModelJson.h": "52bb7889829d5a96bde347d338afb59d5ba44558953ba2b6b9adb136485483c5",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "330a6b3d781bc13599278a9d1cea3fae8ef0911bf78c6bb5c0299fae40955204",
+    "Source/CatalystLandform/Private/Model/CLStrata.cpp": "d00b219d8f9494ea40f36d9e05d2348ec94e8f90702229c2c8ef536ccadd72e3",
+    "Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "98468ed43dc1ce6e8d0bb40f18119312820f549a4d6722332d29a00b17621b83",
+    "Source/CatalystLandform/Public/CLPlanet.h": "34e9335b9b5c243d90739ee8a984a48d0b71df1c4934b9b5b7bb7a9f3c140aeb",
+    "Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Source/CatalystLandform/Public/CLPlanetStamp.h": "3b7e2fad7a3e6dfdf72dee1a4e944cc9a9ebe32f1aa140fbe764ed6a9b5a0be2",
+    "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "b357aa31ce6e2f9546adbf668889813276e8b453c1b0b11bddaf2c6d84e68596",
+    "Source/CatalystLandform/Public/Model/CLStrata.h": "a78098c693aca2c74be4ef7e7a913322b618f803cea59e89cec11cb7f426601d",
+    "Source/CatalystLandform/Public/Model/CLTerrainType.h": "559a6b2deb4110b666a1a44d914c26d0b542e933e338a77594d4b9dbd796569e",
+    "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "67cf7d4d2d9ca8f32f26d2a750a82d332dd2c3e3d96f4f51b9b941cc2fe689a2",
+    "Source/CatalystLandformEditor/Private/CLNoiseLayerStack.cpp": "c298b34cb3e4e7c41df3d5dc2addeb74e2deb636f0cf7f2ff45293506d45ad51",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "3b89960667556020d6de662917de5095c2e046b44a96453d9c69792f957bfabc",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "402f7ea6a45cd9da65cb5cba8a3812afb51861077008acd538b12ec186dc3e69",
+    "Source/CatalystLandformEditor/Private/CLSectionNavigation.cpp": "cec47b78d8971c0d2048f7baba93da1958ab04257df34a3b3dea84b0b073cdc2",
+    "Source/CatalystLandformEditor/Private/CLStrataEditing.cpp": "9458f5cc8435638cca3ae03c820ddd2936287db1ba96a6d8481bebb2ffd3fd73",
+    "Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "945bca9c727ea5f1ad7ad8436703ed211c21f7176614d9d4989ec7de689e532b",
+    "Source/CatalystLandformEditor/Private/CLTerrainTypeEditor.cpp": "2687e4d089c9ae3843a744ccec13a5e2585c268096a887b9dc46461e7f61c347",
+    "Source/CatalystLandformEditor/Public/CLNoiseLayerStack.h": "5c608c425c9da44e45dca1e2abc797a1febad904cc068cfe6b3b6a2c9a42facf",
+    "Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "721e6870aacbae2eddd9dbb04643809239777e96a8e2641b07d9d2e34ac37c18",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "376258cb18136ab39192cfc3171775256859da745b6ae7db532a4fbac4442f46",
+    "Source/CatalystLandformEditor/Public/CLSectionNavigation.h": "5d802f117e834b1366c5e95aa2a658949b287c3a321e8e365cc785cc5718258e",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "7154f23cbf876c4878ca2ef7c86edd20e77a4893b2476185dcc6a3c6b5fef683",
+    "Source/CatalystLandformEditor/Public/CLTerrainDesigner.h": "ad90b4a3b1d1964c330e181e52c0a25067f469108ca3da845917d6deeae3436f",
+    "Source/CatalystLandformEditor/Public/CLTerrainEditing.h": "3aa773d7a55f56fce0339c013a77e1fe497f6a676de69462f49bd542c1c205c1",
+    "Source/CatalystLandformTests/CatalystLandformTests.Build.cs": "f7198a5ccadef1d6ef4ea3ac8392833923f202a7be83cb0c2bfc6cb358dffeb6",
+    "Source/CatalystLandformTests/Private/CLNativeGenerationTests.cpp": "aeeb889f5b850e6a75ffa0e025e2314fdf78fb10e2235fc48d6ecf2d82eb60e8",
+    "Source/CatalystLandformTests/Private/CLPlateauTests.cpp": "6e350a25b01536bf4a20a3f77f954034fe53cc893d4cd4ae7c27c42189c9e988",
+    "Source/CatalystLandformTests/Private/CLRecipeTests.cpp": "cb08ff02547bd00b6f9449e38da5ae6c0e57483307f929252e6ed8a9a1b82ae2",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "46ef088bff5f94f2d0c6211955b8986f9ad211d10983b9cdc0c75494d5ced278",
+    "Source/CatalystLandformTests/Private/CLStrataTests.cpp": "9af4556df6e4e3701718e8e80fdc911737eea460a1571746cc9eb799906734ce",
+    "Source/CatalystLandformTests/Private/CLTerrainEditingTests.cpp": "cbd95172de94ba0cded7ce120f3b4705aa72215a1924f6fcacefd3344a0d0ff7",
+    "Source/CatalystLandformTests/Private/CLTerrainTypeTests.cpp": "75dea95bc5a18da852768ef05b63aef6224ac9a4f19c3a627b6c8e4be76b2455"
+  },
+  "proof_asset_sha256": {
+    "Content/LandformDesigner/TerrainTypes/DA_Plateaus.uasset": "cf433418ccaae149e795068c4e3b9376be14298eaeea02b28d08e69d521d6b69",
+    "Content/LandformDesigner/DA_PlateausPlanet.uasset": "353cc5226a5870fbf9ee57f29557367f615a82da67160ab8d48af8f0e519d2f8",
+    "Content/LandformDesigner/PlateausProof.umap": "e4b7bc99d2751f2941772f043f7a9350b4a17d13ce823c113748c09423c88640"
+  },
+  "staged_source_examples_content_match_component": true,
+  "native_vendor_sources_unchanged": true,
+  "visual_inspection": {
+    "globe": "Live spherical Plateau terrain inspected at the saved globe camera; tiered surface visible. Map check: 0 errors, 0 warnings.",
+    "designer": "Live Plateaus editor inspected at 500x500m, 1000m sky radius, High relief, seed 1729. Three-entry Terrain layers stack, Add terrace, context and Apply to planet visible; flat tiered terrain rendered with studio lighting. Left open for user.",
+    "input_limit": "Injected native mouse click did not change the selected row; no claim of manual terrace-gesture verification. Actual Details finished-property delegate, transaction/undo, draft isolation and persistence were verified through UE automation."
+  },
+  "known_warnings": "Two existing engine material-function / LineSetComponentMaterial warnings in Recipes.VPPAndLiveEdits only; Plateau and host checks had no warnings",
+  "artifacts": {
+    "component": "Saved/Verification/plateaus/index.json",
+    "host": "Saved/Verification/plateaus-collision/index.json",
+    "physical": "Saved/Verification/plateaus-collision.json",
+    "persistence": "Saved/Verification/plateaus-assets",
+    "terrain": "/Game/LandformDesigner/TerrainTypes/DA_Plateaus",
+    "recipe": "/Game/LandformDesigner/DA_PlateausPlanet",
+    "map": "/Game/LandformDesigner/PlateausProof"
+  },
+  "limits": [
+    "Native VPP Perlin plus a Landform shaping operation; no arbitrary graph compiler or PCG adapter",
+    "Default softened preset qualified against collision; hard-step field samples checked but exhaustive hard-cliff collision is not qualified",
+    "33 measured collision points, not exhaustive mesh coverage or a complete walk",
+    "Flat Designer grid at most 5m spacing, adaptive VPP mesh with 50cm voxels; parity of source field and sampled collision, not identical triangulation or shading",
+    "No placed heightmap stamp actors, materials, erosion, foliage, packaged/cooked or network/backend qualification",
+    "Versioned local authoring schema, not a backend wire protocol",
+    "Radial field, not exact Euclidean SDF"
+  ]
+}

@@ -39,13 +39,14 @@ bool FCLTerrainEditing::SetLayer(const FCLNoiseLayer& Layer)
     if (!Asset->TerrainType.NoiseLayers.IsValidIndex(Selected)) return false;
     if (FCLNoiseLayer::StaticStruct()->CompareScriptStruct(&Layer, &Asset->TerrainType.NoiseLayers[Selected], 0)) { Error.Reset(); return true; }
     auto Layers = Asset->TerrainType.NoiseLayers; Layers[Selected] = Layer;
-    return Commit(MoveTemp(Layers), Selected, Solo, NSLOCTEXT("CL", "EditNoise", "Edit noise layer"));
+    return Commit(MoveTemp(Layers), Selected, Solo, NSLOCTEXT("CL", "EditNoise", "Edit terrain layer"));
 }
-bool FCLTerrainEditing::Add()
+bool FCLTerrainEditing::Add(ECLTerrainOperation Operation)
 {
     if (Asset->TerrainType.NoiseLayers.Num() >= 32) return false;
     auto Layers = Asset->TerrainType.NoiseLayers;
-    FCLNoiseLayer Layer; Layer.Name = UniqueName(TEXT("Noise layer"));
+    FCLNoiseLayer Layer; Layer.Operation = Operation;
+    Layer.Name = UniqueName(Operation == ECLTerrainOperation::Noise ? TEXT("Noise layer") : TEXT("Terracing"));
     Layer.Blend = Layers.IsEmpty() ? ECLNoiseBlend::Override : ECLNoiseBlend::Add;
     Layer.Scale = ECLNoiseScale::PlanetRadius; Layer.WavelengthRadiusFraction = .1;
     Layer.Minimum.Mode = Layer.Maximum.Mode = Layers.IsEmpty() ? ECLHeightReferenceMode::IntervalHeight : ECLHeightReferenceMode::IntervalDelta;
@@ -53,7 +54,7 @@ bool FCLTerrainEditing::Add()
     Layer.Minimum.UpperGuide = Layer.Maximum.UpperGuide = TEXT("SurfaceMax");
     Layer.Minimum.Fraction = Layers.IsEmpty() ? .25 : -.02; Layer.Maximum.Fraction = Layers.IsEmpty() ? .75 : .02;
     const int32 Index = Layers.Add(Layer);
-    return Commit(MoveTemp(Layers), Index, Solo, NSLOCTEXT("CL", "AddNoise", "Add noise layer"));
+    return Commit(MoveTemp(Layers), Index, Solo, NSLOCTEXT("CL", "AddNoise", "Add terrain layer"));
 }
 bool FCLTerrainEditing::Duplicate()
 {
@@ -91,7 +92,13 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FStr
 {
     FCLPlanetRecipe Recipe = Context;
     if (!Asset->TerrainType.ApplyTo(Recipe, OutError)) return nullptr;
-    if (Recipe.NoiseLayers.IsValidIndex(Solo))
+    if (Recipe.NoiseLayers.IsValidIndex(Solo) && Recipe.NoiseLayers[Solo].Operation == ECLTerrainOperation::Terrace)
+    {
+        // A shaping operation requires its upstream field. Show that result,
+        // omitting downstream detail, without modifying the saved definition.
+        Recipe.NoiseLayers.SetNum(Solo + 1);
+    }
+    else if (Recipe.NoiseLayers.IsValidIndex(Solo))
     {
         // Flatten the underlying stack at the patch centre to reveal an additive
         // layer's signed contribution without clipping half of it at the sky.

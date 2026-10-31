@@ -735,7 +735,7 @@ public:
     {
         FCFModelEditorToolkit::RegisterTabSpawners(Manager);
         Manager->RegisterTabSpawner(SectionTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnSection));
-        Manager->RegisterTabSpawner(NoiseTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnNoise)).SetDisplayName(FText::FromString(TEXT("Noise layers")));
+        Manager->RegisterTabSpawner(NoiseTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnNoise)).SetDisplayName(FText::FromString(TEXT("Terrain layers")));
     }
     virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& Manager) override
     { Manager->UnregisterTabSpawner(SectionTab); Manager->UnregisterTabSpawner(NoiseTab); FCFModelEditorToolkit::UnregisterTabSpawners(Manager); }
@@ -794,7 +794,7 @@ public:
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text_Lambda([this] { return FText::FromString(Status); })]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::TerrainMenu)
-                    .ToolTipText(FText::FromString(TEXT("Apply a terrain type's noise layers using this planet's Strata, radius and seed")))
+                    .ToolTipText(FText::FromString(TEXT("Apply a terrain type's layers using this planet's Strata, radius and seed")))
                     .ButtonContent()[SNew(STextBlock).Text_Lambda([this]
                     { const FString& Name = TerrainEditing ? TerrainEditing->Asset->TerrainType.Name : RecipeAsset()->Recipe.TerrainTypeName;
                       return FText::FromString(TEXT("Terrain: ") + (Name.IsEmpty() ? TEXT("Custom") : Name)); })]]
@@ -811,7 +811,7 @@ public:
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
                     .OnClicked_Lambda([this] { CreateTerrain(true); return FReply::Handled(); })]
                 + SHorizontalBox::Slot().FillWidth(1).Padding(8, 0)[SNew(STextBlock).AutoWrapText(true)
-                    .Text_Lambda([this] { return FText::FromString(TerrainEditing ? TEXT("Save edits to this reusable terrain type") : TEXT("Edit this planet's base noise layers in Details")); })]]
+                    .Text_Lambda([this] { return FText::FromString(TerrainEditing ? TEXT("Save edits to this reusable terrain type") : TEXT("Edit this planet's terrain layers in Details")); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text(FText::FromString(TEXT("Preview radius")))]

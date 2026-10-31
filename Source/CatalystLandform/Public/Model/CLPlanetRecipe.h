@@ -3,7 +3,6 @@
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
 #include "Model/CLStrata.h"
-#include "VoxelISPCNodeHelpers.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -39,6 +38,27 @@ enum class ECLNoiseBlend : uint8 { Override, Add, Max, Min };
 UENUM(BlueprintType)
 enum class ECLNoiseScale : uint8 { Meters UMETA(DisplayName="Absolute distance"), PlanetRadius };
 
+UENUM(BlueprintType)
+enum class ECLTerrainOperation : uint8 { Noise, Terrace };
+
+/** Pointwise shaping of the preceding terrain. Heights are resolved through planet guides. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLTerraceSettings
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference StepHeight;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference Origin;
+    /** Fraction of each step used for its smooth transition; zero gives hard cliffs. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", ClampMax="1")) double Softness = .28;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", ClampMax="1")) double Strength = 1;
+    FCLTerraceSettings()
+    {
+        StepHeight.Mode = ECLHeightReferenceMode::IntervalDelta;
+        StepHeight.Guide = TEXT("SurfaceMin"); StepHeight.UpperGuide = TEXT("SurfaceMax"); StepHeight.Fraction = .12;
+        Origin.Guide = TEXT("SurfaceMin");
+    }
+};
+
 /** Ordered generation operation. Algorithm 1 uses UE Perlin; 2 uses VPP Perlin 3D. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLNoiseLayer
@@ -46,23 +66,25 @@ struct CATALYSTLANDFORM_API FCLNoiseLayer
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FName Name;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bEnabled = true;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Seed = 0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLNoiseShape Shape = ECLNoiseShape::Smooth;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLNoiseBlend Blend = ECLNoiseBlend::Override;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference Minimum;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference Maximum;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLNoiseScale Scale = ECLNoiseScale::Meters;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Wavelength", Units="m", ClampMin="0.1", EditCondition="Scale == ECLNoiseScale::Meters", EditConditionHides)) double WavelengthMeters = 50;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.000001", EditCondition="Scale == ECLNoiseScale::PlanetRadius", EditConditionHides)) double WavelengthRadiusFraction = .5;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="1", ClampMax="8")) int32 Octaves = 3;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", ClampMax="1")) double Persistence = .5;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainOperation Operation = ECLTerrainOperation::Noise;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Terrace", EditConditionHides)) FCLTerraceSettings Terrace;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides)) int32 Seed = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides)) ECLNoiseShape Shape = ECLNoiseShape::Smooth;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides)) ECLNoiseBlend Blend = ECLNoiseBlend::Override;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides)) FCLHeightReference Minimum;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides)) FCLHeightReference Maximum;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides)) ECLNoiseScale Scale = ECLNoiseScale::Meters;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Wavelength", Units="m", ClampMin="0.1", EditCondition="Operation == ECLTerrainOperation::Noise && Scale == ECLNoiseScale::Meters", EditConditionHides)) double WavelengthMeters = 50;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.000001", EditCondition="Operation == ECLTerrainOperation::Noise && Scale == ECLNoiseScale::PlanetRadius", EditConditionHides)) double WavelengthRadiusFraction = .5;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides, ClampMin="1", ClampMax="8")) int32 Octaves = 3;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides, ClampMin="0", ClampMax="1")) double Persistence = .5;
 };
 
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 3;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 4;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
@@ -78,14 +100,19 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     /** Applied source identity; NoiseLayers remains the authoritative self-contained snapshot. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLNoiseLayer> NoiseLayers;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Terrain layers")) TArray<FCLNoiseLayer> NoiseLayers;
 };
+
+class FCLNativeNoiseKernel;
 
 /** Plain-data, worker-safe compiler output. No live asset or service references. */
 struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
 {
-    struct FNoise
+    struct FLayer
     {
+        ECLTerrainOperation Operation = ECLTerrainOperation::Noise;
+        double StepHeight = 1, Origin = 0, Softness = 0, Strength = 1;
+        double TerraceHeight(double Height) const;
         FVector Offset;
         ECLNoiseShape Shape;
         ECLNoiseBlend Blend;
@@ -94,12 +121,12 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
         int32 Seed = 0;
     };
     /** Captured native kernel only: no graph assets or UObject access on workers. */
-    FVoxelNodeISPCPtr NativePerlin = nullptr;
+    TSharedPtr<const FCLNativeNoiseKernel> NativePerlin;
     double RadiusMeters = 100;
     double BaseHeightMeters = 0;
     double MinimumHeightMeters = 0, MaximumHeightMeters = 0;
     TArray<FCLHeightGuide> Guides;
-    TArray<FNoise> Layers;
+    TArray<FLayer> Layers;
     double SampleHeightMeters(const FVector& LocalDirection) const;
     /** Batched native generation, with bounded scratch memory; results are metre offsets. */
     void SampleHeightsMeters(TConstArrayView<FVector> LocalDirections, TArray<double>& Heights) const;

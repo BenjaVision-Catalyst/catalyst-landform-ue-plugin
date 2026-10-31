@@ -110,7 +110,7 @@ of other asset editors' environment profiles; idle redraw remains disabled.
 `UCLTerrainTypeAsset` supplies reusable base noise profiles through Foundation.
 The Designer's Terrain selector applies a layer snapshot while retaining the
 planet's global Strata, radius and seed. Shipped sources are Rolling plains,
-Hills and Mountain ridges (`Examples/TerrainTypes`, with assets under
+Hills, Mountain ridges and Plateaus (`Examples/TerrainTypes`, with assets under
 `Content/TerrainTypes`). Schema 3 adds guide-interval heights/deltas and
 planet-relative wavelengths, resolved to scalars before worker/VPP evaluation.
 Schema 1/2 imports preserve their old field semantics and upgrade for export.
@@ -151,10 +151,11 @@ arbitrary VPP graph assets or PCG.
 
 ## Native Mountain ridges generation
 
-Terrain type schema 2 carries an explicit `algorithmVersion`, copied into the
-planet snapshot on application. Schema 1 imports retain algorithm 1 and export
+Terrain type schema 2 introduced explicit `algorithmVersion`, copied into the
+planet snapshot on application. Current terrain schema 3 adds ordered shaping
+operations; recipe schema 4 stores their applied snapshots. Schema 1 imports retain algorithm 1 and export
 as schema 2. Previously saved planet recipes keep their pinned algorithm and
-appearance. Native algorithm 2 requires recipe schema 3 and the VPP Perlin 3D
+appearance. Native algorithm 2 requires recipe schema 3 or 4 and the VPP Perlin 3D
 kernel; unavailable kernels or changed pin layouts fail compilation without a
 silent fallback. This is still a local authoring format, not a backend protocol.
 
@@ -183,3 +184,45 @@ enable/blend state and outer-sky clipping. The host adds a separate Chaos
 collision-triangle check; field equality alone is not collision verification.
 See the host's `Docs/NativeMountainGeneration.md` and
 `conformance/native-generation-mac-arm64.json` for retained results and limits.
+
+
+## Plateaus and editable terracing
+
+The terrain layer stack supports Noise and Terrace operations. Use **Add noise**
+or **Add terrace**, then select an entry to edit its controls. Both kinds can be
+enabled, duplicated, reordered, removed and undone. Noise-specific controls hide
+for a Terrace entry. Existing serialized `NoiseLayers` and `FCLNoiseLayer` names
+remain for compatibility; the Designer labels the shared stack **Terrain layers**.
+
+A Terrace entry transforms the accumulated preceding field. Step height and
+origin use the same contextual guide references and unit-aware distance inputs
+as other heights. The preset resolves its step to 12% of the SurfaceMin–SurfaceMax
+span and anchors the first level at SurfaceMin, so both scale with planet radius.
+Softness (0–1) controls the fraction of each interval occupied by a smoothstep
+riser. Zero gives hard steps; one uses the entire interval as a riser. Strength
+blends the shaped result with its input; zero is an exact bypass. Noise added
+later supplies surface detail without erasing the main steps.
+
+For height `h`, origin `o`, step `s`, define `q=(h-o)/s`, `k=floor(q)` and
+`f=q-k`. For positive softness `w`, `a=clamp((f-(1-w))/w,0,1)`; otherwise `a=0`.
+The shaped height is `o+s*(k+a*a*(3-2*a))`, blended with `h` by Strength. This
+monotone transform also determines compiled height bounds. Resolved steps must
+be at least 0.1m. Invalid settings or missing guides preserve the last valid scene.
+The shaping operation is Landform-owned and uses the existing native VPP base
+noise and spherical volume path; it does not add a new VPP graph asset adapter.
+
+Terrace **Solo** keeps its upstream input and omits downstream operations. Noise
+Solo retains its existing isolated-layer behavior. Solo affects neither Save nor
+Apply. Guide renaming updates the terrace's origin and step references as well.
+
+Old recipe and terrain JSON import into current schemas while retaining their
+noise algorithm and field. Binary load upgrades the in-memory schema without
+rewriting the asset file. Old schemas cannot execute Terrace entries. Native
+kernel versions are unchanged; terracing is an explicit operation in the new
+schema, not a silent alteration of noise generation. The VPP buffer ABI is now
+private to an immutable runtime adapter rather than exposed in the recipe header.
+
+`Examples/TerrainTypes/Plateaus.json` defines native broad noise, terracing and
+fine detail. The host's `Docs/Plateaus.md` and
+`conformance/plateaus-mac-arm64.json` record the authoring, field and actual
+VPP/Chaos collision qualification, including its resolution and sampling limits.

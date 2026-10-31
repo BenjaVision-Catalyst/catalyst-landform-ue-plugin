@@ -112,10 +112,11 @@ void SCLNoiseLayerStack::Construct(const FArguments& Args)
     };
     auto HasSelection = [this] { return Session->Asset->TerrainType.NoiseLayers.IsValidIndex(Session->Selected); };
     ChildSlot[SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text(FText::FromString(TEXT("Noise layers"))).Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))]
-        + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers run from top to bottom. Select a layer to edit it; Solo isolates its contribution in the preview.")))]
+        + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text(FText::FromString(TEXT("Terrain layers"))).Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))]
+        + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers run from top to bottom. Select a layer to edit it; Solo isolates noise or previews a shaping operation with its upstream layers.")))]
         + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().AutoWidth()[Action(TEXT("Add"), [this] { Session->Add(); }, [this] { return Session->Asset->TerrainType.NoiseLayers.Num() < 32; })]
+            + SHorizontalBox::Slot().AutoWidth()[Action(TEXT("Add noise"), [this] { Session->Add(); }, [this] { return Session->Asset->TerrainType.NoiseLayers.Num() < 32; })]
+            + SHorizontalBox::Slot().AutoWidth().Padding(3, 0)[Action(TEXT("Add terrace"), [this] { Session->Add(ECLTerrainOperation::Terrace); }, [this] { return Session->Asset->TerrainType.NoiseLayers.Num() < 32; })]
             + SHorizontalBox::Slot().AutoWidth().Padding(3, 0)[Action(TEXT("Duplicate"), [this] { Session->Duplicate(); }, [this, HasSelection] { return HasSelection() && Session->Asset->TerrainType.NoiseLayers.Num() < 32; })]
             + SHorizontalBox::Slot().AutoWidth()[Action(TEXT("Remove"), [this] { Session->Remove(); }, HasSelection)]
             + SHorizontalBox::Slot().AutoWidth().Padding(3, 0)[Action(TEXT("↑"), [this] { Session->Move(-1); }, [this] { return Session->Selected > 0; })]
@@ -146,7 +147,7 @@ void SCLNoiseLayerStack::Rebuild()
                 .Text(FText::FromString(FString::Printf(TEXT("%d. %s"), I + 1, *Layers[I].Name.ToString())))
                 .OnClicked_Lambda([this, I] { Session->Selected = I; Session->Error.Reset(); Refresh(); return FReply::Handled(); })]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(SCheckBox)
-                .ToolTipText(FText::FromString(TEXT("Isolate this layer over the underlying height at the preview centre; saved settings and planet are unchanged")))
+                .ToolTipText(FText::FromString(TEXT("Noise: isolate over centre height. Terrace: include upstream terrain and omit downstream layers. Saved settings and planet are unchanged")))
                 .IsChecked_Lambda([this, I] { return Session->Solo == I ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
                 .OnCheckStateChanged_Lambda([this, I](ECheckBoxState State)
                 { Session->SetSolo(State == ECheckBoxState::Checked ? I : INDEX_NONE); OnPreviewChanged.ExecuteIfBound(); })
@@ -189,6 +190,23 @@ bool FCLNoiseLayerDraftTest::RunTest(const FString&)
     Draft.Persistence = Original;
     Stack->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(Finished);
     TestTrue(TEXT("Correcting to the stored value clears the error"), Session->Error.IsEmpty());
+    TestTrue(TEXT("Terracing can be added from the stack session"), Session->Add(ECLTerrainOperation::Terrace));
+    Stack->Rebuild();
+    auto& TerraceDraft = *reinterpret_cast<FCLNoiseLayer*>(Stack->Draft->GetStructMemory());
+    const double OriginalSoftness = TerraceDraft.Terrace.Softness;
+    TerraceDraft.Terrace.Softness = .61;
+    auto* SoftnessProperty = FCLTerraceSettings::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLTerraceSettings, Softness));
+    FPropertyChangedEvent TerraceInteractive(SoftnessProperty, EPropertyChangeType::Interactive);
+    Stack->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(TerraceInteractive);
+    TestEqual(TEXT("Terrace slider gesture remains a draft"), Asset->TerrainType.NoiseLayers.Last().Terrace.Softness, OriginalSoftness);
+    FPropertyChangedEvent TerraceFinished(SoftnessProperty, EPropertyChangeType::ValueSet);
+    Stack->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(TerraceFinished);
+    TestEqual(TEXT("Terrace softness commits through the real Details delegate"), Asset->TerrainType.NoiseLayers.Last().Terrace.Softness, .61);
+    GEditor->UndoTransaction();
+    TestEqual(TEXT("Terrace property edit is one undo"), Asset->TerrainType.NoiseLayers.Last().Terrace.Softness, OriginalSoftness);
+    TerraceDraft.Terrace.Softness = 2;
+    Stack->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(TerraceFinished);
+    TestEqual(TEXT("Invalid terrace draft leaves source intact"), Asset->TerrainType.NoiseLayers.Last().Terrace.Softness, OriginalSoftness);
     return true;
 }
 #endif

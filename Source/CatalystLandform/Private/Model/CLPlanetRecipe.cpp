@@ -1,12 +1,25 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLModelJson.h"
 #include "Nodes/VoxelNoiseNodes.h"
+#include "VoxelISPCNodeHelpers.h"
 #include "JsonObjectConverter.h"
 #include "Validation/CFValidationTypes.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 #include "UObject/UnrealType.h"
 #include "Serialization/CustomVersion.h"
+
+// The vendor buffer ABI stays private to the runtime adapter. Compiled plans
+// retain only this immutable owner, without exposing VPP headers in model APIs.
+class FCLNativeNoiseKernel
+{
+public:
+    explicit FCLNativeNoiseKernel(FVoxelNodeISPCPtr InFunction) : Function(InFunction) {}
+    void Evaluate(const ispc::FVoxelInputBuffer* Inputs, void* const* Outputs, int32 Num) const
+    { Function(Inputs, Outputs, Num); }
+private:
+    const FVoxelNodeISPCPtr Function;
+};
 
 namespace
 {
@@ -39,6 +52,16 @@ bool NativePerlinABIIsCompatible()
 }
 }
 
+double FCLCompiledPlanetRecipe::FLayer::TerraceHeight(double Height) const
+{
+    if (Strength == 0) return Height;
+    const double Position = (Height - Origin) / StepHeight;
+    const double Level = FMath::FloorToDouble(Position), Fraction = Position - Level;
+    const double Alpha = Softness > 0 ? FMath::Clamp((Fraction - (1 - Softness)) / Softness, 0.0, 1.0) : 0;
+    const double Transition = Alpha * Alpha * (3 - 2 * Alpha);
+    return FMath::Lerp(Height, Origin + StepHeight * (Level + Transition), Strength);
+}
+
 double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) const
 {
     if (NativePerlin)
@@ -48,8 +71,9 @@ double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) con
     if (Direction.ContainsNaN() || Direction.IsNearlyZero()) return 0;
     const FVector Position = Direction.GetSafeNormal() * RadiusMeters;
     double Height = BaseHeightMeters;
-    for (const FNoise& Layer : Layers)
+    for (const FLayer& Layer : Layers)
     {
+        if (Layer.Operation == ECLTerrainOperation::Terrace) { Height = Layer.TerraceHeight(Height); continue; }
         double Sum = 0, Weight = 1, Total = 0, Frequency = 1;
         for (int32 I = 0; I < Layer.Octaves; ++I)
         {
@@ -92,8 +116,13 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
             Unit[I] = D.ContainsNaN() ? FVector::ZeroVector : D.GetSafeNormal();
             Heights[Start + I] = BaseHeightMeters;
         }
-        for (const FNoise& Layer : Layers)
+        for (const FLayer& Layer : Layers)
         {
+            if (Layer.Operation == ECLTerrainOperation::Terrace)
+            {
+                for (int32 I = 0; I < Num; ++I) Heights[Start + I] = Layer.TerraceHeight(Heights[Start + I]);
+                continue;
+            }
             for (int32 I = 0; I < Num; ++I) Sum[I] = 0;
             double Weight = 1, Total = 0, Frequency = 1;
             for (int32 Octave = 0; Octave < Layer.Octaves; ++Octave)
@@ -105,7 +134,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
                 }
                 const ispc::FVoxelInputBuffer Inputs[] = {
                     {X, false}, {Y, false}, {Z, false}, {&One, true}, {&One, true}, {&Layer.Seed, true}};
-                void* Outputs[] = {Noise}; NativePerlin(Inputs, Outputs, Num);
+                void* Outputs[] = {Noise}; NativePerlin->Evaluate(Inputs, Outputs, Num);
                 for (int32 I = 0; I < Num; ++I)
                 {
                     const double N = Noise[I];
@@ -134,13 +163,17 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
 bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error)
 {
     Error.Reset();
-    if (Layers.Num() > 32) { Error = TEXT("At most 32 noise layers are supported"); return false; }
+    if (Layers.Num() > 32) { Error = TEXT("At most 32 terrain layers are supported"); return false; }
     TSet<FName> Names;
     for (const FCLNoiseLayer& Layer : Layers)
     {
         if (Layer.Name.IsNone() || Names.Contains(Layer.Name)) { Error = TEXT("Noise layer names must be nonempty and unique"); return false; }
-        Names.Add(Layer.Name); if (!Layer.bEnabled) continue;
-        for (const FCLHeightReference* Ref : {&Layer.Minimum, &Layer.Maximum})
+        Names.Add(Layer.Name);
+        if (static_cast<uint8>(Layer.Operation) > static_cast<uint8>(ECLTerrainOperation::Terrace))
+        { Error = TEXT("Unknown terrain operation: ") + Layer.Name.ToString(); return false; }
+        if (!Layer.bEnabled) continue;
+        const bool bTerrace = Layer.Operation == ECLTerrainOperation::Terrace;
+        for (const FCLHeightReference* Ref : {bTerrace ? &Layer.Terrace.StepHeight : &Layer.Minimum, bTerrace ? &Layer.Terrace.Origin : &Layer.Maximum})
         {
             const bool bHeight = Ref->Mode == ECLHeightReferenceMode::Height;
             if (!FMath::IsFinite(Ref->OffsetMeters) || !FMath::IsFinite(Ref->Fraction) ||
@@ -149,6 +182,13 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
                 (!bHeight && (Ref->Guide.IsNone() || Ref->UpperGuide.IsNone() || Ref->Fraction > 1 ||
                     Ref->Fraction < (Ref->Mode == ECLHeightReferenceMode::IntervalHeight ? 0 : -1))))
             { Error = TEXT("Invalid height reference in layer: ") + Layer.Name.ToString(); return false; }
+        }
+        if (bTerrace)
+        {
+            if (!FMath::IsFinite(Layer.Terrace.Softness) || Layer.Terrace.Softness < 0 || Layer.Terrace.Softness > 1 ||
+                !FMath::IsFinite(Layer.Terrace.Strength) || Layer.Terrace.Strength < 0 || Layer.Terrace.Strength > 1)
+            { Error = TEXT("Terrace softness and strength must be between 0 and 1: ") + Layer.Name.ToString(); return false; }
+            continue;
         }
         if (!FMath::IsFinite(Layer.Persistence) || Layer.Persistence < 0 || Layer.Persistence > 1 || Layer.Octaves < 1 || Layer.Octaves > 8 ||
             static_cast<uint8>(Layer.Shape) > static_cast<uint8>(ECLNoiseShape::Ridged) || static_cast<uint8>(Layer.Blend) > static_cast<uint8>(ECLNoiseBlend::Min) ||
@@ -164,7 +204,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion != 2 && Recipe.SchemaVersion != 3) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion != 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 4) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.Strata.Stratum.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
@@ -173,8 +213,9 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     if (Recipe.AlgorithmVersion == 2)
     {
         if (!NativePerlinABIIsCompatible()) return Fail(TEXT("VPP PerlinNoise3D pin layout changed; native adapter requires qualification"));
-        Plan->NativePerlin = GVoxelNodeISPCPtrs.FindRef(TEXT("VoxelComputeNode_PerlinNoise3D"));
-        if (!Plan->NativePerlin) return Fail(TEXT("VPP PerlinNoise3D kernel is unavailable; native generation cannot fall back to algorithm 1"));
+        const auto Kernel = GVoxelNodeISPCPtrs.FindRef(TEXT("VoxelComputeNode_PerlinNoise3D"));
+        if (!Kernel) return Fail(TEXT("VPP PerlinNoise3D kernel is unavailable; native generation cannot fall back to algorithm 1"));
+        Plan->NativePerlin = MakeShared<FCLNativeNoiseKernel>(Kernel);
     }
     Plan->RadiusMeters = Recipe.RadiusMeters;
     if (!FMath::IsFinite(Recipe.BaseSurfaceNormalized) || Recipe.BaseSurfaceNormalized <= 0 || Recipe.BaseSurfaceNormalized > 1)
@@ -214,32 +255,44 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     for (const FCLNoiseLayer& Layer : Recipe.NoiseLayers)
     {
         if (!Layer.bEnabled) continue;
-        FCLCompiledPlanetRecipe::FNoise Noise;
-        if (!Resolve(Layer.Minimum, Noise.Minimum) || !Resolve(Layer.Maximum, Noise.Maximum)) return nullptr;
-        if (Noise.Minimum > Noise.Maximum) return Fail(TEXT("Noise minimum must not exceed maximum: ") + Layer.Name.ToString());
-        if (Layer.Scale == ECLNoiseScale::PlanetRadius && Recipe.SchemaVersion < 3)
-            return Fail(TEXT("Planet-relative wavelengths require recipe schema 3"));
-        const double Wavelength = Layer.Scale == ECLNoiseScale::PlanetRadius ? Layer.WavelengthRadiusFraction * Recipe.RadiusMeters : Layer.WavelengthMeters;
-        if (!FMath::IsFinite(Wavelength) || Wavelength < .1 || Recipe.RadiusMeters / Wavelength * (1 << (Layer.Octaves - 1)) > 1.e6)
-            return Fail(TEXT("Noise wavelength/octaves exceed supported precision or minimum wavelength"));
-        Noise.Wavelength = Wavelength; Noise.Persistence = Layer.Persistence;
-        Noise.Octaves = Layer.Octaves; Noise.Shape = Layer.Shape; Noise.Blend = Layer.Blend;
-        uint32 Seed = Mix(uint32(Recipe.Seed) ^ Mix(uint32(Layer.Seed)));
-        // Explicit seed, independent of array order or process-local FName indices.
-        for (TCHAR C : Layer.Name.ToString().ToLower()) Seed = Mix(Seed ^ uint32(C));
-        Noise.Seed = static_cast<int32>(Seed);
-        Noise.Offset = FVector(Mix(Seed) % 8192 + .37, Mix(Seed + 1) % 8192 + .59, Mix(Seed + 2) % 8192 + .83);
+        FCLCompiledPlanetRecipe::FLayer Compiled; Compiled.Operation = Layer.Operation;
         double& Low = Plan->MinimumHeightMeters; double& High = Plan->MaximumHeightMeters;
-        switch (Noise.Blend)
+        if (Layer.Operation == ECLTerrainOperation::Terrace)
         {
-        case ECLNoiseBlend::Override: Low = Noise.Minimum; High = Noise.Maximum; break;
-        case ECLNoiseBlend::Add: Low += Noise.Minimum; High += Noise.Maximum; break;
-        case ECLNoiseBlend::Max: Low = FMath::Max(Low, Noise.Minimum); High = FMath::Max(High, Noise.Maximum); break;
-        case ECLNoiseBlend::Min: Low = FMath::Min(Low, Noise.Minimum); High = FMath::Min(High, Noise.Maximum); break;
+            if (Recipe.SchemaVersion < 4) return Fail(TEXT("Terracing requires recipe schema 4"));
+            if (!Resolve(Layer.Terrace.StepHeight, Compiled.StepHeight) || !Resolve(Layer.Terrace.Origin, Compiled.Origin)) return nullptr;
+            if (Compiled.StepHeight < .1 || Compiled.StepHeight > 1.e7)
+                return Fail(TEXT("Terrace step height must resolve to between 0.1 and 10000000 metres: ") + Layer.Name.ToString());
+            Compiled.Softness = Layer.Terrace.Softness; Compiled.Strength = Layer.Terrace.Strength;
+            Low = Compiled.TerraceHeight(Low); High = Compiled.TerraceHeight(High);
+        }
+        else
+        {
+            if (!Resolve(Layer.Minimum, Compiled.Minimum) || !Resolve(Layer.Maximum, Compiled.Maximum)) return nullptr;
+            if (Compiled.Minimum > Compiled.Maximum) return Fail(TEXT("Noise minimum must not exceed maximum: ") + Layer.Name.ToString());
+            if (Layer.Scale == ECLNoiseScale::PlanetRadius && Recipe.SchemaVersion < 3)
+                return Fail(TEXT("Planet-relative wavelengths require recipe schema 3"));
+            const double Wavelength = Layer.Scale == ECLNoiseScale::PlanetRadius ? Layer.WavelengthRadiusFraction * Recipe.RadiusMeters : Layer.WavelengthMeters;
+            if (!FMath::IsFinite(Wavelength) || Wavelength < .1 || Recipe.RadiusMeters / Wavelength * (1 << (Layer.Octaves - 1)) > 1.e6)
+                return Fail(TEXT("Noise wavelength/octaves exceed supported precision or minimum wavelength"));
+            Compiled.Wavelength = Wavelength; Compiled.Persistence = Layer.Persistence;
+            Compiled.Octaves = Layer.Octaves; Compiled.Shape = Layer.Shape; Compiled.Blend = Layer.Blend;
+            uint32 Seed = Mix(uint32(Recipe.Seed) ^ Mix(uint32(Layer.Seed)));
+            // Explicit seed, independent of array order or process-local FName indices.
+            for (TCHAR C : Layer.Name.ToString().ToLower()) Seed = Mix(Seed ^ uint32(C));
+            Compiled.Seed = static_cast<int32>(Seed);
+            Compiled.Offset = FVector(Mix(Seed) % 8192 + .37, Mix(Seed + 1) % 8192 + .59, Mix(Seed + 2) % 8192 + .83);
+            switch (Compiled.Blend)
+            {
+            case ECLNoiseBlend::Override: Low = Compiled.Minimum; High = Compiled.Maximum; break;
+            case ECLNoiseBlend::Add: Low += Compiled.Minimum; High += Compiled.Maximum; break;
+            case ECLNoiseBlend::Max: Low = FMath::Max(Low, Compiled.Minimum); High = FMath::Max(High, Compiled.Maximum); break;
+            case ECLNoiseBlend::Min: Low = FMath::Min(Low, Compiled.Minimum); High = FMath::Min(High, Compiled.Maximum); break;
+            }
         }
         if (!FMath::IsFinite(Low) || !FMath::IsFinite(High) || Low + Plan->RadiusMeters <= .01 || FMath::Max(FMath::Abs(Low), FMath::Abs(High)) > 1.e7)
             return Fail(TEXT("Noise stack exceeds supported radial bounds"));
-        Plan->Layers.Add(Noise);
+        Plan->Layers.Add(Compiled);
     }
     Plan->MinimumHeightMeters = FMath::Min(Plan->MinimumHeightMeters, 0.0);
     Plan->MaximumHeightMeters = FMath::Min(Plan->MaximumHeightMeters, 0.0);
@@ -314,10 +367,10 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
     Ar.UsingCustomVersion(RecipeAssetVersion);
     Super::Serialize(Ar);
 }
-void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); if (Recipe.SchemaVersion == 2) Recipe.SchemaVersion = 3; Version.SchemaVersion = Recipe.SchemaVersion; }
+void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); if (Recipe.SchemaVersion == 2 || Recipe.SchemaVersion == 3) Recipe.SchemaVersion = 4; Version.SchemaVersion = Recipe.SchemaVersion; }
 UCLPlanetRecipeAsset::UCLPlanetRecipeAsset() { Recipe = FCLPlanetCompiler::RollingPlains(); }
 FString UCLPlanetRecipeAsset::GetSummaryText() const
-{ return FString::Printf(TEXT("%s: %d guides, %d noise layers"), *Recipe.Name, Recipe.Strata.Stratum.Num(), Recipe.NoiseLayers.Num()); }
+{ return FString::Printf(TEXT("%s: %d guides, %d terrain layers"), *Recipe.Name, Recipe.Strata.Stratum.Num(), Recipe.NoiseLayers.Num()); }
 bool UCLPlanetRecipeAsset::ValidatePayload(FString& Error) const { return FCLPlanetCompiler::Compile(Recipe, Error).IsValid(); }
 void UCLPlanetRecipeAsset::CollectValidationMessages(TArray<FCFValidationMessage>& Messages) const
 {
@@ -334,8 +387,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema != 3))
-    { Error = TEXT("Recipe requires schemaVersion 1/2/3 with algorithm 1, or schemaVersion 3 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1/2/3/4 with algorithm 1, or schemaVersion 3/4 with algorithm 2"); return false; }
     if (Schema == 1)
     {
         // Explicit, lossless conversion of the old metre-based document.
@@ -367,7 +420,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
-    if (Candidate.SchemaVersion == 2) Candidate.SchemaVersion = 3;
+    if (Candidate.SchemaVersion == 2 || Candidate.SchemaVersion == 3) Candidate.SchemaVersion = 4;
     Modify(); Recipe = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

@@ -13,7 +13,7 @@ public:
     FString Error;
     void Open(UCLTerrainTypeAsset* InAsset, const FCLPlanetRecipe* InContext = nullptr);
     bool SetLayer(const FCLNoiseLayer& Layer);
-    bool Add();
+    bool Add(ECLTerrainOperation Operation = ECLTerrainOperation::Noise);
     bool Duplicate();
     bool Remove();
     bool Move(int32 Delta);
