@@ -91,8 +91,18 @@ bool FCLTerrainEditing::Enable(int32 Index, bool bEnabled)
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError) const
 {
     FCLPlanetRecipe Recipe = Context;
+    if (Asset->TerrainType.NoiseLayers.IsValidIndex(Solo) && Asset->TerrainType.NoiseLayers[Solo].Operation == ECLTerrainOperation::StampDistribution)
+    {
+        // Stamp Solo is an isolated flat workbench, not a view of its upstream
+        // noise. The normal terrain application resolves its guide midpoint.
+        auto Isolated = Asset->TerrainType;
+        for (int32 I = 0; I < Isolated.NoiseLayers.Num(); ++I) Isolated.NoiseLayers[I].bEnabled = I == Solo;
+        Recipe.BaseSurfaceNormalized = 1;
+        if (!Isolated.ApplyTo(Recipe, OutError)) return nullptr;
+        return FCLPlanetCompiler::Compile(Recipe, OutError);
+    }
     if (!Asset->TerrainType.ApplyTo(Recipe, OutError)) return nullptr;
-    if (Recipe.NoiseLayers.IsValidIndex(Solo) && Recipe.NoiseLayers[Solo].Operation != ECLTerrainOperation::Noise)
+    if (Recipe.NoiseLayers.IsValidIndex(Solo) && Recipe.NoiseLayers[Solo].Operation == ECLTerrainOperation::Terrace)
     {
         // A shaping operation requires its upstream field. Show that result,
         // omitting downstream detail, without modifying the saved definition.

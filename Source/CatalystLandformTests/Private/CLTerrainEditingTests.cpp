@@ -113,4 +113,70 @@ bool FCLTerrainAuthoringSnapshotTest::RunTest(const FString&)
     TestEqual(TEXT("Invalid preview context cannot mutate terrain settings"), After, Before);
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLStampIsolationTest, "Catalyst.Landform.TerrainTypes.StampIsolation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLStampIsolationTest::RunTest(const FString&)
+{
+    TStrongObjectPtr<UCLTerrainTypeAsset> Asset(NewObject<UCLTerrainTypeAsset>());
+    FString Error, Json, Before, After;
+    const auto Path = IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir() / TEXT("Examples/TerrainTypes/MountainRidgesStamped.json");
+    if (!FFileHelper::LoadFileToString(Json, *Path) || !Asset->ImportTerrainTypeJson(Json, Error)) { AddError(Error); return false; }
+    const auto Original = Asset->TerrainType;
+    auto Context = FCLPlanetCompiler::RollingPlains(); Context.RadiusMeters = 1000;
+    FCLTerrainEditing Edit; Edit.Open(Asset.Get(), &Context);
+    Asset->ExportJsonString(Before, Error); const bool Dirty = Asset->GetOutermost()->IsDirty();
+    Edit.SetSolo(1);
+    const auto Solo = Edit.CompilePreview(Error);
+    if (!TestTrue(TEXT("Stamp Solo compiles an isolated flat input"), Solo && Solo->Layers.Num() == 1)) { AddError(Error); return false; }
+    TestTrue(TEXT("Solo base is halfway between SurfaceMin and SurfaceMax"), FMath::IsNearlyEqual(Solo->BaseHeightMeters, -550., 1.e-6));
+    Asset->ExportJsonString(After, Error);
+    TestEqual(TEXT("Solo preserves the authored definition"), After, Before);
+    TestEqual(TEXT("Solo does not change package dirtiness"), Asset->GetOutermost()->IsDirty(), Dirty);
+    TestEqual(TEXT("Preview does not alter context base"), Edit.Context.BaseSurfaceNormalized, 1.);
+
+    // Reproduce the user's enable switches, rather than relying on Solo mode.
+    Edit.SetSolo(INDEX_NONE);
+    Asset->TerrainType.NoiseLayers[0].bEnabled = false;
+    Asset->TerrainType.NoiseLayers[2].bEnabled = false;
+    Asset->ExportJsonString(Before, Error);
+    const auto Stamps = Edit.CompilePreview(Error);
+    if (!TestTrue(TEXT("Stamps alone compile"), Stamps.IsValid())) { AddError(Error); return false; }
+    TestTrue(TEXT("Disabled upstream noise uses the same midpoint as Solo"), FMath::IsNearlyEqual(Stamps->BaseHeightMeters, Solo->BaseHeightMeters, 1.e-9));
+    TArray<FCLResolvedStampPlacement> Placements; Stamps->GetStampPlacements(Placements);
+    TestTrue(TEXT("Flat surface still produces deterministic PCG placements"), !Placements.IsEmpty());
+    double Relief = 0; int32 FlatSamples = 0;
+    for (const auto& P : Placements) Relief = FMath::Max(Relief, Stamps->SampleHeightMeters(P.Anchor) - Stamps->BaseHeightMeters);
+    TestTrue(TEXT("Raised mountain stamps remain visible below sky clipping"), Relief > 5 && Stamps->BaseHeightMeters + Relief < 0);
+    for (int32 I = 0; I < 512; ++I)
+    {
+        const double Z = 1 - 2 * (I + .5) / 512, A = I * 2.399963229728653;
+        const FVector D(FMath::Sqrt(1-Z*Z)*FMath::Cos(A), FMath::Sqrt(1-Z*Z)*FMath::Sin(A), Z);
+        int32 Count; double Weight; Stamps->GetStampCoverage(D, Count, Weight);
+        if (!Count) { ++FlatSamples; TestEqual(TEXT("Unstamped input is exactly flat"), Stamps->SampleHeightMeters(D), Stamps->BaseHeightMeters); }
+    }
+    TestTrue(TEXT("Flat areas between stamps are sampled"), FlatSamples > 0);
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Planet(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional)); Planet->Recipe = Context;
+    if (!TestTrue(TEXT("Stamp-only stack applies to a planet"), Edit.ApplyToPlanet(Planet.Get()))) { AddError(Edit.Error); return false; }
+    TestTrue(TEXT("Applied recipe stores the resolved midpoint"), FMath::IsNearlyEqual(Planet->Recipe.BaseSurfaceNormalized, .45, 1.e-9));
+    const auto Applied = FCLPlanetCompiler::Compile(Planet->Recipe, Error);
+    for (const auto& P : Placements) TestEqual(TEXT("Planet and Designer share the stamp-only field"), Applied->SampleHeightMeters(P.Anchor), Stamps->SampleHeightMeters(P.Anchor));
+    Asset->ExportJsonString(After, Error); TestEqual(TEXT("Compile/apply preserve authored enable switches and settings"), After, Before);
+
+    auto Explicit = Context; Explicit.BaseSurfaceNormalized = .52;
+    TestTrue(TEXT("Explicit terrain base is accepted"), Asset->TerrainType.ApplyTo(Explicit, Error));
+    TestEqual(TEXT("An explicit non-default base is preserved"), Explicit.BaseSurfaceNormalized, .52);
+    auto Resized = Context; Resized.RadiusMeters = 2000;
+    TestTrue(TEXT("Stamp-only stack scales with planet radius"), Asset->TerrainType.ApplyTo(Resized, Error));
+    const auto Large = FCLPlanetCompiler::Compile(Resized, Error);
+    TestTrue(TEXT("Midpoint height scales with radius"), FMath::IsNearlyEqual(Large->BaseHeightMeters, Stamps->BaseHeightMeters * 2, 1.e-6));
+    Asset->TerrainType.NoiseLayers[1].bEnabled = false;
+    const auto Empty = Edit.CompilePreview(Error);
+    TestTrue(TEXT("All-disabled stack is a flat landscape at the guide midpoint"), Empty && Empty->Layers.IsEmpty() && FMath::IsNearlyEqual(Empty->BaseHeightMeters, -550., 1.e-6));
+    Asset->TerrainType = Original; Edit.SetSolo(INDEX_NONE);
+    const auto Full = Edit.CompilePreview(Error);
+    auto Reference = Context; Original.ApplyTo(Reference, Error); const auto Expected = FCLPlanetCompiler::Compile(Reference, Error);
+    TestEqual(TEXT("Leaving isolation restores the full authored stack"), Full->SampleHeightMeters(FVector::ZAxisVector), Expected->SampleHeightMeters(FVector::ZAxisVector));
+    AddInfo(FString::Printf(TEXT("Stamp isolation: %d placements; %.6f m visible relief; %d flat samples"), Placements.Num(), Relief, FlatSamples));
+    return true;
+}
 #endif

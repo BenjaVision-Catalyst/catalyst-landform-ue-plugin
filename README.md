@@ -236,6 +236,15 @@ and relief. Compiled placements and native source runtimes are immutable;
 PCG and asset resolution do not run on VPP sampling workers. The flat Designer
 and spherical volume evaluate this same composed field.
 
+Stamp-only authoring starts on a flat base halfway between the contextual
+SurfaceMin and SurfaceMax guides when the recipe still has its default sky-level
+base. This also applies to an empty/all-disabled stack. Applying the terrain
+stores that resolved base in the planet recipe; explicit non-default bases are
+preserved. Existing saved recipes are not silently migrated. Stamp **Solo**
+isolates that layer on the guide midpoint, while Terrace Solo retains upstream
+terrain. The isolated distribution is compiled on that reference sphere, so its
+density/count and footprint projection reflect the flat input's radius.
+
 Distributions blend native VPP heightmap relief relative to their incoming terrain.
 Order is stable PCG point order. Each footprint's geodesic chart uses the
 upstream local surface radius, and planet-relative sizes use the outer sky

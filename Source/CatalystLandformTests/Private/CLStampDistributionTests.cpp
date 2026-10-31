@@ -128,7 +128,7 @@ bool FCLDistributionParityTest::RunTest(const FString&)
     FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.DistributionParity"));const auto Surfaces=FVoxelSurfaceTypeTable::Get();
     const FVoxelQuery Query(0,FVoxelLayers::Empty(),*Surfaces,Dependencies);
     double MaxError=0,MaxDisplayError=0;int32 Samples=0;
-    for(int32 Case=0;Case<6;++Case)
+    for(int32 Case=0;Case<7;++Case)
     {
         auto R=DistributionRecipe(T,Error);
         if(Case>0&&Case<4)
@@ -145,11 +145,13 @@ bool FCLDistributionParityTest::RunTest(const FString&)
             R.NoiseLayers.Insert(T->TerrainType.NoiseLayers[1],1);
             R.NoiseLayers.Add(T->TerrainType.NoiseLayers[3]);
         }
-        if(Case==5)
+        if(Case>=5)
         {
             FString Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainTypes/MountainRidgesStamped.json")));
             auto* Mountains=NewObject<UCLTerrainTypeAsset>();
-            if(!Mountains->ImportTerrainTypeJson(Json,Error)||!Mountains->TerrainType.ApplyTo(R,Error)){AddError(Error);break;}
+            if(!Mountains->ImportTerrainTypeJson(Json,Error)){AddError(Error);break;}
+            if(Case==6){Mountains->TerrainType.NoiseLayers[0].bEnabled=false;Mountains->TerrainType.NoiseLayers[2].bEnabled=false;}
+            if(!Mountains->TerrainType.ApplyTo(R,Error)){AddError(Error);break;}
         }
         const auto Plan=FCLPlanetCompiler::Compile(R,Error);if(!Plan){AddError(Error);break;}
         auto BaseRecipe=R;BaseRecipe.NoiseLayers.SetNum(1);

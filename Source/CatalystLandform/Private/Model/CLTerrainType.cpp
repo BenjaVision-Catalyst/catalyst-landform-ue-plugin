@@ -28,6 +28,15 @@ bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error) const
     FCLPlanetRecipe Candidate = Recipe;
     Candidate.SchemaVersion = 5; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;
+    const auto* First = NoiseLayers.FindByPredicate([](const auto& Layer) { return Layer.bEnabled; });
+    if (Candidate.BaseSurfaceNormalized == 1 && (!First || First->Operation == ECLTerrainOperation::StampDistribution))
+    {
+        // An unseeded stamp stack needs headroom for relief. Resolve the default
+        // into the applied recipe so Designer and planet use the same base.
+        const auto* Lower = Candidate.Strata.Stratum.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMin"); });
+        const auto* Upper = Candidate.Strata.Stratum.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMax"); });
+        if (Lower && Upper) Candidate.BaseSurfaceNormalized = (Lower->NormalizedHeight + Upper->NormalizedHeight) * .5;
+    }
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
     Recipe = MoveTemp(Candidate); return true;
 }

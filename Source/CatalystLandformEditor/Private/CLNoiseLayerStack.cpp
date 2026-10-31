@@ -153,7 +153,7 @@ void SCLNoiseLayerStack::Construct(const FArguments& Args)
     auto HasSelection = [this] { return Session->Asset->TerrainType.NoiseLayers.IsValidIndex(Session->Selected); };
     ChildSlot[SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text(FText::FromString(TEXT("Terrain layers"))).Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))]
-        + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers run from top to bottom. Select a layer to edit it; Solo isolates noise or previews a shaping operation with its upstream layers.")))]
+        + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers run from top to bottom. Select a layer to edit it. Solo isolates noise or stamps; terracing keeps its upstream terrain.")))]
         + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
             + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).IsEnabled_Lambda([this]{return Session->Asset->TerrainType.NoiseLayers.Num()<32;})
                 .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add layer")))]
