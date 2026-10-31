@@ -91,7 +91,8 @@ The Strata popup selects a project catalog style; the contextual planet's applie
 copy is the default. Save persists both the recipe and catalog. Schema 1 recipes
 migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
 snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
-Perlin noise; native VPP graph and PCG adapters remain future work. The host's
+Perlin noise and remains reproducible. Algorithm 2 uses the native VPP Perlin
+3D compute kernel; general graph assets and PCG adapters remain future work. The host's
 `Docs/RecipeDesigner.md` documents authoring and physical validation.
 
 Guide dragging updates cached projected ticks and labels immediately; it commits
@@ -113,8 +114,9 @@ Hills and Mountain ridges (`Examples/TerrainTypes`, with assets under
 `Content/TerrainTypes`). Schema 3 adds guide-interval heights/deltas and
 planet-relative wavelengths, resolved to scalars before worker/VPP evaluation.
 Schema 1/2 imports preserve their old field semantics and upgrade for export.
-The terrain evaluator still uses the CPU Perlin reference; native VPP graphs,
-regional composition and PCG remain subsequent work.
+Mountain ridges now selects native algorithm 2. Plains and Hills retain the
+algorithm 1 reference. General VPP graph execution, regional composition and PCG
+remain subsequent work.
 
 Terrain assets now open in the shared cross-section Designer with a **Noise
 layers** tab. Select, add, duplicate, remove, reorder or enable layers; the
@@ -143,5 +145,41 @@ one replaceable pending request. Obsolete results cannot replace the current
 scene. UObject/mesh work remains on the editor thread, and camera framing stays
 fixed across completion. The `Landform.TerrainDesigner` command opens Mountain
 ridges by default; optional arguments are a terrain asset path and planet recipe
-path. This is authoring support for the existing schema/algorithm, not native VPP
-graph or PCG generation.
+path. This authoring path supports both generation versions; it does not execute
+arbitrary VPP graph assets or PCG.
+
+
+## Native Mountain ridges generation
+
+Terrain type schema 2 carries an explicit `algorithmVersion`, copied into the
+planet snapshot on application. Schema 1 imports retain algorithm 1 and export
+as schema 2. Previously saved planet recipes keep their pinned algorithm and
+appearance. Native algorithm 2 requires recipe schema 3 and the VPP Perlin 3D
+kernel; unavailable kernels or changed pin layouts fail compilation without a
+silent fallback. This is still a local authoring format, not a backend protocol.
+
+The adapter calls VPP's registered `VoxelComputeNode_PerlinNoise3D` implementation
+through its public compute-buffer interface, qualified against **VPP 2.0p8 on
+UE 5.7.4 Mac arm64**. It uses the actual plugin kernel, without copying vendor
+noise source. Layer blend/fractal semantics remain Landform's versioned compiler
+operations. Requalify the adapter and numerical fixtures before upgrading VPP;
+this is native kernel generation, not a dynamically assembled `UVoxelGraph`.
+
+Compilation resolves guides, distance scales and deterministic seeds into an
+immutable plan and captures the function pointer. Batches of at most 512 samples
+reuse scratch arrays. Both the spherical volume stamp and the Designer call this
+batch evaluator; workers do not access graph assets or editor objects. The
+Designer resolves its surface-distance chart once per build, then unwraps radial
+heights into the fixed flat presentation frame. Native heightmap stamps still
+compose after the base field on the planet; this base-terrain preview does not
+include separately placed stamp actors, materials, erosion or foliage.
+
+`NativeGeneration.KernelAndVersioning` checks the native node oracle, partial
+batches, scalar/worker determinism, explicit version selection and JSON
+roundtrips. `NativeGeneration.DesignerSphereParity` checks Designer source
+vertices at 100/500/1000 m coverage against the actual spherical stamp's radial
+field, including globe/pole/seam samples, changed seeds, radius, wavelength,
+enable/blend state and outer-sky clipping. The host adds a separate Chaos
+collision-triangle check; field equality alone is not collision verification.
+See the host's `Docs/NativeMountainGeneration.md` and
+`conformance/native-generation-mac-arm64.json` for retained results and limits.

@@ -1,5 +1,6 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLModelJson.h"
+#include "Nodes/VoxelNoiseNodes.h"
 #include "JsonObjectConverter.h"
 #include "Validation/CFValidationTypes.h"
 #include "Dom/JsonObject.h"
@@ -16,10 +17,34 @@ uint32 Mix(uint32 V)
     V ^= V >> 16; V *= 0x7feb352du; V ^= V >> 15; V *= 0x846ca68bu; return V ^ (V >> 16);
 }
 
+// Fail closed if a future VPP changes the compute node's pin layout. The
+// function pointer is cached in the plan; workers never inspect node metadata.
+bool NativePerlinABIIsCompatible()
+{
+    static const bool bCompatible = []
+    {
+        const FVoxelComputeNode_PerlinNoise3D Node;
+        const FName Names[] = {TEXT("Position"), TEXT("Amplitude"), TEXT("FeatureScale"), TEXT("Seed"), TEXT("Value")};
+        const FVoxelPinType Types[] = {FVoxelPinType::Make<FVoxelVectorBuffer>(), FVoxelPinType::Make<FVoxelFloatBuffer>(),
+            FVoxelPinType::Make<FVoxelFloatBuffer>(), FVoxelPinType::Make<FVoxelSeedBuffer>(), FVoxelPinType::Make<FVoxelFloatBuffer>()};
+        int32 Index = 0;
+        for (const FVoxelPin& Pin : Node.GetPins())
+        {
+            if (Index >= 5 || Pin.Name != Names[Index] || Pin.GetType() != Types[Index] || Pin.bIsInput != (Index < 4)) return false;
+            ++Index;
+        }
+        return Index == 5;
+    }();
+    return bCompatible;
+}
 }
 
 double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) const
 {
+    if (NativePerlin)
+    {
+        TArray<double> Heights; SampleHeightsMeters(MakeArrayView(&Direction, 1), Heights); return Heights[0];
+    }
     if (Direction.ContainsNaN() || Direction.IsNearlyZero()) return 0;
     const FVector Position = Direction.GetSafeNormal() * RadiusMeters;
     double Height = BaseHeightMeters;
@@ -42,6 +67,68 @@ double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) con
         }
     }
     return FMath::Min(Height, 0.0);
+}
+
+void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
+{
+    Heights.SetNumUninitialized(Directions.Num());
+    if (!NativePerlin)
+    {
+        for (int32 I = 0; I < Directions.Num(); ++I) Heights[I] = SampleHeightMeters(Directions[I]);
+        return;
+    }
+    // VPP 2.0p8's public PerlinNoise3D compute-node ABI: XYZ, amplitude,
+    // feature scale, seed -> value. Keep the adapter here; never copy vendor noise.
+    constexpr int32 BatchSize = 512;
+    float X[BatchSize], Y[BatchSize], Z[BatchSize], Noise[BatchSize];
+    FVector Unit[BatchSize]; double Sum[BatchSize];
+    const float One = 1;
+    for (int32 Start = 0; Start < Directions.Num(); Start += BatchSize)
+    {
+        const int32 Num = FMath::Min(BatchSize, Directions.Num() - Start);
+        for (int32 I = 0; I < Num; ++I)
+        {
+            const FVector& D = Directions[Start + I];
+            Unit[I] = D.ContainsNaN() ? FVector::ZeroVector : D.GetSafeNormal();
+            Heights[Start + I] = BaseHeightMeters;
+        }
+        for (const FNoise& Layer : Layers)
+        {
+            for (int32 I = 0; I < Num; ++I) Sum[I] = 0;
+            double Weight = 1, Total = 0, Frequency = 1;
+            for (int32 Octave = 0; Octave < Layer.Octaves; ++Octave)
+            {
+                for (int32 I = 0; I < Num; ++I)
+                {
+                    const FVector P = Unit[I] * (RadiusMeters * Frequency / Layer.Wavelength);
+                    X[I] = P.X; Y[I] = P.Y; Z[I] = P.Z;
+                }
+                const ispc::FVoxelInputBuffer Inputs[] = {
+                    {X, false}, {Y, false}, {Z, false}, {&One, true}, {&One, true}, {&Layer.Seed, true}};
+                void* Outputs[] = {Noise}; NativePerlin(Inputs, Outputs, Num);
+                for (int32 I = 0; I < Num; ++I)
+                {
+                    const double N = Noise[I];
+                    Sum[I] += (Layer.Shape == ECLNoiseShape::Ridged ? 1 - FMath::Abs(N) : .5 + .5 * N) * Weight;
+                }
+                Total += Weight; Weight *= Layer.Persistence; Frequency *= 2;
+            }
+            for (int32 I = 0; I < Num; ++I)
+            {
+                const double Value = FMath::Lerp(Layer.Minimum, Layer.Maximum, FMath::Clamp(Sum[I] / Total, 0.0, 1.0));
+                double& H = Heights[Start + I];
+                switch (Layer.Blend)
+                {
+                case ECLNoiseBlend::Override: H = Value; break;
+                case ECLNoiseBlend::Add: H += Value; break;
+                case ECLNoiseBlend::Max: H = FMath::Max(H, Value); break;
+                case ECLNoiseBlend::Min: H = FMath::Min(H, Value); break;
+                }
+            }
+        }
+        for (int32 I = 0; I < Num; ++I)
+            Heights[Start + I] = Unit[I].IsNearlyZero() ? 0 : FMath::Min(Heights[Start + I], 0.0);
+    }
 }
 
 bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error)
@@ -77,12 +164,18 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion != 2 && Recipe.SchemaVersion != 3) || Recipe.AlgorithmVersion != 1) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion != 2 && Recipe.SchemaVersion != 3) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion != 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.Strata.Stratum.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
     if (!ValidateNoiseLayers(Recipe.NoiseLayers, Error)) return nullptr;
     auto Plan = MakeShared<FCLCompiledPlanetRecipe>();
+    if (Recipe.AlgorithmVersion == 2)
+    {
+        if (!NativePerlinABIIsCompatible()) return Fail(TEXT("VPP PerlinNoise3D pin layout changed; native adapter requires qualification"));
+        Plan->NativePerlin = GVoxelNodeISPCPtrs.FindRef(TEXT("VoxelComputeNode_PerlinNoise3D"));
+        if (!Plan->NativePerlin) return Fail(TEXT("VPP PerlinNoise3D kernel is unavailable; native generation cannot fall back to algorithm 1"));
+    }
     Plan->RadiusMeters = Recipe.RadiusMeters;
     if (!FMath::IsFinite(Recipe.BaseSurfaceNormalized) || Recipe.BaseSurfaceNormalized <= 0 || Recipe.BaseSurfaceNormalized > 1)
         return Fail(TEXT("BaseSurfaceNormalized must be in (0, 1]"));
@@ -134,6 +227,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         uint32 Seed = Mix(uint32(Recipe.Seed) ^ Mix(uint32(Layer.Seed)));
         // Explicit seed, independent of array order or process-local FName indices.
         for (TCHAR C : Layer.Name.ToString().ToLower()) Seed = Mix(Seed ^ uint32(C));
+        Noise.Seed = static_cast<int32>(Seed);
         Noise.Offset = FVector(Mix(Seed) % 8192 + .37, Mix(Seed + 1) % 8192 + .59, Mix(Seed + 2) % 8192 + .83);
         double& Low = Plan->MinimumHeightMeters; double& High = Plan->MaximumHeightMeters;
         switch (Noise.Blend)
@@ -240,8 +334,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3) || Algorithm != 1)
-    { Error = TEXT("Recipe requires schemaVersion 1, 2 or 3 and algorithmVersion 1"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema != 3))
+    { Error = TEXT("Recipe requires schemaVersion 1/2/3 with algorithm 1, or schemaVersion 3 with algorithm 2"); return false; }
     if (Schema == 1)
     {
         // Explicit, lossless conversion of the old metre-based document.

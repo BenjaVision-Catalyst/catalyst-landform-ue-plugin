@@ -86,8 +86,16 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleHeights(const FVoxelQuery& Query,
 {
     FVoxelFloatBuffer Heights;
     Heights.Allocate(Directions.Num());
+    TArray<FVector> UnitDirections;
+    TArray<double> Samples;
+    if (RecipePlan)
+    {
+        UnitDirections.SetNumUninitialized(Directions.Num());
+        for (int32 I = 0; I < Directions.Num(); ++I) UnitDirections[I] = Directions[I];
+        RecipePlan->SampleHeightsMeters(UnitDirections, Samples);
+    }
     for (int32 I = 0; I < Heights.Num(); ++I)
-        Heights.Set(I, RecipePlan ? RecipePlan->SampleHeightMeters(Directions[I]) * 100 : 0);
+        Heights.Set(I, RecipePlan ? Samples[I] * 100 : 0);
     for (const FSource& Source : Sources)
     {
         FVoxelDoubleVector2DBuffer Positions;

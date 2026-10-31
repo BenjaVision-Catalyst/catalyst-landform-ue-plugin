@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
 #include "Model/CLStrata.h"
+#include "VoxelISPCNodeHelpers.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -38,7 +39,7 @@ enum class ECLNoiseBlend : uint8 { Override, Add, Max, Min };
 UENUM(BlueprintType)
 enum class ECLNoiseScale : uint8 { Meters UMETA(DisplayName="Absolute distance"), PlanetRadius };
 
-/** Ordered generation operation. Algorithm v1 uses UE's 3D Perlin evaluator. */
+/** Ordered generation operation. Algorithm 1 uses UE Perlin; 2 uses VPP Perlin 3D. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLNoiseLayer
 {
@@ -90,13 +91,18 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
         ECLNoiseBlend Blend;
         double Minimum, Maximum, Wavelength, Persistence;
         int32 Octaves;
+        int32 Seed = 0;
     };
+    /** Captured native kernel only: no graph assets or UObject access on workers. */
+    FVoxelNodeISPCPtr NativePerlin = nullptr;
     double RadiusMeters = 100;
     double BaseHeightMeters = 0;
     double MinimumHeightMeters = 0, MaximumHeightMeters = 0;
     TArray<FCLHeightGuide> Guides;
     TArray<FNoise> Layers;
     double SampleHeightMeters(const FVector& LocalDirection) const;
+    /** Batched native generation, with bounded scratch memory; results are metre offsets. */
+    void SampleHeightsMeters(TConstArrayView<FVector> LocalDirections, TArray<double>& Heights) const;
 };
 
 class CATALYSTLANDFORM_API FCLPlanetCompiler

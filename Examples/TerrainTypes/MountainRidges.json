@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "434C1001000000000000000000000066",
   "name": "Mountain ridges",
   "description": "Ridged backbone with smaller-scale roughness; an initial noise-based shape, without erosion or authored stamps.",
@@ -54,5 +54,6 @@
       "octaves": 3,
       "persistence": 0.5
     }
-  ]
+  ],
+  "algorithmVersion": 2
 }

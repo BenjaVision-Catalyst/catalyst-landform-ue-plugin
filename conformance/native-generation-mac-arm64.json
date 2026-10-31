@@ -1,0 +1,237 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "implementation": {
+    "recipe_schema": 3,
+    "terrain_type_schema": 2,
+    "algorithm_version": 2,
+    "native_node": "VoxelComputeNode_PerlinNoise3D",
+    "execution": "Registered native VPP compute kernel, batched through its public buffer ABI; Landform owns octave/shape/blend operations",
+    "scratch_batch_limit": 512,
+    "workers": "Immutable resolved plans, captured native function pointer, no graph/editor UObject access",
+    "legacy": "Algorithm 1 retained; no automatic planet upgrades; missing kernel or changed node pin layout fails closed"
+  },
+  "component_automation": {
+    "succeeded": 25,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+    "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+    "Catalyst.Landform.Designer.DeferredGesture": "Success",
+    "Catalyst.Landform.Designer.DeferredTerrainPreview": "Success",
+    "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+    "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+    "Catalyst.Landform.Designer.SurfaceArea": "Success",
+    "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+    "Catalyst.Landform.NativeGeneration.DesignerSphereParity": "Success",
+    "Catalyst.Landform.NativeGeneration.KernelAndVersioning": "Success",
+    "Catalyst.Landform.Recipes.HeightGuides": "Success",
+    "Catalyst.Landform.Recipes.OrderedLayers": "Success",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "Success",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "Success",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Strata.Presets": "Success",
+    "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+    "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success"
+  },
+  "native_kernel_oracle": {
+    "maximum_error_m": 3.576279e-06,
+    "tolerance_m": 0.0001,
+    "batch_sizes": [
+      0,
+      1,
+      31,
+      512,
+      513,
+      1025
+    ],
+    "coverage": [
+      "native node pin oracle",
+      "scalar/batch equality",
+      "worker determinism",
+      "native type and recipe JSON roundtrips",
+      "unknown version rejection"
+    ]
+  },
+  "designer_spherical_field": {
+    "source_samples": 216124,
+    "maximum_radial_residual_cm": 0.002735,
+    "tolerance_cm": 5,
+    "coverage_m": [
+      100,
+      500,
+      1000
+    ],
+    "sky_radii_m": [
+      100,
+      1000
+    ],
+    "cases": [
+      "changed planet seed",
+      "disabled roughness",
+      "absolute wavelength",
+      "ordered blending and sky clipping",
+      "whole globe",
+      "poles",
+      "longitude seam"
+    ],
+    "flat_preview": "Normalized radial heights preserved; fixed flat presentation frame, at most 5m grid spacing"
+  },
+  "actual_vpp_collision": {
+    "passed": true,
+    "designer_width_m": 500,
+    "sky_radius_m": 1000,
+    "voxel_size_cm": 50,
+    "sampled_vertices": 25,
+    "max_collision_error_cm": 12.386168367,
+    "collision_source": "VPP Chaos triangles"
+  },
+  "asset_reload": {
+    "shipped_presets_match_json": {
+      "Plains": true,
+      "Hills": true,
+      "MountainRidges": true
+    },
+    "native_variant_reloaded": true,
+    "planet_snapshot_matches_type": true,
+    "map_bound_to_native_recipe": true,
+    "algorithm_version": 2,
+    "sky_radius_m": 1000,
+    "preserved_user_files": {
+      "Config/DefaultEngine.ini": "81750862dff126e8f06b7889194edaa3e6d17579bc7881d892d7fd3a52351192",
+      "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+      "Content/LandformDesigner/DA_StrataLibrary.uasset": "575c9349781d7e63dec531f66a158a23569b92575588f93d5eb010153145979c",
+      "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "7f5f21133d189354d50c36cceb9e08ab395fbafc469d6dac1a693967086d0db0",
+      "Content/LandformDesigner/TerrainTypes/DA_MountainRidges.uasset": "1cf7ac8df318e6c9bd89bd19a752644fe2e58fecdada1a6c4c4cd6c71a084451"
+    },
+    "sample_directions": [
+      [
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        1.0,
+        2.0,
+        3.0
+      ]
+    ],
+    "sample_heights_cm": [
+      -40459.32421875,
+      -43415.671875,
+      -42840.01953125,
+      -43985.6796875,
+      -47017.48046875
+    ]
+  },
+  "runtime_source_sha256": {
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "30dce7a0c196957bc73b1e72320e0715ac8388552f52899bdcbf921df2c1f91e",
+    "Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Source/CatalystLandform/Private/CLPlanet.cpp": "fde616a0f7db5c4e536b33e4ef2cd7531191b3d9d2bf5cb83bca25b4c9f1c7aa",
+    "Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "4b7c70095dd303f08d5fa2d9c08eb567c1466bed896277e3eff9520489164a82",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9",
+    "Source/CatalystLandform/Private/Model/CLModelJson.h": "52bb7889829d5a96bde347d338afb59d5ba44558953ba2b6b9adb136485483c5",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "6fccac2ee8dad7f85e7e24d5cee5c94715621d0f7b39f2ea5b566c880b6ec0bd",
+    "Source/CatalystLandform/Private/Model/CLStrata.cpp": "d00b219d8f9494ea40f36d9e05d2348ec94e8f90702229c2c8ef536ccadd72e3",
+    "Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "0b4e63e93c63bebdcdc101fffa73b82d4e2e29bd34a2c11db0a9603f05e435e6",
+    "Source/CatalystLandform/Public/CLPlanet.h": "34e9335b9b5c243d90739ee8a984a48d0b71df1c4934b9b5b7bb7a9f3c140aeb",
+    "Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Source/CatalystLandform/Public/CLPlanetStamp.h": "3b7e2fad7a3e6dfdf72dee1a4e944cc9a9ebe32f1aa140fbe764ed6a9b5a0be2",
+    "Source/CatalystLandform/Public/CLRadialGravityMovement.h": "b5eeda00503e591398c89683b73da15654e0e1eb1566b853cfaa2373305c99f4",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "1d522dec7f3f3b0ca5e785bc509b56fd5f205575f3d56478c78ddc7a1145d09c",
+    "Source/CatalystLandform/Public/Model/CLStrata.h": "a78098c693aca2c74be4ef7e7a913322b618f803cea59e89cec11cb7f426601d",
+    "Source/CatalystLandform/Public/Model/CLTerrainType.h": "07b420e3fab4659784b32dd20f96f859ddfa1dcf5922b4138f26e09ba8e78a90",
+    "Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "67cf7d4d2d9ca8f32f26d2a750a82d332dd2c3e3d96f4f51b9b941cc2fe689a2",
+    "Source/CatalystLandformEditor/Private/CLNoiseLayerStack.cpp": "80be7893c43832c60accbf13b2ce8da06f8a33b12375a2ba201869a9fe975337",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "85e185c64050d827c6487618488a560d5fa984a569fb557afa8566dc8c084232",
+    "Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "402f7ea6a45cd9da65cb5cba8a3812afb51861077008acd538b12ec186dc3e69",
+    "Source/CatalystLandformEditor/Private/CLSectionNavigation.cpp": "cec47b78d8971c0d2048f7baba93da1958ab04257df34a3b3dea84b0b073cdc2",
+    "Source/CatalystLandformEditor/Private/CLStrataEditing.cpp": "348392bf970c6103c262cb3db07d2b43d2fe5bc9e5340f5c867273cc0f2281df",
+    "Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "4244cb4ee056d94b5df9369f217430a00afc07d89773f741a3ee7cf56c67d32c",
+    "Source/CatalystLandformEditor/Private/CLTerrainTypeEditor.cpp": "2687e4d089c9ae3843a744ccec13a5e2585c268096a887b9dc46461e7f61c347",
+    "Source/CatalystLandformEditor/Public/CLNoiseLayerStack.h": "5c608c425c9da44e45dca1e2abc797a1febad904cc068cfe6b3b6a2c9a42facf",
+    "Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "721e6870aacbae2eddd9dbb04643809239777e96a8e2641b07d9d2e34ac37c18",
+    "Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "376258cb18136ab39192cfc3171775256859da745b6ae7db532a4fbac4442f46",
+    "Source/CatalystLandformEditor/Public/CLSectionNavigation.h": "5d802f117e834b1366c5e95aa2a658949b287c3a321e8e365cc785cc5718258e",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "7154f23cbf876c4878ca2ef7c86edd20e77a4893b2476185dcc6a3c6b5fef683",
+    "Source/CatalystLandformEditor/Public/CLTerrainDesigner.h": "ad90b4a3b1d1964c330e181e52c0a25067f469108ca3da845917d6deeae3436f",
+    "Source/CatalystLandformEditor/Public/CLTerrainEditing.h": "e95eb65cc6942af33dff51cf2935120ab08db4d7fa1a4023e4ef94f259e92fa9",
+    "Source/CatalystLandformTests/CatalystLandformTests.Build.cs": "f7198a5ccadef1d6ef4ea3ac8392833923f202a7be83cb0c2bfc6cb358dffeb6",
+    "Source/CatalystLandformTests/Private/CLNativeGenerationTests.cpp": "0ec3f02b77c915fc368a86378001a3e1b23ec131bb6052cc9a214f85aa3b91ea",
+    "Source/CatalystLandformTests/Private/CLRecipeTests.cpp": "cb08ff02547bd00b6f9449e38da5ae6c0e57483307f929252e6ed8a9a1b82ae2",
+    "Source/CatalystLandformTests/Private/CLSectionTests.cpp": "46ef088bff5f94f2d0c6211955b8986f9ad211d10983b9cdc0c75494d5ced278",
+    "Source/CatalystLandformTests/Private/CLStrataTests.cpp": "9af4556df6e4e3701718e8e80fdc911737eea460a1571746cc9eb799906734ce",
+    "Source/CatalystLandformTests/Private/CLTerrainEditingTests.cpp": "cbd95172de94ba0cded7ce120f3b4705aa72215a1924f6fcacefd3344a0d0ff7",
+    "Source/CatalystLandformTests/Private/CLTerrainTypeTests.cpp": "75dea95bc5a18da852768ef05b63aef6224ac9a4f19c3a627b6c8e4be76b2455"
+  },
+  "native_vendor_source_sha256": {
+    "Nodes/VoxelNoiseNodesImpl.isph": "7aac64f13c8bd6788cb7aa3e733966e5c588699732cbd00df029c64969c82beb",
+    "Nodes/VoxelNoiseNodes_Generated.ispc": "d656efc5f3eb488254760ee3eb5920b305a595988cb32438816bf9b74a80acee",
+    "Nodes/VoxelNoiseNodes_Generated.cpp": "758cd8735ee105b2a16e2cfb79bd83f30b36cd09cbd5f8277642cef59d969487",
+    "VoxelISPCNodeHelpers.h": "ca205b6d970c3d0f38cb372589410a167f9a6e2414d8fadce3318dd7b28c8907"
+  },
+  "artifacts": {
+    "component_report": "Saved/Verification/native-generation/index.json",
+    "collision_report": "Saved/Verification/native-mountain-collision/index.json",
+    "collision_measurements": "Saved/Verification/native-mountain-collision.json",
+    "asset_reload": "Saved/Verification/native-mountain-assets.json",
+    "proof_map": "/Game/LandformDesigner/MountainRidgesNativeProof",
+    "terrain": "/Game/LandformDesigner/TerrainTypes/DA_MountainRidgesNative",
+    "recipe": "/Game/LandformDesigner/DA_MountainRidgesNativePlanet"
+  },
+  "visual_inspection": {
+    "globe": "Saved globe framing inspected in the live editor; visible native terrain and no directional-light priority warning. Map check: 0 errors, 0 warnings.",
+    "designer": "Live native Mountain ridges variant inspected at 500x500m, High relief, radius 1000m, seed 1729. Both editable layers and lit flat core-to-sky preview visible; correct contextual planet and Apply to planet available. Left open for the user."
+  },
+  "known_component_warnings": "Two existing engine LineSetComponentMaterial / missing MeshModelingToolsetExp material-function warnings in Recipes.VPPAndLiveEdits; native-generation tests had no warnings.",
+  "limits": [
+    "Pinned to this VPP/UE/Mac build; requalify vendor kernel before an upgrade",
+    "Calls native VPP noise kernel; does not dynamically assemble arbitrary UVoxelGraph assets",
+    "Base noise terrain only; separately placed stamp actors, materials, erosion and foliage are outside preview parity",
+    "Different display mapping and tessellation: flat Designer source heights match the curved radial field, not pixel-identical shading",
+    "Collision qualification samples 25 vertices over a 500m north-pole patch, not an exhaustive mesh or circumnavigation",
+    "Packaged/cooked, backend/network protocol and PCG generation remain unqualified",
+    "Radial distance field, not exact Euclidean SDF"
+  ],
+  "host_automation": {
+    "succeeded": 1,
+    "succeededWithWarnings": 0,
+    "failed": 0,
+    "notRun": 0
+  },
+  "proof_asset_sha256": {
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidgesNative.uasset": "8038b58cdc3b30ee963548cc033f10fba9adb09c8f6d85fb747be272cccfdb7b",
+    "Content/LandformDesigner/DA_MountainRidgesNativePlanet.uasset": "2649ec565aeed94128223b9c2e8078cba0fcf2366d1be9d411b86fbb12946dd4",
+    "Content/LandformDesigner/MountainRidgesNativeProof.umap": "7f520c42689c0697a732c17db33e9454fc52a31b45d513acbfe6717cc5b2cfa1"
+  }
+}

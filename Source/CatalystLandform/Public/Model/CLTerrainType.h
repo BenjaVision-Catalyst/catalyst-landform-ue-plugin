@@ -8,7 +8,9 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLTerrainType
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 1;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 2;
+    /** 1 preserves the original CPU field; 2 is the pinned native VPP kernel. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay) int32 AlgorithmVersion = 1;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid Id;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Untitled terrain type");
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Description;
@@ -34,6 +36,7 @@ public:
     virtual void PostEditUndo() override;
 #endif
 protected:
+    virtual int32 GetSchemaVersion() const override { return TerrainType.SchemaVersion; }
     virtual FString GetPluginNameForPaths() const override { return TEXT("CatalystLandform/TerrainTypes"); }
     virtual UScriptStruct* GetPayloadScriptStruct() const override { return FCLTerrainType::StaticStruct(); }
     virtual void* GetPayloadMemory() override { return &TerrainType; }

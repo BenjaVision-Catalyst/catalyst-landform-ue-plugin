@@ -6,15 +6,20 @@ double FCLSectionGeometry::DefaultWidth(const FCLCompiledPlanetRecipe&)
 double FCLSectionGeometry::ReferenceSurfaceRadius(const FCLCompiledPlanetRecipe& Plan)
 { return FMath::Max(.001, Plan.RadiusMeters + Plan.SampleHeightMeters(FVector::ZAxisVector)); }
 
+namespace
+{
+FVector SectionDirection(double X, double Y, double ReferenceRadius, const FQuat& Rotation)
+{
+    // Exponential map: centre-axis distances are metres on the reference sphere.
+    const double Distance = FMath::Sqrt(X * X + Y * Y), Angle = Distance / ReferenceRadius;
+    const double S = Distance > .000001 ? FMath::Sin(Angle) / Distance : 0;
+    return Rotation.RotateVector(FVector(X * S, Y * S, FMath::Cos(Angle)));
+}
+}
+
 FVector FCLSectionGeometry::SourceSurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading)
 {
-    // Exponential map at the north pole: distance along either centre axis is
-    // exactly the requested number of metres on the reference surface sphere.
-    const double Distance = FMath::Sqrt(X * X + Y * Y);
-    const double Angle = Distance / ReferenceSurfaceRadius(Plan);
-    const double S = Distance > .000001 ? FMath::Sin(Angle) / Distance : 0;
-    const FVector Local(X * S, Y * S, FMath::Cos(Angle));
-    const FVector Direction = FQuat(FVector::ZAxisVector, Heading).RotateVector(Local);
+    const FVector Direction = SectionDirection(X, Y, ReferenceSurfaceRadius(Plan), FQuat(FVector::ZAxisVector, Heading));
     return Direction * (Plan.RadiusMeters + Plan.SampleHeightMeters(Direction)) * 100;
 }
 
@@ -52,11 +57,22 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
     auto Add = [&](const FVector& P, FLinearColor C) { G.Vertices.Add(P); G.Colors.Add(C); };
     // Arguments use mathematical outward CCW; UE renders the reverse winding.
     auto Triangle = [&](int32 A, int32 B, int32 C) { G.Triangles.Append({A, C, B}); };
+    TArray<FVector> Directions;
+    Directions.Reserve((N + 1) * (N + 1));
+    const double ReferenceRadius = ReferenceSurfaceRadius(Plan);
+    const FQuat Rotation(FVector::ZAxisVector, Heading);
+    for (int32 Y = 0; Y <= N; ++Y)
+        for (int32 X = 0; X <= N; ++X)
+            Directions.Add(SectionDirection(G.HalfWidthMeters * (2.0 * X / N - 1),
+                G.HalfWidthMeters * (2.0 * Y / N - 1), ReferenceRadius, Rotation));
+    TArray<double> Heights;
+    Plan.SampleHeightsMeters(Directions, Heights);
     for (int32 Y = 0; Y <= N; ++Y)
         for (int32 X = 0; X <= N; ++X)
         {
             const FVector2D XY(G.HalfWidthMeters * (2.0 * X / N - 1), G.HalfWidthMeters * (2.0 * Y / N - 1));
-            const FVector Source = SourceSurfacePoint(Plan, XY.X, XY.Y, Heading);
+            const int32 Index = Y * (N + 1) + X;
+            const FVector Source = Directions[Index] * (Plan.RadiusMeters + Heights[Index]) * 100;
             G.SourceSurfacePoints.Add(Source);
             const FVector2D DisplayXY = XY * (DisplaySize / (G.HalfWidthMeters * 2));
             const FVector P = StratumPoint(DisplayXY, Source.Size() / (100 * Plan.RadiusMeters));
