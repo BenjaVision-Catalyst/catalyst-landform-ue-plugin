@@ -261,3 +261,14 @@ noise algorithm and field. This is a CPU PCG element pipeline, not arbitrary PCG
 graph scheduling or GPU execution. Streaming for large planets, backend delivery,
 cooking, surface metadata and a finished photoreal stamp collection remain future
 work. The radial field remains distinct from an exact Euclidean SDF.
+
+### Mountain ridges with stamps
+
+`MountainRidgesStamped.json` and `DA_MountainRidgesStamped` combine the existing
+native Ridge backbone and Ridge roughness layers with a Mountains distribution
+between them. The noise settings are unchanged. Ridge/Massif sources add larger
+relief with 16–30% radius footprints, smooth native Max merging and a 22% edge
+fade; the final noise layer roughens both the backbone and added forms.
+The host's `Docs/MountainRidgesStamped.md` describes the matching Designer and
+planet proof. Qualification is retained in
+`conformance/mountain-stamps-mac-arm64.json`.

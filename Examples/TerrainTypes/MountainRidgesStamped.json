@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 4,
+  "id": "434C1001000000000000000000000069",
+  "name": "Mountain ridges + stamps",
+  "description": "Native ridged backbone, weighted mountain relief stamps, then fine ridge roughness.",
+  "noiseLayers": [
+    {
+      "name": "Ridge backbone",
+      "bEnabled": true,
+      "seed": 0,
+      "shape": "Ridged",
+      "blend": "Override",
+      "minimum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.45,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.95,
+        "offsetMeters": 0
+      },
+      "scale": "PlanetRadius",
+      "wavelengthRadiusFraction": 0.35,
+      "octaves": 4,
+      "persistence": 0.5
+    },
+    {
+      "name": "Mountain relief stamps",
+      "operation": "StampDistribution",
+      "distribution": {
+        "collectionId": "Mountains",
+        "collectionRevision": 1,
+        "seed": 71,
+        "densityPerSquareKilometer": 20,
+        "sizeMode": "PlanetRadius",
+        "minimumSizeRadiusFraction": 0.16,
+        "maximumSizeRadiusFraction": 0.3,
+        "minimumReliefRatio": 0.08,
+        "maximumReliefRatio": 0.18,
+        "blend": "Collection",
+        "blendSmoothnessRadiusFraction": 0.0025,
+        "edgeFalloffFraction": 0.22
+      }
+    },
+    {
+      "name": "Ridge roughness",
+      "bEnabled": true,
+      "seed": 12,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.015,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.015,
+        "offsetMeters": 0
+      },
+      "scale": "PlanetRadius",
+      "wavelengthRadiusFraction": 0.065,
+      "octaves": 3,
+      "persistence": 0.5
+    }
+  ],
+  "algorithmVersion": 2
+}

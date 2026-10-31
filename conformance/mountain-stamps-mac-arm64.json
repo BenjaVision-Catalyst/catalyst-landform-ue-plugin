@@ -1,0 +1,172 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "preset": "Mountain ridges + stamps",
+  "schemas": {
+    "terrain": 4,
+    "recipe": 5,
+    "algorithm": 2
+  },
+  "stack": [
+    "Unchanged native Ridge backbone",
+    "PCG Mountains revision 1, Ridge:Massif weight 3:1",
+    "Unchanged Ridge roughness"
+  ],
+  "settings": {
+    "collectionId": "Mountains",
+    "collectionRevision": 1,
+    "seed": 71,
+    "densityPerSquareKilometer": 20,
+    "sizeMode": "PlanetRadius",
+    "minimumSizeRadiusFraction": 0.16,
+    "maximumSizeRadiusFraction": 0.3,
+    "minimumReliefRatio": 0.08,
+    "maximumReliefRatio": 0.18,
+    "blend": "Collection",
+    "blendSmoothnessRadiusFraction": 0.0025,
+    "edgeFalloffFraction": 0.22
+  },
+  "component_automation": {
+    "passed": 32,
+    "failed": 0,
+    "not_run": 0,
+    "warnings": 2
+  },
+  "final_collision_automation": {
+    "succeeded": 1,
+    "succeededWithWarnings": 0,
+    "failed": 0,
+    "notRun": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+    "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+    "Catalyst.Landform.Designer.DeferredGesture": "Success",
+    "Catalyst.Landform.Designer.DeferredTerrainPreview": "Success",
+    "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+    "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+    "Catalyst.Landform.Designer.SurfaceArea": "Success",
+    "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+    "Catalyst.Landform.NativeGeneration.DesignerSphereParity": "Success",
+    "Catalyst.Landform.NativeGeneration.KernelAndVersioning": "Success",
+    "Catalyst.Landform.Plateaus.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Plateaus.DesignerSphereParity": "Success",
+    "Catalyst.Landform.Plateaus.TerraceSemantics": "Success",
+    "Catalyst.Landform.Recipes.HeightGuides": "Success",
+    "Catalyst.Landform.Recipes.OrderedLayers": "Success",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "Success",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "Success",
+    "Catalyst.Landform.StampDistribution.DesignerSphereParity": "Success",
+    "Catalyst.Landform.StampDistribution.DeterministicPCG": "Success",
+    "Catalyst.Landform.StampDistribution.VersioningAndSnapshots": "Success",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Strata.Presets": "Success",
+    "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+    "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success",
+    "LandformLab.NativeGeneration.MountainStampCollisionParity": "Success"
+  },
+  "field_parity": {
+    "suite_samples": 325221,
+    "cases": 6,
+    "maximum_radial_residual_cm": 0.004134,
+    "normalized_display_error": 0.0,
+    "note": "Suite includes the new combined preset plus five prior native distribution/mixed-stack cases"
+  },
+  "collision": {
+    "passed": true,
+    "designer_width_m": 500,
+    "sky_radius_m": 1000,
+    "voxel_size_cm": 50,
+    "sampled_vertices": 41,
+    "riser_vertices": 0,
+    "overlap_vertices": 8,
+    "fade_vertices": 8,
+    "max_collision_error_cm": 24.080684659,
+    "collision_source": "VPP Chaos triangles"
+  },
+  "assets": {
+    "saved_assets_match_json": true,
+    "noise_layers_unchanged": true,
+    "native_algorithm": 2,
+    "placement_count": 89,
+    "sources": [
+      "Ridge",
+      "Massif"
+    ],
+    "placement_sha256": "b748434951f789f9e5bcc5f3f94c1b599f321be81b0139c589b10dc3b8e142be",
+    "sampled_points": 2137,
+    "minimum_stamp_delta_m": 0.0,
+    "maximum_stamp_delta_m": 47.8986328125,
+    "preserved_files": {
+      "Config/DefaultEngine.ini": "81750862dff126e8f06b7889194edaa3e6d17579bc7881d892d7fd3a52351192",
+      "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+      "Content/LandformDesigner/DA_StrataLibrary.uasset": "575c9349781d7e63dec531f66a158a23569b92575588f93d5eb010153145979c",
+      "Content/LandformDesigner/DA_PlateausPlanet.uasset": "353cc5226a5870fbf9ee57f29557367f615a82da67160ab8d48af8f0e519d2f8",
+      "Content/LandformDesigner/DA_StampDistributionPlanet.uasset": "dcabb22ee7e84960e1b257450e0f7c9a369a695afdafdd6c16a7e549238bc911",
+      "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "7f5f21133d189354d50c36cceb9e08ab395fbafc469d6dac1a693967086d0db0",
+      "Content/LandformDesigner/DA_MountainRidgesNativePlanet.uasset": "2649ec565aeed94128223b9c2e8078cba0fcf2366d1be9d411b86fbb12946dd4",
+      "Content/LandformDesigner/TerrainTypes/DA_Plateaus.uasset": "cf433418ccaae149e795068c4e3b9376be14298eaeea02b28d08e69d521d6b69",
+      "Content/LandformDesigner/TerrainTypes/DA_MountainRidgesNative.uasset": "8038b58cdc3b30ee963548cc033f10fba9adb09c8f6d85fb747be272cccfdb7b",
+      "Content/LandformDesigner/TerrainTypes/DA_StampDistribution.uasset": "344d4bcc187d1d0a977e6826561bb417742b36d43ec931b6650bd12da7a3f0bc",
+      "Content/LandformDesigner/TerrainTypes/DA_MountainRidges.uasset": "1cf7ac8df318e6c9bd89bd19a752644fe2e58fecdada1a6c4c4cd6c71a084451",
+      "Content/LandformDesigner/RollingPlainsProof.umap": "d816134d74cfb0f4329e8fc023d4279f55357664ba36d6bdfd489afc53c6a3fe",
+      "Content/LandformDesigner/PlateausProof.umap": "e4b7bc99d2751f2941772f043f7a9350b4a17d13ce823c113748c09423c88640",
+      "Content/LandformDesigner/StampDistributionProof.umap": "68df35f4e6a05389e200da683367dee97d6a43830ed37d6d0fb89953e9feb6cc",
+      "Content/LandformDesigner/MountainRidgesNativeProof.umap": "7f520c42689c0697a732c17db33e9454fc52a31b45d513acbfe6717cc5b2cfa1"
+    },
+    "map_bound_to_recipe": true
+  },
+  "collision_configuration": {
+    "visibility": "NoCollision",
+    "invoker": "BlockAll; 25m character invoker; 50cm voxels",
+    "initial_failed_max_error_cm": 177.565765161,
+    "correction": "Disable overlapping coarse visibility collision in this owned proof map; existing proof maps unchanged",
+    "reference": "https://docs.voxelplugin.com/2.0p8%20-%20v2/design-docs/collision-mesh-navmesh"
+  },
+  "seeding_shutdown": {
+    "initial": "Seed editor saved all assets, then crashed in VPP collision creation during Python GC shutdown; stopped the task-owned crash-handler process",
+    "corrected": "Disabled visibility collision and released generated world to Entry before shutdown; rerun exited successfully",
+    "vendor_sources_changed": false
+  },
+  "source_sha256": {
+    "Examples/TerrainTypes/MountainRidges.json": "1e223e897c2bd5589d852c0db21b16f9e979f47e30881a2c5ff54de6f58e04df",
+    "Examples/TerrainTypes/MountainRidgesStamped.json": "bf8cd86879d719cbf994d9aaaa76dafa4ebf77261936d6b6f1922be8c1b73d22",
+    "Content/TerrainTypes/DA_MountainRidgesStamped.uasset": "27ffe23a81e745700bc6229a6b290eacbae10fcebbd17db5880014baf129b610",
+    "Source/CatalystLandformTests/Private/CLStampDistributionTests.cpp": "2c8576083daba502563e2c1ba68a5c7a60f750d456bb3d901bc8027ff48f2bf9"
+  },
+  "host_sha256": {
+    "Source/LandformLab/Private/CLNativeGenerationProofTests.cpp": "6b6a90ffafcf0b40d330e6c63c2ae8c8702e34b954677af58e20e0a73d235bad",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidgesStamped.uasset": "1b843ed8f526e8c1b1ebddb6fd1123e3326828c2edd34c733ac76f9d24ac9f42",
+    "Content/LandformDesigner/DA_MountainRidgesStampedPlanet.uasset": "2cff9aafa1bd3712a99339125fde8352282c0c92e8bd55d7dcd75e27714d6fb0",
+    "Content/LandformDesigner/MountainRidgesStampedProof.umap": "a817b0263b5a7fe2248329d0e252ee07a164a6e764809224299f32eeea33b4e0"
+  },
+  "visual_inspection": {
+    "globe": "Live complete spherical mountain terrain inspected at the saved-scale globe camera; combined large and small relief visible.",
+    "designer": "Live DA_MountainRidgesStamped inspected at 500x500m, 1000m sky radius, High relief, seed 1729. Three enabled layers and mountain ridge relief rendered in the flat studio section. Matching context and proof level left open.",
+    "input": "No manual gesture claim; existing native input injection limitation. Preset content/reload, shared field and physical collision verified separately."
+  },
+  "warnings": "Existing material-function/LineSetComponentMaterial warnings in Recipes.VPPAndLiveEdits; new collision test has no warnings",
+  "artifacts": {
+    "component": "Saved/Verification/mountain-stamps/index.json (32 component tests passed; initial collision failure retained)",
+    "final_collision": "Saved/Verification/mountain-stamps-collision/index.json",
+    "assets": "Saved/Verification/mountain-stamps-assets/assets.json"
+  },
+  "limits": [
+    "Sampled collision, not exhaustive cliff traversal",
+    "Starter geometric sources and existing rock material, not finished photoreal terrain",
+    "Existing bounded CPU PCG pipeline; no new graph, streaming, backend or cooking qualification",
+    "Flat Designer grid and adaptive VPP mesh share source field, not identical tessellation/shading",
+    "Radial field, not exact Euclidean SDF"
+  ]
+}
