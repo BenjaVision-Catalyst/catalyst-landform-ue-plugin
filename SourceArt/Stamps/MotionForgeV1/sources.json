@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "author": "Chris J Mitchell / Motion Forge Pictures",
+  "source_page": "https://www.motionforgepictures.com/height-maps/",
+  "license": "CC0-1.0",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "license_evidence": "Heightmaps page explicitly states CC0; Grand Mountain and Rocky Peaks archive readmes confirm free Creative Commons / CC0 no-attribution use.",
+  "preparation": "Crop; Lanczos resample; subtract 3rd-percentile floor; linear normalize; outer 7.5% smoothstep feather; re-normalize; linear uint16 encode. No diffuse, gamma correction, noise or invented erosion.",
+  "scale_note": "Sources are not georeferenced and supply no surveyed horizontal/elevation scale. 0.25m source texels and 100m relief are authored normalization units; placement width/relief define final physical size.",
+  "sources": [
+    {
+      "id": "MFP_GrandMountain",
+      "name": "Grand Mountain",
+      "weight": 3,
+      "source_archive": "grand-mountain.zip",
+      "download_url": "https://drive.usercontent.google.com/download?id=1s134YDk2aGJrpDAa4LNfWCiFQGXf93DQ&export=download&confirm=t",
+      "archive_sha256": "25391490f75346f927f35890bea29880e7e2f8592303495cc0d9c79ae91c5689",
+      "member": "Grand Mountain Height Map Shared/Height Map TIF.tif",
+      "member_sha256": "5aff9088ddafda6761007bdf370c25a8eb160491cd6ceba16a53df9ec53b194d",
+      "original_resolution": [
+        4096,
+        4096
+      ],
+      "crop_pixels": [
+        205,
+        410,
+        3891,
+        3891
+      ],
+      "source_floor": 0.0005547283799387515,
+      "source_peak": 0.30625709891319275,
+      "output_resolution": [
+        2049,
+        1935
+      ],
+      "png_sha256": "d4a34d2531bfebbcd910eebdddf51e64c77dace7e0423d8c99559a0d05061e13",
+      "source_bit_depth": "float32",
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "offset_z_cm": 0,
+      "reference_relief_m": 100,
+      "blend": "Max",
+      "samples_16bit": [
+        {
+          "x": 512,
+          "y": 483,
+          "value": 6579
+        },
+        {
+          "x": 1024,
+          "y": 483,
+          "value": 14903
+        },
+        {
+          "x": 1536,
+          "y": 483,
+          "value": 7447
+        },
+        {
+          "x": 512,
+          "y": 967,
+          "value": 23910
+        },
+        {
+          "x": 1024,
+          "y": 967,
+          "value": 54468
+        },
+        {
+          "x": 1536,
+          "y": 967,
+          "value": 22905
+        },
+        {
+          "x": 512,
+          "y": 1451,
+          "value": 10655
+        },
+        {
+          "x": 1024,
+          "y": 1451,
+          "value": 22647
+        },
+        {
+          "x": 1536,
+          "y": 1451,
+          "value": 7715
+        }
+      ]
+    },
+    {
+      "id": "MFP_MountainRange",
+      "name": "Mountain Range",
+      "weight": 3,
+      "source_archive": "mountain-range.zip",
+      "download_url": "https://drive.usercontent.google.com/download?id=1y_vAI4KOrhxB5Ntt0plDdoBOYggR4UKn&export=download&confirm=t",
+      "archive_sha256": "2ed3cf9758d7adb156429e4919e74f885ab0e0c6abe6999c2d00904dc893f444",
+      "member": "Mountain Range 8k Height Map/Mountain Range Height Map EXR.exr",
+      "member_sha256": "ea1fe5a133017217e82c96827b44c76b0c6831c93e9914f8571cc4bf76603e36",
+      "original_resolution": [
+        8192,
+        8192
+      ],
+      "crop_pixels": [
+        819,
+        1638,
+        7782,
+        7782
+      ],
+      "source_floor": 0.0113662825897336,
+      "source_peak": 0.1523640900850296,
+      "output_resolution": [
+        2049,
+        1808
+      ],
+      "png_sha256": "e7e222f71865c4375b77ffdccc8047d85bb609188843221a3304fa8c90b11fac",
+      "source_bit_depth": "float32",
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "offset_z_cm": 0,
+      "reference_relief_m": 100,
+      "blend": "Max",
+      "samples_16bit": [
+        {
+          "x": 512,
+          "y": 452,
+          "value": 37669
+        },
+        {
+          "x": 1024,
+          "y": 452,
+          "value": 31755
+        },
+        {
+          "x": 1536,
+          "y": 452,
+          "value": 32596
+        },
+        {
+          "x": 512,
+          "y": 904,
+          "value": 31454
+        },
+        {
+          "x": 1024,
+          "y": 904,
+          "value": 35505
+        },
+        {
+          "x": 1536,
+          "y": 904,
+          "value": 41764
+        },
+        {
+          "x": 512,
+          "y": 1356,
+          "value": 20010
+        },
+        {
+          "x": 1024,
+          "y": 1356,
+          "value": 14361
+        },
+        {
+          "x": 1536,
+          "y": 1356,
+          "value": 17226
+        }
+      ]
+    },
+    {
+      "id": "MFP_RockyPeaks",
+      "name": "Rocky Peaks",
+      "weight": 2,
+      "source_archive": "rocky-peaks.zip",
+      "download_url": "https://drive.usercontent.google.com/download?id=1GpKgzQez_BrAxjDp-jfgR5H9i5UdtVe3&export=download&confirm=t",
+      "archive_sha256": "9571f863d99e7d8c8d7fcebf0f031a3c2986c3a74a5be45e511120e438aa3c91",
+      "member": "Rugged Terrain with Rocky Peaks/Rugged Terrain with Rocky Peaks Height Map EXR.exr",
+      "member_sha256": "134ee43e54ae30df1bb5bac498faa7cc3cf89b62c4a210b3f149756206870cf1",
+      "original_resolution": [
+        4097,
+        4097
+      ],
+      "crop_pixels": [
+        492,
+        1721,
+        4015,
+        4015
+      ],
+      "source_floor": 0.254040002822876,
+      "source_peak": 0.417479932308197,
+      "output_resolution": [
+        2049,
+        1334
+      ],
+      "png_sha256": "ed5a68a6618bdcbc8d8f239683837638afb08b54fa1425df5f238aeb7eae3137",
+      "source_bit_depth": "float32",
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "offset_z_cm": 0,
+      "reference_relief_m": 100,
+      "blend": "Max",
+      "samples_16bit": [
+        {
+          "x": 512,
+          "y": 333,
+          "value": 19614
+        },
+        {
+          "x": 1024,
+          "y": 333,
+          "value": 11541
+        },
+        {
+          "x": 1536,
+          "y": 333,
+          "value": 3701
+        },
+        {
+          "x": 512,
+          "y": 667,
+          "value": 64859
+        },
+        {
+          "x": 1024,
+          "y": 667,
+          "value": 15288
+        },
+        {
+          "x": 1536,
+          "y": 667,
+          "value": 10559
+        },
+        {
+          "x": 512,
+          "y": 1000,
+          "value": 26135
+        },
+        {
+          "x": 1024,
+          "y": 1000,
+          "value": 25466
+        },
+        {
+          "x": 1536,
+          "y": 1000,
+          "value": 18265
+        }
+      ]
+    },
+    {
+      "id": "MFP_TerrainRidge",
+      "name": "Terrain Ridge",
+      "weight": 1,
+      "source_archive": "terrain-ridge.zip",
+      "download_url": "https://drive.usercontent.google.com/download?id=1mXiDuOvmDjC-KGTk2FmQUzRkPO_pgzpY&export=download&confirm=t",
+      "archive_sha256": "71cfb9e1a552e0e677e3b37ebce05a2937f50c781766b3217357918e259e2887",
+      "member": "Ridge Through Terrain Height Map.png",
+      "member_sha256": "91a1f049a51132bc019f5527e9d80e849c26c245af7e40c97474ea1de76e9c8d",
+      "original_resolution": [
+        1025,
+        1025
+      ],
+      "crop_pixels": [
+        0,
+        256,
+        1025,
+        902
+      ],
+      "source_floor": 10835.0,
+      "source_peak": 45175.0,
+      "output_resolution": [
+        1025,
+        646
+      ],
+      "png_sha256": "1959786ac1c2360fe00a93e2e841e10cca0bb89c749a08c457843e62cc805f34",
+      "source_bit_depth": "uint16",
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "offset_z_cm": 0,
+      "reference_relief_m": 100,
+      "blend": "Max",
+      "samples_16bit": [
+        {
+          "x": 256,
+          "y": 161,
+          "value": 52882
+        },
+        {
+          "x": 512,
+          "y": 161,
+          "value": 11544
+        },
+        {
+          "x": 768,
+          "y": 161,
+          "value": 11277
+        },
+        {
+          "x": 256,
+          "y": 323,
+          "value": 9428
+        },
+        {
+          "x": 512,
+          "y": 323,
+          "value": 28424
+        },
+        {
+          "x": 768,
+          "y": 323,
+          "value": 24365
+        },
+        {
+          "x": 256,
+          "y": 484,
+          "value": 1242
+        },
+        {
+          "x": 512,
+          "y": 484,
+          "value": 16439
+        },
+        {
+          "x": 768,
+          "y": 484,
+          "value": 39460
+        }
+      ]
+    }
+  ]
+}

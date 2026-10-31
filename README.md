@@ -281,3 +281,24 @@ fade; the final noise layer roughens both the backbone and added forms.
 The host's `Docs/MountainRidgesStamped.md` describes the matching Designer and
 planet proof. Qualification is retained in
 `conformance/mountain-stamps-mac-arm64.json`.
+
+### Detailed Motion Forge terrain library
+
+`Content/Stamps/MotionForgeV1` contains four native heightmap sources derived
+from Chris J Mitchell's CC0 Motion Forge heightmaps: Grand Mountain, Mountain
+Range, Rocky Peaks and Terrain Ridge. Prepared linear 16-bit elevations retain
+the source ridge/drainage structures and use feathered borders for blending.
+The client catalog publishes Mountains revision 2 and individual source
+collections; new editor stamp layers select the newest sealed Mountains revision.
+Existing recipes retain their selected revisions.
+Stamp terrain previews now sample at 1 m spacing at the default 500 m coverage,
+with a 513 × 513 surface-vertex cap; base-noise previews retain the 5 m grid.
+Geometry generation remains on the existing bounded background worker; indexed
+normal/tangent generation is linear in mesh size and preserves cut-face edges.
+
+`MotionForgeMountains.json` and four individual presets provide editable PCG
+distribution over the guide-midpoint input. `SourceArt/Stamps/MotionForgeV1`
+records source URLs, archive/member/output hashes, crops, precision and authored
+scale conventions; `Tools/prepare-motion-forge-stamps.py` reproduces the sources.
+The host's `Docs/MotionForgeStamps.md` documents use and qualification. Source
+licence: [Motion Forge Pictures](https://www.motionforgepictures.com/height-maps/).

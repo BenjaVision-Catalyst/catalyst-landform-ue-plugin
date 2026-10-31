@@ -258,6 +258,7 @@ bool FCLNoiseLayerDraftTest::RunTest(const FString&)
     Stack->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(TerraceFinished);
     TestEqual(TEXT("Invalid terrace draft leaves source intact"), Asset->TerrainType.NoiseLayers.Last().Terrace.Softness, OriginalSoftness);
     Session->Add(ECLTerrainOperation::StampDistribution);Stack->Rebuild();
+    TestEqual(TEXT("New stamp layers select the published Motion Forge collection"),Asset->TerrainType.NoiseLayers.Last().Distribution.CollectionRevision,2);
     auto& DistributionDraft=*reinterpret_cast<FCLNoiseLayer*>(Stack->Draft->GetStructMemory());
     auto* DensityProperty=FCLStampDistributionSettings::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLStampDistributionSettings,DensityPerSquareKilometer));
     DistributionDraft.Distribution.DensityPerSquareKilometer=31;

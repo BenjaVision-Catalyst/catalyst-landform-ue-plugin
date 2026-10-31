@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 4,
+  "algorithmVersion": 2,
+  "id": "434C1001000000000000000000000071",
+  "name": "Grand Mountain \u2014 Motion Forge",
+  "description": "Detailed CC0 elevation stamps by Chris J Mitchell / Motion Forge Pictures, with source ridges and drainage preserved.",
+  "noiseLayers": [
+    {
+      "name": "Mountain terrain",
+      "operation": "StampDistribution",
+      "distribution": {
+        "collectionId": "MFP_GrandMountain",
+        "collectionRevision": 1,
+        "seed": 71,
+        "densityPerSquareKilometer": 10,
+        "sizeMode": "PlanetRadius",
+        "minimumSizeRadiusFraction": 0.3,
+        "maximumSizeRadiusFraction": 0.55,
+        "minimumReliefRatio": 0.18,
+        "maximumReliefRatio": 0.3,
+        "blend": "Collection",
+        "blendSmoothnessRadiusFraction": 0.0015,
+        "edgeFalloffFraction": 0.08
+      }
+    }
+  ]
+}

@@ -98,7 +98,10 @@ bool FCLDistributionSnapshotTest::RunTest(const FString&)
     Copy->Library.Collections[0].Entries[0].Weight+=1;
     TestFalse(TEXT("Unversioned weight changes are rejected"),FCLPlanetCompiler::Compile(R,Error,Copy).IsValid());
     TestFalse(TEXT("A published collection cannot be rebaked in place"),Copy->BakeSourceDigests(Error));
-    Copy->Library.Collections[0].Revision+=1;
+    int32 NextRevision=Copy->Library.Collections[0].Revision+1;
+    for(const auto& Collection:Copy->Library.Collections)
+        if(Collection.Id==Copy->Library.Collections[0].Id)NextRevision=FMath::Max(NextRevision,Collection.Revision+1);
+    Copy->Library.Collections[0].Revision=NextRevision;
     TestTrue(TEXT("An explicit new revision can be baked"),Copy->BakeSourceDigests(Error));
     TestFalse(TEXT("An old recipe cannot silently switch to the new revision"),FCLPlanetCompiler::Compile(R,Error,Copy).IsValid());
     auto Old=R;Old.SchemaVersion=4;TestFalse(TEXT("Old recipe schema cannot execute distribution operations"),FCLPlanetCompiler::Compile(Old,Error).IsValid());
@@ -128,7 +131,7 @@ bool FCLDistributionParityTest::RunTest(const FString&)
     FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.DistributionParity"));const auto Surfaces=FVoxelSurfaceTypeTable::Get();
     const FVoxelQuery Query(0,FVoxelLayers::Empty(),*Surfaces,Dependencies);
     double MaxError=0,MaxDisplayError=0;int32 Samples=0;
-    for(int32 Case=0;Case<7;++Case)
+    for(int32 Case=0;Case<8;++Case)
     {
         auto R=DistributionRecipe(T,Error);
         if(Case>0&&Case<4)
@@ -145,13 +148,19 @@ bool FCLDistributionParityTest::RunTest(const FString&)
             R.NoiseLayers.Insert(T->TerrainType.NoiseLayers[1],1);
             R.NoiseLayers.Add(T->TerrainType.NoiseLayers[3]);
         }
-        if(Case>=5)
+        if(Case==5||Case==6)
         {
             FString Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainTypes/MountainRidgesStamped.json")));
             auto* Mountains=NewObject<UCLTerrainTypeAsset>();
             if(!Mountains->ImportTerrainTypeJson(Json,Error)){AddError(Error);break;}
             if(Case==6){Mountains->TerrainType.NoiseLayers[0].bEnabled=false;Mountains->TerrainType.NoiseLayers[2].bEnabled=false;}
             if(!Mountains->TerrainType.ApplyTo(R,Error)){AddError(Error);break;}
+        }
+        if(Case==7)
+        {
+            FString Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainTypes/MotionForgeMountains.json")));
+            auto* Mountains=NewObject<UCLTerrainTypeAsset>();
+            if(!Mountains->ImportTerrainTypeJson(Json,Error)||!Mountains->TerrainType.ApplyTo(R,Error)){AddError(Error);break;}
         }
         const auto Plan=FCLPlanetCompiler::Compile(R,Error);if(!Plan){AddError(Error);break;}
         auto BaseRecipe=R;BaseRecipe.NoiseLayers.SetNum(1);
@@ -163,6 +172,8 @@ bool FCLDistributionParityTest::RunTest(const FString&)
         for(double Width:{100.,500.,1000.})
         {
             const auto G=FCLSectionGeometry::Build(*Plan,0,Width);Points.Append(G.SourceSurfacePoints);
+            if(Case==7&&Width==500)TestEqual(TEXT("Detailed stamp preview resolves a one-metre grid"),G.SurfaceVertexCount,501*501);
+            TestTrue(TEXT("Stamp preview vertex budget is bounded"),G.SurfaceVertexCount<=513*513);
             for(int32 I=0;I<G.SurfaceVertexCount;++I)MaxDisplayError=FMath::Max(MaxDisplayError,FMath::Abs(G.Vertices[I].Z/100000-G.SourceSurfacePoints[I].Size()/(100*Plan->RadiusMeters)));
         }
         TArray<FCLResolvedStampPlacement> Placements;Plan->GetStampPlacements(Placements);

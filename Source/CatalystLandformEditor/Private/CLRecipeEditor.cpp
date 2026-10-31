@@ -36,7 +36,6 @@
 #include "SEditorViewport.h"
 #include "EditorViewportClient.h"
 #include "ProceduralMeshComponent.h"
-#include "KismetProceduralMeshLibrary.h"
 #include "Materials/Material.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Widgets/Docking/SDockTab.h"
@@ -470,10 +469,31 @@ struct FCLSectionBuffers
     static FCLSectionBuffers Build(const FCLCompiledPlanetRecipe& Plan, double Width)
     {
         FCLSectionBuffers B; B.Geometry = FCLSectionGeometry::Build(Plan, 0, Width);
+        B.Finish(); return B;
+    }
+    void Finish()
+    {
+        auto& B = *this;
         B.UV.Init(FVector2D::ZeroVector, B.Geometry.Vertices.Num());
         // Pure array math: no scene components or other UObject state on the worker.
-        UKismetProceduralMeshLibrary::CalculateTangentsForMesh(B.Geometry.Vertices, B.Geometry.Triangles, {}, B.Normals, B.Tangents);
-        return B;
+        // The generic helper searches every vertex for overlaps for every corner
+        // (quadratic at detailed preview sizes). Our topology already shares top
+        // vertices and splits cut faces: accumulate normals by index in one pass.
+        B.Normals.Init(FVector::ZeroVector, B.Geometry.Vertices.Num());
+        for (int32 I = 0; I < B.Geometry.Triangles.Num(); I += 3)
+        {
+            const int32 A = B.Geometry.Triangles[I], C = B.Geometry.Triangles[I + 1], D = B.Geometry.Triangles[I + 2];
+            const FVector Normal = FVector::CrossProduct(B.Geometry.Vertices[D] - B.Geometry.Vertices[A],
+                B.Geometry.Vertices[C] - B.Geometry.Vertices[A]).GetSafeNormal();
+            B.Normals[A] += Normal; B.Normals[C] += Normal; B.Normals[D] += Normal;
+        }
+        B.Tangents.Reserve(B.Normals.Num());
+        for (FVector& Normal : B.Normals)
+        {
+            Normal = Normal.GetSafeNormal();
+            const FVector Axis = FMath::Abs(Normal.X) < .9 ? FVector::XAxisVector : FVector::YAxisVector;
+            B.Tangents.Emplace((Axis - Normal * FVector::DotProduct(Axis, Normal)).GetSafeNormal(), false);
+        }
     }
 };
 class SCLSectionViewport : public SEditorViewport
@@ -1032,6 +1052,27 @@ bool FCLDeferredTerrainPreviewTest::RunTest(const FString&)
     TestEqual(TEXT("Obsolete geometry never reaches the scene"), Preview->AppliedBuilds, 1);
     const auto Expected = FCLSectionGeometry::Build(*Latest, 0, 100);
     TestTrue(TEXT("Displayed mesh matches latest settings"), Preview->Mesh->GetProcMeshSection(0)->ProcVertexBuffer[0].Position.Equals(Expected.Vertices[0], .01));
+    // Exercise the complete render-buffer path at the detailed grid cap, not
+    // just height sampling. This catches accidental generic overlap searches.
+    auto Dense = Expected;
+    constexpr int32 DenseSide = 513;
+    Dense.Vertices.Reset(); Dense.Triangles.Reset();
+    for (int32 Y = 0; Y < DenseSide; ++Y)
+        for (int32 X = 0; X < DenseSide; ++X) Dense.Vertices.Add(FVector(X, Y, .1 * X));
+    for (int32 Y = 0; Y < DenseSide - 1; ++Y)
+        for (int32 X = 0; X < DenseSide - 1; ++X)
+        {
+            const int32 A = Y * DenseSide + X;
+            Dense.Triangles.Append({A, A + DenseSide + 1, A + 1, A, A + DenseSide, A + DenseSide + 1});
+        }
+    FCLSectionBuffers DenseBuffers; DenseBuffers.Geometry = MoveTemp(Dense); DenseBuffers.Finish();
+    const FVector ExpectedNormal = FVector(-.1, 0, 1).GetSafeNormal();
+    bool bFramesValid = DenseBuffers.Normals.Num() == DenseSide * DenseSide;
+    for (int32 I = 0; I < DenseBuffers.Normals.Num(); ++I)
+        bFramesValid &= DenseBuffers.Normals[I].Equals(ExpectedNormal, 1.e-6)
+            && FMath::IsNearlyEqual(DenseBuffers.Tangents[I].TangentX.Size(), 1.0, 1.e-6)
+            && FMath::Abs(FVector::DotProduct(DenseBuffers.Normals[I], DenseBuffers.Tangents[I].TangentX)) < 1.e-6;
+    TestTrue(TEXT("Maximum-size preview produces outward unit normals and orthogonal unit tangents"), bFramesValid);
     const auto Eye = Preview->Client->GetViewLocation();
     Preview->RebuildAsync(First); Preview->CancelPendingBuild();
     while (Preview->IsUpdating())

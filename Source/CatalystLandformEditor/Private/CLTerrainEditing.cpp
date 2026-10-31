@@ -1,5 +1,6 @@
 #include "CLTerrainEditing.h"
 #include "ScopedTransaction.h"
+#include "Stamps/CLStampLibrary.h"
 
 void FCLTerrainEditing::Open(UCLTerrainTypeAsset* InAsset, const FCLPlanetRecipe* InContext)
 {
@@ -46,6 +47,12 @@ bool FCLTerrainEditing::Add(ECLTerrainOperation Operation)
     if (Asset->TerrainType.NoiseLayers.Num() >= 32) return false;
     auto Layers = Asset->TerrainType.NoiseLayers;
     FCLNoiseLayer Layer; Layer.Operation = Operation;
+    if (Operation == ECLTerrainOperation::StampDistribution)
+        if (const auto* Library = UCLStampLibraryAsset::LoadConfigured())
+            for (const auto& Collection : Library->Library.Collections)
+                if (Collection.Id == Layer.Distribution.CollectionId && Collection.Revision > Layer.Distribution.CollectionRevision &&
+                    Collection.BakedRevision == Collection.Revision && Collection.DefinitionDigest == UCLStampLibraryAsset::CollectionDigest(Collection))
+                    Layer.Distribution.CollectionRevision = Collection.Revision;
     Layer.Name = UniqueName(Operation == ECLTerrainOperation::Noise ? TEXT("Noise layer") : Operation == ECLTerrainOperation::Terrace ? TEXT("Terracing") : TEXT("Stamp distribution"));
     Layer.Blend = Layers.IsEmpty() ? ECLNoiseBlend::Override : ECLNoiseBlend::Add;
     Layer.Scale = ECLNoiseScale::PlanetRadius; Layer.WavelengthRadiusFraction = .1;

@@ -52,8 +52,11 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
 {
     FCLSectionGeometry G;
     G.HalfWidthMeters = FMath::Clamp(WidthMeters > 0 ? WidthMeters : DefaultWidth(Plan), 100.0, 1000.0) * .5;
-    // Keep spacing at most 5m as the viewed area grows.
-    const int32 N = FMath::Clamp(FMath::CeilToInt(G.HalfWidthMeters * 2 / 5), 48, 200);
+    // Detailed stamp gullies need denser sampling than the base-noise overview.
+    // Retain the fixed presentation frame and cap work at 513x513 top vertices.
+    const bool bStamps = Plan.GetDistributedStampCount() > 0;
+    const double Spacing = bStamps ? 1.0 : 5.0;
+    const int32 N = FMath::Clamp(FMath::CeilToInt(G.HalfWidthMeters * 2 / Spacing), 48, bStamps ? 512 : 200);
     auto Add = [&](const FVector& P, FLinearColor C) { G.Vertices.Add(P); G.Colors.Add(C); };
     // Arguments use mathematical outward CCW; UE renders the reverse winding.
     auto Triangle = [&](int32 A, int32 B, int32 C) { G.Triangles.Append({A, C, B}); };

@@ -46,6 +46,7 @@
 SourceArt/**/*.png
 SourceArt/**/*.tga
 !SourceArt/Stamps/LibraryV1/*.png
+!SourceArt/Stamps/MotionForgeV1/*.png
 
 # Binary Files
 Binaries/*
