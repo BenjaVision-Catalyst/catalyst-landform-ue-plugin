@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "provenance": "Authored procedural elevation data for Catalyst Landform. No external sources.",
+  "encoding": "linear uint16 grayscale; physical 0.5m texels before instance sizing",
+  "sources": [
+    {
+      "id": "Ridge",
+      "name": "Ridge",
+      "resolution": [
+        257,
+        257
+      ],
+      "scale_xy_cm": 50,
+      "scale_z_cm": 2000,
+      "offset_z_cm": 0,
+      "reference_relief_m": 20,
+      "blend": "Max",
+      "png_sha256": "420efcfa278ea14e0affbac2721d2eb83708f7dd47adfdacf9b197e1f3442560"
+    },
+    {
+      "id": "Massif",
+      "name": "Massif",
+      "resolution": [
+        257,
+        257
+      ],
+      "scale_xy_cm": 50,
+      "scale_z_cm": 3000,
+      "offset_z_cm": 0,
+      "reference_relief_m": 30,
+      "blend": "Max",
+      "png_sha256": "17f67bfdb7a7e8f427d0ac0bd3b34eb1f9a87c61dec3e6d3c53773e6535fcedd"
+    },
+    {
+      "id": "Mesa",
+      "name": "Mesa",
+      "resolution": [
+        257,
+        257
+      ],
+      "scale_xy_cm": 50,
+      "scale_z_cm": 1500,
+      "offset_z_cm": 0,
+      "reference_relief_m": 15,
+      "blend": "Max",
+      "png_sha256": "9ab5824c16a2e92b8b14904c9e2792ee7630d995722a75e86dde6a0f8f5fc90d"
+    },
+    {
+      "id": "Butte",
+      "name": "Butte",
+      "resolution": [
+        257,
+        257
+      ],
+      "scale_xy_cm": 50,
+      "scale_z_cm": 2500,
+      "offset_z_cm": 0,
+      "reference_relief_m": 25,
+      "blend": "Max",
+      "png_sha256": "60c330a5ad1d4e9c77a9a17db4b19bd24ed382f8e148a37411734948e6e29dea"
+    },
+    {
+      "id": "Crater",
+      "name": "Crater",
+      "resolution": [
+        257,
+        257
+      ],
+      "scale_xy_cm": 50,
+      "scale_z_cm": 2000,
+      "offset_z_cm": -1400,
+      "reference_relief_m": 20,
+      "blend": "Override",
+      "png_sha256": "b2b4018ea5a3fbf537c60736de7fc35baec73ab707098048f309a997e769784c"
+    },
+    {
+      "id": "DoubleCrater",
+      "name": "DoubleCrater",
+      "resolution": [
+        257,
+        257
+      ],
+      "scale_xy_cm": 50,
+      "scale_z_cm": 2200,
+      "offset_z_cm": -1400,
+      "reference_relief_m": 22,
+      "blend": "Override",
+      "png_sha256": "a48be6bc192163ae713186c2d20cc99e0e153b8664e4b3d9c3ce018102a5ded0"
+    }
+  ]
+}

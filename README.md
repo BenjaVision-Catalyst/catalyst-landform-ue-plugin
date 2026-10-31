@@ -92,7 +92,7 @@ copy is the default. Save persists both the recipe and catalog. Schema 1 recipes
 migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
 snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
 Perlin noise and remains reproducible. Algorithm 2 uses the native VPP Perlin
-3D compute kernel; general graph assets and PCG adapters remain future work. The host's
+3D compute kernel. Bounded CPU PCG stamp distribution is now available; general graph assets remain future work. The host's
 `Docs/RecipeDesigner.md` documents authoring and physical validation.
 
 Guide dragging updates cached projected ticks and labels immediately; it commits
@@ -115,8 +115,7 @@ Hills, Mountain ridges and Plateaus (`Examples/TerrainTypes`, with assets under
 planet-relative wavelengths, resolved to scalars before worker/VPP evaluation.
 Schema 1/2 imports preserve their old field semantics and upgrade for export.
 Mountain ridges now selects native algorithm 2. Plains and Hills retain the
-algorithm 1 reference. General VPP graph execution, regional composition and PCG
-remain subsequent work.
+algorithm 1 reference. General VPP graph execution and regional composition remain subsequent work; stamp distribution is described below.
 
 Terrain assets now open in the shared cross-section Designer with a **Noise
 layers** tab. Select, add, duplicate, remove, reorder or enable layers; the
@@ -146,16 +145,16 @@ scene. UObject/mesh work remains on the editor thread, and camera framing stays
 fixed across completion. The `Landform.TerrainDesigner` command opens Mountain
 ridges by default; optional arguments are a terrain asset path and planet recipe
 path. This authoring path supports both generation versions; it does not execute
-arbitrary VPP graph assets or PCG.
+arbitrary VPP graph assets. Stamp distribution runs its own bounded CPU PCG pipeline.
 
 
 ## Native Mountain ridges generation
 
 Terrain type schema 2 introduced explicit `algorithmVersion`, copied into the
-planet snapshot on application. Current terrain schema 3 adds ordered shaping
-operations; recipe schema 4 stores their applied snapshots. Schema 1 imports retain algorithm 1 and export
+planet snapshot on application. Terrain schema 3 added ordered shaping
+operations; recipe schema 4 stored their applied snapshots. Current terrain schema 4 and recipe schema 5 also support stamp distribution. Schema 1 imports retain algorithm 1 and export
 as schema 2. Previously saved planet recipes keep their pinned algorithm and
-appearance. Native algorithm 2 requires recipe schema 3 or 4 and the VPP Perlin 3D
+appearance. Native algorithm 2 requires recipe schema 3, 4 or 5 and the VPP Perlin 3D
 kernel; unavailable kernels or changed pin layouts fail compilation without a
 silent fallback. This is still a local authoring format, not a backend protocol.
 
@@ -188,8 +187,7 @@ See the host's `Docs/NativeMountainGeneration.md` and
 
 ## Plateaus and editable terracing
 
-The terrain layer stack supports Noise and Terrace operations. Use **Add noise**
-or **Add terrace**, then select an entry to edit its controls. Both kinds can be
+The terrain layer stack supports Noise, Terrace and Stamp distribution operations. Use **Add layer**, choose an operation, then select its entry to edit controls. All kinds can be
 enabled, duplicated, reordered, removed and undone. Noise-specific controls hide
 for a Terrace entry. Existing serialized `NoiseLayers` and `FCLNoiseLayer` names
 remain for compatibility; the Designer labels the shared stack **Terrain layers**.
@@ -226,3 +224,40 @@ private to an immutable runtime adapter rather than exposed in the recipe header
 fine detail. The host's `Docs/Plateaus.md` and
 `conformance/plateaus-mac-arm64.json` record the authoring, field and actual
 VPP/Chaos collision qualification, including its resolution and sampling limits.
+
+
+## PCG stamp distribution
+
+**Add layer → Stamp distribution** selects a versioned client collection and
+exposes seed, density, size range, relief range, native blend mode, smoothness
+and edge fade. The bounded CPU PCG pipeline uses a Landform spherical
+point/weighted-selection node plus UE Transform Points for heading, footprint
+and relief. Compiled placements and native source runtimes are immutable;
+PCG and asset resolution do not run on VPP sampling workers. The flat Designer
+and spherical volume evaluate this same composed field.
+
+Distributions blend native VPP heightmap relief relative to their incoming terrain.
+Order is stable PCG point order. Each footprint's geodesic chart uses the
+upstream local surface radius, and planet-relative sizes use the outer sky
+radius. Density uses the upstream north-pole reference sphere's area. The
+initial limits are 256 placements per layer, 1024 per recipe and 256 MiB of
+source data per collection, with explicit errors rather than truncation.
+
+`UCLStampLibraryAsset` extends Foundation's model asset. The configured client
+library resolves collection ID/revision into heightmap sources; recipes contain
+no source asset paths. Published revisions pin source bytes, sampling options,
+weights and relief scales with digests. Keep old revisions/sources when adding
+new ones. Project Settings supplies a project library override.
+
+`Content/Stamps` ships six owned linear 16-bit starter sources: Ridge, Massif,
+Mesa, Butte, Crater and DoubleCrater, organized into Mountains, Plateaus and
+Impacts collections. Reproducible sources and provenance are in
+`SourceArt/Stamps/LibraryV1` and `Tools/generate-stamp-library.py`. The host's
+`Docs/StampDistribution.md` covers curation, authoring and the matching preview/
+planet proof. `conformance/stamp-distribution-mac-arm64.json` records qualification.
+
+Current local schemas are recipe 5 and terrain type 4; old assets retain their
+noise algorithm and field. This is a CPU PCG element pipeline, not arbitrary PCG
+graph scheduling or GPU execution. Streaming for large planets, backend delivery,
+cooking, surface metadata and a finished photoreal stamp collection remain future
+work. The radial field remains distinct from an exact Euclidean SDF.

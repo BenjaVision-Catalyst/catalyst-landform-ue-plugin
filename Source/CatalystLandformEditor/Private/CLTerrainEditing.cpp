@@ -46,7 +46,7 @@ bool FCLTerrainEditing::Add(ECLTerrainOperation Operation)
     if (Asset->TerrainType.NoiseLayers.Num() >= 32) return false;
     auto Layers = Asset->TerrainType.NoiseLayers;
     FCLNoiseLayer Layer; Layer.Operation = Operation;
-    Layer.Name = UniqueName(Operation == ECLTerrainOperation::Noise ? TEXT("Noise layer") : TEXT("Terracing"));
+    Layer.Name = UniqueName(Operation == ECLTerrainOperation::Noise ? TEXT("Noise layer") : Operation == ECLTerrainOperation::Terrace ? TEXT("Terracing") : TEXT("Stamp distribution"));
     Layer.Blend = Layers.IsEmpty() ? ECLNoiseBlend::Override : ECLNoiseBlend::Add;
     Layer.Scale = ECLNoiseScale::PlanetRadius; Layer.WavelengthRadiusFraction = .1;
     Layer.Minimum.Mode = Layer.Maximum.Mode = Layers.IsEmpty() ? ECLHeightReferenceMode::IntervalHeight : ECLHeightReferenceMode::IntervalDelta;
@@ -92,7 +92,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FStr
 {
     FCLPlanetRecipe Recipe = Context;
     if (!Asset->TerrainType.ApplyTo(Recipe, OutError)) return nullptr;
-    if (Recipe.NoiseLayers.IsValidIndex(Solo) && Recipe.NoiseLayers[Solo].Operation == ECLTerrainOperation::Terrace)
+    if (Recipe.NoiseLayers.IsValidIndex(Solo) && Recipe.NoiseLayers[Solo].Operation != ECLTerrainOperation::Noise)
     {
         // A shaping operation requires its upstream field. Show that result,
         // omitting downstream detail, without modifying the saved definition.

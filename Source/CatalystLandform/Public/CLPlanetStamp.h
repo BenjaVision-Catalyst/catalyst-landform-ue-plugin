@@ -18,6 +18,8 @@ struct CATALYSTLANDFORM_API FCLSphericalHeightmapPlacement
     UPROPERTY() FVector Anchor = FVector::ZAxisVector;
     UPROPERTY() FVector TangentX = FVector::XAxisVector;
     UPROPERTY() FVector Scale = FVector::OneVector;
+    /** Optional physical surface radius for the chart; zero preserves authored actor semantics. */
+    UPROPERTY() double ChartRadius = 0;
     UPROPERTY() double HeightOffset = 0;
     UPROPERTY() double EdgeFalloff = 800;
 
@@ -54,6 +56,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
         double CapCosine = -1;
 
         double Weight(double Radius, const FVector& Direction, FVector2D& Chart) const;
+        double WeightNormalized(double Radius, const FVector& UnitDirection, FVector2D& Chart) const;
     };
     TArray<FSource> Sources;
     double Extent = 10000;
@@ -64,6 +67,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     virtual void Apply(const FVoxelVolumeBulkQuery& Query, const FVoxelVolumeTransform& Transform) const override;
     virtual void Apply(const FVoxelVolumeSparseQuery& Query, const FVoxelVolumeTransform& Transform) const override;
 
+    void ApplySources(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions, FVoxelFloatBuffer& Heights) const;
     FVoxelFloatBuffer SampleHeights(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions) const;
     FVoxelFloatBuffer SampleDistances(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Positions) const;
 };

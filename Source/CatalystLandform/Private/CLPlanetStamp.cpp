@@ -7,7 +7,7 @@
 bool FCLSphericalHeightmapPlacement::ToChart(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
     FCLPlanetShape Map;
-    Map.Radius = Radius;
+    Map.Radius = ChartRadius > 0 ? ChartRadius : Radius;
     Map.AnchorDirection = Anchor;
     Map.ChartXAxis = TangentX;
     return Map.ToChart(Direction, Chart);
@@ -16,7 +16,7 @@ bool FCLSphericalHeightmapPlacement::ToChart(double Radius, const FVector& Direc
 FVector FCLSphericalHeightmapPlacement::FromChart(double Radius, const FVector2D& Chart) const
 {
     FCLPlanetShape Map;
-    Map.Radius = Radius;
+    Map.Radius = ChartRadius > 0 ? ChartRadius : Radius;
     Map.AnchorDirection = Anchor;
     Map.ChartXAxis = TangentX;
     return Map.FromChart(Chart);
@@ -24,8 +24,13 @@ FVector FCLSphericalHeightmapPlacement::FromChart(double Radius, const FVector2D
 
 double FCLPlanetStampRuntime::FSource::Weight(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
+    return Direction.ContainsNaN() || Direction.IsNearlyZero() ? 0 : WeightNormalized(Radius, Direction.GetSafeNormal(), Chart);
+}
+
+double FCLPlanetStampRuntime::FSource::WeightNormalized(double Radius, const FVector& Direction, FVector2D& Chart) const
+{
     if (Direction.ContainsNaN() || Direction.IsNearlyZero() ||
-        FVector::DotProduct(Direction.GetSafeNormal(), Placement.Anchor) < CapCosine) return 0;
+        FVector::DotProduct(Direction, Placement.Anchor) < CapCosine) return 0;
     if (!Placement.ToChart(Radius, Direction, Chart)) return 0;
     const FVector2D Local(Chart.X / Placement.Scale.X, Chart.Y / Placement.Scale.Y);
     // VPP reserves a pixel border for its native bilinear/bicubic sampler.
@@ -65,7 +70,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
             FVector2D(Data->SizeX, Data->SizeY) * .5) * Heightmap->ScaleXY;
         const FVector2D Corner(FMath::Max(FMath::Abs(Source.SafeMin.X), FMath::Abs(Source.SafeMax.X)) * Placement.Scale.X,
             FMath::Max(FMath::Abs(Source.SafeMin.Y), FMath::Abs(Source.SafeMax.Y)) * Placement.Scale.Y);
-        Source.CapCosine = FMath::Cos(FMath::Min(Corner.Size() / Stamp.Radius, UE_PI));
+        Source.CapCosine = FMath::Cos(FMath::Min(Corner.Size() / (Placement.ChartRadius > 0 ? Placement.ChartRadius : Stamp.Radius), UE_PI));
         // Native compressed caches store raw uint16 extrema. Normalize them
         // exactly like the native sampler before computing our volume bounds.
         const double Unit = Data->bIsUINT16 ? 1.0 / 65535 : 1.0;
@@ -96,39 +101,35 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleHeights(const FVoxelQuery& Query,
     }
     for (int32 I = 0; I < Heights.Num(); ++I)
         Heights.Set(I, RecipePlan ? Samples[I] * 100 : 0);
-    for (const FSource& Source : Sources)
-    {
-        FVoxelDoubleVector2DBuffer Positions;
-        Positions.Allocate(Directions.Num());
-        FVoxelFloatBuffer Next, Weights;
-        Next.Allocate(Directions.Num());
-        Weights.Allocate(Directions.Num());
-        bool bAny = false;
-        for (int32 I = 0; I < Directions.Num(); ++I)
-        {
-            FVector2D Chart;
-            Weights.Set(I, Source.Weight(Stamp.Radius, Directions[I], Chart));
-            bAny |= Weights[I] > 0;
-            Positions.X.Set(I, Weights[I] > 0 ? Chart.X : 1.e12);
-            Positions.Y.Set(I, Weights[I] > 0 ? Chart.Y : 1.e12);
-            Next.Set(I, Heights[I]);
-        }
-        if (!bAny) continue;
-        FVoxelHeightTransform Transform;
-        Transform.Scale = FVector2f(Source.Placement.Scale.X, Source.Placement.Scale.Y);
-        Transform.ScaleZ = Source.Placement.Scale.Z;
-        Transform.OffsetZ = Source.Placement.HeightOffset;
-        const FVoxelHeightSparseQuery NativeQuery = FVoxelHeightSparseQuery::Create(
-            Query, Next.View(), {}, FVoxelMetadataMap(), Positions, false, {});
-        Source.Runtime->Apply(NativeQuery, Transform);
-        for (int32 I = 0; I < Heights.Num(); ++I)
-        {
-            Heights.Set(I, FMath::Lerp(Heights[I], Next[I], Weights[I]));
-        }
-    }
+    ApplySources(Query, Directions, Heights);
     // A recipe radius is the outer sky boundary, including native stamp output.
     if (RecipePlan) for (int32 I = 0; I < Heights.Num(); ++I) Heights.Set(I, FMath::Min(Heights[I], 0.f));
     return Heights;
+}
+
+void FCLPlanetStampRuntime::ApplySources(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions, FVoxelFloatBuffer& Heights) const
+{
+    TArray<FVector> Units;Units.SetNumUninitialized(Directions.Num());
+    for(int32 I=0;I<Directions.Num();++I)Units[I]=Directions[I].GetSafeNormal();
+    for(const FSource& Source:Sources)
+    {
+        TArray<int32> Indices;TArray<FVector2D> Charts;TArray<float> Weights;
+        for(int32 I=0;I<Units.Num();++I)
+        {
+            FVector2D Chart;const double W=Source.WeightNormalized(Stamp.Radius,Units[I],Chart);
+            if(W>0){Indices.Add(I);Charts.Add(Chart);Weights.Add(W);}
+        }
+        if(Indices.IsEmpty())continue;
+        FVoxelDoubleVector2DBuffer Positions;Positions.Allocate(Indices.Num());
+        FVoxelFloatBuffer Next;Next.Allocate(Indices.Num());
+        for(int32 I=0;I<Indices.Num();++I){Positions.Set(I,Charts[I]);Next.Set(I,Heights[Indices[I]]);}
+        FVoxelHeightTransform Transform;
+        Transform.Scale=FVector2f(Source.Placement.Scale.X,Source.Placement.Scale.Y);
+        Transform.ScaleZ=Source.Placement.Scale.Z;Transform.OffsetZ=Source.Placement.HeightOffset;
+        const auto NativeQuery=FVoxelHeightSparseQuery::Create(Query,Next.View(),{},FVoxelMetadataMap(),Positions,false,{});
+        Source.Runtime->Apply(NativeQuery,Transform);
+        for(int32 I=0;I<Indices.Num();++I)Heights.Set(Indices[I],FMath::Lerp(Heights[Indices[I]],Next[I],Weights[I]));
+    }
 }
 
 FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Positions) const

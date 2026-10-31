@@ -143,7 +143,14 @@ bool ACLPlanet::SampleRadialHeights(const TArray<FVector>& LocalDirections, TArr
     return true;
 }
 
-int32 ACLPlanet::GetNativeStampCount() const { return SamplingRuntime ? SamplingRuntime->Sources.Num() : 0; }
+int32 ACLPlanet::GetNativeStampCount() const { return SamplingRuntime ? SamplingRuntime->Sources.Num() + (SamplingRuntime->RecipePlan ? SamplingRuntime->RecipePlan->GetDistributedStampCount() : 0) : 0; }
+
+TArray<FCLResolvedStampPlacement> ACLPlanet::GetDistributedStampPlacements() const
+{
+    TArray<FCLResolvedStampPlacement> Result;
+    if(SamplingRuntime && SamplingRuntime->RecipePlan)SamplingRuntime->RecipePlan->GetStampPlacements(Result);
+    return Result;
+}
 
 uint32 ACLPlanet::GetFootprintMask(const FVector& Direction) const
 {

@@ -1,5 +1,6 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLModelJson.h"
+#include "CLStampDistribution.h"
 #include "Nodes/VoxelNoiseNodes.h"
 #include "VoxelISPCNodeHelpers.h"
 #include "JsonObjectConverter.h"
@@ -52,6 +53,19 @@ bool NativePerlinABIIsCompatible()
 }
 }
 
+int32 FCLCompiledPlanetRecipe::GetDistributedStampCount()const
+{int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();return N;}
+void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight)const
+{
+    Count=0;MinimumWeight=1;
+    for(const auto& L:Layers)if(L.Distribution)L.Distribution->Coverage(Direction,Count,MinimumWeight);
+    if(!Count)MinimumWeight=0;
+}
+void FCLCompiledPlanetRecipe::GetStampPlacements(TArray<FCLResolvedStampPlacement>& Placements) const
+{
+    Placements.Reset();for(const auto& L:Layers)if(L.Distribution)Placements.Append(L.Distribution->Placements);
+}
+
 double FCLCompiledPlanetRecipe::FLayer::TerraceHeight(double Height) const
 {
     if (Strength == 0) return Height;
@@ -64,7 +78,7 @@ double FCLCompiledPlanetRecipe::FLayer::TerraceHeight(double Height) const
 
 double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) const
 {
-    if (NativePerlin)
+    if (NativePerlin || Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
     {
         TArray<double> Heights; SampleHeightsMeters(MakeArrayView(&Direction, 1), Heights); return Heights[0];
     }
@@ -96,7 +110,7 @@ double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) con
 void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
 {
     Heights.SetNumUninitialized(Directions.Num());
-    if (!NativePerlin)
+    if (!NativePerlin && !Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
     {
         for (int32 I = 0; I < Directions.Num(); ++I) Heights[I] = SampleHeightMeters(Directions[I]);
         return;
@@ -118,6 +132,11 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
         }
         for (const FLayer& Layer : Layers)
         {
+            if (Layer.Operation == ECLTerrainOperation::StampDistribution)
+            {
+                Layer.Distribution->Apply(MakeArrayView(Unit,Num),MakeArrayView(Heights.GetData()+Start,Num));
+                continue;
+            }
             if (Layer.Operation == ECLTerrainOperation::Terrace)
             {
                 for (int32 I = 0; I < Num; ++I) Heights[Start + I] = Layer.TerraceHeight(Heights[Start + I]);
@@ -134,10 +153,11 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
                 }
                 const ispc::FVoxelInputBuffer Inputs[] = {
                     {X, false}, {Y, false}, {Z, false}, {&One, true}, {&One, true}, {&Layer.Seed, true}};
-                void* Outputs[] = {Noise}; NativePerlin->Evaluate(Inputs, Outputs, Num);
+                if(NativePerlin) { void* Outputs[] = {Noise}; NativePerlin->Evaluate(Inputs, Outputs, Num); }
                 for (int32 I = 0; I < Num; ++I)
                 {
-                    const double N = Noise[I];
+                    const double N = NativePerlin ? Noise[I] : FMath::PerlinNoise3D(
+                        (Unit[I] * RadiusMeters) * (Frequency / Layer.Wavelength) + Layer.Offset);
                     Sum[I] += (Layer.Shape == ECLNoiseShape::Ridged ? 1 - FMath::Abs(N) : .5 + .5 * N) * Weight;
                 }
                 Total += Weight; Weight *= Layer.Persistence; Frequency *= 2;
@@ -169,9 +189,10 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
     {
         if (Layer.Name.IsNone() || Names.Contains(Layer.Name)) { Error = TEXT("Noise layer names must be nonempty and unique"); return false; }
         Names.Add(Layer.Name);
-        if (static_cast<uint8>(Layer.Operation) > static_cast<uint8>(ECLTerrainOperation::Terrace))
+        if (static_cast<uint8>(Layer.Operation) > static_cast<uint8>(ECLTerrainOperation::StampDistribution))
         { Error = TEXT("Unknown terrain operation: ") + Layer.Name.ToString(); return false; }
         if (!Layer.bEnabled) continue;
+        if(Layer.Operation==ECLTerrainOperation::StampDistribution){if(!Layer.Distribution.Validate(Error))return false;continue;}
         const bool bTerrace = Layer.Operation == ECLTerrainOperation::Terrace;
         for (const FCLHeightReference* Ref : {bTerrace ? &Layer.Terrace.StepHeight : &Layer.Minimum, bTerrace ? &Layer.Terrace.Origin : &Layer.Maximum})
         {
@@ -200,11 +221,11 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
     return true;
 }
 
-TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe, FString& Error)
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary)
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 4) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 5) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.Strata.Stratum.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
@@ -257,7 +278,19 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if (!Layer.bEnabled) continue;
         FCLCompiledPlanetRecipe::FLayer Compiled; Compiled.Operation = Layer.Operation;
         double& Low = Plan->MinimumHeightMeters; double& High = Plan->MaximumHeightMeters;
-        if (Layer.Operation == ECLTerrainOperation::Terrace)
+        if(Layer.Operation==ECLTerrainOperation::StampDistribution)
+        {
+            if(Recipe.SchemaVersion<5)return Fail(TEXT("Stamp distributions require recipe schema 5"));
+            uint32 Seed=Mix(uint32(Recipe.Seed)^Mix(uint32(Layer.Distribution.Seed)));
+            for(TCHAR C:Layer.Name.ToString().ToLower())Seed=Mix(Seed^uint32(C));
+            Compiled.Distribution=FCLStampDistributionCompiler::Compile(Layer.Distribution,int32(Seed),*Plan,StampLibrary,Error);
+            if(!Compiled.Distribution)return nullptr;
+            Low+=Compiled.Distribution->MinimumDeltaMeters;High+=Compiled.Distribution->MaximumDeltaMeters;
+            int32 Total=Compiled.Distribution->Placements.Num();
+            for(const auto& Existing:Plan->Layers)if(Existing.Distribution)Total+=Existing.Distribution->Placements.Num();
+            if(Total>1024)return Fail(TEXT("Recipe exceeds the 1024 resolved stamp-placement proof budget"));
+        }
+        else if (Layer.Operation == ECLTerrainOperation::Terrace)
         {
             if (Recipe.SchemaVersion < 4) return Fail(TEXT("Terracing requires recipe schema 4"));
             if (!Resolve(Layer.Terrace.StepHeight, Compiled.StepHeight) || !Resolve(Layer.Terrace.Origin, Compiled.Origin)) return nullptr;
@@ -367,7 +400,7 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
     Ar.UsingCustomVersion(RecipeAssetVersion);
     Super::Serialize(Ar);
 }
-void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); if (Recipe.SchemaVersion == 2 || Recipe.SchemaVersion == 3) Recipe.SchemaVersion = 4; Version.SchemaVersion = Recipe.SchemaVersion; }
+void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); if (Recipe.SchemaVersion >= 2 && Recipe.SchemaVersion < 5) Recipe.SchemaVersion = 5; Version.SchemaVersion = Recipe.SchemaVersion; }
 UCLPlanetRecipeAsset::UCLPlanetRecipeAsset() { Recipe = FCLPlanetCompiler::RollingPlains(); }
 FString UCLPlanetRecipeAsset::GetSummaryText() const
 { return FString::Printf(TEXT("%s: %d guides, %d terrain layers"), *Recipe.Name, Recipe.Strata.Stratum.Num(), Recipe.NoiseLayers.Num()); }
@@ -387,8 +420,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1/2/3/4 with algorithm 1, or schemaVersion 3/4 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..5 with algorithm 1, or schemaVersion 3..5 with algorithm 2"); return false; }
     if (Schema == 1)
     {
         // Explicit, lossless conversion of the old metre-based document.
@@ -420,7 +453,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
-    if (Candidate.SchemaVersion == 2 || Candidate.SchemaVersion == 3) Candidate.SchemaVersion = 4;
+    if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 5) Candidate.SchemaVersion = 5;
     Modify(); Recipe = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

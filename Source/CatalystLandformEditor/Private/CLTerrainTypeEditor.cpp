@@ -20,3 +20,10 @@ EAssetCommandResult UCLTerrainTypeAssetDefinition::OpenAssets(const FAssetOpenAr
         CLOpenTerrainDesigner(Asset, nullptr, Args.ToolkitHost.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone, Args.ToolkitHost);
     return EAssetCommandResult::Handled;
 }
+
+#include "Stamps/CLStampLibrary.h"
+UCLStampLibraryFactory::UCLStampLibraryFactory()
+{SupportedClass=UCLStampLibraryAsset::StaticClass();bCreateNew=true;bEditAfterNew=true;}
+UObject* UCLStampLibraryFactory::FactoryCreateNew(UClass* Class,UObject* Parent,FName Name,EObjectFlags Flags,UObject*,FFeedbackContext*)
+{return NewObject<UCLStampLibraryAsset>(Parent,Class,Name,Flags);}
+TSoftClassPtr<UObject> UCLStampLibraryAssetDefinition::GetAssetClass()const{return UCLStampLibraryAsset::StaticClass();}

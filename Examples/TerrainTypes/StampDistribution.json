@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 4,
+  "algorithmVersion": 2,
+  "id": "434C1001000000000000000000000068",
+  "name": "Stamp distribution",
+  "description": "PCG-selected mountain, plateau and impact stamps blended over reference terrain.",
+  "noiseLayers": [
+    {
+      "name": "Reference terrain",
+      "operation": "Noise",
+      "shape": "Smooth",
+      "blend": "Override",
+      "minimum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.5,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.5,
+        "offsetMeters": 0
+      },
+      "scale": "PlanetRadius",
+      "wavelengthRadiusFraction": 0.4,
+      "octaves": 1
+    },
+    {
+      "name": "Mountain stamps",
+      "operation": "StampDistribution",
+      "distribution": {
+        "collectionId": "Mountains",
+        "collectionRevision": 1,
+        "seed": 17,
+        "densityPerSquareKilometer": 18,
+        "sizeMode": "PlanetRadius",
+        "minimumSizeRadiusFraction": 0.1,
+        "maximumSizeRadiusFraction": 0.22,
+        "minimumReliefRatio": 0.06,
+        "maximumReliefRatio": 0.14,
+        "blend": "Collection",
+        "blendSmoothnessRadiusFraction": 0.001,
+        "edgeFalloffFraction": 0.12
+      }
+    },
+    {
+      "name": "Plateau stamps",
+      "operation": "StampDistribution",
+      "distribution": {
+        "collectionId": "Plateaus",
+        "collectionRevision": 1,
+        "seed": 17,
+        "densityPerSquareKilometer": 6,
+        "sizeMode": "PlanetRadius",
+        "minimumSizeRadiusFraction": 0.1,
+        "maximumSizeRadiusFraction": 0.18,
+        "minimumReliefRatio": 0.06,
+        "maximumReliefRatio": 0.14,
+        "blend": "Collection",
+        "blendSmoothnessRadiusFraction": 0.001,
+        "edgeFalloffFraction": 0.12
+      }
+    },
+    {
+      "name": "Impact stamps",
+      "operation": "StampDistribution",
+      "distribution": {
+        "collectionId": "Impacts",
+        "collectionRevision": 1,
+        "seed": 17,
+        "densityPerSquareKilometer": 4,
+        "sizeMode": "PlanetRadius",
+        "minimumSizeRadiusFraction": 0.08,
+        "maximumSizeRadiusFraction": 0.15,
+        "minimumReliefRatio": 0.06,
+        "maximumReliefRatio": 0.14,
+        "blend": "Collection",
+        "blendSmoothnessRadiusFraction": 0.001,
+        "edgeFalloffFraction": 0.12
+      }
+    }
+  ]
+}

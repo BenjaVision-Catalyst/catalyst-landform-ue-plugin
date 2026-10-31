@@ -51,6 +51,9 @@ public:
     UFUNCTION(BlueprintCallable, Category="Planet")
     int32 GetNativeStampCount() const;
 
+    UFUNCTION(BlueprintCallable, Category="Planet|Recipe")
+    TArray<FCLResolvedStampPlacement> GetDistributedStampPlacements() const;
+
     uint32 GetFootprintMask(const FVector& LocalDirection) const;
     const TSharedPtr<const FCLPlanetStampRuntime>& GetSamplingRuntime() const { return SamplingRuntime; }
     virtual void OnConstruction(const FTransform& Transform) override;

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
 #include "Model/CLStrata.h"
+#include "Model/CLStampDistribution.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -39,7 +40,7 @@ UENUM(BlueprintType)
 enum class ECLNoiseScale : uint8 { Meters UMETA(DisplayName="Absolute distance"), PlanetRadius };
 
 UENUM(BlueprintType)
-enum class ECLTerrainOperation : uint8 { Noise, Terrace };
+enum class ECLTerrainOperation : uint8 { Noise, Terrace, StampDistribution };
 
 /** Pointwise shaping of the preceding terrain. Heights are resolved through planet guides. */
 USTRUCT(BlueprintType)
@@ -66,6 +67,7 @@ struct CATALYSTLANDFORM_API FCLNoiseLayer
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FName Name;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bEnabled = true;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::StampDistribution", EditConditionHides)) FCLStampDistributionSettings Distribution;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainOperation Operation = ECLTerrainOperation::Noise;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Terrace", EditConditionHides)) FCLTerraceSettings Terrace;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides)) int32 Seed = 0;
@@ -84,7 +86,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 4;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 5;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
@@ -104,12 +106,15 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
 };
 
 class FCLNativeNoiseKernel;
+class FCLCompiledStampDistribution;
+class UCLStampLibraryAsset;
 
-/** Plain-data, worker-safe compiler output. No live asset or service references. */
+/** Worker-safe output. Opaque source owners retain lifetimes without reading live authoring state. */
 struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
 {
     struct FLayer
     {
+        TSharedPtr<const FCLCompiledStampDistribution> Distribution;
         ECLTerrainOperation Operation = ECLTerrainOperation::Noise;
         double StepHeight = 1, Origin = 0, Softness = 0, Strength = 1;
         double TerraceHeight(double Height) const;
@@ -127,6 +132,10 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     double MinimumHeightMeters = 0, MaximumHeightMeters = 0;
     TArray<FCLHeightGuide> Guides;
     TArray<FLayer> Layers;
+    int32 GetDistributedStampCount() const;
+    /** Diagnostic coverage of distributed stamp footprints and their fade weights. */
+    void GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight) const;
+    void GetStampPlacements(TArray<FCLResolvedStampPlacement>& Placements) const;
     double SampleHeightMeters(const FVector& LocalDirection) const;
     /** Batched native generation, with bounded scratch memory; results are metre offsets. */
     void SampleHeightsMeters(TConstArrayView<FVector> LocalDirections, TArray<double>& Heights) const;
@@ -136,7 +145,7 @@ class CATALYSTLANDFORM_API FCLPlanetCompiler
 {
 public:
     /** Returns no plan on error; callers may retain their last successful plan. */
-    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error);
+    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr);
     static FCLPlanetRecipe RollingPlains();
     /** Validate operation syntax without requiring a planet's guide values. */
     static bool ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error);

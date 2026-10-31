@@ -1,5 +1,6 @@
 #include "CLNoiseLayerStack.h"
 #include "CLTerrainEditing.h"
+#include "Stamps/CLStampLibrary.h"
 #include "PropertyEditorModule.h"
 #include "IDetailsView.h"
 #include "IStructureDetailsView.h"
@@ -87,6 +88,44 @@ public:
         }
     }
 };
+class FCLDistributionDetails : public IPropertyTypeCustomization
+{
+public:
+    void CustomizeHeader(TSharedRef<IPropertyHandle> H,FDetailWidgetRow& Row,IPropertyTypeCustomizationUtils&)override
+    {Row.NameContent()[H->CreatePropertyNameWidget()];Row.ValueContent()[H->CreatePropertyValueWidget()];}
+    void CustomizeChildren(TSharedRef<IPropertyHandle> H,IDetailChildrenBuilder& Children,IPropertyTypeCustomizationUtils&)override
+    {
+        uint32 Count=0;H->GetNumChildren(Count);
+        for(uint32 I=0;I<Count;++I)
+        {
+            const auto P=H->GetChildHandle(I).ToSharedRef();
+            if(P->GetProperty()->GetFName()!=TEXT("CollectionId")){Children.AddProperty(P);continue;}
+            Children.AddCustomRow(FText::FromString(TEXT("Collection"))).NameContent()[P->CreatePropertyNameWidget()]
+                .ValueContent().MinDesiredWidth(150)[SNew(SComboButton)
+                    .ButtonContent()[SNew(STextBlock).Font(IPropertyTypeCustomizationUtils::GetRegularFont()).Text_Lambda([P]{FName V;P->GetValue(V);return FText::FromName(V);})]
+                    .OnGetMenuContent_Lambda([P,H]
+                    {
+                        FMenuBuilder Menu(true,nullptr);
+                        if(auto* Library=UCLStampLibraryAsset::LoadConfigured())for(const auto& C:Library->Library.Collections)
+                        {
+                            const FName Id=C.Id;const int32 Revision=C.Revision;
+                            Menu.AddMenuEntry(FText::FromString(C.Name+TEXT(" / v")+LexToString(Revision)),FText::FromString(C.Description),FSlateIcon(),
+                                FUIAction(FExecuteAction::CreateLambda([H,Id,Revision]
+                                {
+                                    TArray<void*> Raw;H->AccessRawData(Raw);if(Raw.Num()!=1||!Raw[0])return;
+                                    auto Updated=*static_cast<FCLStampDistributionSettings*>(Raw[0]);
+                                    Updated.CollectionId=Id;Updated.CollectionRevision=Revision;
+                                    FString Text;FCLStampDistributionSettings::StaticStruct()->ExportText(Text,&Updated,nullptr,nullptr,PPF_None,nullptr);
+                                    // One property notification/undo; never compile an ID with the old revision.
+                                    H->SetValueFromFormattedString(Text);
+                                })));
+                        }
+                        return Menu.MakeWidget();
+                    })];
+        }
+    }
+};
+
 }
 
 void SCLNoiseLayerStack::Construct(const FArguments& Args)
@@ -98,6 +137,7 @@ void SCLNoiseLayerStack::Construct(const FArguments& Args)
     Details = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(ViewArgs, StructArgs, TSharedPtr<FStructOnScope>(), FText::FromString(TEXT("Layer settings")));
     Details->GetDetailsView()->RegisterInstancedCustomPropertyTypeLayout(TEXT("CLHeightReference"), FOnGetPropertyTypeCustomizationInstance::CreateLambda([S = Session]
         { return MakeShared<FCLGuideReferenceDetails>(S); }));
+    Details->GetDetailsView()->RegisterInstancedCustomPropertyTypeLayout(TEXT("CLStampDistributionSettings"),FOnGetPropertyTypeCustomizationInstance::CreateLambda([]{return MakeShared<FCLDistributionDetails>();}));
     Details->GetOnFinishedChangingPropertiesDelegate().AddSPLambda(this, [this](const FPropertyChangedEvent& Event)
     {
         if (!Draft || Event.ChangeType & EPropertyChangeType::Interactive) return;
@@ -115,8 +155,18 @@ void SCLNoiseLayerStack::Construct(const FArguments& Args)
         + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text(FText::FromString(TEXT("Terrain layers"))).Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))]
         + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers run from top to bottom. Select a layer to edit it; Solo isolates noise or previews a shaping operation with its upstream layers.")))]
         + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().AutoWidth()[Action(TEXT("Add noise"), [this] { Session->Add(); }, [this] { return Session->Asset->TerrainType.NoiseLayers.Num() < 32; })]
-            + SHorizontalBox::Slot().AutoWidth().Padding(3, 0)[Action(TEXT("Add terrace"), [this] { Session->Add(ECLTerrainOperation::Terrace); }, [this] { return Session->Asset->TerrainType.NoiseLayers.Num() < 32; })]
+            + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).IsEnabled_Lambda([this]{return Session->Asset->TerrainType.NoiseLayers.Num()<32;})
+                .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add layer")))]
+                .OnGetMenuContent_Lambda([this]
+                {
+                    FMenuBuilder Menu(true,nullptr);
+                    for(const auto Op:{ECLTerrainOperation::Noise,ECLTerrainOperation::Terrace,ECLTerrainOperation::StampDistribution})
+                    {
+                        const TCHAR* Name=Op==ECLTerrainOperation::Noise?TEXT("Noise"):Op==ECLTerrainOperation::Terrace?TEXT("Terracing"):TEXT("Stamp distribution");
+                        Menu.AddMenuEntry(FText::FromString(Name),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Op]{Session->Add(Op);})));
+                    }
+                    return Menu.MakeWidget();
+                })]
             + SHorizontalBox::Slot().AutoWidth().Padding(3, 0)[Action(TEXT("Duplicate"), [this] { Session->Duplicate(); }, [this, HasSelection] { return HasSelection() && Session->Asset->TerrainType.NoiseLayers.Num() < 32; })]
             + SHorizontalBox::Slot().AutoWidth()[Action(TEXT("Remove"), [this] { Session->Remove(); }, HasSelection)]
             + SHorizontalBox::Slot().AutoWidth().Padding(3, 0)[Action(TEXT("↑"), [this] { Session->Move(-1); }, [this] { return Session->Selected > 0; })]
@@ -207,6 +257,16 @@ bool FCLNoiseLayerDraftTest::RunTest(const FString&)
     TerraceDraft.Terrace.Softness = 2;
     Stack->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(TerraceFinished);
     TestEqual(TEXT("Invalid terrace draft leaves source intact"), Asset->TerrainType.NoiseLayers.Last().Terrace.Softness, OriginalSoftness);
+    Session->Add(ECLTerrainOperation::StampDistribution);Stack->Rebuild();
+    auto& DistributionDraft=*reinterpret_cast<FCLNoiseLayer*>(Stack->Draft->GetStructMemory());
+    auto* DensityProperty=FCLStampDistributionSettings::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLStampDistributionSettings,DensityPerSquareKilometer));
+    DistributionDraft.Distribution.DensityPerSquareKilometer=31;
+    FPropertyChangedEvent DistributionFinished(DensityProperty,EPropertyChangeType::ValueSet);
+    Stack->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(DistributionFinished);
+    TestEqual(TEXT("Distribution density commits through actual Details"),Asset->TerrainType.NoiseLayers.Last().Distribution.DensityPerSquareKilometer,31.);
+    GEditor->UndoTransaction();
+    TestEqual(TEXT("Distribution property edit is one undo"),Asset->TerrainType.NoiseLayers.Last().Distribution.DensityPerSquareKilometer,24.);
+
     return true;
 }
 #endif
