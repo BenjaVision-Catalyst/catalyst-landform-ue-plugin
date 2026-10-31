@@ -302,3 +302,24 @@ records source URLs, archive/member/output hashes, crops, precision and authored
 scale conventions; `Tools/prepare-motion-forge-stamps.py` reproduces the sources.
 The host's `Docs/MotionForgeStamps.md` documents use and qualification. Source
 licence: [Motion Forge Pictures](https://www.motionforgepictures.com/height-maps/).
+
+### Isolated mountain structures
+
+Mountains revision 3 contains five independent forms: Grand mountain spine,
+Curved mountain range, Rocky massif, Western ridge and Eastern ridge. They are
+extracted from the original Motion Forge elevations along selected connected
+contours. Surrounding terrain is removed, the contour floor is subtracted, and
+a quintic transition follows the structure's toes. Every stamp has a zero moat;
+the image rectangle is no longer its relief footprint. The southern rocky peak
+was rejected because its contour intersects the source boundary.
+
+`MountainStructures.json` and five individual presets use these sources.
+The default uses native Max without additional smooth-max bias, with the native
+rectangular fade contained in zero padding. Positive overlaps can still make
+creases; this preparation removes artificial source skirts, not every possible
+placement intersection. Existing Mountains revisions 1 and 2 remain unchanged.
+New editor stamp layers select revision 3.
+`Tools/prepare-mountain-structures.py` reproduces the extraction from the original
+archives; `SourceArt/Stamps/MotionForgeStructuresV1/sources.json` records seeds,
+floors, contours, toe widths, hashes, core preservation and boundary checks.
+See the host's `Docs/MountainStructures.md` for use and qualification.

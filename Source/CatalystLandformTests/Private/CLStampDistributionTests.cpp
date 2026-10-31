@@ -131,7 +131,7 @@ bool FCLDistributionParityTest::RunTest(const FString&)
     FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.DistributionParity"));const auto Surfaces=FVoxelSurfaceTypeTable::Get();
     const FVoxelQuery Query(0,FVoxelLayers::Empty(),*Surfaces,Dependencies);
     double MaxError=0,MaxDisplayError=0;int32 Samples=0;
-    for(int32 Case=0;Case<8;++Case)
+    for(int32 Case=0;Case<9;++Case)
     {
         auto R=DistributionRecipe(T,Error);
         if(Case>0&&Case<4)
@@ -156,9 +156,10 @@ bool FCLDistributionParityTest::RunTest(const FString&)
             if(Case==6){Mountains->TerrainType.NoiseLayers[0].bEnabled=false;Mountains->TerrainType.NoiseLayers[2].bEnabled=false;}
             if(!Mountains->TerrainType.ApplyTo(R,Error)){AddError(Error);break;}
         }
-        if(Case==7)
+        if(Case==7||Case==8)
         {
-            FString Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainTypes/MotionForgeMountains.json")));
+            const FString Example=Case==7?TEXT("Examples/TerrainTypes/MotionForgeMountains.json"):TEXT("Examples/TerrainTypes/MountainStructures.json");
+            FString Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/Example));
             auto* Mountains=NewObject<UCLTerrainTypeAsset>();
             if(!Mountains->ImportTerrainTypeJson(Json,Error)||!Mountains->TerrainType.ApplyTo(R,Error)){AddError(Error);break;}
         }

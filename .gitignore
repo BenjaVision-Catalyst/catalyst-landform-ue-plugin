@@ -77,3 +77,4 @@ Plugins/**/Intermediate/*
 DerivedDataCache/*
 
 .DS_Store
+!SourceArt/Stamps/MotionForgeStructuresV1/*.png

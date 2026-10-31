@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "author": "Chris J Mitchell / Motion Forge Pictures",
+  "license": "CC0-1.0",
+  "source_page": "https://www.motionforgepictures.com/height-maps/",
+  "parent_manifest": "../MotionForgeV1/sources.json",
+  "parent_manifest_sha256": "a672d7ecc02832a465bc3f5189310e0743ba67e8945b656b89f2aba8c8bb1333",
+  "preparation": "Original elevations; same parent crop/Lanczos/normalization, without rectangular fade. Curated connected elevation contour; 4px opening; remove neighbours; subtract contour floor; quintic distance-to-contour toe; tight crop plus 12% zero padding; linear uint16. Interior elevations preserved above the subtracted floor.",
+  "excluded": "Rocky southern summit: its natural contour intersects the source boundary. No artificial cut or image-edge skirt retained.",
+  "sources": [
+    {
+      "id": "MFS_GrandSpine",
+      "name": "Grand mountain spine",
+      "parent_id": "MFP_GrandMountain",
+      "weight": 3,
+      "source_archive": "grand-mountain.zip",
+      "contour_floor": 0.25,
+      "seed": [
+        0.5,
+        0.51
+      ],
+      "footprint_box": [
+        323,
+        424,
+        1684,
+        1597
+      ],
+      "source_clearance_fraction": 0.1576378721327477,
+      "toe_width_parent_pixels": 161.9711381697369,
+      "zero_padding_pixels": 163,
+      "output_resolution": [
+        1687,
+        1499
+      ],
+      "png_sha256": "35dedf3ec1d91bcb1538dd4a73db9673aa91a09b5824345644a098d05e611098",
+      "peak_residual": 0.75,
+      "core_error": 1.9868214962137642e-08,
+      "core_pixels": 469320,
+      "zero_samples": "Inside the full-weight native rectangle, outside the structural relief",
+      "connected_structures": 1,
+      "boundary_height_max": 1.5259021896696422e-05,
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "reference_relief_m": 100,
+      "samples_16bit": [
+        {
+          "x": 155,
+          "y": 155,
+          "value": 0
+        },
+        {
+          "x": 1521,
+          "y": 888,
+          "value": 0
+        },
+        {
+          "x": 1532,
+          "y": 1344,
+          "value": 0
+        },
+        {
+          "x": 1008,
+          "y": 171,
+          "value": 1
+        },
+        {
+          "x": 1467,
+          "y": 732,
+          "value": 1
+        },
+        {
+          "x": 740,
+          "y": 1327,
+          "value": 1
+        },
+        {
+          "x": 1016,
+          "y": 288,
+          "value": 3012
+        },
+        {
+          "x": 1396,
+          "y": 748,
+          "value": 3890
+        },
+        {
+          "x": 891,
+          "y": 1228,
+          "value": 3018
+        },
+        {
+          "x": 740,
+          "y": 624,
+          "value": 50027
+        },
+        {
+          "x": 913,
+          "y": 759,
+          "value": 64465
+        },
+        {
+          "x": 1142,
+          "y": 888,
+          "value": 50127
+        }
+      ]
+    },
+    {
+      "id": "MFS_CurvedRange",
+      "name": "Curved mountain range",
+      "parent_id": "MFP_MountainRange",
+      "weight": 3,
+      "source_archive": "mountain-range.zip",
+      "contour_floor": 0.65,
+      "seed": [
+        0.45,
+        0.43
+      ],
+      "footprint_box": [
+        445,
+        490,
+        1544,
+        1156
+      ],
+      "source_clearance_fraction": 0.21717911176183505,
+      "toe_width_parent_pixels": 91.10718083663879,
+      "zero_padding_pixels": 132,
+      "output_resolution": [
+        1363,
+        931
+      ],
+      "png_sha256": "b66c6c2644dad4f2aace0cac8abf726c04e7e697c7385c35670c716219c73730",
+      "peak_residual": 0.3500000238418579,
+      "core_error": 2.9802129541955935e-08,
+      "core_pixels": 57678,
+      "zero_samples": "Inside the full-weight native rectangle, outside the structural relief",
+      "connected_structures": 1,
+      "boundary_height_max": 3.0518043793392844e-05,
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "reference_relief_m": 100,
+      "samples_16bit": [
+        {
+          "x": 126,
+          "y": 126,
+          "value": 0
+        },
+        {
+          "x": 210,
+          "y": 583,
+          "value": 0
+        },
+        {
+          "x": 1237,
+          "y": 805,
+          "value": 0
+        },
+        {
+          "x": 1055,
+          "y": 135,
+          "value": 1
+        },
+        {
+          "x": 877,
+          "y": 493,
+          "value": 1
+        },
+        {
+          "x": 302,
+          "y": 794,
+          "value": 1
+        },
+        {
+          "x": 1059,
+          "y": 176,
+          "value": 3097
+        },
+        {
+          "x": 1154,
+          "y": 411,
+          "value": 7947
+        },
+        {
+          "x": 288,
+          "y": 755,
+          "value": 3080
+        },
+        {
+          "x": 335,
+          "y": 382,
+          "value": 50083
+        },
+        {
+          "x": 403,
+          "y": 420,
+          "value": 58896
+        },
+        {
+          "x": 368,
+          "y": 485,
+          "value": 50107
+        }
+      ]
+    },
+    {
+      "id": "MFS_RockyMassif",
+      "name": "Rocky massif",
+      "parent_id": "MFP_RockyPeaks",
+      "weight": 2,
+      "source_archive": "rocky-peaks.zip",
+      "contour_floor": 0.66,
+      "seed": [
+        0.26,
+        0.5
+      ],
+      "footprint_box": [
+        386,
+        497,
+        1030,
+        1138
+      ],
+      "source_clearance_fraction": 0.14692653673163414,
+      "toe_width_parent_pixels": 53.94468277782344,
+      "zero_padding_pixels": 77,
+      "output_resolution": [
+        799,
+        795
+      ],
+      "png_sha256": "8f1e97969b12cfa4765993ed92e8ca05b55c66ea7a3dc6622a161ba08f50556d",
+      "peak_residual": 0.3399999737739563,
+      "core_error": 2.9800718448491637e-08,
+      "core_pixels": 22215,
+      "zero_samples": "Inside the full-weight native rectangle, outside the structural relief",
+      "connected_structures": 1,
+      "boundary_height_max": 7.629510948348211e-05,
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "reference_relief_m": 100,
+      "samples_16bit": [
+        {
+          "x": 75,
+          "y": 75,
+          "value": 0
+        },
+        {
+          "x": 92,
+          "y": 425,
+          "value": 0
+        },
+        {
+          "x": 724,
+          "y": 720,
+          "value": 0
+        },
+        {
+          "x": 205,
+          "y": 78,
+          "value": 2
+        },
+        {
+          "x": 211,
+          "y": 453,
+          "value": 1
+        },
+        {
+          "x": 702,
+          "y": 716,
+          "value": 1
+        },
+        {
+          "x": 213,
+          "y": 107,
+          "value": 3115
+        },
+        {
+          "x": 394,
+          "y": 402,
+          "value": 8862
+        },
+        {
+          "x": 647,
+          "y": 679,
+          "value": 3090
+        },
+        {
+          "x": 218,
+          "y": 155,
+          "value": 50027
+        },
+        {
+          "x": 183,
+          "y": 258,
+          "value": 58456
+        },
+        {
+          "x": 246,
+          "y": 326,
+          "value": 50140
+        }
+      ]
+    },
+    {
+      "id": "MFS_WestRidge",
+      "name": "Western ridge",
+      "parent_id": "MFP_TerrainRidge",
+      "weight": 2,
+      "source_archive": "terrain-ridge.zip",
+      "contour_floor": 0.6,
+      "seed": [
+        0.27,
+        0.25
+      ],
+      "footprint_box": [
+        193,
+        93,
+        463,
+        266
+      ],
+      "source_clearance_fraction": 0.14396284829721362,
+      "toe_width_parent_pixels": 22.166208516568638,
+      "zero_padding_pixels": 32,
+      "output_resolution": [
+        335,
+        237
+      ],
+      "png_sha256": "3cdc55475080ea6357ee33bc21d5eb99b9cab90f980fea4c94008431ceb9be21",
+      "peak_residual": 0.3999999761581421,
+      "core_error": 2.9789310573846706e-08,
+      "core_pixels": 5958,
+      "zero_samples": "Inside the full-weight native rectangle, outside the structural relief",
+      "connected_structures": 1,
+      "boundary_height_max": 0.0003509575036240177,
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "reference_relief_m": 100,
+      "samples_16bit": [
+        {
+          "x": 34,
+          "y": 34,
+          "value": 0
+        },
+        {
+          "x": 72,
+          "y": 139,
+          "value": 0
+        },
+        {
+          "x": 301,
+          "y": 203,
+          "value": 0
+        },
+        {
+          "x": 56,
+          "y": 32,
+          "value": 1
+        },
+        {
+          "x": 79,
+          "y": 122,
+          "value": 1
+        },
+        {
+          "x": 289,
+          "y": 204,
+          "value": 1
+        },
+        {
+          "x": 59,
+          "y": 38,
+          "value": 3251
+        },
+        {
+          "x": 107,
+          "y": 121,
+          "value": 14791
+        },
+        {
+          "x": 288,
+          "y": 196,
+          "value": 3057
+        },
+        {
+          "x": 114,
+          "y": 63,
+          "value": 51027
+        },
+        {
+          "x": 125,
+          "y": 90,
+          "value": 56103
+        },
+        {
+          "x": 205,
+          "y": 123,
+          "value": 50626
+        }
+      ]
+    },
+    {
+      "id": "MFS_EastRidge",
+      "name": "Eastern ridge",
+      "parent_id": "MFP_TerrainRidge",
+      "weight": 2,
+      "source_archive": "terrain-ridge.zip",
+      "contour_floor": 0.6,
+      "seed": [
+        0.71,
+        0.64
+      ],
+      "footprint_box": [
+        571,
+        340,
+        823,
+        495
+      ],
+      "source_clearance_fraction": 0.19707317073170727,
+      "toe_width_parent_pixels": 23.545564338108356,
+      "zero_padding_pixels": 30,
+      "output_resolution": [
+        313,
+        215
+      ],
+      "png_sha256": "7c801cadfa1eb15c1504796dde0a67caaacefc6f899c1cfec783ef150c14d575",
+      "peak_residual": 0.16126960515975952,
+      "core_error": 2.9776779042478552e-08,
+      "core_pixels": 6296,
+      "zero_samples": "Inside the full-weight native rectangle, outside the structural relief",
+      "connected_structures": 1,
+      "boundary_height_max": 0.00044251163500419623,
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "reference_relief_m": 100,
+      "samples_16bit": [
+        {
+          "x": 32,
+          "y": 32,
+          "value": 0
+        },
+        {
+          "x": 45,
+          "y": 137,
+          "value": 0
+        },
+        {
+          "x": 281,
+          "y": 183,
+          "value": 0
+        },
+        {
+          "x": 88,
+          "y": 30,
+          "value": 2
+        },
+        {
+          "x": 44,
+          "y": 99,
+          "value": 1
+        },
+        {
+          "x": 212,
+          "y": 184,
+          "value": 2
+        },
+        {
+          "x": 92,
+          "y": 37,
+          "value": 3312
+        },
+        {
+          "x": 116,
+          "y": 103,
+          "value": 14471
+        },
+        {
+          "x": 211,
+          "y": 176,
+          "value": 3121
+        },
+        {
+          "x": 184,
+          "y": 66,
+          "value": 51007
+        },
+        {
+          "x": 173,
+          "y": 91,
+          "value": 62967
+        },
+        {
+          "x": 225,
+          "y": 119,
+          "value": 50589
+        }
+      ]
+    }
+  ]
+}

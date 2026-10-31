@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 4,
+  "algorithmVersion": 2,
+  "id": "434C1001000000000000000000000085",
+  "name": "Eastern ridge",
+  "description": "Independently placeable Motion Forge mountain structures isolated along their contours; zero surroundings and smooth landform toes.",
+  "noiseLayers": [
+    {
+      "name": "Mountain structures",
+      "operation": "StampDistribution",
+      "distribution": {
+        "collectionId": "MFS_EastRidge",
+        "collectionRevision": 1,
+        "seed": 71,
+        "densityPerSquareKilometer": 12,
+        "sizeMode": "PlanetRadius",
+        "minimumSizeRadiusFraction": 0.35,
+        "maximumSizeRadiusFraction": 0.65,
+        "minimumReliefRatio": 0.12,
+        "maximumReliefRatio": 0.22,
+        "blend": "Collection",
+        "blendSmoothnessRadiusFraction": 0,
+        "edgeFalloffFraction": 0.08
+      }
+    }
+  ]
+}
