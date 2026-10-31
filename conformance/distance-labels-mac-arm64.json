@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "automation_summary": {
+    "succeeded": 23,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "checks": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "passed",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "passed",
+    "Catalyst.Landform.Designer.CoreToSkySection": "passed",
+    "Catalyst.Landform.Designer.DeferredGesture": "passed",
+    "Catalyst.Landform.Designer.DeferredTerrainPreview": "passed",
+    "Catalyst.Landform.Designer.DistanceInputUnits": "passed",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "passed",
+    "Catalyst.Landform.Designer.LayerPropertyDraft": "passed",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "passed",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "passed",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "passed",
+    "Catalyst.Landform.Designer.SurfaceArea": "passed",
+    "Catalyst.Landform.Designer.TerrainWorkspace": "passed",
+    "Catalyst.Landform.Recipes.HeightGuides": "passed",
+    "Catalyst.Landform.Recipes.OrderedLayers": "passed",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "passed",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "passed",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "passed",
+    "Catalyst.Landform.Strata.Presets": "passed",
+    "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "passed",
+    "Catalyst.Landform.TerrainTypes.LayerAuthoring": "passed",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "passed",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "passed"
+  },
+  "changes": [
+    "Unit-neutral distance labels: Height, Offset, Wavelength, Radius, Height offset, Edge falloff",
+    "Scale option displayed as Absolute distance; serialized enum name remains Meters",
+    "Preview radius uses UE numeric unit interface with visible display suffix and input conversion"
+  ],
+  "unit_conversion_regression": [
+    "25000 in a cm-displaying field stores 250 metres",
+    "25000 cm, 250 m and 0.25 km resolve to the same stored distance",
+    "Signed -25 cm offset roundtrips as -0.25 stored metres through existing recipe JSON"
+  ],
+  "visual_inspection": "Reopened Designer: Offset displays 0.0 cm under a unit-neutral label; Preview radius displays 100000.0 cm with no hard-coded unit in its label.",
+  "asset_files_preserved": {
+    "Config/DefaultEngine.ini": "81750862dff126e8f06b7889194edaa3e6d17579bc7881d892d7fd3a52351192",
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "575c9349781d7e63dec531f66a158a23569b92575588f93d5eb010153145979c",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "7f5f21133d189354d50c36cceb9e08ab395fbafc469d6dac1a693967086d0db0",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidges.uasset": "c43ea7dfe4634da78628a7888cc50bc2bed273c7ec047e0756c52a9e1a38a655"
+  },
+  "source_sha256": {
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "f22249b7e095d9c39b57b52353ec85b9d8a7425fec7086ab1e290ad2aac07c57",
+    "Source/CatalystLandform/Public/CLPlanet.h": "34e9335b9b5c243d90739ee8a984a48d0b71df1c4934b9b5b7bb7a9f3c140aeb",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "85e185c64050d827c6487618488a560d5fa984a569fb557afa8566dc8c084232"
+  },
+  "nonblocking_warnings": [
+    "LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n",
+    "LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+  ],
+  "test_log": "Saved/Logs/Distance-labels-tests.log",
+  "limits": [
+    "Pinned UE build; no new cook or cross-platform qualification",
+    "Only Offset and Preview radius visually inspected; conversion and serialization exercised through UE automation"
+  ],
+  "vendor_changes": "None"
+}

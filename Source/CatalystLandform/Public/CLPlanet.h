@@ -31,7 +31,7 @@ class CATALYSTLANDFORM_API ACLPlanet : public AVoxelWorld
     GENERATED_BODY()
 public:
     ACLPlanet();
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet", meta=(Units="m", ClampMin="10"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet", meta=(DisplayName="Radius", Units="m", ClampMin="10"))
     double RadiusMeters = 100;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Planet")
@@ -83,9 +83,9 @@ public:
     int32 Priority = 0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spherical Stamp", meta=(Units="cm", ClampMin="0"))
     float Smoothness = 150;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spherical Stamp", meta=(Units="m"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spherical Stamp", meta=(DisplayName="Height offset", Units="m"))
     double HeightOffsetMeters = 0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spherical Stamp", meta=(Units="m", ClampMin="0.01"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spherical Stamp", meta=(DisplayName="Edge falloff", Units="m", ClampMin="0.01"))
     double EdgeFalloffMeters = 8;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spherical Stamp")
     bool bEnabled = true;

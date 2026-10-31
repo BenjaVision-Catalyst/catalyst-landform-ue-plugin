@@ -8,6 +8,7 @@
 #include "FileHelpers.h"
 #include "Misc/PackageName.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include "Widgets/Input/NumericUnitTypeInterface.inl"
 #include "Async/Async.h"
 #include "CLSectionGeometry.h"
 #include "CLSectionNavigation.h"
@@ -63,6 +64,12 @@ namespace
 const FLinearColor GuideLabelColor(.72, .72, .72, .3);
 constexpr double GuideTickWidth = 16;
 constexpr double GuideLabelHeight = 20;
+TSharedRef<TNumericUnitTypeInterface<double>> MakeDistanceInput(double ValueMeters)
+{
+    auto Units = MakeShared<TNumericUnitTypeInterface<double>>(EUnit::Meters);
+    Units->SetupFixedDisplay(ValueMeters);
+    return Units;
+}
 FLinearColor GuideTint(int32 Index, int32 Selected)
 {
     return GuideLabelColor.CopyWithNewOpacity(Index >= 0 && Selected == Index ? 1.f : .3f);
@@ -582,6 +589,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TStrongObjectPtr<UCLPlanetRecipeAsset> PreviewContext;
     TWeakObjectPtr<UCLPlanetRecipeAsset> ContextPlanet;
     TSharedPtr<SCLNoiseLayerStack> NoiseStack;
+    TSharedPtr<TNumericUnitTypeInterface<double>> RadiusUnits;
     FDelegateHandle TerrainChanged;
     UCLPlanetRecipeAsset* RecipeAsset() const
     { return PreviewContext ? PreviewContext.Get() : CastChecked<UCLPlanetRecipeAsset>(EditingAsset); }
@@ -640,6 +648,7 @@ public:
     void OpenDesigner(EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         auto* Asset = RecipeAsset();
+        RadiusUnits = MakeDistanceInput(Asset->Recipe.RadiusMeters);
         StrataSession = MakeShared<FCLStrataSession>();
         if (TerrainEditing)
         {
@@ -805,8 +814,9 @@ public:
                     .Text_Lambda([this] { return FText::FromString(TerrainEditing ? TEXT("Save edits to this reusable terrain type") : TEXT("Edit this planet's base noise layers in Details")); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text(FText::FromString(TEXT("Preview radius (m)")))]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text(FText::FromString(TEXT("Preview radius")))]
                 + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SBox).WidthOverride(100)[SNew(SNumericEntryBox<double>).MinValue(10).MaxValue(1.e7)
+                    .TypeInterface(RadiusUnits)
                     .Value_Lambda([this] { return TOptional<double>(RecipeAsset()->Recipe.RadiusMeters); })
                     .OnValueCommitted_Lambda([this](double Value, ETextCommit::Type)
                     { if (!FMath::IsFinite(Value) || Value < 10 || Value > 1.e7) return; RecipeAsset()->Recipe.RadiusMeters = Value; Refresh(); })]]
@@ -978,6 +988,31 @@ EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& A
 IMPLEMENT_MODULE(FCLDesignerModule, CatalystLandformEditor)
 
 #if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDistanceInputUnitsTest, "Catalyst.Landform.Designer.DistanceInputUnits",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLDistanceInputUnitsTest::RunTest(const FString&)
+{
+    auto Input = MakeDistanceInput(1000);
+    Input->UserDisplayUnits = EUnit::Centimeters;
+    for (const FString Text : {TEXT("25000"), TEXT("25000 cm"), TEXT("250 m"), TEXT("0.25 km")})
+    {
+        const auto Value = Input->FromString(Text, 1000);
+        TestTrue(*FString::Printf(TEXT("%s resolves to 250 stored metres"), *Text), Value.IsSet() && FMath::IsNearlyEqual(Value.GetValue(), 250.0));
+    }
+    TestTrue(TEXT("Distance field shows its input unit"), Input->ToString(250).EndsWith(TEXT(" cm")));
+    const auto Offset = Input->FromString(TEXT("-25 cm"), 0);
+    if (!TestTrue(TEXT("Signed offset converts into stored metres"), Offset.IsSet() && FMath::IsNearlyEqual(Offset.GetValue(), -.25))) return false;
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>());
+    Asset->Recipe = FCLPlanetCompiler::RollingPlains(); Asset->Recipe.NoiseLayers[1].Minimum.OffsetMeters = Offset.GetValue();
+    FString Json, Error;
+    TestTrue(TEXT("Recipe exports with unit-neutral editor labels"), Asset->ExportJsonString(Json, Error));
+    TestTrue(TEXT("Existing serialized metre field name is preserved"), Json.Contains(TEXT("offsetMeters")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Copy(NewObject<UCLPlanetRecipeAsset>());
+    if (!TestTrue(TEXT("Recipe reloads"), Copy->ImportRecipeJson(Json, Error))) return false;
+    TestEqual(TEXT("Changing display units cannot rescale saved terrain"), Copy->Recipe.NoiseLayers[1].Minimum.OffsetMeters, -.25);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDeferredTerrainPreviewTest, "Catalyst.Landform.Designer.DeferredTerrainPreview",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLDeferredTerrainPreviewTest::RunTest(const FString&)

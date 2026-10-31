@@ -120,6 +120,9 @@ Terrain assets now open in the shared cross-section Designer with a **Noise
 layers** tab. Select, add, duplicate, remove, reorder or enable layers; the
 selected layer exposes shape, blend, seed, wavelength, octaves, persistence and
 guide-based height bounds. Guide pickers use the preview context's Stratum.
+Distance labels are unit-neutral; the suffix in each numeric field identifies
+its input unit. Preview radius uses UE's unit-aware numeric interface as well.
+The recipe's stored metre values and serialized field names are unchanged.
 Finished property edits are transactional; invalid drafts leave the definition
 unchanged. Undo/redo refreshes the stack and preview.
 

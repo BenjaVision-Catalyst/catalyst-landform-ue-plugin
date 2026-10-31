@@ -11,7 +11,7 @@ struct CATALYSTLANDFORM_API FCLHeightGuide
 {
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FName Name;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m")) double HeightMeters = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Height", Units="m")) double HeightMeters = 0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FLinearColor Color = FLinearColor(.2, .65, 1);
 };
 
@@ -28,7 +28,7 @@ struct CATALYSTLANDFORM_API FCLHeightReference
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FName UpperGuide;
     /** Height lerps [0,1]; Delta scales the guide span by a signed fraction [-1,1]. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite) double Fraction = 0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m")) double OffsetMeters = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Offset", Units="m")) double OffsetMeters = 0;
 };
 
 UENUM(BlueprintType)
@@ -36,7 +36,7 @@ enum class ECLNoiseShape : uint8 { Smooth, Ridged };
 UENUM(BlueprintType)
 enum class ECLNoiseBlend : uint8 { Override, Add, Max, Min };
 UENUM(BlueprintType)
-enum class ECLNoiseScale : uint8 { Meters, PlanetRadius };
+enum class ECLNoiseScale : uint8 { Meters UMETA(DisplayName="Absolute distance"), PlanetRadius };
 
 /** Ordered generation operation. Algorithm v1 uses UE's 3D Perlin evaluator. */
 USTRUCT(BlueprintType)
@@ -51,7 +51,7 @@ struct CATALYSTLANDFORM_API FCLNoiseLayer
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference Minimum;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLHeightReference Maximum;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLNoiseScale Scale = ECLNoiseScale::Meters;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m", ClampMin="0.1", EditCondition="Scale == ECLNoiseScale::Meters", EditConditionHides)) double WavelengthMeters = 50;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Wavelength", Units="m", ClampMin="0.1", EditCondition="Scale == ECLNoiseScale::Meters", EditConditionHides)) double WavelengthMeters = 50;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.000001", EditCondition="Scale == ECLNoiseScale::PlanetRadius", EditConditionHides)) double WavelengthRadiusFraction = .5;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="1", ClampMax="8")) int32 Octaves = 3;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0", ClampMax="1")) double Persistence = .5;
@@ -64,7 +64,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 3;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="m", ClampMin="10")) double RadiusMeters = 100;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
     /** Initial solid sphere before ordered operations; fraction of outer radius. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.001", ClampMax="1")) double BaseSurfaceNormalized = 1;
     UPROPERTY() double ReferenceRadiusMeters_DEPRECATED = 100;
