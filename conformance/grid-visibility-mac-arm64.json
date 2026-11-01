@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-02",
+  "platform": "Mac arm64 / UE 5.7.4 / VPP 2.0p8",
+  "change": "Ordinary blue geographic grid alpha 0.32 -> 0.42; width, colour, spacing, equator and poles unchanged",
+  "test": "Catalyst.Landform.Surfaces.RenderedGlobe",
+  "automation": {
+    "succeeded": 1,
+    "succeededWithWarnings": 0,
+    "failed": 0,
+    "notRun": 0
+  },
+  "render": {
+    "views": 3,
+    "grid_on_off_changed_pixels": 12215,
+    "previous_changed_pixels": 9506,
+    "clipped_white_pixels": 0,
+    "native_1x_vs_25x_mesh_mean_rgb_difference_out_of_255": 0.214975
+  },
+  "package": "BuildCookRun passed, 280 cooked packages",
+  "runtime_compile_only": {
+    "passed": true,
+    "referenceMatched": true,
+    "collisionReadySeconds": 6.449579082429409,
+    "maxHoldDriftCm": 0
+  },
+  "component_sha256": {
+    "SourceArt/Surfaces/TexturedAppearance.hlsl": "3e85ceac2777682a02cf0cddcc87bad6c70559666bd9a3df7b381ef320498ebd",
+    "Content/Surfaces/M_Surface.uasset": "00ae4c79d3dd51372f8a88a10ce9441239b5a54ad1c4b5ba2a9b32f09bbd5cfd",
+    "Content/Surfaces/M_SurfacePreview.uasset": "7a083f39b4f4f7fb7ff0348bd00f4a76266d4775e61723b61340d5497a582a1a",
+    "Content/Surfaces/M_GlobeGrid.uasset": "eb6c45b72fa4aceb497f763d880478b4ef420cd741da091b50686ee051ea92ec"
+  },
+  "package_sha256": {
+    "Saved/Packages/RuntimeRecipe/Mac/LandformLab.app/Contents/UE/LandformLab/Content/Paks/LandformLab-Mac.pak": "4947f3bca734f4c19cdf4af6cc054605f37f41e8398d42b21b6b6c75e0621ea4"
+  },
+  "evidence_sha256": {
+    "Saved/Verification/grid-visibility/automation/index.json": "e8cfe2acb97eb125c65560f0df28141faa29f05507f849322e5676e239eb915a",
+    "Saved/Verification/runtime-packaged-variant/report.json": "3940eb942d6b7fe38c28af82b3e8918876ab9064d370342a6dca30bdd1e287e8",
+    "Saved/Verification/grid-visibility/globe-0.png": "674980383fb222cdb6c8b0b82e79a3793e62f01510d62fb762b91792494360bf",
+    "Saved/Verification/grid-visibility/globe-1.png": "6b22f08348ba2051ddf3c32790124859a7f99fb0d82b3bec98c41916b8329295",
+    "Saved/Verification/grid-visibility/globe-2.png": "311fa89364d31275bcdf624a50f9d2d47583f779cd0c049bc925c0e803816840"
+  }
+}

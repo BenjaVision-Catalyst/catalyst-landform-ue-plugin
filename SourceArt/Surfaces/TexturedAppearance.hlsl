@@ -48,7 +48,7 @@ struct CLTexturedAppearanceShader
         float Foot=max(max(length(ddx(D)),length(ddy(D))),1.e-6)*57.2957795;
         float Latitude=Line(Lat,Step,Foot);
         float Longitude=Line(Lon,Step,Foot/max(length(D.xy),.03))*smoothstep(.01,.06,length(D.xy));
-        float Grid=max(Latitude,Longitude)*.32;
+        float Grid=max(Latitude,Longitude)*.42;
         float Equator=1-smoothstep(Foot,Foot*2.2,abs(Lat));
         float Pole=1-smoothstep(Step*.12+Foot,Step*.12+Foot*2.5,90-abs(Lat));
         float3 Ink=float3(.14,.32,.4);float Alpha=Grid;
