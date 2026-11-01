@@ -14,6 +14,8 @@ struct CATALYSTLANDFORM_API FCLSphericalHeightmapPlacement
     GENERATED_BODY()
 
     UPROPERTY() FGuid Id;
+    UPROPERTY() bool bPlanar = false;
+    UPROPERTY() FVector2D Center = FVector2D::ZeroVector;
     UPROPERTY() FVoxelHeightmapStamp Source;
     UPROPERTY() FVector Anchor = FVector::ZAxisVector;
     UPROPERTY() FVector TangentX = FVector::XAxisVector;
@@ -36,6 +38,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
 
     UPROPERTY() double Radius = 10000;
     UPROPERTY() bool bUseRecipe = false;
+    UPROPERTY() bool bPlanarSources = false;
     UPROPERTY() FCLPlanetRecipe Recipe;
     UPROPERTY() TArray<FCLSphericalHeightmapPlacement> Placements;
 };

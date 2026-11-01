@@ -114,7 +114,7 @@ bool FCLTerraceAuthoringTest::RunTest(const FString&)
     auto* Recipe=NewObject<UCLPlanetRecipeAsset>(); Recipe->Recipe=R;
     TestTrue(TEXT("Planet with terracing exports"),Recipe->ExportJsonString(Json,Error));
     auto* Restored=NewObject<UCLPlanetRecipeAsset>(); TestTrue(TEXT("Planet with terracing reimports"),Restored->ImportRecipeJson(Json,Error));
-    TestEqual(TEXT("New recipe schema is explicit"),Restored->Recipe.SchemaVersion,5);
+    TestEqual(TEXT("New recipe schema is explicit"),Restored->Recipe.SchemaVersion,6);
     auto Invalid=Copy->TerrainType; Invalid.SchemaVersion=2; TestFalse(TEXT("Old terrain schema refuses terrace operations"),Invalid.Validate(Error));
     return true;
 }

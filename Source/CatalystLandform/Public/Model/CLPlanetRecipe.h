@@ -17,19 +17,17 @@ struct CATALYSTLANDFORM_API FCLHeightGuide
 };
 
 UENUM(BlueprintType)
-enum class ECLHeightReferenceMode : uint8 { Height, IntervalHeight, IntervalDelta };
+enum class ECLTerrainCoordinates : uint8 { Sphere, LocalPatch };
 
-/** Height uses an outer-radius offset; interval modes resolve planet-global guides. */
+/** Assembly placement, owned by a planet. Local terrain itself has no spherical dimensions. */
 USTRUCT(BlueprintType)
-struct CATALYSTLANDFORM_API FCLHeightReference
+struct CATALYSTLANDFORM_API FCLTerrainPatch
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLHeightReferenceMode Mode = ECLHeightReferenceMode::Height;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) FName Guide;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) FName UpperGuide;
-    /** Height lerps [0,1]; Delta scales the guide span by a signed fraction [-1,1]. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) double Fraction = 0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Offset", Units="m")) double OffsetMeters = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector Anchor = FVector::ZAxisVector;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector TangentX = FVector::XAxisVector;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Patch half width", Units="m")) double HalfWidthMeters = 750;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Patch transition", Units="m")) double TransitionMeters = 100;
 };
 
 UENUM(BlueprintType)
@@ -86,7 +84,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 5;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 6;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
@@ -94,6 +92,8 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.001", ClampMax="1")) double BaseSurfaceNormalized = 1;
     UPROPERTY() double ReferenceRadiusMeters_DEPRECATED = 100;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Seed = 1729;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Coordinates == ECLTerrainCoordinates::LocalPatch", EditConditionHides)) FCLTerrainPatch TerrainPatch;
     /** Applied planet-global snapshot, independent of its authoring catalog. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLStrata Strata;
     /** Read old binary recipes once, then migrate to normalized Strata. */
@@ -128,6 +128,13 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** Captured native kernel only: no graph assets or UObject access on workers. */
     TSharedPtr<const FCLNativeNoiseKernel> NativePerlin;
     double RadiusMeters = 100;
+    ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
+    FCLTerrainPatch TerrainPatch;
+    FBox2D EvaluationRegion;
+    FVector TerrainDirection(const FVector2D& Meters) const;
+    bool TerrainPosition(const FVector& Direction, FVector2D& Meters) const;
+    /** Direct metric field, independent of assembly curvature and its boundary transition. */
+    void SampleLocalHeightsMeters(TConstArrayView<FVector> Positions, TArray<double>& Heights) const;
     double BaseHeightMeters = 0;
     double MinimumHeightMeters = 0, MaximumHeightMeters = 0;
     TArray<FCLHeightGuide> Guides;
@@ -139,13 +146,15 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     double SampleHeightMeters(const FVector& LocalDirection) const;
     /** Batched native generation, with bounded scratch memory; results are metre offsets. */
     void SampleHeightsMeters(TConstArrayView<FVector> LocalDirections, TArray<double>& Heights) const;
+private:
+    void EvaluateHeightsMeters(TConstArrayView<FVector> Positions, TArray<double>& Heights, bool bLocal) const;
 };
 
 class CATALYSTLANDFORM_API FCLPlanetCompiler
 {
 public:
     /** Returns no plan on error; callers may retain their last successful plan. */
-    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr);
+    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr);
     static FCLPlanetRecipe RollingPlains();
     /** Validate operation syntax without requiring a planet's guide values. */
     static bool ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error);

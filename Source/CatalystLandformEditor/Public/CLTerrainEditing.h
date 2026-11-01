@@ -20,7 +20,7 @@ public:
     bool Enable(int32 Index, bool bEnabled);
     void Reconcile();
     void SetSolo(int32 Index);
-    TSharedPtr<const FCLCompiledPlanetRecipe> CompilePreview(FString& OutError) const;
+    TSharedPtr<const FCLCompiledPlanetRecipe> CompilePreview(FString& OutError, double WidthMeters = 500) const;
 private:
     FName SoloName;
     bool Commit(TArray<FCLNoiseLayer> Layers, int32 NewSelection, int32 NewSolo, const FText& Description);

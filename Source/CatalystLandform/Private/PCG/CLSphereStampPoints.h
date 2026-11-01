@@ -2,13 +2,17 @@
 #include "PCGSettings.h"
 #include "CLSphereStampPoints.generated.h"
 
-/** Equal-area spherical PCG source with weighted stamp-index metadata. */
+/** Versioned spherical or tiled metric PCG source with weighted stamp-index metadata. */
 UCLASS()
 class UCLSphereStampPointsSettings : public UPCGSettings
 {
     GENERATED_BODY()
 public:
     UPROPERTY(EditAnywhere, Category="Settings") int32 Count = 64;
+    UPROPERTY() bool bLocal = false;
+    UPROPERTY() FVector2D RegionMin;
+    UPROPERTY() FVector2D RegionMax;
+    UPROPERTY() double Density = 0;
     UPROPERTY(EditAnywhere, Category="Settings") double RadiusMeters = 500;
     UPROPERTY(EditAnywhere, Category="Settings") TArray<double> Weights = {1,1};
     virtual bool UseSeed() const override { return true; }

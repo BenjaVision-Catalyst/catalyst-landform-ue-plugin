@@ -616,7 +616,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     {
         if (!Preview || !Preview->Client->Plan || bPreviewInvalid) return;
         Preview->Client->AreaWidthMeters = PendingAreaWidth;
-        if (TerrainEditing) Preview->RebuildAsync(Preview->Client->Plan);
+        if (TerrainEditing) Refresh();
         else Preview->Rebuild(Preview->Client->Plan);
     }
     FText AreaCaption() const
@@ -783,7 +783,7 @@ public:
         }
         if (Preview) Preview->Client->Strata = Asset->Recipe.Strata;
         if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
-        const auto Plan = TerrainEditing ? TerrainEditing->CompilePreview(Status) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
+        const auto Plan = TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         bPreviewInvalid = !Plan.IsValid();
         if (Plan)
         {
@@ -887,7 +887,7 @@ public:
                         TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
                     if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Stratum");
                     if (Preview && Preview->IsUpdating()) Legend = TEXT("Updating terrain preview… | ") + Legend;
-                    if (Preview && Preview->Client->Plan && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
+                    if (Preview && Preview->Client->Plan && Preview->Client->Plan->Coordinates == ECLTerrainCoordinates::Sphere && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
                     return FText::FromString(Legend);

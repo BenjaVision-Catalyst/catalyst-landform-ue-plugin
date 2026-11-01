@@ -18,6 +18,39 @@ class FCLSphereStampPointsElement : public IPCGElement
         auto* Metadata = Data->MutableMetadata();
         auto* Choice = Metadata->CreateAttribute<int32>(TEXT("CLStampIndex"), 0, false, false);
         auto& Points = Data->GetMutablePoints(); Points.Reserve(S->Count);
+        if (S->bLocal)
+        {
+            // Fixed metric cells, independent of view size and contributing halo.
+            // Seed each cell and point explicitly; traversal order never enters PCG's transforms.
+            constexpr double Tile = 256;
+            auto* TileX = Metadata->CreateAttribute<int32>(TEXT("CLTileX"),0,false,false);
+            auto* TileY = Metadata->CreateAttribute<int32>(TEXT("CLTileY"),0,false,false);
+            auto* Ordinal = Metadata->CreateAttribute<int32>(TEXT("CLOrdinal"),0,false,false);
+            const FIntPoint Min(FMath::FloorToInt(S->RegionMin.X/Tile),FMath::FloorToInt(S->RegionMin.Y/Tile));
+            const FIntPoint Max(FMath::FloorToInt(S->RegionMax.X/Tile),FMath::FloorToInt(S->RegionMax.Y/Tile));
+            if (int64(Max.X-Min.X+1)*(Max.Y-Min.Y+1)>1024) return true;
+            for (int32 Y=Min.Y;Y<=Max.Y;++Y) for(int32 X=Min.X;X<=Max.X;++X)
+            {
+                const int32 CellSeed=PCGHelpers::ComputeSeed(Context->GetSeed(),X,Y);
+                FRandomStream CellRandom(CellSeed);
+                const double Expected=S->Density*Tile*Tile/1.e6;
+                const int32 Count=FMath::FloorToInt(Expected)+(CellRandom.FRand()<FMath::Frac(Expected)?1:0);
+                if(Points.Num()+Count>256) return true; // Compiler reports the absent output, never truncates.
+                for (int32 I=0;I<Count;++I)
+                {
+                    FRandomStream Random(PCGHelpers::ComputeSeed(CellSeed,I));
+                    const double PX=(X+Random.FRand())*Tile, PY=(Y+Random.FRand())*Tile;
+                    FPCGPoint& P=Points.Emplace_GetRef();P.Seed=PCGHelpers::ComputeSeed(CellSeed,I);
+                    P.Transform=FTransform(FQuat::Identity,FVector(PX*100,PY*100,0));
+                    P.BoundsMin=FVector(-50);P.BoundsMax=FVector(50);
+                    double Pick=Random.FRand()*Total;int32 Selected=S->Weights.Num()-1;
+                    for(int32 J=0;J<S->Weights.Num();++J){Pick-=S->Weights[J];if(Pick<=0){Selected=J;break;}}
+                    P.MetadataEntry=Metadata->AddEntry();Choice->SetValue(P.MetadataEntry,Selected);
+                    TileX->SetValue(P.MetadataEntry,X);TileY->SetValue(P.MetadataEntry,Y);Ordinal->SetValue(P.MetadataEntry,I);
+                }
+            }
+        }
+        else
         for (int32 Index = 0; Index < S->Count; ++Index)
         {
             const int32 PointSeed = PCGHelpers::ComputeSeed(Context->GetSeed(), Index);

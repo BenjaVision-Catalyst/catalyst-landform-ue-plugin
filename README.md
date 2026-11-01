@@ -163,9 +163,11 @@ arbitrary VPP graph assets. Stamp distribution runs its own bounded CPU PCG pipe
 
 Terrain type schema 2 introduced explicit `algorithmVersion`, copied into the
 planet snapshot on application. Terrain schema 3 added ordered shaping
-operations; recipe schema 4 stored their applied snapshots. Current terrain schema 4 and recipe schema 5 also support stamp distribution. Schema 1 imports retain algorithm 1 and export
-as schema 2. Previously saved planet recipes keep their pinned algorithm and
-appearance. Native algorithm 2 requires recipe schema 3, 4 or 5 and the VPP Perlin 3D
+operations; recipe schema 4 stored their applied snapshots. Terrain schema 4
+and recipe schema 5 introduced stamp distribution. Terrain schema 5 and recipe
+schema 6 add explicit local coordinates and guide-relative stamp relief. Schema 1
+imports retain algorithm 1 while terrain JSON imports export the current schema. Previously saved planet recipes keep their pinned algorithm and
+appearance. Native algorithm 2 requires recipe schema 3..6 and the VPP Perlin 3D
 kernel; unavailable kernels or changed pin layouts fail compilation without a
 silent fallback. This is still a local authoring format, not a backend protocol.
 
@@ -253,13 +255,15 @@ base. This also applies to an empty/all-disabled stack. Applying the terrain
 stores that resolved base in the planet recipe; explicit non-default bases are
 preserved. Existing saved recipes are not silently migrated. Stamp **Solo**
 isolates that layer on the guide midpoint, while Terrace Solo retains upstream
-terrain. The isolated distribution is compiled on that reference sphere, so its
-density/count and footprint projection reflect the flat input's radius.
+terrain. Legacy sphere-coordinate distributions compile on that reference sphere;
+LocalPatch distributions compile the metric preview region and its halo.
 
 Distributions blend native VPP heightmap relief relative to their incoming terrain.
-Order is stable PCG point order. Each footprint's geodesic chart uses the
-upstream local surface radius, and planet-relative sizes use the outer sky
-radius. Density uses the upstream north-pole reference sphere's area. The
+Order is stable PCG point order. In legacy sphere coordinates, each footprint's
+geodesic chart uses the upstream local surface radius; density uses the upstream
+north-pole reference sphere's area. LocalPatch uses one common metric XY field
+and deterministic tiled density. Explicit planet-relative sizes use the outer sky
+radius in either mode. The
 initial limits are 256 placements per layer, 1024 per recipe and 256 MiB of
 source data per collection, with explicit errors rather than truncation.
 
@@ -276,7 +280,7 @@ Impacts collections. Reproducible sources and provenance are in
 `Docs/StampDistribution.md` covers curation, authoring and the matching preview/
 planet proof. `conformance/stamp-distribution-mac-arm64.json` records qualification.
 
-Current local schemas are recipe 5 and terrain type 4; old assets retain their
+Current local schemas are recipe 6 and terrain type 5; old assets retain their
 noise algorithm and field. This is a CPU PCG element pipeline, not arbitrary PCG
 graph scheduling or GPU execution. Streaming for large planets, backend delivery,
 cooking, surface metadata and a finished photoreal stamp collection remain future
@@ -367,3 +371,29 @@ The editor-session planet-write method has been removed. Explicit assembly
 remains on the model/recipe side, used by Planet Recipe and future World Builder.
 `conformance/designer-boundary-mac-arm64.json` records qualification; the host's
 `Docs/DesignerOwnership.md` explains the current workflow and reference evaluator.
+
+### Local terrain fields
+
+`Examples/TerrainTypes/MountainRidgesLocal.json` combines a metric native VPP
+ridged backbone, contour-isolated Mountains revision 3 stamps and fine noise.
+Its explicit LocalPatch coordinates evaluate XY directly. Deterministic PCG
+cells generate only the viewed region and a conservative contributing-stamp halo;
+changing the area reveals the same field rather than reshuffling stamps or
+scattering over an implicit preview sphere. Native PCG source selection,
+rotation, width and relief transforms keep stable cell/point seeds.
+
+Width/wavelength can use absolute metres or explicit outer-radius fractions.
+Stamp relief now also supports named guide-interval deltas, resolved alongside
+noise and shaping references. This preset uses 220–400 m footprints, 360 m
+backbone and 28 m detail wavelengths, with all vertical ranges supplied through
+SurfaceMin/SurfaceMax. Existing sphere profiles and footprint-relative relief
+retain their earlier semantics.
+
+The planet owns the local field's anchor/tangent frame, extent and boundary
+transition. Its native spherical volume maps directions into the same metric
+field, then closes the finite patch into the neutral base sphere. No assembly
+settings enter the terrain definition or Designer Save. This is one bounded
+patch proof, with the existing placement budgets; whole-planet chart coverage,
+streaming and composition of different terrain regions remain future work.
+`conformance/local-terrain-mac-arm64.json` records actual qualification. Host
+workflow and detailed contracts are in `Docs/LocalMountainField.md`.

@@ -8,16 +8,17 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLTerrainType
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 4;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 5;
     /** 1 preserves the original CPU field; 2 is the pinned native VPP kernel. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay) int32 AlgorithmVersion = 1;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid Id;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Untitled terrain type");
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Description;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLNoiseLayer> NoiseLayers;
     bool Validate(FString& Error) const;
     /** Apply a validated snapshot atomically; never changes the planet's Strata/radius/seed. */
-    bool ApplyTo(FCLPlanetRecipe& Recipe, FString& Error) const;
+    bool ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion = nullptr) const;
 };
 
 UCLASS(BlueprintType)

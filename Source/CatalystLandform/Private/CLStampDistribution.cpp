@@ -35,7 +35,7 @@ EVoxelHeightBlendMode NativeBlend(ECLStampBlend Blend)
 }
 
 TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Compile(const FCLStampDistributionSettings& S,
-    int32 Seed,const FCLCompiledPlanetRecipe& Input,UCLStampLibraryAsset* Library,FString& Error)
+    int32 Seed,const FCLCompiledPlanetRecipe& Input,UCLStampLibraryAsset* Library,FString& Error,double MinimumRelief,double MaximumRelief)
 {
     Error.Reset();
     auto Fail=[&](const FString& E)->TSharedPtr<const FCLCompiledStampDistribution>{Error=E;return nullptr;};
@@ -50,17 +50,29 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
         return Fail(TEXT("Stamp collection is unbaked or changed without a new revision: ")+S.CollectionId.ToString());
     auto Entries=Collection->Entries;
     Entries.Sort([](const auto& A,const auto& B){return A.Id.LexicalLess(B.Id);});
+    const bool bLocal=Input.Coordinates==ECLTerrainCoordinates::LocalPatch;
     const double ReferenceRadius=FMath::Max(.01,Input.RadiusMeters+Input.SampleHeightMeters(FVector::ZAxisVector));
-    const double CountValue=FMath::RoundToDouble(4*UE_PI*FMath::Square(ReferenceRadius)*S.DensityPerSquareKilometer/1.e6);
+    const double CountValue=bLocal?0:FMath::RoundToDouble(4*UE_PI*FMath::Square(ReferenceRadius)*S.DensityPerSquareKilometer/1.e6);
     if(!FMath::IsFinite(CountValue)||CountValue>256)
         return Fail(FString::Printf(TEXT("Stamp layer needs %.0f placements (limit 256) at a %.0f m surface radius. Reduce density to %.3f /km2 or lower the preview radius."),
             CountValue,ReferenceRadius,256*1.e6/(4*UE_PI*FMath::Square(ReferenceRadius))));
-    const int32 Count=int32(CountValue);
+    int32 Count=int32(CountValue);
     const double Low=S.SizeMode==ECLStampSizeMode::Absolute?S.MinimumSizeMeters:S.MinimumSizeRadiusFraction*Input.RadiusMeters;
     const double High=S.SizeMode==ECLStampSizeMode::Absolute?S.MaximumSizeMeters:S.MaximumSizeRadiusFraction*Input.RadiusMeters;
-    if(Low<.1||High>2*ReferenceRadius)return Fail(TEXT("Stamp size must be at least 0.1m and at most the reference surface diameter"));
+    if(Low<.1||(!bLocal&&High>2*ReferenceRadius)||(bLocal&&High>4000))return Fail(TEXT("Stamp size must be at least 0.1m and at most the reference surface diameter"));
     auto Source=TStrongObjectPtr<UCLSphereStampPointsSettings>(NewObject<UCLSphereStampPointsSettings>());
     Source->Count=Count;Source->RadiusMeters=ReferenceRadius;Source->Seed=Seed;Source->Weights.Reset();
+    Source->bLocal=bLocal;
+    if(bLocal)
+    {
+        const double Halo=High/FMath::Sqrt(2.); // Rotated rectangular footprint, including zero moat.
+        Source->RegionMin=Input.EvaluationRegion.Min-FVector2D(Halo);
+        Source->RegionMax=Input.EvaluationRegion.Max+FVector2D(Halo);
+        Source->Density=S.DensityPerSquareKilometer;
+        const FVector2D Tiles=(Source->RegionMax-Source->RegionMin)/256+FVector2D(2);
+        if(Tiles.X*Tiles.Y>1024 || Tiles.X*Tiles.Y*FMath::CeilToDouble(S.DensityPerSquareKilometer*256*256/1.e6)>256)
+            return Fail(TEXT("Local stamp window and its contributing halo exceed the 256-placement budget; reduce density or footprint size"));
+    }
     for(const auto& E:Entries)Source->Weights.Add(E.Weight);
     auto Points=RunPCG(Source.Get(),{},Error);if(!Points)return nullptr;
     auto Size=TStrongObjectPtr<UPCGTransformPointsSettings>(NewObject<UPCGTransformPointsSettings>());
@@ -68,9 +80,28 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
     Size->RotationMin=FRotator(0,0,0);Size->RotationMax=FRotator(0,360,0);Size->bUniformScale=true;
     auto SizeInput=Points->OutputData;for(auto& D:SizeInput.TaggedData)D.Pin=PCGPinConstants::DefaultInputLabel;
     auto Sized=RunPCG(Size.Get(),SizeInput,Error);if(!Sized)return nullptr;
+    if(bLocal)
+    {
+        const auto SourceOutputs=Points->OutputData.GetAllSpatialInputs();
+        if(SourceOutputs.Num()!=1)return Fail(TEXT("Local PCG source exceeded its bounded tile/placement budget"));
+        const auto* SourceData=Cast<UPCGBasePointData>(SourceOutputs[0].Data);
+        if(!SourceData)return Fail(TEXT("Local PCG source returned invalid data"));
+        Count=SourceData->GetNumPoints();
+    }
+    // Guide relief is an absolute metric delta; undo footprint scale before the second transform.
+    if(S.ReliefMode==ECLStampReliefMode::GuideInterval)
+    {
+        const auto Out=Sized->OutputData.GetAllSpatialInputs();
+        if(Out.Num()!=1)return Fail(TEXT("Missing sized PCG output"));
+        auto* Mutable=const_cast<UPCGBasePointData*>(Cast<UPCGBasePointData>(Out[0].Data));
+        if(!Mutable)return Fail(TEXT("Invalid sized PCG data"));
+        auto Range=Mutable->GetTransformValueRange();
+        for(int32 I=0;I<Count;++I){FTransform T=Range[I];FVector Scale=T.GetScale3D();Scale.Z=1;T.SetScale3D(Scale);Range[I]=T;}
+    }
     auto Relief=TStrongObjectPtr<UPCGTransformPointsSettings>(NewObject<UPCGTransformPointsSettings>());
     Relief->Seed=PCGHelpers::ComputeSeed(Seed,202);Relief->bUniformScale=false;
-    Relief->ScaleMin=FVector(1,1,S.MinimumReliefRatio);Relief->ScaleMax=FVector(1,1,S.MaximumReliefRatio);
+    Relief->ScaleMin=FVector(1,1,S.ReliefMode==ECLStampReliefMode::GuideInterval?MinimumRelief:S.MinimumReliefRatio);
+    Relief->ScaleMax=FVector(1,1,S.ReliefMode==ECLStampReliefMode::GuideInterval?MaximumRelief:S.MaximumReliefRatio);
     auto ReliefInput=Sized->OutputData;for(auto& D:ReliefInput.TaggedData)D.Pin=PCGPinConstants::DefaultInputLabel;
     auto Final=RunPCG(Relief.Get(),ReliefInput,Error);if(!Final)return nullptr;
     const auto Outputs=Final->OutputData.GetAllSpatialInputs();
@@ -81,8 +112,8 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
     if(!Choices)return Fail(TEXT("PCG stamp-selection metadata is missing"));
     const auto Transforms=Data->GetConstTransformValueRange();const auto Keys=Data->GetConstMetadataEntryValueRange();
     auto Result=MakeShared<FCLCompiledStampDistribution>();
-    Result->Surfaces=FVoxelSurfaceTypeTable::Get();Result->Assets.Emplace(Library);
-    FCLPlanetStamp Stamp;Stamp.Radius=Input.RadiusMeters*100;Stamp.bUseRecipe=false;
+    Result->bLocal=bLocal;Result->Surfaces=FVoxelSurfaceTypeTable::Get();Result->Assets.Emplace(Library);
+    FCLPlanetStamp Stamp;Stamp.Radius=Input.RadiusMeters*100;Stamp.bUseRecipe=false;Stamp.bPlanarSources=bLocal;
     double ByteBudget=0;
     TArray<TStrongObjectPtr<UVoxelHeightmap>> Assets;
     for(const auto& E:Entries)
@@ -103,13 +134,24 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
         const int32 Choice=Choices->GetValueFromItemKey(Keys[I]);if(!Entries.IsValidIndex(Choice))return Fail(TEXT("Invalid PCG stamp index"));
         const auto& E=Entries[Choice];auto* H=Assets[Choice].Get();const auto D=H->Height->GetData();
         const FTransform T=Transforms[I];
-        FCLResolvedStampPlacement P;P.SourceId=E.Id;P.Anchor=T.GetLocation().GetSafeNormal();P.TangentX=T.GetUnitAxis(EAxis::X);
+        FCLResolvedStampPlacement P;P.bLocalCoordinates=bLocal;P.SourceId=E.Id;P.Anchor=T.GetLocation().GetSafeNormal();P.TangentX=T.GetUnitAxis(EAxis::X);
         P.WidthMeters=T.GetScale3D().X;P.ReliefMeters=T.GetScale3D().Z;
-        P.ChartRadiusMeters=Input.RadiusMeters+Input.SampleHeightMeters(P.Anchor);
-        if(P.WidthMeters>2*P.ChartRadiusMeters)return Fail(TEXT("A selected stamp is wider than its local surface diameter"));
+        P.PositionMeters=FVector2D(T.GetLocation())/100;
+        P.ChartRadiusMeters=bLocal?0:Input.RadiusMeters+Input.SampleHeightMeters(P.Anchor);
+        if(!bLocal&&P.WidthMeters>2*P.ChartRadiusMeters)return Fail(TEXT("A selected stamp is wider than its local surface diameter"));
         P.Blend=S.Blend==ECLStampBlend::Collection?E.Blend:S.Blend;
         P.Id=FGuid(0x434C5331,uint32(Seed),uint32(I),FCrc::StrCrc32(*(S.CollectionId.ToString()+LexToString(S.CollectionRevision)+E.Id.ToString())));
+        if(bLocal)
+        {
+            const auto* X=Data->ConstMetadata()->GetConstTypedAttribute<int32>(TEXT("CLTileX"));
+            const auto* Y=Data->ConstMetadata()->GetConstTypedAttribute<int32>(TEXT("CLTileY"));
+            const auto* IAttr=Data->ConstMetadata()->GetConstTypedAttribute<int32>(TEXT("CLOrdinal"));
+            if(!X||!Y||!IAttr)return Fail(TEXT("Local PCG identity metadata missing"));
+            P.Id=FGuid(uint32(Seed)^FCrc::StrCrc32(*(S.CollectionId.ToString()+LexToString(S.CollectionRevision)+E.Id.ToString())),uint32(X->GetValueFromItemKey(Keys[I])),uint32(Y->GetValueFromItemKey(Keys[I])),uint32(IAttr->GetValueFromItemKey(Keys[I]))+1);
+            P.Anchor=Input.TerrainDirection(P.PositionMeters);
+        }
         FCLSphericalHeightmapPlacement Placement;Placement.Id=P.Id;Placement.Anchor=P.Anchor;Placement.TangentX=P.TangentX;
+        Placement.bPlanar=bLocal;Placement.Center=P.PositionMeters*100;
         Placement.ChartRadius=P.ChartRadiusMeters*100;
         const double Width=(FMath::Max(D->SizeX,D->SizeY)-3.0001)*H->ScaleXY;
         Placement.Scale=FVector(P.WidthMeters*100/Width,P.WidthMeters*100/Width,P.ReliefMeters/E.ReferenceReliefMeters);
@@ -139,7 +181,7 @@ void FCLCompiledStampDistribution::Apply(TConstArrayView<FVector> Directions,TAr
     if(Placements.IsEmpty())return;
     FVoxelDoubleVectorBuffer Buffer;Buffer.Allocate(Directions.Num());
     FVoxelFloatBuffer Delta;Delta.Allocate(Directions.Num());
-    for(int32 I=0;I<Directions.Num();++I){Buffer.Set(I,Directions[I]);Delta.Set(I,0);}
+    for(int32 I=0;I<Directions.Num();++I){Buffer.Set(I,bLocal?Directions[I]*100:Directions[I]);Delta.Set(I,0);}
     FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.StampDistribution"));
     const FVoxelQuery Query(0,FVoxelLayers::Empty(),*Surfaces,Dependencies);
     Runtime->ApplySources(Query,Buffer,Delta);
@@ -150,7 +192,7 @@ void FCLCompiledStampDistribution::Coverage(const FVector& Direction,int32& Coun
 {
     for(const auto& Source:Runtime->Sources)
     {
-        FVector2D Chart;const double W=Source.Weight(0,Direction,Chart);
+        FVector2D Chart;const double W=Source.Weight(0,bLocal?Direction*100:Direction,Chart);
         if(W>1.e-6){++Count;MinimumWeight=FMath::Min(MinimumWeight,W);}
     }
 }

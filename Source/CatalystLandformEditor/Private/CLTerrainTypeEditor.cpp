@@ -11,6 +11,8 @@ UObject* UCLTerrainTypeFactory::FactoryCreateNew(UClass* Class, UObject* Parent,
 {
     auto* Asset = NewObject<UCLTerrainTypeAsset>(Parent, Class, Name, Flags);
     Asset->TerrainType.Id = FGuid::NewGuid();
+    Asset->TerrainType.Coordinates = ECLTerrainCoordinates::LocalPatch;
+    Asset->TerrainType.AlgorithmVersion = 2;
     Asset->TerrainType.NoiseLayers = FCLPlanetCompiler::RollingPlains().NoiseLayers; return Asset;
 }
 TSoftClassPtr<UObject> UCLTerrainTypeAssetDefinition::GetAssetClass() const { return UCLTerrainTypeAsset::StaticClass(); }

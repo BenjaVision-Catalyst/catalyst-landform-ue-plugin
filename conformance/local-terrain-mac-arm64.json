@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "parent_component_revision": "697dfdd",
+  "source_sha256": "bae283f533276c7f54d5b70d348c2bbe24aa4afc21b68777544d348cb9eeddd9",
+  "terrain_schema": 5,
+  "recipe_schema": 6,
+  "algorithm": 2,
+  "implementation": {
+    "coordinates": "Metric local XY; legacy Sphere semantics preserved",
+    "pcg": "256m fixed cells, weighted source selection, native transform/relief, stable cell/point seeds",
+    "coverage": "Requested region plus maximum rotated stamp footprint halo",
+    "stamp_relief": "Guide interval deltas or legacy footprint ratio",
+    "assembly": "One finite geodesic patch; planet owns anchor, tangent frame, extent and transition",
+    "sampling": "Shared native Perlin and native heightmap runtime paths; sparse interior evaluation on sphere",
+    "new_source_defaults": "LocalPatch, native algorithm 2",
+    "vendor_changes": false
+  },
+  "component_automation": {
+    "passed": 38,
+    "succeeded": 37,
+    "succeeded_with_warnings": 1,
+    "failed": 0,
+    "not_run": 0,
+    "raw_report": "LandformLab/Saved/Verification/local-terrain-component-final/index.json"
+  },
+  "integrated_run": {
+    "passed": 39,
+    "failed": 0,
+    "raw_report": "LandformLab/Saved/Verification/local-terrain-full/index.json",
+    "note": "Unchanged runtime plus physical proof; final editor factory defaults separately covered by final component run"
+  },
+  "field_checks": {
+    "designer_source_vertices": 524371,
+    "max_native_residual_cm": 0.001953115,
+    "max_normalized_display_error": 1.11022302463e-16,
+    "view_widths_m": [
+      100,
+      500,
+      1000
+    ],
+    "common_samples": 507,
+    "max_common_height_error_m": 0,
+    "assembly_placements": 154,
+    "external_centres_in_offset_query_halo": 14,
+    "all_builtin_strata": 5,
+    "rotated_assembly": true,
+    "layer_enable_solo_and_neutral_base": true,
+    "worker_sampling": true,
+    "json_round_trip": true
+  },
+  "collision": {
+    "passed": true,
+    "designer_width_m": 500,
+    "sky_radius_m": 1000,
+    "voxel_size_cm": 25,
+    "sampled_vertices": 41,
+    "riser_vertices": 0,
+    "overlap_vertices": 8,
+    "fade_vertices": 8,
+    "max_collision_error_cm": 7.324024652,
+    "collision_source": "VPP Chaos triangles"
+  },
+  "saved_assets": {
+    "passed": true,
+    "saved_templates_and_project_source_match_json": true,
+    "saved_recipe_layers_match_source": true,
+    "recipe_schema": 6,
+    "terrain_schema": 5,
+    "sky_radius_m": 1000,
+    "preexisting_files_preserved": 33
+  },
+  "visual_check": {
+    "map": "MountainRidgesLocalProof",
+    "terrain": "DA_MountainRidgesLocal",
+    "preview_width_m": 500,
+    "enabled_layers": [
+      "Ridge backbone",
+      "Mountain structures",
+      "Ridge detail"
+    ],
+    "guides": "Preview Strata; no planet controls",
+    "globe_and_designer_inspected": true,
+    "all_saved": true
+  },
+  "limits": [
+    "One bounded patch; no whole-planet atlas or multi-terrain compositor",
+    "256 placements per layer, 1024 per recipe, 256 MiB native sources",
+    "4km maximum evaluation side; finite metric addresses within +/-10000km",
+    "Preview guide values resolve at reference scale and seed; matching assembly inputs required for parity",
+    "Existing two engine LineSetComponentMaterial/dependent MeshModeling material warnings retained",
+    "Physical proof traces 41 cooked VPP/Chaos points; no new full-circuit walking claim"
+  ]
+}

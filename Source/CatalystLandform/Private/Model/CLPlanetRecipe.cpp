@@ -1,6 +1,7 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLModelJson.h"
 #include "CLStampDistribution.h"
+#include "CLPlanetShape.h"
 #include "Nodes/VoxelNoiseNodes.h"
 #include "VoxelISPCNodeHelpers.h"
 #include "JsonObjectConverter.h"
@@ -53,12 +54,24 @@ bool NativePerlinABIIsCompatible()
 }
 }
 
+bool FCLHeightReference::Validate(FString& Error) const
+{
+    const bool bHeight = Mode == ECLHeightReferenceMode::Height;
+    if (!FMath::IsFinite(OffsetMeters) || !FMath::IsFinite(Fraction) || uint8(Mode)>uint8(ECLHeightReferenceMode::IntervalDelta) ||
+        (bHeight && (!UpperGuide.IsNone() || Fraction != 0)) ||
+        (!bHeight && (Guide.IsNone() || UpperGuide.IsNone() || Fraction>1 || Fraction<(Mode==ECLHeightReferenceMode::IntervalHeight?0:-1))))
+    { Error=TEXT("Invalid height reference"); return false; }
+    return true;
+}
+
 int32 FCLCompiledPlanetRecipe::GetDistributedStampCount()const
 {int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();return N;}
 void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight)const
 {
     Count=0;MinimumWeight=1;
-    for(const auto& L:Layers)if(L.Distribution)L.Distribution->Coverage(Direction,Count,MinimumWeight);
+    FVector Position=Direction;
+    if(Coordinates==ECLTerrainCoordinates::LocalPatch){FVector2D P;if(!TerrainPosition(Direction,P))return;Position=FVector(P.X,P.Y,0);}
+    for(const auto& L:Layers)if(L.Distribution)L.Distribution->Coverage(Position,Count,MinimumWeight);
     if(!Count)MinimumWeight=0;
 }
 void FCLCompiledPlanetRecipe::GetStampPlacements(TArray<FCLResolvedStampPlacement>& Placements) const
@@ -78,7 +91,7 @@ double FCLCompiledPlanetRecipe::FLayer::TerraceHeight(double Height) const
 
 double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) const
 {
-    if (NativePerlin || Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
+    if (Coordinates == ECLTerrainCoordinates::LocalPatch || NativePerlin || Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
     {
         TArray<double> Heights; SampleHeightsMeters(MakeArrayView(&Direction, 1), Heights); return Heights[0];
     }
@@ -107,14 +120,59 @@ double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) con
     return FMath::Min(Height, 0.0);
 }
 
+FVector FCLCompiledPlanetRecipe::TerrainDirection(const FVector2D& Meters) const
+{
+    FCLPlanetShape Map; Map.Radius = RadiusMeters + BaseHeightMeters;
+    Map.AnchorDirection = TerrainPatch.Anchor; Map.ChartXAxis = TerrainPatch.TangentX;
+    return Map.FromChart(Meters);
+}
+bool FCLCompiledPlanetRecipe::TerrainPosition(const FVector& Direction, FVector2D& Meters) const
+{
+    Meters=FVector2D::ZeroVector;
+    if(Direction.ContainsNaN() || Direction.IsNearlyZero()) return false;
+    FCLPlanetShape Map; Map.Radius = RadiusMeters + BaseHeightMeters;
+    Map.AnchorDirection = TerrainPatch.Anchor; Map.ChartXAxis = TerrainPatch.TangentX;
+    return Map.ToChart(Direction, Meters);
+}
 void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
 {
+    if (Coordinates == ECLTerrainCoordinates::LocalPatch)
+    {
+        TArray<FVector> Positions;
+        TArray<double> Weights;
+        TArray<int32> Indices;
+        Heights.Init(BaseHeightMeters,Directions.Num());
+        for (int32 I=0;I<Directions.Num();++I)
+        {
+            FVector2D P; if(!TerrainPosition(Directions[I], P)) continue;
+            const double Margin = TerrainPatch.HalfWidthMeters - FMath::Max(FMath::Abs(P.X),FMath::Abs(P.Y));
+            if(Margin<=0) continue;
+            const double T = FMath::Clamp(Margin / TerrainPatch.TransitionMeters,0.,1.);
+            Positions.Add(FVector(P.X,P.Y,0)); Weights.Add(T*T*(3-2*T)); Indices.Add(I);
+        }
+        if(!Positions.IsEmpty())
+        {
+            TArray<double> LocalHeights;SampleLocalHeightsMeters(Positions,LocalHeights);
+            for(int32 I=0;I<Indices.Num();++I)Heights[Indices[I]]=FMath::Lerp(BaseHeightMeters,LocalHeights[I],Weights[I]);
+        }
+        return;
+    }
     Heights.SetNumUninitialized(Directions.Num());
     if (!NativePerlin && !Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
     {
         for (int32 I = 0; I < Directions.Num(); ++I) Heights[I] = SampleHeightMeters(Directions[I]);
         return;
     }
+    EvaluateHeightsMeters(Directions, Heights, false);
+}
+void FCLCompiledPlanetRecipe::SampleLocalHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
+{
+    check(Coordinates==ECLTerrainCoordinates::LocalPatch);
+    EvaluateHeightsMeters(Directions, Heights, true);
+}
+void FCLCompiledPlanetRecipe::EvaluateHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights, bool bLocal) const
+{
+    Heights.SetNumUninitialized(Directions.Num());
     // VPP 2.0p8's public PerlinNoise3D compute-node ABI: XYZ, amplitude,
     // feature scale, seed -> value. Keep the adapter here; never copy vendor noise.
     constexpr int32 BatchSize = 512;
@@ -127,7 +185,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
         for (int32 I = 0; I < Num; ++I)
         {
             const FVector& D = Directions[Start + I];
-            Unit[I] = D.ContainsNaN() ? FVector::ZeroVector : D.GetSafeNormal();
+            Unit[I] = D.ContainsNaN() ? FVector::ZeroVector : bLocal ? FVector(D.X,D.Y,0) : D.GetSafeNormal();
             Heights[Start + I] = BaseHeightMeters;
         }
         for (const FLayer& Layer : Layers)
@@ -148,7 +206,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
             {
                 for (int32 I = 0; I < Num; ++I)
                 {
-                    const FVector P = Unit[I] * (RadiusMeters * Frequency / Layer.Wavelength);
+                    const FVector P = Unit[I] * ((bLocal ? 1. : RadiusMeters) * Frequency / Layer.Wavelength);
                     X[I] = P.X; Y[I] = P.Y; Z[I] = P.Z;
                 }
                 const ispc::FVoxelInputBuffer Inputs[] = {
@@ -157,7 +215,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
                 for (int32 I = 0; I < Num; ++I)
                 {
                     const double N = NativePerlin ? Noise[I] : FMath::PerlinNoise3D(
-                        (Unit[I] * RadiusMeters) * (Frequency / Layer.Wavelength) + Layer.Offset);
+                        (Unit[I] * (bLocal ? 1. : RadiusMeters)) * (Frequency / Layer.Wavelength) + Layer.Offset);
                     Sum[I] += (Layer.Shape == ECLNoiseShape::Ridged ? 1 - FMath::Abs(N) : .5 + .5 * N) * Weight;
                 }
                 Total += Weight; Weight *= Layer.Persistence; Frequency *= 2;
@@ -176,7 +234,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
             }
         }
         for (int32 I = 0; I < Num; ++I)
-            Heights[Start + I] = Unit[I].IsNearlyZero() ? 0 : FMath::Min(Heights[Start + I], 0.0);
+            Heights[Start + I] = (!bLocal && Unit[I].IsNearlyZero()) ? 0 : FMath::Min(Heights[Start + I], 0.0);
     }
 }
 
@@ -196,13 +254,7 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
         const bool bTerrace = Layer.Operation == ECLTerrainOperation::Terrace;
         for (const FCLHeightReference* Ref : {bTerrace ? &Layer.Terrace.StepHeight : &Layer.Minimum, bTerrace ? &Layer.Terrace.Origin : &Layer.Maximum})
         {
-            const bool bHeight = Ref->Mode == ECLHeightReferenceMode::Height;
-            if (!FMath::IsFinite(Ref->OffsetMeters) || !FMath::IsFinite(Ref->Fraction) ||
-                static_cast<uint8>(Ref->Mode) > static_cast<uint8>(ECLHeightReferenceMode::IntervalDelta) ||
-                (bHeight && (!Ref->UpperGuide.IsNone() || Ref->Fraction != 0)) ||
-                (!bHeight && (Ref->Guide.IsNone() || Ref->UpperGuide.IsNone() || Ref->Fraction > 1 ||
-                    Ref->Fraction < (Ref->Mode == ECLHeightReferenceMode::IntervalHeight ? 0 : -1))))
-            { Error = TEXT("Invalid height reference in layer: ") + Layer.Name.ToString(); return false; }
+            if (!Ref->Validate(Error)) { Error += TEXT(" in layer: ") + Layer.Name.ToString(); return false; }
         }
         if (bTerrace)
         {
@@ -221,11 +273,11 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
     return true;
 }
 
-TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary)
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary, const FBox2D* LocalRegion)
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 5) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 6) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.Strata.Stratum.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
@@ -243,6 +295,23 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         return Fail(TEXT("BaseSurfaceNormalized must be in (0, 1]"));
     Plan->BaseHeightMeters = (Recipe.BaseSurfaceNormalized - 1) * Recipe.RadiusMeters;
     Plan->MinimumHeightMeters = Plan->MaximumHeightMeters = Plan->BaseHeightMeters;
+    Plan->Coordinates = Recipe.Coordinates; Plan->TerrainPatch = Recipe.TerrainPatch;
+    if (uint8(Recipe.Coordinates) > uint8(ECLTerrainCoordinates::LocalPatch)) return Fail(TEXT("Unknown terrain coordinates"));
+    if (Recipe.Coordinates == ECLTerrainCoordinates::LocalPatch)
+    {
+        const auto& P = Recipe.TerrainPatch;
+        if (Recipe.SchemaVersion < 6 || P.Anchor.ContainsNaN() || P.TangentX.ContainsNaN() ||
+            P.Anchor.IsNearlyZero() || FVector::CrossProduct(P.Anchor,P.TangentX).IsNearlyZero() ||
+            !FMath::IsFinite(P.HalfWidthMeters) || P.HalfWidthMeters < 1 ||
+            !FMath::IsFinite(P.TransitionMeters) || P.TransitionMeters <= 0 || P.TransitionMeters >= P.HalfWidthMeters ||
+            (!LocalRegion && P.HalfWidthMeters * FMath::Sqrt(2.) >= (Plan->RadiusMeters+Plan->BaseHeightMeters)*UE_PI))
+            return Fail(TEXT("Local patch requires schema 6, a valid tangent frame, positive transition and extent before the chart antipode"));
+        Plan->EvaluationRegion = LocalRegion ? *LocalRegion : FBox2D(FVector2D(-P.HalfWidthMeters),FVector2D(P.HalfWidthMeters));
+        if (!Plan->EvaluationRegion.bIsValid || Plan->EvaluationRegion.Min.ContainsNaN() || Plan->EvaluationRegion.Max.ContainsNaN() ||
+            Plan->EvaluationRegion.GetSize().GetMin() <= 0 || Plan->EvaluationRegion.GetSize().GetMax() > 4000 ||
+            Plan->EvaluationRegion.Min.GetAbs().GetMax() > 1.e7 || Plan->EvaluationRegion.Max.GetAbs().GetMax() > 1.e7)
+            return Fail(TEXT("Local evaluation region must be finite, positive and at most 4km per side"));
+    }
     TMap<FName, double> Guides;
     if (!Recipe.Strata.Validate(Error)) return nullptr;
     for (const FCLStratum& Stratum : Recipe.Strata.Stratum)
@@ -283,7 +352,15 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             if(Recipe.SchemaVersion<5)return Fail(TEXT("Stamp distributions require recipe schema 5"));
             uint32 Seed=Mix(uint32(Recipe.Seed)^Mix(uint32(Layer.Distribution.Seed)));
             for(TCHAR C:Layer.Name.ToString().ToLower())Seed=Mix(Seed^uint32(C));
-            Compiled.Distribution=FCLStampDistributionCompiler::Compile(Layer.Distribution,int32(Seed),*Plan,StampLibrary,Error);
+            auto Distribution = Layer.Distribution;
+            double ReliefLow=0,ReliefHigh=0;
+            if (Distribution.ReliefMode == ECLStampReliefMode::GuideInterval)
+            {
+                if (Recipe.SchemaVersion < 6) return Fail(TEXT("Guide-based stamp relief requires recipe schema 6"));
+                if (!Resolve(Distribution.MinimumRelief,ReliefLow) || !Resolve(Distribution.MaximumRelief,ReliefHigh)) return nullptr;
+                if (ReliefLow <= 0 || ReliefHigh < ReliefLow) return Fail(TEXT("Stamp relief must resolve to positive, ordered deltas"));
+            }
+            Compiled.Distribution=FCLStampDistributionCompiler::Compile(Distribution,int32(Seed),*Plan,StampLibrary,Error,ReliefLow,ReliefHigh);
             if(!Compiled.Distribution)return nullptr;
             Low+=Compiled.Distribution->MinimumDeltaMeters;High+=Compiled.Distribution->MaximumDeltaMeters;
             int32 Total=Compiled.Distribution->Placements.Num();
@@ -327,6 +404,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             return Fail(TEXT("Noise stack exceeds supported radial bounds"));
         Plan->Layers.Add(Compiled);
     }
+    if (Plan->Coordinates==ECLTerrainCoordinates::LocalPatch)
+    { Plan->MinimumHeightMeters=FMath::Min(Plan->MinimumHeightMeters,Plan->BaseHeightMeters); Plan->MaximumHeightMeters=FMath::Max(Plan->MaximumHeightMeters,Plan->BaseHeightMeters); }
     Plan->MinimumHeightMeters = FMath::Min(Plan->MinimumHeightMeters, 0.0);
     Plan->MaximumHeightMeters = FMath::Min(Plan->MaximumHeightMeters, 0.0);
     return Plan;
@@ -420,8 +499,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..5 with algorithm 1, or schemaVersion 3..5 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..6 with algorithm 1, or schemaVersion 3..6 with algorithm 2"); return false; }
     if (Schema == 1)
     {
         // Explicit, lossless conversion of the old metre-based document.

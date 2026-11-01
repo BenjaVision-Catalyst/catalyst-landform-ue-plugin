@@ -6,6 +6,12 @@
 
 bool FCLSphericalHeightmapPlacement::ToChart(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
+    if (bPlanar)
+    {
+        const FVector2D D = FVector2D(Direction)-Center;
+        Chart = FVector2D(D.X*TangentX.X+D.Y*TangentX.Y,-D.X*TangentX.Y+D.Y*TangentX.X);
+        return true;
+    }
     FCLPlanetShape Map;
     Map.Radius = ChartRadius > 0 ? ChartRadius : Radius;
     Map.AnchorDirection = Anchor;
@@ -24,13 +30,13 @@ FVector FCLSphericalHeightmapPlacement::FromChart(double Radius, const FVector2D
 
 double FCLPlanetStampRuntime::FSource::Weight(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
-    return Direction.ContainsNaN() || Direction.IsNearlyZero() ? 0 : WeightNormalized(Radius, Direction.GetSafeNormal(), Chart);
+    return Direction.ContainsNaN() || (!Placement.bPlanar && Direction.IsNearlyZero()) ? 0 : WeightNormalized(Radius, Placement.bPlanar ? Direction : Direction.GetSafeNormal(), Chart);
 }
 
 double FCLPlanetStampRuntime::FSource::WeightNormalized(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
-    if (Direction.ContainsNaN() || Direction.IsNearlyZero() ||
-        FVector::DotProduct(Direction, Placement.Anchor) < CapCosine) return 0;
+    if (Direction.ContainsNaN() || (!Placement.bPlanar && (Direction.IsNearlyZero() ||
+        FVector::DotProduct(Direction, Placement.Anchor) < CapCosine))) return 0;
     if (!Placement.ToChart(Radius, Direction, Chart)) return 0;
     const FVector2D Local(Chart.X / Placement.Scale.X, Chart.Y / Placement.Scale.Y);
     // VPP reserves a pixel border for its native bilinear/bicubic sampler.
@@ -110,7 +116,7 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleHeights(const FVoxelQuery& Query,
 void FCLPlanetStampRuntime::ApplySources(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions, FVoxelFloatBuffer& Heights) const
 {
     TArray<FVector> Units;Units.SetNumUninitialized(Directions.Num());
-    for(int32 I=0;I<Directions.Num();++I)Units[I]=Directions[I].GetSafeNormal();
+    for(int32 I=0;I<Directions.Num();++I)Units[I]=Stamp.bPlanarSources?Directions[I]:Directions[I].GetSafeNormal();
     for(const FSource& Source:Sources)
     {
         TArray<int32> Indices;TArray<FVector2D> Charts;TArray<float> Weights;

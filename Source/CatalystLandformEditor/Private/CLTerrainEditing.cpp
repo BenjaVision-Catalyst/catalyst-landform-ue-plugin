@@ -44,7 +44,7 @@ bool FCLTerrainEditing::SetLayer(const FCLNoiseLayer& Layer)
     {
         // Resolve this layer's bounds in the current guides without compiling
         // unrelated stamps. Reversed intervals must not enter the saved source.
-        auto Probe = Context; Probe.SchemaVersion = 5; Probe.AlgorithmVersion = Asset->TerrainType.AlgorithmVersion;
+        auto Probe = Context; Probe.SchemaVersion = 6; Probe.Coordinates = Asset->TerrainType.Coordinates; Probe.AlgorithmVersion = Asset->TerrainType.AlgorithmVersion;
         Probe.NoiseLayers = {Layer}; Probe.NoiseLayers[0].Blend = ECLNoiseBlend::Override;
         if (!FCLPlanetCompiler::Compile(Probe, Error)) return false;
     }
@@ -64,7 +64,13 @@ bool FCLTerrainEditing::Add(ECLTerrainOperation Operation)
                     Layer.Distribution.CollectionRevision = Collection.Revision;
     Layer.Name = UniqueName(Operation == ECLTerrainOperation::Noise ? TEXT("Noise layer") : Operation == ECLTerrainOperation::Terrace ? TEXT("Terracing") : TEXT("Stamp distribution"));
     Layer.Blend = Layers.IsEmpty() ? ECLNoiseBlend::Override : ECLNoiseBlend::Add;
-    Layer.Scale = ECLNoiseScale::PlanetRadius; Layer.WavelengthRadiusFraction = .1;
+    Layer.Scale = Asset->TerrainType.Coordinates==ECLTerrainCoordinates::LocalPatch ? ECLNoiseScale::Meters : ECLNoiseScale::PlanetRadius;
+    if(Asset->TerrainType.Coordinates==ECLTerrainCoordinates::LocalPatch)
+    {
+        Layer.Distribution.SizeMode=ECLStampSizeMode::Absolute;
+        Layer.Distribution.ReliefMode=ECLStampReliefMode::GuideInterval;
+        Layer.Distribution.BlendSmoothnessRadiusFraction=0;
+    } Layer.WavelengthRadiusFraction = .1;
     Layer.Minimum.Mode = Layer.Maximum.Mode = Layers.IsEmpty() ? ECLHeightReferenceMode::IntervalHeight : ECLHeightReferenceMode::IntervalDelta;
     Layer.Minimum.Guide = Layer.Maximum.Guide = TEXT("SurfaceMin");
     Layer.Minimum.UpperGuide = Layer.Maximum.UpperGuide = TEXT("SurfaceMax");
@@ -104,7 +110,7 @@ bool FCLTerrainEditing::Enable(int32 Index, bool bEnabled)
     Layers[Index].bEnabled = bEnabled;
     return Commit(MoveTemp(Layers), Selected, Solo, NSLOCTEXT("CL", "EnableNoise", "Enable noise layer"));
 }
-TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError) const
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError, double WidthMeters) const
 {
     FCLPlanetRecipe Recipe = Context;
     auto Visible = Asset->TerrainType;
@@ -133,6 +139,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FStr
             Recipe.BaseSurfaceNormalized = 1;
         }
     }
-    if (!Visible.ApplyTo(Recipe, OutError)) return nullptr;
-    return FCLPlanetCompiler::Compile(Recipe, OutError);
+    const double Half=FMath::Clamp(WidthMeters,100.,1000.)*.5;
+    const FBox2D Region(FVector2D(-Half),FVector2D(Half));
+    if (!Visible.ApplyTo(Recipe, OutError, &Region)) return nullptr;
+    return FCLPlanetCompiler::Compile(Recipe, OutError, nullptr, &Region);
 }

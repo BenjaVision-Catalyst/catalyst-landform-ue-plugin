@@ -13,23 +13,27 @@ void UCLTerrainTypeAsset::PostEditUndo()
 
 bool FCLTerrainType::Validate(FString& Error) const
 {
-    if ((SchemaVersion < 1 || SchemaVersion > 4) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
+    if ((SchemaVersion < 1 || SchemaVersion > 5) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
         (SchemaVersion == 1 && AlgorithmVersion != 1) || !Id.IsValid() || Name.TrimStartAndEnd().IsEmpty())
-    { Error = TEXT("Terrain type requires schema 1/2/3/4, a supported algorithm, a valid ID and a nonempty name"); return false; }
+    { Error = TEXT("Terrain type requires schema 1..5, a supported algorithm, a valid ID and a nonempty name"); return false; }
     if (SchemaVersion < 3 && NoiseLayers.ContainsByPredicate([](const auto& L) { return L.Operation != ECLTerrainOperation::Noise; }))
     { Error = TEXT("Terracing requires terrain type schema 3"); return false; }
     if(SchemaVersion<4 && NoiseLayers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution;}))
     {Error=TEXT("Stamp distributions require terrain schema 4");return false;}
+    if (uint8(Coordinates) > uint8(ECLTerrainCoordinates::LocalPatch) || (Coordinates != ECLTerrainCoordinates::Sphere && SchemaVersion < 5))
+    { Error = TEXT("Local terrain coordinates require terrain schema 5"); return false; }
+    if (SchemaVersion < 5 && NoiseLayers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution && L.Distribution.ReliefMode==ECLStampReliefMode::GuideInterval;}))
+    { Error = TEXT("Guide-based stamp relief requires terrain schema 5"); return false; }
     return FCLPlanetCompiler::ValidateNoiseLayers(NoiseLayers, Error);
 }
-bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error) const
+bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion) const
 {
     if (!Validate(Error)) return false;
     FCLPlanetRecipe Candidate = Recipe;
-    Candidate.SchemaVersion = 5; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
+    Candidate.SchemaVersion = 6; Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;
     const auto* First = NoiseLayers.FindByPredicate([](const auto& Layer) { return Layer.bEnabled; });
-    if (Candidate.BaseSurfaceNormalized == 1 && (!First || First->Operation != ECLTerrainOperation::Noise || First->Blend != ECLNoiseBlend::Override))
+    if (Candidate.BaseSurfaceNormalized == 1 && (Coordinates == ECLTerrainCoordinates::LocalPatch || !First || First->Operation != ECLTerrainOperation::Noise || First->Blend != ECLNoiseBlend::Override))
     {
         // Stamps and additive/shaping stacks need a neutral input with headroom.
         // Resolve it into the recipe so muting an absolute base layer does not
@@ -38,7 +42,7 @@ bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error) const
         const auto* Upper = Candidate.Strata.Stratum.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMax"); });
         if (Lower && Upper) Candidate.BaseSurfaceNormalized = (Lower->NormalizedHeight + Upper->NormalizedHeight) * .5;
     }
-    if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
+    if (!FCLPlanetCompiler::Compile(Candidate, Error, nullptr, LocalRegion)) return false;
     Recipe = MoveTemp(Candidate); return true;
 }
 bool UCLTerrainTypeAsset::ApplyToRecipe(UCLPlanetRecipeAsset* Asset, FString& Error) const
@@ -81,13 +85,13 @@ bool UCLTerrainTypeAsset::ImportTerrainTypeJson(const FString& Json, FString& Er
     { Error = TEXT("Invalid terrain type JSON object"); return false; }
     if (!CLModelJson::CheckFields(*Object, *FCLTerrainType::StaticStruct(), Error, TEXT("TerrainType"))) return false;
     double Schema = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4))
-    { Error = TEXT("Terrain type requires schemaVersion 1, 2, 3 or 4"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5))
+    { Error = TEXT("Terrain type requires schemaVersion 1, 2, 3, 4 or 5"); return false; }
     FCLTerrainType Candidate; FText Reason;
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!Candidate.Validate(Error)) return false;
-    Candidate.SchemaVersion = 4;
+    Candidate.SchemaVersion = 5;
     Modify(); TerrainType = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

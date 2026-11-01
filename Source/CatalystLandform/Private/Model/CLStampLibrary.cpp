@@ -12,9 +12,16 @@ bool FCLStampDistributionSettings::Validate(FString& Error) const
     auto FiniteRange=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
     if(CollectionId.IsNone() || CollectionRevision<1 || !FiniteRange(DensityPerSquareKilometer,0,10000) ||
        uint8(SizeMode)>uint8(ECLStampSizeMode::PlanetRadius) || uint8(Blend)>uint8(ECLStampBlend::Override) ||
-       !FiniteRange(MinimumReliefRatio,.001,1) || !FiniteRange(MaximumReliefRatio,MinimumReliefRatio,1) ||
+       uint8(ReliefMode)>uint8(ECLStampReliefMode::GuideInterval) ||
+       (ReliefMode==ECLStampReliefMode::FootprintRatio && (!FiniteRange(MinimumReliefRatio,.001,1) || !FiniteRange(MaximumReliefRatio,MinimumReliefRatio,1))) ||
        !FiniteRange(BlendSmoothnessRadiusFraction,0,.05) || !FiniteRange(EdgeFalloffFraction,.01,.5))
     {Error=TEXT("Invalid stamp collection, density, relief or blend settings");return false;}
+    if(ReliefMode==ECLStampReliefMode::GuideInterval)
+    {
+        if(!MinimumRelief.Validate(Error)||!MaximumRelief.Validate(Error))return false;
+        if(MinimumRelief.Mode!=ECLHeightReferenceMode::IntervalDelta || MaximumRelief.Mode!=ECLHeightReferenceMode::IntervalDelta)
+        {Error=TEXT("Stamp guide relief requires interval deltas");return false;}
+    }
     const double Low=SizeMode==ECLStampSizeMode::Absolute?MinimumSizeMeters:MinimumSizeRadiusFraction;
     const double High=SizeMode==ECLStampSizeMode::Absolute?MaximumSizeMeters:MaximumSizeRadiusFraction;
     if(!FiniteRange(Low,SizeMode==ECLStampSizeMode::Absolute?.1:.000001,1.e7) || !FiniteRange(High,Low,1.e7))

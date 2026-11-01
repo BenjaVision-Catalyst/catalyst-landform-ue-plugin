@@ -14,6 +14,7 @@ public:
     void Coverage(const FVector& Direction,int32& Count,double& MinimumWeight) const;
     void Apply(TConstArrayView<FVector> Directions, TArrayView<double> Heights) const;
 private:
+    bool bLocal = false;
     TArray<TStrongObjectPtr<UObject>> Assets;
     TSharedPtr<const FCLPlanetStampRuntime> Runtime;
     TSharedPtr<const FVoxelSurfaceTypeTable> Surfaces;
@@ -23,5 +24,6 @@ class FCLStampDistributionCompiler
 {
 public:
     static TSharedPtr<const FCLCompiledStampDistribution> Compile(const FCLStampDistributionSettings& Settings,
-        int32 Seed, const FCLCompiledPlanetRecipe& Input, UCLStampLibraryAsset* Library, FString& Error);
+        int32 Seed, const FCLCompiledPlanetRecipe& Input, UCLStampLibraryAsset* Library, FString& Error,
+        double MinimumRelief = 0, double MaximumRelief = 0);
 };

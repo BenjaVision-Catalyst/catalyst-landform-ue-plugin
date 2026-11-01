@@ -4,7 +4,7 @@ double FCLSectionGeometry::DefaultWidth(const FCLCompiledPlanetRecipe&)
 { return 500; }
 
 double FCLSectionGeometry::ReferenceSurfaceRadius(const FCLCompiledPlanetRecipe& Plan)
-{ return FMath::Max(.001, Plan.RadiusMeters + Plan.SampleHeightMeters(FVector::ZAxisVector)); }
+{ return FMath::Max(.001, Plan.RadiusMeters + (Plan.Coordinates==ECLTerrainCoordinates::LocalPatch ? Plan.BaseHeightMeters : Plan.SampleHeightMeters(FVector::ZAxisVector))); }
 
 namespace
 {
@@ -19,6 +19,11 @@ FVector SectionDirection(double X, double Y, double ReferenceRadius, const FQuat
 
 FVector FCLSectionGeometry::SourceSurfacePoint(const FCLCompiledPlanetRecipe& Plan, double X, double Y, double Heading)
 {
+    if(Plan.Coordinates==ECLTerrainCoordinates::LocalPatch)
+    {
+        const FVector P(X,Y,0);TArray<double> Heights;Plan.SampleLocalHeightsMeters(MakeArrayView(&P,1),Heights);
+        return Plan.TerrainDirection(FVector2D(X,Y))*(Plan.RadiusMeters+Heights[0])*100;
+    }
     const FVector Direction = SectionDirection(X, Y, ReferenceSurfaceRadius(Plan), FQuat(FVector::ZAxisVector, Heading));
     return Direction * (Plan.RadiusMeters + Plan.SampleHeightMeters(Direction)) * 100;
 }
@@ -66,16 +71,19 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
     const FQuat Rotation(FVector::ZAxisVector, Heading);
     for (int32 Y = 0; Y <= N; ++Y)
         for (int32 X = 0; X <= N; ++X)
-            Directions.Add(SectionDirection(G.HalfWidthMeters * (2.0 * X / N - 1),
-                G.HalfWidthMeters * (2.0 * Y / N - 1), ReferenceRadius, Rotation));
+        {
+            const double PX=G.HalfWidthMeters*(2.0*X/N-1),PY=G.HalfWidthMeters*(2.0*Y/N-1);
+            Directions.Add(Plan.Coordinates==ECLTerrainCoordinates::LocalPatch ? FVector(PX,PY,0) : SectionDirection(PX,PY,ReferenceRadius,Rotation));
+        }
     TArray<double> Heights;
-    Plan.SampleHeightsMeters(Directions, Heights);
+    if(Plan.Coordinates==ECLTerrainCoordinates::LocalPatch) Plan.SampleLocalHeightsMeters(Directions,Heights);
+    else Plan.SampleHeightsMeters(Directions, Heights);
     for (int32 Y = 0; Y <= N; ++Y)
         for (int32 X = 0; X <= N; ++X)
         {
             const FVector2D XY(G.HalfWidthMeters * (2.0 * X / N - 1), G.HalfWidthMeters * (2.0 * Y / N - 1));
             const int32 Index = Y * (N + 1) + X;
-            const FVector Source = Directions[Index] * (Plan.RadiusMeters + Heights[Index]) * 100;
+            const FVector Source = (Plan.Coordinates==ECLTerrainCoordinates::LocalPatch ? Plan.TerrainDirection(XY) : Directions[Index]) * (Plan.RadiusMeters + Heights[Index]) * 100;
             G.SourceSurfacePoints.Add(Source);
             const FVector2D DisplayXY = XY * (DisplaySize / (G.HalfWidthMeters * 2));
             const FVector P = StratumPoint(DisplayXY, Source.Size() / (100 * Plan.RadiusMeters));
