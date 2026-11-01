@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 9,
   "algorithmVersion": 1,
   "name": "Rolling plains",
   "seed": 1729,
@@ -41,10 +41,12 @@
       "persistence": 0.5
     }
   ],
-  "strata": {
+  "radiusMeters": 100,
+  "baseSurfaceNormalized": 1,
+  "radialGuides": {
     "id": "434C0001000000000000000000000001",
     "name": "Temperate",
-    "stratum": [
+    "guides": [
       {
         "name": "OceanHeight",
         "normalizedHeight": 0.4,
@@ -86,7 +88,5 @@
         }
       }
     ]
-  },
-  "radiusMeters": 100,
-  "baseSurfaceNormalized": 1
+  }
 }

@@ -3,7 +3,7 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLTerrainType.generated.h"
 
-/** Reusable generation settings. Planet Strata, radius and seed are supplied by context. */
+/** Reusable generation settings. Planet RadialGuides, radius and seed are supplied by context. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLTerrainType
 {
@@ -17,7 +17,7 @@ struct CATALYSTLANDFORM_API FCLTerrainType
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Description;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLNoiseLayer> NoiseLayers;
     bool Validate(FString& Error) const;
-    /** Apply a validated snapshot atomically; never changes the planet's Strata/radius/seed. */
+    /** Apply a validated snapshot atomically; never changes the planet's RadialGuides/radius/seed. */
     bool ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion = nullptr) const;
     bool ApplyToRegion(FCLPlanetRecipe& Recipe, const FGuid& RegionId, FString& Error) const;
 };

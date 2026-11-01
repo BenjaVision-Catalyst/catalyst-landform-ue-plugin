@@ -6,7 +6,7 @@ void FCLTerrainEditing::Open(UCLTerrainTypeAsset* InAsset, const FCLPlanetRecipe
 {
     Asset = InAsset; Asset->SetFlags(RF_Transactional);
     Context = InContext ? *InContext : FCLPlanetCompiler::RollingPlains();
-    if (!InContext) { Context.RadiusMeters = 1000; Context.Strata = FCLStrataPresets::Defaults()[2]; }
+    if (!InContext) { Context.RadiusMeters = 1000; Context.RadialGuides = FCLRadialGuidePresets::Defaults()[2]; }
     Selected = Asset->TerrainType.NoiseLayers.IsEmpty() ? INDEX_NONE : 0; Solo = INDEX_NONE; SoloName = NAME_None;
 }
 void FCLTerrainEditing::Reconcile()

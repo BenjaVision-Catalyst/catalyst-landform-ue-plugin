@@ -28,14 +28,14 @@ FVector FCLSectionGeometry::SourceSurfacePoint(const FCLCompiledPlanetRecipe& Pl
     return Direction * (Plan.RadiusMeters + Plan.SampleHeightMeters(Direction)) * 100;
 }
 
-FVector FCLSectionGeometry::StratumPoint(const FVector2D& Edge, double Normalized)
+FVector FCLSectionGeometry::RadialGuidePoint(const FVector2D& Edge, double Normalized)
 {
     // Unwrap radial height onto a flat reference plane. Terrain relief remains
     // in the sampled height; no planetary sag is added to the Designer display.
     return FVector(Edge.X, Edge.Y, FMath::Max(0.0, DisplaySize * Normalized)) * 100;
 }
 
-double FCLSectionGeometry::StratumAtScreenY(const FVector2D& Edge, const FMatrix& Projection, double Y)
+double FCLSectionGeometry::RadialGuideAtScreenY(const FVector2D& Edge, const FMatrix& Projection, double Y)
 {
     const double NdcY = 1 - 2 * Y;
     const FVector4 Base = Projection.TransformFVector4(FVector4(Edge.X * 100, Edge.Y * 100, 0, 1));
@@ -50,7 +50,7 @@ FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, do
 {
     const FVector Source = SourceSurfacePoint(Plan, X, Y, Heading);
     const double Width = FMath::Clamp(WidthMeters > 0 ? WidthMeters : DefaultWidth(Plan), 100.0, 1000.0);
-    return StratumPoint(FVector2D(X, Y) * (DisplaySize / Width), Source.Size() / (100 * Plan.RadiusMeters));
+    return RadialGuidePoint(FVector2D(X, Y) * (DisplaySize / Width), Source.Size() / (100 * Plan.RadiusMeters));
 }
 
 FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan, double Heading, double WidthMeters)
@@ -86,7 +86,7 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
             const FVector Source = (Plan.Coordinates==ECLTerrainCoordinates::LocalPatch ? Plan.TerrainDirection(XY) : Directions[Index]) * (Plan.RadiusMeters + Heights[Index]) * 100;
             G.SourceSurfacePoints.Add(Source);
             const FVector2D DisplayXY = XY * (DisplaySize / (G.HalfWidthMeters * 2));
-            const FVector P = StratumPoint(DisplayXY, Source.Size() / (100 * Plan.RadiusMeters));
+            const FVector P = RadialGuidePoint(DisplayXY, Source.Size() / (100 * Plan.RadiusMeters));
             const double H = Source.Size() / 100 - Plan.RadiusMeters;
             const double Shade = FMath::Clamp((H - Plan.MinimumHeightMeters) /
                 FMath::Max(.001, Plan.MaximumHeightMeters - Plan.MinimumHeightMeters), 0.0, 1.0);
@@ -104,7 +104,7 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
     for (int32 X = N - 1; X >= 0; --X) Rim.Add(N * (N + 1) + X);
     for (int32 Y = N - 1; Y > 0; --Y) Rim.Add(Y * (N + 1));
     // Separate face vertices preserve crisp vertical section edges. A depth tint
-    // supplies readable mass without inventing geological strata or core materials.
+    // supplies readable mass without inventing geological radialGuides or core materials.
     const FLinearColor Top(.38, .28, .17), Bottom(.12, .085, .055);
     const int32 BottomCentre = G.Vertices.Num(); Add(FVector::ZeroVector, Bottom);
     for (int32 I = 0; I < Rim.Num(); ++I)

@@ -31,7 +31,7 @@ bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox
 {
     if (!Validate(Error)) return false;
     FCLPlanetRecipe Candidate = Recipe;
-    Candidate.SchemaVersion = Coordinates==ECLTerrainCoordinates::SphericalSurface?8:Candidate.TerrainRegions.IsEmpty()?6:7; Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
+    Candidate.SchemaVersion = 9; Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;
     const auto* First = NoiseLayers.FindByPredicate([](const auto& Layer) { return Layer.bEnabled; });
     if (Candidate.BaseSurfaceNormalized == 1 && (Coordinates != ECLTerrainCoordinates::Sphere || !First || First->Operation != ECLTerrainOperation::Noise || First->Blend != ECLNoiseBlend::Override))
@@ -39,8 +39,8 @@ bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox
         // Stamps and additive/shaping stacks need a neutral input with headroom.
         // Resolve it into the recipe so muting an absolute base layer does not
         // move the remaining noise to the sky. Explicit non-default bases survive.
-        const auto* Lower = Candidate.Strata.Stratum.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMin"); });
-        const auto* Upper = Candidate.Strata.Stratum.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMax"); });
+        const auto* Lower = Candidate.RadialGuides.Guides.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMin"); });
+        const auto* Upper = Candidate.RadialGuides.Guides.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMax"); });
         if (Lower && Upper) Candidate.BaseSurfaceNormalized = (Lower->NormalizedHeight + Upper->NormalizedHeight) * .5;
     }
     if (!FCLPlanetCompiler::Compile(Candidate, Error, nullptr, LocalRegion)) return false;
@@ -66,7 +66,7 @@ bool FCLTerrainType::ApplyToRegion(FCLPlanetRecipe& Recipe, const FGuid& RegionI
     if(!Region){Error=TEXT("Terrain region was not found");return false;}
     Region->bSphericalMask=Coordinates==ECLTerrainCoordinates::SphericalSurface;
     Region->TerrainTypeId=Id;Region->TerrainTypeName=Name;Region->AlgorithmVersion=AlgorithmVersion;Region->NoiseLayers=NoiseLayers;
-    Candidate.SchemaVersion=Coordinates==ECLTerrainCoordinates::SphericalSurface?8:7;
+    Candidate.SchemaVersion=9;
     if(!FCLPlanetCompiler::Compile(Candidate,Error))return false;
     Recipe=MoveTemp(Candidate);return true;
 }

@@ -15,7 +15,7 @@
 #include "Framework/Application/IInputProcessor.h"
 #include "Layout/WidgetPath.h"
 #include "InputKeyEventArgs.h"
-#include "CLStrataEditing.h"
+#include "CLRadialGuideEditing.h"
 #include "CLPlanet.h"
 #include "Engine/Selection.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -154,15 +154,15 @@ public:
     }
     double AreaWidthMeters = 0;
     bool bGuides = true;
-    FCLStrata Strata;
+    FCLRadialGuideSet RadialGuides;
     FVector2D RightEdge;
     FMatrix ViewProjection;
     FIntRect ViewRect;
     bool bHasProjection = false;
-    double StratumHeightMeters(double Normalized) const { return (Normalized - 1) * Plan->RadiusMeters; }
+    double RadialGuideHeightMeters(double Normalized) const { return (Normalized - 1) * Plan->RadiusMeters; }
     double NormalizedAtScreenY(double Y) const
     {
-        return bHasProjection && Plan ? FCLSectionGeometry::StratumAtScreenY(RightEdge, ViewProjection, Y) : 0;
+        return bHasProjection && Plan ? FCLSectionGeometry::RadialGuideAtScreenY(RightEdge, ViewProjection, Y) : 0;
     }
     struct FIndicator { FString Text; FLinearColor Color; FVector2D Position; int32 Index = INDEX_NONE; };
     TArray<FIndicator> Indicators;
@@ -182,7 +182,7 @@ public:
     }
     bool GuidePoint(double X, double Y, double Height, FVector& Point) const
     {
-        Point = FCLSectionGeometry::StratumPoint(FVector2D(X, Y), 1 + Height / Plan->RadiusMeters);
+        Point = FCLSectionGeometry::RadialGuidePoint(FVector2D(X, Y), 1 + Height / Plan->RadiusMeters);
         return true;
     }
     virtual FLinearColor GetBackgroundColor() const override { return FLinearColor(.012, .018, .028); }
@@ -230,10 +230,10 @@ public:
         Indicator(FVector(RightEdge.X, RightEdge.Y, 0) * 100, TEXT("Core"), FLinearColor(.9, .7, .5), -2);
         FVector Sky; GuidePoint(RightEdge.X, RightEdge.Y, 0, Sky);
         Indicator(Sky, TEXT("Sky boundary"), FLinearColor(.65, .8, 1), -3);
-        if (bGuides) for (int32 I = 0; I < Strata.Stratum.Num(); ++I)
+        if (bGuides) for (int32 I = 0; I < RadialGuides.Guides.Num(); ++I)
         {
-            const auto& G = Strata.Stratum[I]; FVector P;
-            if (GuidePoint(RightEdge.X, RightEdge.Y, StratumHeightMeters(G.NormalizedHeight), P))
+            const auto& G = RadialGuides.Guides[I]; FVector P;
+            if (GuidePoint(RightEdge.X, RightEdge.Y, RadialGuideHeightMeters(G.NormalizedHeight), P))
                 Indicator(P, G.Name.ToString(), G.Color, I);
         }
         Indicators.Sort([](const FIndicator& A, const FIndicator& B) { return A.Position.Y < B.Position.Y; });
@@ -241,17 +241,17 @@ public:
 };
 
 /** A tick or label is a direct manipulator, with one undo transaction per gesture. */
-class SCLStratumHandle : public SCompoundWidget
+class SCLRadialGuideHandle : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS(SCLStratumHandle) : _Index(INDEX_NONE), _Label(false) {}
-        SLATE_ARGUMENT(TSharedPtr<FCLStrataSession>, Session)
+    SLATE_BEGIN_ARGS(SCLRadialGuideHandle) : _Index(INDEX_NONE), _Label(false) {}
+        SLATE_ARGUMENT(TSharedPtr<FCLRadialGuideSession>, Session)
         SLATE_ARGUMENT(TSharedPtr<FCLSectionClient>, Client)
         SLATE_ARGUMENT(TWeakPtr<SWidget>, Overlay)
         SLATE_ARGUMENT(int32, Index)
         SLATE_ARGUMENT(bool, Label)
     SLATE_END_ARGS()
-    TSharedPtr<FCLStrataSession> Session;
+    TSharedPtr<FCLRadialGuideSession> Session;
     TSharedPtr<FCLSectionClient> Client;
     TWeakPtr<SWidget> Overlay;
     TSharedPtr<SInlineEditableTextBlock> Name;
@@ -268,20 +268,20 @@ public:
                 [SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(Name, SInlineEditableTextBlock)
                         .Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).DelayedLeftClickEntersEditMode(false)
-                        .Text_Lambda([this] { return FText::FromName(Session->Asset->Recipe.Strata.Stratum.IsValidIndex(Index) ?
-                            Session->Asset->Recipe.Strata.Stratum[Index].Name : NAME_None); })
+                        .Text_Lambda([this] { return FText::FromName(Session->Asset->Recipe.RadialGuides.Guides.IsValidIndex(Index) ?
+                            Session->Asset->Recipe.RadialGuides.Guides[Index].Name : NAME_None); })
                         .ColorAndOpacity_Lambda([this] { return GuideTint(Index, Session->Selected); })
                         .IsSelected_Lambda([this] { return Session->Selected == Index; })
                         .OnVerifyTextChanged_Lambda([this](const FText& Text, FText& Error)
-                        { FString E; const bool bOK = FCLStrataEditing::CanRename(Session->Asset->Recipe.Strata, Index, Text.ToString(), E);
+                        { FString E; const bool bOK = FCLRadialGuideEditing::CanRename(Session->Asset->Recipe.RadialGuides, Index, Text.ToString(), E);
                           Error = FText::FromString(E); return bOK; })
                         .OnTextCommitted_Lambda([this](const FText& Text, ETextCommit::Type Type)
                         {
                             if (Type == ETextCommit::OnCleared) return;
                             FString Error;
-                            if (!FCLStrataEditing::CanRename(Session->Asset->Recipe.Strata, Index, Text.ToString(), Error)) return;
-                            Session->Begin(NSLOCTEXT("CL", "RenameStratum", "Rename Stratum"));
-                            FCLStrataEditing::Rename(Session->Asset->Recipe, Index, Text.ToString(), Error); Session->Changed(); Session->End();
+                            if (!FCLRadialGuideEditing::CanRename(Session->Asset->Recipe.RadialGuides, Index, Text.ToString(), Error)) return;
+                            Session->Begin(NSLOCTEXT("CL", "RenameRadialGuide", "Rename Radial Guide"));
+                            FCLRadialGuideEditing::Rename(Session->Asset->Recipe, Index, Text.ToString(), Error); Session->Changed(); Session->End();
                         })]
                 ]];
         else ChildSlot[SNew(SBorder).Padding(0).BorderImage(FAppStyle::GetBrush("NoBorder"))];
@@ -305,7 +305,7 @@ public:
         const FVector2D Local = G.AbsoluteToLocal(E.GetScreenSpacePosition());
         if (!bDragging && FVector2D::Distance(MouseStart, E.GetScreenSpacePosition()) > 3)
         {
-            Session->Begin(NSLOCTEXT("CL", "MoveStratum", "Move Stratum"));
+            Session->Begin(NSLOCTEXT("CL", "MoveRadialGuide", "Move Radial Guide"));
             bDragging = true;
         }
         if (bDragging) Session->Height(Index, Client->NormalizedAtScreenY(Local.Y / FMath::Max(1.0, G.GetLocalSize().Y)));
@@ -333,15 +333,15 @@ public:
 class FCLSelectionInput : public IInputProcessor
 {
 public:
-    TWeakPtr<FCLStrataSession> Session;
-    explicit FCLSelectionInput(TSharedPtr<FCLStrataSession> InSession) : Session(InSession) {}
+    TWeakPtr<FCLRadialGuideSession> Session;
+    explicit FCLSelectionInput(TSharedPtr<FCLRadialGuideSession> InSession) : Session(InSession) {}
     virtual void Tick(float, FSlateApplication&, TSharedRef<ICursor>) override {}
     void ObservePath(const FWidgetPath& Path)
     {
         const auto S = Session.Pin(); if (!S || S->Selected == INDEX_NONE) return;
         for (const FArrangedWidget& W : Path.Widgets.GetInternalArray())
-            if (W.Widget->GetType() == FName(TEXT("SCLStratumHandle")) &&
-                StaticCastSharedRef<SCLStratumHandle>(W.Widget)->Session == S) return;
+            if (W.Widget->GetType() == FName(TEXT("SCLRadialGuideHandle")) &&
+                StaticCastSharedRef<SCLRadialGuideHandle>(W.Widget)->Session == S) return;
         S->Selected = INDEX_NONE;
         if (S->OnPreviewChanged) S->OnPreviewChanged();
     }
@@ -360,10 +360,10 @@ class SCLHeightAnnotations : public SCompoundWidget
 public:
     SLATE_BEGIN_ARGS(SCLHeightAnnotations) {}
         SLATE_ARGUMENT(TSharedPtr<FCLSectionClient>, Client)
-        SLATE_ARGUMENT(TSharedPtr<FCLStrataSession>, Session)
+        SLATE_ARGUMENT(TSharedPtr<FCLRadialGuideSession>, Session)
     SLATE_END_ARGS()
     TSharedPtr<FCLSectionClient> Client;
-    TSharedPtr<FCLStrataSession> Session;
+    TSharedPtr<FCLRadialGuideSession> Session;
     TSharedPtr<SCanvas> Canvas;
     int32 Rows = -1;
     void Construct(const FArguments& Args)
@@ -404,14 +404,14 @@ public:
     virtual void Tick(const FGeometry& Geometry, double Time, float Delta) override
     {
         SCompoundWidget::Tick(Geometry, Time, Delta);
-        const int32 Count = Session->Asset->Recipe.Strata.Stratum.Num();
+        const int32 Count = Session->Asset->Recipe.RadialGuides.Guides.Num();
         if (Count == Rows) return;
         Rows = Count; Canvas->ClearChildren();
         for (int32 I = 0; I < Count; ++I)
         {
             Canvas->AddSlot().Position_Lambda([this, I] { return Anchor(I) + FVector2D(GuideTickWidth - 4, -9); }).Size(FVector2D(GuideTickWidth + 8, 18))
-                [SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I)];
-            const auto LabelHandle = SNew(SCLStratumHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I).Label(true);
+                [SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I)];
+            const auto LabelHandle = SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I).Label(true);
             Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); })
                 .Size_Lambda([LabelHandle] { return FVector2D(FMath::Min(300.0, double(LabelHandle->GetDesiredSize().X)), GuideLabelHeight); })[LabelHandle];
         }
@@ -427,8 +427,8 @@ public:
                     [SNew(SBox).WidthOverride(16).HeightOverride(16).VAlign(VAlign_Center)
                         .Visibility_Lambda([this] { return Session->bReadOnly ? EVisibility::Collapsed : EVisibility::Visible; })
                         [SNew(SButton).ButtonStyle(FAppStyle::Get(), "SimpleButton").ContentPadding(0)
-                        .ToolTipText(FText::FromString(TEXT("Add a Stratum just above Core, then drag it to the desired height")))
-                        .IsEnabled_Lambda([this] { return Session->Asset->Recipe.Strata.Stratum.Num() < 128; })
+                        .ToolTipText(FText::FromString(TEXT("Add a Radial Guide just above Core, then drag it to the desired height")))
+                        .IsEnabled_Lambda([this] { return Session->Asset->Recipe.RadialGuides.Guides.Num() < 128; })
                         .OnClicked_Lambda([this]
                         {
                             Client->bGuides = true; Session->Add();
@@ -599,7 +599,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
 #endif
     TSharedPtr<SCLSectionViewport> Preview;
     TSharedPtr<SCLHeightAnnotations> Annotations;
-    TSharedPtr<FCLStrataSession> StrataSession;
+    TSharedPtr<FCLRadialGuideSession> RadialGuidesSession;
     TSharedPtr<FCLSelectionInput> SelectionInput;
     TStrongObjectPtr<UCLTerrainTypeAsset> TerrainSource;
     TSharedPtr<FCLTerrainEditing> TerrainEditing;
@@ -641,13 +641,13 @@ public:
         EditingAsset = Asset;
         OpenDesigner(Mode, Host);
     }
-    void OpenTerrain(UCLTerrainTypeAsset* Asset, const FCLStrata* InitialStrata, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
+    void OpenTerrain(UCLTerrainTypeAsset* Asset, const FCLRadialGuideSet* InitialRadialGuides, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         EditingAsset = Asset;
         // Reference scale and seed belong to the disposable evaluator, never a
         // contextual planet. Only the caller's guide snapshot can cross here.
         TerrainEditing = MakeShared<FCLTerrainEditing>(); TerrainEditing->Open(Asset);
-        if (InitialStrata) TerrainEditing->Context.Strata = *InitialStrata;
+        if (InitialRadialGuides) TerrainEditing->Context.RadialGuides = *InitialRadialGuides;
         PreviewContext.Reset(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
         PreviewContext->Recipe = TerrainEditing->Context;
         TerrainChanged = Asset->OnTerrainChanged.AddSP(this, &FCLRecipeToolkit::RefreshTerrain);
@@ -659,28 +659,28 @@ public:
         if (NoiseStack) NoiseStack->Refresh();
         Refresh();
     }
-    void UsePreviewStrata(const FCLStrata& Strata)
+    void UsePreviewRadialGuides(const FCLRadialGuideSet& RadialGuides)
     {
-        if (!TerrainEditing || !StrataSession) return;
-        StrataSession->UsePreviewStrata(Strata);
+        if (!TerrainEditing || !RadialGuidesSession) return;
+        RadialGuidesSession->UsePreviewRadialGuides(RadialGuides);
         if (NoiseStack) NoiseStack->Refresh();
     }
     void OpenDesigner(EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         auto* Asset = RecipeAsset();
-        StrataSession = MakeShared<FCLStrataSession>();
+        RadialGuidesSession = MakeShared<FCLRadialGuideSession>();
         if (TerrainEditing)
         {
-            const bool bOpened = StrataSession->OpenPreview(Asset);
+            const bool bOpened = RadialGuidesSession->OpenPreview(Asset);
             check(bOpened);
         }
-        else StrataSession->Open(Asset);
-        SelectionInput = MakeShared<FCLSelectionInput>(StrataSession);
+        else RadialGuidesSession->Open(Asset);
+        SelectionInput = MakeShared<FCLSelectionInput>(RadialGuidesSession);
         FSlateApplication::Get().RegisterInputPreProcessor(SelectionInput);
-        StrataSession->OnPreviewChanged = [this]
+        RadialGuidesSession->OnPreviewChanged = [this]
         {
             if (!Preview) return;
-            Preview->Client->Strata = StrataSession->Asset->Recipe.Strata;
+            Preview->Client->RadialGuides = RadialGuidesSession->Asset->Recipe.RadialGuides;
             Preview->Client->UpdateIndicators();
             if (Annotations) Annotations->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
         };
@@ -707,7 +707,7 @@ public:
         Refresh();
     }
     virtual void GetSaveableObjects(TArray<UObject*>& Objects) const override
-    { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (StrataSession && !TerrainEditing) Objects.AddUnique(StrataSession->Library.Get()); }
+    { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (RadialGuidesSession && !TerrainEditing) Objects.AddUnique(RadialGuidesSession->Library.Get()); }
     TSharedRef<SWidget> TerrainMenu() { return TerrainSourceMenu(FGuid(), false); }
     TSharedRef<SWidget> TerrainSourceMenu(FGuid RegionId, bool bNewRegion)
     {
@@ -726,7 +726,7 @@ public:
                 FUIAction(FExecuteAction::CreateLambda([this, Weak, RegionId, bNewRegion]
                 {
                     if (!Weak.IsValid()) return;
-                    if (TerrainEditing) { CLOpenTerrainDesigner(Weak.Get(), &RecipeAsset()->Recipe.Strata); return; }
+                    if (TerrainEditing) { CLOpenTerrainDesigner(Weak.Get(), &RecipeAsset()->Recipe.RadialGuides); return; }
                     if(bNewRegion || RegionId.IsValid())
                     {
                         auto Candidate=RecipeAsset()->Recipe;FGuid Target=RegionId;
@@ -776,12 +776,12 @@ public:
                     })]];
         }
     }
-    TSharedRef<SWidget> StrataMenu()
+    TSharedRef<SWidget> RadialGuidesMenu()
     {
         FMenuBuilder Menu(true, nullptr);
-        for (const FCLStrata& S : StrataSession->Library->Library.Sets)
-            Menu.AddMenuEntry(FText::FromString(S.Name), FText::FromString(TerrainEditing ? TEXT("Preview this guide set without saving it to the terrain or changing a planet") : TEXT("Apply this Strata to this planet recipe")), FSlateIcon(),
-                FUIAction(FExecuteAction::CreateLambda([Session = StrataSession, Id = S.Id] { Session->Apply(Id); })));
+        for (const FCLRadialGuideSet& S : RadialGuidesSession->Library->Library.Sets)
+            Menu.AddMenuEntry(FText::FromString(S.Name), FText::FromString(TerrainEditing ? TEXT("Preview this guide set without saving it to the terrain or changing a planet") : TEXT("Apply this Radial Guides to this planet recipe")), FSlateIcon(),
+                FUIAction(FExecuteAction::CreateLambda([Session = RadialGuidesSession, Id = S.Id] { Session->Apply(Id); })));
         return Menu.MakeWidget();
     }
     virtual FName GetToolkitFName() const override { return TerrainEditing ? TEXT("CLTerrainType") : TEXT("CLRecipeDesigner"); }
@@ -813,7 +813,7 @@ public:
             Terrain->MarkPackageDirty(); Terrain->PostEditChange();
             TArray<UPackage*> Packages{Terrain->GetOutermost()};
             FEditorFileUtils::PromptForCheckoutAndSave(Packages, false, false);
-            CLOpenTerrainDesigner(Terrain, &RecipeAsset()->Recipe.Strata);
+            CLOpenTerrainDesigner(Terrain, &RecipeAsset()->Recipe.RadialGuides);
         }
     }
     void Refresh()
@@ -828,7 +828,7 @@ public:
             for (const auto& Data : Assets) if (auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); Source && Source->TerrainType.Id == Asset->Recipe.TerrainTypeId)
             { TerrainSource.Reset(Source); break; }
         }
-        if (Preview) Preview->Client->Strata = Asset->Recipe.Strata;
+        if (Preview) Preview->Client->RadialGuides = Asset->Recipe.RadialGuides;
         if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
         const auto Plan = TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         bPreviewInvalid = !Plan.IsValid();
@@ -853,7 +853,7 @@ public:
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this] { return FText::FromString(Status); })]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::TerrainMenu)
-                    .ToolTipText(FText::FromString(TerrainEditing ? TEXT("Open a reusable terrain definition using the current preview guides") : TEXT("Apply a terrain type's layers using this planet's Strata, radius and seed")))
+                    .ToolTipText(FText::FromString(TerrainEditing ? TEXT("Open a reusable terrain definition using the current preview guides") : TEXT("Apply a terrain type's layers using this planet's Radial Guides, radius and seed")))
                     .ButtonContent()[SNew(STextBlock).Text_Lambda([this]
                     { const FString& Name = TerrainEditing ? TerrainEditing->Asset->TerrainType.Name : RecipeAsset()->Recipe.TerrainTypeName;
                       return FText::FromString(TEXT("Terrain: ") + (Name.IsEmpty() ? TEXT("Custom") : Name)); })]]
@@ -862,7 +862,7 @@ public:
                     .IsEnabled_Lambda([this] { return TerrainSource.IsValid(); })
                     .ToolTipText(FText::FromString(TEXT("Edit the reusable terrain type. Reapply it to update this planet's copy.")))
                     .OnClicked_Lambda([this]
-                    { if (TerrainSource) CLOpenTerrainDesigner(TerrainSource.Get(), &RecipeAsset()->Recipe.Strata); return FReply::Handled(); })]
+                    { if (TerrainSource) CLOpenTerrainDesigner(TerrainSource.Get(), &RecipeAsset()->Recipe.RadialGuides); return FReply::Handled(); })]
                 + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("New")))
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
                     .OnClicked_Lambda([this] { CreateTerrain(false); return FReply::Handled(); })]
@@ -872,32 +872,32 @@ public:
                 + SHorizontalBox::Slot().FillWidth(1).Padding(8, 0)[SNew(STextBlock).AutoWrapText(true)
                     .Text_Lambda([this] { return FText::FromString(TerrainEditing ? TEXT("Save edits to this reusable terrain type") : TEXT("Edit this planet's terrain layers in Details")); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::StrataMenu)
-                    .ToolTipText(FText::FromString(TerrainEditing ? TEXT("Temporary preview guides; the terrain stores named references, not these guide values") : TEXT("Choose this planet's Strata")))
-                    .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TerrainEditing ? TEXT("Preview Strata") : TEXT("Strata")))]]
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::RadialGuidesMenu)
+                    .ToolTipText(FText::FromString(TerrainEditing ? TEXT("Temporary preview guides; the terrain stores named references, not these guide values") : TEXT("Choose this planet's Radial Guides")))
+                    .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TerrainEditing ? TEXT("Preview Radial Guides") : TEXT("Radial Guides")))]]
                 + SHorizontalBox::Slot().FillWidth(1).Padding(8, 0)[SNew(SInlineEditableTextBlock)
                     .IsReadOnly_Lambda([this] { return TerrainEditing.IsValid(); })
-                    .Text_Lambda([this] { return FText::FromString(StrataSession->Asset->Recipe.Strata.Name); })
+                    .Text_Lambda([this] { return FText::FromString(RadialGuidesSession->Asset->Recipe.RadialGuides.Name); })
                     .OnVerifyTextChanged_Lambda([this](const FText& Text, FText& Error)
                     {
                         const FString N = Text.ToString().TrimStartAndEnd();
-                        if (N.IsEmpty() || StrataSession->Library->Library.Sets.ContainsByPredicate([&](const FCLStrata& S)
-                            { return S.Id != StrataSession->Asset->Recipe.Strata.Id && S.Name.Equals(N, ESearchCase::IgnoreCase); }))
-                        { Error = FText::FromString(TEXT("Use a unique, nonempty Strata name")); return false; }
+                        if (N.IsEmpty() || RadialGuidesSession->Library->Library.Sets.ContainsByPredicate([&](const FCLRadialGuideSet& S)
+                            { return S.Id != RadialGuidesSession->Asset->Recipe.RadialGuides.Id && S.Name.Equals(N, ESearchCase::IgnoreCase); }))
+                        { Error = FText::FromString(TEXT("Use a unique, nonempty Radial Guides name")); return false; }
                         return true;
                     })
                     .OnTextCommitted_Lambda([this](const FText& Text, ETextCommit::Type Type)
                     {
                         if (Type == ETextCommit::OnCleared || Text.ToString().TrimStartAndEnd().IsEmpty()) return;
-                        StrataSession->Begin(NSLOCTEXT("CL", "RenameStrata", "Rename Strata"));
-                        StrataSession->Asset->Recipe.Strata.Name = Text.ToString().TrimStartAndEnd(); StrataSession->Changed(); StrataSession->End();
+                        RadialGuidesSession->Begin(NSLOCTEXT("CL", "RenameRadial Guides", "Rename Radial Guides"));
+                        RadialGuidesSession->Asset->Recipe.RadialGuides.Name = Text.ToString().TrimStartAndEnd(); RadialGuidesSession->Changed(); RadialGuidesSession->End();
                     })]
-                + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("New Strata")))
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("New guide set")))
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
-                    .OnClicked_Lambda([this] { StrataSession->NewSet(); return FReply::Handled(); })]
-                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Remove Strata")))
+                    .OnClicked_Lambda([this] { RadialGuidesSession->NewSet(); return FReply::Handled(); })]
+                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Remove guide set")))
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
-                    .OnClicked_Lambda([this] { StrataSession->RemoveSet(); return FReply::Handled(); })]]
+                    .OnClicked_Lambda([this] { RadialGuidesSession->RemoveSet(); return FReply::Handled(); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8,0)[SAssignNew(RegionControls,SVerticalBox)
                 .Visibility_Lambda([this]{return TerrainEditing?EVisibility::Collapsed:EVisibility::Visible;})]
             + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true)
@@ -905,7 +905,7 @@ public:
                 .Text(FText::FromString(TEXT("Preview guides only. Guide values are supplied when this terrain is assembled onto a planet."))) ]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked_Lambda([this] { return !Preview || Preview->Client->bGuides ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
-                    { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Height Guides")))]]]
+                    { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Radial Guides")))]]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(200)[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("100 m")))]
@@ -924,7 +924,7 @@ public:
                 { return bAreaDragging ? FText::FromString(FString::Printf(TEXT("Release to view %.0f m × %.0f m"), PendingAreaWidth, PendingAreaWidth)) : FText(); })]]
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
-                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(StrataSession)
+                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession)
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
                 + SOverlay::Slot().VAlign(VAlign_Top).Padding(12)[SNew(SBorder).Padding(10)
                     .Visibility_Lambda([this] { return bPreviewInvalid ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
@@ -933,9 +933,9 @@ public:
                         .Text_Lambda([this] { return FText::FromString(Status + TEXT("\nThe displayed terrain does not reflect the current layer settings.")); })]]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SBox).HeightOverride(42)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
-                    FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
+                    FString Legend = RadialGuidesSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
                         TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
-                    if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Stratum");
+                    if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Radial Guide");
                     if (Preview && Preview->IsUpdating()) Legend = TEXT("Updating terrain preview… | ") + Legend;
                     if (Preview && Preview->Client->Plan && Preview->Client->Plan->Coordinates == ECLTerrainCoordinates::Sphere && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
@@ -976,7 +976,7 @@ void OpenLandformDesigner()
             }
     }
     if (!Terrain) Terrain = LoadObject<UCLTerrainTypeAsset>(nullptr, TEXT("/CatalystLandform/TerrainTypes/DA_MountainRidges.DA_MountainRidges"));
-    if (Terrain) CLOpenTerrainDesigner(Terrain, Recipe ? &Recipe->Strata : nullptr);
+    if (Terrain) CLOpenTerrainDesigner(Terrain, Recipe ? &Recipe->RadialGuides : nullptr);
 }
 class FCLDesignerModule : public IModuleInterface
 {
@@ -989,19 +989,19 @@ public:
     {
         Command = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.Designer"), TEXT("Open a terrain definition; selected planet supplies preview guides only"), FConsoleCommandDelegate::CreateStatic(&OpenLandformDesigner));
         PlanetCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.PlanetRecipe"), TEXT("Open selected planet recipe or rolling-plains recipe"), FConsoleCommandDelegate::CreateStatic(&OpenPlanetRecipe));
-        TerrainCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.TerrainDesigner"), TEXT("Open terrain type [asset path] [optional recipe path supplying preview Strata only]"),
+        TerrainCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.TerrainDesigner"), TEXT("Open terrain type [asset path] [optional recipe path supplying preview Radial Guides only]"),
             FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
             {
                 auto* Terrain = LoadObject<UCLTerrainTypeAsset>(nullptr, Args.IsEmpty() ? TEXT("/CatalystLandform/TerrainTypes/DA_MountainRidges.DA_MountainRidges") : *Args[0]);
                 auto* Context = Args.Num() > 1 ? LoadObject<UCLPlanetRecipeAsset>(nullptr, *Args[1]) : nullptr;
-                if (Terrain) CLOpenTerrainDesigner(Terrain, Context ? &Context->Recipe.Strata : nullptr);
+                if (Terrain) CLOpenTerrainDesigner(Terrain, Context ? &Context->Recipe.RadialGuides : nullptr);
             }));
         MenuHandle = UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateLambda([]
         {
             FToolMenuOwnerScoped Owner(TEXT("CatalystLandformDesigner"));
             auto* Menu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.MainMenu.Window"));
             Menu->AddSection(TEXT("CatalystLandform"), FText::FromString(TEXT("Catalyst"))).AddMenuEntry(TEXT("LandformDesigner"),
-                FText::FromString(TEXT("Landform Designer")), FText::FromString(TEXT("Edit a terrain definition; selected planet supplies preview Strata only")),
+                FText::FromString(TEXT("Landform Designer")), FText::FromString(TEXT("Edit a terrain definition; selected planet supplies preview Radial Guides only")),
                 FSlateIcon(), FUIAction(FExecuteAction::CreateStatic(&OpenLandformDesigner)));
             Menu->FindOrAddSection(TEXT("CatalystLandform")).AddMenuEntry(TEXT("LandformPlanetRecipe"),
                 FText::FromString(TEXT("Planet Recipe")), FText::FromString(TEXT("Edit the selected planet recipe, or the rolling-plains recipe")),
@@ -1013,11 +1013,11 @@ public:
 };
 }
 
-void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLStrata* PreviewStrata, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
+void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLRadialGuideSet* PreviewRadialGuides, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
 {
     if (!GEditor || !Terrain) return;
-    TOptional<FCLStrata> Guides;
-    if (PreviewStrata) Guides = *PreviewStrata;
+    TOptional<FCLRadialGuideSet> Guides;
+    if (PreviewRadialGuides) Guides = *PreviewRadialGuides;
     if (Terrain->GetOutermost()->GetName().StartsWith(TEXT("/CatalystLandform/")))
     {
         // The plugin is a replaceable staged copy in development hosts. Author
@@ -1049,7 +1049,7 @@ void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLStrata* Previe
     if (auto* Existing = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->FindEditorForAsset(Terrain, true))
     {
         if (Guides.IsSet() && Existing->GetEditorName() == FName(TEXT("CLTerrainType")))
-            static_cast<FCLRecipeToolkit*>(Existing)->UsePreviewStrata(Guides.GetValue());
+            static_cast<FCLRecipeToolkit*>(Existing)->UsePreviewRadialGuides(Guides.GetValue());
         return;
     }
     MakeShared<FCLRecipeToolkit>()->OpenTerrain(Terrain, Guides.IsSet() ? &Guides.GetValue() : nullptr, Mode, Host);
@@ -1160,9 +1160,9 @@ bool FCLTerrainWorkspaceTest::RunTest(const FString&)
     Planet->Recipe = FCLPlanetCompiler::RollingPlains(); Planet->Recipe.RadiusMeters = 1400; Planet->Recipe.Seed = 829;
     Planet->Recipe.Name = TEXT("Private planet identity"); Planet->Recipe.BaseSurfaceNormalized = .71;
     const auto BeforePlanet = Planet->Recipe;
-    const auto* SharedCatalog = LoadObject<UCLStrataLibraryAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary"));
-    const auto BeforeCatalog = SharedCatalog ? SharedCatalog->Library : FCLStrataLibrary(); const bool CatalogDirty = SharedCatalog && SharedCatalog->GetOutermost()->IsDirty();
-    auto Editor = MakeShared<FCLRecipeToolkit>(); Editor->OpenTerrain(Terrain.Get(), &Planet->Recipe.Strata, EToolkitMode::Standalone, nullptr);
+    const auto* SharedCatalog = LoadObject<UCLRadialGuideLibraryAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary"));
+    const auto BeforeCatalog = SharedCatalog ? SharedCatalog->Library : FCLRadialGuideLibrary(); const bool CatalogDirty = SharedCatalog && SharedCatalog->GetOutermost()->IsDirty();
+    auto Editor = MakeShared<FCLRecipeToolkit>(); Editor->OpenTerrain(Terrain.Get(), &Planet->Recipe.RadialGuides, EToolkitMode::Standalone, nullptr);
     const auto Layers = Editor->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLNoiseLayers")));
     const auto Section = Editor->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLRecipeSection")));
     TestTrue(TEXT("Layer stack and cross-section are in the same editor"), Layers.IsValid() && Section.IsValid());
@@ -1170,7 +1170,7 @@ bool FCLTerrainWorkspaceTest::RunTest(const FString&)
     TestEqual(TEXT("Preview uses its fixed reference scale, not the planet radius"), Editor->PreviewContext->Recipe.RadiusMeters, 1000.0);
     TestEqual(TEXT("Preview does not inherit the planet seed"), Editor->PreviewContext->Recipe.Seed, 1729);
     TestEqual(TEXT("Preview does not inherit the planet base"), Editor->PreviewContext->Recipe.BaseSurfaceNormalized, 1.0);
-    TestTrue(TEXT("Only initial Strata are copied from the caller"), FCLStrata::StaticStruct()->CompareScriptStruct(&Editor->PreviewContext->Recipe.Strata, &Planet->Recipe.Strata, 0));
+    TestTrue(TEXT("Only initial Radial Guides are copied from the caller"), FCLRadialGuideSet::StaticStruct()->CompareScriptStruct(&Editor->PreviewContext->Recipe.RadialGuides, &Planet->Recipe.RadialGuides, 0));
     TestFalse(TEXT("Planet identity is not copied"), Editor->PreviewContext->Recipe.Name == Planet->Recipe.Name);
     TArray<FString> Texts;
     TFunction<void(const TSharedRef<SWidget>&)> CollectText = [&](const TSharedRef<SWidget>& Widget)
@@ -1181,54 +1181,54 @@ bool FCLTerrainWorkspaceTest::RunTest(const FString&)
         for (int32 I = 0; I < Children->Num(); ++I) CollectText(Children->GetChildAt(I));
     };
     CollectText(Section->GetContent());
-    TestTrue(TEXT("The guide selector is explicitly Preview Strata"), Texts.Contains(TEXT("Preview Strata")));
+    TestTrue(TEXT("The guide selector is explicitly Preview Radial Guides"), Texts.Contains(TEXT("Preview Radial Guides")));
     for (const FString Forbidden : {TEXT("Preview radius"), TEXT("Seed"), TEXT("Apply to planet")})
         TestFalse(*FString::Printf(TEXT("No planet control: %s"),*Forbidden), Texts.Contains(Forbidden));
     TestFalse(TEXT("Preview header contains no planet radius or identity"), Texts.ContainsByPredicate([](const FString& T){return T.Contains(TEXT("Context:"))||T.Contains(TEXT("Private planet identity"))||T.Contains(TEXT("radius 1400"));}));
     TArray<UObject*> Saved; Editor->GetSaveableObjects(Saved);
     TestTrue(TEXT("Save owns only the terrain definition"), Saved.Num()==1&&Saved.Contains(Terrain.Get()));
     TestFalse(TEXT("Save cannot write the preview recipe"), Saved.Contains(Editor->PreviewContext.Get()));
-    TestFalse(TEXT("Save cannot write the guide library"), Saved.Contains(Editor->StrataSession->Library.Get())||Saved.Contains(SharedCatalog));
-    const auto Alternate = FCLStrataPresets::Defaults()[1];
-    Editor->StrataSession->UsePreviewStrata(Alternate);
-    TestEqual(TEXT("Preview guide selection changes the scratch evaluator"), Editor->PreviewContext->Recipe.Strata.Id, Alternate.Id);
-    TestTrue(TEXT("The guide library is an independent snapshot"), Editor->StrataSession->Library.Get()!=SharedCatalog);
-    const auto PreviewGuides = Editor->PreviewContext->Recipe.Strata;
-    const auto PreviewCatalog = Editor->StrataSession->Library->Library;
-    Editor->StrataSession->Height(0,.01); Editor->StrataSession->Remove(0);
-    TestEqual(TEXT("Preview cannot add a guide"),Editor->StrataSession->Add(),INDEX_NONE);
-    Editor->StrataSession->NewSet(); Editor->StrataSession->RemoveSet();
-    TestTrue(TEXT("Preview cannot edit guide values"),FCLStrata::StaticStruct()->CompareScriptStruct(&PreviewGuides,&Editor->PreviewContext->Recipe.Strata,0));
-    TestTrue(TEXT("Preview cannot author guide sets"),FCLStrataLibrary::StaticStruct()->CompareScriptStruct(&PreviewCatalog,&Editor->StrataSession->Library->Library,0));
+    TestFalse(TEXT("Save cannot write the guide library"), Saved.Contains(Editor->RadialGuidesSession->Library.Get())||Saved.Contains(SharedCatalog));
+    const auto Alternate = FCLRadialGuidePresets::Defaults()[1];
+    Editor->RadialGuidesSession->UsePreviewRadialGuides(Alternate);
+    TestEqual(TEXT("Preview guide selection changes the scratch evaluator"), Editor->PreviewContext->Recipe.RadialGuides.Id, Alternate.Id);
+    TestTrue(TEXT("The guide library is an independent snapshot"), Editor->RadialGuidesSession->Library.Get()!=SharedCatalog);
+    const auto PreviewGuides = Editor->PreviewContext->Recipe.RadialGuides;
+    const auto PreviewCatalog = Editor->RadialGuidesSession->Library->Library;
+    Editor->RadialGuidesSession->Height(0,.01); Editor->RadialGuidesSession->Remove(0);
+    TestEqual(TEXT("Preview cannot add a guide"),Editor->RadialGuidesSession->Add(),INDEX_NONE);
+    Editor->RadialGuidesSession->NewSet(); Editor->RadialGuidesSession->RemoveSet();
+    TestTrue(TEXT("Preview cannot edit guide values"),FCLRadialGuideSet::StaticStruct()->CompareScriptStruct(&PreviewGuides,&Editor->PreviewContext->Recipe.RadialGuides,0));
+    TestTrue(TEXT("Preview cannot author guide sets"),FCLRadialGuideLibrary::StaticStruct()->CompareScriptStruct(&PreviewCatalog,&Editor->RadialGuidesSession->Library->Library,0));
     // Menu selection uses the same preview-only Apply path, with no transaction.
-    Editor->StrataSession->Apply(BeforePlanet.Strata.Id);
-    TestEqual(TEXT("Preview menu applies only the selected guide snapshot"),Editor->PreviewContext->Recipe.Strata.Id,BeforePlanet.Strata.Id);
+    Editor->RadialGuidesSession->Apply(BeforePlanet.RadialGuides.Id);
+    TestEqual(TEXT("Preview menu applies only the selected guide snapshot"),Editor->PreviewContext->Recipe.RadialGuides.Id,BeforePlanet.RadialGuides.Id);
     TStrongObjectPtr<UCLPlanetRecipeAsset> OtherPlanet(NewObject<UCLPlanetRecipeAsset>());
     OtherPlanet->Recipe = Planet->Recipe; OtherPlanet->Recipe.Name = TEXT("Second private planet");
     OtherPlanet->Recipe.RadiusMeters = 10000; OtherPlanet->Recipe.Seed = 319;
-    OtherPlanet->Recipe.Strata.Id = FGuid::NewGuid(); OtherPlanet->Recipe.Strata.Name = TEXT("Second preview guides");
+    OtherPlanet->Recipe.RadialGuides.Id = FGuid::NewGuid(); OtherPlanet->Recipe.RadialGuides.Name = TEXT("Second preview guides");
     const auto BeforeOther = OtherPlanet->Recipe;
-    CLOpenTerrainDesigner(Terrain.Get(), &OtherPlanet->Recipe.Strata);
-    TestEqual(TEXT("Reopening an editor replaces only the preview guides"),Editor->PreviewContext->Recipe.Strata.Name,FString(TEXT("Second preview guides")));
+    CLOpenTerrainDesigner(Terrain.Get(), &OtherPlanet->Recipe.RadialGuides);
+    TestEqual(TEXT("Reopening an editor replaces only the preview guides"),Editor->PreviewContext->Recipe.RadialGuides.Name,FString(TEXT("Second preview guides")));
     TestEqual(TEXT("Switching guides retains the reference scale"),Editor->PreviewContext->Recipe.RadiusMeters,1000.0);
     TestEqual(TEXT("Switching guides retains the evaluator seed"),Editor->PreviewContext->Recipe.Seed,1729);
     // Changes to the supplier after opening cannot alter the copied guide values.
-    const auto Snapshot = Editor->PreviewContext->Recipe.Strata;
-    OtherPlanet->Recipe.Strata.Stratum[0].NormalizedHeight += .01;
-    TestTrue(TEXT("Preview does not follow its supplier through a live binding"),FCLStrata::StaticStruct()->CompareScriptStruct(&Snapshot,&Editor->PreviewContext->Recipe.Strata,0));
+    const auto Snapshot = Editor->PreviewContext->Recipe.RadialGuides;
+    OtherPlanet->Recipe.RadialGuides.Guides[0].NormalizedHeight += .01;
+    TestTrue(TEXT("Preview does not follow its supplier through a live binding"),FCLRadialGuideSet::StaticStruct()->CompareScriptStruct(&Snapshot,&Editor->PreviewContext->Recipe.RadialGuides,0));
     OtherPlanet->Recipe = BeforeOther;
     TestTrue(TEXT("Opening and changing preview guides never write the planet"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforePlanet,&Planet->Recipe,0));
     TestTrue(TEXT("The second planet is unchanged"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeOther,&OtherPlanet->Recipe,0));
     TestTrue(TEXT("Preview choices never change the terrain definition"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&BeforeTerrain,&Terrain->TerrainType,0));
     if (SharedCatalog)
     {
-        TestTrue(TEXT("Preview never modifies the shared guide catalog"),FCLStrataLibrary::StaticStruct()->CompareScriptStruct(&BeforeCatalog,&SharedCatalog->Library,0));
+        TestTrue(TEXT("Preview never modifies the shared guide catalog"),FCLRadialGuideLibrary::StaticStruct()->CompareScriptStruct(&BeforeCatalog,&SharedCatalog->Library,0));
         TestEqual(TEXT("Preview never dirties the shared catalog"),SharedCatalog->GetOutermost()->IsDirty(),CatalogDirty);
     }
     // A preview session cannot accidentally attach to a persistent recipe.
     auto* PersistentPackage = CreatePackage(*(TEXT("/Game/CLPreviewTarget_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     TStrongObjectPtr<UCLPlanetRecipeAsset> Persistent(NewObject<UCLPlanetRecipeAsset>(PersistentPackage, TEXT("PersistentRecipe")));
-    FCLStrataSession Refused;
+    FCLRadialGuideSession Refused;
     TestFalse(TEXT("Preview session refuses a persistent asset target"),Refused.OpenPreview(Persistent.Get()));
     TestTrue(TEXT("Editor closes cleanly with pending preview work"),Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));
     return true;
@@ -1284,33 +1284,33 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDesignerSelectionTest, "Catalyst.Landform.De
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLDesignerSelectionTest::RunTest(const FString&)
 {
-    const auto Session = MakeShared<FCLStrataSession>();
+    const auto Session = MakeShared<FCLRadialGuideSession>();
     Session->Asset = NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional);
-    Session->Library.Reset(NewObject<UCLStrataLibraryAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
-    Session->Library->Library.Sets.Add(Session->Asset->Recipe.Strata);
-    const int32 Before = Session->Asset->Recipe.Strata.Stratum.Num();
+    Session->Library.Reset(NewObject<UCLRadialGuideLibraryAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
+    Session->Library->Library.Sets.Add(Session->Asset->Recipe.RadialGuides);
+    const int32 Before = Session->Asset->Recipe.RadialGuides.Guides.Num();
     int32 Changes = 0; Session->Asset->OnRecipeChanged.AddLambda([&] { ++Changes; });
     const int32 New = Session->Add();
-    TestEqual(TEXT("Core + creates one guide"), Session->Asset->Recipe.Strata.Stratum.Num(), Before + 1);
+    TestEqual(TEXT("Core + creates one guide"), Session->Asset->Recipe.RadialGuides.Guides.Num(), Before + 1);
     TestEqual(TEXT("Core + selects the new guide"), Session->Selected, New);
-    TestEqual(TEXT("New guide starts just above Core"), Session->Asset->Recipe.Strata.Stratum[New].NormalizedHeight, .05);
+    TestEqual(TEXT("New guide starts just above Core"), Session->Asset->Recipe.RadialGuides.Guides[New].NormalizedHeight, .05);
     TestEqual(TEXT("Core + commits one authoring change"), Changes, 1);
-    const TSharedRef<SCLStratumHandle> Handle = SNew(SCLStratumHandle).Session(Session).Index(New).Label(true);
-    FWidgetPath StratumPath; StratumPath.Widgets.AddWidget(FArrangedWidget(Handle, FGeometry()));
-    StratumPath.Widgets.AddWidget(FArrangedWidget(Handle->Name.ToSharedRef(), FGeometry()));
-    FCLSelectionInput Observer(Session); Observer.ObservePath(StratumPath);
-    TestEqual(TEXT("Clicking a Stratum or its editable text preserves selection"), Session->Selected, New);
+    const TSharedRef<SCLRadialGuideHandle> Handle = SNew(SCLRadialGuideHandle).Session(Session).Index(New).Label(true);
+    FWidgetPath RadialGuidePath; RadialGuidePath.Widgets.AddWidget(FArrangedWidget(Handle, FGeometry()));
+    RadialGuidePath.Widgets.AddWidget(FArrangedWidget(Handle->Name.ToSharedRef(), FGeometry()));
+    FCLSelectionInput Observer(Session); Observer.ObservePath(RadialGuidePath);
+    TestEqual(TEXT("Clicking a Radial Guide or its editable text preserves selection"), Session->Selected, New);
     FWidgetPath OtherPath; OtherPath.Widgets.AddWidget(FArrangedWidget(SNew(SButton), FGeometry()));
     Observer.ObservePath(OtherPath);
     TestEqual(TEXT("Clicking another control deselects"), Session->Selected, INDEX_NONE);
     Handle->OnKeyDown(FGeometry(), FKeyEvent(EKeys::Delete, FModifierKeysState(), 0, false, 0, 0));
-    TestEqual(TEXT("Delete cannot remove a previously selected guide after deselection"), Session->Asset->Recipe.Strata.Stratum.Num(), Before + 1);
+    TestEqual(TEXT("Delete cannot remove a previously selected guide after deselection"), Session->Asset->Recipe.RadialGuides.Guides.Num(), Before + 1);
     Session->Selected = New; Observer.ObservePath(FWidgetPath());
     TestEqual(TEXT("Clicking empty space deselects"), Session->Selected, INDEX_NONE);
     TestEqual(TEXT("Selection changes do not notify terrain generation"), Changes, 1);
     GEditor->UndoTransaction();
-    TestEqual(TEXT("One undo removes the added planet guide"), Session->Asset->Recipe.Strata.Stratum.Num(), Before);
-    TestEqual(TEXT("One undo restores the catalog"), Session->Library->Library.Sets[0].Stratum.Num(), Before);
+    TestEqual(TEXT("One undo removes the added planet guide"), Session->Asset->Recipe.RadialGuides.Guides.Num(), Before);
+    TestEqual(TEXT("One undo restores the catalog"), Session->Library->Library.Sets[0].Guides.Num(), Before);
     Session->Asset->OnRecipeChanged.Clear();
     return true;
 }

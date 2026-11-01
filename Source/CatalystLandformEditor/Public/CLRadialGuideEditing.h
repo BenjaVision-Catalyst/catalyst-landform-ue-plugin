@@ -5,32 +5,32 @@
 class FScopedTransaction;
 
 /** Shared authoring operations; names remain valid references after a rename. */
-struct CATALYSTLANDFORMEDITOR_API FCLStrataEditing
+struct CATALYSTLANDFORMEDITOR_API FCLRadialGuideEditing
 {
-    static bool CanRename(const FCLStrata& Strata, int32 Index, const FString& Name, FString& Error);
+    static bool CanRename(const FCLRadialGuideSet& RadialGuides, int32 Index, const FString& Name, FString& Error);
     static bool Rename(FCLPlanetRecipe& Recipe, int32 Index, const FString& Name, FString& Error);
-    static int32 Add(FCLStrata& Strata, double NormalizedHeight);
-    static bool Remove(FCLStrata& Strata, int32 Index);
+    static int32 Add(FCLRadialGuideSet& RadialGuides, double NormalizedHeight);
+    static bool Remove(FCLRadialGuideSet& RadialGuides, int32 Index);
 };
 
 /** One transactional authoring gesture; scene/Details/VPP notification occurs on commit only. */
-class CATALYSTLANDFORMEDITOR_API FCLStrataSession : public TSharedFromThis<FCLStrataSession>
+class CATALYSTLANDFORMEDITOR_API FCLRadialGuideSession : public TSharedFromThis<FCLRadialGuideSession>
 {
 public:
-    FCLStrataSession();
-    ~FCLStrataSession();
+    FCLRadialGuideSession();
+    ~FCLRadialGuideSession();
     UCLPlanetRecipeAsset* Asset = nullptr;
-    TStrongObjectPtr<UCLStrataLibraryAsset> Library;
+    TStrongObjectPtr<UCLRadialGuideLibraryAsset> Library;
     int32 Selected = INDEX_NONE;
     bool bReadOnly = false; // terrain-type preview uses an independent context snapshot
     TUniquePtr<FScopedTransaction> Gesture;
     FCLPlanetRecipe BeforeRecipe;
-    FCLStrataLibrary BeforeLibrary;
+    FCLRadialGuideLibrary BeforeLibrary;
     TFunction<void()> OnPreviewChanged;
     bool bPendingChange = false;
     void Open(UCLPlanetRecipeAsset* InAsset);
-    bool OpenPreview(UCLPlanetRecipeAsset* TransientPreview, const FCLStrata* InitialStrata = nullptr);
-    void UsePreviewStrata(const FCLStrata& Strata);
+    bool OpenPreview(UCLPlanetRecipeAsset* TransientPreview, const FCLRadialGuideSet* InitialRadialGuides = nullptr);
+    void UsePreviewRadialGuides(const FCLRadialGuideSet& RadialGuides);
     void Begin(const FText& Text);
     void End(bool bCancel = false);
     void Changed();

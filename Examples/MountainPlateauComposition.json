@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 7,
+  "schemaVersion": 9,
   "algorithmVersion": 2,
   "name": "Mountain ridges and Plateaus",
   "seed": 1729,
@@ -87,52 +87,6 @@
       "persistence": 0.45
     }
   ],
-  "strata": {
-    "id": "434C0001000000000000000000000001",
-    "name": "Temperate",
-    "stratum": [
-      {
-        "name": "OceanHeight",
-        "normalizedHeight": 0.4,
-        "color": {
-          "r": 0.1,
-          "g": 0.55,
-          "b": 1,
-          "a": 1
-        }
-      },
-      {
-        "name": "SurfaceMin",
-        "normalizedHeight": 0.3,
-        "color": {
-          "r": 0.8,
-          "g": 0.65,
-          "b": 0.3,
-          "a": 1
-        }
-      },
-      {
-        "name": "SurfaceMax",
-        "normalizedHeight": 0.6,
-        "color": {
-          "r": 0.4,
-          "g": 0.9,
-          "b": 0.45,
-          "a": 1
-        }
-      },
-      {
-        "name": "AtmosphereMax",
-        "normalizedHeight": 0.9,
-        "color": {
-          "r": 0.5,
-          "g": 0.7,
-          "b": 1,
-          "a": 1
-        }
-      }
-    ]
-  },
   "radiusMeters": 1000,
   "baseSurfaceNormalized": 0.45,
   "coordinates": "LocalPatch",
@@ -248,5 +202,51 @@
         }
       ]
     }
-  ]
+  ],
+  "radialGuides": {
+    "id": "434C0001000000000000000000000001",
+    "name": "Temperate",
+    "guides": [
+      {
+        "name": "OceanHeight",
+        "normalizedHeight": 0.4,
+        "color": {
+          "r": 0.1,
+          "g": 0.55,
+          "b": 1,
+          "a": 1
+        }
+      },
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.3,
+        "color": {
+          "r": 0.8,
+          "g": 0.65,
+          "b": 0.3,
+          "a": 1
+        }
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.6,
+        "color": {
+          "r": 0.4,
+          "g": 0.9,
+          "b": 0.45,
+          "a": 1
+        }
+      },
+      {
+        "name": "AtmosphereMax",
+        "normalizedHeight": 0.9,
+        "color": {
+          "r": 0.5,
+          "g": 0.7,
+          "b": 1,
+          "a": 1
+        }
+      }
+    ]
+  }
 }

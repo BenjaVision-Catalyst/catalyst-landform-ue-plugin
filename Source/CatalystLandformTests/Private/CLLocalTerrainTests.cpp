@@ -22,7 +22,7 @@ UCLTerrainTypeAsset* LocalMountains(FString& Error)
 }
 FCLPlanetRecipe LocalRecipe(UCLTerrainTypeAsset* T,FString& Error)
 {
-    auto R=FCLPlanetCompiler::RollingPlains();R.RadiusMeters=1000;R.Strata=FCLStrataPresets::Defaults()[2];
+    auto R=FCLPlanetCompiler::RollingPlains();R.RadiusMeters=1000;R.RadialGuides=FCLRadialGuidePresets::Defaults()[2];
     T->TerrainType.ApplyTo(R,Error);return R;
 }
 TArray<double> LocalSamples(const FCLCompiledPlanetRecipe& P,const TArray<FVector>& XY)
@@ -95,13 +95,13 @@ bool FCLLocalGuideTest::RunTest(const FString&)
     }
     const auto Scaled=LocalSamples(*B,XY);
     for(int32 I=0;I<Initial.Num();++I)TestTrue(TEXT("Noise, stamps and detail share the guide scale"),FMath::Abs(Scaled[I]-Initial[I]*2)<.0001);
-    for(const auto& Strata:FCLStrataPresets::Defaults())
+    for(const auto& RadialGuides:FCLRadialGuidePresets::Defaults())
     {
-        R.Strata=Strata;const auto P=FCLPlanetCompiler::Compile(R,Error);
-        if(!TestTrue(TEXT("Reusable terrain resolves every built-in Strata"),P.IsValid())){AddError(Error);return false;}
+        R.RadialGuides=RadialGuides;const auto P=FCLPlanetCompiler::Compile(R,Error);
+        if(!TestTrue(TEXT("Reusable terrain resolves every built-in Radial Guides"),P.IsValid())){AddError(Error);return false;}
         for(double H:LocalSamples(*P,XY))TestTrue(TEXT("Different guides produce valid bounded terrain"),FMath::IsFinite(H)&&H<=0&&H>-R.RadiusMeters);
     }
-    R=LocalRecipe(T,Error);R.Strata.Stratum.RemoveAll([](const auto& S){return S.Name==TEXT("SurfaceMax");});
+    R=LocalRecipe(T,Error);R.RadialGuides.Guides.RemoveAll([](const auto& S){return S.Name==TEXT("SurfaceMax");});
     TestFalse(TEXT("Missing guide is a compiler diagnostic"),FCLPlanetCompiler::Compile(R,Error).IsValid());
     auto Bad=T->TerrainType;Bad.SchemaVersion=4;TestFalse(TEXT("Old schemas cannot silently acquire local semantics"),Bad.Validate(Error));
     R=LocalRecipe(T,Error);R.SchemaVersion=5;TestFalse(TEXT("Recipe version declares local semantics"),FCLPlanetCompiler::Compile(R,Error).IsValid());

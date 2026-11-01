@@ -62,8 +62,8 @@ public:
             {
                 FName Guide, Upper;
                 Handle->GetChildHandle(TEXT("Guide"))->GetValue(Guide); Handle->GetChildHandle(TEXT("UpperGuide"))->GetValue(Upper);
-                if (Guide.IsNone() && !S->Context.Strata.Stratum.IsEmpty()) Handle->GetChildHandle(TEXT("Guide"))->SetValue(S->Context.Strata.Stratum[0].Name);
-                if (Upper.IsNone() && !S->Context.Strata.Stratum.IsEmpty()) Handle->GetChildHandle(TEXT("UpperGuide"))->SetValue(S->Context.Strata.Stratum.Last().Name);
+                if (Guide.IsNone() && !S->Context.RadialGuides.Guides.IsEmpty()) Handle->GetChildHandle(TEXT("Guide"))->SetValue(S->Context.RadialGuides.Guides[0].Name);
+                if (Upper.IsNone() && !S->Context.RadialGuides.Guides.IsEmpty()) Handle->GetChildHandle(TEXT("UpperGuide"))->SetValue(S->Context.RadialGuides.Guides.Last().Name);
             }
         }));
         for (const FName Field : {FName(TEXT("Mode")), FName(TEXT("Guide")), FName(TEXT("UpperGuide")), FName(TEXT("Fraction")), FName(TEXT("OffsetMeters"))})
@@ -82,7 +82,7 @@ public:
                         auto Entry = [&](FName Name)
                         { Menu.AddMenuEntry(FText::FromName(Name), FText(), FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([Property, Name] { Property->SetValue(Name); }))); };
                         Entry(NAME_None);
-                        if (auto S = Weak.Pin()) for (const auto& Guide : S->Context.Strata.Stratum) Entry(Guide.Name);
+                        if (auto S = Weak.Pin()) for (const auto& Guide : S->Context.RadialGuides.Guides) Entry(Guide.Name);
                         return Menu.MakeWidget();
                     })];
         }

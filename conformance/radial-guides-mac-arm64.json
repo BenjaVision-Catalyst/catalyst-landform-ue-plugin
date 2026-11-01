@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-01",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "platform": "Mac arm64, Apple M3 Max",
+  "build": "passed",
+  "parent_component_revision": "1722a5680099697a23534ccc277d0d738e5ff4e3",
+  "recipe_schema": 9,
+  "terrain_schema": 6,
+  "source_sha256": "068c227edb9e641c09eff670502bacb3a9fb0c225e04dcb175ed64ff014bea11",
+  "host_source_sha256": "8bb851e1c511a5789ddb4d42f6d4bb511f08cd54fd497e1bee704fc4c41e84dd",
+  "automation": {
+    "passed": 46,
+    "failed": 0,
+    "with_warnings": 1,
+    "raw_report": "LandformLab/Saved/Verification/radial-guides-final/index.json"
+  },
+  "migration": {
+    "passed": true,
+    "loaded_payloads": 32,
+    "preexisting_files_preserved": 43,
+    "guide_values_and_ids_preserved": true,
+    "legacy_library_class_redirected": true
+  },
+  "contract": {
+    "single": "FCLRadialGuide",
+    "set": "FCLRadialGuideSet",
+    "catalog": "UCLRadialGuideLibraryAsset",
+    "recipe_property": "RadialGuides",
+    "json": [
+      "radialGuides",
+      "guides"
+    ],
+    "legacy_json": "Schema 1\u20138 aliases; ambiguous aliases rejected",
+    "binary": "Core Redirects; no existing asset resaves",
+    "coordinates": "0 centre, 1 outer sky radius; unchanged normalized values",
+    "rename_references": "Base and regional noise/terraces/stamp relief endpoints",
+    "ownership": "Planet snapshot; independent read-only Designer preview context"
+  },
+  "limits": [
+    "Old DA_StrataLibrary package path retained as storage compatibility alias for custom catalog edits",
+    "Historical conformance records retain original names and evidence",
+    "Two existing engine LineSetComponentMaterial/MeshModeling dependency warnings remain",
+    "No VPP vendor or engine settings changed"
+  ]
+}

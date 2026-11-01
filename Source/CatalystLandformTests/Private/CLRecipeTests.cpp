@@ -21,17 +21,17 @@ bool FCLGuideTest::RunTest(const FString&)
     FCLPlanetRecipe R = FCLPlanetCompiler::RollingPlains();
     const auto A = FCLPlanetCompiler::Compile(R, Error);
     if (!TestTrue(TEXT("Example compiles"), A.IsValid())) return false;
-    R.Strata.Stratum[0].NormalizedHeight = .5; // unused ocean reference
+    R.RadialGuides.Guides[0].NormalizedHeight = .5; // unused ocean reference
     const auto B = FCLPlanetCompiler::Compile(R, Error);
     TestEqual(TEXT("Guide alone creates no geometry"), A->SampleHeightMeters(FVector::ZAxisVector), B->SampleHeightMeters(FVector::ZAxisVector));
-    R.Strata.Stratum.RemoveAt(0); R.Strata.Stratum.RemoveAt(2);
+    R.RadialGuides.Guides.RemoveAt(0); R.RadialGuides.Guides.RemoveAt(2);
     TestTrue(TEXT("Unreferenced guides are optional"), FCLPlanetCompiler::Compile(R, Error).IsValid());
-    R.Strata.Stratum.RemoveAt(0);
+    R.RadialGuides.Guides.RemoveAt(0);
     TestFalse(TEXT("Required guide must exist"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     TestTrue(TEXT("Diagnostic names missing guide"), Error.Contains(TEXT("SurfaceMin")));
     R.NoiseLayers[0].bEnabled = false;
     TestTrue(TEXT("Disabled layer does not require its guides"), FCLPlanetCompiler::Compile(R, Error).IsValid());
-    R = FCLPlanetCompiler::RollingPlains(); R.Strata.Stratum[1].Name = TEXT("oceanheight");
+    R = FCLPlanetCompiler::RollingPlains(); R.RadialGuides.Guides[1].Name = TEXT("oceanheight");
     TestFalse(TEXT("Case-insensitive duplicate guide rejected"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     R = FCLPlanetCompiler::RollingPlains(); R.NoiseLayers[0].WavelengthMeters = 0;
     TestFalse(TEXT("Zero wavelength rejected"), FCLPlanetCompiler::Compile(R, Error).IsValid());
@@ -119,16 +119,16 @@ bool FCLRecipeVPPTest::RunTest(const FString&)
     Positions.Set(0, D * (Plan->RadiusMeters * 100 + H[0]));
     TestTrue(TEXT("Same surface is zero in VPP volume"), FMath::Abs(Planet->GetSamplingRuntime()->SampleDistances(Query, Positions)[0]) < .001);
     const double Before = H[0];
-    Planet->RecipeAsset->Recipe.Strata.Stratum[1].NormalizedHeight += .02;
-    Planet->RecipeAsset->Recipe.Strata.Stratum[2].NormalizedHeight += .02;
+    Planet->RecipeAsset->Recipe.RadialGuides.Guides[1].NormalizedHeight += .02;
+    Planet->RecipeAsset->Recipe.RadialGuides.Guides[2].NormalizedHeight += .02;
     Planet->RecipeAsset->OnRecipeChanged.Broadcast();
     Planet->SampleRadialHeights({D}, H);
     TestTrue(TEXT("Guide edits rebuild live VPP terrain"), FMath::Abs(H[0] - Before - 200) < .001);
     {
         FScopedTransaction Transaction(NSLOCTEXT("CL", "GuideEditTest", "Edit Height Guides"));
         Planet->RecipeAsset->Modify();
-        Planet->RecipeAsset->Recipe.Strata.Stratum[1].NormalizedHeight += .01;
-        Planet->RecipeAsset->Recipe.Strata.Stratum[2].NormalizedHeight += .01;
+        Planet->RecipeAsset->Recipe.RadialGuides.Guides[1].NormalizedHeight += .01;
+        Planet->RecipeAsset->Recipe.RadialGuides.Guides[2].NormalizedHeight += .01;
         Planet->RecipeAsset->PostEditChange();
     }
     TArray<double> Edited; Planet->SampleRadialHeights({D}, Edited);

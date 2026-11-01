@@ -152,7 +152,7 @@ bool FCLRegionEditorEventsTest::RunTest(const FString&)
     TestTrue(TEXT("Region retains its planet-owned mask"),Asset->Recipe.TerrainRegions[0].Mask.TransitionMeters==Mask.TransitionMeters);
     TestEqual(TEXT("Parent radius remains owned by planet"),Asset->Recipe.RadiusMeters,Before.RadiusMeters);
     TestEqual(TEXT("Parent seed remains owned by planet"),Asset->Recipe.Seed,Before.Seed);
-    TestTrue(TEXT("Parent Strata is unchanged"),FCLStrata::StaticStruct()->CompareScriptStruct(&Asset->Recipe.Strata,&Before.Strata,0));
+    TestTrue(TEXT("Parent Radial Guides is unchanged"),FCLRadialGuideSet::StaticStruct()->CompareScriptStruct(&Asset->Recipe.RadialGuides,&Before.RadialGuides,0));
     TestTrue(TEXT("Base terrain is unchanged"),Asset->Recipe.NoiseLayers[0].Seed==Before.NoiseLayers[0].Seed);
     TestEqual(TEXT("Region source snapshot is refreshed"),Asset->Recipe.TerrainRegions[0].NoiseLayers[0].Seed,Source->TerrainType.NoiseLayers[0].Seed);
     Asset->OnRecipeChanged.Remove(Handle);return true;

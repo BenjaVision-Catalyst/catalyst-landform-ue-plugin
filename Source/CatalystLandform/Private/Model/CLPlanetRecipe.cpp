@@ -381,10 +381,10 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 8) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 9) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
-    if (Recipe.Strata.Stratum.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
+    if (Recipe.RadialGuides.Guides.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
     if (!ValidateNoiseLayers(Recipe.NoiseLayers, Error)) return nullptr;
     if(Recipe.TerrainRegions.Num()>8)return Fail(TEXT("At most eight terrain regions are supported"));
     if(!Recipe.TerrainRegions.IsEmpty() && (Recipe.SchemaVersion<7 || Recipe.Coordinates==ECLTerrainCoordinates::Sphere))
@@ -420,11 +420,11 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             return Fail(TEXT("Local evaluation region must be finite, positive and at most 4km per side"));
     }
     TMap<FName, double> Guides;
-    if (!Recipe.Strata.Validate(Error)) return nullptr;
-    for (const FCLStratum& Stratum : Recipe.Strata.Stratum)
+    if (!Recipe.RadialGuides.Validate(Error)) return nullptr;
+    for (const FCLRadialGuide& RadialGuide : Recipe.RadialGuides.Guides)
     {
-        FCLHeightGuide Guide; Guide.Name = Stratum.Name; Guide.Color = Stratum.Color;
-        Guide.HeightMeters = (Stratum.NormalizedHeight - 1) * Recipe.RadiusMeters;
+        FCLHeightGuide Guide; Guide.Name = RadialGuide.Name; Guide.Color = RadialGuide.Color;
+        Guide.HeightMeters = (RadialGuide.NormalizedHeight - 1) * Recipe.RadiusMeters;
         if (Guide.Name.IsNone() || Guides.Contains(Guide.Name)) return Fail(TEXT("Height Guide names must be nonempty and unique"));
         if (!FMath::IsFinite(Guide.HeightMeters) || FMath::Abs(Guide.HeightMeters) > 1.e7 || Recipe.RadiusMeters + Guide.HeightMeters < 0 ||
             !FMath::IsFinite(Guide.Color.R) || !FMath::IsFinite(Guide.Color.G) ||
@@ -562,7 +562,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 FCLPlanetRecipe FCLPlanetCompiler::RollingPlains()
 {
     FCLPlanetRecipe Recipe;
-    Recipe.Strata = FCLStrataPresets::Defaults()[0];
+    Recipe.RadialGuides = FCLRadialGuidePresets::Defaults()[0];
     FCLNoiseLayer Broad; Broad.Name = TEXT("Broad undulations"); Broad.Minimum.Guide = TEXT("SurfaceMin");
     Broad.Maximum.Guide = TEXT("SurfaceMax"); Broad.WavelengthMeters = 60; Recipe.NoiseLayers.Add(Broad);
     FCLNoiseLayer Detail; Detail.Name = TEXT("Ground detail"); Detail.Seed = 12; Detail.Blend = ECLNoiseBlend::Add;
@@ -594,10 +594,10 @@ void FCLPlanetRecipe::MigrateLegacyGuides()
     RadiusMeters = OldRadius + FMath::Max(Top, High) + OldRadius * .05;
     const double Shift = RadiusMeters - OldRadius;
     BaseSurfaceNormalized = OldRadius / RadiusMeters;
-    Strata.Name = TEXT("Lab plains"); Strata.Id = FGuid(0x434C0001, 0, 0, 2); Strata.Stratum.Reset();
+    RadialGuides.Name = TEXT("Lab plains"); RadialGuides.Id = FGuid(0x434C0001, 0, 0, 2); RadialGuides.Guides.Reset();
     for (const FCLHeightGuide& G : HeightGuides_DEPRECATED)
-    { FCLStratum S; S.Name = G.Name; S.NormalizedHeight = (OldRadius + G.HeightMeters) / RadiusMeters;
-      S.Color = G.Color; Strata.Stratum.Add(S); }
+    { FCLRadialGuide S; S.Name = G.Name; S.NormalizedHeight = (OldRadius + G.HeightMeters) / RadiusMeters;
+      S.Color = G.Color; RadialGuides.Guides.Add(S); }
     for (FCLNoiseLayer& L : NoiseLayers)
     {
         L.WavelengthMeters *= RadiusMeters / OldRadius;
@@ -616,7 +616,7 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
         // UE omits fields equal to native defaults. Restore the old defaults
         // before tagged properties load, so missing tags do not adopt new ones.
         Recipe = FCLPlanetCompiler::RollingPlains(); Recipe.SchemaVersion = 1;
-        Recipe.Strata = FCLStrata(); Recipe.ReferenceRadiusMeters_DEPRECATED = 100;
+        Recipe.RadialGuides = FCLRadialGuideSet(); Recipe.ReferenceRadiusMeters_DEPRECATED = 100;
         Recipe.HeightGuides_DEPRECATED.Reset();
         const FName Names[] = {TEXT("OceanHeight"), TEXT("SurfaceMin"), TEXT("SurfaceMax"), TEXT("AtmosphereMax")};
         const double Heights[] = {0, 1, 7, 20};
@@ -627,10 +627,10 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
     Ar.UsingCustomVersion(RecipeAssetVersion);
     Super::Serialize(Ar);
 }
-void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); if (Recipe.SchemaVersion >= 2 && Recipe.SchemaVersion < 5) Recipe.SchemaVersion = 5; Version.SchemaVersion = Recipe.SchemaVersion; }
+void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); if (Recipe.SchemaVersion >= 2 && Recipe.SchemaVersion < 9) Recipe.SchemaVersion = 9; Version.SchemaVersion = Recipe.SchemaVersion; }
 UCLPlanetRecipeAsset::UCLPlanetRecipeAsset() { Recipe = FCLPlanetCompiler::RollingPlains(); }
 FString UCLPlanetRecipeAsset::GetSummaryText() const
-{ return FString::Printf(TEXT("%s: %d guides, %d terrain layers"), *Recipe.Name, Recipe.Strata.Stratum.Num(), Recipe.NoiseLayers.Num()); }
+{ return FString::Printf(TEXT("%s: %d guides, %d terrain layers"), *Recipe.Name, Recipe.RadialGuides.Guides.Num(), Recipe.NoiseLayers.Num()); }
 bool UCLPlanetRecipeAsset::ValidatePayload(FString& Error) const { return FCLPlanetCompiler::Compile(Recipe, Error).IsValid(); }
 void UCLPlanetRecipeAsset::CollectValidationMessages(TArray<FCFValidationMessage>& Messages) const
 {
@@ -647,13 +647,33 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..8 with algorithm 1, or schemaVersion 3..8 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..9 with algorithm 1, or schemaVersion 3..9 with algorithm 2"); return false; }
+    // Schema 9 gives the guide model its canonical names. Legacy spelling is
+    // accepted only for older documents, with ambiguous aliases rejected.
+    if (Schema < 9)
+    {
+        auto Rename = [&](FJsonObject& O,const TCHAR* Old,const TCHAR* New) -> bool
+        {
+            FString OldKey,NewKey;
+            for(const auto& Pair:O.Values)
+            {
+                if(Pair.Key.Equals(Old,ESearchCase::IgnoreCase))OldKey=Pair.Key;
+                if(Pair.Key.Equals(New,ESearchCase::IgnoreCase))NewKey=Pair.Key;
+            }
+            if(OldKey.IsEmpty())return true;
+            if(!NewKey.IsEmpty()){Error=TEXT("Ambiguous legacy and canonical radial guide fields");return false;}
+            auto Value=O.Values[OldKey];O.RemoveField(OldKey);O.SetField(New,Value);return true;
+        };
+        if(!Rename(*Object,TEXT("strata"),TEXT("radialGuides")))return false;
+        const TSharedPtr<FJsonObject>* Set=nullptr;
+        if(Object->TryGetObjectField(TEXT("radialGuides"),Set) && !Rename(**Set,TEXT("stratum"),TEXT("guides")))return false;
+    }
     if (Schema == 1)
     {
         // Explicit, lossless conversion of the old metre-based document.
         const TArray<TSharedPtr<FJsonValue>>* Old = nullptr;
-        FCLPlanetRecipe Legacy; Legacy.SchemaVersion = 1; Legacy.Strata.Stratum.Reset();
+        FCLPlanetRecipe Legacy; Legacy.SchemaVersion = 1; Legacy.RadialGuides.Guides.Reset();
         if (Object->TryGetArrayField(TEXT("heightGuides"), Old))
             for (const auto& V : *Old)
             {
@@ -680,7 +700,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
-    if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 5) Candidate.SchemaVersion = 5;
+    if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 9) Candidate.SchemaVersion = 9;
     Modify(); Recipe = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

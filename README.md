@@ -71,9 +71,9 @@ radial field remains distinct from an exact Euclidean SDF.
 ## Recipe-driven Designer foundation
 
 `UCLPlanetRecipeAsset` extends Foundation's model asset. `FCLPlanetCompiler`
-resolves planet-global Strata and ordered noise layers into immutable
+resolves planet-global Radial Guide Sets and ordered noise layers into immutable
 worker data, consumed by both the flat reference preview and the spherical VPP
-volume. Each Strata is a reusable set of named Stratum: normalized radial
+volume. Each Radial Guide Sets is a reusable set of named Radial Guide: normalized radial
 references from centre (0) to outer sky boundary (1), rather than geological
 layers. Resizing scales their resolved heights. Native heightmap actors compose
 after this base field; recipe output is clipped at the outer radius.
@@ -84,14 +84,14 @@ The editor module has separate **Landform Designer** and **Planet Recipe**
 entry points, sharing Details, Validation and a core-to-sky cutaway. The former
 owns a reusable terrain definition; the latter owns planet settings/assembly.
 In Planet Recipe, select and drag guide ticks/labels, Delete
-to remove, use the small Core + to add a Stratum, and rename labels in place.
-Ticks, leaders and labels use light gray at 30% opacity; the selected Stratum
+to remove, use the small Core + to add a Radial Guide, and rename labels in place.
+Ticks, leaders and labels use light gray at 30% opacity; the selected Radial Guide
 becomes fully opaque, with no selection box or change in tick thickness.
 Each tick is separated from the cross-section edge by one tick width.
 Guide labels use 9-point type, vertically centred on their connection lines.
-Planet Recipe's Strata popup selects a project catalog style; the planet's
+Planet Recipe's Radial Guide Sets popup selects a project catalog style; the planet's
 applied copy is the default. Its Save persists the recipe and catalog.
-Landform Designer instead has a read-only **Preview Strata** selector and saves
+Landform Designer instead has a read-only **Preview Radial Guides** selector and saves
 only its terrain definition. Schema 1 recipes
 migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
 snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
@@ -113,7 +113,7 @@ of other asset editors' environment profiles; idle redraw remains disabled.
 
 `UCLTerrainTypeAsset` supplies reusable base noise profiles through Foundation.
 Planet Recipe's Terrain selector assembles a layer snapshot while retaining the
-planet's global Strata, radius and seed. Landform Designer's selector opens a
+planet's global Radial Guide Sets, radius and seed. Landform Designer's selector opens a
 terrain definition and keeps the current preview guide snapshot. Shipped sources are Rolling plains,
 Hills, Mountain ridges and Plateaus (`Examples/TerrainTypes`, with assets under
 `Content/TerrainTypes`). Schema 3 adds guide-interval heights/deltas and
@@ -125,7 +125,7 @@ algorithm 1 reference. General VPP graph execution and regional composition rema
 Terrain assets now open in the shared cross-section Designer with a **Noise
 layers** tab. Select, add, duplicate, remove, reorder or enable layers; the
 selected layer exposes shape, blend, seed, wavelength, octaves, persistence and
-guide-based height bounds. Guide pickers use the preview context's Stratum.
+guide-based height bounds. Guide pickers use the preview context's Radial Guide.
 Distance labels are unit-neutral; the suffix in each numeric field identifies
 its input unit. Global planet inputs are absent from Landform Designer.
 The recipe's stored metre values and serialized field names are unchanged.
@@ -133,11 +133,11 @@ Finished property edits are transactional; invalid drafts leave the definition
 unchanged. Undo/redo refreshes the stack and preview.
 
 The terrain editor owns only the reusable definition. Its entry point accepts
-an optional Strata value snapshot, not a planet. Radius, global seed, planet
+an optional Radial Guide Sets value snapshot, not a planet. Radius, global seed, planet
 identity and Apply-to-planet controls are absent. Opening from a planet defaults
 only the preview guides; no live planet pointer/binding is retained. The guide
 selector changes a transient evaluator and catalog copy without transactions,
-dirtying assets or saving guides into the landform. Stratum authoring remains
+dirtying assets or saving guides into the landform. Radial Guide authoring remains
 outside this preview. **Solo** is preview-only and never changes the definition.
 The evaluator uses a fixed 1 km reference scale and deterministic seed; actual
 planet globals and guide values are resolved by recipe assembly/compiler owners.
@@ -152,7 +152,7 @@ one replaceable pending request. Obsolete results cannot replace the current
 scene. UObject/mesh work remains on the editor thread, and camera framing stays
 fixed across completion. The `Landform.TerrainDesigner` command opens Mountain
 ridges by default; optional arguments are a terrain asset path and a recipe path
-supplying only initial preview Strata. `Landform.Designer` / Window → Landform
+supplying only initial preview Radial Guide Sets. `Landform.Designer` / Window → Landform
 Designer open the terrain workbench; `Landform.PlanetRecipe` / Planet Recipe open
 the separate existing recipe editor. The optional recipe's radius/seed are ignored.
 This authoring path supports both generation versions; it does not execute
@@ -354,7 +354,7 @@ An unseeded additive/shaping terrain resolves its base to the SurfaceMin/Max
 midpoint, as stamp-only terrain does. Explicit non-default bases and absolute
 Override noise are preserved. This is an authoring default: serialized recipes
 still compile their stored base and retain their existing field.
-Finished noise edits resolve and validate their bounds in the current Strata;
+Finished noise edits resolve and validate their bounds in the current Radial Guide Sets;
 a reversed range is rejected without compiling unrelated stamps or changing the
 last accepted definition. Compile failures explicitly mark the displayed terrain
 as out of date. The stamp limit remains 256 per layer; budget diagnostics now
@@ -365,9 +365,9 @@ Qualification is in `conformance/layer-controls-mac-arm64.json`; the host's
 ### Designer ownership boundary
 
 The landform asset stores procedural layers and named guide references. It does
-not store a Strata selection or values, planet radius/global seed, or a planet
+not store a Radial Guide Sets selection or values, planet radius/global seed, or a planet
 binding. Guide values are supplied on assembly. Its preview has a transient,
-read-only Strata snapshot. Preview Save/export targets only the terrain asset;
+read-only Radial Guide Sets snapshot. Preview Save/export targets only the terrain asset;
 preview guide choices do not create undo transactions or dirty the shared catalog.
 The editor-session planet-write method has been removed. Explicit assembly
 remains on the model/recipe side, used by Planet Recipe and future World Builder.
@@ -453,3 +453,13 @@ This is a fixed six-patch layout, with 256 global stamp candidates per layer
 and 1024 unique placements per recipe. A streamed registry for large planets,
 adaptive paging, material/biome channels, navigation and backend delivery remain
 separate work. This radial field is not an exact Euclidean SDF.
+
+### RadialGuide naming and compatibility
+
+Recipe schema 9 names the planet snapshot `RadialGuides`, containing an
+`FCLRadialGuideSet` of `FCLRadialGuide` values. JSON uses `radialGuides`/`guides`.
+Imports of schemas 1–8 migrate the former field names explicitly, rejecting
+ambiguous aliases. Unreal Core Redirects retain existing binary assets and the
+old project catalog storage path; values and IDs stay unchanged. New UI labels,
+classes, source files and authoring APIs use RadialGuide terminology. The host's
+`Docs/RadialGuides.md` records ownership and the preservation checks.

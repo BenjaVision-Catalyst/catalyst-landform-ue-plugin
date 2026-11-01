@@ -1,6 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Model/CLTerrainType.h"
-#include "CLStrataEditing.h"
+#include "CLRadialGuideEditing.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanet.h"
 #include "Editor.h"
@@ -56,10 +56,10 @@ bool FCLGuideIntervalTest::RunTest(const FString&)
     R.NoiseLayers = {Layer}; R.NoiseLayers[0].Maximum.UpperGuide = TEXT("Missing");
     TestFalse(TEXT("Missing upper guide rejected"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     TestTrue(TEXT("Missing-guide diagnostic identifies name"), Error.Contains(TEXT("Missing")));
-    R.NoiseLayers = {Layer}; R.Strata.Stratum[1].NormalizedHeight = .7;
+    R.NoiseLayers = {Layer}; R.RadialGuides.Guides[1].NormalizedHeight = .7;
     TestFalse(TEXT("Reversed guide interval rejected"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     R = FCLPlanetCompiler::RollingPlains(); R.NoiseLayers = {Layer};
-    TestTrue(TEXT("Upper Stratum can be renamed"), FCLStrataEditing::Rename(R, 2, TEXT("TerrainCeiling"), Error));
+    TestTrue(TEXT("Upper Radial Guide can be renamed"), FCLRadialGuideEditing::Rename(R, 2, TEXT("TerrainCeiling"), Error));
     TestEqual(TEXT("Rename updates upper endpoint references"), R.NoiseLayers[0].Maximum.UpperGuide, FName(TEXT("TerrainCeiling")));
     TestTrue(TEXT("Renamed interval still compiles"), FCLPlanetCompiler::Compile(R, Error).IsValid());
     R.SchemaVersion = 2;
@@ -77,7 +77,7 @@ bool FCLTerrainProfileTest::RunTest(const FString&)
         auto* Terrain = NewObject<UCLTerrainTypeAsset>();
         if (!TestTrue(TEXT("Source terrain JSON imports"), LoadTerrain(Name, Terrain, Error))) { AddError(Error); return false; }
         TestTrue(TEXT("Terrain type exports through Foundation"), Terrain->ExportJsonString(Json, Error));
-        TestFalse(TEXT("Terrain definition owns no Strata"), Json.Contains(TEXT("normalizedHeight")));
+        TestFalse(TEXT("Terrain definition owns no Radial Guides"), Json.Contains(TEXT("normalizedHeight")));
         auto* Copy = NewObject<UCLTerrainTypeAsset>();
         TestTrue(TEXT("Terrain definition roundtrips"), Copy->ImportTerrainTypeJson(Json, Error));
         const FGuid Id = Copy->TerrainType.Id;
@@ -88,14 +88,14 @@ bool FCLTerrainProfileTest::RunTest(const FString&)
         TestFalse(TEXT("Unknown terrain fields rejected"), Copy->ImportTerrainTypeJson(Unknown, Error));
         TestEqual(TEXT("Failed import preserves previous type"), Copy->TerrainType.Id, Id);
         auto R = FCLPlanetCompiler::RollingPlains(); R.Name = TEXT("Keep planet name"); R.RadiusMeters = 1000; R.Seed = 314;
-        const FCLStrata Before = R.Strata;
+        const FCLRadialGuideSet Before = R.RadialGuides;
         if (!TestTrue(TEXT("Terrain applies in planet context"), Terrain->TerrainType.ApplyTo(R, Error))) { AddError(Error); return false; }
         TestEqual(TEXT("Planet name retained"), R.Name, FString(TEXT("Keep planet name")));
         TestEqual(TEXT("Planet seed retained"), R.Seed, 314);
         TestEqual(TEXT("Planet radius retained"), R.RadiusMeters, 1000.0);
-        TestEqual(TEXT("Global Strata identity retained"), R.Strata.Id, Before.Id);
-        for (int32 I = 0; I < Before.Stratum.Num(); ++I)
-            TestEqual(TEXT("Global guide values retained"), R.Strata.Stratum[I].NormalizedHeight, Before.Stratum[I].NormalizedHeight);
+        TestEqual(TEXT("Global Radial Guides identity retained"), R.RadialGuides.Id, Before.Id);
+        for (int32 I = 0; I < Before.Guides.Num(); ++I)
+            TestEqual(TEXT("Global guide values retained"), R.RadialGuides.Guides[I].NormalizedHeight, Before.Guides[I].NormalizedHeight);
         const auto A = FCLPlanetCompiler::Compile(R, Error);
         R.RadiusMeters *= 2; const auto B = FCLPlanetCompiler::Compile(R, Error);
         double Low = 1.e9, High = -1.e9;
@@ -119,10 +119,10 @@ bool FCLTerrainProfileTest::RunTest(const FString&)
         }
         AddInfo(FString::Printf(TEXT("%s section maximum field error: %.3f cm"), Name, MaximumError * 100));
         TestTrue(TEXT("Kilometre-scale section agrees within 5 cm with CPU float noise field"), MaximumError < .05);
-        for (const auto& Strata : FCLStrataPresets::Defaults())
-        { auto Context = FCLPlanetCompiler::RollingPlains(); Context.Strata = Strata;
-          TestTrue(TEXT("Profile supports every built-in Strata including airless"), Copy->TerrainType.ApplyTo(Context, Error)); }
-        auto Missing = FCLPlanetCompiler::RollingPlains(); Missing.Strata.Stratum.Reset();
+        for (const auto& RadialGuides : FCLRadialGuidePresets::Defaults())
+        { auto Context = FCLPlanetCompiler::RollingPlains(); Context.RadialGuides = RadialGuides;
+          TestTrue(TEXT("Profile supports every built-in Radial Guides including airless"), Copy->TerrainType.ApplyTo(Context, Error)); }
+        auto Missing = FCLPlanetCompiler::RollingPlains(); Missing.RadialGuides.Guides.Reset();
         const int32 OldSchema = Missing.SchemaVersion; const FString OldName = Missing.TerrainTypeName;
         TestFalse(TEXT("Missing contextual guides reject application"), Copy->TerrainType.ApplyTo(Missing, Error));
         TestEqual(TEXT("Failed application preserves schema"), Missing.SchemaVersion, OldSchema);
@@ -142,7 +142,7 @@ bool FCLTerrainVPPTest::RunTest(const FString&)
     Planet->bEnableNanite = false; Planet->bEnableTessellation = false; Planet->bEnableNavigation = false;
     Planet->RecipeAsset = NewObject<UCLPlanetRecipeAsset>(Planet, NAME_None, RF_Transactional);
     Planet->FinishSpawning(FTransform::Identity);
-    const FCLStrata Before = Planet->RecipeAsset->Recipe.Strata;
+    const FCLRadialGuideSet Before = Planet->RecipeAsset->Recipe.RadialGuides;
     FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.TerrainTypeTest"));
     const auto Surfaces = FVoxelSurfaceTypeTable::Get();
     const FVoxelQuery Query(0, FVoxelLayers::Empty(), *Surfaces, Dependencies);
@@ -162,7 +162,7 @@ bool FCLTerrainVPPTest::RunTest(const FString&)
         { const FVector D = Direction(I, 16); Positions.Set(I, D * (Plan->RadiusMeters + Plan->SampleHeightMeters(D)) * 100); }
         const auto Distances = Planet->GetSamplingRuntime()->SampleDistances(Query, Positions);
         for (int32 I = 0; I < 16; ++I) TestTrue(TEXT("VPP and compiled profile share the zero surface"), FMath::Abs(Distances[I]) < 1);
-        TestEqual(TEXT("Applying profile leaves global Strata unchanged"), Planet->RecipeAsset->Recipe.Strata.Id, Before.Id);
+        TestEqual(TEXT("Applying profile leaves global Radial Guides unchanged"), Planet->RecipeAsset->Recipe.RadialGuides.Id, Before.Id);
         GEditor->UndoTransaction();
         const auto Restored = FCLPlanetCompiler::Compile(Planet->RecipeAsset->Recipe, Error);
         TestEqual(TEXT("Undo restores previous planet field"), Restored->SampleHeightMeters(FVector::ZAxisVector), OldHeight);

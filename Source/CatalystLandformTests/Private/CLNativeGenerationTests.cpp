@@ -117,7 +117,7 @@ bool FCLNativeSectionTest::RunTest(const FString&)
     for (int32 Case = 0; Case < 4; ++Case)
     {
         auto R = FCLPlanetCompiler::RollingPlains(); R.RadiusMeters = Case == 0 ? 100 : 1000;
-        R.Seed = 1729 + Case * 999; R.Strata = FCLStrataPresets::Defaults()[2];
+        R.Seed = 1729 + Case * 999; R.RadialGuides = FCLRadialGuidePresets::Defaults()[2];
         if (Case == 2) Type->TerrainType.NoiseLayers[1].bEnabled = false;
         if (Case == 3)
         {

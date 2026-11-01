@@ -74,7 +74,7 @@ bool FCLSectionTest::RunTest(const FString&)
     for (double Height : {0.0, .01, .05, .3, .6, .9, 1.0})
         for (FVector2D XY : {FVector2D::ZeroVector, FVector2D(300, 400), FVector2D(-500, 500)})
             TestTrue(TEXT("Each radial reference is a level plane at its normalized height"), FMath::Abs(
-                FCLSectionGeometry::StratumPoint(XY, Height).Z - Height * FCLSectionGeometry::DisplaySize * 100) < .001);
+                FCLSectionGeometry::RadialGuidePoint(XY, Height).Z - Height * FCLSectionGeometry::DisplaySize * 100) < .001);
     TestTrue(TEXT("Physical coordinates map into the fixed display frame"), FMath::Abs(Display.X - 30000) < .001 && FMath::Abs(Display.Y - 40000) < .001);
     const FVector2D Edge(FCLSectionGeometry::DisplaySize / 2, FCLSectionGeometry::DisplaySize / 2);
     for (double Perspective : {0.0, .00001, -.000005})
@@ -83,11 +83,11 @@ bool FCLSectionTest::RunTest(const FString&)
         Projection.M[2][1] = .0001; Projection.M[3][1] = -.5; Projection.M[2][3] = Perspective;
         for (double N : {0.0, .05, .2, .3, .4, .6, .9, 1.0})
         {
-            const FVector GuidePosition = FCLSectionGeometry::StratumPoint(Edge, N);
+            const FVector GuidePosition = FCLSectionGeometry::RadialGuidePoint(Edge, N);
             const FVector4 Clip = Projection.TransformFVector4(FVector4(GuidePosition, 1));
             const double ScreenY = .5 - .5 * Clip.Y / Clip.W;
             TestTrue(TEXT("Dragging inverts the exact rendered guide height under perspective"),
-                FMath::Abs(FCLSectionGeometry::StratumAtScreenY(Edge, Projection, ScreenY) - N) < 1.e-8);
+                FMath::Abs(FCLSectionGeometry::RadialGuideAtScreenY(Edge, Projection, ScreenY) - N) < 1.e-8);
         }
     }
     return true;
@@ -123,17 +123,17 @@ bool FCLSectionAreaTest::RunTest(const FString&)
         const int32 CentreIndex = (N / 2) * (N + 1) + N / 2;
         TestTrue(TEXT("Changing viewing area preserves the sampled centre"), G.SourceSurfacePoints[CentreIndex].Equals(
             FCLSectionGeometry::SourceSurfacePoint(*Plan, 0, 0, .7), .001));
-        const FVector A = FCLSectionGeometry::StratumPoint(FVector2D(FCLSectionGeometry::DisplaySize / 2, FCLSectionGeometry::DisplaySize / 2), .6);
-        const FVector B = FCLSectionGeometry::StratumPoint(FVector2D(FCLSectionGeometry::DisplaySize / 2, FCLSectionGeometry::DisplaySize / 2), .5);
+        const FVector A = FCLSectionGeometry::RadialGuidePoint(FVector2D(FCLSectionGeometry::DisplaySize / 2, FCLSectionGeometry::DisplaySize / 2), .6);
+        const FVector B = FCLSectionGeometry::RadialGuidePoint(FVector2D(FCLSectionGeometry::DisplaySize / 2, FCLSectionGeometry::DisplaySize / 2), .5);
         TestTrue(TEXT("Vertical reference scale stays normalized to the full planet"), FMath::Abs((A.Z - B.Z) / 100 - 100) < .00001);
         FMatrix Projection = FMatrix::Identity; Projection.M[2][1] = .00001; Projection.M[2][3] = .000001;
         const FVector2D XY(FCLSectionGeometry::DisplaySize / 2, FCLSectionGeometry::DisplaySize / 2);
         for (double Height : {0.0, .05, .3, .6, .9, 1.0})
         {
-            const FVector P = FCLSectionGeometry::StratumPoint(XY, Height);
+            const FVector P = FCLSectionGeometry::RadialGuidePoint(XY, Height);
             const FVector4 Clip = Projection.TransformFVector4(FVector4(P, 1));
             TestTrue(TEXT("Guide dragging remains invertible at every area size"), FMath::Abs(
-                FCLSectionGeometry::StratumAtScreenY(XY, Projection, .5 - .5 * Clip.Y / Clip.W) - Height) < 1.e-8);
+                FCLSectionGeometry::RadialGuideAtScreenY(XY, Projection, .5 - .5 * Clip.Y / Clip.W) - Height) < 1.e-8);
         }
     }
     return true;

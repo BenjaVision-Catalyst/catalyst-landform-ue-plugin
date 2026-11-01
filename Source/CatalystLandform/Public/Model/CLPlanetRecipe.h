@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
-#include "Model/CLStrata.h"
+#include "Model/CLRadialGuides.h"
 #include "Model/CLStampDistribution.h"
 #include "CLPlanetRecipe.generated.h"
 
@@ -136,7 +136,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 6;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 9;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
@@ -147,8 +147,8 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Coordinates == ECLTerrainCoordinates::LocalPatch", EditConditionHides)) FCLTerrainPatch TerrainPatch;
     /** Applied planet-global snapshot, independent of its authoring catalog. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLStrata Strata;
-    /** Read old binary recipes once, then migrate to normalized Strata. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLRadialGuideSet RadialGuides;
+    /** Read old binary recipes once, then migrate to normalized RadialGuides. */
     UPROPERTY() TArray<FCLHeightGuide> HeightGuides_DEPRECATED;
     void MigrateLegacyGuides();
     /** Applied source identity; NoiseLayers remains the authoritative self-contained snapshot. */

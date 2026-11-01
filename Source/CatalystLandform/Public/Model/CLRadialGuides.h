@@ -1,11 +1,11 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
-#include "CLStrata.generated.h"
+#include "CLRadialGuides.generated.h"
 
 /** A planet-wide reference height, expressed as a fraction of the outer sky radius. */
 USTRUCT(BlueprintType)
-struct CATALYSTLANDFORM_API FCLStratum
+struct CATALYSTLANDFORM_API FCLRadialGuide
 {
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FName Name;
@@ -16,44 +16,44 @@ struct CATALYSTLANDFORM_API FCLStratum
 
 /** A reusable style. A planet receives its own applied copy at creation/selection. */
 USTRUCT(BlueprintType)
-struct CATALYSTLANDFORM_API FCLStrata
+struct CATALYSTLANDFORM_API FCLRadialGuideSet
 {
     GENERATED_BODY()
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FGuid Id;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Untitled strata");
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLStratum> Stratum;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Untitled radial guide set");
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLRadialGuide> Guides;
     bool Validate(FString& Error) const;
 };
 
 USTRUCT(BlueprintType)
-struct CATALYSTLANDFORM_API FCLStrataLibrary
+struct CATALYSTLANDFORM_API FCLRadialGuideLibrary
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLStrata> Sets;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLRadialGuideSet> Sets;
     /** Seed each built-in catalog revision once; deleted styles stay deleted. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 PresetRevision = 0;
 };
 
 /** Project authoring catalog; applied planet recipes remain self-contained. */
 UCLASS(BlueprintType)
-class CATALYSTLANDFORM_API UCLStrataLibraryAsset : public UCFModelAsset
+class CATALYSTLANDFORM_API UCLRadialGuideLibraryAsset : public UCFModelAsset
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform") FCLStrataLibrary Library;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform") FCLRadialGuideLibrary Library;
     virtual FString GetSummaryText() const override;
 protected:
-    virtual FString GetPluginNameForPaths() const override { return TEXT("CatalystLandform/Strata"); }
-    virtual UScriptStruct* GetPayloadScriptStruct() const override { return FCLStrataLibrary::StaticStruct(); }
+    virtual FString GetPluginNameForPaths() const override { return TEXT("CatalystLandform/RadialGuides"); }
+    virtual UScriptStruct* GetPayloadScriptStruct() const override { return FCLRadialGuideLibrary::StaticStruct(); }
     virtual void* GetPayloadMemory() override { return &Library; }
     virtual const void* GetPayloadMemory() const override { return &Library; }
     virtual bool ValidatePayload(FString& Error) const override;
 };
 
 /** Reference layouts only: choosing a style does not generate water or atmosphere. */
-struct CATALYSTLANDFORM_API FCLStrataPresets
+struct CATALYSTLANDFORM_API FCLRadialGuidePresets
 {
-    static TArray<FCLStrata> Defaults();
+    static TArray<FCLRadialGuideSet> Defaults();
     /** Add missing built-ins once, preserving edited styles and name collisions. */
-    static bool Seed(FCLStrataLibrary& Library);
+    static bool Seed(FCLRadialGuideLibrary& Library);
 };

@@ -63,7 +63,7 @@ bool FCLTerrainLayerAuthoringTest::RunTest(const FString&)
     TestFalse(TEXT("Duplicate layer names rejected atomically"), Edit.SetLayer(Layer));
     TestEqual(TEXT("Context radius untouched"), Context.RadiusMeters, 1000.0);
     TestEqual(TEXT("Context seed untouched"), Context.Seed, 921);
-    TestEqual(TEXT("Context guide references untouched"), Context.Strata.Id, Edit.Context.Strata.Id);
+    TestEqual(TEXT("Context guide references untouched"), Context.RadialGuides.Id, Edit.Context.RadialGuides.Id);
     return true;
 }
 
@@ -98,17 +98,17 @@ bool FCLTerrainAuthoringSnapshotTest::RunTest(const FString&)
     }
     TStrongObjectPtr<UCLPlanetRecipeAsset> Planet(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
     Planet->Recipe = FCLPlanetCompiler::RollingPlains(); Planet->Recipe.RadiusMeters = 2500; Planet->Recipe.Seed = 182;
-    const auto Strata = Planet->Recipe.Strata;
+    const auto RadialGuides = Planet->Recipe.RadialGuides;
     Edit.SetSolo(1);
     { const FScopedTransaction Tx(NSLOCTEXT("CL", "TestAssembleTerrain", "Assemble terrain onto planet"));
       TestTrue(TEXT("Recipe assembly applies the definition outside the Designer session"), Asset->ApplyToRecipe(Planet.Get(), Error)); }
     TestEqual(TEXT("Apply ignores solo and uses all authored layers"), Planet->Recipe.NoiseLayers.Num(), Asset->TerrainType.NoiseLayers.Num());
     TestEqual(TEXT("Apply preserves planet radius"), Planet->Recipe.RadiusMeters, 2500.0);
     TestEqual(TEXT("Apply preserves planet seed"), Planet->Recipe.Seed, 182);
-    TestEqual(TEXT("Apply preserves global Strata identity"), Planet->Recipe.Strata.Id, Strata.Id);
+    TestEqual(TEXT("Apply preserves global Radial Guides identity"), Planet->Recipe.RadialGuides.Id, RadialGuides.Id);
     GEditor->UndoTransaction();
     TestEqual(TEXT("Applying terrain is undoable"), Planet->Recipe.TerrainTypeName, FString());
-    Edit.Context.Strata.Stratum.Reset();
+    Edit.Context.RadialGuides.Guides.Reset();
     TestFalse(TEXT("Missing guides produce a preview diagnostic"), Edit.CompilePreview(Error).IsValid());
     TestTrue(TEXT("Diagnostic identifies the missing guide"), Error.Contains(TEXT("Guide")));
     Asset->ExportJsonString(After, Error);

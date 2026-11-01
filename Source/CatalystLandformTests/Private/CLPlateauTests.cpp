@@ -1,7 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Model/CLTerrainType.h"
 #include "CLTerrainEditing.h"
-#include "CLStrataEditing.h"
+#include "CLRadialGuideEditing.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanet.h"
 #include "Editor.h"
@@ -106,15 +106,15 @@ bool FCLTerraceAuthoringTest::RunTest(const FString&)
     }
     const auto Work=Async(EAsyncExecution::ThreadPool,[A]{return A->SampleHeightMeters(FVector(1,2,3));});
     TestEqual(TEXT("Terracing evaluates on immutable worker data"),Work.Get(),A->SampleHeightMeters(FVector(1,2,3)));
-    const int32 Index=R.Strata.Stratum.IndexOfByPredicate([](const auto& S){return S.Name==TEXT("SurfaceMin");});
-    TestTrue(TEXT("Guide rename updates terrace origin and step"),FCLStrataEditing::Rename(R,Index,TEXT("TerrainFloor"),Error));
+    const int32 Index=R.RadialGuides.Guides.IndexOfByPredicate([](const auto& S){return S.Name==TEXT("SurfaceMin");});
+    TestTrue(TEXT("Guide rename updates terrace origin and step"),FCLRadialGuideEditing::Rename(R,Index,TEXT("TerrainFloor"),Error));
     TestEqual(TEXT("Step lower guide follows rename"),R.NoiseLayers[1].Terrace.StepHeight.Guide,FName(TEXT("TerrainFloor")));
     TestEqual(TEXT("Terrace origin follows rename"),R.NoiseLayers[1].Terrace.Origin.Guide,FName(TEXT("TerrainFloor")));
     TestTrue(TEXT("Renamed terracing still compiles"),FCLPlanetCompiler::Compile(R,Error).IsValid());
     auto* Recipe=NewObject<UCLPlanetRecipeAsset>(); Recipe->Recipe=R;
     TestTrue(TEXT("Planet with terracing exports"),Recipe->ExportJsonString(Json,Error));
     auto* Restored=NewObject<UCLPlanetRecipeAsset>(); TestTrue(TEXT("Planet with terracing reimports"),Restored->ImportRecipeJson(Json,Error));
-    TestEqual(TEXT("New recipe schema is explicit"),Restored->Recipe.SchemaVersion,6);
+    TestEqual(TEXT("New recipe schema is explicit"),Restored->Recipe.SchemaVersion,9);
     auto Invalid=Copy->TerrainType; Invalid.SchemaVersion=2; TestFalse(TEXT("Old terrain schema refuses terrace operations"),Invalid.Validate(Error));
     return true;
 }
@@ -137,7 +137,7 @@ bool FCLPlateauSectionTest::RunTest(const FString&)
     for (int32 Case = 0; Case < 4; ++Case)
     {
         auto R = FCLPlanetCompiler::RollingPlains(); R.RadiusMeters = Case == 0 ? 100 : 1000;
-        R.Seed = 1729 + Case * 999; R.Strata = FCLStrataPresets::Defaults()[2];
+        R.Seed = 1729 + Case * 999; R.RadialGuides = FCLRadialGuidePresets::Defaults()[2];
         if (Case == 2)
         { Type->TerrainType.NoiseLayers[1].Terrace.Softness = 0; Type->TerrainType.NoiseLayers[2].bEnabled = false; }
         if (Case == 3)
