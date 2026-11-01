@@ -605,6 +605,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<FCLTerrainEditing> TerrainEditing;
     TStrongObjectPtr<UCLPlanetRecipeAsset> PreviewContext;
     TSharedPtr<SCLNoiseLayerStack> NoiseStack;
+    TSharedPtr<SVerticalBox> RegionControls;
     FDelegateHandle TerrainChanged;
     UCLPlanetRecipeAsset* RecipeAsset() const
     { return PreviewContext ? PreviewContext.Get() : CastChecked<UCLPlanetRecipeAsset>(EditingAsset); }
@@ -617,6 +618,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
         if (!Preview || !Preview->Client->Plan || bPreviewInvalid) return;
         Preview->Client->AreaWidthMeters = PendingAreaWidth;
         if (TerrainEditing) Refresh();
+        else if(!Preview->Client->Plan->Regions.IsEmpty()) Preview->RebuildAsync(Preview->Client->Plan);
         else Preview->Rebuild(Preview->Client->Plan);
     }
     FText AreaCaption() const
@@ -706,7 +708,8 @@ public:
     }
     virtual void GetSaveableObjects(TArray<UObject*>& Objects) const override
     { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (StrataSession && !TerrainEditing) Objects.AddUnique(StrataSession->Library.Get()); }
-    TSharedRef<SWidget> TerrainMenu()
+    TSharedRef<SWidget> TerrainMenu() { return TerrainSourceMenu(FGuid(), false); }
+    TSharedRef<SWidget> TerrainSourceMenu(FGuid RegionId, bool bNewRegion)
     {
         FMenuBuilder Menu(true, nullptr); TArray<FAssetData> Assets;
         FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().GetAssetsByClass(UCLTerrainTypeAsset::StaticClass()->GetClassPathName(), Assets, true);
@@ -715,19 +718,63 @@ public:
         for (const FAssetData& Data : Assets)
         {
             auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); if (!Source) continue;
+            if ((bNewRegion || RegionId.IsValid()) && Source->TerrainType.Coordinates != ECLTerrainCoordinates::LocalPatch) continue;
             const TWeakObjectPtr<UCLTerrainTypeAsset> Weak(Source);
             const bool bTemplate = Data.PackagePath.ToString().StartsWith(TEXT("/CatalystLandform/"));
             Menu.AddMenuEntry(FText::FromString(Source->TerrainType.Name + (bTemplate ? TEXT(" (template)") : TEXT(""))),
                 FText::FromString(Source->TerrainType.Description + TEXT("\n") + Source->GetPathName()), FSlateIcon(),
-                FUIAction(FExecuteAction::CreateLambda([this, Weak]
+                FUIAction(FExecuteAction::CreateLambda([this, Weak, RegionId, bNewRegion]
                 {
                     if (!Weak.IsValid()) return;
                     if (TerrainEditing) { CLOpenTerrainDesigner(Weak.Get(), &RecipeAsset()->Recipe.Strata); return; }
+                    if(bNewRegion || RegionId.IsValid())
+                    {
+                        auto Candidate=RecipeAsset()->Recipe;FGuid Target=RegionId;
+                        if(bNewRegion)
+                        {
+                            FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=Weak->TerrainType.Name;
+                            Target=Region.Id;Candidate.TerrainRegions.Add(Region);
+                        }
+                        FString Error;
+                        if(!Weak->TerrainType.ApplyToRegion(Candidate,Target,Error)){Status=TEXT("Region was not applied: ")+Error;return;}
+                        const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyRegion", "Apply terrain to planet region"));
+                        RecipeAsset()->Modify();RecipeAsset()->Recipe=MoveTemp(Candidate);RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();
+                        return;
+                    }
                     const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyTerrainType", "Apply terrain type")); FString Error;
                     if (!Weak->ApplyToRecipe(RecipeAsset(), Error)) Status = TEXT("Terrain type was not applied: ") + Error;
                 })));
         }
         return Menu.MakeWidget();
+    }
+    void RefreshRegionControls()
+    {
+        if(!RegionControls)return;
+        RegionControls->ClearChildren();
+        if(TerrainEditing)return;
+        RegionControls->AddSlot().AutoHeight()[SNew(SHorizontalBox)
+            +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("Terrain regions")))]
+            +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SComboButton)
+                .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch && RecipeAsset()->Recipe.TerrainRegions.Num()<8;})
+                .OnGetMenuContent_Lambda([this]{return TerrainSourceMenu(FGuid(),true);})
+                .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add region")))]]
+            +SHorizontalBox::Slot().FillWidth(1).Padding(12,0)[SNew(STextBlock).AutoWrapText(true)
+                .Text(FText::FromString(TEXT("Edit region masks and transition widths in Details")))]];
+        for(const auto& Region:RecipeAsset()->Recipe.TerrainRegions)
+        {
+            const FGuid Id=Region.Id;
+            RegionControls->AddSlot().AutoHeight().Padding(0,4)[SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(Region.Name+TEXT(": "))) ]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent_Lambda([this,Id]{return TerrainSourceMenu(Id,false);})
+                    .ButtonContent()[SNew(STextBlock).Text(FText::FromString(Region.TerrainTypeName))]]
+                +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SButton).Text(FText::FromString(TEXT("Remove")))
+                    .OnClicked_Lambda([this,Id]
+                    {
+                        const FScopedTransaction Tx(NSLOCTEXT("CL","RemoveRegion","Remove terrain region"));
+                        RecipeAsset()->Modify();RecipeAsset()->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});
+                        RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();return FReply::Handled();
+                    })]];
+        }
     }
     TSharedRef<SWidget> StrataMenu()
     {
@@ -789,19 +836,20 @@ public:
         {
             Status = TerrainEditing ? FString::Printf(TEXT("%s | %d layers | %s"), *TerrainEditing->Asset->TerrainType.Name,
                 Plan->Layers.Num(), TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("Terrain preview")) :
-                FString::Printf(TEXT("%s | radius %.0f m | %d layers"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num());
+                FString::Printf(TEXT("%s | radius %.0f m | %d base layers | %d regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num(), Plan->Regions.Num());
             if (Preview)
             {
-                if (TerrainEditing) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
+                if (TerrainEditing || !Plan->Regions.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
-        else { if (TerrainEditing && Preview) Preview->CancelPendingBuild(); Status = TEXT("Preview out of date: ") + Status; }
+        else { if (Preview) Preview->CancelPendingBuild(); Status = TEXT("Preview out of date: ") + Status; }
+        RefreshRegionControls();
         RefreshAllUI(EditingAsset, false);
     }
     TSharedRef<SDockTab> SpawnSection(const FSpawnTabArgs&)
     {
-        return SNew(SDockTab)[SNew(SVerticalBox)
+        auto Tab=SNew(SDockTab)[SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this] { return FText::FromString(Status); })]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::TerrainMenu)
@@ -850,6 +898,8 @@ public:
                 + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Remove Strata")))
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
                     .OnClicked_Lambda([this] { StrataSession->RemoveSet(); return FReply::Handled(); })]]
+            + SVerticalBox::Slot().AutoHeight().Padding(8,0)[SAssignNew(RegionControls,SVerticalBox)
+                .Visibility_Lambda([this]{return TerrainEditing?EVisibility::Collapsed:EVisibility::Visible;})]
             + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true)
                 .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
                 .Text(FText::FromString(TEXT("Preview guides only. Guide values are supplied when this terrain is assembled onto a planet."))) ]
@@ -892,6 +942,8 @@ public:
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
                     return FText::FromString(Legend);
                 })]]];
+        RefreshRegionControls();
+        return Tab;
     }
 };
 const FName FCLRecipeToolkit::SectionTab(TEXT("CLRecipeSection"));

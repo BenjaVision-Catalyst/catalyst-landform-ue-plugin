@@ -19,6 +19,7 @@ struct CATALYSTLANDFORM_API FCLTerrainType
     bool Validate(FString& Error) const;
     /** Apply a validated snapshot atomically; never changes the planet's Strata/radius/seed. */
     bool ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion = nullptr) const;
+    bool ApplyToRegion(FCLPlanetRecipe& Recipe, const FGuid& RegionId, FString& Error) const;
 };
 
 UCLASS(BlueprintType)
@@ -31,6 +32,7 @@ public:
     virtual void PostLoad() override;
     virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
     UFUNCTION(BlueprintCallable, Category="Landform") bool ApplyToRecipe(UCLPlanetRecipeAsset* Asset, FString& Error) const;
+    UFUNCTION(BlueprintCallable, Category="Landform") bool ApplyToRegion(UCLPlanetRecipeAsset* Asset, FGuid RegionId, FString& Error) const;
     UFUNCTION(BlueprintCallable, Category="Landform") bool ImportTerrainTypeJson(const FString& Json, FString& Error);
 #if WITH_EDITOR
     FSimpleMulticastDelegate OnTerrainChanged;

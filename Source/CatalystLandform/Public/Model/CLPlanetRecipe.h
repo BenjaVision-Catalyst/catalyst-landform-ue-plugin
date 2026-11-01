@@ -80,6 +80,41 @@ struct CATALYSTLANDFORM_API FCLNoiseLayer
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Operation == ECLTerrainOperation::Noise", EditConditionHides, ClampMin="0", ClampMax="1")) double Persistence = .5;
 };
 
+UENUM(BlueprintType)
+enum class ECLTerrainRegionShape : uint8 { Band, Disc, HalfPlane };
+
+/** Planet-owned influence in the assembly chart, in metres. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLTerrainRegionMask
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainRegionShape Shape = ECLTerrainRegionShape::Band;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Centre", Units="m")) FVector2D CenterMeters = FVector2D::ZeroVector;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Heading", Units="deg")) double HeadingDegrees = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Half width / radius", Units="m")) double HalfWidthMeters = 150;
+    /** Full transition width, centred on the nominal boundary. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Transition width", Units="m")) double TransitionMeters = 200;
+    bool Validate(FString& Error) const;
+    double Weight(const FVector2D& Meters) const;
+};
+
+/** Applied terrain snapshot. Guides and projection are supplied only by the parent planet. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLTerrainRegion
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FGuid Id;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Terrain region");
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bEnabled = true;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Priority = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SeedOffset = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLTerrainRegionMask Mask;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FGuid TerrainTypeId;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 AlgorithmVersion = 2;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) TArray<FCLNoiseLayer> NoiseLayers;
+};
+
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
@@ -103,6 +138,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Terrain layers")) TArray<FCLNoiseLayer> NoiseLayers;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLTerrainRegion> TerrainRegions;
 };
 
 class FCLNativeNoiseKernel;
@@ -139,6 +175,14 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     double MinimumHeightMeters = 0, MaximumHeightMeters = 0;
     TArray<FCLHeightGuide> Guides;
     TArray<FLayer> Layers;
+    struct FRegion
+    {
+        FGuid Id;
+        FCLTerrainRegionMask Mask;
+        TSharedPtr<const FCLCompiledPlanetRecipe> Field;
+    };
+    /** Sorted by explicit priority then persistent ID. No UObject state on workers. */
+    TArray<FRegion> Regions;
     int32 GetDistributedStampCount() const;
     /** Diagnostic coverage of distributed stamp footprints and their fade weights. */
     void GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight) const;

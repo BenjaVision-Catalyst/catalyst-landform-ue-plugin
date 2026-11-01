@@ -30,7 +30,7 @@ bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox
 {
     if (!Validate(Error)) return false;
     FCLPlanetRecipe Candidate = Recipe;
-    Candidate.SchemaVersion = 6; Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
+    Candidate.SchemaVersion = Candidate.TerrainRegions.IsEmpty()?6:7; Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;
     const auto* First = NoiseLayers.FindByPredicate([](const auto& Layer) { return Layer.bEnabled; });
     if (Candidate.BaseSurfaceNormalized == 1 && (Coordinates == ECLTerrainCoordinates::LocalPatch || !First || First->Operation != ECLTerrainOperation::Noise || First->Blend != ECLNoiseBlend::Override))
@@ -53,6 +53,28 @@ bool UCLTerrainTypeAsset::ApplyToRecipe(UCLPlanetRecipeAsset* Asset, FString& Er
     Asset->Modify(); Asset->Recipe = MoveTemp(Candidate);
 #if WITH_EDITOR
     Asset->PostEditChange(); Asset->MarkPackageDirty();
+#endif
+    return true;
+}
+bool FCLTerrainType::ApplyToRegion(FCLPlanetRecipe& Recipe, const FGuid& RegionId, FString& Error) const
+{
+    if(!Validate(Error))return false;
+    if(Coordinates!=ECLTerrainCoordinates::LocalPatch || Recipe.Coordinates!=ECLTerrainCoordinates::LocalPatch)
+    {Error=TEXT("Region assembly requires a local terrain definition and local planet patch");return false;}
+    auto Candidate=Recipe;auto* Region=Candidate.TerrainRegions.FindByPredicate([&](const auto& R){return R.Id==RegionId;});
+    if(!Region){Error=TEXT("Terrain region was not found");return false;}
+    Region->TerrainTypeId=Id;Region->TerrainTypeName=Name;Region->AlgorithmVersion=AlgorithmVersion;Region->NoiseLayers=NoiseLayers;
+    Candidate.SchemaVersion=7;
+    if(!FCLPlanetCompiler::Compile(Candidate,Error))return false;
+    Recipe=MoveTemp(Candidate);return true;
+}
+bool UCLTerrainTypeAsset::ApplyToRegion(UCLPlanetRecipeAsset* Asset, FGuid RegionId, FString& Error) const
+{
+    if(!Asset){Error=TEXT("A planet recipe is required");return false;}
+    auto Candidate=Asset->Recipe;if(!TerrainType.ApplyToRegion(Candidate,RegionId,Error))return false;
+    Asset->Modify();Asset->Recipe=MoveTemp(Candidate);
+#if WITH_EDITOR
+    Asset->PostEditChange();Asset->MarkPackageDirty();
 #endif
     return true;
 }

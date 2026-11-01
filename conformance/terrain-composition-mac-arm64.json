@@ -1,0 +1,122 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "parent_component_revision": "a12c0f1",
+  "source_sha256": "0f92c4c8122e505923abcf08455c9d90c61b36680a080fb7e3e98cf14a282020",
+  "recipe_schema": 7,
+  "terrain_schema": 5,
+  "contract": {
+    "ownership": "Planet owns region IDs, masks, priority, seed offsets, applied snapshots and guides; source terrains remain independent",
+    "evaluation": "Complete field stacks first, then ordered convex blends of metre heights",
+    "mask_shapes": [
+      "Band",
+      "Disc",
+      "HalfPlane"
+    ],
+    "transition": "Quintic; zero first/second endpoint derivatives",
+    "ordering": "Priority then persistent region ID; independent of authoring array order",
+    "projection": "One shared bounded local geodesic assembly chart",
+    "runtime": "Shared native Perlin/heightmap field path for flat preview, spherical VPP volume and collision",
+    "editor": "Add/select/remove region sources; masks in Details; rebuild on commit; coalesced asynchronous preview with revision fencing",
+    "vendor_changes": false
+  },
+  "proof": {
+    "base": "MountainRidgesLocal",
+    "region": "PlateausLocal",
+    "band_half_width_m": 150,
+    "transition_width_m": 200,
+    "pure_plateau_abs_x_max_m": 50,
+    "pure_mountain_abs_x_min_m": 250,
+    "outer_sky_radius_m": 1000,
+    "voxel_size_cm": 25,
+    "source_recipe": "Examples/MountainPlateauComposition.json"
+  },
+  "final_component_automation": {
+    "passed": 42,
+    "failed": 0,
+    "not_run": 0,
+    "with_warnings": 1,
+    "raw_report": "LandformLab/Saved/Verification/terrain-composition-component-final/index.json"
+  },
+  "integrated_automation": {
+    "passed": 43,
+    "failed": 0,
+    "raw_report": "LandformLab/Saved/Verification/terrain-composition-full/index.json",
+    "note": "41 component checks plus both physical proofs; final editor-only commit/async changes subsequently covered by all 42 final component checks"
+  },
+  "numerical": {
+    "independent_field_oracle_samples": 4141,
+    "pure_mountain_samples": 2132,
+    "pure_plateau_samples": 451,
+    "transition_samples": 1558,
+    "max_oracle_height_error_m": 1.62935975823e-09,
+    "preview_vertices": 524371,
+    "max_native_sphere_residual_cm": 0.00195312,
+    "view_widths_m": [
+      100,
+      500,
+      1000
+    ],
+    "json_round_trip": true,
+    "worker_snapshot_isolation": true,
+    "mask_endpoint_derivatives": true,
+    "priority_order_invariance": true,
+    "source_ownership_and_edit_commit": true
+  },
+  "collision": {
+    "passed": true,
+    "samples": 66,
+    "joins": 2,
+    "max_collision_error_cm": 1.7846239463328397,
+    "voxel_size_cm": 25,
+    "surface": "Cooked VPP/Chaos triangles; pure fields, transition interiors and endpoints"
+  },
+  "walk": {
+    "passed": true,
+    "frames": 11792,
+    "ground_frames": 11792,
+    "voxel_floor_frames": 11792,
+    "route_y_m": -60,
+    "worst_sampled_slope_degrees": 47.63179608225783,
+    "left_join_ground_frames": 4117,
+    "right_join_ground_frames": 4465,
+    "crossing_mask": 15,
+    "completed_legs": 2,
+    "min_up_dot": 0.9999999999999997,
+    "min_gravity_dot": 0.9999999926674157,
+    "max_floor_field_residual_cm": 2.7091840330540435,
+    "max_route_deviation_m": 0.00898784768008909,
+    "walk_speed_cm_s": 600,
+    "movement_input_only": true,
+    "terrain_modified_for_route": false
+  },
+  "saved_assets": {
+    "passed": true,
+    "recipe_matches_server_json": true,
+    "plateau_templates_match_source": true,
+    "recipe_schema": 7,
+    "preexisting_files_preserved": 36
+  },
+  "visual_check": {
+    "editor": "DA_TerrainCompositionPlanet / Planet Recipe",
+    "base_source_selector": true,
+    "region_source_selector": true,
+    "add_remove_region_controls": true,
+    "combined_cutaway_visible": true,
+    "preview_width_m": 500,
+    "all_saved": true
+  },
+  "limits": [
+    "One bounded chart, not a whole-planet atlas",
+    "Up to eight regions, 32 operations per field, 256 stamps per layer, 1024 total stamps",
+    "Existing native source/query budgets and 256 KiB recipe import limit",
+    "Proof walk uses unchanged terrain at the qualified default mask settings; not every mountain slope is walkable",
+    "Material/biome blending, arbitrary surface masks, region streaming, navigation and backend delivery remain separate work",
+    "Two existing engine LineSetComponentMaterial/dependent MeshModeling material warnings remain"
+  ],
+  "host_source_sha256": "8dcc3d13f8e3fcfc08e7fa3624fe2f0bf577ce5493f3f427ec6e13788ec92c13",
+  "host_parent_revision": "3e7bb4d"
+}

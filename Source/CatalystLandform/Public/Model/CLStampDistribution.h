@@ -52,6 +52,7 @@ struct CATALYSTLANDFORM_API FCLResolvedStampPlacement
 {
     GENERATED_BODY()
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FGuid Id;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FGuid RegionId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool bLocalCoordinates = false;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FName SourceId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FVector2D PositionMeters = FVector2D::ZeroVector;

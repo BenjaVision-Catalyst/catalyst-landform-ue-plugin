@@ -167,7 +167,7 @@ operations; recipe schema 4 stored their applied snapshots. Terrain schema 4
 and recipe schema 5 introduced stamp distribution. Terrain schema 5 and recipe
 schema 6 add explicit local coordinates and guide-relative stamp relief. Schema 1
 imports retain algorithm 1 while terrain JSON imports export the current schema. Previously saved planet recipes keep their pinned algorithm and
-appearance. Native algorithm 2 requires recipe schema 3..6 and the VPP Perlin 3D
+appearance. Native algorithm 2 requires recipe schema 3..7 and the VPP Perlin 3D
 kernel; unavailable kernels or changed pin layouts fail compilation without a
 silent fallback. This is still a local authoring format, not a backend protocol.
 
@@ -280,7 +280,7 @@ Impacts collections. Reproducible sources and provenance are in
 `Docs/StampDistribution.md` covers curation, authoring and the matching preview/
 planet proof. `conformance/stamp-distribution-mac-arm64.json` records qualification.
 
-Current local schemas are recipe 6 and terrain type 5; old assets retain their
+Current local schemas are recipe 7 and terrain type 5; old assets retain their
 noise algorithm and field. This is a CPU PCG element pipeline, not arbitrary PCG
 graph scheduling or GPU execution. Streaming for large planets, backend delivery,
 cooking, surface metadata and a finished photoreal stamp collection remain future
@@ -397,3 +397,28 @@ patch proof, with the existing placement budgets; whole-planet chart coverage,
 streaming and composition of different terrain regions remain future work.
 `conformance/local-terrain-mac-arm64.json` records actual qualification. Host
 workflow and detailed contracts are in `Docs/LocalMountainField.md`.
+
+### Planet-owned terrain composition
+
+Recipe schema 7 adds independent applied terrain regions inside the shared local
+assembly patch. `Examples/MountainPlateauComposition.json` uses Mountain ridges
+as its base and the new `PlateausLocal` preset in a band with two 200 m
+transitions. The planet owns mask shape/location/heading/width, priority and seed
+offset. Both fields resolve its global guides and evaluate their own complete
+stacks before their heights blend; terracing never processes the other terrain.
+Band, disc and half-plane masks use quintic transitions with zero first and
+second endpoint derivatives. Priority and persistent ID define canonical order.
+The native spherical volume and flat Planet Recipe preview share this compositor.
+
+Planet Recipe has source selection and add/remove controls for regions; masks
+are edited in Details. Single-terrain Designer ownership is unchanged. Numeric
+mask drags broadcast one rebuild on commit, and composed cutaways use the
+existing coalesced background mesh build. Applied snapshots contain no asset
+paths and remain independent of later source edits until explicitly refreshed.
+
+The bounded composition supports up to eight regions and 1024 total stamps,
+with the existing per-field/source/query limits. It remains one local chart;
+a planetary atlas, arbitrary surface masks, metadata/material blending and
+streaming are separate work. The host's `Docs/TerrainComposition.md` describes
+the playable two-join proof. Qualification is recorded in
+`conformance/terrain-composition-mac-arm64.json`.
