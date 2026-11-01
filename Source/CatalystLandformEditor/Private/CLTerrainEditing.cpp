@@ -44,7 +44,7 @@ bool FCLTerrainEditing::SetLayer(const FCLNoiseLayer& Layer)
     {
         // Resolve this layer's bounds in the current guides without compiling
         // unrelated stamps. Reversed intervals must not enter the saved source.
-        auto Probe = Context; Probe.SchemaVersion = 6; Probe.Coordinates = Asset->TerrainType.Coordinates; Probe.AlgorithmVersion = Asset->TerrainType.AlgorithmVersion;
+        auto Probe = Context; Probe.SchemaVersion = Asset->TerrainType.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6; Probe.Coordinates = Asset->TerrainType.Coordinates; Probe.AlgorithmVersion = Asset->TerrainType.AlgorithmVersion;
         Probe.NoiseLayers = {Layer}; Probe.NoiseLayers[0].Blend = ECLNoiseBlend::Override;
         if (!FCLPlanetCompiler::Compile(Probe, Error)) return false;
     }
@@ -64,8 +64,8 @@ bool FCLTerrainEditing::Add(ECLTerrainOperation Operation)
                     Layer.Distribution.CollectionRevision = Collection.Revision;
     Layer.Name = UniqueName(Operation == ECLTerrainOperation::Noise ? TEXT("Noise layer") : Operation == ECLTerrainOperation::Terrace ? TEXT("Terracing") : TEXT("Stamp distribution"));
     Layer.Blend = Layers.IsEmpty() ? ECLNoiseBlend::Override : ECLNoiseBlend::Add;
-    Layer.Scale = Asset->TerrainType.Coordinates==ECLTerrainCoordinates::LocalPatch ? ECLNoiseScale::Meters : ECLNoiseScale::PlanetRadius;
-    if(Asset->TerrainType.Coordinates==ECLTerrainCoordinates::LocalPatch)
+    Layer.Scale = Asset->TerrainType.Coordinates!=ECLTerrainCoordinates::Sphere ? ECLNoiseScale::Meters : ECLNoiseScale::PlanetRadius;
+    if(Asset->TerrainType.Coordinates!=ECLTerrainCoordinates::Sphere)
     {
         Layer.Distribution.SizeMode=ECLStampSizeMode::Absolute;
         Layer.Distribution.ReliefMode=ECLStampReliefMode::GuideInterval;

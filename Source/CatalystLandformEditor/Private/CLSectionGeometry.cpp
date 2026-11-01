@@ -4,7 +4,7 @@ double FCLSectionGeometry::DefaultWidth(const FCLCompiledPlanetRecipe&)
 { return 500; }
 
 double FCLSectionGeometry::ReferenceSurfaceRadius(const FCLCompiledPlanetRecipe& Plan)
-{ return FMath::Max(.001, Plan.RadiusMeters + (Plan.Coordinates==ECLTerrainCoordinates::LocalPatch ? Plan.BaseHeightMeters : Plan.SampleHeightMeters(FVector::ZAxisVector))); }
+{ return FMath::Max(.001, Plan.RadiusMeters + (Plan.Coordinates!=ECLTerrainCoordinates::Sphere ? Plan.BaseHeightMeters : Plan.SampleHeightMeters(FVector::ZAxisVector))); }
 
 namespace
 {

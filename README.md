@@ -165,9 +165,10 @@ Terrain type schema 2 introduced explicit `algorithmVersion`, copied into the
 planet snapshot on application. Terrain schema 3 added ordered shaping
 operations; recipe schema 4 stored their applied snapshots. Terrain schema 4
 and recipe schema 5 introduced stamp distribution. Terrain schema 5 and recipe
-schema 6 add explicit local coordinates and guide-relative stamp relief. Schema 1
+schema 6 add explicit local coordinates and guide-relative stamp relief. Terrain
+schema 6 and recipe schema 8 add patch-independent spherical sampling. Schema 1
 imports retain algorithm 1 while terrain JSON imports export the current schema. Previously saved planet recipes keep their pinned algorithm and
-appearance. Native algorithm 2 requires recipe schema 3..7 and the VPP Perlin 3D
+appearance. Native algorithm 2 requires recipe schema 3..8 and the VPP Perlin 3D
 kernel; unavailable kernels or changed pin layouts fail compilation without a
 silent fallback. This is still a local authoring format, not a backend protocol.
 
@@ -280,7 +281,8 @@ Impacts collections. Reproducible sources and provenance are in
 `Docs/StampDistribution.md` covers curation, authoring and the matching preview/
 planet proof. `conformance/stamp-distribution-mac-arm64.json` records qualification.
 
-Current local schemas are recipe 7 and terrain type 5; old assets retain their
+Local schemas remain recipe 7 and terrain type 5; spherical-surface sampling
+uses recipe 8 and terrain type 6. Old assets retain their
 noise algorithm and field. This is a CPU PCG element pipeline, not arbitrary PCG
 graph scheduling or GPU execution. Streaming for large planets, backend delivery,
 cooking, surface metadata and a finished photoreal stamp collection remain future
@@ -394,7 +396,8 @@ transition. Its native spherical volume maps directions into the same metric
 field, then closes the finite patch into the neutral base sphere. No assembly
 settings enter the terrain definition or Designer Save. This is one bounded
 patch proof, with the existing placement budgets; whole-planet chart coverage,
-streaming and composition of different terrain regions remain future work.
+streaming remains future work. The following proofs add regional composition
+and full spherical coverage through separate versioned presets.
 `conformance/local-terrain-mac-arm64.json` records actual qualification. Host
 workflow and detailed contracts are in `Docs/LocalMountainField.md`.
 
@@ -422,3 +425,31 @@ a planetary atlas, arbitrary surface masks, metadata/material blending and
 streaming are separate work. The host's `Docs/TerrainComposition.md` describes
 the playable two-join proof. Qualification is recorded in
 `conformance/terrain-composition-mac-arm64.json`.
+
+### Continuous spherical patches
+
+`Examples/SphericalPatchComposition.json` extends new Mountain ridges and Plateaus
+presets across six independently compiled cube-sphere patches. Terrain schema 6
+and recipe schema 8 declare `SphericalSurface` coordinates. Native VPP Perlin
+samples planetary XYZ at the neutral reference surface, with explicit metric
+wavelengths. Great-circle band, disc and half-plane masks blend complete fields
+without patch-local origins. Existing local and legacy sphere presets retain
+their earlier coordinate policies.
+
+Each patch receives a subset of one bounded global native CPU PCG registry.
+Selection, transforms, relief and persistent IDs are assigned before filtering.
+Conservative source supports and a sampling guard retain neighbour-anchored
+heightmaps that reach across boundaries. Dominant-axis ownership routes samples
+to a patch; charts do not enter procedural seeds. All plans feed one continuous
+native VPP volume and its cooked collision, using VPP's mesh/LOD stitching.
+
+Qualification compares all twelve edges and eight three-way corners against a
+whole-field reference, including heights, normals and stamp identities. The
+host's `Docs/SphericalPatches.md` describes the playable plateau/blend/mountain
+boundary loop and measured collision checks. Results are recorded in
+`conformance/spherical-patches-mac-arm64.json`.
+
+This is a fixed six-patch layout, with 256 global stamp candidates per layer
+and 1024 unique placements per recipe. A streamed registry for large planets,
+adaptive paging, material/biome channels, navigation and backend delivery remain
+separate work. This radial field is not an exact Euclidean SDF.

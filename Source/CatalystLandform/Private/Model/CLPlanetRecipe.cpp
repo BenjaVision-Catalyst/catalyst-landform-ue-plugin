@@ -2,6 +2,7 @@
 #include "CLModelJson.h"
 #include "CLStampDistribution.h"
 #include "CLPlanetShape.h"
+#include "Model/CLSphericalPatches.h"
 #include "Nodes/VoxelNoiseNodes.h"
 #include "VoxelISPCNodeHelpers.h"
 #include "JsonObjectConverter.h"
@@ -86,10 +87,29 @@ double FCLTerrainRegionMask::Weight(const FVector2D& Meters) const
     return T*T*T*(T*(T*6-15)+10);
 }
 
+bool FCLSphericalRegionMask::Validate(double Radius,FString& Error) const
+{
+    if(uint8(Shape)>uint8(ECLTerrainRegionShape::HalfPlane)||Axis.ContainsNaN()||Center.ContainsNaN()||
+       Axis.IsNearlyZero()||Center.IsNearlyZero()||!FMath::IsFinite(OffsetMeters)||
+       !FMath::IsFinite(HalfWidthMeters)||HalfWidthMeters<.1||HalfWidthMeters>=Radius*UE_PI*.5||
+       !FMath::IsFinite(TransitionMeters)||TransitionMeters<.1||TransitionMeters>2*HalfWidthMeters)
+    {Error=TEXT("Spherical mask requires valid directions, positive extent below a hemisphere and a positive bounded transition");return false;}
+    return true;
+}
+double FCLSphericalRegionMask::Weight(const FVector& D,double Radius) const
+{
+    const FVector Unit=D.GetSafeNormal();
+    const double Along=Radius*FMath::Asin(FMath::Clamp(FVector::DotProduct(Unit,Axis.GetSafeNormal()),-1.,1.))-OffsetMeters;
+    const double Distance=Shape==ECLTerrainRegionShape::Disc ? HalfWidthMeters-Radius*FMath::Acos(FMath::Clamp(FVector::DotProduct(Unit,Center.GetSafeNormal()),-1.,1.)) :
+        Shape==ECLTerrainRegionShape::Band ? HalfWidthMeters-FMath::Abs(Along) : Along;
+    const double T=FMath::Clamp(.5+Distance/TransitionMeters,0.,1.);return T*T*T*(T*(T*6-15)+10);
+}
+
 int32 FCLCompiledPlanetRecipe::GetDistributedStampCount()const
-{int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();for(const auto& R:Regions)N+=R.Field->GetDistributedStampCount();return N;}
+{if(!SurfacePatches.IsEmpty()){TArray<FCLResolvedStampPlacement> P;GetStampPlacements(P);return P.Num();}int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();for(const auto& R:Regions)N+=R.Field->GetDistributedStampCount();return N;}
 void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight)const
 {
+    if(!SurfacePatches.IsEmpty()){SurfacePatches[FCLSphericalPatches::Owner(Direction)]->GetStampCoverage(Direction,Count,MinimumWeight);return;}
     Count=0;MinimumWeight=1;
     FVector Position=Direction;
     if(Coordinates==ECLTerrainCoordinates::LocalPatch){FVector2D P;if(!TerrainPosition(Direction,P))return;Position=FVector(P.X,P.Y,0);}
@@ -97,7 +117,7 @@ void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& C
     double BaseWeight=1;
     for(int32 I=Regions.Num()-1;I>=0;--I)
     {
-        const double W=Regions[I].Mask.Weight(FVector2D(Position));Contributions[I]=W*BaseWeight;BaseWeight*=1-W;
+        const double W=Coordinates==ECLTerrainCoordinates::SphericalSurface ? Regions[I].SphericalMask.Weight(Direction,RadiusMeters+BaseHeightMeters) : Regions[I].Mask.Weight(FVector2D(Position));Contributions[I]=W*BaseWeight;BaseWeight*=1-W;
     }
     if(BaseWeight>0)
     {
@@ -114,6 +134,16 @@ void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& C
 }
 void FCLCompiledPlanetRecipe::GetStampPlacements(TArray<FCLResolvedStampPlacement>& Placements) const
 {
+    if(!SurfacePatches.IsEmpty())
+    {
+        Placements.Reset();TSet<FGuid> Seen;
+        for(const auto& Patch:SurfacePatches)
+        {
+            TArray<FCLResolvedStampPlacement> P;Patch->GetStampPlacements(P);
+            for(auto& V:P)if(!Seen.Contains(V.Id)){Seen.Add(V.Id);Placements.Add(MoveTemp(V));}
+        }
+        Placements.Sort([](const auto& A,const auto& B){return A.Id.ToString(EGuidFormats::Digits)<B.Id.ToString(EGuidFormats::Digits);});return;
+    }
     Placements.Reset();for(const auto& L:Layers)if(L.Distribution)Placements.Append(L.Distribution->Placements);
     for(const auto& R:Regions)
     {
@@ -134,7 +164,7 @@ double FCLCompiledPlanetRecipe::FLayer::TerraceHeight(double Height) const
 
 double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) const
 {
-    if (Coordinates == ECLTerrainCoordinates::LocalPatch || NativePerlin || Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
+    if (Coordinates != ECLTerrainCoordinates::Sphere || NativePerlin || Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
     {
         TArray<double> Heights; SampleHeightsMeters(MakeArrayView(&Direction, 1), Heights); return Heights[0];
     }
@@ -179,6 +209,21 @@ bool FCLCompiledPlanetRecipe::TerrainPosition(const FVector& Direction, FVector2
 }
 void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
 {
+    if(!SurfacePatches.IsEmpty())
+    {
+        Heights.SetNumUninitialized(Directions.Num());
+        for(int32 Face=0;Face<6;++Face)
+        {
+            TArray<FVector> D;TArray<int32> Indices;
+            for(int32 I=0;I<Directions.Num();++I)if(FCLSphericalPatches::Owner(Directions[I])==Face){D.Add(Directions[I]);Indices.Add(I);}
+            if(D.IsEmpty())continue;
+            TArray<double> H;SurfacePatches[Face]->SampleHeightsMeters(D,H);
+            for(int32 I=0;I<Indices.Num();++I)Heights[Indices[I]]=H[I];
+        }
+        return;
+    }
+    if(Coordinates==ECLTerrainCoordinates::SphericalSurface)
+    {EvaluateHeightsMeters(Directions,Heights,false);BlendRegionHeights(Directions,Heights,false);return;}
     if (Coordinates == ECLTerrainCoordinates::LocalPatch)
     {
         TArray<FVector> Positions;
@@ -212,16 +257,20 @@ void FCLCompiledPlanetRecipe::SampleLocalHeightsMeters(TConstArrayView<FVector> 
 {
     check(Coordinates==ECLTerrainCoordinates::LocalPatch);
     EvaluateHeightsMeters(Directions, Heights, true);
+    BlendRegionHeights(Directions,Heights,true);
+}
+void FCLCompiledPlanetRecipe::BlendRegionHeights(TConstArrayView<FVector> Directions,TArray<double>& Heights,bool bLocal) const
+{
     for(const FRegion& Region:Regions)
     {
         TArray<FVector> Positions;TArray<int32> Indices;TArray<double> Weights;
         for(int32 I=0;I<Directions.Num();++I)
         {
-            const double W=Region.Mask.Weight(FVector2D(Directions[I]));
+            const double W=bLocal ? Region.Mask.Weight(FVector2D(Directions[I])) : Region.SphericalMask.Weight(Directions[I],RadiusMeters+BaseHeightMeters);
             if(W>0){Positions.Add(Directions[I]);Indices.Add(I);Weights.Add(W);}
         }
         if(Positions.IsEmpty())continue;
-        TArray<double> Values;Region.Field->SampleLocalHeightsMeters(Positions,Values);
+        TArray<double> Values;if(bLocal)Region.Field->SampleLocalHeightsMeters(Positions,Values);else Region.Field->SampleHeightsMeters(Positions,Values);
         for(int32 I=0;I<Indices.Num();++I)Heights[Indices[I]]=FMath::Lerp(Heights[Indices[I]],Values[I],Weights[I]);
     }
 }
@@ -261,7 +310,7 @@ void FCLCompiledPlanetRecipe::EvaluateHeightsMeters(TConstArrayView<FVector> Dir
             {
                 for (int32 I = 0; I < Num; ++I)
                 {
-                    const FVector P = Unit[I] * ((bLocal ? 1. : RadiusMeters) * Frequency / Layer.Wavelength);
+                    const FVector P = Unit[I] * ((bLocal ? 1. : Coordinates==ECLTerrainCoordinates::SphericalSurface ? RadiusMeters+BaseHeightMeters : RadiusMeters) * Frequency / Layer.Wavelength);
                     X[I] = P.X; Y[I] = P.Y; Z[I] = P.Z;
                 }
                 const ispc::FVoxelInputBuffer Inputs[] = {
@@ -270,7 +319,7 @@ void FCLCompiledPlanetRecipe::EvaluateHeightsMeters(TConstArrayView<FVector> Dir
                 for (int32 I = 0; I < Num; ++I)
                 {
                     const double N = NativePerlin ? Noise[I] : FMath::PerlinNoise3D(
-                        (Unit[I] * (bLocal ? 1. : RadiusMeters)) * (Frequency / Layer.Wavelength) + Layer.Offset);
+                        (Unit[I] * (bLocal ? 1. : Coordinates==ECLTerrainCoordinates::SphericalSurface ? RadiusMeters+BaseHeightMeters : RadiusMeters)) * (Frequency / Layer.Wavelength) + Layer.Offset);
                     Sum[I] += (Layer.Shape == ECLNoiseShape::Ridged ? 1 - FMath::Abs(N) : .5 + .5 * N) * Weight;
                 }
                 Total += Weight; Weight *= Layer.Persistence; Frequency *= 2;
@@ -328,17 +377,17 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
     return true;
 }
 
-TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary, const FBox2D* LocalRegion)
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary, const FBox2D* LocalRegion, int32 SurfacePatch)
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 7) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 8) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.Strata.Stratum.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
     if (!ValidateNoiseLayers(Recipe.NoiseLayers, Error)) return nullptr;
     if(Recipe.TerrainRegions.Num()>8)return Fail(TEXT("At most eight terrain regions are supported"));
-    if(!Recipe.TerrainRegions.IsEmpty() && (Recipe.SchemaVersion<7 || Recipe.Coordinates!=ECLTerrainCoordinates::LocalPatch))
+    if(!Recipe.TerrainRegions.IsEmpty() && (Recipe.SchemaVersion<7 || Recipe.Coordinates==ECLTerrainCoordinates::Sphere))
         return Fail(TEXT("Terrain regions require recipe schema 7 and local coordinates"));
     auto Plan = MakeShared<FCLCompiledPlanetRecipe>();
     if (Recipe.AlgorithmVersion == 2)
@@ -354,7 +403,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     Plan->BaseHeightMeters = (Recipe.BaseSurfaceNormalized - 1) * Recipe.RadiusMeters;
     Plan->MinimumHeightMeters = Plan->MaximumHeightMeters = Plan->BaseHeightMeters;
     Plan->Coordinates = Recipe.Coordinates; Plan->TerrainPatch = Recipe.TerrainPatch;
-    if (uint8(Recipe.Coordinates) > uint8(ECLTerrainCoordinates::LocalPatch)) return Fail(TEXT("Unknown terrain coordinates"));
+    if (uint8(Recipe.Coordinates) > uint8(ECLTerrainCoordinates::SphericalSurface)) return Fail(TEXT("Unknown terrain coordinates"));
     if (Recipe.Coordinates == ECLTerrainCoordinates::LocalPatch)
     {
         const auto& P = Recipe.TerrainPatch;
@@ -382,6 +431,23 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             !FMath::IsFinite(Guide.Color.B) || !FMath::IsFinite(Guide.Color.A)) return Fail(FString::Printf(TEXT("Invalid Height Guide: %s"), *Guide.Name.ToString()));
         Guides.Add(Guide.Name, Guide.HeightMeters);
         Plan->Guides.Add(Guide);
+    }
+    Plan->SurfacePatch=SurfacePatch;
+    if(Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface)
+    {
+        if(Recipe.SchemaVersion<8 || (SurfacePatch!=INDEX_NONE && SurfacePatch!=FCLSphericalPatches::WholeSphere && !FCLSphericalPatches::IsFace(SurfacePatch)))
+            return Fail(TEXT("Spherical surface fields require schema 8 and a valid patch request"));
+        if(SurfacePatch==INDEX_NONE)
+        {
+            for(int32 Face=0;Face<6;++Face)
+            {
+                const auto Patch=Compile(Recipe,Error,StampLibrary,nullptr,Face);if(!Patch)return nullptr;
+                Plan->SurfacePatches.Add(Patch);Plan->MinimumHeightMeters=FMath::Min(Plan->MinimumHeightMeters,Patch->MinimumHeightMeters);
+                Plan->MaximumHeightMeters=FMath::Max(Plan->MaximumHeightMeters,Patch->MaximumHeightMeters);
+            }
+            if(Plan->GetDistributedStampCount()>1024)return Fail(TEXT("Spherical atlas exceeds the 1024 unique stamp-placement budget"));
+            return Plan;
+        }
     }
     auto Resolve = [&](const FCLHeightReference& Ref, double& Value) -> bool
     {
@@ -470,15 +536,17 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Region.Id.IsValid() || RegionIds.Contains(Region.Id) || Region.Name.TrimStartAndEnd().IsEmpty())
             return Fail(TEXT("Terrain region IDs must be valid and unique, with nonempty names"));
         RegionIds.Add(Region.Id);
-        if(!Region.Mask.Validate(Error))return nullptr;
+        if(Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface)
+        {if(!Region.bSphericalMask||!Region.SphericalMask.Validate(Plan->RadiusMeters+Plan->BaseHeightMeters,Error)){if(Error.IsEmpty())Error=TEXT("Spherical regions need spherical masks");return nullptr;}}
+        else if(Region.bSphericalMask || !Region.Mask.Validate(Error)){if(Error.IsEmpty())Error=TEXT("Local regions need local masks");return nullptr;}
         if(!Region.bEnabled)continue;
         if(!Region.TerrainTypeId.IsValid() || Region.TerrainTypeName.IsEmpty())return Fail(TEXT("Terrain region requires an applied source snapshot: ")+Region.Name);
-        auto Child=Recipe;Child.SchemaVersion=6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;
+        auto Child=Recipe;Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;
         Child.Seed=int32(uint32(Recipe.Seed)+uint32(Region.SeedOffset));Child.TerrainTypeId=Region.TerrainTypeId;
         Child.TerrainTypeName=Region.TerrainTypeName;Child.NoiseLayers=Region.NoiseLayers;
-        const auto Field=Compile(Child,Error,StampLibrary,&Plan->EvaluationRegion);
+        const auto Field=Compile(Child,Error,StampLibrary,Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch?&Plan->EvaluationRegion:nullptr,SurfacePatch);
         if(!Field){Error=Region.Name+TEXT(": ")+Error;return nullptr;}
-        FCLCompiledPlanetRecipe::FRegion CompiledRegion;CompiledRegion.Id=Region.Id;CompiledRegion.Mask=Region.Mask;CompiledRegion.Field=Field;
+        FCLCompiledPlanetRecipe::FRegion CompiledRegion;CompiledRegion.Id=Region.Id;CompiledRegion.Mask=Region.Mask;CompiledRegion.SphericalMask=Region.SphericalMask;CompiledRegion.Field=Field;
         Plan->Regions.Add(MoveTemp(CompiledRegion));
         Plan->MinimumHeightMeters=FMath::Min(Plan->MinimumHeightMeters,Field->MinimumHeightMeters);
         Plan->MaximumHeightMeters=FMath::Max(Plan->MaximumHeightMeters,Field->MaximumHeightMeters);
@@ -579,8 +647,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..7 with algorithm 1, or schemaVersion 3..7 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..8 with algorithm 1, or schemaVersion 3..8 with algorithm 2"); return false; }
     if (Schema == 1)
     {
         // Explicit, lossless conversion of the old metre-based document.

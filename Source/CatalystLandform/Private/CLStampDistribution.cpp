@@ -1,4 +1,5 @@
 #include "CLStampDistribution.h"
+#include "Model/CLSphericalPatches.h"
 #include "Stamps/CLStampLibrary.h"
 #include "PCG/CLSphereStampPoints.h"
 #include "PCGContext.h"
@@ -51,7 +52,8 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
     auto Entries=Collection->Entries;
     Entries.Sort([](const auto& A,const auto& B){return A.Id.LexicalLess(B.Id);});
     const bool bLocal=Input.Coordinates==ECLTerrainCoordinates::LocalPatch;
-    const double ReferenceRadius=FMath::Max(.01,Input.RadiusMeters+Input.SampleHeightMeters(FVector::ZAxisVector));
+    const bool bSurface=Input.Coordinates==ECLTerrainCoordinates::SphericalSurface;
+    const double ReferenceRadius=FMath::Max(.01,Input.RadiusMeters+(bSurface?Input.BaseHeightMeters:Input.SampleHeightMeters(FVector::ZAxisVector)));
     const double CountValue=bLocal?0:FMath::RoundToDouble(4*UE_PI*FMath::Square(ReferenceRadius)*S.DensityPerSquareKilometer/1.e6);
     if(!FMath::IsFinite(CountValue)||CountValue>256)
         return Fail(FString::Printf(TEXT("Stamp layer needs %.0f placements (limit 256) at a %.0f m surface radius. Reduce density to %.3f /km2 or lower the preview radius."),
@@ -137,7 +139,7 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
         FCLResolvedStampPlacement P;P.bLocalCoordinates=bLocal;P.SourceId=E.Id;P.Anchor=T.GetLocation().GetSafeNormal();P.TangentX=T.GetUnitAxis(EAxis::X);
         P.WidthMeters=T.GetScale3D().X;P.ReliefMeters=T.GetScale3D().Z;
         P.PositionMeters=FVector2D(T.GetLocation())/100;
-        P.ChartRadiusMeters=bLocal?0:Input.RadiusMeters+Input.SampleHeightMeters(P.Anchor);
+        P.ChartRadiusMeters=bLocal?0:bSurface?ReferenceRadius:Input.RadiusMeters+Input.SampleHeightMeters(P.Anchor);
         if(!bLocal&&P.WidthMeters>2*P.ChartRadiusMeters)return Fail(TEXT("A selected stamp is wider than its local surface diameter"));
         P.Blend=S.Blend==ECLStampBlend::Collection?E.Blend:S.Blend;
         P.Id=FGuid(0x434C5331,uint32(Seed),uint32(I),FCrc::StrCrc32(*(S.CollectionId.ToString()+LexToString(S.CollectionRevision)+E.Id.ToString())));
@@ -158,6 +160,15 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
         Placement.EdgeFalloff=P.WidthMeters*100*S.EdgeFalloffFraction;
         Placement.Source.Heightmap=H;Placement.Source.BlendMode=NativeBlend(P.Blend);
         Placement.Source.Smoothness=Smoothness*100;Placement.Source.Behavior=EVoxelStampBehavior::AffectShape;
+        if(bSurface)
+        {
+            // Include the full native safe rectangle, not an approximate half-width.
+            const FVector2D SafeMin=(FVector2D(1)-FVector2D(D->SizeX,D->SizeY)*.5)*H->ScaleXY;
+            const FVector2D SafeMax=(FVector2D(D->SizeX-2.0001,D->SizeY-2.0001)-FVector2D(D->SizeX,D->SizeY)*.5)*H->ScaleXY;
+            const FVector2D Corner(FMath::Max(FMath::Abs(SafeMin.X),FMath::Abs(SafeMax.X))*Placement.Scale.X,
+                FMath::Max(FMath::Abs(SafeMin.Y),FMath::Abs(SafeMax.Y))*Placement.Scale.Y);
+            if(!FCLSphericalPatches::MayAffect(Input.SurfacePatch,P.Anchor,Corner.Size()/Placement.ChartRadius))continue;
+        }
         Stamp.Placements.Add(Placement);Result->Placements.Add(P);
         const double Unit=D->bIsUINT16?1./65535:1.;
         double A=(D->DataMin*Unit*D->InternalScaleZ+D->InternalOffsetZ)*H->Height->ScaleZ+H->Height->OffsetZ;

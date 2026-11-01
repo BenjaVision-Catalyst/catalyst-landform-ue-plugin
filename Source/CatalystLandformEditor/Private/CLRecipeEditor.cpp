@@ -618,7 +618,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
         if (!Preview || !Preview->Client->Plan || bPreviewInvalid) return;
         Preview->Client->AreaWidthMeters = PendingAreaWidth;
         if (TerrainEditing) Refresh();
-        else if(!Preview->Client->Plan->Regions.IsEmpty()) Preview->RebuildAsync(Preview->Client->Plan);
+        else if(!Preview->Client->Plan->Regions.IsEmpty() || !Preview->Client->Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Preview->Client->Plan);
         else Preview->Rebuild(Preview->Client->Plan);
     }
     FText AreaCaption() const
@@ -718,7 +718,7 @@ public:
         for (const FAssetData& Data : Assets)
         {
             auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); if (!Source) continue;
-            if ((bNewRegion || RegionId.IsValid()) && Source->TerrainType.Coordinates != ECLTerrainCoordinates::LocalPatch) continue;
+            if ((bNewRegion || RegionId.IsValid()) && Source->TerrainType.Coordinates != RecipeAsset()->Recipe.Coordinates) continue;
             const TWeakObjectPtr<UCLTerrainTypeAsset> Weak(Source);
             const bool bTemplate = Data.PackagePath.ToString().StartsWith(TEXT("/CatalystLandform/"));
             Menu.AddMenuEntry(FText::FromString(Source->TerrainType.Name + (bTemplate ? TEXT(" (template)") : TEXT(""))),
@@ -755,7 +755,7 @@ public:
         RegionControls->AddSlot().AutoHeight()[SNew(SHorizontalBox)
             +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("Terrain regions")))]
             +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SComboButton)
-                .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch && RecipeAsset()->Recipe.TerrainRegions.Num()<8;})
+                .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates!=ECLTerrainCoordinates::Sphere && RecipeAsset()->Recipe.TerrainRegions.Num()<8;})
                 .OnGetMenuContent_Lambda([this]{return TerrainSourceMenu(FGuid(),true);})
                 .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add region")))]]
             +SHorizontalBox::Slot().FillWidth(1).Padding(12,0)[SNew(STextBlock).AutoWrapText(true)
@@ -835,11 +835,11 @@ public:
         if (Plan)
         {
             Status = TerrainEditing ? FString::Printf(TEXT("%s | %d layers | %s"), *TerrainEditing->Asset->TerrainType.Name,
-                Plan->Layers.Num(), TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("Terrain preview")) :
-                FString::Printf(TEXT("%s | radius %.0f m | %d base layers | %d regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Plan->Layers.Num(), Plan->Regions.Num());
+                Plan->SurfacePatches.IsEmpty()?Plan->Layers.Num():Plan->SurfacePatches[0]->Layers.Num(), TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("Terrain preview")) :
+                FString::Printf(TEXT("%s | radius %.0f m | %d base layers | %d regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Asset->Recipe.NoiseLayers.Num(), Asset->Recipe.TerrainRegions.Num());
             if (Preview)
             {
-                if (TerrainEditing || !Plan->Regions.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
+                if (TerrainEditing || !Plan->Regions.IsEmpty() || !Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }

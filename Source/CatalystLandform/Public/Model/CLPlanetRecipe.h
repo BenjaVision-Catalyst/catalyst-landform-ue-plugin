@@ -17,7 +17,7 @@ struct CATALYSTLANDFORM_API FCLHeightGuide
 };
 
 UENUM(BlueprintType)
-enum class ECLTerrainCoordinates : uint8 { Sphere, LocalPatch };
+enum class ECLTerrainCoordinates : uint8 { Sphere, LocalPatch, SphericalSurface };
 
 /** Assembly placement, owned by a planet. Local terrain itself has no spherical dimensions. */
 USTRUCT(BlueprintType)
@@ -98,6 +98,21 @@ struct CATALYSTLANDFORM_API FCLTerrainRegionMask
     double Weight(const FVector2D& Meters) const;
 };
 
+/** Great-circle influences, independent of any patch's local frame. Distances use the neutral radius. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLSphericalRegionMask
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainRegionShape Shape = ECLTerrainRegionShape::Band;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector Axis = FVector::YAxisVector;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector Center = FVector::ZAxisVector;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Offset", Units="m")) double OffsetMeters = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Half width / radius", Units="m")) double HalfWidthMeters = 90;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Transition width", Units="m")) double TransitionMeters = 100;
+    bool Validate(double Radius,FString& Error) const;
+    double Weight(const FVector& UnitDirection,double Radius) const;
+};
+
 /** Applied terrain snapshot. Guides and projection are supplied only by the parent planet. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLTerrainRegion
@@ -108,7 +123,9 @@ struct CATALYSTLANDFORM_API FCLTerrainRegion
     UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bEnabled = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Priority = 0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SeedOffset = 0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLTerrainRegionMask Mask;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool bSphericalMask = false;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="!bSphericalMask", EditConditionHides)) FCLTerrainRegionMask Mask;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="bSphericalMask", EditConditionHides)) FCLSphericalRegionMask SphericalMask;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 AlgorithmVersion = 2;
@@ -166,6 +183,9 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     double RadiusMeters = 100;
     ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
     FCLTerrainPatch TerrainPatch;
+    /** -1 is the six-patch router; -2 is the bounded whole-field reference oracle. */
+    int32 SurfacePatch = INDEX_NONE;
+    TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> SurfacePatches;
     FBox2D EvaluationRegion;
     FVector TerrainDirection(const FVector2D& Meters) const;
     bool TerrainPosition(const FVector& Direction, FVector2D& Meters) const;
@@ -179,6 +199,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     {
         FGuid Id;
         FCLTerrainRegionMask Mask;
+        FCLSphericalRegionMask SphericalMask;
         TSharedPtr<const FCLCompiledPlanetRecipe> Field;
     };
     /** Sorted by explicit priority then persistent ID. No UObject state on workers. */
@@ -191,6 +212,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** Batched native generation, with bounded scratch memory; results are metre offsets. */
     void SampleHeightsMeters(TConstArrayView<FVector> LocalDirections, TArray<double>& Heights) const;
 private:
+    void BlendRegionHeights(TConstArrayView<FVector> Positions,TArray<double>& Heights,bool bLocal) const;
     void EvaluateHeightsMeters(TConstArrayView<FVector> Positions, TArray<double>& Heights, bool bLocal) const;
 };
 
@@ -198,7 +220,7 @@ class CATALYSTLANDFORM_API FCLPlanetCompiler
 {
 public:
     /** Returns no plan on error; callers may retain their last successful plan. */
-    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr);
+    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE);
     static FCLPlanetRecipe RollingPlains();
     /** Validate operation syntax without requiring a planet's guide values. */
     static bool ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error);

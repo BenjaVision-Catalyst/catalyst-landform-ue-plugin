@@ -1,0 +1,245 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "parent_component_revision": "edca0c30de8eb5a7802df7f157ca2e8f538b0031",
+  "host_parent_revision": "4145346d59632fcdb8a8eca7e32987f271adb180",
+  "source_sha256": "d3698c31def1e8c437249d939886dd7371396a9b0abe55dc142940ed2dd5e1da",
+  "host_source_sha256": "8bb851e1c511a5789ddb4d42f6d4bb511f08cd54fd497e1bee704fc4c41e84dd",
+  "recipe_schema": 8,
+  "terrain_schema": 6,
+  "contract": {
+    "coordinates": "SphericalSurface; canonical planetary XYZ noise at neutral reference radius; explicit metric wavelengths",
+    "patches": 6,
+    "ownership": "Dominant-axis cube-sphere, deterministic X/Y/Z ties; charts do not enter field seeds",
+    "stamps": "Canonical bounded global native CPU PCG registry; transforms and identity assigned before support/guard filtering",
+    "mask": "Planet-owned great-circle band/disc/half-plane with quintic transitions",
+    "runtime": "Six independently compiled sampling plans feed one native VPP volume and its own mesh/LOD stitching and cooked collision",
+    "compatibility": "New preset IDs and schema versions; existing local and legacy spherical fields retain semantics",
+    "vendor_changes": false
+  },
+  "proof": {
+    "base": "MountainRidgesSpherical",
+    "region": "PlateausSpherical",
+    "outer_sky_radius_m": 1000,
+    "neutral_surface_radius_m": 450,
+    "voxel_size_cm": 25,
+    "band_half_width_m": 90,
+    "transition_width_m": 100,
+    "source_recipe": "Examples/SphericalPatchComposition.json",
+    "map": "/Game/LandformDesigner/SphericalPatchProof"
+  },
+  "integrated_automation": {
+    "passed": 47,
+    "failed": 0,
+    "not_run": 0,
+    "with_warnings": 1,
+    "raw_report": "LandformLab/Saved/Verification/spherical-patches-full/index.json"
+  },
+  "final_automation": {
+    "passed": 46,
+    "failed": 0,
+    "not_run": 0,
+    "with_warnings": 2,
+    "raw_report": "LandformLab/Saved/Verification/spherical-patches-final/index.json"
+  },
+  "final_automation_scope": "45 component checks plus repeated physical walk after auto-walk camera and preview layer-caption changes; field and collision sampling unchanged from integrated run",
+  "numerical": {
+    "edges": 12,
+    "corners": 8,
+    "edge_probes": 7740,
+    "corner_probes": 24,
+    "max_patch_height_disagreement_m": 2.58409318121e-06,
+    "min_sampled_normal_dot": 1.0,
+    "unique_global_stamp_ids": 61,
+    "patch_stamp_references": 157,
+    "neighbour_anchored_references": 96,
+    "native_zero_set_points": 10086,
+    "max_native_zero_set_residual_cm": 0.001952996,
+    "json_round_trip": true,
+    "worker_snapshot_isolation": true,
+    "legacy_regressions": true
+  },
+  "collision": {
+    "passed": true,
+    "samples": 180,
+    "edges": 12,
+    "corners": 8,
+    "voxel_size_cm": 25,
+    "max_collision_error_cm": 19.714621954877213,
+    "source": "Cooked VPP/Chaos triangles on, and 0.5m to both sides of, every edge/corner"
+  },
+  "walk": {
+    "passed": true,
+    "frames": 9292,
+    "ground_frames": 9292,
+    "voxel_floor_frames": 9292,
+    "plateau_crossings": 2,
+    "blend_crossings": 2,
+    "mountain_crossings": 2,
+    "max_floor_field_residual_cm": 1.5526082231663167,
+    "min_up_dot": 0.9999999999988652,
+    "min_gravity_dot": 0.9999999884970858,
+    "events": [
+      {
+        "from": 4,
+        "to": 0,
+        "terrain": "plateau",
+        "plateau_weight": 1,
+        "longitude": 45.00096197814902,
+        "latitude": 1.5006958052259105
+      },
+      {
+        "from": 0,
+        "to": 4,
+        "terrain": "plateau",
+        "plateau_weight": 1,
+        "longitude": 44.99643881321761,
+        "latitude": 1.5007059555669615
+      },
+      {
+        "from": 4,
+        "to": 0,
+        "terrain": "blend",
+        "plateau_weight": 0.7092227052824023,
+        "longitude": 45.00055261122169,
+        "latitude": 9.986738707453833
+      },
+      {
+        "from": 0,
+        "to": 4,
+        "terrain": "blend",
+        "plateau_weight": 0.7068691397911246,
+        "longitude": 44.99522475825222,
+        "latitude": 10.004554147682427
+      },
+      {
+        "from": 4,
+        "to": 0,
+        "terrain": "mountain",
+        "plateau_weight": 0,
+        "longitude": 45.00847796118858,
+        "latitude": 21.492210010228167
+      },
+      {
+        "from": 0,
+        "to": 4,
+        "terrain": "mountain",
+        "plateau_weight": 0,
+        "longitude": 44.99074420403989,
+        "latitude": 21.50890225341978
+      }
+    ],
+    "worst_sampled_slope_degrees": 49.52279248460449,
+    "walk_speed_cm_s": 600,
+    "movement_input_only": true,
+    "terrain_modified_for_route": false,
+    "screenshots": [
+      "plateau-before",
+      "plateau-crossing",
+      "plateau-after",
+      "blend-before",
+      "blend-crossing",
+      "blend-after",
+      "mountain-before",
+      "mountain-crossing",
+      "mountain-after"
+    ]
+  },
+  "saved_assets": {
+    "passed": true,
+    "recipe_matches_json": true,
+    "both_template_and_working_sources_match_json": true,
+    "preexisting_files_preserved": 39
+  },
+  "visual_check": {
+    "captures": 9,
+    "overlay": false,
+    "inspected": true,
+    "result": "No visible boundary cracks or surface steps in plateau/blend/mountain before/crossing/after captures",
+    "limits": "First-person close surface views; steep blend fills frame. Not a lighting, material or arbitrary-view/LOD qualification",
+    "files": {
+      "plateau-before.png": {
+        "sha256": "b695341c45d7174dfae976ff6afa98460b7ab6f0dd7e40669bfc07e53c801e9f",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "plateau-crossing.png": {
+        "sha256": "b4a30f36d3c6f2d575953572b829d1481ee4180e4576035fab62ae8179757d61",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "plateau-after.png": {
+        "sha256": "097bc67804337aafb9245cd0082316320ba56f8fc10e1597fc2319c77b59a36f",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "blend-before.png": {
+        "sha256": "44ace02e01b775ebd9ad0ee77aa0a2fff5e4e800ba38d896460f7d2454b8d356",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "blend-crossing.png": {
+        "sha256": "b13991834e7c6d810d4e8c89321e9d8db97fe48137f949590c6dc07000ff19ee",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "blend-after.png": {
+        "sha256": "162caa4564288d528a7cf85a29d2aba7c55b775872654010d13efffedef4c6ff",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "mountain-before.png": {
+        "sha256": "1d796228a23a817805774535530fe30e770c326ccc06eeb729f5ca293aec38a0",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "mountain-crossing.png": {
+        "sha256": "bdb2a972de08721e2fc9d39936ef5b67ce43304215cf63164b35bb85ea9a66e0",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      },
+      "mountain-after.png": {
+        "sha256": "b3035b24564e1d526e25eb7b5be75ae508f9e74bb6c3ac4d4835061e167c3f55",
+        "dimensions": [
+          2354,
+          1363
+        ]
+      }
+    },
+    "editor": {
+      "planet_recipe_preview_visible": true,
+      "base_and_region_source_controls": true,
+      "globe_visible": true,
+      "map_left_open": "SphericalPatchProof",
+      "all_saved": true
+    }
+  },
+  "limits": [
+    "Fixed six-patch execution layout; not adaptive streamed paging",
+    "Bounded global registry: 256 candidates per layer, 1024 unique placements per recipe; existing native source/query/import budgets remain",
+    "Walk qualifies unchanged saved terrain on the selected natural route; not every mountain slope is walkable",
+    "One native VPP volume; this does not qualify independent mesh actors or cross-planet transitions",
+    "Radial field is not exact Euclidean SDF; material/biome channels, navigation and backend delivery remain separate work",
+    "Existing engine LineSetComponentMaterial/MeshModeling dependency warnings remain",
+    "Final walk reported VSM non-Nanite marking job queue overflow; no failed continuity/collision checks and no renderer setting changes"
+  ]
+}
