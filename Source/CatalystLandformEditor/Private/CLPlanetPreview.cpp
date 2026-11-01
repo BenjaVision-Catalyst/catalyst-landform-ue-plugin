@@ -11,23 +11,33 @@
 
 FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution)
 {
-    FCLGlobeBuffers B;const int32 N=FMath::Clamp(Resolution,8,256),Row=N+1;TArray<FVector> Samples;
+    FCLGlobeBuffers B;const int32 N=FMath::Clamp(Resolution,8,PreviewResolution),Row=N+1,Count=6*Row*Row;
+    B.Vertices.Reserve(Count);B.Normals.Reserve(Count);B.SourceDirections.Reserve(Count);
+    B.UV.Reserve(Count);B.Colors.Reserve(Count);B.Tangents.Reserve(Count);B.Triangles.Reserve(6*N*N*6);
+    TArray<FVector> Samples;Samples.Reserve(SampleVertexBatch*5);
+    auto Emit=[&]
+    {
+        if(Samples.IsEmpty())return;
+        TArray<double> H;Plan.SampleHeightsMeters(Samples,H);
+        auto Point=[&](int32 I){return Samples[I]*((Plan.RadiusMeters+H[I])/Plan.RadiusMeters*100000);};
+        for(int32 K=0;K<Samples.Num();K+=5)
+        {
+            B.Vertices.Add(Point(K));FVector Normal=FVector::CrossProduct(Point(K+1)-Point(K+2),Point(K+3)-Point(K+4)).GetSafeNormal();
+            if(FVector::DotProduct(Normal,Samples[K])<0)Normal*=-1;B.Normals.Add(Normal);
+            const double Slope=FVector::DotProduct(Normal,Samples[K]);B.Colors.Add(FMath::Lerp(FLinearColor(.38,.36,.32),FLinearColor(.34,.43,.28),FMath::Clamp((Slope-.6)/.4,0.,1.)));
+            B.UV.Add(FVector2D::ZeroVector);B.Tangents.Add(FProcMeshTangent(FVector::VectorPlaneProject(FVector::XAxisVector,Normal).GetSafeNormal(),false));
+        }
+        Samples.Reset();
+    };
     for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<=N;++Y)for(int32 X=0;X<=N;++X)
     {
         const FVector D=FCLSphericalPatches::Direction(Face,FVector2D(2.*X/N-1,2.*Y/N-1));B.SourceDirections.Add(D);
         const FVector T=FVector::CrossProduct(D,FMath::Abs(D.Z)<.8?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal(),S=FVector::CrossProduct(D,T);
         Samples.Append({D,(D+T*.0001).GetSafeNormal(),(D-T*.0001).GetSafeNormal(),(D+S*.0001).GetSafeNormal(),(D-S*.0001).GetSafeNormal()});
+        if(Samples.Num()==SampleVertexBatch*5)Emit();
     }
-    TArray<double> H;Plan.SampleHeightsMeters(Samples,H);
-    auto Point=[&](int32 I){return Samples[I]*((Plan.RadiusMeters+H[I])/Plan.RadiusMeters*100000);};
+    Emit();
     B.DisplayRadius=(Plan.RadiusMeters+Plan.MaximumHeightMeters)/Plan.RadiusMeters*100000;
-    for(int32 I=0;I<B.SourceDirections.Num();++I)
-    {
-        const int32 K=5*I;B.Vertices.Add(Point(K));FVector Normal=FVector::CrossProduct(Point(K+1)-Point(K+2),Point(K+3)-Point(K+4)).GetSafeNormal();
-        if(FVector::DotProduct(Normal,Samples[K])<0)Normal*=-1;B.Normals.Add(Normal);
-        const double Slope=FVector::DotProduct(Normal,Samples[K]);B.Colors.Add(FMath::Lerp(FLinearColor(.38,.36,.32),FLinearColor(.34,.43,.28),FMath::Clamp((Slope-.6)/.4,0.,1.)));
-        B.UV.Add(FVector2D::ZeroVector);B.Tangents.Add(FProcMeshTangent(FVector::VectorPlaneProject(FVector::XAxisVector,Normal).GetSafeNormal(),false));
-    }
     for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<N;++Y)for(int32 X=0;X<N;++X)
     {
         const int32 A=Face*Row*Row+Y*Row+X;B.Triangles.Append({A,A+Row,A+1,A+1,A+Row,A+Row+1});
@@ -121,7 +131,7 @@ void SCLPlanetPreview::Pump()
 {
     if(Task.IsValid()&&Task.IsReady())
     {
-        auto B=Task.Get();Task=TFuture<FCLGlobeBuffers>();
+        auto B=Task.Consume(); // Move the completed buffers; do not copy a dense mesh on the UI thread.
         if(TaskRevision==Revision)
         {
             Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
@@ -247,5 +257,48 @@ bool FCLAssemblyPreviewTest::RunTest(const FString&)
     for(int32 I=0;I<H.Num();++I){Worst=FMath::Max(Worst,FMath::Abs(Section.SourceSurfacePoints[I].Size()-(P->RadiusMeters+H[I])*100));Worst=FMath::Max(Worst,FMath::Abs(Section.Vertices[I].Z-(P->RadiusMeters+H[I])/P->RadiusMeters*100000));Min=FMath::Min(Min,H[I]);Max=FMath::Max(Max,H[I]);}
     TestTrue(TEXT("Cutaway covers real terrain and canyon relief"),Max-Min>80);TestTrue(TEXT("Unwrapped cutaway and globe retain the exact assembly field"),Worst<.01);
     AddInfo(FString::Printf(TEXT("Assembly preview: %d globe and %d section vertices; %.9g cm maximum field residual"),Globe.Vertices.Num(),Section.SourceSurfacePoints.Num(),Worst));return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Misc/Paths.h"
+#include "HAL/FileManager.h"
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeDetailTest,"Catalyst.Landform.PlanetBuilder.GlobeDetail",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobeDetailTest::RunTest(const FString&)
+{
+    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/PlanetAssembly.json")));
+    auto* A=NewObject<UCLPlanetRecipeAsset>();if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}const auto P=FCLPlanetCompiler::Compile(A->Recipe,E);if(!P){AddError(E);return false;}
+    const double Start=FPlatformTime::Seconds();const auto Coarse=FCLGlobeBuffers::Build(*P,64);const double FineStart=FPlatformTime::Seconds();const auto Fine=FCLGlobeBuffers::Build(*P);const double FineSeconds=FPlatformTime::Seconds()-FineStart,CoarseSeconds=FineStart-Start;
+    TestEqual(TEXT("Detailed globe uses 512 cells on each cube face"),Fine.Vertices.Num(),6*513*513);
+    TestEqual(TEXT("Sixty-four times as many triangles as the original overview"),Fine.Triangles.Num(),Coarse.Triangles.Num()*64);
+    // Common source directions inside triangles, not vertices: measure the actual
+    // rendered triangle planes against the authoritative field between samples.
+    TArray<FVector> Directions;TArray<double> C,F;
+    auto Radius=[&](const FCLGlobeBuffers& Mesh,int32 N,int32 Face,double X,double Y,const FVector& D)
+    {
+        const double U=(X+1)*.5*N,V=(Y+1)*.5*N;const int32 IX=FMath::Min(int32(U),N-1),IY=FMath::Min(int32(V),N-1),Row=N+1,K=Face*Row*Row+IY*Row+IX;
+        const bool First=U-IX+V-IY<=1;const FVector A=Mesh.Vertices[First?K:K+1],B=Mesh.Vertices[K+Row],C=Mesh.Vertices[First?K+1:K+Row+1];
+        const FVector Normal=FVector::CrossProduct(B-A,C-A);return FVector::DotProduct(A,Normal)/FVector::DotProduct(D,Normal)*P->RadiusMeters/100000;
+    };
+    for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<64;++Y)for(int32 X=0;X<64;++X)
+    {
+        const double U=2*(X+.37)/64-1,V=2*(Y+.41)/64-1;const FVector D=FCLSphericalPatches::Direction(Face,FVector2D(U,V));Directions.Add(D);
+        C.Add(Radius(Coarse,64,Face,U,V,D));F.Add(Radius(Fine,512,Face,U,V,D));
+    }
+    TArray<double> H;P->SampleHeightsMeters(Directions,H);double CoarseSum=0,FineSum=0,CoarseMax=0,FineMax=0;
+    for(int32 I=0;I<H.Num();++I){const double Expected=P->RadiusMeters+H[I],CE=FMath::Abs(C[I]-Expected),FE=FMath::Abs(F[I]-Expected);CoarseSum+=CE*CE;FineSum+=FE*FE;CoarseMax=FMath::Max(CoarseMax,CE);FineMax=FMath::Max(FineMax,FE);}
+    const double CoarseRms=FMath::Sqrt(CoarseSum/H.Num()),FineRms=FMath::Sqrt(FineSum/H.Num());
+    TestTrue(TEXT("Finer globe reduces between-vertex terrain error"),FineRms<CoarseRms*.5&&FineMax<CoarseMax);
+    // Matching per-face boundary vertices retain one common radial surface.
+    double Seam=0;constexpr int32 Row=513;
+    for(int32 Face=0;Face<6;++Face)for(int32 Edge=0;Edge<4;++Edge)for(int32 I=0;I<Row;++I)
+    {
+        const int32 X=Edge==0?0:Edge==1?512:I,Y=Edge==2?0:Edge==3?512:I,K=Face*Row*Row+Y*Row+X;const FVector D=Fine.SourceDirections[K];
+        Seam=FMath::Max(Seam,FMath::Abs(Fine.Vertices[K].Size()-(P->RadiusMeters+P->SampleHeightMeters(D))/P->RadiusMeters*100000));
+    }
+    TestTrue(TEXT("Detailed face boundaries still match the exact shared field"),Seam<.01);
+    const FString Report=FString::Printf(TEXT("{\"passed\":%s,\"cells_per_face\":512,\"vertices\":%d,\"triangles\":%d,\"samples\":%d,\"coarse_rms_m\":%.12g,\"fine_rms_m\":%.12g,\"coarse_max_m\":%.12g,\"fine_max_m\":%.12g,\"coarse_seconds\":%.6f,\"fine_seconds\":%.6f,\"max_boundary_field_residual_cm\":%.12g,\"maximum_sample_batch\":20480}"),HasAnyErrors()?TEXT("false"):TEXT("true"),Fine.Vertices.Num(),Fine.Triangles.Num()/3,H.Num(),CoarseRms,FineRms,CoarseMax,FineMax,CoarseSeconds,FineSeconds,Seam);
+    IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Verification")),true);FFileHelper::SaveStringToFile(Report,*(FPaths::ProjectSavedDir()/TEXT("Verification/globe-detail.json")));
+    AddInfo(Report);return true;
 }
 #endif

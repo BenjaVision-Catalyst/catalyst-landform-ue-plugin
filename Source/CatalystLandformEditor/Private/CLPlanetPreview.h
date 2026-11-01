@@ -15,7 +15,10 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
     TArray<FLinearColor> Colors;
     TArray<FProcMeshTangent> Tangents;
     double DisplayRadius=50000;
-    static FCLGlobeBuffers Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution=64);
+    static constexpr int32 PreviewResolution=512;
+    /** Bound worker scratch to 20,480 field samples, regardless of mesh resolution. */
+    static constexpr int32 SampleVertexBatch=4096;
+    static FCLGlobeBuffers Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution=PreviewResolution);
 };
 /** Coalesced worker-built globe. Shared field; separate navigation from the cutaway. */
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport

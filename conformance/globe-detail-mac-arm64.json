@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "parent_component_revision": "746a63fec7ac",
+  "build": "passed",
+  "source_sha256": "ae32907797eacf0cdc7f8540613f7077a973d7c7e400a0cde736782b8e338543",
+  "source_hash_algorithm": "Sorted component-relative Source paths, NUL, then bytes",
+  "automation": {
+    "passed": 62,
+    "with_warnings": 1,
+    "failed": 0,
+    "not_run": 0,
+    "report": "LandformLab/Saved/Verification/globe-detail-release/index.json"
+  },
+  "measurement": {
+    "passed": true,
+    "cells_per_face": 512,
+    "vertices": 1579014,
+    "triangles": 3145728,
+    "samples": 24576,
+    "coarse_rms_m": 1.6172531333,
+    "fine_rms_m": 0.175312790567,
+    "coarse_max_m": 35.9481646093,
+    "fine_max_m": 8.52034464494,
+    "coarse_seconds": 0.018,
+    "fine_seconds": 1.104819,
+    "max_boundary_field_residual_cm": 0.000976562514552,
+    "maximum_sample_batch": 20480
+  },
+  "preserved_files": 54,
+  "scope": {
+    "editor_globe_only": true,
+    "terrain_recipe_changes": false,
+    "native_vpp_collision_changes": false,
+    "vendor_or_engine_changes": false
+  },
+  "limits": [
+    "Uniform six-face overview, not adaptive near-surface VPP LOD",
+    "Geometry buffers grow with resolution; only temporary field-sampling batches are bounded",
+    "Mesh worker generation measured; no general GPU frame-rate or mesh-upload timing claim",
+    "Existing engine LineSetComponentMaterial dependency warning case remains"
+  ],
+  "worker_result_handoff": "TFuture::Consume moves completed mesh buffers without an extra full-mesh copy",
+  "visual_check": {
+    "fine_canyon_geometry_inspected": true,
+    "all_saved": true
+  }
+}

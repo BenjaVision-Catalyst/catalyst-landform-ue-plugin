@@ -485,8 +485,8 @@ Its initial context receives only a guide-value snapshot. Tests guard this
 working boundary as assembly develops.
 
 The same immutable field supplies globe vertices, cutaways and the native VPP
-volume. The globe's 64-cell faces are an overview; native walking detail remains
-VPP-owned. Host workflow and limitations are in `Docs/PlanetBuilder.md`;
+volume. The globe now uses 512-cell faces (3,145,728 triangles), with field sampling
+batched on a worker; native walking detail remains VPP-owned. Host workflow and limitations are in `Docs/PlanetBuilder.md`;
 qualification is in `conformance/planet-structure-mac-arm64.json`.
 
 ### Referenced Radial Guide Sets
@@ -534,3 +534,18 @@ The host's `Docs/PlanetAssembly.md` records ownership, controls, reproducible
 source preparation, proof map and limits. Asset custom-version 3 preserves the
 omitted schema-10 defaults of earlier version-2 packages. No engine or vendor
 source changes are part of this feature.
+
+### Detailed globe preview
+
+The Planet Builder globe uses 512 cells per cube face, up from 64: sixty-four times
+the rendered triangles and eight times the linear sampling density. It samples
+the same compiled terrain, with field-derived normals and unchanged terrain
+settings. Position/normal samples are evaluated in batches of at most 4,096
+vertices (20,480 field queries), bounding temporary sampling memory.
+
+The existing single-worker, replaceable-pending-request and revision-fencing
+flow remains. Completed worker buffers move into the UI handoff without an
+extra full-mesh copy. Orbit/zoom and idle frames do not regenerate the terrain mesh.
+`PlanetBuilder.GlobeDetail` measures triangle-plane error between vertices
+against the actual assembly field and checks face boundaries. Native VPP terrain
+and collision resolution are unchanged.
