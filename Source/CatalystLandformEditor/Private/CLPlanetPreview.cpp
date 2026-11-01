@@ -48,6 +48,16 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
     {
         const int32 A=Face*Row*Row+Y*Row+X;B.Triangles.Append({A,A+Row,A+1,A+1,A+Row,A+Row+1});
     }
+    if(Plan.GeneratedRegions)
+    {
+        B.RegionBoundaries=Plan.GeneratedRegions->Boundaries;TArray<FVector> D;
+        for(const auto& Edge:B.RegionBoundaries)D.Append({Edge.A,Edge.B});for(const auto& Cell:Plan.GeneratedRegions->Cells)D.Add(Cell.Centre);
+        TArray<FVector> Positions;Positions.SetNumUninitialized(D.Num());
+        for(int32 Start=0;Start<D.Num();Start+=SampleVertexBatch)
+        {const int32 Size=FMath::Min(SampleVertexBatch,D.Num()-Start);TArray<double> H;Plan.SampleHeightsMeters(MakeArrayView(D.GetData()+Start,Size),H);for(int32 I=0;I<Size;++I)Positions[Start+I]=D[Start+I]*((Plan.RadiusMeters+H[I])/Plan.RadiusMeters*100000+100);}
+        for(int32 I=0;I<B.RegionBoundaries.Num();++I){B.RegionBoundaries[I].A=Positions[2*I];B.RegionBoundaries[I].B=Positions[2*I+1];}
+        for(int32 I=2*B.RegionBoundaries.Num();I<Positions.Num();++I)B.RegionCentres.Add(Positions[I]);
+    }
     return B;
 }
 namespace
@@ -94,6 +104,10 @@ public:
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     TArray<FCLGlobePlacementTarget> Targets;
     FCLGlobeSelection Selected;
+    bool bInspectRegions=true;
+    FGuid SelectedRegion;
+    TArray<FCLGeneratedRegionBoundary> RegionBoundaries;
+    TArray<FVector> RegionCentres;
     ECLGlobePlacementMode Mode=ECLGlobePlacementMode::Move;
     TOptional<FCLGlobePlacementTarget> Draft;
     struct FOutline {FCLGlobeSelection Key;TArray<FVector> Points;FVector Centre;};
@@ -103,7 +117,7 @@ public:
     {if(Draft.IsSet())return &Draft.GetValue();return Targets.FindByPredicate([&](const auto& T){return T.Key==Selected;});}
     void UpdatePlacementOverlay()
     {
-        Outlines.Reset();ShowWidget(SelectedTarget()!=nullptr);if(Viewport)Viewport->InvalidateHitProxy();if(!Plan)return;
+        Outlines.Reset();ShowWidget(SelectedTarget()!=nullptr&&!(bInspectRegions&&Plan&&Plan->GeneratedRegions));if(Viewport)Viewport->InvalidateHitProxy();if(!Plan)return;
         TArray<FVector> Directions;TArray<int32> Centres;
         for(const auto& Original:Targets)
         {
@@ -193,12 +207,26 @@ public:
     }
     void DrawPlacements(FPrimitiveDrawInterface* PDI)
     {
+        if(bInspectRegions&&Plan&&Plan->GeneratedRegions)return;
         for(const auto& O:Outlines)
         {
             const bool IsSelected=O.Key==Selected;const FLinearColor C=IsSelected?FLinearColor(.05,.8,1):FLinearColor(.16,.3,.35);
             for(int32 I=1;I<O.Points.Num();++I)PDI->DrawLine(O.Points[I-1],O.Points[I],C,SDPG_World,IsSelected?2.5:1.2);
             FVector2D Pixel;if(!IsSelected&&Project(O.Centre,Pixel))PDI->DrawPoint(O.Centre,C,8,SDPG_Foreground);
         }
+    }
+    void DrawGeneratedRegions(FPrimitiveDrawInterface* PDI)
+    {
+        if(!bInspectRegions||!Plan||!Plan->GeneratedRegions)return;const auto& G=*Plan->GeneratedRegions;
+        const int32 SelectedIndex=G.Cells.IndexOfByPredicate([&](const auto& C){return C.Id==SelectedRegion;});
+        for(const auto& Edge:RegionBoundaries)
+        {
+            const bool Highlight=Edge.CellA==SelectedIndex||Edge.CellB==SelectedIndex;
+            const auto& Cell=G.Cells[Edge.CellA];const auto Id=G.Palette[Cell.PaletteIndex].Id;
+            const FLinearColor Tint=FLinearColor::MakeFromHSV8(uint8((Id.A^Id.B^Id.C^Id.D)*53),140,190);
+            PDI->DrawLine(Edge.A,Edge.B,Highlight?FLinearColor(.1,.9,1):Tint,SDPG_World,Highlight?3:1.1,0,true);
+        }
+        if(RegionCentres.IsValidIndex(SelectedIndex))PDI->DrawPoint(RegionCentres[SelectedIndex],FLinearColor(.1,.9,1),12,SDPG_Foreground);
     }
     FIntPoint NavigationSize;
     FCLRadialGuideSet Guides;
@@ -259,14 +287,14 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);}
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);}
     double NormalizedAtScreenY(double Y)const
     {return bHasProjection&&Core.Y-Sky.Y>1.e-9?FMath::Clamp((Core.Y-Y)/(Core.Y-Sky.Y),0.,1.):0;}
 
 };
 void SCLPlanetPreview::Construct(const FArguments& Args)
 {
-    OnPlacementCommitted=Args._OnPlacementCommitted;
+    OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;
     Scene=MakeUnique<FCLGlobeScene>();
     Mesh.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
     Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
@@ -277,6 +305,15 @@ TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){C
 void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;Pending=MoveTemp(Plan);Pump();}
 void SCLPlanetPreview::Cancel(){++Revision;Pending.Reset();}
 bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid();}
+void SCLPlanetPreview::SetRegionInspection(bool Inspect)
+{CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
+bool SCLPlanetPreview::IsInspectingRegions() const{return Client->bInspectRegions&&Client->Plan&&Client->Plan->GeneratedRegions.IsValid();}
+void SCLPlanetPreview::SelectGeneratedRegion(FGuid Id)
+{
+    SetRegionInspection(true);const auto G=Client->Plan?Client->Plan->GeneratedRegions:nullptr;
+    Client->SelectedRegion=G&&G->Cells.ContainsByPredicate([&](const auto& C){return C.Id==Id;})?Id:FGuid();Client->Invalidate();OnRegionSelected.ExecuteIfBound(Client->SelectedRegion);
+}
+FGuid SCLPlanetPreview::GeneratedSelection() const{return Client->SelectedRegion;}
 void SCLPlanetPreview::Frame(){if(Client){Client->Navigation.Zoom=1;Client->Navigation.Pivot=FVector::ZeroVector;Client->Navigation.Pan=FVector2D::ZeroVector;Client->Apply();}}
 void SCLPlanetPreview::Dolly(double Steps){Client->Dolly(Steps);}
 void SCLPlanetPreview::SetGuides(const FCLRadialGuideSet& Guides,bool Visible){Client->Guides=Guides;Client->bGuides=Visible;Client->UpdateIndicators();Client->Invalidate();}
@@ -290,7 +327,7 @@ void SCLPlanetPreview::Pump()
         auto B=Task.Consume(); // Move the completed buffers; do not copy a dense mesh on the UI thread.
         if(TaskRevision==Revision)
         {
-            Client->Plan=BuildingPlan;Client->UpdatePlacementOverlay();
+            Client->Plan=BuildingPlan;Client->RegionBoundaries=MoveTemp(B.RegionBoundaries);Client->RegionCentres=MoveTemp(B.RegionCentres);Client->UpdatePlacementOverlay();
             Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
             if(!Framed){Framed=true;Frame();}else Client->Apply();
         }
@@ -309,14 +346,15 @@ void SCLPlanetPreview::SetAuthoringRecipe(const FCLPlanetRecipe& R)
 }
 void SCLPlanetPreview::Select(FCLGlobeSelection Key)
 {
-    CancelPlacementDrag();if(Key!=Client->Selected)Client->Mode=ECLGlobePlacementMode::Move;Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();
+    CancelPlacementDrag();if(Key.IsValid()){Client->bInspectRegions=false;Client->SelectedRegion.Invalidate();OnRegionSelected.ExecuteIfBound(FGuid());}if(Key!=Client->Selected)Client->Mode=ECLGlobePlacementMode::Move;Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();
 }
 FCLGlobeSelection SCLPlanetPreview::Selection() const{return Client->Selected;}
 FString SCLPlanetPreview::SelectionName() const{const auto* T=Client->SelectedTarget();return T?T->Name:TEXT("None");}
-void SCLPlanetPreview::SetPlacementMode(ECLGlobePlacementMode Mode){if(DragAxis==EAxisList::None){Client->Mode=Mode;Client->UpdatePlacementOverlay();Client->Invalidate();}}
+void SCLPlanetPreview::SetPlacementMode(ECLGlobePlacementMode Mode){if(DragAxis==EAxisList::None){Client->bInspectRegions=false;Client->Mode=Mode;Client->UpdatePlacementOverlay();Client->Invalidate();}}
 ECLGlobePlacementMode SCLPlanetPreview::PlacementMode() const{return Client->Mode;}
 FString SCLPlanetPreview::PlacementHint() const
 {
+    if(IsInspectingRegions())return TEXT("Click a generated region to inspect its Landform assignment | Left drag: orbit");
     if(DragAxis!=EAxisList::None)return TEXT("Release to apply placement and rebuild terrain | Esc: cancel");
     if(!Client->Selected.IsValid())return TEXT("Click a Landform / feature to select | Left drag: orbit");
     return Client->Mode==ECLGlobePlacementMode::Move?TEXT("Drag Unreal arrows / plane: move on surface | W: move | E: rotate | R: scale | Space: cycle"):
@@ -329,7 +367,11 @@ FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPoin
     const FKey Key=E.GetEffectingButton();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
     if(DragAxis!=EAxisList::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;
-    if(Key==EKeys::LeftMouseButton)
+    if(Key==EKeys::LeftMouseButton&&IsInspectingRegions())
+    {
+        FVector D;ClickGeneratedRegion.Invalidate();if(Client->CursorDirection(PointerPosition(G,E),D)){const auto& Cells=Client->Plan->GeneratedRegions->Cells;const int32 Index=Client->Plan->GeneratedRegions->Owner(D);if(Cells.IsValidIndex(Index))ClickGeneratedRegion=Cells[Index].Id;}
+    }
+    else if(Key==EKeys::LeftMouseButton)
     {
         const auto P=PointerPosition(G,E);const auto Axis=Client->HitWidgetAxis(P);const auto* T=Client->SelectedTarget();FVector Point;
         if(Axis!=EAxisList::None&&T&&Client->WidgetPoint(P,*T,Axis,Client->GetWidgetLocation(),Point))
@@ -340,7 +382,7 @@ FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPoin
 }
 FReply SCLPlanetPreview::OnMouseMove(const FGeometry& G,const FPointerEvent& E)
 {
-    if(!HasMouseCapture()){Client->HoverAxis(Client->HitWidgetAxis(PointerPosition(G,E)));return FReply::Unhandled();}const auto Delta=E.GetScreenSpacePosition()-Previous;Previous=E.GetScreenSpacePosition();
+    if(!HasMouseCapture()){Client->HoverAxis(IsInspectingRegions()?EAxisList::None:Client->HitWidgetAxis(PointerPosition(G,E)));return FReply::Unhandled();}const auto Delta=E.GetScreenSpacePosition()-Previous;Previous=E.GetScreenSpacePosition();
     if(DragAxis!=EAxisList::None)
     {
         FVector Point;if(Client->WidgetPoint(PointerPosition(G,E),DragStart,DragAxis,DragOrigin,Point))
@@ -385,13 +427,13 @@ FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E
         const bool Resize=Client->Mode==ECLGlobePlacementMode::Resize;
         CancelPlacementDrag();if(Changed)OnPlacementCommitted.ExecuteIfBound(Target,Resize);
     }
-    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag)Select(ClickSelection);
+    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag){if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
     Button=FKey();return FReply::Handled().ReleaseMouseCapture();
 }
 void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();CancelPlacementDrag();}
 FReply SCLPlanetPreview::OnPreviewKeyDown(const FGeometry&,const FKeyEvent& E)
 {
-    if(E.GetKey()==EKeys::Escape){const bool WasDragging=DragAxis!=EAxisList::None;CancelPlacementDrag();if(!WasDragging)Select({});Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
+    if(E.GetKey()==EKeys::Escape){const bool WasDragging=DragAxis!=EAxisList::None;CancelPlacementDrag();if(!WasDragging){if(IsInspectingRegions())SelectGeneratedRegion(FGuid());else Select({});}Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     if(E.IsControlDown()||E.IsCommandDown()||E.IsAltDown())return FReply::Unhandled();
     if(E.GetKey()==EKeys::SpaceBar)SetPlacementMode(Client->Mode==ECLGlobePlacementMode::Move?ECLGlobePlacementMode::Rotate:Client->Mode==ECLGlobePlacementMode::Rotate?ECLGlobePlacementMode::Resize:ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::W)SetPlacementMode(ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::E)SetPlacementMode(ECLGlobePlacementMode::Rotate);else if(E.GetKey()==EKeys::R)SetPlacementMode(ECLGlobePlacementMode::Resize);else return FReply::Unhandled();return FReply::Handled();
 }
@@ -610,5 +652,38 @@ bool FCLGlobeLightingTest::RunTest(const FString&)
     TestEqual(TEXT("Full rendered orbit sweep completes"),Frames,36);TestTrue(TEXT("Background remains dark at every orientation"),WorstBackground<100);TestTrue(TEXT("Terrain is never broadly clipped white"),MostClipped<640*480/100);TestTrue(TEXT("Lit terrain is actually rendered at every angle"),LeastTerrain>1000);TestTrue(TEXT("Visible terrain remains legible at fixed exposure"),DarkestCentre>=55);
     AddInfo(FString::Printf(TEXT("Rendered exposure sweep: %d orientations, background blue max %d/255, clipped-white pixels max %d, lit terrain min %d, centre luminance min %d/255"),Frames,WorstBackground,MostClipped,LeastTerrain,DarkestCentre));
     App.RequestDestroyWindow(Window);return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeGeneratedInspectionTest,"Catalyst.Landform.PlanetBuilder.GeneratedRegionInspection",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobeGeneratedInspectionTest::RunTest(const FString&)
+{
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/GeneratedRegions.json")));
+    const auto Asset=TStrongObjectPtr<UCLPlanetRecipeAsset>(NewObject<UCLPlanetRecipeAsset>());if(!Asset->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    const auto Plan=FCLPlanetCompiler::Compile(Asset->Recipe,Error);if(!Plan){AddError(Error);return false;}
+    auto& App=FSlateApplication::Get();FGuid Callback;int32 Callbacks=0;
+    const auto W=SNew(SCLPlanetPreview).OnRegionSelected(FOnCLGlobeRegionSelected::CreateLambda([&](FGuid Id){Callback=Id;++Callbacks;}));
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Generated region inspection proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    const auto C=W->Client;C->Plan=Plan;const auto B=FCLGlobeBuffers::Build(*Plan,96);C->RegionBoundaries=B.RegionBoundaries;C->RegionCentres=B.RegionCentres;
+    TestTrue(TEXT("Compiled regions have rendered surface contours"),B.RegionBoundaries.Num()>100&&B.RegionCentres.Num()==24);
+    W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
+    C->SetViewLocation(Plan->GeneratedRegions->Cells[0].Centre*150000);C->SetViewRotation((-C->GetViewLocation()).Rotation());C->StudioScene->AimLights(C->GetViewRotation());W->Scene->UpdateCaptureContents();
+    auto Render=[&](TArray<FColor>& Pixels){V->Invalidate();V->Draw(false);FlushRenderingCommands();return V->ReadPixels(Pixels);};
+    TArray<FColor> Hidden,Visible;W->SetRegionInspection(false);Render(Hidden);Render(Hidden);W->SetRegionInspection(true);TestTrue(TEXT("Region overlay frame renders"),Render(Visible));
+    int32 Changed=0;for(int32 I=0;I<FMath::Min(Hidden.Num(),Visible.Num());++I)Changed+=FMath::Abs(int32(Hidden[I].R)-Visible[I].R)+FMath::Abs(int32(Hidden[I].G)-Visible[I].G)+FMath::Abs(int32(Hidden[I].B)-Visible[I].B)>30;
+    TestTrue(TEXT("Screen-space region lines are visibly different from terrain alone"),Changed>100);
+    FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(W->ViewportWidget.ToSharedRef(),Actual,EVisibility::All);const auto Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const FWidgetPath Path(MakeArrayView(Arranged));
+    const FVector2D Screen=Geometry.LocalToAbsolute(Geometry.GetLocalSize()*.5);
+    App.RoutePointerDownEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,Screen,Screen,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState()));
+    App.RoutePointerUpEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,Screen,Screen,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));
+    TestTrue(TEXT("Actual viewport click selects the compiled cell under the cursor"),W->GeneratedSelection()==Plan->GeneratedRegions->Cells[0].Id&&Callback==W->GeneratedSelection()&&Callbacks==1);
+    TestFalse(TEXT("Inspecting a region schedules no terrain work"),W->IsUpdating());
+    Render(Visible);TArray<uint8> PNG;FImageUtils::CompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Visible,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification/generated-region-inspection.png")));
+    W->OnPreviewKeyDown(Geometry,FKeyEvent(EKeys::Escape,FModifierKeysState(),0,false,0,0));TestFalse(TEXT("Escape clears the inspected region"),W->GeneratedSelection().IsValid());
+    W->SetPlacementMode(ECLGlobePlacementMode::Move);TestFalse(TEXT("Editorial tools leave region inspection"),W->IsInspectingRegions());
+    AddInfo(FString::Printf(TEXT("Generated region inspection: %d surface contour segments, %d visibly changed pixels; routed surface selection passed"),B.RegionBoundaries.Num(),Changed));
+    App.ReleaseAllPointerCapture();App.RequestDestroyWindow(Window);return true;
 }
 #endif

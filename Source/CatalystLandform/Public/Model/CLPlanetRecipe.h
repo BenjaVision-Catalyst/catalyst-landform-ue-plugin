@@ -5,6 +5,7 @@
 #include "Model/CLRadialGuides.h"
 #include "Model/CLStampDistribution.h"
 #include "Model/CLPlanetStructure.h"
+#include "Model/CLLandformSuitability.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -114,6 +115,41 @@ struct CATALYSTLANDFORM_API FCLSphericalRegionMask
     double Weight(const FVector& UnitDirection,double Radius) const;
 };
 
+/** Portable applied Landform snapshot selected for generated regions. Editor links live on the asset. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLLandformPaletteEntry
+{
+    GENERATED_BODY()
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FGuid Id;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FString Name;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=true;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=2;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLLandformSuitability Suitability;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) TArray<FCLNoiseLayer> NoiseLayers;
+};
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLRegionAssignmentOverride
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FGuid RegionId;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FGuid LandformId;
+};
+/** Planet-owned, versioned spherical cellular generation and palette assignment. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLRegionGenerationSettings
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="8",ClampMax="128")) int32 RegionCount=24;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=73;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double StructureGuidance=.8;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.05",ClampMax="1")) double BlendFraction=.55;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double ReliefStrength=1;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FCLLandformPaletteEntry> Palette;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FCLRegionAssignmentOverride> Overrides;
+};
+
 /** Applied terrain snapshot. Guides and projection are supplied only by the parent planet. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLTerrainRegion
@@ -162,12 +198,14 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLTerrainRegion> TerrainRegions;
     /** Manual broad uplift/basin layout, separate from reusable Landform definitions. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRegionGenerationSettings RegionGeneration;
 };
 
 class UCLTerrainTypeAsset;
 class FCLNativeNoiseKernel;
 class FCLCompiledStampDistribution;
 class UCLStampLibraryAsset;
+class FCLCompiledRegionGeneration;
 
 /** Worker-safe output. Opaque source owners retain lifetimes without reading live authoring state. */
 struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
@@ -215,6 +253,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     };
     /** Sorted by explicit priority then persistent ID. No UObject state on workers. */
     TArray<FRegion> Regions;
+    TSharedPtr<const FCLCompiledRegionGeneration> GeneratedRegions;
     TArray<FCLCompiledPlanetFeature> BaseStructure;
     int32 GetDistributedStampCount() const;
     /** Diagnostic coverage of distributed stamp footprints and their fade weights. */
@@ -250,6 +289,9 @@ public:
     /** Authoring reference. Null means an imported/legacy self-contained recipe. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") TObjectPtr<UCLRadialGuideLibraryAsset> RadialGuideLibrary;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") FGuid RadialGuideSetId;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Landform|Sources") TMap<FGuid,TObjectPtr<UCLTerrainTypeAsset>> PaletteSources;
+    UFUNCTION(BlueprintCallable,Category="Landform|Sources") bool AddPaletteSource(UCLTerrainTypeAsset* Source,FString& Error);
+    UFUNCTION(BlueprintCallable,Category="Landform|Sources") bool RefreshPaletteSource(FGuid Id,FString& Error);
     /** Optional authoring links; portable recipes retain applied snapshots only. */
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Landform|Sources") TMap<FGuid,TObjectPtr<UCLTerrainTypeAsset>> LandformSources;
     UFUNCTION(BlueprintCallable,Category="Landform|Sources") bool SetLandformSource(FGuid RegionId,UCLTerrainTypeAsset* Source,FString& Error);

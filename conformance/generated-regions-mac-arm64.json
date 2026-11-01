@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "parent_component_revision": "8d3e0f3",
+  "parent_workspace_revision": "53c176c",
+  "build": "passed",
+  "source_sha256": "be4bd293344ab36c850cbb3a8ee83ad2e9579488effa7d0e38f0e992ac3ac021",
+  "source_hash_algorithm": "Sorted component-relative Source paths, NUL, then bytes",
+  "automation": {
+    "passed": 70,
+    "failed": 0,
+    "tests_with_warning_events": 1,
+    "report": "Landform/Projects/LandformLab/Saved/Verification/generated-regions-final/index.json",
+    "report_sha256": "4fb339491b1ff1be24ab88139edf2f5b75a735ae0e3984fef868e485cd54a956"
+  },
+  "region_profile": {
+    "planet_schema": 12,
+    "terrain_schema": 7,
+    "region_algorithm": 1,
+    "regions": 24,
+    "mountain_regions": 8,
+    "plateau_regions": 16,
+    "sites_changed_without_structure_guidance": 23,
+    "one_source_fills_every_region": true,
+    "ten_candidate_palette_tested": true,
+    "ids_and_assignments_ignore_input_order": true,
+    "assignment_overrides_and_source_refresh": true,
+    "source_fields_shared_across_outer_patches": true,
+    "source_programs_compile_only_if_assigned": true,
+    "whole_sphere_weights_normalized": true
+  },
+  "field_parity": {
+    "directions": 2379,
+    "max_weight_error": 2.22044604925e-16,
+    "max_independent_composition_error_m": 9.04038199678e-06,
+    "max_atlas_error_m": 1.02409524061e-06,
+    "max_native_zero_set_residual_cm": 0.00195189693,
+    "max_section_residual_cm": 0.00197791478
+  },
+  "native_walk": {
+    "passed": true,
+    "frames": 10747,
+    "ground_frames": 10747,
+    "voxel_floor_frames": 10747,
+    "mountain_frames": 4830,
+    "blend_frames": 1510,
+    "plateau_frames": 4407,
+    "patch_crossings": 2,
+    "landform_join_crossings": 4,
+    "min_up_dot": 0.9999999999997088,
+    "min_gravity_dot": 0.9999999905503514,
+    "max_floor_field_residual_cm": 0.44111450440686895,
+    "worst_route_slope_degrees": 21.443899077369984,
+    "movement_input_only": true,
+    "terrain_modified_for_route": false
+  },
+  "saved_assets": {
+    "passed": true,
+    "fresh_process_reload": true,
+    "recipe_matches_json": true,
+    "palette_source_links": 2,
+    "source_metadata_matches_json": true,
+    "shared_guide_reference": true,
+    "existing_files_preserved": 56,
+    "route_degrees": [
+      [
+        -49.64150109783692,
+        22.796091456843953
+      ],
+      [
+        11.643436662336006,
+        20.38012901242273
+      ],
+      [
+        -49.64150109783692,
+        22.796091456843953
+      ]
+    ],
+    "max_sampled_route_slope_degrees": 21.443899077369984
+  },
+  "report_sha256": {
+    "Landform/Projects/LandformLab/Saved/Verification/generated-regions-physics/index.json": "a017806d6339126e74c070d998448e65f87a483c7114b96cbf4cdd67aba9c823",
+    "Landform/Projects/LandformLab/Saved/Verification/generated-regions-walk.json": "0182680c7d8fdbbddb46e566e43fb7ad463fcc261996d3c06e60a2b356e6e2bb",
+    "Landform/Projects/LandformLab/Saved/Verification/generated-regions-assets.json": "082d62d901e4b20e3dc007aa2dc566cca4c1d3b3b125dede4da4ace4b9343e40"
+  },
+  "visual_captures": {
+    "Landform/Projects/LandformLab/Saved/Verification/generated-regions-visual/blend.png": "2bccd31bba7e5a85d4a67e2b06a464ae273aa3623d758411a9ee926cdce5aa90",
+    "Landform/Projects/LandformLab/Saved/Verification/generated-regions-visual/mountain.png": "69c2a6ca1059483848ce2de6360ef7cb05f6ad471f1ea2cb8624fff5f2bf4975",
+    "Landform/Projects/LandformLab/Saved/Verification/generated-regions-visual/plateau.png": "3514b48a4431ce96375e0341fb01e0d65780e02d49f1d6f153c28695b931a4ea",
+    "Landform/Projects/LandformLab/Saved/Verification/generated-region-inspection.png": "dfe63fe12c4629adba74e23c4d760736f4bbb9dd99c125a148839381c3e68228"
+  },
+  "limits": [
+    "Structure-guided footprint heuristic; not a tectonic or hydrologic simulation",
+    "8..128 cells, 32 palette candidates, 128 overrides; existing per-layer/per-face PCG and 1024 unique source-stamp proof budgets",
+    "Fixed density scales with planetary area; resize-layout test holds stamp count constant by reducing density",
+    "Seed/index IDs are not geographically persistent through geology/count edits; reseeding clears UI overrides",
+    "Soft suitability ranking does not guarantee every selected Landform is assigned",
+    "70 component tests retain one existing LineSetComponentMaterial dependency warning case",
+    "Mac local editor proof only; packaged delivery, multiplayer, cross-platform determinism, navigation, streaming and general performance unqualified",
+    "No vendor, engine or project rendering setting changes"
+  ],
+  "native_walk_source_sha256_before_editor_only_overlay_fix": "61aa70c38657ded7851636d2518facacc4f7c23ad143038adafac3c90f0818df",
+  "region_inspection": {
+    "rendered_surface_contour_segments": 1500,
+    "overlay_changed_pixels": 6331,
+    "routed_viewport_click_selects_expected_cell": true,
+    "selection_schedules_no_terrain_work": true,
+    "escape_deselects": true,
+    "editorial_tools_leave_inspection": true,
+    "screen_space_line_width": true
+  }
+}

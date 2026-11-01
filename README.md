@@ -589,3 +589,51 @@ The globe uses fixed EV100 −2 with automatic/local exposure, bloom, lens flare
 light shafts disabled. This removes the view-dependent overexposure path from
 its intermittently redrawn working scene without changing gameplay settings. A
 camera-relative key/fill/rim rig keeps the visible side legible throughout orbiting.
+
+
+## Structure-guided regional Landforms
+
+Planet recipe schema 12 adds an optional `RegionGeneration` stage. It partitions
+planet directions into seeded spherical cells, biases their density and shape
+using the authored uplift/basin/scar structure, and assigns a selected palette of
+Landforms. One enabled source fills every cell. Multiple sources compete using
+optional terrain-schema-7 placement preferences: named elevation-guide interval,
+base slope, uplift/basin/structural-edge affinity, relative region scale and
+selection weight. Preferences live on the reusable Landform; guide values and
+all generated-region settings belong to the planet.
+
+Planet Builder's left **Generated regions** panel selects the palette, count,
+seed, structure guidance and blend width. Region inspection draws boundaries on
+the globe; click a region or use its picker to see its assignment explanation
+and override its source. Turn inspection off or select an editorial feature to
+use the existing native move/rotate/scale widget. Broad editorial features remain
+independent and can move the regional layout through their structural influence.
+
+The compiler shares one immutable partition across the six surface patches.
+Compact C2 kernels form a normalized, gap-free blend, including junctions;
+queries for cells using the same source are aggregated before sampling. Each
+used source has one shared six-face field, with globally continuous noise and
+PCG coordinates rather than a repeated/reseeded tile per cell. Generated relief
+is added over base noise, editorial Landforms compose next, and broad geological
+relief is applied once. Globe, cutaway, native VPP surface and collision consume
+that same compiled field.
+
+Portable recipes contain source snapshots, preferences and assignment overrides;
+UObject authoring links remain outside the recipe. Source edits only reach a
+planet through explicit **Refresh source**. `Examples/GeneratedRegions.json` and
+the two `*Regional.json` terrain examples demonstrate the contract. Earlier
+schemas retain their previous behaviour; generation is disabled by default.
+
+The first profile supports 8–128 cells, up to 32 palette candidates, and 128
+assignment overrides, retaining existing per-layer/per-face PCG and 1,024 unique
+stamp budgets. A larger planet with unchanged stamps-per-square-kilometre needs
+more placements and can exceed those proof limits. Seed/index cell IDs survive
+palette reorder and assignment changes; count/geology edits may relocate cells,
+and reseeding clears their overrides in the editor. Suitability is a soft ranking,
+not a guarantee that every selected source is used. This is a structure-guided
+heuristic, not a physical tectonics or hydrology simulation. Cross-platform,
+packaged-build and planet-scale streaming qualification remain future work.
+
+The independent host proof and reproduction steps are documented in
+`Landform/Projects/LandformLab/Docs/GeneratedRegions.md`; measured results are in
+`conformance/generated-regions-mac-arm64.json`.

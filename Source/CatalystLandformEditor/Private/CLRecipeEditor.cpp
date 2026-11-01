@@ -2,6 +2,7 @@
 #include "CLTerrainDesigner.h"
 #include "CLTerrainEditing.h"
 #include "CLNoiseLayerStack.h"
+#include "CLRegionGenerationPanel.h"
 #include "IDetailsView.h"
 #include "AssetToolsModule.h"
 #include "IAssetTools.h"
@@ -634,6 +635,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<FCLTerrainEditing> TerrainEditing;
     TStrongObjectPtr<UCLPlanetRecipeAsset> PreviewContext;
     TSharedPtr<SCLNoiseLayerStack> NoiseStack;
+    TSharedPtr<SCLRegionGenerationPanel> GenerationPanel;
     TSharedPtr<SVerticalBox> RegionControls;
     FDelegateHandle TerrainChanged;
     UCLPlanetRecipeAsset* RecipeAsset() const
@@ -766,7 +768,7 @@ public:
                         if(bNewRegion)
                         {
                             FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=Weak->TerrainType.Name;
-                            if(Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface){Candidate.SchemaVersion=11;Region.bPlacedLandform=true;}
+                            if(Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface){Candidate.SchemaVersion=FMath::Max(11,Candidate.SchemaVersion);Region.bPlacedLandform=true;}
                             Target=Region.Id;Candidate.TerrainRegions.Add(Region);
                         }
                         FString Error;
@@ -789,7 +791,7 @@ public:
             Menu.AddMenuEntry(FText::FromString(Name),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Id,FeatureId]
             {
                 auto* A=RecipeAsset();auto Candidate=A->Recipe;auto* R=Candidate.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Id;});if(!R)return;
-                R->Placement.StructureFeatureId=FeatureId;R->bPlacedLandform=true;Candidate.SchemaVersion=11;
+                R->Placement.StructureFeatureId=FeatureId;R->bPlacedLandform=true;Candidate.SchemaVersion=FMath::Max(11,Candidate.SchemaVersion);
                 FString Error;if(!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;return;}
                 const FScopedTransaction Tx(FText::FromString(TEXT("Connect Landform to structure")));A->Modify();A->Recipe=MoveTemp(Candidate);A->PostEditChange();A->MarkPackageDirty();
             })));
@@ -929,11 +931,12 @@ public:
         const auto Plan = !GuidesValid?TSharedPtr<const FCLCompiledPlanetRecipe>():TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         if(!GuidesValid)Status=GuideError;
         bPreviewInvalid = !Plan.IsValid();
+        if(GenerationPanel)GenerationPanel->Refresh(Plan?Plan->GeneratedRegions:nullptr);
         if (Plan)
         {
             Status = TerrainEditing ? FString::Printf(TEXT("%s | %d layers | %s"), *TerrainEditing->Asset->TerrainType.Name,
                 Plan->SurfacePatches.IsEmpty()?Plan->Layers.Num():Plan->SurfacePatches[0]->Layers.Num(), TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("Terrain preview")) :
-                FString::Printf(TEXT("%s | radius %.0f m | %d broad features | %d base layers | %d regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Asset->Recipe.BaseStructure.Num(), Asset->Recipe.NoiseLayers.Num(), Asset->Recipe.TerrainRegions.Num());
+                FString::Printf(TEXT("%s | radius %.0f m | %d broad features | %d editorial Landforms | %d generated regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Asset->Recipe.BaseStructure.Num(), Asset->Recipe.TerrainRegions.Num(), Plan->GeneratedRegions?Plan->GeneratedRegions->Cells.Num():0);
             if (Preview)
             {
                 if(!TerrainEditing && bGlobe){Preview->CancelPendingBuild();Preview->Client->Plan=Plan;}
@@ -952,6 +955,7 @@ public:
         if (!TerrainEditing)
             GlobeWidget = SAssignNew(Globe,SCLPlanetPreview)
                 .OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateSP(this,&FCLRecipeToolkit::CommitGlobePlacement))
+                .OnRegionSelected(FOnCLGlobeRegionSelected::CreateLambda([this](FGuid Id){if(GenerationPanel)GenerationPanel->SelectRegion(Id);}))
                 .Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
         return SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})]
@@ -1013,6 +1017,10 @@ public:
                 [SNew(STextBlock).Text(FText::FromString(TEXT("Show Radial Guides")))]]
             +SVerticalBox::Slot().AutoHeight()[ViewAreaControls()]
             +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Visibility_Lambda([this]{return bGlobe?EVisibility::Collapsed:EVisibility::Visible;}).Text(this,&FCLRecipeToolkit::NavigationHint)]);
+        AddSection(TEXT("Generated regions"), SAssignNew(GenerationPanel,SCLRegionGenerationPanel).Asset(RecipeAsset())
+            .Inspecting_Lambda([this]{return Globe&&Globe->IsInspectingRegions();})
+            .OnInspection(FOnCLRegionInspection::CreateLambda([this](bool Inspect){if(Globe)Globe->SetRegionInspection(Inspect);}))
+            .OnSelectRegion(FOnCLGeneratedRegionSelection::CreateLambda([this](FGuid Id){if(Globe)Globe->SelectGeneratedRegion(Id);})), !RecipeAsset()->Recipe.RegionGeneration.bEnabled);
         auto Placement = SNew(SVerticalBox)
             +SVerticalBox::Slot().AutoHeight()[SNew(SComboButton).OnGetMenuContent_Lambda([this]{return GlobeSelectionMenu();})
                 .ButtonContent()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(TEXT("Selection: ")+(Globe?Globe->SelectionName():TEXT("None")));})]];
@@ -1024,7 +1032,7 @@ public:
         Placement->AddSlot().AutoHeight().Padding(0,6)[Modes];
         Placement->AddSlot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text(this,&FCLRecipeToolkit::NavigationHint)];
         AddSection(TEXT("Placement"), SNew(SBox).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;})[Placement]);
-        AddSection(TEXT("Landforms"), SAssignNew(RegionControls,SVerticalBox));
+        AddSection(TEXT("Editorial Landforms"), SAssignNew(RegionControls,SVerticalBox));
         AddSection(TEXT("Base structure"), SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
             .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface;})
             +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Add uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]

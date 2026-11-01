@@ -6,10 +6,12 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLRadialGuideEditing.h"
 #include "CLGlobePlacement.h"
+#include "Model/CLRegionGeneration.h"
 #include "UnrealWidgetFwd.h"
 void CLRegisterGlobePlacementMode();
 void CLUnregisterGlobePlacementMode();
 DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementTarget&,bool);
+DECLARE_DELEGATE_OneParam(FOnCLGlobeRegionSelected,FGuid);
 class FCLGlobeClient;
 class FPreviewScene;
 struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
@@ -19,6 +21,8 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
     TArray<FVector2D> UV;
     TArray<FLinearColor> Colors;
     TArray<FProcMeshTangent> Tangents;
+    TArray<FCLGeneratedRegionBoundary> RegionBoundaries;
+    TArray<FVector> RegionCentres;
     double DisplayRadius=50000;
     static constexpr int32 PreviewResolution=512;
     /** Bound worker scratch to 20,480 field samples, regardless of mesh resolution. */
@@ -29,7 +33,7 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport
 {
 public:
-    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan);
@@ -41,6 +45,10 @@ public:
     FString PlacementHint() const;
     void SetPlacementMode(ECLGlobePlacementMode Mode);
     ECLGlobePlacementMode PlacementMode() const;
+    void SetRegionInspection(bool Inspect);
+    bool IsInspectingRegions() const;
+    void SelectGeneratedRegion(FGuid Id);
+    FGuid GeneratedSelection() const;
     void Frame();
     void Dolly(double Steps);
     void SetGuides(const FCLRadialGuideSet& Guides,bool Visible);
@@ -63,11 +71,14 @@ private:
     friend class FCLGlobePointerTest;
     friend class FCLGlobePlacementPointerTest;
     friend class FCLGlobeLightingTest;
+    friend class FCLGlobeGeneratedInspectionTest;
 #endif
     void Pump();
     void CancelPlacementDrag();
     FVector2D PointerPosition(const FGeometry& Geometry,const FPointerEvent& Event) const;
     FOnCLGlobePlacementCommitted OnPlacementCommitted;
+    FOnCLGlobeRegionSelected OnRegionSelected;
+    FGuid ClickGeneratedRegion;
     EAxisList::Type DragAxis=EAxisList::None;
     FCLGlobePlacementTarget DragStart;
     FVector DragStartPoint,DragOrigin;

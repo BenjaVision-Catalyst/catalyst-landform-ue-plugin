@@ -1,4 +1,5 @@
 #include "Model/CLPlanetRecipe.h"
+#include "Model/CLRegionGeneration.h"
 #include "Model/CLTerrainType.h"
 #include "CLModelJson.h"
 #include "CLStampDistribution.h"
@@ -107,7 +108,7 @@ double FCLSphericalRegionMask::Weight(const FVector& D,double Radius) const
 }
 
 int32 FCLCompiledPlanetRecipe::GetDistributedStampCount()const
-{if(!SurfacePatches.IsEmpty()){TArray<FCLResolvedStampPlacement> P;GetStampPlacements(P);return P.Num();}int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();for(const auto& R:Regions)N+=R.Field->GetDistributedStampCount();return N;}
+{if(!SurfacePatches.IsEmpty()){TArray<FCLResolvedStampPlacement> P;GetStampPlacements(P);return P.Num();}int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();for(const auto& R:Regions)N+=R.Field->GetDistributedStampCount();if(GeneratedRegions)for(const auto& F:GeneratedRegions->Fields)if(F)N+=F->GetDistributedStampCount();return N;}
 void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight)const
 {
     if(!SurfacePatches.IsEmpty()){SurfacePatches[FCLSphericalPatches::Owner(Direction)]->GetStampCoverage(Direction,Count,MinimumWeight);return;}
@@ -131,6 +132,12 @@ void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& C
         int32 C=0;double M=0;Regions[I].Field->GetStampCoverage(Regions[I].SourceDirection(Direction),C,M);
         Count+=C;if(C)MinimumWeight=FMath::Min(MinimumWeight,M*Contributions[I]);
     }
+    if(GeneratedRegions&&BaseWeight>0)
+    {
+        TArray<double> W;GeneratedRegions->PaletteWeights(Direction,W);
+        for(int32 I=0;I<W.Num();++I)if(W[I]>0&&GeneratedRegions->Fields[I])
+        {int32 C=0;double M=0;GeneratedRegions->Fields[I]->GetStampCoverage(Direction,C,M);Count+=C;if(C)MinimumWeight=FMath::Min(MinimumWeight,M*W[I]*BaseWeight*GeneratedRegions->Strength);}
+    }
     if(!Count)MinimumWeight=0;
 }
 void FCLCompiledPlanetRecipe::GetStampPlacements(TArray<FCLResolvedStampPlacement>& Placements) const
@@ -151,6 +158,12 @@ void FCLCompiledPlanetRecipe::GetStampPlacements(TArray<FCLResolvedStampPlacemen
         TArray<FCLResolvedStampPlacement> Child;R.Field->GetStampPlacements(Child);
         for(auto& P:Child){if(R.bPlacedLandform){P.Anchor=R.Placement.Orientation.RotateVector(P.Anchor);P.TangentX=R.Placement.Orientation.RotateVector(P.TangentX);}P.RegionId=R.Id;P.Id=FGuid::Combine(R.Id,P.Id);Placements.Add(MoveTemp(P));}
     }
+    if(GeneratedRegions)for(int32 I=0;I<GeneratedRegions->Fields.Num();++I)if(GeneratedRegions->Fields[I])
+    {
+        TArray<FCLResolvedStampPlacement> Child;GeneratedRegions->Fields[I]->GetStampPlacements(Child);
+        for(auto& P:Child){P.RegionId=GeneratedRegions->Palette[I].Id;P.Id=FGuid::Combine(P.RegionId,P.Id);Placements.Add(MoveTemp(P));}
+    }
+
 }
 
 double FCLCompiledPlanetRecipe::FLayer::TerraceHeight(double Height) const
@@ -224,7 +237,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
         return;
     }
     if(Coordinates==ECLTerrainCoordinates::SphericalSurface)
-    {EvaluateHeightsMeters(Directions,Heights,false);BlendRegionHeights(Directions,Heights,false);ApplyBaseStructure(Directions,Heights);return;}
+    {EvaluateHeightsMeters(Directions,Heights,false);if(GeneratedRegions)GeneratedRegions->Blend(Directions,Heights);BlendRegionHeights(Directions,Heights,false);ApplyBaseStructure(Directions,Heights);return;}
     if (Coordinates == ECLTerrainCoordinates::LocalPatch)
     {
         TArray<FVector> Positions;
@@ -398,7 +411,32 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 11) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 12) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if(Recipe.RegionGeneration.bEnabled || !Recipe.RegionGeneration.Palette.IsEmpty() || !Recipe.RegionGeneration.Overrides.IsEmpty())
+    {
+        if(Recipe.SchemaVersion<12)return Fail(TEXT("Generated regions and Landform palettes require recipe schema 12"));
+        if(!FCLCompiledRegionGeneration::ValidateSettings(Recipe.RegionGeneration,Error))return nullptr;
+    }
+    if(Recipe.RegionGeneration.bEnabled)
+    {
+        if(Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Fail(TEXT("Generated regions require spherical surface coordinates"));
+        auto Plain=Recipe;Plain.RegionGeneration=FCLRegionGenerationSettings();
+        const auto Core=Compile(Plain,Error,StampLibrary,LocalRegion,SurfacePatch);if(!Core)return nullptr;
+        auto BaseRecipe=Plain;BaseRecipe.TerrainRegions.Reset();
+        const auto Base=Compile(BaseRecipe,Error,StampLibrary,nullptr,FCLSphericalPatches::WholeSphere);if(!Base)return nullptr;
+        const auto Generated=FCLCompiledRegionGeneration::Compile(Recipe,*Base,StampLibrary,Error);if(!Generated)return nullptr;
+        double Low=0,High=0;
+        for(const auto& Field:Generated->Fields)if(Field){Low=FMath::Min(Low,Field->MinimumHeightMeters-Generated->NeutralHeight);High=FMath::Max(High,Field->MaximumHeightMeters-Generated->NeutralHeight);}
+        TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(const TSharedPtr<const FCLCompiledPlanetRecipe>&)> Attach;
+        Attach=[&](const TSharedPtr<const FCLCompiledPlanetRecipe>& In)->TSharedPtr<const FCLCompiledPlanetRecipe>
+        {
+            auto Out=MakeShared<FCLCompiledPlanetRecipe>(*In);Out->GeneratedRegions=Generated;Out->SurfacePatches.Reset();
+            for(const auto& Patch:In->SurfacePatches)Out->SurfacePatches.Add(Attach(Patch));
+            Out->MinimumHeightMeters=FMath::Clamp(In->MinimumHeightMeters+Low*Generated->Strength,-In->RadiusMeters,0.);
+            Out->MaximumHeightMeters=FMath::Clamp(In->MaximumHeightMeters+High*Generated->Strength,-In->RadiusMeters,0.);return Out;
+        };
+        const auto Result=Attach(Core);if(Result->GetDistributedStampCount()>1024)return Fail(TEXT("Regional palette exceeds the 1024 unique source stamp-placement proof budget"));return Result;
+    }
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.RadialGuides.Guides.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
@@ -713,8 +751,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..11 with algorithm 1, or schemaVersion 3..11 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..12 with algorithm 1, or schemaVersion 3..12 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)
@@ -767,7 +805,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     { Error = Reason.ToString(); return false; }
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
     if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 9) Candidate.SchemaVersion = 9;
-    Modify();LandformSources.Reset(); RadialGuideLibrary=nullptr;RadialGuideSetId.Invalidate();Recipe = MoveTemp(Candidate);
+    Modify();PaletteSources.Reset();LandformSources.Reset(); RadialGuideLibrary=nullptr;RadialGuideSetId.Invalidate();Recipe = MoveTemp(Candidate);
 #if WITH_EDITOR
     BindGuideLibrary();
 #endif
@@ -799,6 +837,7 @@ void FCLPlanetRecipe::RenameGuideReferences(FName Old,FName New)
         {if(Ref->Guide==Old)Ref->Guide=New;if(Ref->UpperGuide==Old)Ref->UpperGuide=New;}
     };
     Layers(NoiseLayers);for(auto& R:TerrainRegions)Layers(R.NoiseLayers);
+    for(auto& P:RegionGeneration.Palette){Layers(P.NoiseLayers);if(P.Suitability.LowerElevationGuide==Old)P.Suitability.LowerElevationGuide=New;if(P.Suitability.UpperElevationGuide==Old)P.Suitability.UpperElevationGuide=New;}
     for(auto& F:BaseStructure){if(F.Relief.Guide==Old)F.Relief.Guide=New;if(F.Relief.UpperGuide==Old)F.Relief.UpperGuide=New;}
 }
 bool UCLPlanetRecipeAsset::SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library,FGuid Id,FString& Error)

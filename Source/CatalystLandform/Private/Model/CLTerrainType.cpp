@@ -6,16 +6,16 @@
 
 #if WITH_EDITOR
 void UCLTerrainTypeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
-{ Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnTerrainChanged.Broadcast(); }
+{ if(TerrainType.PlacementSuitability.bUsePreferences)TerrainType.SchemaVersion=FMath::Max(7,TerrainType.SchemaVersion);Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnTerrainChanged.Broadcast(); }
 void UCLTerrainTypeAsset::PostEditUndo()
 { Super::PostEditUndo(); OnTerrainChanged.Broadcast(); }
 #endif
 
 bool FCLTerrainType::Validate(FString& Error) const
 {
-    if ((SchemaVersion < 1 || SchemaVersion > 6) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
+    if ((SchemaVersion < 1 || SchemaVersion > 7) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
         (SchemaVersion == 1 && AlgorithmVersion != 1) || !Id.IsValid() || Name.TrimStartAndEnd().IsEmpty())
-    { Error = TEXT("Terrain type requires schema 1..6, a supported algorithm, a valid ID and a nonempty name"); return false; }
+    { Error = TEXT("Terrain type requires schema 1..7, a supported algorithm, a valid ID and a nonempty name"); return false; }
     if (SchemaVersion < 3 && NoiseLayers.ContainsByPredicate([](const auto& L) { return L.Operation != ECLTerrainOperation::Noise; }))
     { Error = TEXT("Terracing requires terrain type schema 3"); return false; }
     if(SchemaVersion<4 && NoiseLayers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution;}))
@@ -25,6 +25,8 @@ bool FCLTerrainType::Validate(FString& Error) const
     if (SchemaVersion < 5 && NoiseLayers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution && L.Distribution.ReliefMode==ECLStampReliefMode::GuideInterval;}))
     { Error = TEXT("Guide-based stamp relief requires terrain schema 5"); return false; }
     if(Coordinates==ECLTerrainCoordinates::SphericalSurface && SchemaVersion<6){Error=TEXT("Spherical surface terrain requires schema 6");return false;}
+    if(!PlacementSuitability.Validate(Error))return false;
+    if(PlacementSuitability.bUsePreferences && SchemaVersion<7){Error=TEXT("Placement preferences require terrain schema 7");return false;}
     return FCLPlanetCompiler::ValidateNoiseLayers(NoiseLayers, Error);
 }
 bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion) const
@@ -109,13 +111,13 @@ bool UCLTerrainTypeAsset::ImportTerrainTypeJson(const FString& Json, FString& Er
     { Error = TEXT("Invalid terrain type JSON object"); return false; }
     if (!CLModelJson::CheckFields(*Object, *FCLTerrainType::StaticStruct(), Error, TEXT("TerrainType"))) return false;
     double Schema = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6))
-    { Error = TEXT("Terrain type requires schemaVersion 1..6"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7))
+    { Error = TEXT("Terrain type requires schemaVersion 1..7"); return false; }
     FCLTerrainType Candidate; FText Reason;
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!Candidate.Validate(Error)) return false;
-    Candidate.SchemaVersion = Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface?6:5;
+    Candidate.SchemaVersion = Candidate.PlacementSuitability.bUsePreferences?7:Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface?6:5;
     Modify(); TerrainType = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 7,
+  "algorithmVersion": 2,
+  "coordinates": "SphericalSurface",
+  "id": "434C1001000000000000000000000098",
+  "name": "Mountain ridges \u2014 regional",
+  "description": "Native VPP terrain in canonical planetary coordinates, shared across all spherical patches.",
+  "noiseLayers": [
+    {
+      "name": "Ridge backbone",
+      "bEnabled": true,
+      "seed": 0,
+      "shape": "Ridged",
+      "blend": "Override",
+      "minimum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.16,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.43,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 360,
+      "octaves": 4,
+      "persistence": 0.48
+    },
+    {
+      "name": "Mountain structures",
+      "bEnabled": true,
+      "operation": "StampDistribution",
+      "distribution": {
+        "collectionId": "Mountains",
+        "collectionRevision": 3,
+        "seed": 71,
+        "densityPerSquareKilometer": 24,
+        "sizeMode": "Absolute",
+        "minimumSizeMeters": 220,
+        "maximumSizeMeters": 400,
+        "reliefMode": "GuideInterval",
+        "minimumRelief": {
+          "mode": "IntervalDelta",
+          "guide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "fraction": 0.13,
+          "offsetMeters": 0
+        },
+        "maximumRelief": {
+          "mode": "IntervalDelta",
+          "guide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "fraction": 0.24,
+          "offsetMeters": 0
+        },
+        "blend": "Collection",
+        "blendSmoothnessRadiusFraction": 0,
+        "edgeFalloffFraction": 0.08
+      }
+    },
+    {
+      "name": "Ridge detail",
+      "bEnabled": true,
+      "seed": 12,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.012,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.012,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 28,
+      "octaves": 3,
+      "persistence": 0.45
+    }
+  ],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 1,
+    "basinAffinity": -0.6,
+    "structuralEdgeAffinity": 0.35,
+    "preferredElevation": {
+      "x": 0.42,
+      "y": 1.5
+    },
+    "preferredSlopeDegrees": {
+      "x": 0,
+      "y": 90
+    }
+  }
+}
