@@ -19,7 +19,7 @@ public:
     /** Editor authoring helper for VPP source settings that Python cannot access. */
     UFUNCTION(BlueprintCallable, Category="Landform|Heightmap")
     static bool ConfigureTextureSource(UVoxelHeightmap* Heightmap, UTexture2D* Texture,
-        float ScaleXY, float ScaleZ, float OffsetZ);
+        float ScaleXY, float ScaleZ, float OffsetZ, bool bUseBicubic = true);
 
     UFUNCTION(BlueprintCallable, Category="Landform|Heightmap")
     static FIntPoint GetSourceResolution(UVoxelHeightmap* Heightmap);

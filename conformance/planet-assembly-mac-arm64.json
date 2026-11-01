@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "component_parent_revision": "5bc9902b1384",
+  "host_parent_revision": "c889fc09e948",
+  "build": "passed",
+  "source_sha256": "3983f1a55b41b2289f3c463e1b88ef66aeee2274072b3dd151f95f219db5892f",
+  "host_source_sha256": "4c6b28f32cfee1d674799c027182ba0f094cf0ba1d3f0b10759e0b31856fa71e",
+  "hash_algorithm": "SHA256 of sorted component/project-relative Source paths, NUL, then file bytes",
+  "automation": {
+    "passed": 63,
+    "with_warnings": 2,
+    "failed": 0,
+    "not_run": 0,
+    "report": "LandformLab/Saved/Verification/planet-assembly-qualified/index.json"
+  },
+  "collision": {
+    "passed": true,
+    "samples": 180,
+    "edges": 12,
+    "corners": 8,
+    "voxel_size_cm": 25,
+    "max_collision_error_cm": 0.770128443955779,
+    "source": "Cooked VPP/Chaos triangles on, and 0.5m to both sides of, every edge/corner"
+  },
+  "walking": {
+    "passed": true,
+    "frames": 11946,
+    "ground_frames": 11946,
+    "voxel_floor_frames": 11946,
+    "mountain_frames": 835,
+    "blend_frames": 10266,
+    "plateau_frames": 845,
+    "patch_crossings": 2,
+    "landform_join_crossings": 4,
+    "min_up_dot": 0.9999999999999994,
+    "min_gravity_dot": 0.99999999098001,
+    "max_floor_field_residual_cm": 0.53332446677814,
+    "worst_route_slope_degrees": 10.124162183461806,
+    "movement_input_only": true,
+    "terrain_modified_for_route": false
+  },
+  "saved_assets": {
+    "passed": true,
+    "recipe_matches_json": true,
+    "authoring_source_links": 2,
+    "shared_guide_set": true,
+    "version_2_binary_defaults_preserved": true,
+    "native_canyon_samples": 12,
+    "zero_samples": 3,
+    "maximum_canyon_source_error_m": 1.641536960050871e-05,
+    "zero_moat_pixels": 198,
+    "canyon_span_degrees": 156,
+    "canyon_max_depth_m": 102,
+    "natural_route_max_slope_degrees": 10.124162183461806,
+    "preexisting_files_preserved": 49
+  },
+  "field_parity": {
+    "samples": 3750,
+    "atlas_whole_max_error_m": 8.92896423466e-10,
+    "native_zero_set_max_error_cm": 0.001953125,
+    "source_local_structure_oracle_samples": 1014,
+    "source_local_structure_max_error_m": 2.74126819022e-07,
+    "globe_vertices": 3750,
+    "cutaway_vertices": 251001,
+    "preview_field_max_error_cm": 1.96928158e-06
+  },
+  "implementation": [
+    "Schema 11 planet-owned Landform instances with fixed source frames, compact quintic influences and optional stable structure bindings",
+    "Named structure connection, numeric placement, source edit and explicit refresh in Planet Builder",
+    "Canonical regional PCG IDs retained in source-local coordinates and rotated into planet space",
+    "Broad structure applied once after regional composition",
+    "Canyons v1: contour-isolated positive depth, closed ends, zero moat and immutable native source digest; manual negative relief over a curved sphere",
+    "Portable snapshots/resolved guide values; separate editor asset links; asset custom-version 3 preserves omitted schema-10 fields"
+  ],
+  "warnings": [
+    "Existing LineSetComponentMaterial / disabled MeshModelingToolsetExp dependency warnings",
+    "One VSM non-Nanite marking-job queue overflow warning during whole-planet collision probing"
+  ],
+  "limits": [
+    "Editor Mac qualification; no packaged build, multiplayer, navmesh or streaming qualification",
+    "Numeric angular placement; direct globe surface handles remain subsequent work",
+    "No water, river runtime, erosion or new photoreal material work",
+    "Fixed-heightmap safety fade lies in zero moat; source preparation supplies the actual bank/end shape",
+    "Whole-source spherical regional fields currently compiled per face; no broad placement performance claim",
+    "Initial immediate scripted shutdown exposed pending VPP collision teardown; scripts now retire their created runtime using public API; vendor/engine sources unchanged"
+  ],
+  "component_assets_sha256": {
+    "Content/Stamps/DA_StampLibrary.uasset": "002e3a484bd63ee6689a4d736253c73b5ddf4fc23249d492d582e5e41b066aec",
+    "Content/Stamps/MotionForgeCanyonV1/Textures/T_MFC_RiverCanyonDepth.uasset": "baffc455d4ea5eeccf8af15beb04cd3eaf2480fb566588a8ae3d3b63807fbdeb",
+    "Content/Stamps/MotionForgeCanyonV1/Heightmaps/HM_MFC_RiverCanyonDepth.uasset": "1837c178602998ed3afeb4bb0e504165bb1c8099c1a2cf456bae8434db571155"
+  },
+  "project_assets_sha256": {
+    "Content/LandformDesigner/PlanetAssembly/DA_PlanetAssembly.uasset": "f9e68992e441fa3d744d91c6bbb8930f88f8f0c49da34487d6976fa0059093fc",
+    "Content/LandformDesigner/PlanetAssembly/PlanetAssemblyProof.umap": "b880339ce13e99645230bdbc72aff19246e1b6271b32424121f774979cb74e9a",
+    "Content/LandformDesigner/PlanetAssembly/DA_AssemblyGuides.uasset": "70b9d007e24c6d74063b6cc3bde650c22a3b65823d315e11df42b1a27b8b8571",
+    "Content/LandformDesigner/PlanetAssembly/Sources/DA_PlateausSpherical.uasset": "76d7e8951136a3286df727901461652c1b64f60696d08b4fa9da0dd8d9bc650b",
+    "Content/LandformDesigner/PlanetAssembly/Sources/DA_MountainRidgesSpherical.uasset": "a3d629b97027b6b11386e30875751ba1c700d2d99818f4a0eac8c2458aaa5b97"
+  },
+  "visual_check": {
+    "planet_builder_open": true,
+    "canyon_visible_on_curved_globe": true,
+    "two_landforms_bound_to_uplift": true,
+    "all_saved": true,
+    "physical_mouse_controls_qualified": false
+  }
+}

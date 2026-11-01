@@ -124,9 +124,11 @@ struct CATALYSTLANDFORM_API FCLTerrainRegion
     UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bEnabled = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Priority = 0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SeedOffset = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bPlacedLandform=false;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,meta=(EditCondition="bPlacedLandform",EditConditionHides)) FCLLandformPlacement Placement;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool bSphericalMask = false;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="!bSphericalMask", EditConditionHides)) FCLTerrainRegionMask Mask;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="bSphericalMask", EditConditionHides)) FCLSphericalRegionMask SphericalMask;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="!bSphericalMask && !bPlacedLandform", EditConditionHides)) FCLTerrainRegionMask Mask;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="bSphericalMask && !bPlacedLandform", EditConditionHides)) FCLSphericalRegionMask SphericalMask;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 AlgorithmVersion = 2;
@@ -137,7 +139,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 10;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 11;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
@@ -162,6 +164,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
 };
 
+class UCLTerrainTypeAsset;
 class FCLNativeNoiseKernel;
 class FCLCompiledStampDistribution;
 class UCLStampLibraryAsset;
@@ -202,6 +205,10 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     struct FRegion
     {
         FGuid Id;
+        bool bPlacedLandform=false;
+        FCLCompiledLandformPlacement Placement;
+        double Weight(const FVector& Direction,double Radius) const {return bPlacedLandform?Placement.Weight(Direction):SphericalMask.Weight(Direction,Radius);}
+        FVector SourceDirection(const FVector& Direction) const {return bPlacedLandform?Placement.Orientation.UnrotateVector(Direction):Direction;}
         FCLTerrainRegionMask Mask;
         FCLSphericalRegionMask SphericalMask;
         TSharedPtr<const FCLCompiledPlanetRecipe> Field;
@@ -243,6 +250,10 @@ public:
     /** Authoring reference. Null means an imported/legacy self-contained recipe. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") TObjectPtr<UCLRadialGuideLibraryAsset> RadialGuideLibrary;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") FGuid RadialGuideSetId;
+    /** Optional authoring links; portable recipes retain applied snapshots only. */
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Landform|Sources") TMap<FGuid,TObjectPtr<UCLTerrainTypeAsset>> LandformSources;
+    UFUNCTION(BlueprintCallable,Category="Landform|Sources") bool SetLandformSource(FGuid RegionId,UCLTerrainTypeAsset* Source,FString& Error);
+    UFUNCTION(BlueprintCallable,Category="Landform|Sources") bool RefreshLandformSource(FGuid RegionId,FString& Error);
     UFUNCTION(BlueprintCallable, Category="Landform|Radial Guides") bool SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library, FGuid Id, FString& Error);
     bool SynchronizeRadialGuides(FString& Error);
     virtual FString GetSummaryText() const override;

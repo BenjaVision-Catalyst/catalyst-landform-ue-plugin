@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 11,
+  "algorithmVersion": 2,
+  "name": "Ridges, Plateaus and the Great Canyon",
+  "radiusMeters": 1000,
+  "baseSurfaceNormalized": 0.47,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "radialGuides": {
+    "id": "434C5247000000000000000000000011",
+    "name": "Rocky assembly proof",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.43
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.55
+      },
+      {
+        "name": "AtmosphereMax",
+        "normalizedHeight": 0.9
+      }
+    ]
+  },
+  "noiseLayers": [],
+  "baseStructure": [
+    {
+      "id": "434C5046000000000000000000000011",
+      "name": "Northern uplift belt",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": 45,
+        "y": 30
+      },
+      "headingDegrees": 0,
+      "halfExtentDegrees": {
+        "x": 72,
+        "y": 48
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.22,
+        "offsetMeters": 0
+      }
+    },
+    {
+      "id": "434C5046000000000000000000000012",
+      "name": "Great river canyon",
+      "bEnabled": true,
+      "profile": "Heightmap",
+      "collectionId": "Canyons",
+      "collectionRevision": 1,
+      "sourceId": "MFC_RiverCanyonDepth",
+      "locationDegrees": {
+        "x": 20,
+        "y": -30
+      },
+      "headingDegrees": 8,
+      "halfExtentDegrees": {
+        "x": 78,
+        "y": 24
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.85,
+        "offsetMeters": 0
+      }
+    }
+  ],
+  "terrainRegions": [
+    {
+      "id": "434C4C46000000000000000000000010",
+      "name": "Western mountain ridges",
+      "bEnabled": true,
+      "priority": 0,
+      "seedOffset": 0,
+      "bPlacedLandform": true,
+      "bSphericalMask": true,
+      "placement": {
+        "structureFeatureId": "434C5046000000000000000000000011",
+        "locationDegrees": {
+          "x": -18,
+          "y": 0
+        },
+        "headingDegrees": 0,
+        "bFollowStructureExtent": true,
+        "coverageScale": 0.65,
+        "halfExtentDegrees": {
+          "x": 35,
+          "y": 25
+        },
+        "transitionFraction": 0.55,
+        "strength": 0.75
+      },
+      "terrainTypeId": "434C1001000000000000000000000088",
+      "terrainTypeName": "Mountain ridges \u2014 spherical field",
+      "algorithmVersion": 2,
+      "noiseLayers": [
+        {
+          "name": "Ridge backbone",
+          "bEnabled": true,
+          "seed": 0,
+          "shape": "Ridged",
+          "blend": "Override",
+          "minimum": {
+            "mode": "IntervalHeight",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": 0.16,
+            "offsetMeters": 0
+          },
+          "maximum": {
+            "mode": "IntervalHeight",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": 0.43,
+            "offsetMeters": 0
+          },
+          "scale": "Meters",
+          "wavelengthMeters": 360,
+          "octaves": 4,
+          "persistence": 0.48
+        },
+        {
+          "name": "Mountain structures",
+          "bEnabled": true,
+          "operation": "StampDistribution",
+          "distribution": {
+            "collectionId": "Mountains",
+            "collectionRevision": 3,
+            "seed": 71,
+            "densityPerSquareKilometer": 24,
+            "sizeMode": "Absolute",
+            "minimumSizeMeters": 220,
+            "maximumSizeMeters": 400,
+            "reliefMode": "GuideInterval",
+            "minimumRelief": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.13,
+              "offsetMeters": 0
+            },
+            "maximumRelief": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.24,
+              "offsetMeters": 0
+            },
+            "blend": "Collection",
+            "blendSmoothnessRadiusFraction": 0,
+            "edgeFalloffFraction": 0.08
+          }
+        },
+        {
+          "name": "Ridge detail",
+          "bEnabled": true,
+          "seed": 12,
+          "shape": "Smooth",
+          "blend": "Add",
+          "minimum": {
+            "mode": "IntervalDelta",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": -0.012,
+            "offsetMeters": 0
+          },
+          "maximum": {
+            "mode": "IntervalDelta",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": 0.012,
+            "offsetMeters": 0
+          },
+          "scale": "Meters",
+          "wavelengthMeters": 28,
+          "octaves": 3,
+          "persistence": 0.45
+        }
+      ]
+    },
+    {
+      "id": "434C4C46000000000000000000000011",
+      "name": "Eastern plateaus",
+      "bEnabled": true,
+      "priority": 10,
+      "seedOffset": 0,
+      "bPlacedLandform": true,
+      "bSphericalMask": true,
+      "placement": {
+        "structureFeatureId": "434C5046000000000000000000000011",
+        "locationDegrees": {
+          "x": 18,
+          "y": 0
+        },
+        "headingDegrees": 0,
+        "bFollowStructureExtent": true,
+        "coverageScale": 0.65,
+        "halfExtentDegrees": {
+          "x": 35,
+          "y": 25
+        },
+        "transitionFraction": 0.55,
+        "strength": 0.75
+      },
+      "terrainTypeId": "434C1001000000000000000000000089",
+      "terrainTypeName": "Plateaus \u2014 spherical field",
+      "algorithmVersion": 2,
+      "noiseLayers": [
+        {
+          "name": "Plateau mass",
+          "operation": "Noise",
+          "bEnabled": true,
+          "seed": 31,
+          "shape": "Smooth",
+          "blend": "Override",
+          "minimum": {
+            "mode": "IntervalHeight",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": 0.1,
+            "offsetMeters": 0
+          },
+          "maximum": {
+            "mode": "IntervalHeight",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": 0.95,
+            "offsetMeters": 0
+          },
+          "scale": "Meters",
+          "octaves": 3,
+          "persistence": 0.35,
+          "wavelengthMeters": 600
+        },
+        {
+          "name": "Terracing",
+          "operation": "Terrace",
+          "bEnabled": true,
+          "terrace": {
+            "stepHeight": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.12,
+              "offsetMeters": 0
+            },
+            "origin": {
+              "mode": "Height",
+              "guide": "SurfaceMin",
+              "offsetMeters": 0
+            },
+            "softness": 0.28,
+            "strength": 1
+          }
+        },
+        {
+          "name": "Plateau surface detail",
+          "operation": "Noise",
+          "bEnabled": true,
+          "seed": 73,
+          "shape": "Smooth",
+          "blend": "Add",
+          "minimum": {
+            "mode": "IntervalDelta",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": -0.002,
+            "offsetMeters": 0
+          },
+          "maximum": {
+            "mode": "IntervalDelta",
+            "guide": "SurfaceMin",
+            "upperGuide": "SurfaceMax",
+            "fraction": 0.002,
+            "offsetMeters": 0
+          },
+          "scale": "Meters",
+          "octaves": 3,
+          "persistence": 0.45,
+          "wavelengthMeters": 40
+        }
+      ]
+    }
+  ]
+}

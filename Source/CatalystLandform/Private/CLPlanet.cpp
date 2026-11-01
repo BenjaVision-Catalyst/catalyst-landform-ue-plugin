@@ -14,7 +14,7 @@
 #include "VoxelStampComponent.h"
 
 bool UCLHeightmapLibrary::ConfigureTextureSource(UVoxelHeightmap* Heightmap, UTexture2D* Texture,
-    float ScaleXY, float ScaleZ, float OffsetZ)
+    float ScaleXY, float ScaleZ, float OffsetZ, bool bUseBicubic)
 {
 #if WITH_EDITOR
     if (!IsInGameThread() || !Heightmap || !Heightmap->Height || !Texture || !FMath::IsFinite(ScaleXY) || ScaleXY <= 0 ||
@@ -25,7 +25,7 @@ bool UCLHeightmapLibrary::ConfigureTextureSource(UVoxelHeightmap* Heightmap, UTe
     Heightmap->Height->Texture = Texture;
     Heightmap->Height->TextureChannel = EVoxelTextureChannel::R;
     Heightmap->Height->bCompressTo16Bits = true;
-    Heightmap->Height->bUseBicubic = true;
+    Heightmap->Height->bUseBicubic = bUseBicubic;
     Heightmap->Height->ScaleZ = ScaleZ;
     Heightmap->Height->OffsetZ = OffsetZ;
     Heightmap->Height->OnReimport();

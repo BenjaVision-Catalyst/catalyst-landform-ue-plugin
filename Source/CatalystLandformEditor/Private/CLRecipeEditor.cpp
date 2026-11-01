@@ -762,12 +762,13 @@ public:
                         if(bNewRegion)
                         {
                             FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=Weak->TerrainType.Name;
+                            if(Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface){Candidate.SchemaVersion=11;Region.bPlacedLandform=true;}
                             Target=Region.Id;Candidate.TerrainRegions.Add(Region);
                         }
                         FString Error;
                         if(!Weak->TerrainType.ApplyToRegion(Candidate,Target,Error)){Status=TEXT("Region was not applied: ")+Error;return;}
                         const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyRegion", "Apply terrain to planet region"));
-                        RecipeAsset()->Modify();RecipeAsset()->Recipe=MoveTemp(Candidate);RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();
+                        RecipeAsset()->Modify();RecipeAsset()->Recipe=MoveTemp(Candidate);RecipeAsset()->LandformSources.Add(Target,Weak.Get());RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();
                         return;
                     }
                     const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyTerrainType", "Apply terrain type")); FString Error;
@@ -776,19 +777,34 @@ public:
         }
         return Menu.MakeWidget();
     }
+    TSharedRef<SWidget> StructureMenu(FGuid Id)
+    {
+        FMenuBuilder Menu(true,nullptr);
+        auto Add=[&](FGuid FeatureId,const FString& Name)
+        {
+            Menu.AddMenuEntry(FText::FromString(Name),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Id,FeatureId]
+            {
+                auto* A=RecipeAsset();auto Candidate=A->Recipe;auto* R=Candidate.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Id;});if(!R)return;
+                R->Placement.StructureFeatureId=FeatureId;R->bPlacedLandform=true;Candidate.SchemaVersion=11;
+                FString Error;if(!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;return;}
+                const FScopedTransaction Tx(FText::FromString(TEXT("Connect Landform to structure")));A->Modify();A->Recipe=MoveTemp(Candidate);A->PostEditChange();A->MarkPackageDirty();
+            })));
+        };
+        Add(FGuid(),TEXT("Planet frame"));for(const auto& F:RecipeAsset()->Recipe.BaseStructure)Add(F.Id,F.Name);return Menu.MakeWidget();
+    }
     void RefreshRegionControls()
     {
         if(!RegionControls)return;
         RegionControls->ClearChildren();
         if(TerrainEditing)return;
         RegionControls->AddSlot().AutoHeight()[SNew(SHorizontalBox)
-            +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("Terrain regions")))]
+            +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("Landforms")))]
             +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SComboButton)
                 .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates!=ECLTerrainCoordinates::Sphere && RecipeAsset()->Recipe.TerrainRegions.Num()<8;})
                 .OnGetMenuContent_Lambda([this]{return TerrainSourceMenu(FGuid(),true);})
-                .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add region")))]]
+                .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add Landform")))]]
             +SHorizontalBox::Slot().FillWidth(1).Padding(12,0)[SNew(STextBlock).AutoWrapText(true)
-                .Text(FText::FromString(TEXT("Edit region masks and transition widths in Details")))]];
+                .Text(FText::FromString(TEXT("Place Landforms and connect them to structure; edit terrain in its Designer")))]];
         for(const auto& Region:RecipeAsset()->Recipe.TerrainRegions)
         {
             const FGuid Id=Region.Id;
@@ -796,11 +812,21 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(Region.Name+TEXT(": "))) ]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent_Lambda([this,Id]{return TerrainSourceMenu(Id,false);})
                     .ButtonContent()[SNew(STextBlock).Text(FText::FromString(Region.TerrainTypeName))]]
+                +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SComboButton).OnGetMenuContent_Lambda([this,Id]{return StructureMenu(Id);})
+                    .ButtonContent()[SNew(STextBlock).Text_Lambda([this,Id]{const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}return FText::FromString(TEXT("Planet frame"));})]]
+                +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Placement")))
+                    .OnClicked_Lambda([this]{FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(UCLPlanetRecipeAsset::StaticClass(),TEXT("Recipe"))));Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLPlanetRecipe::StaticStruct(),TEXT("TerrainRegions"))));DetailsView->ScrollPropertyIntoView(Path,true);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Edit source")))
+                    .IsEnabled_Lambda([this,Id]{return RecipeAsset()->LandformSources.Contains(Id);})
+                    .OnClicked_Lambda([this,Id]{if(auto* Source=RecipeAsset()->LandformSources.Find(Id))CLOpenTerrainDesigner(Source->Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Refresh source")))
+                    .IsEnabled_Lambda([this,Id]{return RecipeAsset()->LandformSources.Contains(Id);})
+                    .OnClicked_Lambda([this,Id]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));FString Error;if(!RecipeAsset()->RefreshLandformSource(Id,Error))Status=Error;return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SButton).Text(FText::FromString(TEXT("Remove")))
                     .OnClicked_Lambda([this,Id]
                     {
                         const FScopedTransaction Tx(NSLOCTEXT("CL","RemoveRegion","Remove terrain region"));
-                        RecipeAsset()->Modify();RecipeAsset()->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});
+                        RecipeAsset()->Modify();RecipeAsset()->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});RecipeAsset()->LandformSources.Remove(Id);
                         RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();return FReply::Handled();
                     })]];
         }
@@ -843,11 +869,12 @@ public:
         Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLPlanetRecipe::StaticStruct(),TEXT("BaseStructure"))));
         DetailsView->ScrollPropertyIntoView(Path,true);
     }
-    void AddFeature(bool Basin)
+    void AddFeature(bool Basin,bool Canyon=false)
     {
         auto* A=RecipeAsset();if(TerrainEditing || A->Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface || A->Recipe.BaseStructure.Num()>=64)return;
-        FScopedTransaction Transaction(FText::FromString(TEXT("Add planet structure")));A->Modify();A->Recipe.SchemaVersion=10;
+        FScopedTransaction Transaction(FText::FromString(TEXT("Add planet structure")));A->Modify();A->Recipe.SchemaVersion=FMath::Max(11,A->Recipe.SchemaVersion);
         FCLPlanetFeature F;F.Id=FGuid::NewGuid();F.Name=Basin?TEXT("Basin"):TEXT("Broad uplift");F.Relief.Fraction=Basin?-.25:.25;
+        if(Canyon){F.Name=TEXT("Great canyon");F.Profile=ECLPlanetFeatureProfile::Heightmap;F.CollectionId=TEXT("Canyons");F.CollectionRevision=1;F.SourceId=TEXT("MFC_RiverCanyonDepth");F.HalfExtentDegrees=FVector2D(78,24);F.Relief.Fraction=-.85;}
         A->Recipe.BaseStructure.Add(F);A->MarkPackageDirty();A->PostEditChange();DetailsView->ForceRefresh();EditStructure();
     }
     void CreateTerrain(bool bDuplicate)
@@ -917,6 +944,7 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("Base structure")))]
                 +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SButton).Text(FText::FromString(TEXT("Add uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Add basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Add canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SButton).Text(FText::FromString(TEXT("Edit structure"))).OnClicked_Lambda([this]{EditStructure();return FReply::Handled();})]
                 +SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Position, heading, extent and relief in Details")))]]
 ;
@@ -930,7 +958,7 @@ public:
                     .ToolTipText(FText::FromString(TerrainEditing ? TEXT("Open a reusable terrain definition using the current preview guides") : TEXT("Apply a terrain type's layers using this planet's Radial Guides, radius and seed")))
                     .ButtonContent()[SNew(STextBlock).Text_Lambda([this]
                     { const FString& Name = TerrainEditing ? TerrainEditing->Asset->TerrainType.Name : RecipeAsset()->Recipe.TerrainTypeName;
-                      return FText::FromString(TEXT("Terrain: ") + (Name.IsEmpty() ? TEXT("Custom") : Name)); })]]
+                      return FText::FromString((TerrainEditing?TEXT("Terrain: "):TEXT("Base terrain: ")) + (Name.IsEmpty() ? TEXT("Neutral sphere") : Name)); })]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Edit source")))
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
                     .IsEnabled_Lambda([this] { return TerrainSource.IsValid(); })

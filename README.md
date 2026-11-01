@@ -472,9 +472,8 @@ profile. Recipe schema 10 adds stable uplift/basin instances with longitude,
 latitude, heading, angular extents and signed guide-relative relief. Smooth
 compact geodesic ovals add broad offsets once beneath the complete regional
 terrain. Region children do not reapply them, and regional PCG identities and
-reference-sphere dimensions remain unchanged. This is the first structure
-primitive profile; reusable large-Landform placement and structural region
-bindings remain the next assembly step.
+reference-sphere dimensions remain unchanged. This is the first structure primitive profile. Schema 11 below adds
+reusable Landform placement and structural region bindings.
 
 Planet Builder opens a worker-built globe with bounded orbit/zoom, editable name,
 new neutral planets, Add uplift / Add basin and Details-based placement controls.
@@ -508,3 +507,30 @@ Guide dragging updates overlays immediately and commits terrain once on release.
 Shared sets notify only referencing planets whose resolved values changed, plus
 the authoring planet. The Designer still receives only a read-only guide snapshot.
 See the host's `Docs/RadialGuides.md` for navigation, controls and qualification.
+
+### Authored Landform assembly and canyon
+
+`Examples/PlanetAssembly.json` uses schema 11 to place Mountain ridges and
+Plateaus as source-local spherical instances connected to the same broad uplift.
+The planet owns location, heading, coverage, transition and relief strength;
+source definitions remain reusable. Bindings use stable structure IDs. Changing
+the parent frame carries the regions and their deterministic regional PCG
+placements. Broad relief is added once after regional blending. Earlier mask
+profiles retain their existing semantics.
+
+Planet Builder adds Landform source selection, named structure connections,
+Details-based placement, Edit source and explicit Refresh source. Editor source
+links are stored outside the portable applied recipe. Imports clear these links;
+exports contain source snapshots and resolved guides, without Unreal paths.
+
+An editorial heightmap structure profile supports signed native VPP relief.
+The first source, Canyons v1, is a connected CC0 Motion Forge river canyon with
+tributaries, closed ends and a clean zero margin. It is placed manually, with
+negative relief cutting into the assembled terrain. Its matching river mask is
+retained for later work. The proof contains no water integration.
+
+The same field feeds the Designer cutaway, globe and native VPP volume/collision.
+The host's `Docs/PlanetAssembly.md` records ownership, controls, reproducible
+source preparation, proof map and limits. Asset custom-version 3 preserves the
+omitted schema-10 defaults of earlier version-2 packages. No engine or vendor
+source changes are part of this feature.

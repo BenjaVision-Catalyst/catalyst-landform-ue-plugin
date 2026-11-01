@@ -207,3 +207,37 @@ void FCLCompiledStampDistribution::Coverage(const FVector& Direction,int32& Coun
         if(W>1.e-6){++Count;MinimumWeight=FMath::Min(MinimumWeight,W);}
     }
 }
+
+TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::CompileFixed(const FCLPlanetFeature& F,const FCLCompiledPlanetRecipe& Input,UCLStampLibraryAsset* Library,double Relief,FString& Error)
+{
+    auto Fail=[&](const FString& E)->TSharedPtr<const FCLCompiledStampDistribution>{Error=E;return nullptr;};
+    if(!IsInGameThread())return Fail(TEXT("Editorial heightmap compilation must run on the game thread"));
+    if(!Library)Library=UCLStampLibraryAsset::LoadConfigured();
+    if(!Library || !Library->Library.Validate(Error))return Fail(TEXT("Invalid configured stamp library"));
+    const auto* C=Library->Library.Collections.FindByPredicate([&](const auto& V){return V.Id==F.CollectionId && V.Revision==F.CollectionRevision;});
+    if(!C || C->BakedRevision!=C->Revision || C->DefinitionDigest!=UCLStampLibraryAsset::CollectionDigest(*C))return Fail(TEXT("Missing or changed editorial stamp collection revision"));
+    const auto* E=C->Entries.FindByPredicate([&](const auto& V){return V.Id==F.SourceId;});
+    if(!E)return Fail(TEXT("Editorial heightmap source is missing"));
+    auto* H=E->Heightmap.LoadSynchronous();
+    if(!H || !H->Height || E->SourceDigest.Len()!=32 || UCLStampLibraryAsset::SourceDigest(H)!=E->SourceDigest)return Fail(TEXT("Editorial heightmap is missing, changed or unbaked"));
+    const auto D=H->Height->GetData();
+    if(!D || D->SizeX<4 || D->SizeY<4 || D->RawData.Num()>256*1024*1024 || H->ScaleXY<=0 || H->Height->ScaleZ<=0 || H->Height->OffsetZ!=0 || H->Height->bUseBicubic || D->DataMin<0)
+        return Fail(TEXT("Editorial heightmap needs bounded nonnegative linear data, positive scales and zero vertical offset"));
+    const double Unit=D->bIsUINT16?1./65535:1.;
+    const double Peak=(D->DataMax*Unit*D->InternalScaleZ+D->InternalOffsetZ)*H->Height->ScaleZ/100;
+    if(!FMath::IsFinite(Peak) || Peak<=0)return Fail(TEXT("Editorial heightmap has no positive depth/relief"));
+    auto Result=MakeShared<FCLCompiledStampDistribution>();Result->Surfaces=FVoxelSurfaceTypeTable::Get();Result->Assets.Emplace(Library);Result->Assets.Emplace(H);
+    FCLPlanetStamp Stamp;Stamp.Radius=Input.RadiusMeters*100;Stamp.bUseRecipe=false;
+    const FQuat Frame=FCLCompiledPlanetFeature::Frame(F.LocationDegrees,F.HeadingDegrees);
+    FCLSphericalHeightmapPlacement P;P.Id=F.Id;P.Anchor=Frame.GetAxisZ();P.TangentX=Frame.GetAxisX();
+    P.ChartRadius=(Input.RadiusMeters+Input.BaseHeightMeters)*100;
+    const FVector2D Extent=F.HalfExtentDegrees*(UE_DOUBLE_PI/180)*P.ChartRadius;
+    // Native safe rectangle excludes one sample on either side; source itself has a zero moat.
+    P.Scale=FVector(2*Extent.X/((D->SizeX-3.0001)*H->ScaleXY),2*Extent.Y/((D->SizeY-3.0001)*H->ScaleXY),FMath::Max(1.e-12,FMath::Abs(Relief))/Peak);
+    P.EdgeFalloff=1;/* 1cm safety fade lies entirely inside the source zero moat. */P.Source.Heightmap=H;P.Source.BlendMode=EVoxelHeightBlendMode::Override;P.Source.Smoothness=0;P.Source.Behavior=EVoxelStampBehavior::AffectShape;
+    Stamp.Placements.Add(P);
+    FCLResolvedStampPlacement Diagnostic;Diagnostic.Id=F.Id;Diagnostic.SourceId=E->Id;Diagnostic.Anchor=P.Anchor;Diagnostic.TangentX=P.TangentX;Result->Placements.Add(Diagnostic);
+    Result->Runtime=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr,FVoxelStampRef::New(Stamp),nullptr));
+    if(!Result->Runtime)return Fail(TEXT("Native editorial heightmap sampler failed"));
+    Result->MaximumDeltaMeters=FMath::Abs(Relief);return Result;
+}

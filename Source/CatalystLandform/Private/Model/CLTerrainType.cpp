@@ -74,7 +74,7 @@ bool UCLTerrainTypeAsset::ApplyToRegion(UCLPlanetRecipeAsset* Asset, FGuid Regio
 {
     if(!Asset){Error=TEXT("A planet recipe is required");return false;}
     auto Candidate=Asset->Recipe;if(!TerrainType.ApplyToRegion(Candidate,RegionId,Error))return false;
-    Asset->Modify();Asset->Recipe=MoveTemp(Candidate);
+    Asset->Modify();Asset->Recipe=MoveTemp(Candidate);Asset->LandformSources.Add(RegionId,const_cast<UCLTerrainTypeAsset*>(this));
 #if WITH_EDITOR
     Asset->PostEditChange();Asset->MarkPackageDirty();
 #endif

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "author": "Chris J Mitchell / Motion Forge Pictures",
+  "license": "CC0-1.0",
+  "source_page": "https://www.motionforgepictures.com/height-maps/",
+  "download_id": 10152,
+  "archive_sha256": "3ef50f56e6574a52b1959815ccbd0dc5f1cab4c6ff351e1ff45e1f647c7f9479",
+  "height_member": "Canyon Height Maps/Canyon Height Map.png",
+  "height_sha256": "95c95cda285ed70eb4f444e711341877cd06ab619031de9685d36301456f853e",
+  "river_member": "Canyon Height Maps/Water River Mask.png",
+  "river_sha256": "d3fe47d1fa0afbff008a549bd75ebc2556170d7088f8d5dce14e358f0227bfc7",
+  "preparation": "Positive depth below elevation contour 16700; river-connected incision and tributaries; ends inset 246px; 3px opening; quintic 150px distance-to-contour toe closes the canyon ends and banks; tight crop and 12% zero moat; bilinear 2049px resample; linear uint16. Interior source relief preserved. No georeferenced metre scale is claimed. River mask retained for future use; no water generation.",
+  "datum": 16700.0,
+  "crop": [
+    246,
+    540,
+    3850,
+    3405
+  ],
+  "padding_pixels": 432,
+  "output_resolution": [
+    2049,
+    1711
+  ],
+  "connected_structures": 1,
+  "zero_moat_pixels": 198,
+  "boundary_depth_max": 0.0013122758831158924,
+  "interior_error": 0.0,
+  "sources": [
+    {
+      "id": "MFC_RiverCanyonDepth",
+      "name": "River canyon incision",
+      "png_sha256": "f0c87bb3738525023775a5c5a03b6c6b9b3914efe38640649d2dc008e952afbc",
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "reference_relief_m": 100,
+      "samples_16bit": [
+        {
+          "x": 0,
+          "y": 0,
+          "value": 0
+        },
+        {
+          "x": 120,
+          "y": 717,
+          "value": 0
+        },
+        {
+          "x": 2048,
+          "y": 1710,
+          "value": 0
+        },
+        {
+          "x": 240,
+          "y": 201,
+          "value": 1
+        },
+        {
+          "x": 1081,
+          "y": 627,
+          "value": 1
+        },
+        {
+          "x": 558,
+          "y": 1490,
+          "value": 1
+        },
+        {
+          "x": 251,
+          "y": 507,
+          "value": 10040
+        },
+        {
+          "x": 1391,
+          "y": 941,
+          "value": 29941
+        },
+        {
+          "x": 871,
+          "y": 1307,
+          "value": 10091
+        },
+        {
+          "x": 1439,
+          "y": 733,
+          "value": 60161
+        },
+        {
+          "x": 390,
+          "y": 900,
+          "value": 65535
+        },
+        {
+          "x": 1689,
+          "y": 1090,
+          "value": 60011
+        }
+      ]
+    }
+  ],
+  "river_output_sha256": "202f08700a9a85681fe553a29680638aa4deb71297c931bbedfa15b77569f747"
+}

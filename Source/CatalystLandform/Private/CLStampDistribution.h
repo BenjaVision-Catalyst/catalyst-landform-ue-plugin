@@ -23,6 +23,7 @@ private:
 class FCLStampDistributionCompiler
 {
 public:
+    static TSharedPtr<const FCLCompiledStampDistribution> CompileFixed(const FCLPlanetFeature& Feature,const FCLCompiledPlanetRecipe& Input,UCLStampLibraryAsset* Library,double ReliefMeters,FString& Error);
     static TSharedPtr<const FCLCompiledStampDistribution> Compile(const FCLStampDistributionSettings& Settings,
         int32 Seed, const FCLCompiledPlanetRecipe& Input, UCLStampLibraryAsset* Library, FString& Error,
         double MinimumRelief = 0, double MaximumRelief = 0);
