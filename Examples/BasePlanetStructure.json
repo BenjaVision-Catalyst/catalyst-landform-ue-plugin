@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 10,
+  "algorithmVersion": 2,
+  "name": "Editorial planet structure",
+  "radiusMeters": 1000,
+  "baseSurfaceNormalized": 0.45,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "radialGuides": {
+    "id": "434C0001000000000000000000000001",
+    "name": "Temperate",
+    "guides": [
+      {
+        "name": "OceanHeight",
+        "normalizedHeight": 0.4
+      },
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.3
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.6
+      },
+      {
+        "name": "AtmosphereMax",
+        "normalizedHeight": 0.9
+      }
+    ]
+  },
+  "noiseLayers": [],
+  "terrainRegions": [],
+  "baseStructure": [
+    {
+      "id": "434C5046000000000000000000000001",
+      "name": "Main uplift",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": 45,
+        "y": 20
+      },
+      "headingDegrees": -15,
+      "halfExtentDegrees": {
+        "x": 70,
+        "y": 45
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.28,
+        "offsetMeters": 0
+      }
+    },
+    {
+      "id": "434C5046000000000000000000000002",
+      "name": "Western basin",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": -100,
+        "y": -10
+      },
+      "headingDegrees": 20,
+      "halfExtentDegrees": {
+        "x": 65,
+        "y": 50
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.35,
+        "offsetMeters": 0
+      }
+    },
+    {
+      "id": "434C5046000000000000000000000003",
+      "name": "Southern uplift belt",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": 15,
+        "y": -20
+      },
+      "headingDegrees": 30,
+      "halfExtentDegrees": {
+        "x": 60,
+        "y": 14
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.16,
+        "offsetMeters": 0
+      }
+    }
+  ]
+}

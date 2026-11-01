@@ -33,12 +33,13 @@ bool FCLGuideMigrationTest::RunTest(const FString&)
     Object->RemoveField(TEXT("radialGuides"));Object->SetNumberField(TEXT("schemaVersion"),9);FJsonSerializer::Serialize(Object,TJsonWriterFactory<>::Create(&Json));
     TestFalse(TEXT("Schema 9 requires canonical field names"),Asset->ImportRecipeJson(Json,Error));
 
-    auto R=Original;FCLTerrainRegion Region;Region.NoiseLayers=R.NoiseLayers;R.TerrainRegions.Add(Region);
+    auto R=Original;FCLPlanetFeature Feature;R.BaseStructure.Add(Feature);FCLTerrainRegion Region;Region.NoiseLayers=R.NoiseLayers;R.TerrainRegions.Add(Region);
     for(auto* Layers:{&R.NoiseLayers,&R.TerrainRegions[0].NoiseLayers})
         for(auto& L:*Layers)
             for(auto* Ref:{&L.Minimum,&L.Maximum,&L.Terrace.StepHeight,&L.Terrace.Origin,&L.Distribution.MinimumRelief,&L.Distribution.MaximumRelief})
             {Ref->Guide=TEXT("SurfaceMin");Ref->UpperGuide=TEXT("SurfaceMax");}
     TestTrue(TEXT("Guide rename succeeds"),FCLRadialGuideEditing::Rename(R,1,TEXT("Lowlands"),Error));
+    TestEqual(TEXT("Broad structure guide binding follows rename"),R.BaseStructure[0].Relief.Guide,FName(TEXT("Lowlands")));
     for(auto* Layers:{&R.NoiseLayers,&R.TerrainRegions[0].NoiseLayers})
         for(auto& L:*Layers)
             for(auto* Ref:{&L.Minimum,&L.Maximum,&L.Terrace.StepHeight,&L.Terrace.Origin,&L.Distribution.MinimumRelief,&L.Distribution.MaximumRelief})

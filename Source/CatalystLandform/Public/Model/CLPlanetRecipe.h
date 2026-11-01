@@ -4,6 +4,7 @@
 #include "Model/CFModelAsset.h"
 #include "Model/CLRadialGuides.h"
 #include "Model/CLStampDistribution.h"
+#include "Model/CLPlanetStructure.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -136,7 +137,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 9;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 10;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
@@ -156,6 +157,8 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Terrain layers")) TArray<FCLNoiseLayer> NoiseLayers;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLTerrainRegion> TerrainRegions;
+    /** Manual broad uplift/basin layout, separate from reusable Landform definitions. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
 };
 
 class FCLNativeNoiseKernel;
@@ -204,6 +207,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     };
     /** Sorted by explicit priority then persistent ID. No UObject state on workers. */
     TArray<FRegion> Regions;
+    TArray<FCLCompiledPlanetFeature> BaseStructure;
     int32 GetDistributedStampCount() const;
     /** Diagnostic coverage of distributed stamp footprints and their fade weights. */
     void GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight) const;
@@ -212,6 +216,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** Batched native generation, with bounded scratch memory; results are metre offsets. */
     void SampleHeightsMeters(TConstArrayView<FVector> LocalDirections, TArray<double>& Heights) const;
 private:
+    void ApplyBaseStructure(TConstArrayView<FVector> Directions,TArray<double>& Heights) const;
     void BlendRegionHeights(TConstArrayView<FVector> Positions,TArray<double>& Heights,bool bLocal) const;
     void EvaluateHeightsMeters(TConstArrayView<FVector> Positions, TArray<double>& Heights, bool bLocal) const;
 };
@@ -222,6 +227,7 @@ public:
     /** Returns no plan on error; callers may retain their last successful plan. */
     static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE);
     static FCLPlanetRecipe RollingPlains();
+    static FCLPlanetRecipe BasePlanet();
     /** Validate operation syntax without requiring a planet's guide values. */
     static bool ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error);
 };

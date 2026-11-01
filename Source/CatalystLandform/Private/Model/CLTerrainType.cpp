@@ -31,7 +31,7 @@ bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox
 {
     if (!Validate(Error)) return false;
     FCLPlanetRecipe Candidate = Recipe;
-    Candidate.SchemaVersion = 9; Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
+    Candidate.SchemaVersion = FMath::Max(9,Candidate.SchemaVersion); Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;
     const auto* First = NoiseLayers.FindByPredicate([](const auto& Layer) { return Layer.bEnabled; });
     if (Candidate.BaseSurfaceNormalized == 1 && (Coordinates != ECLTerrainCoordinates::Sphere || !First || First->Operation != ECLTerrainOperation::Noise || First->Blend != ECLNoiseBlend::Override))
@@ -66,7 +66,7 @@ bool FCLTerrainType::ApplyToRegion(FCLPlanetRecipe& Recipe, const FGuid& RegionI
     if(!Region){Error=TEXT("Terrain region was not found");return false;}
     Region->bSphericalMask=Coordinates==ECLTerrainCoordinates::SphericalSurface;
     Region->TerrainTypeId=Id;Region->TerrainTypeName=Name;Region->AlgorithmVersion=AlgorithmVersion;Region->NoiseLayers=NoiseLayers;
-    Candidate.SchemaVersion=9;
+    Candidate.SchemaVersion=FMath::Max(9,Candidate.SchemaVersion);
     if(!FCLPlanetCompiler::Compile(Candidate,Error))return false;
     Recipe=MoveTemp(Candidate);return true;
 }

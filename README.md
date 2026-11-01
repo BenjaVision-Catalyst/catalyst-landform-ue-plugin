@@ -463,3 +463,26 @@ ambiguous aliases. Unreal Core Redirects retain existing binary assets and the
 old project catalog storage path; values and IDs stay unchanged. New UI labels,
 classes, source files and authoring APIs use RadialGuide terminology. The host's
 `Docs/RadialGuides.md` records ownership and the preservation checks.
+
+### Editorial base planet and Builder globe
+
+`Examples/BasePlanetStructure.json` is the first manually placed broad-layout
+profile. Recipe schema 10 adds stable uplift/basin instances with longitude,
+latitude, heading, angular extents and signed guide-relative relief. Smooth
+compact geodesic ovals add broad offsets once beneath the complete regional
+terrain. Region children do not reapply them, and regional PCG identities and
+reference-sphere dimensions remain unchanged. This is the first structure
+primitive profile; reusable large-Landform placement and structural region
+bindings remain the next assembly step.
+
+Planet Builder opens a worker-built globe with bounded orbit/zoom, editable name,
+new neutral planets, Add uplift / Add basin and Details-based placement controls.
+A separate cutaway view retains the existing guide editor. The Designer constructs
+neither planet controls nor a globe and still saves only its reusable source.
+Its initial context receives only a guide-value snapshot. Tests guard this
+working boundary as assembly develops.
+
+The same immutable field supplies globe vertices, cutaways and the native VPP
+volume. The globe's 64-cell faces are an overview; native walking detail remains
+VPP-owned. Host workflow and limitations are in `Docs/PlanetBuilder.md`;
+qualification is in `conformance/planet-structure-mac-arm64.json`.

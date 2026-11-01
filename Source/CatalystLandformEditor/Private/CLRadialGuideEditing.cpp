@@ -27,6 +27,7 @@ bool FCLRadialGuideEditing::Rename(FCLPlanetRecipe& Recipe, int32 Index, const F
             if (Ref->UpperGuide == Old) Ref->UpperGuide = New;
         }
     };
+    for(auto& F:Recipe.BaseStructure){if(F.Relief.Guide==Old)F.Relief.Guide=New;if(F.Relief.UpperGuide==Old)F.Relief.UpperGuide=New;}
     RenameLayers(Recipe.NoiseLayers);
     for(auto& Region:Recipe.TerrainRegions)RenameLayers(Region.NoiseLayers);
     return true;

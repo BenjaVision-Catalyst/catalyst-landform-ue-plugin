@@ -27,7 +27,7 @@ private:
 namespace
 {
 const FGuid RecipeAssetVersion(0x434C5250, 0x82B741FA, 0xA3482664, 0xC96741B2);
-FCustomVersionRegistration RegisterRecipeAssetVersion(RecipeAssetVersion, 1, TEXT("CLRecipeOuterSkyRadius"));
+FCustomVersionRegistration RegisterRecipeAssetVersion(RecipeAssetVersion, 2, TEXT("CLRecipeOuterSkyRadius"));
 uint32 Mix(uint32 V)
 {
     V ^= V >> 16; V *= 0x7feb352du; V ^= V >> 15; V *= 0x846ca68bu; return V ^ (V >> 16);
@@ -223,7 +223,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
         return;
     }
     if(Coordinates==ECLTerrainCoordinates::SphericalSurface)
-    {EvaluateHeightsMeters(Directions,Heights,false);BlendRegionHeights(Directions,Heights,false);return;}
+    {EvaluateHeightsMeters(Directions,Heights,false);BlendRegionHeights(Directions,Heights,false);ApplyBaseStructure(Directions,Heights);return;}
     if (Coordinates == ECLTerrainCoordinates::LocalPatch)
     {
         TArray<FVector> Positions;
@@ -252,6 +252,15 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
         return;
     }
     EvaluateHeightsMeters(Directions, Heights, false);
+}
+void FCLCompiledPlanetRecipe::ApplyBaseStructure(TConstArrayView<FVector> Directions,TArray<double>& Heights) const
+{
+    if(BaseStructure.IsEmpty())return;
+    for(int32 I=0;I<Directions.Num();++I)
+    {
+        double Delta=0;for(const auto& F:BaseStructure)Delta+=F.Weight(Directions[I])*F.ReliefMeters;
+        Heights[I]=FMath::Clamp(Heights[I]+Delta,-RadiusMeters,0.);
+    }
 }
 void FCLCompiledPlanetRecipe::SampleLocalHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
 {
@@ -381,7 +390,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 9) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 10) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.RadialGuides.Guides.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
@@ -389,6 +398,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     if(Recipe.TerrainRegions.Num()>8)return Fail(TEXT("At most eight terrain regions are supported"));
     if(!Recipe.TerrainRegions.IsEmpty() && (Recipe.SchemaVersion<7 || Recipe.Coordinates==ECLTerrainCoordinates::Sphere))
         return Fail(TEXT("Terrain regions require recipe schema 7 and local coordinates"));
+    if(!Recipe.BaseStructure.IsEmpty() && (Recipe.SchemaVersion<10 || Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface))return Fail(TEXT("Base structure requires schema 10 spherical surface coordinates"));
+    if(Recipe.BaseStructure.Num()>64)return Fail(TEXT("Base structure exceeds 64 broad features"));
     auto Plan = MakeShared<FCLCompiledPlanetRecipe>();
     if (Recipe.AlgorithmVersion == 2)
     {
@@ -466,6 +477,21 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if (!FMath::IsFinite(Value)) { Error = TEXT("Height reference overflow"); return false; }
         return true;
     };
+    TSet<FGuid> FeatureIds;
+    for(const auto& Feature:Recipe.BaseStructure)
+    {
+        if(!Feature.Id.IsValid() || FeatureIds.Contains(Feature.Id) || Feature.Name.TrimStartAndEnd().IsEmpty() ||
+           Feature.LocationDegrees.ContainsNaN() || FMath::Abs(Feature.LocationDegrees.X)>180 || FMath::Abs(Feature.LocationDegrees.Y)>90 ||
+           !FMath::IsFinite(Feature.HeadingDegrees) || Feature.HalfExtentDegrees.ContainsNaN() || Feature.HalfExtentDegrees.GetMin()<.1 || Feature.HalfExtentDegrees.GetMax()>=85 ||
+           !Feature.Relief.Validate(Error) || Feature.Relief.Mode!=ECLHeightReferenceMode::IntervalDelta)
+            return Fail(TEXT("Invalid broad feature identity, spherical placement, extent or guide-relative delta"));
+        FeatureIds.Add(Feature.Id);if(!Feature.bEnabled)continue;
+        FCLCompiledPlanetFeature F;F.Id=Feature.Id;F.Orientation=FCLCompiledPlanetFeature::Frame(Feature.LocationDegrees,Feature.HeadingDegrees);
+        F.HalfExtentRadians=Feature.HalfExtentDegrees*(UE_PI/180);
+        if(!Resolve(Feature.Relief,F.ReliefMeters))return nullptr;
+        Plan->BaseStructure.Add(F);
+    }
+    Plan->BaseStructure.Sort([](const auto& A,const auto& B){return A.Id.ToString(EGuidFormats::Digits)<B.Id.ToString(EGuidFormats::Digits);});
     for (const FCLNoiseLayer& Layer : Recipe.NoiseLayers)
     {
         if (!Layer.bEnabled) continue;
@@ -541,7 +567,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         else if(Region.bSphericalMask || !Region.Mask.Validate(Error)){if(Error.IsEmpty())Error=TEXT("Local regions need local masks");return nullptr;}
         if(!Region.bEnabled)continue;
         if(!Region.TerrainTypeId.IsValid() || Region.TerrainTypeName.IsEmpty())return Fail(TEXT("Terrain region requires an applied source snapshot: ")+Region.Name);
-        auto Child=Recipe;Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;
+        auto Child=Recipe;Child.BaseStructure.Reset();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;
         Child.Seed=int32(uint32(Recipe.Seed)+uint32(Region.SeedOffset));Child.TerrainTypeId=Region.TerrainTypeId;
         Child.TerrainTypeName=Region.TerrainTypeName;Child.NoiseLayers=Region.NoiseLayers;
         const auto Field=Compile(Child,Error,StampLibrary,Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch?&Plan->EvaluationRegion:nullptr,SurfacePatch);
@@ -556,6 +582,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     { Plan->MinimumHeightMeters=FMath::Min(Plan->MinimumHeightMeters,Plan->BaseHeightMeters); Plan->MaximumHeightMeters=FMath::Max(Plan->MaximumHeightMeters,Plan->BaseHeightMeters); }
     Plan->MinimumHeightMeters = FMath::Min(Plan->MinimumHeightMeters, 0.0);
     Plan->MaximumHeightMeters = FMath::Min(Plan->MaximumHeightMeters, 0.0);
+    for(const auto& F:Plan->BaseStructure){Plan->MinimumHeightMeters+=FMath::Min(0.,F.ReliefMeters);Plan->MaximumHeightMeters+=FMath::Max(0.,F.ReliefMeters);}
+    Plan->MinimumHeightMeters=FMath::Clamp(Plan->MinimumHeightMeters,-Plan->RadiusMeters,0.);Plan->MaximumHeightMeters=FMath::Clamp(Plan->MaximumHeightMeters,-Plan->RadiusMeters,0.);
     return Plan;
 }
 
@@ -569,6 +597,12 @@ FCLPlanetRecipe FCLPlanetCompiler::RollingPlains()
     Detail.Minimum.OffsetMeters = -.2; Detail.Maximum.OffsetMeters = .2; Detail.WavelengthMeters = 8; Detail.Octaves = 2;
     Recipe.NoiseLayers.Add(Detail);
     return Recipe;
+}
+
+FCLPlanetRecipe FCLPlanetCompiler::BasePlanet()
+{
+    FCLPlanetRecipe R;R.Name=TEXT("New planet");R.RadiusMeters=1000;R.BaseSurfaceNormalized=.45;R.Seed=1729;
+    R.Coordinates=ECLTerrainCoordinates::SphericalSurface;R.AlgorithmVersion=2;R.RadialGuides=FCLRadialGuidePresets::Defaults()[0];return R;
 }
 
 void FCLPlanetRecipe::MigrateLegacyGuides()
@@ -624,6 +658,11 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
         for (int32 I = 0; I < 4; ++I)
         { FCLHeightGuide G; G.Name = Names[I]; G.HeightMeters = Heights[I]; G.Color = Colors[I]; Recipe.HeightGuides_DEPRECATED.Add(G); }
     }
+    if(Ar.IsLoading() && Ar.IsPersistent() && !Ar.IsTransacting() && Ar.CustomVer(RecipeAssetVersion)>=1 && Ar.CustomVer(RecipeAssetVersion)<2 && !HasAnyFlags(RF_ClassDefaultObject))
+    {
+        // Pre-structure assets omitted schema 6 when equal to the old native default.
+        Recipe=FCLPlanetCompiler::RollingPlains();Recipe.SchemaVersion=6;
+    }
     Ar.UsingCustomVersion(RecipeAssetVersion);
     Super::Serialize(Ar);
 }
@@ -647,8 +686,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..9 with algorithm 1, or schemaVersion 3..9 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..10 with algorithm 1, or schemaVersion 3..10 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)
@@ -709,7 +748,14 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
 }
 #if WITH_EDITOR
 void UCLPlanetRecipeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
-{ Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnRecipeChanged.Broadcast(); }
+{
+    if(Event.ChangeType & (EPropertyChangeType::ArrayAdd|EPropertyChangeType::Duplicate))
+    {
+        const int32 I=Event.GetArrayIndex(TEXT("BaseStructure"));
+        if(Recipe.BaseStructure.IsValidIndex(I)){Recipe.BaseStructure[I].Id=FGuid::NewGuid();Recipe.SchemaVersion=10;}
+    }
+    Super::PostEditChangeProperty(Event);if(!(Event.ChangeType & EPropertyChangeType::Interactive))OnRecipeChanged.Broadcast();
+}
 void UCLPlanetRecipeAsset::PostEditUndo()
 { Super::PostEditUndo(); OnRecipeChanged.Broadcast(); }
 #endif

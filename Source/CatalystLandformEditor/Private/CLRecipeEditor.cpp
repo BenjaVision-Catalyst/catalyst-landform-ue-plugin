@@ -11,6 +11,9 @@
 #include "Widgets/Input/NumericUnitTypeInterface.inl"
 #include "Async/Async.h"
 #include "CLSectionGeometry.h"
+#include "CLPlanetPreview.h"
+#include "PropertyPath.h"
+#include "Widgets/Input/SEditableTextBox.h"
 #include "CLSectionNavigation.h"
 #include "Framework/Application/IInputProcessor.h"
 #include "Layout/WidgetPath.h"
@@ -598,6 +601,8 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLTerrainWorkspaceTest;
 #endif
     TSharedPtr<SCLSectionViewport> Preview;
+    TSharedPtr<SCLPlanetPreview> Globe;
+    bool bGlobe=true;
     TSharedPtr<SCLHeightAnnotations> Annotations;
     TSharedPtr<FCLRadialGuideSession> RadialGuidesSession;
     TSharedPtr<FCLSelectionInput> SelectionInput;
@@ -785,7 +790,7 @@ public:
         return Menu.MakeWidget();
     }
     virtual FName GetToolkitFName() const override { return TerrainEditing ? TEXT("CLTerrainType") : TEXT("CLRecipeDesigner"); }
-    virtual FText GetBaseToolkitName() const override { return TerrainEditing ? NSLOCTEXT("CL", "TerrainDesigner", "Landform Designer") : NSLOCTEXT("CL", "PlanetRecipeEditor", "Planet Recipe"); }
+    virtual FText GetBaseToolkitName() const override { return TerrainEditing ? NSLOCTEXT("CL", "TerrainDesigner", "Landform Designer") : NSLOCTEXT("CL", "PlanetBuilderEditor", "Planet Builder"); }
     virtual FString GetWorldCentricTabPrefix() const override { return TEXT("Landform"); }
     void Export() { HandleExportJson(); }
     virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& Manager) override
@@ -801,6 +806,25 @@ public:
         if (!TerrainEditing) return SNew(SDockTab)[SNew(STextBlock).Text(FText::FromString(TEXT("Use Edit source to author a reusable terrain type.")))];
         return SNew(SDockTab)[SAssignNew(NoiseStack, SCLNoiseLayerStack).Session(TerrainEditing)
             .OnPreviewChanged(FSimpleDelegate::CreateSP(this, &FCLRecipeToolkit::Refresh))];
+    }
+    void CreatePlanet()
+    {
+        auto& Tools=FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+        if(auto* A=Cast<UCLPlanetRecipeAsset>(Tools.CreateAssetWithDialog(TEXT("DA_NewPlanet"),TEXT("/Game/LandformDesigner/Planets"),UCLPlanetRecipeAsset::StaticClass(),NewObject<UCLPlanetRecipeFactory>())))
+            GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(A);
+    }
+    void EditStructure()
+    {
+        FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(UCLPlanetRecipeAsset::StaticClass(),TEXT("Recipe"))));
+        Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLPlanetRecipe::StaticStruct(),TEXT("BaseStructure"))));
+        DetailsView->ScrollPropertyIntoView(Path,true);
+    }
+    void AddFeature(bool Basin)
+    {
+        auto* A=RecipeAsset();if(TerrainEditing || A->Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface || A->Recipe.BaseStructure.Num()>=64)return;
+        FScopedTransaction Transaction(FText::FromString(TEXT("Add planet structure")));A->Modify();A->Recipe.SchemaVersion=10;
+        FCLPlanetFeature F;F.Id=FGuid::NewGuid();F.Name=Basin?TEXT("Basin"):TEXT("Broad uplift");F.Relief.Fraction=Basin?-.25:.25;
+        A->Recipe.BaseStructure.Add(F);A->MarkPackageDirty();A->PostEditChange();DetailsView->ForceRefresh();EditStructure();
     }
     void CreateTerrain(bool bDuplicate)
     {
@@ -836,21 +860,44 @@ public:
         {
             Status = TerrainEditing ? FString::Printf(TEXT("%s | %d layers | %s"), *TerrainEditing->Asset->TerrainType.Name,
                 Plan->SurfacePatches.IsEmpty()?Plan->Layers.Num():Plan->SurfacePatches[0]->Layers.Num(), TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("Terrain preview")) :
-                FString::Printf(TEXT("%s | radius %.0f m | %d base layers | %d regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Asset->Recipe.NoiseLayers.Num(), Asset->Recipe.TerrainRegions.Num());
+                FString::Printf(TEXT("%s | radius %.0f m | %d broad features | %d base layers | %d regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Asset->Recipe.BaseStructure.Num(), Asset->Recipe.NoiseLayers.Num(), Asset->Recipe.TerrainRegions.Num());
             if (Preview)
             {
-                if (TerrainEditing || !Plan->Regions.IsEmpty() || !Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
+                if(!TerrainEditing && bGlobe){Preview->CancelPendingBuild();Preview->Client->Plan=Plan;}
+                else if (TerrainEditing || !Plan->Regions.IsEmpty() || !Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
+                if(Globe && !TerrainEditing){if(bGlobe)Globe->Rebuild(Plan);else Globe->Cancel();}
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
-        else { if (Preview) Preview->CancelPendingBuild(); Status = TEXT("Preview out of date: ") + Status; }
+        else { if (Preview) Preview->CancelPendingBuild(); if(Globe)Globe->Cancel(); Status = TEXT("Preview out of date: ") + Status; }
         RefreshRegionControls();
         RefreshAllUI(EditingAsset, false);
     }
     TSharedRef<SDockTab> SpawnSection(const FSpawnTabArgs&)
     {
+        TSharedRef<SWidget> PlanetControls=SNullWidget::NullWidget,GlobeWidget=SNullWidget::NullWidget;
+        if(!TerrainEditing)
+        {
+            PlanetControls=SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(SEditableTextBox).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.Name);})
+                    .HintText(FText::FromString(TEXT("Planet name"))).OnTextCommitted_Lambda([this](const FText& T,ETextCommit::Type){if(T.ToString().TrimStartAndEnd().IsEmpty()||T.ToString().TrimStartAndEnd()==RecipeAsset()->Recipe.Name)return;FScopedTransaction X(FText::FromString(TEXT("Rename planet")));auto* A=RecipeAsset();A->Modify();A->Recipe.Name=T.ToString().TrimStartAndEnd();A->MarkPackageDirty();A->PostEditChange();})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("New planet…"))).OnClicked_Lambda([this]{CreatePlanet();return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text_Lambda([this]{return FText::FromString(bGlobe?TEXT("Cross-section"):TEXT("Globe"));}).OnClicked_Lambda([this]{bGlobe=!bGlobe;Refresh();return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Frame planet"))).OnClicked_Lambda([this]{if(Globe)Globe->Frame();return FReply::Handled();})]]
+            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
+                .Visibility_Lambda([this]{return !TerrainEditing&&RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?EVisibility::Visible:EVisibility::Collapsed;})
+                +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("Base structure")))]
+                +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SButton).Text(FText::FromString(TEXT("Add uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Add basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SButton).Text(FText::FromString(TEXT("Edit structure"))).OnClicked_Lambda([this]{EditStructure();return FReply::Handled();})]
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Position, heading, extent and relief in Details")))]]
+;
+            GlobeWidget=SAssignNew(Globe,SCLPlanetPreview).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
+        }
         auto Tab=SNew(SDockTab)[SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this] { return FText::FromString(Status); })]
+            + SVerticalBox::Slot().AutoHeight()[PlanetControls]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::TerrainMenu)
                     .ToolTipText(FText::FromString(TerrainEditing ? TEXT("Open a reusable terrain definition using the current preview guides") : TEXT("Apply a terrain type's layers using this planet's Radial Guides, radius and seed")))
@@ -904,9 +951,11 @@ public:
                 .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
                 .Text(FText::FromString(TEXT("Preview guides only. Guide values are supplied when this terrain is assembled onto a planet."))) ]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
+                .Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked_Lambda([this] { return !Preview || Preview->Client->bGuides ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
                     { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Radial Guides")))]]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
+                .Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(200)[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("100 m")))]
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider)
@@ -923,9 +972,10 @@ public:
             + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(SBox).HeightOverride(18)[SNew(STextBlock).Text_Lambda([this]
                 { return bAreaDragging ? FText::FromString(FString::Printf(TEXT("Release to view %.0f m × %.0f m"), PendingAreaWidth, PendingAreaWidth)) : FText(); })]]
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
-                + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
+                + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})]
+                + SOverlay::Slot()[GlobeWidget]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession)
-                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
+                    .Visibility_Lambda([this] { return !TerrainEditing&&bGlobe?EVisibility::Collapsed:TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
                 + SOverlay::Slot().VAlign(VAlign_Top).Padding(12)[SNew(SBorder).Padding(10)
                     .Visibility_Lambda([this] { return bPreviewInvalid ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
                     .BorderBackgroundColor(FLinearColor(.12, .06, .025, .95))
@@ -935,8 +985,9 @@ public:
                 {
                     FString Legend = RadialGuidesSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
                         TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
-                    if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Radial Guide");
-                    if (Preview && Preview->IsUpdating()) Legend = TEXT("Updating terrain preview… | ") + Legend;
+                    if(!TerrainEditing&&bGlobe)Legend=TEXT("Globe: left drag orbit | right drag / wheel zoom | edit structure in Details");
+                    else if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Radial Guide");
+                    if ((Preview && Preview->IsUpdating()) || (Globe&&Globe->IsUpdating())) Legend = TEXT("Updating terrain preview… | ") + Legend;
                     if (Preview && Preview->Client->Plan && Preview->Client->Plan->Coordinates == ECLTerrainCoordinates::Sphere && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
@@ -954,7 +1005,7 @@ void OpenPlanetRecipe()
     if (!GEditor) return;
     const auto* Planet = GEditor->GetSelectedActors()->GetTop<ACLPlanet>();
     auto* Asset = Planet && Planet->RecipeAsset ? Planet->RecipeAsset.Get() :
-        LoadObject<UCLPlanetRecipeAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_RollingPlains.DA_RollingPlains"));
+        LoadObject<UCLPlanetRecipeAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_PlanetStructure.DA_PlanetStructure"));
     if (Asset) GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Asset);
 }
 void OpenLandformDesigner()
@@ -983,12 +1034,14 @@ class FCLDesignerModule : public IModuleInterface
     TUniquePtr<FAutoConsoleCommand> Command;
     TUniquePtr<FAutoConsoleCommand> TerrainCommand;
     TUniquePtr<FAutoConsoleCommand> PlanetCommand;
+    TUniquePtr<FAutoConsoleCommand> BuilderCommand;
     FDelegateHandle MenuHandle;
 public:
     virtual void StartupModule() override
     {
         Command = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.Designer"), TEXT("Open a terrain definition; selected planet supplies preview guides only"), FConsoleCommandDelegate::CreateStatic(&OpenLandformDesigner));
         PlanetCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.PlanetRecipe"), TEXT("Open selected planet recipe or rolling-plains recipe"), FConsoleCommandDelegate::CreateStatic(&OpenPlanetRecipe));
+        BuilderCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.PlanetBuilder"),TEXT("Open the planet builder"),FConsoleCommandDelegate::CreateStatic(&OpenPlanetRecipe));
         TerrainCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.TerrainDesigner"), TEXT("Open terrain type [asset path] [optional recipe path supplying preview Radial Guides only]"),
             FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
             {
@@ -1004,12 +1057,12 @@ public:
                 FText::FromString(TEXT("Landform Designer")), FText::FromString(TEXT("Edit a terrain definition; selected planet supplies preview Radial Guides only")),
                 FSlateIcon(), FUIAction(FExecuteAction::CreateStatic(&OpenLandformDesigner)));
             Menu->FindOrAddSection(TEXT("CatalystLandform")).AddMenuEntry(TEXT("LandformPlanetRecipe"),
-                FText::FromString(TEXT("Planet Recipe")), FText::FromString(TEXT("Edit the selected planet recipe, or the rolling-plains recipe")),
+                FText::FromString(TEXT("Planet Builder")), FText::FromString(TEXT("Edit the planet base structure and assembled terrain")),
                 FSlateIcon(), FUIAction(FExecuteAction::CreateStatic(&OpenPlanetRecipe)));
         }));
     }
     virtual void ShutdownModule() override
-    { Command.Reset(); TerrainCommand.Reset(); PlanetCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
+    { Command.Reset(); TerrainCommand.Reset(); PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
 };
 }
 
@@ -1059,7 +1112,7 @@ void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLRadialGuideSet
 UCLPlanetRecipeFactory::UCLPlanetRecipeFactory()
 { SupportedClass = UCLPlanetRecipeAsset::StaticClass(); bCreateNew = true; bEditAfterNew = true; }
 UObject* UCLPlanetRecipeFactory::FactoryCreateNew(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject*, FFeedbackContext*)
-{ return NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags); }
+{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();return A; }
 TSoftClassPtr<UObject> UCLRecipeAssetDefinition::GetAssetClass() const { return UCLPlanetRecipeAsset::StaticClass(); }
 EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& Args) const
 {
@@ -1159,6 +1212,7 @@ bool FCLTerrainWorkspaceTest::RunTest(const FString&)
     TStrongObjectPtr<UCLPlanetRecipeAsset> Planet(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional));
     Planet->Recipe = FCLPlanetCompiler::RollingPlains(); Planet->Recipe.RadiusMeters = 1400; Planet->Recipe.Seed = 829;
     Planet->Recipe.Name = TEXT("Private planet identity"); Planet->Recipe.BaseSurfaceNormalized = .71;
+    FCLPlanetFeature PrivateFeature;PrivateFeature.Id=FGuid::NewGuid();Planet->Recipe.BaseStructure.Add(PrivateFeature);
     const auto BeforePlanet = Planet->Recipe;
     const auto* SharedCatalog = LoadObject<UCLRadialGuideLibraryAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary"));
     const auto BeforeCatalog = SharedCatalog ? SharedCatalog->Library : FCLRadialGuideLibrary(); const bool CatalogDirty = SharedCatalog && SharedCatalog->GetOutermost()->IsDirty();
@@ -1171,6 +1225,7 @@ bool FCLTerrainWorkspaceTest::RunTest(const FString&)
     TestEqual(TEXT("Preview does not inherit the planet seed"), Editor->PreviewContext->Recipe.Seed, 1729);
     TestEqual(TEXT("Preview does not inherit the planet base"), Editor->PreviewContext->Recipe.BaseSurfaceNormalized, 1.0);
     TestTrue(TEXT("Only initial Radial Guides are copied from the caller"), FCLRadialGuideSet::StaticStruct()->CompareScriptStruct(&Editor->PreviewContext->Recipe.RadialGuides, &Planet->Recipe.RadialGuides, 0));
+    TestTrue(TEXT("Designer never inherits planet structure"),Editor->PreviewContext->Recipe.BaseStructure.IsEmpty());
     TestFalse(TEXT("Planet identity is not copied"), Editor->PreviewContext->Recipe.Name == Planet->Recipe.Name);
     TArray<FString> Texts;
     TFunction<void(const TSharedRef<SWidget>&)> CollectText = [&](const TSharedRef<SWidget>& Widget)
@@ -1182,7 +1237,7 @@ bool FCLTerrainWorkspaceTest::RunTest(const FString&)
     };
     CollectText(Section->GetContent());
     TestTrue(TEXT("The guide selector is explicitly Preview Radial Guides"), Texts.Contains(TEXT("Preview Radial Guides")));
-    for (const FString Forbidden : {TEXT("Preview radius"), TEXT("Seed"), TEXT("Apply to planet")})
+    for (const FString Forbidden : {TEXT("Preview radius"), TEXT("Seed"), TEXT("Apply to planet"),TEXT("New planet…"),TEXT("Base structure"),TEXT("Add uplift"),TEXT("Add basin")})
         TestFalse(*FString::Printf(TEXT("No planet control: %s"),*Forbidden), Texts.Contains(Forbidden));
     TestFalse(TEXT("Preview header contains no planet radius or identity"), Texts.ContainsByPredicate([](const FString& T){return T.Contains(TEXT("Context:"))||T.Contains(TEXT("Private planet identity"))||T.Contains(TEXT("radius 1400"));}));
     TArray<UObject*> Saved; Editor->GetSaveableObjects(Saved);

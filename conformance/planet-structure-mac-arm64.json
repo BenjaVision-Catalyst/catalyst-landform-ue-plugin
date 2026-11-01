@@ -1,0 +1,118 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "parent_component_revision": "b7cba7ea748340add79c73f2029e5c88290b2dec",
+  "host_parent_revision": "dcabc2a86e7515fc601034d0268f651ce602267f",
+  "source_sha256": "4930b35b5e3fc3d1955f681e6b572eefb36a5ae4c34b36d86fcca1ff42bfbe72",
+  "host_source_sha256": "90ab45adb4ae2c35a45062cd2778c9d91c1ebb263ab9f6c4e15036d4f4ca2bf4",
+  "recipe_schema": 10,
+  "terrain_schema": 6,
+  "asset_custom_version": 2,
+  "contract": {
+    "placement": "Manual body-fixed longitude/latitude, heading and angular half extents; no random continent scattering",
+    "feature": "Stable ID, compact C2 geodesic oval, signed guide-interval relief",
+    "composition": "Add broad offsets once after complete regional stacks; child fields never reapply them",
+    "pcg": "Existing canonical reference-sphere anchors, sizes, relief and identities preserved",
+    "designer": "Source-only editing, independent guide snapshot; no planet controls, globe or base structure constructed/inherited/saved",
+    "builder": "Neutral planet factory; editable name; manual feature add/edit/duplicate/remove; globe/cutaway views",
+    "preview": "64 cells per face, six faces; field normals; one worker/one replaceable pending request with revision fencing",
+    "runtime": "Same immutable field in native VPP volume, existing mesh/collision pipeline",
+    "legacy": "Schema 9 guide names, schemas 1\u20138 alias migration, Core Redirects and old omitted native defaults retained",
+    "vendor_changes": false
+  },
+  "proof": {
+    "recipe": "Examples/BasePlanetStructure.json",
+    "asset": "/Game/LandformDesigner/DA_PlanetStructure",
+    "empty_asset": "/Game/LandformDesigner/DA_BasePlanet",
+    "map": "/Game/LandformDesigner/PlanetStructureProof",
+    "outer_sky_radius_m": 1000,
+    "neutral_surface_radius_m": 450,
+    "voxel_size_cm": 25,
+    "authored_features": 3
+  },
+  "integrated_automation": {
+    "passed": 51,
+    "failed": 0,
+    "not_run": 0,
+    "with_warnings": 1,
+    "raw_report": "LandformLab/Saved/Verification/planet-structure-full/index.json"
+  },
+  "final_component_automation": {
+    "passed": 49,
+    "failed": 0,
+    "not_run": 0,
+    "with_warnings": 1,
+    "raw_report": "LandformLab/Saved/Verification/planet-structure-final/index.json"
+  },
+  "final_change_scope": "Component rerun covers final Details duplication identity handling; native sampling/collision unchanged. Subsequent preview-only key-light priority fix built successfully and visually inspected.",
+  "numerical": {
+    "composed_sample_directions": 2646,
+    "max_once_only_composition_error_m": 1.13686837722e-13,
+    "max_native_zero_set_residual_cm": 0.00195154268,
+    "feature_order_invariant": true,
+    "region_stamp_identity_preserved": true,
+    "guide_scaling": true,
+    "support_fade": true,
+    "recipe_round_trip": true,
+    "details_duplicate_identity": true,
+    "globe_vertex_and_normal_checks": true,
+    "designer_boundary": true
+  },
+  "collision": {
+    "passed": true,
+    "samples": 180,
+    "edges": 12,
+    "corners": 8,
+    "voxel_size_cm": 25,
+    "max_collision_error_cm": 0.020364632974670286,
+    "source": "Cooked VPP/Chaos triangles on, and 0.5m to both sides of, every edge/corner"
+  },
+  "walk": {
+    "passed": true,
+    "frames": 1467,
+    "ground_frames": 1467,
+    "voxel_floor_frames": 1467,
+    "arc_degrees": 15.001117238204651,
+    "max_floor_field_residual_cm": 0.02105287193262484,
+    "min_up_dot": 0.9999999999999997,
+    "min_gravity_dot": 0.9999999909460191,
+    "movement_input_only": true
+  },
+  "saved_assets": {
+    "passed": true,
+    "recipe_matches_json": true,
+    "empty_planet_is_neutral_sphere": true,
+    "authored_features": 3,
+    "native_actor_uses_saved_recipe": true,
+    "transient_placement_isolation": true,
+    "preexisting_files_preserved": 43
+  },
+  "migration": {
+    "passed": true,
+    "loaded_payloads": 32,
+    "preexisting_files_preserved": 43,
+    "guide_values_and_ids_preserved": true,
+    "legacy_library_class_redirected": true
+  },
+  "visual_check": {
+    "editor": "DA_PlanetStructure / Planet Builder",
+    "globe_visible": true,
+    "editable_name_visible": true,
+    "manual_structure_controls_visible": true,
+    "radial_guide_labels_visible": true,
+    "all_saved": true
+  },
+  "limits": [
+    "Initial manually placed uplift/basin primitives; reusable large-Landform instancing and structural region bindings remain next work",
+    "Up to 64 features, each angular half extent in [0.1,85) degrees; oriented oval support only",
+    "Radial surface relief profile, not general volumetric geology, tectonic simulation or exact Euclidean SDF",
+    "Regional PCG retains existing canonical reference-sphere metrics; structural alignment and surface-metric adaptation remain future work",
+    "Globe overview is a sampled editor mesh; walking-resolution terrain and collision are VPP-owned",
+    "First native walk qualifies this saved natural route; material realism, navigation, multi-body motion and large-planet streaming remain unqualified",
+    "Two existing engine LineSetComponentMaterial/MeshModeling dependency warnings remain",
+    "No server protocol, transport, vendor source or engine setting changes"
+  ]
+}
