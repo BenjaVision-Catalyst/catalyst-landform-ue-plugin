@@ -13,11 +13,12 @@ void FCLTerrainEditing::Reconcile()
 {
     const int32 Count = Asset->TerrainType.NoiseLayers.Num();
     Selected = Count ? FMath::Clamp(Selected, 0, Count - 1) : INDEX_NONE;
-    Solo = SoloName.IsNone() ? INDEX_NONE : Asset->TerrainType.NoiseLayers.IndexOfByPredicate([&](const auto& L) { return L.Name == SoloName; });
+    const int32 Index = SoloName.IsNone() ? INDEX_NONE : Asset->TerrainType.NoiseLayers.IndexOfByPredicate([&](const auto& L) { return L.Name == SoloName; });
+    SetSolo(Index);
 }
 void FCLTerrainEditing::SetSolo(int32 Index)
 {
-    Solo = Asset->TerrainType.NoiseLayers.IsValidIndex(Index) ? Index : INDEX_NONE;
+    Solo = Asset->TerrainType.NoiseLayers.IsValidIndex(Index) && Asset->TerrainType.NoiseLayers[Index].bEnabled ? Index : INDEX_NONE;
     SoloName = Solo == INDEX_NONE ? NAME_None : Asset->TerrainType.NoiseLayers[Solo].Name;
 }
 FName FCLTerrainEditing::UniqueName(const FString& Base) const
@@ -39,6 +40,14 @@ bool FCLTerrainEditing::SetLayer(const FCLNoiseLayer& Layer)
 {
     if (!Asset->TerrainType.NoiseLayers.IsValidIndex(Selected)) return false;
     if (FCLNoiseLayer::StaticStruct()->CompareScriptStruct(&Layer, &Asset->TerrainType.NoiseLayers[Selected], 0)) { Error.Reset(); return true; }
+    if (Layer.bEnabled && Layer.Operation == ECLTerrainOperation::Noise)
+    {
+        // Resolve this layer's bounds in the current guides without compiling
+        // unrelated stamps. Reversed intervals must not enter the saved source.
+        auto Probe = Context; Probe.SchemaVersion = 5; Probe.AlgorithmVersion = Asset->TerrainType.AlgorithmVersion;
+        Probe.NoiseLayers = {Layer}; Probe.NoiseLayers[0].Blend = ECLNoiseBlend::Override;
+        if (!FCLPlanetCompiler::Compile(Probe, Error)) return false;
+    }
     auto Layers = Asset->TerrainType.NoiseLayers; Layers[Selected] = Layer;
     return Commit(MoveTemp(Layers), Selected, Solo, NSLOCTEXT("CL", "EditNoise", "Edit terrain layer"));
 }
@@ -98,35 +107,36 @@ bool FCLTerrainEditing::Enable(int32 Index, bool bEnabled)
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError) const
 {
     FCLPlanetRecipe Recipe = Context;
-    if (Asset->TerrainType.NoiseLayers.IsValidIndex(Solo) && Asset->TerrainType.NoiseLayers[Solo].Operation == ECLTerrainOperation::StampDistribution)
+    auto Visible = Asset->TerrainType;
+    if (Visible.NoiseLayers.IsValidIndex(Solo) && Visible.NoiseLayers[Solo].bEnabled)
     {
-        // Stamp Solo is an isolated flat workbench, not a view of its upstream
-        // noise. The normal terrain application resolves its guide midpoint.
-        auto Isolated = Asset->TerrainType;
-        for (int32 I = 0; I < Isolated.NoiseLayers.Num(); ++I) Isolated.NoiseLayers[I].bEnabled = I == Solo;
-        Recipe.BaseSurfaceNormalized = 1;
-        if (!Isolated.ApplyTo(Recipe, OutError)) return nullptr;
-        return FCLPlanetCompiler::Compile(Recipe, OutError);
+        if (Visible.NoiseLayers[Solo].Operation == ECLTerrainOperation::Terrace)
+        {
+            // Shaping needs its enabled upstream input, never downstream layers.
+            Visible.NoiseLayers.SetNum(Solo + 1);
+        }
+        else
+        {
+            // Isolate before any compilation: muted/hidden stamps must not consume
+            // PCG budgets or block an unrelated noise preview. Use the same neutral
+            // guide base for independent noise and stamp views.
+            auto Layer = Visible.NoiseLayers[Solo];
+            if (Layer.Operation == ECLTerrainOperation::Noise)
+            {
+                // Solo displays source values, not a Max/Min comparison against
+                // an absent input. Delta ranges sit above/below the neutral base.
+                const bool bDelta = Layer.Minimum.Mode == ECLHeightReferenceMode::IntervalDelta &&
+                    Layer.Maximum.Mode == ECLHeightReferenceMode::IntervalDelta;
+                Layer.Blend = Layer.Blend == ECLNoiseBlend::Add || bDelta ? ECLNoiseBlend::Add : ECLNoiseBlend::Override;
+            }
+            Visible.NoiseLayers = {Layer};
+            Recipe.BaseSurfaceNormalized = 1;
+        }
     }
-    if (!Asset->TerrainType.ApplyTo(Recipe, OutError)) return nullptr;
-    if (Recipe.NoiseLayers.IsValidIndex(Solo) && Recipe.NoiseLayers[Solo].Operation == ECLTerrainOperation::Terrace)
-    {
-        // A shaping operation requires its upstream field. Show that result,
-        // omitting downstream detail, without modifying the saved definition.
-        Recipe.NoiseLayers.SetNum(Solo + 1);
-    }
-    else if (Recipe.NoiseLayers.IsValidIndex(Solo))
-    {
-        // Flatten the underlying stack at the patch centre to reveal an additive
-        // layer's signed contribution without clipping half of it at the sky.
-        FCLPlanetRecipe Underlying = Recipe; Underlying.NoiseLayers.SetNum(Solo);
-        const auto Base = FCLPlanetCompiler::Compile(Underlying, OutError);
-        if (!Base) return nullptr;
-        Recipe.BaseSurfaceNormalized = FMath::Clamp(1 + Base->SampleHeightMeters(FVector::ZAxisVector) / Recipe.RadiusMeters, .001, 1.0);
-        for (int32 I = 0; I < Recipe.NoiseLayers.Num(); ++I) Recipe.NoiseLayers[I].bEnabled = I == Solo;
-    }
+    if (!Visible.ApplyTo(Recipe, OutError)) return nullptr;
     return FCLPlanetCompiler::Compile(Recipe, OutError);
 }
+
 bool FCLTerrainEditing::ApplyToPlanet(UCLPlanetRecipeAsset* Planet)
 {
     FCLPlanetRecipe Candidate;

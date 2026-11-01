@@ -153,7 +153,7 @@ void SCLNoiseLayerStack::Construct(const FArguments& Args)
     auto HasSelection = [this] { return Session->Asset->TerrainType.NoiseLayers.IsValidIndex(Session->Selected); };
     ChildSlot[SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text(FText::FromString(TEXT("Terrain layers"))).Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))]
-        + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers run from top to bottom. Select a layer to edit it. Solo isolates noise or stamps; terracing keeps its upstream terrain.")))]
+        + SVerticalBox::Slot().AutoHeight().Padding(8, 0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers run from top to bottom. Select a layer to edit it. Solo shows one enabled noise or stamp layer on a flat guide base; terracing keeps its upstream terrain.")))]
         + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
             + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).IsEnabled_Lambda([this]{return Session->Asset->TerrainType.NoiseLayers.Num()<32;})
                 .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add layer")))]
@@ -189,7 +189,7 @@ void SCLNoiseLayerStack::Rebuild()
     for (int32 I = 0; I < Layers.Num(); ++I)
         Rows->AddSlot().AutoHeight().Padding(0, 2)[SNew(SHorizontalBox)
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(SCheckBox)
-                .ToolTipText(FText::FromString(TEXT("Include this layer in the saved terrain definition")))
+                .ToolTipText(FText::FromString(TEXT("Include this layer in the terrain; disabling a soloed layer clears Solo")))
                 .IsChecked_Lambda([this, I] { return Session->Asset->TerrainType.NoiseLayers.IsValidIndex(I) && Session->Asset->TerrainType.NoiseLayers[I].bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
                 .OnCheckStateChanged_Lambda([this, I](ECheckBoxState State) { Session->Enable(I, State == ECheckBoxState::Checked); })]
             + SHorizontalBox::Slot().FillWidth(1).Padding(5, 0)[SNew(SButton)
@@ -197,7 +197,8 @@ void SCLNoiseLayerStack::Rebuild()
                 .Text(FText::FromString(FString::Printf(TEXT("%d. %s"), I + 1, *Layers[I].Name.ToString())))
                 .OnClicked_Lambda([this, I] { Session->Selected = I; Session->Error.Reset(); Refresh(); return FReply::Handled(); })]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(SCheckBox)
-                .ToolTipText(FText::FromString(TEXT("Noise: isolate over centre height. Terrace: include upstream terrain and omit downstream layers. Saved settings and planet are unchanged")))
+                .ToolTipText(FText::FromString(TEXT("Noise: source values on the guide midpoint, without Max/Min comparison. Stamps: flat guide base. Terrace: retain enabled upstream terrain. Disabled layers cannot be soloed; saved settings and planet are unchanged")))
+                .IsEnabled_Lambda([this, I] { return Session->Asset->TerrainType.NoiseLayers.IsValidIndex(I) && Session->Asset->TerrainType.NoiseLayers[I].bEnabled; })
                 .IsChecked_Lambda([this, I] { return Session->Solo == I ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
                 .OnCheckStateChanged_Lambda([this, I](ECheckBoxState State)
                 { Session->SetSolo(State == ECheckBoxState::Checked ? I : INDEX_NONE); OnPreviewChanged.ExecuteIfBound(); })

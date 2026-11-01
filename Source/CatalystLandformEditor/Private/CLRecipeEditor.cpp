@@ -616,9 +616,10 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     FString Status;
     double PendingAreaWidth = 0;
     bool bAreaDragging = false;
+    bool bPreviewInvalid = false;
     void ApplyPreviewArea()
     {
-        if (!Preview || !Preview->Client->Plan) return;
+        if (!Preview || !Preview->Client->Plan || bPreviewInvalid) return;
         Preview->Client->AreaWidthMeters = PendingAreaWidth;
         if (TerrainEditing) Preview->RebuildAsync(Preview->Client->Plan);
         else Preview->Rebuild(Preview->Client->Plan);
@@ -794,6 +795,7 @@ public:
         if (Preview) Preview->Client->Strata = Asset->Recipe.Strata;
         if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
         const auto Plan = TerrainEditing ? TerrainEditing->CompilePreview(Status) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
+        bPreviewInvalid = !Plan.IsValid();
         if (Plan)
         {
             Status = FString::Printf(TEXT("%s | radius %.0f m | %d layers | %s"),
@@ -805,13 +807,13 @@ public:
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
-        else { if (TerrainEditing && Preview) Preview->CancelPendingBuild(); Status = TEXT("Keeping last valid preview: ") + Status; }
+        else { if (TerrainEditing && Preview) Preview->CancelPendingBuild(); Status = TEXT("Preview out of date: ") + Status; }
         RefreshAllUI(EditingAsset, false);
     }
     TSharedRef<SDockTab> SpawnSection(const FSpawnTabArgs&)
     {
         return SNew(SDockTab)[SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Text_Lambda([this] { return FText::FromString(Status); })]
+            + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this] { return FText::FromString(Status); })]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent(this, &FCLRecipeToolkit::TerrainMenu)
                     .ToolTipText(FText::FromString(TEXT("Apply a terrain type's layers using this planet's Strata, radius and seed")))
@@ -898,7 +900,12 @@ public:
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport)]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(StrataSession)
-                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]]
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
+                + SOverlay::Slot().VAlign(VAlign_Top).Padding(12)[SNew(SBorder).Padding(10)
+                    .Visibility_Lambda([this] { return bPreviewInvalid ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+                    .BorderBackgroundColor(FLinearColor(.12, .06, .025, .95))
+                    [SNew(STextBlock).AutoWrapText(true).ColorAndOpacity(FLinearColor(1, .65, .3))
+                        .Text_Lambda([this] { return FText::FromString(Status + TEXT("\nThe displayed terrain does not reflect the current layer settings.")); })]]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SBox).HeightOverride(42)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
                 {
                     FString Legend = StrataSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :

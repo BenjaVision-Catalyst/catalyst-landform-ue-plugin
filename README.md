@@ -323,3 +323,24 @@ New editor stamp layers select revision 3.
 archives; `SourceArt/Stamps/MotionForgeStructuresV1/sources.json` records seeds,
 floors, contours, toe widths, hashes, core preservation and boundary checks.
 See the host's `Docs/MountainStructures.md` for use and qualification.
+
+### Mixed layer previews
+
+Noise/stamp Solo filters the preview definition **before** applying or compiling
+it. Hidden stamps cannot consume placement budgets or block a noise preview.
+Terrace Solo retains enabled upstream layers and excludes downstream layers.
+Solo is available only for enabled layers; disabling the soloed layer clears it.
+Noise Solo shows its source values on the flat guide base, rather than comparing
+Max/Min against absent terrain. These preview rules do not rewrite saved blends.
+
+An unseeded additive/shaping terrain resolves its base to the SurfaceMin/Max
+midpoint, as stamp-only terrain does. Explicit non-default bases and absolute
+Override noise are preserved. This is an authoring default: serialized recipes
+still compile their stored base and retain their existing field.
+Finished noise edits resolve and validate their bounds in the current Strata;
+a reversed range is rejected without compiling unrelated stamps or changing the
+last accepted definition. Compile failures explicitly mark the displayed terrain
+as out of date. The stamp limit remains 256 per layer; budget diagnostics now
+include the requested count and a usable density limit.
+Qualification is in `conformance/layer-controls-mac-arm64.json`; the host's
+`Docs/LayerPreviewControls.md` records the repaired user case and checks.

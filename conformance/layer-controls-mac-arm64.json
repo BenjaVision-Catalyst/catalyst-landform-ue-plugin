@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "diagnosis": [
+    "Preview-only radius 10km exceeded 256 placements; saved context remained 1km",
+    "Noise interval minimum .50 exceeded maximum .02",
+    "Solo applied/compiled full stack before masking, so hidden stamps blocked independent noise",
+    "Unseeded additive-only views could start at sky; Solo/disable interaction could keep a muted source visible"
+  ],
+  "behavior": [
+    "Filter solo preview before applying/compiling; terrace keeps enabled upstream input only",
+    "One neutral guide base for unseeded additive/shaping stacks; explicit bases and serialized recipe fields preserved",
+    "Noise Solo displays source values; comparison blends and saved layer flags remain unchanged",
+    "Disable clears Solo; disabled layers cannot be soloed",
+    "Resolve and reject reversed enabled-noise bounds at finished edit time without unrelated stamp compilation",
+    "Visible stale-render banner and blocked old-plan coverage rebuild; actionable placement counts/density; cap unchanged"
+  ],
+  "component_automation": {
+    "passed": 34,
+    "failed": 0,
+    "not_run": 0,
+    "warnings": 2
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+    "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+    "Catalyst.Landform.Designer.DeferredGesture": "Success",
+    "Catalyst.Landform.Designer.DeferredTerrainPreview": "Success",
+    "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+    "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+    "Catalyst.Landform.Designer.SurfaceArea": "Success",
+    "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+    "Catalyst.Landform.NativeGeneration.DesignerSphereParity": "Success",
+    "Catalyst.Landform.NativeGeneration.KernelAndVersioning": "Success",
+    "Catalyst.Landform.Plateaus.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Plateaus.DesignerSphereParity": "Success",
+    "Catalyst.Landform.Plateaus.TerraceSemantics": "Success",
+    "Catalyst.Landform.Recipes.HeightGuides": "Success",
+    "Catalyst.Landform.Recipes.OrderedLayers": "Success",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "Success",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "Success",
+    "Catalyst.Landform.StampDistribution.DesignerSphereParity": "Success",
+    "Catalyst.Landform.StampDistribution.DeterministicPCG": "Success",
+    "Catalyst.Landform.StampDistribution.VersioningAndSnapshots": "Success",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Strata.Presets": "Success",
+    "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+    "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+    "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success"
+  },
+  "mixed_fixture": "Mixed layers: 31 stamp placements; signed noise -2.987020 to 2.949938 m; additive parity error 0.000000000000 m",
+  "native_user_stack": {
+    "user_approved_noise_range": [
+      -0.02,
+      0.02
+    ],
+    "previous_noise_range": [
+      0.5,
+      0.02
+    ],
+    "all_other_terrain_fields_preserved": true,
+    "radius_m": 1000,
+    "other_saved_files_preserved": 32,
+    "native_directions": 256,
+    "native_state_combinations": 4,
+    "stable_stamp_placements": 31,
+    "noise_delta_range_m": [
+      -2.70359375,
+      3.5358203125
+    ],
+    "maximum_native_additive_error_cm": 0.00390625,
+    "all_off_is_flat": true
+  },
+  "working_asset": "Local approved two-fraction repair only; user working copy not published",
+  "recovery": "Host Saved/Backups/BeforeLayerControls; raw source before/after and native records under Saved/Verification/layer-controls",
+  "native_stamp_sources_and_catalog_unchanged": true,
+  "vendor_source_edits": false,
+  "source_sha256": {
+    "Source/CatalystLandform/Private/CLStampDistribution.cpp": "d300ee90a38faf50177ef37a9e000a2fb9cd396795e0a556d3e0747b46ef0ef0",
+    "Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "0ef47452511bac71a15a665ab7ffc4831051d3a0cf598b117c24a211a01efe26",
+    "Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "d438bcbdac18824e70f18782f12d2221720c4bed08601c949c1e970f5f36b1fe",
+    "Source/CatalystLandformEditor/Private/CLNoiseLayerStack.cpp": "3f5c86974681ce6bd3ffbc0335dd6e18a5336252fda7760e19600bdc55162044",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "cc40ffd8f6c165e83217ec48d1e080373d7cc4e38cbc5e570ae5094b737be065",
+    "Source/CatalystLandformTests/Private/CLTerrainEditingTests.cpp": "c6f73ac5893b35cdeeb293904dccea93755eaa86478e59d35dfc911dff2cb55e"
+  },
+  "visual_inspection": "Reopened saved Mountain structures Designer at radius 1000m and 500m coverage: both layers enabled, two compiled layers reported, mountain forms and noise detail rendered, no stale/update warning, all saved. Physical widget clicks were not injected; functional handlers and native states tested programmatically.",
+  "known_warnings": "Existing engine material warnings in recipe regression. Initial new fixture assumed standalone High relief used the contextual Rolling Plains guide heights; corrected to pass an explicit context, then all 34 checks passed.",
+  "artifacts": {
+    "component": "Saved/Verification/layer-controls/final/index.json",
+    "user_native": "Saved/Verification/layer-controls/repaired-user-stack.json",
+    "initial_fixture_failure": "Saved/Verification/layer-controls/component/index.json"
+  },
+  "limits": [
+    "The layer and recipe placement caps remain 256/1024; no regional large-planet compiler added",
+    "Four user-stack combinations checked at 256 directions each; no new physical traversal proof",
+    "Native source handling and rendered noise sampling are exercised programmatically; injected Slate checkbox input was unavailable",
+    "Solo is preview-only; Apply to planet remains explicit",
+    "No schema/algorithm version change: existing serialized recipe bases compile unchanged"
+  ]
+}

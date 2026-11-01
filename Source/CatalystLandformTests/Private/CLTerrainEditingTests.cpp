@@ -179,4 +179,74 @@ bool FCLStampIsolationTest::RunTest(const FString&)
     AddInfo(FString::Printf(TEXT("Stamp isolation: %d placements; %.6f m visible relief; %d flat samples"), Placements.Num(), Relief, FlatSamples));
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLMixedLayerIsolationTest, "Catalyst.Landform.TerrainTypes.MixedLayerIsolation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLMixedLayerIsolationTest::RunTest(const FString&)
+{
+    FString Json, Error;
+    const auto Path=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainTypes/MountainStructures.json");
+    TStrongObjectPtr<UCLTerrainTypeAsset> Asset(NewObject<UCLTerrainTypeAsset>(GetTransientPackage(),NAME_None,RF_Transactional));
+    if(!FFileHelper::LoadFileToString(Json,*Path)||!Asset->ImportTerrainTypeJson(Json,Error)){AddError(Error);return false;}
+    auto Context=FCLPlanetCompiler::RollingPlains();Context.RadiusMeters=1000;
+    FCLTerrainEditing Edit;Edit.Open(Asset.Get(),&Context);
+    if(!TestTrue(TEXT("Reproduce adding default noise after stamps"),Edit.Add()))return false;
+    const auto Full=Edit.CompilePreview(Error);
+    if(!TestTrue(TEXT("Both layers compile"),Full.IsValid())){AddError(Error);return false;}
+    TestEqual(TEXT("Both operations remain active"),Full->Layers.Num(),2);
+    const auto GoodLayer=Asset->TerrainType.NoiseLayers[1];auto Reversed=GoodLayer;
+    Reversed.Minimum.Fraction=.5;Reversed.Maximum.Fraction=.02;
+    TestFalse(TEXT("Reversed guide-relative noise bounds are rejected at edit time"),Edit.SetLayer(Reversed));
+    TestTrue(TEXT("Rejected edit identifies the noise bounds"),Edit.Error.Contains(TEXT("minimum must not exceed maximum")));
+    TestEqual(TEXT("Rejected bounds preserve the authored minimum"),Asset->TerrainType.NoiseLayers[1].Minimum.Fraction,GoodLayer.Minimum.Fraction);
+    TestTrue(TEXT("Returning to the saved layer clears its rejected-edit diagnostic"),Edit.SetLayer(GoodLayer));
+    Edit.Enable(1,false);const auto Stamps=Edit.CompilePreview(Error);
+    Edit.Enable(0,false);Edit.Enable(1,true);const auto Noise=Edit.CompilePreview(Error);
+    if(!TestTrue(TEXT("Either enable switch works independently"),Stamps&&Noise))return false;
+    TestTrue(TEXT("Noise-only and stamp-only views have the same neutral guide base"),
+        FMath::IsNearlyEqual(Stamps->BaseHeightMeters,-550.,1.e-6)&&FMath::IsNearlyEqual(Noise->BaseHeightMeters,Stamps->BaseHeightMeters,1.e-9));
+    TestEqual(TEXT("Disabled stamps create no placements"),Noise->GetDistributedStampCount(),0);
+    double MinNoise=1.e30,MaxNoise=-1.e30,MaxSumError=0;
+    for(int32 I=0;I<256;++I)
+    {
+        const double Z=1-2*(I+.5)/256,A=I*2.399963229728653;
+        const FVector D(FMath::Sqrt(1-Z*Z)*FMath::Cos(A),FMath::Sqrt(1-Z*Z)*FMath::Sin(A),Z);
+        const double H=Noise->SampleHeightMeters(D)-Noise->BaseHeightMeters;
+        MinNoise=FMath::Min(MinNoise,H);MaxNoise=FMath::Max(MaxNoise,H);
+        MaxSumError=FMath::Max(MaxSumError,FMath::Abs(Full->SampleHeightMeters(D)-Stamps->SampleHeightMeters(D)-H));
+    }
+    TestTrue(TEXT("Default additive noise contains visible signed relief below the sky"),MinNoise<-.01&&MaxNoise>.01&&Noise->MaximumHeightMeters<0);
+    TestTrue(TEXT("Combined field contains both the exact stamp and noise contributions"),MaxSumError<1.e-6);
+    Edit.SetSolo(1);const auto Solo=Edit.CompilePreview(Error);
+    TestTrue(TEXT("Noise Solo uses the same base and field as noise-only toggles"),Solo&&FMath::IsNearlyEqual(Solo->SampleHeightMeters(FVector::ZAxisVector),Noise->SampleHeightMeters(FVector::ZAxisVector),1.e-8));
+    for(const auto Blend:{ECLNoiseBlend::Max,ECLNoiseBlend::Min,ECLNoiseBlend::Override})
+    {
+        Asset->TerrainType.NoiseLayers[1].Blend=Blend;
+        const auto Source=Edit.CompilePreview(Error);
+        TestTrue(TEXT("Noise Solo displays source relief regardless of comparison blend"),Source&&FMath::IsNearlyEqual(Source->SampleHeightMeters(FVector::ZAxisVector),Noise->SampleHeightMeters(FVector::ZAxisVector),1.e-8));
+        TestEqual(TEXT("Solo leaves the saved comparison blend unchanged"),Asset->TerrainType.NoiseLayers[1].Blend,Blend);
+    }
+    Asset->TerrainType.NoiseLayers[1].Blend=ECLNoiseBlend::Add;
+    Edit.Enable(1,false);TestEqual(TEXT("Disabling a soloed layer clears Solo"),Edit.Solo,INDEX_NONE);
+    Edit.SetSolo(1);TestEqual(TEXT("A disabled layer cannot be soloed"),Edit.Solo,INDEX_NONE);
+    const auto Empty=Edit.CompilePreview(Error);
+    TestTrue(TEXT("All-off state is a flat guide-midpoint landscape"),Empty&&Empty->Layers.IsEmpty()&&FMath::IsNearlyEqual(Empty->BaseHeightMeters,-550.,1.e-6));
+    Edit.Enable(0,true);Edit.Enable(1,true);Edit.Context.RadiusMeters=10000;
+    TestFalse(TEXT("Oversized full stack reports its real placement budget"),Edit.CompilePreview(Error).IsValid());
+    TestTrue(TEXT("Budget diagnostic includes requested count and actionable density"),Error.Contains(TEXT("needs"))&&Error.Contains(TEXT("256"))&&Error.Contains(TEXT("/km2")));
+    FString Before,After;Asset->ExportJsonString(Before,Error);
+    Edit.SetSolo(1);const auto LargeSolo=Edit.CompilePreview(Error);
+    TestTrue(TEXT("Noise Solo never compiles over-budget upstream stamps"),LargeSolo&&LargeSolo->Layers.Num()==1&&LargeSolo->GetDistributedStampCount()==0);
+    Asset->ExportJsonString(After,Error);TestEqual(TEXT("Solo does not rewrite source layers"),After,Before);
+    Edit.SetSolo(INDEX_NONE);Edit.Enable(0,false);
+    TestTrue(TEXT("Muting over-budget stamps allows the remaining noise to compile"),Edit.CompilePreview(Error).IsValid());
+    // A terrace preview must discard a failing downstream distribution before applying.
+    auto Terrace=Asset->TerrainType.NoiseLayers[1];Terrace.Name=TEXT("Terrace preview");Terrace.Operation=ECLTerrainOperation::Terrace;
+    const auto Stamp=Asset->TerrainType.NoiseLayers[0];
+    Asset->TerrainType.NoiseLayers={Asset->TerrainType.NoiseLayers[1],Terrace,Stamp};Asset->TerrainType.NoiseLayers[2].bEnabled=true;
+    Edit.SetSolo(1);const auto Shaped=Edit.CompilePreview(Error);
+    TestTrue(TEXT("Terrace Solo omits over-budget downstream stamps before compilation"),Shaped&&Shaped->Layers.Num()==2);
+    AddInfo(FString::Printf(TEXT("Mixed layers: %d stamp placements; signed noise %.6f to %.6f m; additive parity error %.12f m"),Stamps->GetDistributedStampCount(),MinNoise,MaxNoise,MaxSumError));
+    return true;
+}
 #endif

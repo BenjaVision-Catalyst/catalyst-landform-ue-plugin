@@ -29,10 +29,11 @@ bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error) const
     Candidate.SchemaVersion = 5; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;
     const auto* First = NoiseLayers.FindByPredicate([](const auto& Layer) { return Layer.bEnabled; });
-    if (Candidate.BaseSurfaceNormalized == 1 && (!First || First->Operation == ECLTerrainOperation::StampDistribution))
+    if (Candidate.BaseSurfaceNormalized == 1 && (!First || First->Operation != ECLTerrainOperation::Noise || First->Blend != ECLNoiseBlend::Override))
     {
-        // An unseeded stamp stack needs headroom for relief. Resolve the default
-        // into the applied recipe so Designer and planet use the same base.
+        // Stamps and additive/shaping stacks need a neutral input with headroom.
+        // Resolve it into the recipe so muting an absolute base layer does not
+        // move the remaining noise to the sky. Explicit non-default bases survive.
         const auto* Lower = Candidate.Strata.Stratum.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMin"); });
         const auto* Upper = Candidate.Strata.Stratum.FindByPredicate([](const auto& Guide) { return Guide.Name == TEXT("SurfaceMax"); });
         if (Lower && Upper) Candidate.BaseSurfaceNormalized = (Lower->NormalizedHeight + Upper->NormalizedHeight) * .5;

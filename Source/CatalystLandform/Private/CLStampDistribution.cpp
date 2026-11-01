@@ -52,7 +52,9 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
     Entries.Sort([](const auto& A,const auto& B){return A.Id.LexicalLess(B.Id);});
     const double ReferenceRadius=FMath::Max(.01,Input.RadiusMeters+Input.SampleHeightMeters(FVector::ZAxisVector));
     const double CountValue=FMath::RoundToDouble(4*UE_PI*FMath::Square(ReferenceRadius)*S.DensityPerSquareKilometer/1.e6);
-    if(!FMath::IsFinite(CountValue)||CountValue>256)return Fail(TEXT("Stamp density exceeds the 256-placement per-layer proof budget; reduce density or use a smaller world"));
+    if(!FMath::IsFinite(CountValue)||CountValue>256)
+        return Fail(FString::Printf(TEXT("Stamp layer needs %.0f placements (limit 256) at a %.0f m surface radius. Reduce density to %.3f /km2 or lower the preview radius."),
+            CountValue,ReferenceRadius,256*1.e6/(4*UE_PI*FMath::Square(ReferenceRadius))));
     const int32 Count=int32(CountValue);
     const double Low=S.SizeMode==ECLStampSizeMode::Absolute?S.MinimumSizeMeters:S.MinimumSizeRadiusFraction*Input.RadiusMeters;
     const double High=S.SizeMode==ECLStampSizeMode::Absolute?S.MaximumSizeMeters:S.MaximumSizeRadiusFraction*Input.RadiusMeters;
