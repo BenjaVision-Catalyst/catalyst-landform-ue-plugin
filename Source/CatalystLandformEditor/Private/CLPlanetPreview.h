@@ -50,6 +50,10 @@ public:
     bool IsInspectingRegions() const;
     void SelectGeneratedRegion(FGuid Id);
     FGuid GeneratedSelection() const;
+    void SetWalkPicking(bool Enabled);
+    bool IsWalkPicking() const;
+    void SetWalkLocation(FVector Direction);
+    FVector WalkLocation() const;
     void Frame();
     void Dolly(double Steps);
     void SetGuides(const FCLRadialGuideSet& Guides,bool Visible);
@@ -68,6 +72,7 @@ protected:
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
 #if WITH_DEV_AUTOMATION_TESTS
+    friend class FCLGlobeWalkPickingTest;
     friend class FCLGlobeGuidesTest;
     friend class FCLGlobePointerTest;
     friend class FCLGlobePlacementPointerTest;
@@ -87,7 +92,8 @@ private:
     double DragScale=1;
     FCLGlobeSelection ClickSelection;
     FVector2D MouseDown;
-    bool bOrbitDrag=false,bPlacementMoved=false;
+    bool bOrbitDrag=false,bPlacementMoved=false,bWalkPicking=false;
+    FVector ClickWalkLocation=FVector::ZeroVector;
     TSharedPtr<const FCLCompiledPlanetRecipe> BuildingPlan;
     TUniquePtr<FPreviewScene> Scene;
     TSharedPtr<FCLGlobeClient> Client;

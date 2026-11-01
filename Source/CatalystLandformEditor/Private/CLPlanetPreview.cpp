@@ -111,6 +111,7 @@ public:
 class FCLGlobeClient : public FEditorViewportClient
 {
 public:
+    FVector WalkDirection=FVector::ZeroVector;
     FCLPlanetNavigation Navigation;
     FCLGlobeScene* StudioScene=nullptr;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
@@ -299,7 +300,18 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);}
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);
+        if(Plan&&!WalkDirection.IsNearlyZero())
+        {
+            const FVector P=WalkDirection*((Plan->RadiusMeters+Plan->SampleHeightMeters(WalkDirection))/Plan->RadiusMeters*100000+150);
+            const double R=WidgetWorldSize()*.12;const FVector X=FVector::CrossProduct(WalkDirection,FMath::Abs(WalkDirection.Z)<.9?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal(),Y=FVector::CrossProduct(WalkDirection,X);
+            FVector2D Pixel;if(Project(P,Pixel))
+            {
+            PDI->DrawLine(P-X*R,P+X*R,FLinearColor(1,.65,.08),SDPG_Foreground,2);
+            PDI->DrawLine(P-Y*R,P+Y*R,FLinearColor(1,.65,.08),SDPG_Foreground,2);
+            PDI->DrawLine(P,P+WalkDirection*R*2,FLinearColor(1,.65,.08),SDPG_Foreground,2);
+            }
+        }}
     double NormalizedAtScreenY(double Y)const
     {return bHasProjection&&Core.Y-Sky.Y>1.e-9?FMath::Clamp((Core.Y-Y)/(Core.Y-Sky.Y),0.,1.):0;}
 
@@ -318,7 +330,8 @@ void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){+
 void SCLPlanetPreview::Cancel(){++Revision;Pending.Reset();}
 bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid();}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
-{CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
+{
+    if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
 bool SCLPlanetPreview::IsInspectingRegions() const{return Client->bInspectRegions&&Client->Plan&&Client->Plan->GeneratedRegions.IsValid();}
 void SCLPlanetPreview::SelectGeneratedRegion(FGuid Id)
 {
@@ -359,14 +372,15 @@ void SCLPlanetPreview::SetAuthoringRecipe(const FCLPlanetRecipe& R)
 }
 void SCLPlanetPreview::Select(FCLGlobeSelection Key)
 {
-    CancelPlacementDrag();if(Key.IsValid()){Client->bInspectRegions=false;Client->SelectedRegion.Invalidate();OnRegionSelected.ExecuteIfBound(FGuid());}if(Key!=Client->Selected)Client->Mode=ECLGlobePlacementMode::Move;Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();
+    CancelPlacementDrag();if(Key.IsValid()){bWalkPicking=false;Client->bInspectRegions=false;Client->SelectedRegion.Invalidate();OnRegionSelected.ExecuteIfBound(FGuid());}if(Key!=Client->Selected)Client->Mode=ECLGlobePlacementMode::Move;Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();
 }
 FCLGlobeSelection SCLPlanetPreview::Selection() const{return Client->Selected;}
 FString SCLPlanetPreview::SelectionName() const{const auto* T=Client->SelectedTarget();return T?T->Name:TEXT("None");}
-void SCLPlanetPreview::SetPlacementMode(ECLGlobePlacementMode Mode){if(DragAxis==EAxisList::None){Client->bInspectRegions=false;Client->Mode=Mode;Client->UpdatePlacementOverlay();Client->Invalidate();}}
+void SCLPlanetPreview::SetPlacementMode(ECLGlobePlacementMode Mode){if(DragAxis==EAxisList::None){bWalkPicking=false;Client->bInspectRegions=false;Client->Mode=Mode;Client->UpdatePlacementOverlay();Client->Invalidate();}}
 ECLGlobePlacementMode SCLPlanetPreview::PlacementMode() const{return Client->Mode;}
 FString SCLPlanetPreview::PlacementHint() const
 {
+    if(bWalkPicking)return TEXT("Click terrain to choose a walking location | Left drag: orbit");
     if(IsInspectingRegions())return TEXT("Click a generated region to inspect its Landform assignment | Left drag: orbit");
     if(DragAxis!=EAxisList::None)return TEXT("Release to apply placement and rebuild terrain | Esc: cancel");
     if(!Client->Selected.IsValid())return TEXT("Click a Landform / feature to select | Left drag: orbit");
@@ -374,13 +388,21 @@ FString SCLPlanetPreview::PlacementHint() const
         Client->Mode==ECLGlobePlacementMode::Rotate?TEXT("Drag Unreal radial ring: rotate | Space: cycle | Esc: deselect"):
         TEXT("Drag Unreal X / Y scale handles; XY scales both | Space: cycle | Esc: deselect");
 }
+void SCLPlanetPreview::SetWalkPicking(bool Enabled){CancelPlacementDrag();bWalkPicking=Enabled;if(Enabled){Select({});SetRegionInspection(false);}Client->Invalidate();}
+bool SCLPlanetPreview::IsWalkPicking() const{return bWalkPicking;}
+void SCLPlanetPreview::SetWalkLocation(FVector D){Client->WalkDirection=D.GetSafeNormal();Client->Invalidate();}
+FVector SCLPlanetPreview::WalkLocation() const{return Client->WalkDirection;}
 void SCLPlanetPreview::CancelPlacementDrag(){DragAxis=EAxisList::None;bPlacementMoved=false;if(Client){Client->Draft.Reset();Client->UpdatePlacementOverlay();Client->Invalidate();}}
 FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPointerEvent& E)
 {
     const FKey Key=E.GetEffectingButton();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
     if(DragAxis!=EAxisList::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;
-    if(Key==EKeys::LeftMouseButton&&IsInspectingRegions())
+    if(Key==EKeys::LeftMouseButton&&bWalkPicking)
+    {
+        ClickWalkLocation=FVector::ZeroVector;Client->CursorDirection(PointerPosition(G,E),ClickWalkLocation);
+    }
+    else if(Key==EKeys::LeftMouseButton&&IsInspectingRegions())
     {
         FVector D;ClickGeneratedRegion.Invalidate();if(Client->CursorDirection(PointerPosition(G,E),D)){const auto& Cells=Client->Plan->GeneratedRegions->Cells;const int32 Index=Client->Plan->GeneratedRegions->Owner(D);if(Cells.IsValidIndex(Index))ClickGeneratedRegion=Cells[Index].Id;}
     }
@@ -440,7 +462,7 @@ FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E
         const bool Resize=Client->Mode==ECLGlobePlacementMode::Resize;
         CancelPlacementDrag();if(Changed)OnPlacementCommitted.ExecuteIfBound(Target,Resize);
     }
-    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag){if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
+    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag){if(bWalkPicking)SetWalkLocation(ClickWalkLocation);else if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
     Button=FKey();return FReply::Handled().ReleaseMouseCapture();
 }
 void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();CancelPlacementDrag();}
@@ -759,5 +781,31 @@ bool FCLSurfaceGlobeTest::RunTest(const FString&)
         },.3f));
     },.3f));
     },.5f));return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeWalkPickingTest,"Catalyst.Landform.PlanetBuilder.WalkingLocationPicking",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobeWalkPickingTest::RunTest(const FString&)
+{
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Walking location picking"))).ClientSize(FVector2D(640,480))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,640,480,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    auto R=FCLPlanetCompiler::BasePlanet();R.RadiusMeters=1000;R.BaseSurfaceNormalized=.5;R.NoiseLayers.Reset();FString Error;const auto Plan=FCLPlanetCompiler::Compile(R,Error);
+    if(!Plan){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+    W->Client->Plan=Plan;const auto B=FCLGlobeBuffers::Build(*Plan,8);W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
+    W->SetWalkPicking(true);W->Client->SetViewLocation(FVector(0,0,220000));W->Client->SetViewRotation(FRotator(-90,0,0));V->Invalidate();V->Draw(false);FlushRenderingCommands();
+    FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(W->ViewportWidget.ToSharedRef(),Actual,EVisibility::All);const auto G=Actual.Widgets.Last().Geometry;
+    TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const FWidgetPath Path(MakeArrayView(Arranged));
+    auto Click=[&](FVector2D P)
+    {
+        App.RoutePointerDownEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState()));
+        App.RoutePointerUpEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));
+    };
+    Click(G.LocalToAbsolute(G.GetLocalSize()*.5));
+    TestTrue(TEXT("Routed terrain click picks north pole in recipe space"),W->WalkLocation().Equals(FVector::ZAxisVector,.001));
+    TestFalse(TEXT("Picking never starts a geometry rebuild"),W->IsUpdating());TestFalse(TEXT("Walking picker does not select a placement"),W->Selection().IsValid());
+    W->SetWalkPicking(false);TestTrue(TEXT("Exiting picker retains the return marker"),W->WalkLocation().Equals(FVector::ZAxisVector,.001));
+    W->SetWalkPicking(true);Click(G.LocalToAbsolute(FVector2D(1,1)));TestTrue(TEXT("Empty-space click clears walking destination"),W->WalkLocation().IsNearlyZero());
+    App.RequestDestroyWindow(Window);return true;
 }
 #endif

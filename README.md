@@ -705,3 +705,9 @@ A separate changed-seed input exercises the same package and client content.
 See the host's `Docs/RuntimeRecipe.md` for the local-file delivery boundary,
 explicit cook roots, reference checks, readiness/performance measurements and
 qualified limits. This is a recipe-consumer proof, not a backend wire protocol.
+
+## Globe-to-ground inspection
+
+Planet Builder’s left **Surface inspection** panel selects a globe location and
+launches a collision-ready walking preview. Esc returns with the last location
+marked. See [the inspection contract](Docs/SurfaceInspection.md) for ownership and qualification.

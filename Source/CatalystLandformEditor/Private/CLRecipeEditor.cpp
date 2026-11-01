@@ -15,6 +15,7 @@
 #include "Async/Async.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanetPreview.h"
+#include "CLPlanetInspection.h"
 #include "PropertyPath.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "CLSectionNavigation.h"
@@ -631,6 +632,8 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SCLSectionViewport> Preview;
     TSharedPtr<SCLPlanetPreview> Globe;
     bool bGlobe=true;
+    FGuid WalkRequestId;
+    FString WalkStatus=TEXT("Choose a location on the globe, then walk there.");
     TSharedPtr<SCLHeightAnnotations> Annotations;
     TSharedPtr<FCLRadialGuideSession> RadialGuidesSession;
     TSharedPtr<FCLSelectionInput> SelectionInput;
@@ -1014,6 +1017,23 @@ public:
         if ((Preview && Preview->IsUpdating()) || (Globe && Globe->IsUpdating())) Hint = TEXT("Updating terrain preview… | ") + Hint;
         return FText::FromString(Hint);
     }
+    void WalkHere()
+    {
+        if(!Globe||Globe->WalkLocation().IsNearlyZero()||!FCLPlanetInspection::Launch.IsBound())return;
+        FCLPlanetInspectionRequest Request;FString Error;
+        if(!RecipeAsset()->ExportJsonString(Request.RecipeJson,Error)){WalkStatus=Error;return;}
+        Request.Direction=Globe->WalkLocation();WalkRequestId=Request.Id;
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        Request.OnReturned=[Weak](FGuid Id,FVector Direction,FString Result)
+        {
+            if(auto Editor=Weak.Pin();Editor&&Editor->WalkRequestId==Id)
+            {
+                Editor->WalkStatus=MoveTemp(Result);if(Editor->Globe&&!Direction.IsNearlyZero())Editor->Globe->SetWalkLocation(Direction);
+            }
+        };
+        WalkStatus=TEXT("Opening walking preview…");
+        if(!FCLPlanetInspection::Launch.Execute(MoveTemp(Request),Error))WalkStatus=Error;
+    }
     TSharedRef<SDockTab> SpawnPlanet(const FSpawnTabArgs&)
     {
         auto Controls = SNew(SVerticalBox);
@@ -1039,6 +1059,16 @@ public:
             +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;}).Text(FText::FromString(TEXT("10° grid · Gold equator · Red north · Blue south")))]
             +SVerticalBox::Slot().AutoHeight()[ViewAreaControls()]
             +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Visibility_Lambda([this]{return bGlobe?EVisibility::Collapsed:EVisibility::Visible;}).Text(this,&FCLRecipeToolkit::NavigationHint)]);
+        AddSection(TEXT("Surface inspection"), SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight()[SNew(SCheckBox)
+                .IsChecked_Lambda([this]{return Globe&&Globe->IsWalkPicking()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(!bGlobe){bGlobe=true;Refresh();}if(Globe)Globe->SetWalkPicking(V==ECheckBoxState::Checked);})
+                [SNew(STextBlock).Text(FText::FromString(TEXT("Choose walking location")))]]
+            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(SButton).Text(FText::FromString(TEXT("Walk here")))
+                .IsEnabled_Lambda([this]{return bGlobe&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
+                .OnClicked_Lambda([this]{WalkHere();return FReply::Handled();})]
+            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(FCLPlanetInspection::Launch.IsBound()?WalkStatus:TEXT("A walking host must be registered by the project."));})]
+            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("WASD / mouse / Space · Tab globe · Esc returns here with your last location marked. The walking preview uses a snapshot of this planet.")))]);
         AddSection(TEXT("Generated regions"), SAssignNew(GenerationPanel,SCLRegionGenerationPanel).Asset(RecipeAsset())
             .Inspecting_Lambda([this]{return Globe&&Globe->IsInspectingRegions();})
             .OnInspection(FOnCLRegionInspection::CreateLambda([this](bool Inspect){if(Globe)Globe->SetRegionInspection(Inspect);}))
