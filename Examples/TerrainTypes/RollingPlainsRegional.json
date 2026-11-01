@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 7,
+  "algorithmVersion": 2,
+  "id": "434C1001000000000000000000000100",
+  "name": "Rolling Plains \u2014 regional",
+  "description": "Gentle native VPP undulations and fine detail over neutral planet ground; prefers lower, gentler regions.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [
+    {
+      "name": "Broad undulations",
+      "operation": "Noise",
+      "bEnabled": true,
+      "seed": 19,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.025,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.025,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 280,
+      "octaves": 3,
+      "persistence": 0.4
+    },
+    {
+      "name": "Plains surface detail",
+      "operation": "Noise",
+      "bEnabled": true,
+      "seed": 83,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.0015,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.0015,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 35,
+      "octaves": 3,
+      "persistence": 0.4
+    }
+  ],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": -0.5,
+    "basinAffinity": 0.4,
+    "structuralEdgeAffinity": -0.4,
+    "preferredElevation": {
+      "x": -1,
+      "y": 0.36
+    },
+    "preferredSlopeDegrees": {
+      "x": 0,
+      "y": 4
+    }
+  }
+}

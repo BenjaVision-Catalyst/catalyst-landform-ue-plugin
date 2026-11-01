@@ -637,3 +637,28 @@ packaged-build and planet-scale streaming qualification remain future work.
 The independent host proof and reproduction steps are documented in
 `Landform/Projects/LandformLab/Docs/GeneratedRegions.md`; measured results are in
 `conformance/generated-regions-mac-arm64.json`.
+
+
+### Area-based regional suitability
+
+Region algorithm 2 adds area-based terrain characterization without changing the
+spherical cell metric or blend. Planet Builder's **Evaluate terrain across each
+region** opts an existing planet into it; saved algorithm-1 planets keep their
+original assignments. New palettes start with area evaluation. Terrain schema 7
+and planet schema 12 remain unchanged; this region version is separate from the
+native noise algorithm.
+
+The compiler samples a seeded equal-area sphere at 128 positions per cell on
+average, measures base elevation, physical slope and structural influence at
+positions owned by each cell, and ranks the joint suitability over its area.
+Reference-sphere solid angle supplies actual regional size estimates. The inspector
+shows sampled height range and slope percentiles. Sampling is bounded to 16,384
+positions and 2,560 field values per batch, happens only at compile time, and does
+not read live UObjects from worker queries. Finite sampling can miss small features;
+preferences remain soft rankings.
+
+`Examples/RegionalTerrainCharacter.json` and its independent schema-7 sources add
+Rolling Plains alongside Mountain ridges and Plateaus. Derived three-source
+junctions refine the actual cell costs and feed native-field and walking proofs.
+Host setup, source ownership and qualification are documented in
+`Landform/Projects/LandformLab/Docs/RegionalTerrainCharacter.md`.

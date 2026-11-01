@@ -29,6 +29,10 @@ void SCLRegionGenerationPanel::Construct(const FArguments& Args)
         +SVerticalBox::Slot().AutoHeight()[SNew(SCheckBox).IsChecked_Lambda([this]{return Asset->Recipe.RegionGeneration.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
             .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto S=Asset->Recipe.RegionGeneration;S.bEnabled=V==ECheckBoxState::Checked;Commit(S,FText::FromString(TEXT("Enable structure-guided regions")));})
             [SNew(STextBlock).Text(FText::FromString(TEXT("Generate regions from structure")))]]
+        +SVerticalBox::Slot().AutoHeight().Padding(0,4)[SNew(SCheckBox)
+            .IsChecked_Lambda([this]{return Asset->Recipe.RegionGeneration.AlgorithmVersion==2?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+            .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto S=Asset->Recipe.RegionGeneration;S.AlgorithmVersion=V==ECheckBoxState::Checked?2:1;Commit(S,FText::FromString(TEXT("Change regional terrain evaluation")));})
+            [SNew(STextBlock).Text(FText::FromString(TEXT("Evaluate terrain across each region")))]]
         +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(SComboButton).OnGetMenuContent(this,&SCLRegionGenerationPanel::PaletteMenu)
             .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Choose Landform palette…")))]]
         +SVerticalBox::Slot().AutoHeight()[SAssignNew(PaletteRows,SVerticalBox)]

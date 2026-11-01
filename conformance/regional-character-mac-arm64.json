@@ -1,0 +1,141 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "parent_component_revision": "c3def5b",
+  "parent_workspace_revision": "125f0be",
+  "build": "passed",
+  "source_sha256": "4d2ed86d057403def8166f46df9ccc57bf490be44b93e7df0c8f8132ac39a941",
+  "source_hash_algorithm": "Sorted component-relative Source paths, NUL, then bytes",
+  "automation": {
+    "passed": 73,
+    "failed": 0,
+    "tests_with_warning_events": 1,
+    "report": "Landform/Projects/LandformLab/Saved/Verification/regional-character-final/index.json",
+    "report_sha256": "7889061b8bf1dbc45b02f00eeea80baafe3579e34a8ad8777470cdf3925c9c98"
+  },
+  "regional_profile": {
+    "planet_schema": 12,
+    "terrain_schema": 7,
+    "region_algorithm": 2,
+    "legacy_algorithm_1_retained": true,
+    "region_count": 36,
+    "equal_area_positions": 4608,
+    "max_positions": 16384,
+    "max_field_batch": 2560,
+    "source_counts": {
+      "Rolling Plains": 15,
+      "Mountain ridges": 17,
+      "Plateaus": 4
+    },
+    "mean_upper_decile_slope_degrees": {
+      "Rolling Plains": 1.586,
+      "Mountain ridges": 17.543,
+      "Plateaus": 4.982
+    },
+    "reassigned_cells_after_geology_move": 20,
+    "true_three_source_junctions": 4,
+    "source_reorder_deterministic": true,
+    "one_source_fills_all_cells": true
+  },
+  "off_centre_geology": {
+    "flat_seed": true,
+    "region_geometry_unchanged": true,
+    "positions_in_test_cell": 114,
+    "detected_height_span_m": 30.3397,
+    "mean_uplift": 0.012675,
+    "mean_slope_degrees": 1.5678
+  },
+  "native_parity": {
+    "junctions": 4,
+    "samples": 256,
+    "max_zero_set_residual_cm": 0.00194863335,
+    "max_designer_section_residual_cm": 0.00197791478
+  },
+  "native_walk": {
+    "passed": true,
+    "frames": 4513,
+    "ground_frames": 4513,
+    "voxel_floor_frames": 4513,
+    "triple_blend_frames": 1817,
+    "junction_visits": 3,
+    "closest_junction_m": 0.06600021372128241,
+    "max_floor_field_residual_cm": 0.2703054240773781,
+    "min_up_dot": 0.9999999999999992,
+    "min_gravity_dot": 0.999999990799644,
+    "worst_route_slope_degrees": 33.05707227489293,
+    "movement_input_only": true,
+    "terrain_modified_for_route": false,
+    "dominant_source_frames": [
+      313,
+      275,
+      294
+    ]
+  },
+  "saved_assets": {
+    "passed": true,
+    "fresh_process_reload": true,
+    "recipe_matches_json": true,
+    "palette_source_links": 3,
+    "source_metadata_matches_json": true,
+    "shared_guide_reference": true,
+    "existing_files_preserved": 61,
+    "route_degrees": [
+      [
+        102.81598526625764,
+        15.776022765720827
+      ],
+      [
+        108.76114206344423,
+        9.017936767506228
+      ],
+      [
+        115.04824867147282,
+        11.427669134287594
+      ],
+      [
+        108.76114206344423,
+        9.017936767506228
+      ],
+      [
+        103.31377716237105,
+        7.491701076507004
+      ],
+      [
+        108.76114206344423,
+        9.017936767506228
+      ],
+      [
+        102.81598526625764,
+        15.776022765720827
+      ]
+    ],
+    "max_sampled_route_slope_degrees": 33.05707227489293
+  },
+  "report_sha256": {
+    "Landform/Projects/LandformLab/Saved/Verification/regional-character-physics/index.json": "1fd16bac4271987ed201f8b648d596043e92cdb954273c6a38c20e440bc4ea75",
+    "Landform/Projects/LandformLab/Saved/Verification/regional-character-walk.json": "98c04d8e3810877c279866fe5fbec747491fe754c18165e2f186c994480f0a20",
+    "Landform/Projects/LandformLab/Saved/Verification/regional-character-assets.json": "5797597987d3d4d9f770e9cec76cb5f1d76538350f842f3e985ba31b1862f8b3"
+  },
+  "visual_captures": {
+    "Landform/Projects/LandformLab/Saved/Verification/regional-character-visual/junction.png": "a2772b326a9316ae9f085715561da582cd6fa309e2c193434ad22ad2e6ecee82"
+  },
+  "limits": [
+    "Finite equal-area sampling can miss smaller features; sampled range and quantiles are estimates, not hard bounds",
+    "Soft suitability profile and authored broad geology; not physical tectonic or hydrologic simulation",
+    "Existing 8..128 cell, 32 palette, source PCG and 1024 unique stamp budgets retained",
+    "Junctions are derived from a diagnostic contour atlas and refined to true metric ties; not an exhaustive topological certificate",
+    "Mac editor proof; packaged delivery, multiplayer, navigation meshes, cross-platform determinism, streaming and general performance unqualified",
+    "Existing LineSetComponentMaterial dependency warning case retained",
+    "No engine, vendor, project rendering or pre-existing asset changes"
+  ],
+  "visual_check": {
+    "reopened_builder_inspected": true,
+    "palette_counts_match_compiler": true,
+    "area_evaluation_control_visible": true,
+    "region_boundaries_visible": true,
+    "all_saved": true,
+    "external_unreal_click_automation_unreliable": true
+  }
+}
