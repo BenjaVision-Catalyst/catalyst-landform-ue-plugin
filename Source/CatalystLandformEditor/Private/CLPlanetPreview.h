@@ -5,6 +5,8 @@
 #include "UObject/StrongObjectPtr.h"
 #include "Model/CLPlanetRecipe.h"
 #include "CLRadialGuideEditing.h"
+#include "CLGlobePlacement.h"
+DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementTarget&,bool);
 class FCLGlobeClient;
 class FPreviewScene;
 struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
@@ -24,11 +26,18 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport
 {
 public:
-    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan);
     void Cancel();
+    void SetAuthoringRecipe(const FCLPlanetRecipe& Recipe);
+    void Select(FCLGlobeSelection Key);
+    FCLGlobeSelection Selection() const;
+    FString SelectionName() const;
+    FString PlacementHint() const;
+    void SetPlacementMode(ECLGlobePlacementMode Mode);
+    ECLGlobePlacementMode PlacementMode() const;
     void Frame();
     void Dolly(double Steps);
     void SetGuides(const FCLRadialGuideSet& Guides,bool Visible);
@@ -43,13 +52,25 @@ protected:
     virtual FReply OnMouseMove(const FGeometry&,const FPointerEvent&) override;
     virtual FReply OnMouseButtonUp(const FGeometry&,const FPointerEvent&) override;
     virtual void OnMouseCaptureLost(const FCaptureLostEvent&) override;
+    virtual FReply OnPreviewKeyDown(const FGeometry&,const FKeyEvent&) override;
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLGlobeGuidesTest;
     friend class FCLGlobePointerTest;
+    friend class FCLGlobePlacementPointerTest;
 #endif
     void Pump();
+    void CancelPlacementDrag();
+    FVector2D PointerPosition(const FGeometry& Geometry,const FPointerEvent& Event) const;
+    FOnCLGlobePlacementCommitted OnPlacementCommitted;
+    ECLGlobePlacementHandle DragHandle=ECLGlobePlacementHandle::None;
+    FCLGlobePlacementTarget DragStart;
+    FVector DragStartDirection;
+    FCLGlobeSelection ClickSelection;
+    FVector2D MouseDown;
+    bool bOrbitDrag=false,bPlacementMoved=false;
+    TSharedPtr<const FCLCompiledPlanetRecipe> BuildingPlan;
     TUniquePtr<FPreviewScene> Scene;
     TSharedPtr<FCLGlobeClient> Client;
     TStrongObjectPtr<UProceduralMeshComponent> Mesh;

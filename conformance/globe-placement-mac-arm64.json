@@ -1,0 +1,116 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "parent_component_revision": "fe8116e",
+  "parent_workspace_revision": "2b5787e",
+  "build": "passed",
+  "source_sha256": "4eb734e9f0c1ed35373a6915f221762a5dca8a25d6224f86645e9e7345b6becb",
+  "source_hash_algorithm": "Sorted component-relative Source paths, NUL, then bytes",
+  "automation": {
+    "globe-placement-release": {
+      "states": {
+        "Success": 65
+      },
+      "tests": 65,
+      "sha256": "b2baef9dd8d8a47a35304e843befae0d2a73f15e05e55014b8afaebb4419739b",
+      "report": "Landform/Projects/LandformLab/Saved/Verification/globe-placement-release/index.json"
+    },
+    "globe-placement-qualified": {
+      "states": {
+        "Success": 66
+      },
+      "tests": 66,
+      "sha256": "c2ea44c42f0b343800c855ff4b568b3e062100fc20d8a261feba097b0e60ab45",
+      "report": "Landform/Projects/LandformLab/Saved/Verification/globe-placement-qualified/index.json"
+    }
+  },
+  "qualification_order": "Integrated run includes 2 host physics proofs. Final component/editor suite adds edited-placement native parity and whole-ring picking; no terrain/collision implementation changes between runs.",
+  "native_edited_placement": {
+    "directions": 1734,
+    "maximum_terrain_change_m": 46.867,
+    "maximum_native_residual_cm": 0.001953125,
+    "move_rotate_resize": true
+  },
+  "physics": {
+    "collision": {
+      "passed": true,
+      "samples": 180,
+      "edges": 12,
+      "corners": 8,
+      "voxel_size_cm": 25,
+      "max_collision_error_cm": 0.770128443955779,
+      "source": "Cooked VPP/Chaos triangles on, and 0.5m to both sides of, every edge/corner"
+    },
+    "walk": {
+      "passed": true,
+      "frames": 12669,
+      "ground_frames": 12669,
+      "voxel_floor_frames": 12669,
+      "mountain_frames": 879,
+      "blend_frames": 10899,
+      "plateau_frames": 891,
+      "patch_crossings": 2,
+      "landform_join_crossings": 4,
+      "min_up_dot": 0.9999999999999996,
+      "min_gravity_dot": 0.9999999911770692,
+      "max_floor_field_residual_cm": 0.5151539048383711,
+      "worst_route_slope_degrees": 10.124162183461806,
+      "movement_input_only": true,
+      "terrain_modified_for_route": false
+    }
+  },
+  "native_assets": {
+    "passed": true,
+    "recipe_matches_json": true,
+    "authoring_source_links": 2,
+    "shared_guide_set": true,
+    "version_2_binary_defaults_preserved": true,
+    "native_canyon_samples": 34,
+    "zero_samples": 5,
+    "maximum_canyon_source_error_m": 2.8422908485481457e-05,
+    "zero_moat_pixels": 198,
+    "canyon_span_degrees": 156,
+    "canyon_max_depth_m": 102,
+    "natural_route_max_slope_degrees": 10.124162183461806,
+    "preexisting_files_preserved": 49
+  },
+  "asset_sha256": {
+    "Content/Stamps/MotionForgeCanyonV2/Heightmaps/HM_MFC_RiverCanyonRampDepth.uasset": "6fef7f81a1cf75273fb06f277ac126c207fbc29e9b5370a5ff7f7db8d1164e6a",
+    "Content/Stamps/MotionForgeCanyonV2/Textures/T_MFC_RiverCanyonRampDepth.uasset": "e40b871a0d955ac51e9b5d1f3f3c334e66da766e90b56a80bc4a587df10dba5f",
+    "SourceArt/Stamps/MotionForgeCanyonV2/MFC_RiverCanyonRampDepth.png": "951f1a22b29909ad189933ea0bd701953a6d4946a2e526be9e2b75f6c5b461b5",
+    "SourceArt/Stamps/MotionForgeCanyonV2/MFC_RiverMask.png": "1edff7e41a72c91d1060071768c05110ffc93418da368f0f3ee00913b9a5640e",
+    "SourceArt/Stamps/MotionForgeCanyonV2/README.md": "3c828a602816410f22c750646fe5643c58a59390511380f4bc35bf19ed1f823e",
+    "SourceArt/Stamps/MotionForgeCanyonV2/sources.json": "0980d4d04b743bafdb1cfbb73cb32e53383149755db2a98e119feb5e6ef2c478",
+    "Content/Stamps/DA_StampLibrary.uasset": "d8f6f26f4db22493a51a48e199035fe166454b30ff7e64bb47f0e951db54ab3b"
+  },
+  "preservation": {
+    "snapshot_files": 54,
+    "unchanged": 53,
+    "intentional_changed_files": {
+      "Content/LandformDesigner/PlanetAssembly/DA_PlanetAssembly.uasset": "d59d2ab7c0e34578b0199960f24e7e6310a08a418bdfa9851de40d6492cfd0c5"
+    },
+    "prior_catalog_revisions_export_text_identical": true
+  },
+  "visual_check": {
+    "builder_open": true,
+    "canyon_and_toolbar_inspected": true,
+    "all_saved": true,
+    "external_ui_clicks_reliable": false,
+    "actual_slate_pointer_routing_automated": true
+  },
+  "scope": {
+    "recipe_schema_changes": false,
+    "vendor_or_engine_changes": false,
+    "designer_placement_controls": false
+  },
+  "limits": [
+    "Editor qualification only; no packaged build, navigation mesh, streaming or general frame-rate qualification",
+    "Draft footprint responds during drag; terrain regenerates after one undoable commit on release",
+    "Procedural footprint resizing changes coverage; small source noise and stamp scales retain their configured sizes",
+    "Surface picking uses 96 compiled-field ray samples plus 14 bisections; not GPU triangle picking",
+    "Rising bed profile max slope is 29.3156 degrees at proof scale; inherited walls can be steeper",
+    "Existing LineSetComponentMaterial dependency warning case remains"
+  ]
+}

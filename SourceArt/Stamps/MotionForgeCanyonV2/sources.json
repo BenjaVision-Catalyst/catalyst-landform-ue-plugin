@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "author": "Chris J Mitchell / Motion Forge Pictures",
+  "license": "CC0-1.0",
+  "source_page": "https://www.motionforgepictures.com/height-maps/",
+  "parent_manifest": "../MotionForgeCanyonV1/sources.json",
+  "parent_manifest_sha256": "4f367e76ad8f9a31af6c331868afb6e7fc0119cb0c60e090b7e9a60d06c18237",
+  "parent_depth_sha256": "f0c87bb3738525023775a5c5a03b6c6b9b3914efe38640649d2dc008e952afbc",
+  "preparation": "River-mask centreline, smoothed 3px; cumulative arc length in the canonical 156 x 48 degree footprint. Raise the bed to a quintic depth ceiling over 32% of river length at each end. Existing banks remain where shallower than the raised bed; central elevations remain byte-identical. Linear uint16. No water generation.",
+  "ramp_length_fraction_each_end": 0.32,
+  "canonical_half_extents_degrees": [
+    78,
+    24
+  ],
+  "profile_arc_degrees": 129.7483228516051,
+  "ramp_arc_degrees": 41.519463312513636,
+  "profile_max_slope_at_470m_102m_depth_degrees": 29.31560319771333,
+  "output_resolution": [
+    2049,
+    1711
+  ],
+  "connected_structures": 1,
+  "boundary_depth_max": 0.0013122758831158924,
+  "central_pixels_preserved": 1024889,
+  "river_output_sha256": "1edff7e41a72c91d1060071768c05110ffc93418da368f0f3ee00913b9a5640e",
+  "zero_moat_pixels": 198,
+  "sources": [
+    {
+      "id": "MFC_RiverCanyonRampDepth",
+      "name": "River canyon with rising end beds",
+      "png_sha256": "951f1a22b29909ad189933ea0bd701953a6d4946a2e526be9e2b75f6c5b461b5",
+      "scale_xy_cm": 25,
+      "scale_z_cm": 10000,
+      "reference_relief_m": 100,
+      "samples_16bit": [
+        {
+          "x": 198,
+          "y": 956,
+          "value": 0
+        },
+        {
+          "x": 266,
+          "y": 930,
+          "value": 1085
+        },
+        {
+          "x": 335,
+          "y": 922,
+          "value": 7076
+        },
+        {
+          "x": 404,
+          "y": 909,
+          "value": 19209
+        },
+        {
+          "x": 473,
+          "y": 863,
+          "value": 34937
+        },
+        {
+          "x": 542,
+          "y": 856,
+          "value": 49623
+        },
+        {
+          "x": 611,
+          "y": 841,
+          "value": 60324
+        },
+        {
+          "x": 679,
+          "y": 840,
+          "value": 64967
+        },
+        {
+          "x": 748,
+          "y": 855,
+          "value": 51690
+        },
+        {
+          "x": 817,
+          "y": 871,
+          "value": 63948
+        },
+        {
+          "x": 886,
+          "y": 910,
+          "value": 63778
+        },
+        {
+          "x": 955,
+          "y": 941,
+          "value": 65535
+        },
+        {
+          "x": 1024,
+          "y": 959,
+          "value": 65535
+        },
+        {
+          "x": 1092,
+          "y": 962,
+          "value": 65535
+        },
+        {
+          "x": 1161,
+          "y": 931,
+          "value": 65535
+        },
+        {
+          "x": 1230,
+          "y": 905,
+          "value": 65535
+        },
+        {
+          "x": 1299,
+          "y": 874,
+          "value": 65535
+        },
+        {
+          "x": 1368,
+          "y": 842,
+          "value": 65360
+        },
+        {
+          "x": 1437,
+          "y": 833,
+          "value": 62041
+        },
+        {
+          "x": 1505,
+          "y": 830,
+          "value": 52333
+        },
+        {
+          "x": 1574,
+          "y": 881,
+          "value": 37702
+        },
+        {
+          "x": 1643,
+          "y": 960,
+          "value": 20328
+        },
+        {
+          "x": 1712,
+          "y": 1009,
+          "value": 7756
+        },
+        {
+          "x": 1781,
+          "y": 978,
+          "value": 1283
+        },
+        {
+          "x": 1850,
+          "y": 939,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "value": 0
+        },
+        {
+          "x": 127,
+          "y": 720,
+          "value": 0
+        },
+        {
+          "x": 2048,
+          "y": 1710,
+          "value": 0
+        },
+        {
+          "x": 240,
+          "y": 201,
+          "value": 1
+        },
+        {
+          "x": 1261,
+          "y": 626,
+          "value": 9
+        },
+        {
+          "x": 558,
+          "y": 1490,
+          "value": 1
+        },
+        {
+          "x": 1439,
+          "y": 733,
+          "value": 60161
+        },
+        {
+          "x": 837,
+          "y": 888,
+          "value": 63649
+        },
+        {
+          "x": 1072,
+          "y": 1052,
+          "value": 60013
+        }
+      ]
+    }
+  ]
+}

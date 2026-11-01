@@ -53,8 +53,8 @@
       "bEnabled": true,
       "profile": "Heightmap",
       "collectionId": "Canyons",
-      "collectionRevision": 1,
-      "sourceId": "MFC_RiverCanyonDepth",
+      "collectionRevision": 2,
+      "sourceId": "MFC_RiverCanyonRampDepth",
       "locationDegrees": {
         "x": 20,
         "y": -30

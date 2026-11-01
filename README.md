@@ -519,7 +519,7 @@ placements. Broad relief is added once after regional blending. Earlier mask
 profiles retain their existing semantics.
 
 Planet Builder adds Landform source selection, named structure connections,
-Details-based placement, Edit source and explicit Refresh source. Editor source
+direct globe selection/move/rotation/resize, Edit source and explicit Refresh source. Editor source
 links are stored outside the portable applied recipe. Imports clear these links;
 exports contain source snapshots and resolved guides, without Unreal paths.
 
@@ -549,3 +549,19 @@ extra full-mesh copy. Orbit/zoom and idle frames do not regenerate the terrain m
 `PlanetBuilder.GlobeDetail` measures triangle-plane error between vertices
 against the actual assembly field and checks face boundaries. Native VPP terrain
 and collision resolution are unchanged.
+
+### Direct globe placement and rising canyon beds
+
+Planet Builder now selects authored Landforms and structure features on the
+globe, with centre, rotation-ring and footprint resize handles. A Selection popup
+reaches overlapping/hidden targets. Move/rotate retain a Landform's structure
+binding; resizing the instance stores explicit extents in that same parent frame.
+A drag updates its outline only, then validates and commits one undoable change
+on release. Escape/capture loss discard the draft. The source Designer and
+portable recipe schema remain unchanged.
+
+Canyons revision 2 adds a rising bed at each end, measured along the river path.
+The bed reaches surrounding terrain over 32% of the path at either end, while
+central source relief and shallow banks are preserved. Version 1 remains
+immutable. `Tools/prepare-canyon-ramps.py` reproduces the processed quantitative
+source. The host's `Docs/GlobePlacement.md` documents controls and ownership.

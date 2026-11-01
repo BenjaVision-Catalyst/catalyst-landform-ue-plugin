@@ -792,6 +792,22 @@ public:
         };
         Add(FGuid(),TEXT("Planet frame"));for(const auto& F:RecipeAsset()->Recipe.BaseStructure)Add(F.Id,F.Name);return Menu.MakeWidget();
     }
+    void CommitGlobePlacement(const FCLGlobePlacementTarget& Target,bool Resize)
+    {
+        if(TerrainEditing)return;
+        auto* Asset=RecipeAsset();auto Candidate=Asset->Recipe;FString Error;
+        if(!FCLGlobePlacementEditing::Apply(Candidate,Target,Resize,Error)||!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;return;}
+        const FScopedTransaction Tx(FText::FromString(Resize?TEXT("Resize globe Landform"):TEXT("Place globe Landform")));
+        Asset->Modify();Asset->Recipe=MoveTemp(Candidate);Asset->PostEditChange();Asset->MarkPackageDirty();
+    }
+    TSharedRef<SWidget> GlobeSelectionMenu()
+    {
+        FMenuBuilder Menu(true,nullptr);
+        Menu.AddMenuEntry(FText::FromString(TEXT("Deselect")),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this]{if(Globe)Globe->Select({});})));
+        for(const auto& T:FCLGlobePlacementEditing::Resolve(RecipeAsset()->Recipe))
+            Menu.AddMenuEntry(FText::FromString((T.Key.bStructure?TEXT("Structure: "):TEXT("Landform: "))+T.Name),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Key=T.Key]{if(Globe)Globe->Select(Key);})));
+        return Menu.MakeWidget();
+    }
     void RefreshRegionControls()
     {
         if(!RegionControls)return;
@@ -805,6 +821,18 @@ public:
                 .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add Landform")))]]
             +SHorizontalBox::Slot().FillWidth(1).Padding(12,0)[SNew(STextBlock).AutoWrapText(true)
                 .Text(FText::FromString(TEXT("Place Landforms and connect them to structure; edit terrain in its Designer")))]];
+        auto Bar=SNew(SHorizontalBox)
+            +SHorizontalBox::Slot().AutoWidth()[SNew(SComboButton).OnGetMenuContent_Lambda([this]{return GlobeSelectionMenu();})
+                .ButtonContent()[SNew(STextBlock).Text_Lambda([this]{return FText::FromString(TEXT("Selection: ")+(Globe?Globe->SelectionName():TEXT("None")));})]];
+        for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
+        {
+            const FString Name=Mode==ECLGlobePlacementMode::Move?TEXT("Move (W)"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate (E)"):TEXT("Resize (R)");
+            Bar->AddSlot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(Name))
+                .ForegroundColor_Lambda([this,Mode]{return Globe&&Globe->PlacementMode()==Mode?FSlateColor(FLinearColor(.15,.8,1)):FSlateColor::UseForeground();})
+                .OnClicked_Lambda([this,Mode]{if(Globe)Globe->SetPlacementMode(Mode);return FReply::Handled();})];
+        }
+        Bar->AddSlot().FillWidth(1).Padding(12,0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Click surface to select; drag the selected handles")))];
+        RegionControls->AddSlot().AutoHeight().Padding(0,5)[SNew(SBox).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;})[Bar]];
         for(const auto& Region:RecipeAsset()->Recipe.TerrainRegions)
         {
             const FGuid Id=Region.Id;
@@ -815,7 +843,7 @@ public:
                 +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SComboButton).OnGetMenuContent_Lambda([this,Id]{return StructureMenu(Id);})
                     .ButtonContent()[SNew(STextBlock).Text_Lambda([this,Id]{const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}return FText::FromString(TEXT("Planet frame"));})]]
                 +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Placement")))
-                    .OnClicked_Lambda([this]{FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(UCLPlanetRecipeAsset::StaticClass(),TEXT("Recipe"))));Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLPlanetRecipe::StaticStruct(),TEXT("TerrainRegions"))));DetailsView->ScrollPropertyIntoView(Path,true);return FReply::Handled();})]
+                    .OnClicked_Lambda([this,Id]{if(Globe){const bool WasGlobe=bGlobe;bGlobe=true;if(!WasGlobe)Refresh();Globe->Select({Id,false});Globe->SetPlacementMode(ECLGlobePlacementMode::Move);}return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Edit source")))
                     .IsEnabled_Lambda([this,Id]{return RecipeAsset()->LandformSources.Contains(Id);})
                     .OnClicked_Lambda([this,Id]{if(auto* Source=RecipeAsset()->LandformSources.Find(Id))CLOpenTerrainDesigner(Source->Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();})]
@@ -874,7 +902,7 @@ public:
         auto* A=RecipeAsset();if(TerrainEditing || A->Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface || A->Recipe.BaseStructure.Num()>=64)return;
         FScopedTransaction Transaction(FText::FromString(TEXT("Add planet structure")));A->Modify();A->Recipe.SchemaVersion=FMath::Max(11,A->Recipe.SchemaVersion);
         FCLPlanetFeature F;F.Id=FGuid::NewGuid();F.Name=Basin?TEXT("Basin"):TEXT("Broad uplift");F.Relief.Fraction=Basin?-.25:.25;
-        if(Canyon){F.Name=TEXT("Great canyon");F.Profile=ECLPlanetFeatureProfile::Heightmap;F.CollectionId=TEXT("Canyons");F.CollectionRevision=1;F.SourceId=TEXT("MFC_RiverCanyonDepth");F.HalfExtentDegrees=FVector2D(78,24);F.Relief.Fraction=-.85;}
+        if(Canyon){F.Name=TEXT("Great canyon");F.Profile=ECLPlanetFeatureProfile::Heightmap;F.CollectionId=TEXT("Canyons");F.CollectionRevision=2;F.SourceId=TEXT("MFC_RiverCanyonRampDepth");F.HalfExtentDegrees=FVector2D(78,24);F.Relief.Fraction=-.85;}
         A->Recipe.BaseStructure.Add(F);A->MarkPackageDirty();A->PostEditChange();DetailsView->ForceRefresh();EditStructure();
     }
     void CreateTerrain(bool bDuplicate)
@@ -904,7 +932,7 @@ public:
             { TerrainSource.Reset(Source); break; }
         }
         FString GuideError;const bool GuidesValid=Asset->SynchronizeRadialGuides(GuideError);
-        if(Globe)Globe->SetGuides(Asset->Recipe.RadialGuides,Preview?Preview->Client->bGuides:true);
+        if(Globe){Globe->SetAuthoringRecipe(Asset->Recipe);Globe->SetGuides(Asset->Recipe.RadialGuides,Preview?Preview->Client->bGuides:true);}
         if (Preview) Preview->Client->RadialGuides = Asset->Recipe.RadialGuides;
         if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
         const auto Plan = !GuidesValid?TSharedPtr<const FCLCompiledPlanetRecipe>():TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
@@ -946,9 +974,9 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Add basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[SNew(SButton).Text(FText::FromString(TEXT("Add canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(12,0)[SNew(SButton).Text(FText::FromString(TEXT("Edit structure"))).OnClicked_Lambda([this]{EditStructure();return FReply::Handled();})]
-                +SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Position, heading, extent and relief in Details")))]]
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Select on globe to move, rotate and resize; relief in Details")))]]
 ;
-            GlobeWidget=SAssignNew(Globe,SCLPlanetPreview).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
+            GlobeWidget=SAssignNew(Globe,SCLPlanetPreview).OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateSP(this,&FCLRecipeToolkit::CommitGlobePlacement)).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
         }
         auto Tab=SNew(SDockTab)[SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this] { return FText::FromString(Status); })]
@@ -1039,7 +1067,7 @@ public:
                 {
                     FString Legend = RadialGuidesSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
                         TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
-                    if(!TerrainEditing&&bGlobe)Legend=TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag / wheel: zoom | Drag guides: radius | Delete: remove | Core +: add");
+                    if(!TerrainEditing&&bGlobe&&!RadialGuidesSession->Gesture)Legend=Globe->PlacementHint()+TEXT(" | Middle drag: pan | Right drag / wheel: zoom | Drag guides: radius");
                     else if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Radial Guide");
                     if ((Preview && Preview->IsUpdating()) || (Globe&&Globe->IsUpdating())) Legend = TEXT("Updating terrain preview… | ") + Legend;
                     if (Preview && Preview->Client->Plan && Preview->Client->Plan->Coordinates == ECLTerrainCoordinates::Sphere && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
