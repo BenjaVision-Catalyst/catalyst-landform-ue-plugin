@@ -565,3 +565,13 @@ The bed reaches surrounding terrain over 32% of the path at either end, while
 central source relief and shallow banks are preserved. Version 1 remains
 immutable. `Tools/prepare-canyon-ramps.py` reproduces the processed quantitative
 source. The host's `Docs/GlobePlacement.md` documents controls and ownership.
+
+### Clear Planet Builder viewport
+
+All planet setup and placement controls, status and help live in the left Planet
+tab, alongside Details and Validation. The right-hand panel is the globe/cutaway
+with its interactive handles and guide annotations. Landform selectors stack and
+actions wrap to fit the sidebar; less frequent structure, base terrain and guide
+management sections start collapsed. Cross-section coverage and guide visibility
+are under View. Edit structure activates Details. This is an editor layout change;
+planet recipes and terrain generation are unchanged.
