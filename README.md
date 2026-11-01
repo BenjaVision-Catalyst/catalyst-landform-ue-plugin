@@ -575,3 +575,17 @@ actions wrap to fit the sidebar; less frequent structure, base terrain and guide
 management sections start collapsed. Cross-section coverage and guide visibility
 are under View. Edit structure activates Details. This is an editor layout change;
 planet recipes and terrain generation are unchanged.
+
+### Native surface placement widget and fixed exposure
+
+Planet Builder uses Unreal's native transform widget and `HWidgetAxis` hit
+proxies in a private preview mode. Selection defaults to move; W/E/R select
+move/rotate/scale and Space cycles. Tangent X/Y arrows and the XY plane move on
+the sphere, the radial Z ring changes heading, and X/Y/XY scale handles resize the
+footprint. Drafts still commit once on release. The global level editor mode and
+actor selection remain separate.
+
+The globe uses fixed EV100 −2 with automatic/local exposure, bloom, lens flare and
+light shafts disabled. This removes the view-dependent overexposure path from
+its intermittently redrawn working scene without changing gameplay settings. A
+camera-relative key/fill/rim rig keeps the visible side legible throughout orbiting.

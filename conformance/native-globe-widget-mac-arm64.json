@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "parent_component_revision": "503c8ef",
+  "parent_workspace_revision": "d08ff80",
+  "build": "passed",
+  "source_sha256": "d486e9ed2081e6f774bfe61c62f54decbc84830d51680117be48273fc4b0a7a9",
+  "source_hash_algorithm": "Sorted component-relative Source paths, NUL, then bytes",
+  "automation": {
+    "passed": 66,
+    "failed": 0,
+    "report": "Landform/Projects/LandformLab/Saved/Verification/native-widget-complete/index.json",
+    "report_sha256": "444ce6bca088c1727b1ee113f045cced069774c535e191bdffe890218deae181",
+    "tests_with_warning_events": 1
+  },
+  "native_widget": {
+    "renderer": "Unreal FWidget / HWidgetAxis",
+    "scope": "Private preview FAssetEditorModeManager and surface placement mode",
+    "move_axes": [
+      "X",
+      "Y",
+      "XY"
+    ],
+    "rotation_axes": [
+      "Z"
+    ],
+    "scale_axes": [
+      "X",
+      "Y",
+      "XY"
+    ],
+    "routed_rendered_gestures": 7,
+    "one_commit_on_release": true,
+    "no_dense_work_or_recipe_write_during_drag": true,
+    "keyboard_escape_cancels_and_releases_capture": true,
+    "space_cycles_tools": true,
+    "r_selects_scale": true,
+    "immediate_mode_hit_proxy_invalidation": true
+  },
+  "lighting": {
+    "fixed_ev100": -2,
+    "automatic_exposure": false,
+    "local_exposure": false,
+    "bloom": false,
+    "lens_flares": false,
+    "light_shafts": false,
+    "camera_relative_key_fill_rim": true,
+    "rendered_camera_orientations": 36,
+    "latitudes_degrees": [
+      -55,
+      0,
+      55
+    ],
+    "maximum_background_blue_8bit": 43,
+    "maximum_clipped_white_pixels": 0,
+    "minimum_visible_terrain_pixels": 42145,
+    "minimum_centre_luminance_8bit": 214
+  },
+  "capture_sha256": {
+    "Landform/Projects/LandformLab/Saved/Verification/native-widget-move.png": "a9030cf31436f004709edd17b6b9e64651e19cbd6e3d67a01a74b61c962ef8e7",
+    "Landform/Projects/LandformLab/Saved/Verification/native-widget-lighting.png": "27d96065c8385a93cad3bdb0086bce2aa6151ffa4333a7451705279ad4cb8d9b"
+  },
+  "preserved_saved_asset_and_config_files": 56,
+  "visual_check": {
+    "reopened_builder_inspected": true,
+    "terrain_detail_legible": true,
+    "all_saved": true,
+    "native_gizmo_capture_inspected": true,
+    "external_ui_clicks_not_reliable": true
+  },
+  "scope": {
+    "editor_only": true,
+    "terrain_generation_or_recipe_changes": false,
+    "global_level_selection_or_mode_changes": false,
+    "project_or_gameplay_render_setting_changes": false,
+    "vendor_or_engine_changes": false
+  },
+  "limits": [
+    "Mac editor preview qualification; no packaged build, navigation mesh or general performance qualification",
+    "Surface-bound transforms intentionally exclude radial translation, tilt and vertical scaling",
+    "Native FWidget path qualified with UE 5.7 standard gizmo settings; experimental replacement TRS gizmo preferences not qualified",
+    "Rendered lighting sweep uses a coarse reference sphere; full proof planet was visually inspected separately",
+    "Existing LineSetComponentMaterial dependency warning case retained"
+  ]
+}

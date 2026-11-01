@@ -1018,7 +1018,7 @@ public:
                 .ButtonContent()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(TEXT("Selection: ")+(Globe?Globe->SelectionName():TEXT("None")));})]];
         auto Modes = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4));
         for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
-            Modes->AddSlot()[SNew(SButton).Text(FText::FromString(Mode==ECLGlobePlacementMode::Move?TEXT("Move (W)"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate (E)"):TEXT("Resize (R)")))
+            Modes->AddSlot()[SNew(SButton).Text(FText::FromString(Mode==ECLGlobePlacementMode::Move?TEXT("Move (W)"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate (E)"):TEXT("Scale (R)")))
                 .ForegroundColor_Lambda([this,Mode]{return Globe&&Globe->PlacementMode()==Mode?FSlateColor(FLinearColor(.15,.8,1)):FSlateColor::UseForeground();})
                 .OnClicked_Lambda([this,Mode]{if(Globe)Globe->SetPlacementMode(Mode);return FReply::Handled();})];
         Placement->AddSlot().AutoHeight().Padding(0,6)[Modes];
@@ -1189,6 +1189,7 @@ class FCLDesignerModule : public IModuleInterface
 public:
     virtual void StartupModule() override
     {
+        CLRegisterGlobePlacementMode();
         Command = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.Designer"), TEXT("Open a terrain definition; selected planet supplies preview guides only"), FConsoleCommandDelegate::CreateStatic(&OpenLandformDesigner));
         PlanetCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.PlanetRecipe"), TEXT("Open selected planet recipe or rolling-plains recipe"), FConsoleCommandDelegate::CreateStatic(&OpenPlanetRecipe));
         BuilderCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.PlanetBuilder"),TEXT("Open the planet builder"),FConsoleCommandDelegate::CreateStatic(&OpenPlanetRecipe));
@@ -1212,7 +1213,7 @@ public:
         }));
     }
     virtual void ShutdownModule() override
-    { Command.Reset(); TerrainCommand.Reset(); PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
+    { CLUnregisterGlobePlacementMode(); Command.Reset(); TerrainCommand.Reset(); PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
 };
 }
 

@@ -6,6 +6,9 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLRadialGuideEditing.h"
 #include "CLGlobePlacement.h"
+#include "UnrealWidgetFwd.h"
+void CLRegisterGlobePlacementMode();
+void CLUnregisterGlobePlacementMode();
 DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementTarget&,bool);
 class FCLGlobeClient;
 class FPreviewScene;
@@ -59,14 +62,16 @@ private:
     friend class FCLGlobeGuidesTest;
     friend class FCLGlobePointerTest;
     friend class FCLGlobePlacementPointerTest;
+    friend class FCLGlobeLightingTest;
 #endif
     void Pump();
     void CancelPlacementDrag();
     FVector2D PointerPosition(const FGeometry& Geometry,const FPointerEvent& Event) const;
     FOnCLGlobePlacementCommitted OnPlacementCommitted;
-    ECLGlobePlacementHandle DragHandle=ECLGlobePlacementHandle::None;
+    EAxisList::Type DragAxis=EAxisList::None;
     FCLGlobePlacementTarget DragStart;
-    FVector DragStartDirection;
+    FVector DragStartPoint,DragOrigin;
+    double DragScale=1;
     FCLGlobeSelection ClickSelection;
     FVector2D MouseDown;
     bool bOrbitDrag=false,bPlacementMoved=false;

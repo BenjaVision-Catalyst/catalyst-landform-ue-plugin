@@ -9,6 +9,11 @@
 #include "InputKeyEventArgs.h"
 #include "CLPlanetNavigation.h"
 #include "SceneManagement.h"
+#include "UnrealWidget.h"
+#include "EdMode.h"
+#include "EditorModeRegistry.h"
+#include "AssetEditorModeManager.h"
+#include "SceneView.h"
 
 FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution)
 {
@@ -45,25 +50,60 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
     }
     return B;
 }
+namespace
+{
+const FEditorModeID GlobePlacementModeId(TEXT("CLGlobeSurfacePlacement"));
+// A private preview mode filters Unreal's own widget to the degrees of freedom
+// supported by a surface-bound placement. No level actors or global mode changes.
+class FCLGlobeSurfaceMode : public FEdMode
+{
+public:
+    virtual bool UsesTransformWidget() const override { return true; }
+    virtual bool UsesTransformWidget(UE::Widget::EWidgetMode) const override { return true; }
+    virtual bool ShouldDrawWidget() const override { return true; }
+    virtual EAxisList::Type GetWidgetAxisToDraw(UE::Widget::EWidgetMode M) const override
+    { return M==UE::Widget::WM_Rotate?EAxisList::Z:EAxisList::XY; }
+};
+}
+void CLRegisterGlobePlacementMode(){FEditorModeRegistry::Get().RegisterMode<FCLGlobeSurfaceMode>(GlobePlacementModeId);}
+void CLUnregisterGlobePlacementMode(){FEditorModeRegistry::Get().UnregisterMode(GlobePlacementModeId);}
+class FCLGlobeScene : public FPreviewScene
+{
+    UDirectionalLightComponent* Fill=nullptr;
+    UDirectionalLightComponent* Rim=nullptr;
+public:
+    FCLGlobeScene():FPreviewScene(ConstructionValues())
+    {
+        SetSkyCubemap(LoadObject<UTextureCube>(nullptr,TEXT("/Engine/MapTemplates/Sky/SunsetAmbientCubemap.SunsetAmbientCubemap")));SetSkyBrightness(.25);
+        DirectionalLight->SetMobility(EComponentMobility::Movable);DirectionalLight->SetForwardShadingPriority(1);DirectionalLight->SetIntensity(2.2);DirectionalLight->SetLightSourceAngle(4);
+        auto AddLight=[&](float Intensity,FLinearColor Color){auto* L=NewObject<UDirectionalLightComponent>(GetTransientPackage());L->SetMobility(EComponentMobility::Movable);L->SetIntensity(Intensity);L->SetLightColor(Color);L->SetCastShadows(false);AddComponent(L,FTransform::Identity);return L;};
+        Fill=AddLight(.7,FLinearColor(.65,.8,1));Rim=AddLight(1.1,FLinearColor(.58,.79,1));
+    }
+    void AimLights(const FRotator& Rotation)
+    {
+        const FRotationMatrix Axes(Rotation);const FVector Back=-Axes.GetUnitAxis(EAxis::X),Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
+        auto Aim=[](UDirectionalLightComponent* L,FVector ToSource){L->SetWorldRotation((-ToSource).Rotation());};
+        Aim(DirectionalLight,Back*.8-Right*.7+Up*.7);Aim(Fill,Back*.5+Right+Up*.25);Aim(Rim,-Back*.8+Up*.9);
+    }
+};
 class FCLGlobeClient : public FEditorViewportClient
 {
 public:
     FCLPlanetNavigation Navigation;
+    FCLGlobeScene* StudioScene=nullptr;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     TArray<FCLGlobePlacementTarget> Targets;
     FCLGlobeSelection Selected;
     ECLGlobePlacementMode Mode=ECLGlobePlacementMode::Move;
     TOptional<FCLGlobePlacementTarget> Draft;
     struct FOutline {FCLGlobeSelection Key;TArray<FVector> Points;FVector Centre;};
-    struct FHandle {ECLGlobePlacementHandle Kind;FVector Point;};
     TArray<FOutline> Outlines;
-    TArray<FVector> RotationRing;
-    TArray<FHandle> Handles;
+    FVector PlacementOrigin=FVector::ZeroVector;
     const FCLGlobePlacementTarget* SelectedTarget() const
     {if(Draft.IsSet())return &Draft.GetValue();return Targets.FindByPredicate([&](const auto& T){return T.Key==Selected;});}
     void UpdatePlacementOverlay()
     {
-        Outlines.Reset();Handles.Reset();RotationRing.Reset();if(!Plan)return;
+        Outlines.Reset();ShowWidget(SelectedTarget()!=nullptr);if(Viewport)Viewport->InvalidateHitProxy();if(!Plan)return;
         TArray<FVector> Directions;TArray<int32> Centres;
         for(const auto& Original:Targets)
         {
@@ -79,23 +119,45 @@ public:
         }
         TArray<double> Heights;Plan->SampleHeightsMeters(Directions,Heights);
         auto Point=[&](int32 I){return Directions[I]*((Plan->RadiusMeters+Heights[I])/Plan->RadiusMeters*100000+140);};
-        for(int32 I=0;I<Outlines.Num();++I){Outlines[I].Centre=Point(Centres[I]);for(int32 J=1;J<=65;++J)Outlines[I].Points.Add(Point(Centres[I]+J));}
-        const auto* T=SelectedTarget();if(!T)return;
-        TArray<FVector> HD;TArray<ECLGlobePlacementHandle> Kinds;
-        auto Add=[&](ECLGlobePlacementHandle Kind,FVector2D A){HD.Add(T->Frame.RotateVector(FCLGlobePlacementEditing::Direction(A*(UE_DOUBLE_PI/180))));Kinds.Add(Kind);};
-        Add(ECLGlobePlacementHandle::Centre,FVector2D::ZeroVector);
-        if(Mode==ECLGlobePlacementMode::Rotate)
+        for(int32 I=0;I<Outlines.Num();++I){Outlines[I].Centre=Point(Centres[I]);if(Outlines[I].Key==Selected)PlacementOrigin=Outlines[I].Centre+Directions[Centres[I]]*80;for(int32 J=1;J<=65;++J)Outlines[I].Points.Add(Point(Centres[I]+J));}
+    }
+    virtual UE::Widget::EWidgetMode GetWidgetMode() const override
+    {return Mode==ECLGlobePlacementMode::Move?UE::Widget::WM_Translate:Mode==ECLGlobePlacementMode::Rotate?UE::Widget::WM_Rotate:UE::Widget::WM_Scale;}
+    virtual FVector GetWidgetLocation() const override
+    {return SelectedTarget()&&Plan?PlacementOrigin:FVector::ZeroVector;}
+    virtual FMatrix GetWidgetCoordSystem() const override
+    {const auto* T=SelectedTarget();return T?FQuatRotationMatrix(T->Frame):FMatrix::Identity;}
+    virtual ECoordSystem GetWidgetCoordSystemSpace() const override {return COORD_Local;}
+    EAxisList::Type HitWidgetAxis(FVector2D Normalized) const
+    {
+        if(!Viewport||!SelectedTarget())return EAxisList::None;
+        const auto Size=Viewport->GetSizeXY();const int32 X=FMath::FloorToInt(Normalized.X*Size.X),Y=FMath::FloorToInt(Normalized.Y*Size.Y);
+        if(X<0||Y<0||X>=Size.X||Y>=Size.Y)return EAxisList::None;
+        HHitProxy* Proxy=Viewport->GetHitProxy(X,Y);
+        if(Proxy&&Proxy->IsA(HWidgetAxis::StaticGetType()))
+        {const auto* H=static_cast<HWidgetAxis*>(Proxy);if(!H->bDisabled)return H->Axis;}
+        return EAxisList::None;
+    }
+    void HoverAxis(EAxisList::Type Axis)
+    {if(GetCurrentWidgetAxis()!=Axis){SetCurrentWidgetAxis(Axis);Invalidate(false,false);}}
+    bool WidgetPoint(FVector2D Normalized,const FCLGlobePlacementTarget& Start,EAxisList::Type Axis,const FVector& Origin,FVector& Point) const
+    {
+        if(!bHasProjection)return false;
+        FVector O,V;FSceneView::DeprojectScreenToWorld(FVector2D(ViewRect.Min)+Normalized*FVector2D(ViewRect.Size()),ViewRect,ViewProjection.Inverse(),O,V);V.Normalize();
+        if(Mode!=ECLGlobePlacementMode::Rotate&&(Axis==EAxisList::X||Axis==EAxisList::Y))
         {
-            const double R=FMath::Min(8.,T->HalfExtentDegrees.GetMin()*.4);Add(ECLGlobePlacementHandle::Rotation,FVector2D(R,0));
-            for(int32 I=0;I<=48;++I){const double A=2*UE_DOUBLE_PI*I/48;HD.Add(T->Frame.RotateVector(FCLGlobePlacementEditing::Direction(FVector2D(FMath::Cos(A),FMath::Sin(A))*R*(UE_DOUBLE_PI/180))));}
+            const FVector A=Axis==EAxisList::X?Start.Frame.GetAxisX():Start.Frame.GetAxisY(),Q=O-Origin;
+            const double D=FVector::DotProduct(A,V),Denom=1-D*D;if(Denom<1.e-5)return false;
+            Point=Origin+A*((FVector::DotProduct(A,Q)-D*FVector::DotProduct(V,Q))/Denom);return true;
         }
-        else if(Mode==ECLGlobePlacementMode::Resize)
-        {
-            Add(ECLGlobePlacementHandle::Width,FVector2D(T->HalfExtentDegrees.X,0));Add(ECLGlobePlacementHandle::Length,FVector2D(0,T->HalfExtentDegrees.Y));
-            Add(ECLGlobePlacementHandle::Uniform,T->HalfExtentDegrees*(T->bRectangle?1:.7071067811865476));
-        }
-        Plan->SampleHeightsMeters(HD,Heights);
-        for(int32 I=0;I<HD.Num();++I){const FVector P=HD[I]*((Plan->RadiusMeters+Heights[I])/Plan->RadiusMeters*100000+220);if(I<Kinds.Num())Handles.Add({Kinds[I],P});else RotationRing.Add(P);}
+        const FVector N=Start.Frame.GetAxisZ();const double Denom=FVector::DotProduct(V,N);if(FMath::Abs(Denom)<1.e-5)return false;
+        const double T=FVector::DotProduct(Origin-O,N)/Denom;if(T<0)return false;Point=O+V*T;return !Point.ContainsNaN();
+    }
+    double WidgetWorldSize() const
+    {
+        const FVector4 Clip=ViewProjection.TransformFVector4(FVector4(GetWidgetLocation(),1));
+        const double PixelsPerWorld=ViewProjection.GetColumn(0).Size()*ViewRect.Width()*.5/FMath::Max(1.,FMath::Abs(Clip.W));
+        return 70/FMath::Max(1.e-6,PixelsPerWorld);
     }
     bool Project(const FVector& P,FVector2D& Pixel) const
     {return bHasProjection&&FVector::DotProduct(GetViewLocation()-P,P)>0&&FSceneView::ProjectWorldToScreen(P,ViewRect,ViewProjection,Pixel);}
@@ -114,22 +176,6 @@ public:
         double A=FMath::Lerp(Lo,Hi,double(Hit-1)/Steps),Z=FMath::Lerp(Lo,Hi,double(Hit)/Steps);
         for(int32 I=0;I<14;++I){const double M=(A+Z)*.5;const FVector P=O+V*M;const double F=P.Size()-(Plan->RadiusMeters+Plan->SampleHeightMeters(P))/Plan->RadiusMeters*100000;if(F>0)A=M;else Z=M;}
         Direction=(O+V*((A+Z)*.5)).GetSafeNormal();return true;
-    }
-    ECLGlobePlacementHandle HitHandle(FVector2D Normalized) const
-    {
-        const FVector2D Pixel=FVector2D(ViewRect.Min)+Normalized*FVector2D(ViewRect.Size());double Best=22*22;auto Result=ECLGlobePlacementHandle::None;
-        for(const auto& H:Handles)
-        {
-            if(H.Kind==ECLGlobePlacementHandle::Centre&&Mode!=ECLGlobePlacementMode::Move)continue;
-            FVector2D P;if(Project(H.Point,P)){const double E=(P-Pixel).SizeSquared();if(E<Best){Best=E;Result=H.Kind;}}
-        }
-        if(Mode==ECLGlobePlacementMode::Rotate)for(int32 I=1;I<RotationRing.Num();++I)
-        {
-            FVector2D A,B;if(!Project(RotationRing[I-1],A)||!Project(RotationRing[I],B))continue;
-            const FVector2D AB=B-A;const double T=AB.SizeSquared()>1.e-9?FMath::Clamp(FVector2D::DotProduct(Pixel-A,AB)/AB.SizeSquared(),0.,1.):0;
-            if((Pixel-(A+AB*T)).SizeSquared()<144)return ECLGlobePlacementHandle::Rotation;
-        }
-        return Result;
     }
     FCLGlobeSelection PickTarget(FVector2D Normalized) const
     {
@@ -151,15 +197,7 @@ public:
         {
             const bool IsSelected=O.Key==Selected;const FLinearColor C=IsSelected?FLinearColor(.05,.8,1):FLinearColor(.16,.3,.35);
             for(int32 I=1;I<O.Points.Num();++I)PDI->DrawLine(O.Points[I-1],O.Points[I],C,SDPG_World,IsSelected?2.5:1.2);
-            FVector2D Pixel;if(Project(O.Centre,Pixel))PDI->DrawPoint(O.Centre,C,IsSelected?15:8,SDPG_Foreground);
-        }
-        for(int32 I=1;I<RotationRing.Num();++I)PDI->DrawLine(RotationRing[I-1],RotationRing[I],FLinearColor(1,.7,.15),SDPG_World,3);
-        for(const auto& H:Handles)
-        {
-            if(H.Kind==ECLGlobePlacementHandle::Centre&&Mode!=ECLGlobePlacementMode::Move)continue;
-            FVector2D Pixel;if(!Project(H.Point,Pixel))continue;
-            const FLinearColor C=H.Kind==ECLGlobePlacementHandle::Width?FLinearColor(1,.3,.2):H.Kind==ECLGlobePlacementHandle::Length?FLinearColor(.3,1,.4):FLinearColor(1,.8,.2);
-            PDI->DrawPoint(H.Point,C,18,SDPG_Foreground);
+            FVector2D Pixel;if(!IsSelected&&Project(O.Centre,Pixel))PDI->DrawPoint(O.Centre,C,8,SDPG_Foreground);
         }
     }
     FIntPoint NavigationSize;
@@ -172,7 +210,18 @@ public:
     FVector2D Core,Sky;
     bool bHasProjection=false;
     explicit FCLGlobeClient(FPreviewScene* Scene,TSharedRef<SEditorViewport> Widget):FEditorViewportClient(nullptr,Scene,Widget)
-    {SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);SetRealtime(false);ViewFOV=FOVAngle=60;Apply();}
+    {
+        StudioScene=static_cast<FCLGlobeScene*>(Scene);
+        static_cast<FAssetEditorModeManager*>(ModeTools.Get())->SetPreviewScene(Scene);
+        ModeTools->ActivateMode(GlobePlacementModeId);this->Widget->SetUsesEditorModeTools(ModeTools.Get());ShowWidget(false);
+        SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);
+        // Every camera angle uses the same studio exposure; nothing adapts while
+        // this non-realtime viewport redraws intermittently during an orbit.
+        ExposureSettings.bFixed=true;ExposureSettings.FixedEV100=-2;
+        EngineShowFlags.SetEyeAdaptation(false);EngineShowFlags.SetLocalExposure(false);
+        EngineShowFlags.SetBloom(false);EngineShowFlags.SetLensFlares(false);EngineShowFlags.SetLightShafts(false);
+        SetRealtime(false);ViewFOV=FOVAngle=60;Apply();
+    }
     virtual bool InputKey(const FInputKeyEventArgs& E) override
     {
         if(E.Event==IE_Pressed && (E.Key==EKeys::MouseScrollUp || E.Key==EKeys::MouseScrollDown))Dolly(E.Key==EKeys::MouseScrollUp?1:-1);
@@ -188,7 +237,7 @@ public:
     {
         NavigationSize=Viewport?Viewport->GetSizeXY():FIntPoint(1000,800);
         const double H=FMath::Tan(FMath::DegreesToRadians(30.)),V=H*FMath::Max(1,NavigationSize.Y)/FMath::Max(1,NavigationSize.X);
-        const auto C=Navigation.Camera(H,V);SetViewLocation(C.Eye);SetViewRotation(C.Rotation);SetLookAtLocation(C.Target);Invalidate();
+        const auto C=Navigation.Camera(H,V);SetViewLocation(C.Eye);SetViewRotation(C.Rotation);SetLookAtLocation(C.Target);StudioScene->AimLights(C.Rotation);Invalidate();
     }
     void Dolly(double D){Navigation.Dolly(D);Apply();}
     void UpdateIndicators()
@@ -215,18 +264,10 @@ public:
     {return bHasProjection&&Core.Y-Sky.Y>1.e-9?FMath::Clamp((Core.Y-Y)/(Core.Y-Sky.Y),0.,1.):0;}
 
 };
-class FCLGlobeScene : public FPreviewScene
-{
-public:
-    FCLGlobeScene():FPreviewScene(ConstructionValues()){DirectionalLight->SetForwardShadingPriority(1);}
-};
 void SCLPlanetPreview::Construct(const FArguments& Args)
 {
     OnPlacementCommitted=Args._OnPlacementCommitted;
     Scene=MakeUnique<FCLGlobeScene>();
-    Scene->SetSkyCubemap(LoadObject<UTextureCube>(nullptr,TEXT("/Engine/MapTemplates/Sky/SunsetAmbientCubemap.SunsetAmbientCubemap")));Scene->SetSkyBrightness(.25);
-    Scene->SetLightBrightness(2.2);Scene->SetLightDirection(FRotator(-35,-30,0));
-    auto* Fill=NewObject<UDirectionalLightComponent>(GetTransientPackage());Fill->SetIntensity(1.3);Fill->SetLightColor(FLinearColor(.65,.8,1));Fill->SetCastShadows(false);Scene->AddComponent(Fill,FTransform(FRotator(-15,145,0)));
     Mesh.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
     Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
     SEditorViewport::Construct(SEditorViewport::FArguments());
@@ -268,42 +309,65 @@ void SCLPlanetPreview::SetAuthoringRecipe(const FCLPlanetRecipe& R)
 }
 void SCLPlanetPreview::Select(FCLGlobeSelection Key)
 {
-    CancelPlacementDrag();Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();
+    CancelPlacementDrag();if(Key!=Client->Selected)Client->Mode=ECLGlobePlacementMode::Move;Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();
 }
 FCLGlobeSelection SCLPlanetPreview::Selection() const{return Client->Selected;}
 FString SCLPlanetPreview::SelectionName() const{const auto* T=Client->SelectedTarget();return T?T->Name:TEXT("None");}
-void SCLPlanetPreview::SetPlacementMode(ECLGlobePlacementMode Mode){if(DragHandle==ECLGlobePlacementHandle::None){Client->Mode=Mode;Client->UpdatePlacementOverlay();Client->Invalidate();}}
+void SCLPlanetPreview::SetPlacementMode(ECLGlobePlacementMode Mode){if(DragAxis==EAxisList::None){Client->Mode=Mode;Client->UpdatePlacementOverlay();Client->Invalidate();}}
 ECLGlobePlacementMode SCLPlanetPreview::PlacementMode() const{return Client->Mode;}
 FString SCLPlanetPreview::PlacementHint() const
 {
-    if(DragHandle!=ECLGlobePlacementHandle::None)return TEXT("Release to apply placement and rebuild terrain | Esc: cancel");
+    if(DragAxis!=EAxisList::None)return TEXT("Release to apply placement and rebuild terrain | Esc: cancel");
     if(!Client->Selected.IsValid())return TEXT("Click a Landform / feature to select | Left drag: orbit");
-    return Client->Mode==ECLGlobePlacementMode::Move?TEXT("Drag centre: move along globe | W: move | E: rotate | R: resize"):
-        Client->Mode==ECLGlobePlacementMode::Rotate?TEXT("Drag gold ring handle: rotate | Esc: deselect"):
-        TEXT("Drag red / green ends: resize width / length | Gold corner: resize both | Esc: deselect");
+    return Client->Mode==ECLGlobePlacementMode::Move?TEXT("Drag Unreal arrows / plane: move on surface | W: move | E: rotate | R: scale | Space: cycle"):
+        Client->Mode==ECLGlobePlacementMode::Rotate?TEXT("Drag Unreal radial ring: rotate | Space: cycle | Esc: deselect"):
+        TEXT("Drag Unreal X / Y scale handles; XY scales both | Space: cycle | Esc: deselect");
 }
-void SCLPlanetPreview::CancelPlacementDrag(){DragHandle=ECLGlobePlacementHandle::None;bPlacementMoved=false;if(Client){Client->Draft.Reset();Client->UpdatePlacementOverlay();Client->Invalidate();}}
+void SCLPlanetPreview::CancelPlacementDrag(){DragAxis=EAxisList::None;bPlacementMoved=false;if(Client){Client->Draft.Reset();Client->UpdatePlacementOverlay();Client->Invalidate();}}
 FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPointerEvent& E)
 {
     const FKey Key=E.GetEffectingButton();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
-    if(DragHandle!=ECLGlobePlacementHandle::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
+    if(DragAxis!=EAxisList::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;
     if(Key==EKeys::LeftMouseButton)
     {
-        const auto P=PointerPosition(G,E);const auto H=Client->HitHandle(P);const auto* T=Client->SelectedTarget();FVector D;
-        if(H!=ECLGlobePlacementHandle::None&&T&&Client->CursorDirection(P,D)){DragHandle=H;DragStart=*T;DragStartDirection=D;}
+        const auto P=PointerPosition(G,E);const auto Axis=Client->HitWidgetAxis(P);const auto* T=Client->SelectedTarget();FVector Point;
+        if(Axis!=EAxisList::None&&T&&Client->WidgetPoint(P,*T,Axis,Client->GetWidgetLocation(),Point))
+        {DragAxis=Axis;DragStart=*T;DragStartPoint=Point;DragOrigin=Client->GetWidgetLocation();DragScale=Client->WidgetWorldSize();Client->HoverAxis(Axis);}
         else ClickSelection=Client->PickTarget(P);
     }
     return FReply::Handled().CaptureMouse(SharedThis(this)).SetUserFocus(SharedThis(this));
 }
 FReply SCLPlanetPreview::OnMouseMove(const FGeometry& G,const FPointerEvent& E)
 {
-    if(!HasMouseCapture())return FReply::Unhandled();const auto Delta=E.GetScreenSpacePosition()-Previous;Previous=E.GetScreenSpacePosition();
-    if(DragHandle!=ECLGlobePlacementHandle::None)
+    if(!HasMouseCapture()){Client->HoverAxis(Client->HitWidgetAxis(PointerPosition(G,E)));return FReply::Unhandled();}const auto Delta=E.GetScreenSpacePosition()-Previous;Previous=E.GetScreenSpacePosition();
+    if(DragAxis!=EAxisList::None)
     {
-        FVector D;if(Client->CursorDirection(PointerPosition(G,E),D))
+        FVector Point;if(Client->WidgetPoint(PointerPosition(G,E),DragStart,DragAxis,DragOrigin,Point))
         {
-            Client->Draft=FCLGlobePlacementEditing::Drag(DragStart,DragHandle,DragStartDirection,D);
+            auto Target=DragStart;
+            const FVector Local=DragStart.Frame.UnrotateVector(Point-DragStartPoint);
+            if(Client->Mode==ECLGlobePlacementMode::Move)
+            {
+                const double Radius=FMath::Max(1.,DragOrigin.Size());
+                const FVector D=DragStart.Frame.RotateVector(FCLGlobePlacementEditing::Direction(FVector2D(Local.X,Local.Y)/Radius));
+                Target=FCLGlobePlacementEditing::Drag(DragStart,ECLGlobePlacementHandle::Centre,DragStart.Frame.GetAxisZ(),D);
+            }
+            else if(Client->Mode==ECLGlobePlacementMode::Rotate)
+            {
+                const FVector A=DragStart.Frame.UnrotateVector(DragStartPoint-DragOrigin),B=DragStart.Frame.UnrotateVector(Point-DragOrigin);
+                const double Angle=FMath::FindDeltaAngleRadians(FMath::Atan2(A.Y,A.X),FMath::Atan2(B.Y,B.X));
+                Target.Frame=(DragStart.Frame*FQuat(FVector::ZAxisVector,Angle)).GetNormalized();
+            }
+            else
+            {
+                FVector2D Factors(1);if(DragAxis==EAxisList::X)Factors.X=1+Local.X/DragScale;
+                else if(DragAxis==EAxisList::Y)Factors.Y=1+Local.Y/DragScale;
+                else Factors=FVector2D(1+(Local.X+Local.Y)/DragScale);
+                Target.HalfExtentDegrees.X=FMath::Clamp(DragStart.HalfExtentDegrees.X*Factors.X,.1,84.9);
+                Target.HalfExtentDegrees.Y=FMath::Clamp(DragStart.HalfExtentDegrees.Y*Factors.Y,.1,84.9);
+            }
+            Client->Draft=Target;
             bPlacementMoved=!Client->Draft->Frame.Equals(DragStart.Frame,1.e-8)||!Client->Draft->HalfExtentDegrees.Equals(DragStart.HalfExtentDegrees,1.e-8);
             Client->UpdatePlacementOverlay();Client->Invalidate();
         }
@@ -315,10 +379,10 @@ FReply SCLPlanetPreview::OnMouseMove(const FGeometry& G,const FPointerEvent& E)
 FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E)
 {
     if(!HasMouseCapture()||E.GetEffectingButton()!=Button)return FReply::Unhandled();
-    if(DragHandle!=ECLGlobePlacementHandle::None)
+    if(DragAxis!=EAxisList::None)
     {
         const auto Target=Client->Draft.IsSet()?Client->Draft.GetValue():DragStart;const bool Changed=bPlacementMoved;
-        const bool Resize=DragHandle==ECLGlobePlacementHandle::Width||DragHandle==ECLGlobePlacementHandle::Length||DragHandle==ECLGlobePlacementHandle::Uniform;
+        const bool Resize=Client->Mode==ECLGlobePlacementMode::Resize;
         CancelPlacementDrag();if(Changed)OnPlacementCommitted.ExecuteIfBound(Target,Resize);
     }
     else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag)Select(ClickSelection);
@@ -327,9 +391,9 @@ FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E
 void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();CancelPlacementDrag();}
 FReply SCLPlanetPreview::OnPreviewKeyDown(const FGeometry&,const FKeyEvent& E)
 {
-    if(E.GetKey()==EKeys::Escape){const bool WasDragging=DragHandle!=ECLGlobePlacementHandle::None;CancelPlacementDrag();if(!WasDragging)Select({});Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
+    if(E.GetKey()==EKeys::Escape){const bool WasDragging=DragAxis!=EAxisList::None;CancelPlacementDrag();if(!WasDragging)Select({});Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     if(E.IsControlDown()||E.IsCommandDown()||E.IsAltDown())return FReply::Unhandled();
-    if(E.GetKey()==EKeys::W)SetPlacementMode(ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::E)SetPlacementMode(ECLGlobePlacementMode::Rotate);else if(E.GetKey()==EKeys::R)SetPlacementMode(ECLGlobePlacementMode::Resize);else return FReply::Unhandled();return FReply::Handled();
+    if(E.GetKey()==EKeys::SpaceBar)SetPlacementMode(Client->Mode==ECLGlobePlacementMode::Move?ECLGlobePlacementMode::Rotate:Client->Mode==ECLGlobePlacementMode::Rotate?ECLGlobePlacementMode::Resize:ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::W)SetPlacementMode(ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::E)SetPlacementMode(ECLGlobePlacementMode::Rotate);else if(E.GetKey()==EKeys::R)SetPlacementMode(ECLGlobePlacementMode::Resize);else return FReply::Unhandled();return FReply::Handled();
 }
 FReply SCLPlanetPreview::OnMouseWheel(const FGeometry&,const FPointerEvent& E){Client->Dolly(E.GetWheelDelta());return FReply::Handled();}
 
@@ -474,47 +538,77 @@ bool FCLGlobeDetailTest::RunTest(const FString&)
 }
 #endif
 
+
 #if WITH_DEV_AUTOMATION_TESTS
+#include "Slate/SceneViewport.h"
+#include "RenderingThread.h"
+#include "ImageUtils.h"
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobePlacementPointerTest,"Catalyst.Landform.PlanetBuilder.RoutedPlacementHandles",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLGlobePlacementPointerTest::RunTest(const FString&)
 {
-    auto Recipe=FCLPlanetCompiler::BasePlanet();FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.bPlacedLandform=true;Region.bSphericalMask=true;Region.TerrainTypeId=FGuid::NewGuid();Region.TerrainTypeName=TEXT("Pointer test source");Region.Placement.HalfExtentDegrees=FVector2D(25,15);Recipe.TerrainRegions.Add(Region);const auto Original=Recipe;
+    auto Recipe=FCLPlanetCompiler::BasePlanet();FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.bPlacedLandform=true;Region.bSphericalMask=true;Region.TerrainTypeId=FGuid::NewGuid();Region.TerrainTypeName=TEXT("Native widget source");Region.Placement.HalfExtentDegrees=FVector2D(25,15);Recipe.TerrainRegions.Add(Region);const auto Original=Recipe;
     FString Error;const auto Plan=FCLPlanetCompiler::Compile(Recipe,Error);if(!Plan){AddError(Error);return false;}
-    int32 Commits=0;auto& App=FSlateApplication::Get();const auto Widget=SNew(SCLPlanetPreview).OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateLambda([&](const FCLGlobePlacementTarget& T,bool Resize){++Commits;TestTrue(TEXT("Routed gesture applies valid planet placement"),FCLGlobePlacementEditing::Apply(Recipe,T,Resize,Error));}));
-    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Globe placement routing proof"))).ClientSize(FVector2D(800,600))[Widget];App.AddWindow(Window,false);Window->SlatePrepass();
-    FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(Widget->ViewportWidget.ToSharedRef(),Actual,EVisibility::All);
-    const FGeometry Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;
-    for(const auto& W:Actual.Widgets.GetInternalArray())Arranged.Emplace(W,TOptional<FVirtualPointerPosition>());
-    const FWidgetPath Path(MakeArrayView(Arranged));if(!Path.IsValid()){AddError(TEXT("Missing real viewport hierarchy"));App.RequestDestroyWindow(Window);return false;}
-    AddInfo(FString::Printf(TEXT("Viewport geometry %.2f x %.2f at %.2f / %.2f"),Geometry.GetLocalSize().X,Geometry.GetLocalSize().Y,Geometry.GetAbsolutePosition().X,Geometry.GetAbsolutePosition().Y));
-    auto Screen=[&](FVector2D Pixel){return Geometry.LocalToAbsolute(Pixel/FVector2D(800,600)*Geometry.GetLocalSize());};
-    const auto Client=Widget->Client;Client->Plan=Plan;Client->SetViewLocation(FVector(0,0,200000));Client->ViewRect=FIntRect(0,0,800,600);Client->bHasProjection=true;
-    Client->ViewProjection=FMatrix::Identity;Client->ViewProjection.M[0][0]=Client->ViewProjection.M[1][1]=1./100000;Client->ViewProjection.M[2][2]=1./200000;
+    auto& App=FSlateApplication::Get();int32 Commits=0;
+    const auto W=SNew(SCLPlanetPreview).OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateLambda([&](const auto& Target,bool Resize){++Commits;TestTrue(TEXT("Native widget commits a valid spherical placement"),FCLGlobePlacementEditing::Apply(Recipe,Target,Resize,Error));}));
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native globe widget proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    const auto C=W->Client;C->Plan=Plan;C->SetViewLocation(FVector(80000,-60000,200000));C->SetViewRotation((FVector(0,0,45000)-C->GetViewLocation()).Rotation());C->StudioScene->AimLights(C->GetViewRotation());const auto B=FCLGlobeBuffers::Build(*Plan,32);W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);W->SetAuthoringRecipe(Recipe);W->Select({Region.Id,false});
+    FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(W->ViewportWidget.ToSharedRef(),Actual,EVisibility::All);
+    const auto Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const FWidgetPath Path(MakeArrayView(Arranged));
+    auto Screen=[&](FVector2D P){return Geometry.LocalToAbsolute(P/FVector2D(V->GetSizeXY())*Geometry.GetLocalSize());};
     auto Down=[&](FVector2D P){P=Screen(P);App.RoutePointerDownEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState()));};
     auto Move=[&](FVector2D A,FVector2D B){A=Screen(A);B=Screen(B);App.RoutePointerMoveEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,B,A,TSet<FKey>{EKeys::LeftMouseButton},FKey(),0,FModifierKeysState()),false);};
     auto Up=[&](FVector2D P){P=Screen(P);App.RoutePointerUpEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));};
-    const FCLGlobeSelection Key{Region.Id,false};
-    for(auto Handle:{ECLGlobePlacementHandle::Centre,ECLGlobePlacementHandle::Rotation,ECLGlobePlacementHandle::Width,ECLGlobePlacementHandle::Length,ECLGlobePlacementHandle::Uniform})
+    for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
     {
-        Recipe=Original;Widget->SetAuthoringRecipe(Recipe);Widget->Select(Key);Widget->SetPlacementMode(Handle==ECLGlobePlacementHandle::Centre?ECLGlobePlacementMode::Move:Handle==ECLGlobePlacementHandle::Rotation?ECLGlobePlacementMode::Rotate:ECLGlobePlacementMode::Resize);
-        const auto* H=Client->Handles.FindByPredicate([&](const auto& V){return V.Kind==Handle;});if(!H){AddError(TEXT("Expected placement handle was not built"));continue;}
-        FVector2D Start;if(!Client->Project(H->Point,Start)){AddError(TEXT("Handle did not project"));continue;}
-        if(Handle==ECLGlobePlacementHandle::Rotation&&!Client->RotationRing.IsEmpty())Client->Project(Client->RotationRing[12],Start);
-        FVector2D End=Start;
-        if(Handle==ECLGlobePlacementHandle::Centre)End+=FVector2D(60,0);
-        else if(Handle==ECLGlobePlacementHandle::Rotation){const double R=FMath::Min(8.,Region.Placement.HalfExtentDegrees.GetMin()*.4);const FVector P=FCLGlobePlacementEditing::Direction(FVector2D(-FMath::DegreesToRadians(R),0))*45220;Client->Project(P,End);}
-        else End=FVector2D(400,300)+(Start-FVector2D(400,300))*1.2;
-        FVector Pick;TestTrue(TEXT("Handle ray reaches displayed field"),Client->CursorDirection(Start/FVector2D(800,600),Pick));TestTrue(TEXT("Projected handle hit is recognized"),Client->HitHandle(Start/FVector2D(800,600))==Handle);
-        const int32 Before=Commits;Down(Start);TestTrue(TEXT("Handle press captures the real viewport pointer"),Widget->HasMouseCapture());Move(Start,End);TestTrue(TEXT("Routed drag enters placement mode"),Widget->DragHandle==Handle);TestTrue(TEXT("Routed drag creates a changed draft"),Widget->bPlacementMoved);
-        TestEqual(TEXT("Drag does not commit per mouse event"),Commits,Before);TestTrue(TEXT("Draft gesture does not alter the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));TestFalse(TEXT("Footprint drag does not generate dense terrain"),Widget->IsUpdating());
-        Up(End);TestEqual(TEXT("Exactly one placement commit on release"),Commits,Before+1);TestFalse(TEXT("Release ends pointer capture"),Widget->HasMouseCapture());
-        TestFalse(TEXT("Released handle changes planet placement"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));
+        for(auto Axis:Mode==ECLGlobePlacementMode::Rotate?TArray<EAxisList::Type>{EAxisList::Z}:TArray<EAxisList::Type>{EAxisList::X,EAxisList::Y,EAxisList::XY})
+        {
+            Recipe=Original;W->SetAuthoringRecipe(Recipe);W->Select({Region.Id,false});W->SetPlacementMode(Mode);V->Invalidate();V->Draw(false);FlushRenderingCommands();
+            if(Mode==ECLGlobePlacementMode::Move&&Axis==EAxisList::X){TArray<FColor> Pixels;if(V->ReadPixels(Pixels)){TArray<uint8> PNG;FImageUtils::CompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification/native-widget-move.png")));}}
+            const auto Size=V->GetSizeXY();TArray<HHitProxy*> Map;V->GetHitProxyMap(FIntRect(0,0,Size.X,Size.Y),Map);FVector2D Start(-1,-1);
+            for(int32 I=0;I<Map.Num();++I)if(Map[I]&&Map[I]->IsA(HWidgetAxis::StaticGetType())&&static_cast<HWidgetAxis*>(Map[I])->Axis==Axis){Start=FVector2D(I%Size.X+.5,I/Size.X+.5);break;}
+            AddInfo(FString::Printf(TEXT("Native handle mode %d axis %d at %.1f / %.1f; viewport %d x %d"),int32(Mode),int32(Axis),Start.X,Start.Y,Size.X,Size.Y));
+            if(!TestTrue(TEXT("Unreal renders a real HWidgetAxis hit target"),Start.X>=0))continue;
+            TestTrue(TEXT("Native hit proxy is used by the actual viewport"),C->HitWidgetAxis(Start/FVector2D(Size))==Axis);
+            FVector2D End=Start+FVector2D(36,-28);const int32 Before=Commits;
+            if(Mode==ECLGlobePlacementMode::Move&&Axis==EAxisList::X)
+            {Down(Start);Move(Start,End);App.ProcessKeyDownEvent(FKeyEvent(EKeys::Escape,FModifierKeysState(),0,false,0,0));Up(End);TestFalse(TEXT("Escape releases native widget pointer capture"),W->HasMouseCapture());TestEqual(TEXT("Escape cancels a native widget draft without a commit"),Commits,Before);TestTrue(TEXT("Cancelled native drag preserves the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));}
+            Down(Start);Move(Start,End);
+            AddInfo(FString::Printf(TEXT("Routed actual axis %d, changed %d, commits %d"),int32(W->DragAxis),W->bPlacementMoved,Commits));
+            TestTrue(TEXT("Routed native handle starts a changed draft"),W->DragAxis==Axis&&W->bPlacementMoved);
+            TestEqual(TEXT("No per-move commit"),Commits,Before);TestFalse(TEXT("No per-move dense terrain work"),W->IsUpdating());
+            TestTrue(TEXT("The recipe stays unchanged during a draft"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));
+            Up(End);TestEqual(TEXT("One commit for each native widget gesture"),Commits,Before+1);
+            TestFalse(TEXT("Native gesture changes the placement"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));
+        }
     }
-    Recipe=Original;Widget->SetAuthoringRecipe(Recipe);Widget->Select(Key);Widget->SetPlacementMode(ECLGlobePlacementMode::Move);const int32 Before=Commits;
-    Down(FVector2D(400,300));Move(FVector2D(400,300),FVector2D(440,300));Widget->OnPreviewKeyDown(Geometry,FKeyEvent(EKeys::Escape,FModifierKeysState(),0,false,0,0));
-    TestEqual(TEXT("Escape discards a drag"),Commits,Before);TestTrue(TEXT("Escape preserves planet recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));
-    App.ReleaseAllPointerCapture();Widget->Select({});Down(FVector2D(400,300));Up(FVector2D(400,300));TestTrue(TEXT("Click selects the Landform on the globe"),Widget->Selection()==Key);
-    Down(FVector2D(10,10));Up(FVector2D(10,10));TestFalse(TEXT("Click empty space deselects"),Widget->Selection().IsValid());
+    W->SetPlacementMode(ECLGlobePlacementMode::Move);W->OnPreviewKeyDown(Geometry,FKeyEvent(EKeys::SpaceBar,FModifierKeysState(),0,false,0,0));TestTrue(TEXT("Space cycles to rotation"),W->PlacementMode()==ECLGlobePlacementMode::Rotate);
+    W->OnPreviewKeyDown(Geometry,FKeyEvent(EKeys::R,FModifierKeysState(),0,false,0,0));TestTrue(TEXT("R selects scale"),W->PlacementMode()==ECLGlobePlacementMode::Resize);
+    W->OnPreviewKeyDown(Geometry,FKeyEvent(EKeys::Escape,FModifierKeysState(),0,false,0,0));TestFalse(TEXT("Escape clears selection"),W->Selection().IsValid());
     App.ReleaseAllPointerCapture();App.RequestDestroyWindow(Window);return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeLightingTest,"Catalyst.Landform.PlanetBuilder.StablePreviewLighting",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobeLightingTest::RunTest(const FString&)
+{
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Globe exposure orbit proof"))).ClientSize(FVector2D(640,480))[W];App.AddWindow(Window,false);Window->SlatePrepass();const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,640,480,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    auto Recipe=FCLPlanetCompiler::BasePlanet();FString Error;const auto Plan=FCLPlanetCompiler::Compile(Recipe,Error);if(!Plan){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+    const auto B=FCLGlobeBuffers::Build(*Plan,48);W->Client->Plan=Plan;W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
+    TestTrue(TEXT("Fixed studio exposure is stable during orbit"),W->Client->ExposureSettings.bFixed&&W->Client->ExposureSettings.FixedEV100==-2);
+    TestFalse(TEXT("Automatic exposure cannot flash between intermittent orbit frames"),W->Client->EngineShowFlags.EyeAdaptation);
+    int32 Frames=0,WorstBackground=0,MostClipped=0,LeastTerrain=MAX_int32,DarkestCentre=255;
+    for(double Latitude:{-55.,0.,55.})for(int32 Longitude=0;Longitude<360;Longitude+=30)
+    {
+        const double A=FMath::DegreesToRadians(double(Longitude)),P=FMath::DegreesToRadians(Latitude);const FVector Eye=FVector(FMath::Cos(A)*FMath::Cos(P),FMath::Sin(A)*FMath::Cos(P),FMath::Sin(P))*220000;
+        W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();V->Invalidate();V->Draw(false);FlushRenderingCommands();TArray<FColor> Pixels;
+        if(!TestTrue(TEXT("Actual rendered orbit frame can be read"),V->ReadPixels(Pixels)))continue;
+        if(Pixels.IsEmpty())continue;int32 Clipped=0;for(const auto& C:Pixels)if(C.R>250&&C.G>250&&C.B>250)++Clipped;MostClipped=FMath::Max(MostClipped,Clipped);
+        const int32 BackgroundSum=int32(Pixels[0].R)+Pixels[0].G+Pixels[0].B;int32 TerrainPixels=0;for(const auto& C:Pixels)if(int32(C.R)+C.G+C.B>BackgroundSum+60)++TerrainPixels;LeastTerrain=FMath::Min(LeastTerrain,TerrainPixels);
+        if(Frames==0){TArray<uint8> PNG;FImageUtils::CompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification/native-widget-lighting.png")));}
+        const auto Centre=Pixels[(V->GetSizeXY().Y/2)*V->GetSizeXY().X+V->GetSizeXY().X/2];DarkestCentre=FMath::Min(DarkestCentre,int32(.2126*Centre.R+.7152*Centre.G+.0722*Centre.B));
+        WorstBackground=FMath::Max(WorstBackground,int32(Pixels[0].B));++Frames;
+    }
+    TestEqual(TEXT("Full rendered orbit sweep completes"),Frames,36);TestTrue(TEXT("Background remains dark at every orientation"),WorstBackground<100);TestTrue(TEXT("Terrain is never broadly clipped white"),MostClipped<640*480/100);TestTrue(TEXT("Lit terrain is actually rendered at every angle"),LeastTerrain>1000);TestTrue(TEXT("Visible terrain remains legible at fixed exposure"),DarkestCentre>=55);
+    AddInfo(FString::Printf(TEXT("Rendered exposure sweep: %d orientations, background blue max %d/255, clipped-white pixels max %d, lit terrain min %d, centre luminance min %d/255"),Frames,WorstBackground,MostClipped,LeastTerrain,DarkestCentre));
+    App.RequestDestroyWindow(Window);return true;
 }
 #endif

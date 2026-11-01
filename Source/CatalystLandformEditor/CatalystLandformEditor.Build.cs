@@ -5,6 +5,6 @@ public class CatalystLandformEditor : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "UnrealEd", "AssetDefinition", "CatalystFoundationEditor", "CatalystLandform" });
-        PrivateDependencyModuleNames.AddRange(new[] { "CatalystFoundation", "Slate", "SlateCore", "PropertyEditor", "ToolMenus", "AdvancedPreviewScene", "ProceduralMeshComponent", "RenderCore", "InputCore", "AssetRegistry", "AssetTools", "Projects" });
+        PrivateDependencyModuleNames.AddRange(new[] { "EditorFramework", "CatalystFoundation", "Slate", "SlateCore", "PropertyEditor", "ToolMenus", "AdvancedPreviewScene", "ProceduralMeshComponent", "RenderCore", "InputCore", "AssetRegistry", "AssetTools", "Projects" });
     }
 }
