@@ -34,5 +34,7 @@ struct CATALYSTLANDFORM_API FCLSurfaceStack
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLSurfaceLayer> Layers;
     bool IsActive() const {return !DefaultSurfaceId.IsNone()||!Layers.IsEmpty();}
     bool Validate(FString& Error) const;
+    /** Starter material ownership for newly authored worlds; imported legacy stacks stay unchanged. */
+    static FCLSurfaceStack MakeDefault();
     void RenameGuide(FName Old,FName New);
 };

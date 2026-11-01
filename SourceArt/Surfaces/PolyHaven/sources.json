@@ -1,0 +1,75 @@
+{
+  "license_url": "https://polyhaven.com/license",
+  "resolution": 2048,
+  "assets": [
+    {
+      "asset": "rock_face_03",
+      "page": "https://polyhaven.com/a/rock_face_03",
+      "license": "CC0-1.0",
+      "tile_meters": 2.7,
+      "files": {
+        "Diffuse": {
+          "filename": "rock_face_03_Diffuse.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_face_03/rock_face_03_diff_2k.png",
+          "sha256": "09c30549220c8297c06eabcb25d272fcc1b514548be712221bd9d47f010def8b"
+        },
+        "nor_dx": {
+          "filename": "rock_face_03_nor_dx.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_face_03/rock_face_03_nor_dx_2k.png",
+          "sha256": "5015a7a17d037d54d97b043a864b58f2df3bb6cd7a4d92b04a72063c56aac0d7"
+        },
+        "Rough": {
+          "filename": "rock_face_03_Rough.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_face_03/rock_face_03_rough_2k.png",
+          "sha256": "9ba99f1441a94235f729d24ddaabd4dd4b978a460bd71b593dc6275b745044f6"
+        }
+      }
+    },
+    {
+      "asset": "gravelly_sand",
+      "page": "https://polyhaven.com/a/gravelly_sand",
+      "license": "CC0-1.0",
+      "tile_meters": 2.5,
+      "files": {
+        "Diffuse": {
+          "filename": "gravelly_sand_Diffuse.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/gravelly_sand/gravelly_sand_diff_2k.png",
+          "sha256": "a4982853355c4c08e3eb98dd8933062d688a42942f40121cc73f69675f3b7c2e"
+        },
+        "nor_dx": {
+          "filename": "gravelly_sand_nor_dx.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/gravelly_sand/gravelly_sand_nor_dx_2k.png",
+          "sha256": "e037dbfdfc6e591fa2fd817325380569a6c43c3c340376d211d142f2af890a8b"
+        },
+        "Rough": {
+          "filename": "gravelly_sand_Rough.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/gravelly_sand/gravelly_sand_rough_2k.png",
+          "sha256": "0eb2c0a19c9bb58335fd5e621517bae022466faa1134ad57156a309d0759bf23"
+        }
+      }
+    },
+    {
+      "asset": "dirt",
+      "page": "https://polyhaven.com/a/dirt",
+      "license": "CC0-1.0",
+      "tile_meters": 2.0,
+      "files": {
+        "Diffuse": {
+          "filename": "dirt_Diffuse.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/dirt/dirt_diff_2k.png",
+          "sha256": "f0fee6965209d08fd073067c9c61cefc815fecdede90070b361e3f8c47c87801"
+        },
+        "nor_dx": {
+          "filename": "dirt_nor_dx.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/dirt/dirt_nor_dx_2k.png",
+          "sha256": "51c84d62b59d3b19876c48a1e26a5588617ede66c23ca074b71370937d574cc0"
+        },
+        "Rough": {
+          "filename": "dirt_Rough.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/dirt/dirt_rough_2k.png",
+          "sha256": "620354e281625391002fba6e9bcb1123859b434370f7ed6f046f4e8cb107f6f8"
+        }
+      }
+    }
+  ]
+}

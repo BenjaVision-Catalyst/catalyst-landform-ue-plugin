@@ -98,7 +98,7 @@
   "surfaceStack": {
     "algorithmVersion": 1,
     "defaultSurfaceId": "Rock",
-    "defaultSurfaceRevision": 1,
+    "defaultSurfaceRevision": 2,
     "layers": [
       {
         "name": "Scree on slopes",
@@ -109,7 +109,8 @@
         },
         "slopeFeatherDegrees": 7,
         "noiseAmount": 0.25,
-        "noiseWavelengthMeters": 55
+        "noiseWavelengthMeters": 55,
+        "surfaceRevision": 2
       },
       {
         "name": "Soil on gentle ground",
@@ -131,7 +132,8 @@
         },
         "heightFeatherRadiusFraction": 0.015,
         "noiseAmount": 0.15,
-        "noiseWavelengthMeters": 85
+        "noiseWavelengthMeters": 85,
+        "surfaceRevision": 2
       }
     ]
   }

@@ -1,0 +1,149 @@
+{
+  "date": "2026-11-02",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "surface_revision": 2,
+  "appearance_profile": 2,
+  "automation": {
+    "succeeded": 79,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "surface_parity": {
+    "spherical_probes": 1016,
+    "section_vertices": 251001,
+    "section_weight_error": 4.71196415e-11,
+    "native_weight_error": 2.91544944e-05,
+    "globe_vertices": 14406,
+    "globe_weight_error": 0
+  },
+  "render_check": {
+    "orientations": 3,
+    "distinct_lit_colors": 26207,
+    "clipped_white_pixels": 0,
+    "grid_on_off_changed_pixels": 9506,
+    "native_chunk_scale_comparison": "Same world mesh at component scale 1 and 25, vertices inversely scaled",
+    "native_scale_mean_rgb_difference_out_of_255": 0.214975
+  },
+  "catalog": {
+    "ids": [
+      "Rock",
+      "Scree",
+      "Soil"
+    ],
+    "maps_per_surface": [
+      "sRGB base colour",
+      "DirectX linear normal",
+      "linear roughness"
+    ],
+    "scan_resolution": 2048,
+    "tile_widths_meters": [
+      2.7,
+      2.5,
+      2
+    ],
+    "sources_manifest": "SourceArt/Surfaces/PolyHaven/sources.json",
+    "default_new_world": "Rock fallback, scree on moderate slopes, soil on gentle ground"
+  },
+  "grid": {
+    "north_axis": "+Z",
+    "equator": "XY plane, gold",
+    "north": "red",
+    "south": "blue",
+    "prime_meridian": "+X",
+    "globe_step_degrees": 10,
+    "walking_step_degrees": 1,
+    "presentation": "Analytic shader overlay; no mesh, collision or terrain-field changes",
+    "native_mode": "1 degree near surface; 10 degrees when camera-centre distance exceeds twice shaded surface radius"
+  },
+  "package": {
+    "build": "passed",
+    "cooked_packages": 280,
+    "binary_sha256": "e6b11ab0e0859b7dfd647270a36e149366935269a89e29ef59103c97f3cd14d0",
+    "pak_sha256": {
+      "Saved/Packages/RuntimeRecipe/Mac/LandformLab.app/Contents/UE/LandformLab/Content/Paks/LandformLab-Mac.pak": "43c279a28473ea3dca9a22171e9d3b79227fdb6b5ba999ce3238e3357903f8b2"
+    }
+  },
+  "base_walk": {
+    "passed": true,
+    "referenceMatched": true,
+    "maxNumericReferenceDifference": 0,
+    "frames": 5723,
+    "groundFrames": 5723,
+    "voxelFloorFrames": 5723,
+    "junctionVisits": 3,
+    "maxFloorFieldErrorCm": 1.605032378261967,
+    "nativeFieldErrorCm": 0.0019489908590912819,
+    "nativeSurfaceWeightError": 2.95110046864e-05,
+    "maxHoldDriftCm": 0,
+    "meanFrameMilliseconds": 8.50216513061865,
+    "p95FrameMilliseconds": 9.012874215841293,
+    "peakProcessPhysicalBytes": 982990848
+  },
+  "variant": {
+    "passed": true,
+    "referenceMatched": true,
+    "collisionReadySeconds": 6.724963292479515,
+    "maxHoldDriftCm": 0
+  },
+  "saved_assets": {
+    "fresh_process_source_and_recipe_checks": "passed",
+    "palette_source_links": 3,
+    "independent_radial_guide_reference": true,
+    "protected_host_assets_and_configs_unchanged": 54,
+    "owned_examples_upgraded": 4
+  },
+  "component_source_sha256": {
+    "Source/CatalystLandform/Private/Surface/CLSurfaceCompiler.cpp": "6d6ba2d8110a9a1b222c231d3c529b88eb1ade3a5f7e3bea03d85258d2bfa929",
+    "Source/CatalystLandform/Public/Model/CLSurfaceLayers.h": "6212374d2328a381b88b2f8707f0398d795fd482c38d6b564a341086ff73ca29",
+    "Source/CatalystLandform/Public/Surface/CLSurfaceLibrary.h": "4d5d62f632efff83bcb8d130928f5e83e5c51b5ba75fbcebb6636b442b4134ff",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "2632124b9a36256c9c7874268fd0a836f752692e8f0944a8943c96c1a26f4dfc",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "67dcf240fcfba759c267ea88b25a4f54e15de3c224ae35d9723a4808c703d4c6",
+    "Source/CatalystLandformEditor/Private/CLSurfacePreview.cpp": "ade05f37e54e95bd28a9baea8d738893658d2d24f9b8cacc61b1d74a02fcc073",
+    "Source/CatalystLandformEditor/Public/CLSurfacePreview.h": "ae14254d292017de342bdb6a0193fff9f73aeb46f3e4084fc466150fb1f3b003",
+    "Source/CatalystLandformTests/Private/CLSurfaceTests.cpp": "a94553a2aff6407f138b23f794a01e01903cb8adc70bc620411532a595e96e67",
+    "SourceArt/Surfaces/TexturedAppearance.hlsl": "9ac2cb56d6ba532b8ade65668806f3e86c097e0906e9bc05cc52bb1af86f3e92"
+  },
+  "component_asset_sha256": {
+    "Content/Surfaces/ST_Soil.uasset": "dc11e4867570f455632eeb56482e54d3997d76bf5074a845b959243ab5603f7c",
+    "Content/Surfaces/MI_Rock.uasset": "5c5922c9c1d42464dcd9ce628153b9d8b847bd0cda8c1efd5241ef34c62b2b1c",
+    "Content/Surfaces/MM_LandformSurfaces.uasset": "c3087a68978d8fda00f8531f58c811e38d5a66bf928aa5fec17976262fd60c70",
+    "Content/Surfaces/M_SurfacePreview.uasset": "887f529d4087cbab854443c34042a9a74ca4f34d41a51996344cec18e9ad2ec0",
+    "Content/Surfaces/M_GlobeGrid.uasset": "7458a70c4b07c00aa4d947dfd6e568e5bc5d80e1d664aaff479d1167f49f7e3c",
+    "Content/Surfaces/ST_Scree.uasset": "f009e9fb39b01dfe61f3561ea3ca4fd60edc3a9c81d9705913ae3b7dd42990b4",
+    "Content/Surfaces/M_Surface.uasset": "cee6183e353f04098176e768d483107e29b587b37e936a077dc8817faf82661a",
+    "Content/Surfaces/ST_Rock.uasset": "03d74d4e1e00b90dd8cc3025aeb427d0e2923bbf373d2e41608f787e33b794f5",
+    "Content/Surfaces/DA_SurfaceLibrary.uasset": "56746d04063e36f5882d3d12bd70d92f6215ff7a48e38592fb74c27e69cb7cce",
+    "Content/Surfaces/MI_Scree.uasset": "6a1835c31a3ef9107b36640ee26f497a496f0473bf4b6d8e179a22e629a2c200",
+    "Content/Surfaces/MI_Soil.uasset": "33341551554279e1eaed64c3207bc4739ff8bd78b8084faf1deaf3a966e9fca4",
+    "Content/Surfaces/Textures/T_Soil_Rough.uasset": "11ec28bdde40f29c613d376e4d9c80af50189f89a1740ad8d67c46f4aa989ab3",
+    "Content/Surfaces/Textures/T_Rock_Rough.uasset": "4142465524c71a2647ec92f81340ddee1db512e78f3c37551fd36b36396c946f",
+    "Content/Surfaces/Textures/T_Rock_Diffuse.uasset": "69b80347d5503fef398e5b3feb1e3b3c469d09a585dc1e3c5583e014291f02f9",
+    "Content/Surfaces/Textures/T_Soil_Diffuse.uasset": "bbec554ae22068e3b858ad851fc8c2d874af5fa7e2f6c2cf2dca21976041c475",
+    "Content/Surfaces/Textures/T_Scree_Rough.uasset": "394d5a1b3f51c1a3d8a4ed270c0ae5ba8cfc016fecc1a8697b935386a2f86afa",
+    "Content/Surfaces/Textures/T_Rock_nor_dx.uasset": "6ba758598fb825eb16ac93ee075ce57a2e5dd7c4c498f4b3a250e8ffbb15177d",
+    "Content/Surfaces/Textures/T_Soil_nor_dx.uasset": "2500d4792b667069f38377f640800e3b5054eaf7dfb655015a2030c72de13aee",
+    "Content/Surfaces/Textures/T_Scree_Diffuse.uasset": "a05f8247cc2cdaea3ea9322ac8297d07b94d35e9b7223ff285057805b7624709",
+    "Content/Surfaces/Textures/T_Scree_nor_dx.uasset": "f1a439495d35a0ec587132e1d1dedd5f8258f59fde6f2327769c274fe7a0360a"
+  },
+  "generator_sha256": "1b4c52abda88b00f8dc20a0f9d59b669a7486112bd8224c3fa897ccbd1b4094f",
+  "evidence_sha256": {
+    "Saved/Verification/scanned-surfaces/qualified-automation/index.json": "40d3fcb4d6bad725a1fc69b4b6593109f35e92446b5d78c442147c9cfe829da2",
+    "Saved/Verification/runtime-packaged-base/report.json": "5b2eb71c4448efd60632fe21c5e76635c49c7dd348ef644329ec766d693c4757",
+    "Saved/Verification/runtime-packaged-variant/report.json": "408ef4230c60861e639433579b71df45f341af60032f865ee0378a81baa9906d",
+    "Saved/Verification/scanned-surfaces/walking.png": "64bec871e28cb710ada5623412d5a2cb4b3ac46024ed622bcdf83d638b2ea291",
+    "Saved/Verification/scanned-surfaces/globe-0.png": "2fbd386ccd05662f62765c59a75bfe92ed49f760f5c883f3cd7f67fb90623f3f",
+    "Saved/Verification/scanned-surfaces/globe-1.png": "a65249cb3e72086829a844959f516f2e7a698a139156846e04e8d1c45667ff4e",
+    "Saved/Verification/scanned-surfaces/globe-2.png": "2d4c59969da5de7b2d03d11fa13e420c0e44cd3e21f5ab01f3595d385d67ced1"
+  },
+  "nonblocking_warning": "Existing Engine LineSetComponentMaterial missing MeshModelingToolsetExp material function; unchanged",
+  "vendor_changes": "None",
+  "limits": [
+    "Qualified on UE 5.7.4 / VPP 2.0p8 / Mac arm64 at the 1 km sky-radius proof",
+    "Preview uses continuous appearance mixing and 8-bit vertex weights; VPP uses its native compositor and uint16 weights",
+    "Moving/rotating multi-world runtime use and production-size planet throughput remain unqualified",
+    "Old untextured native material paths retain their existing appearance; new World Builder planets and supplied surface examples use revision 2"
+  ]
+}

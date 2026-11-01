@@ -672,8 +672,12 @@ and seeded noise masks select stable client surface IDs/revisions. The same
 regional ownership functions blend material weights and terrain sources.
 
 The starter Rock, Scree and Soil catalog uses native VPP Surface Types and a
-Generated non-Nanite MegaMaterial. Shared procedural appearance parameters and
-shader code drive the Landform cross-section and Planet Builder previews. The
+Generated non-Nanite MegaMaterial. Revision 2 supplies scanned triplanar rock,
+fine scree and soil with shared colour, normal, roughness and physical-scale
+bindings in native terrain, the Landform cross-section and Planet Builder. New
+World Builder planets start with these surfaces. A shader grid marks the equator
+and poles: 10-degree globe lines and 1-degree nearby walking lines. The shared
+HLSL and client-only texture bindings keep recipe JSON free of artwork paths. The
 Designer has a Surface layers tab with standard array editing controls. Legacy
 recipes retain their previous material path. Current limits are eight installed
 surfaces and sixteen overlays per stack, with bounded slope evaluation; this is

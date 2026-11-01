@@ -7,6 +7,19 @@
 #include "CLSurfaceLibrary.generated.h"
 class UVoxelSurfaceTypeAsset;
 class UVoxelMegaMaterial;
+class UTexture2D;
+
+/** Client artwork only. Portable recipes continue to carry surface IDs/revisions. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLSurfaceTextures
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TObjectPtr<UTexture2D> BaseColor;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TObjectPtr<UTexture2D> Normal;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TObjectPtr<UTexture2D> Roughness;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(Units="m",ClampMin="0.01")) double TileMeters=2;
+    bool IsActive() const { return BaseColor||Normal||Roughness; }
+};
 
 /** Client appearance parameters shared by native surface materials and the Designer shader. */
 USTRUCT(BlueprintType)
@@ -26,6 +39,7 @@ struct CATALYSTLANDFORM_API FCLSurfaceLibraryEntry
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName Id;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Revision=1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceAppearance Appearance;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceTextures Textures;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TObjectPtr<UVoxelSurfaceTypeAsset> SurfaceType;
 };
 USTRUCT(BlueprintType)
@@ -73,6 +87,8 @@ struct CATALYSTLANDFORM_API FCLCompiledSurfaceLibrary
     TArray<FName> Ids;
     TArray<int32> Revisions;
     TArray<FCLSurfaceAppearance> Appearances;
+    TArray<FCLSurfaceTextures> Textures;
+    TArray<TStrongObjectPtr<UTexture2D>> RetainedTextures;
     TArray<FVoxelSurfaceType> NativeTypes;
     static TSharedPtr<const FCLCompiledSurfaceLibrary> Resolve(FString& Error);
     int32 Find(FName Id,int32 Revision) const;

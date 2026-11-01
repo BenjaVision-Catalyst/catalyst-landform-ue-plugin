@@ -1036,6 +1036,7 @@ public:
             +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(SCheckBox).IsChecked_Lambda([this]{return !Preview||Preview->Client->bGuides?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Preview){Preview->Client->bGuides=V==ECheckBoxState::Checked;Preview->Client->Invalidate();if(Globe)Globe->SetGuides(RecipeAsset()->Recipe.RadialGuides,Preview->Client->bGuides);}})
                 [SNew(STextBlock).Text(FText::FromString(TEXT("Show Radial Guides")))]]
+            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;}).Text(FText::FromString(TEXT("10° grid · Gold equator · Red north · Blue south")))]
             +SVerticalBox::Slot().AutoHeight()[ViewAreaControls()]
             +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Visibility_Lambda([this]{return bGlobe?EVisibility::Collapsed:EVisibility::Visible;}).Text(this,&FCLRecipeToolkit::NavigationHint)]);
         AddSection(TEXT("Generated regions"), SAssignNew(GenerationPanel,SCLRegionGenerationPanel).Asset(RecipeAsset())
@@ -1293,7 +1294,7 @@ void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLRadialGuideSet
 UCLPlanetRecipeFactory::UCLPlanetRecipeFactory()
 { SupportedClass = UCLPlanetRecipeAsset::StaticClass(); bCreateNew = true; bEditAfterNew = true; }
 UObject* UCLPlanetRecipeFactory::FactoryCreateNew(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject*, FFeedbackContext*)
-{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();
+{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();A->Recipe.SurfaceStack=FCLSurfaceStack::MakeDefault();
     FCLRadialGuideSession Session;Session.Open(A);FString Error;if(!A->SetRadialGuideSet(Session.Library.Get(),A->Recipe.RadialGuides.Id,Error))Session.Changed();return A; }
 TSoftClassPtr<UObject> UCLRecipeAssetDefinition::GetAssetClass() const { return UCLPlanetRecipeAsset::StaticClass(); }
 EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& Args) const

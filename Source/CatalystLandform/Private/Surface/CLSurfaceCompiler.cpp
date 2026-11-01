@@ -5,6 +5,7 @@
 #include "Surface/VoxelSurfaceTypeAsset.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
+#include "Engine/Texture2D.h"
 
 namespace
 {
@@ -25,6 +26,12 @@ bool FCLSurfaceStack::Validate(FString& Error) const
 }
 void FCLSurfaceStack::RenameGuide(FName Old,FName New)
 {for(auto& L:Layers)for(auto* H:{&L.LowerHeight,&L.UpperHeight}){if(H->Guide==Old)H->Guide=New;if(H->UpperGuide==Old)H->UpperGuide=New;}}
+FCLSurfaceStack FCLSurfaceStack::MakeDefault()
+{
+    FCLSurfaceStack S;S.DefaultSurfaceId=TEXT("Rock");S.DefaultSurfaceRevision=2;
+    FCLSurfaceLayer L;L.Name=TEXT("Loose scree");L.SurfaceId=TEXT("Scree");L.SurfaceRevision=2;L.SlopeDegrees=FVector2D(18,52);L.SlopeFeatherDegrees=10;S.Layers.Add(L);
+    L.Name=TEXT("Settled soil");L.SurfaceId=TEXT("Soil");L.SlopeDegrees=FVector2D(0,24);L.SlopeFeatherDegrees=8;S.Layers.Add(L);return S;
+}
 UCLSurfaceSettings::UCLSurfaceSettings()
 {
     SurfaceLibrary=TSoftObjectPtr<UCLSurfaceLibraryAsset>(FSoftObjectPath(TEXT("/CatalystLandform/Surfaces/DA_SurfaceLibrary.DA_SurfaceLibrary")));
@@ -37,12 +44,30 @@ bool UCLSurfaceLibraryAsset::ValidateLibrary(FString& Error) const
     for(const auto& E:Entries)
     {
         const auto& A=E.Appearance;
+        const auto& T=E.Textures;
+        if(T.IsActive()&&(!T.BaseColor||!T.Normal||!T.Roughness||!FMath::IsFinite(T.TileMeters)||T.TileMeters<.01||T.TileMeters>100000||!T.BaseColor->SRGB||T.Normal->SRGB||T.Roughness->SRGB))
+        {Error=TEXT("Textured surface requires color, linear normal/roughness and a physical tile size: ")+E.Id.ToString();return false;}
         if(E.Id.IsNone()||Ids.Contains(E.Id)||E.Revision<1||!E.SurfaceType||Types.Contains(E.SurfaceType)||!E.SurfaceType->Material||!FMath::IsFinite(A.Color.R)||!FMath::IsFinite(A.Color.G)||!FMath::IsFinite(A.Color.B)||A.Color.GetMin()<0||A.Color.GetMax()>1||!FMath::IsFinite(A.Roughness)||A.Roughness<0||A.Roughness>1||!FMath::IsFinite(A.GrainMeters)||A.GrainMeters<.01||!FMath::IsFinite(A.GrainStrength)||A.GrainStrength<0||A.GrainStrength>1||!FMath::IsFinite(A.NormalStrength)||A.NormalStrength<0||A.NormalStrength>1)
         {Error=TEXT("Invalid client surface appearance or missing native surface/material: ")+E.Id.ToString();return false;}
         FLinearColor Tint,Detail;const auto* M=E.SurfaceType->Material.Get();
         if(!M->GetVectorParameterValue(FMaterialParameterInfo(TEXT("CLTint")),Tint)||!M->GetVectorParameterValue(FMaterialParameterInfo(TEXT("CLDetail")),Detail)||
             !Tint.Equals(FLinearColor(A.Color.R,A.Color.G,A.Color.B,A.Roughness),.00001)||!Detail.Equals(FLinearColor(A.GrainMeters*100,A.GrainStrength,A.NormalStrength,0),.00001))
         {Error=TEXT("Native appearance parameters differ from the surface library; Bake Appearance: ")+E.Id.ToString();return false;}
+        if(T.IsActive())
+        {
+            UTexture* Color=nullptr;UTexture* Normal=nullptr;UTexture* Rough=nullptr;FLinearColor Scale;
+            if(!M->GetTextureParameterValue(FMaterialParameterInfo(TEXT("CLBaseColor")),Color)||Color!=T.BaseColor||
+               !M->GetTextureParameterValue(FMaterialParameterInfo(TEXT("CLNormal")),Normal)||Normal!=T.Normal||
+               !M->GetTextureParameterValue(FMaterialParameterInfo(TEXT("CLRoughness")),Rough)||Rough!=T.Roughness||
+               !M->GetVectorParameterValue(FMaterialParameterInfo(TEXT("CLTextureDetail")),Scale)||!Scale.Equals(FLinearColor(T.TileMeters*100,1,0,0),.00001))
+            {Error=TEXT("Native texture bindings differ from the surface library; Bake Appearance: ")+E.Id.ToString();return false;}
+        }
+        else
+        {
+            FLinearColor Scale;
+            if(M->GetVectorParameterValue(FMaterialParameterInfo(TEXT("CLTextureDetail")),Scale)&&Scale.G>.5)
+            {Error=TEXT("Native material still enables removed scan bindings; Bake Appearance: ")+E.Id.ToString();return false;}
+        }
         Ids.Add(E.Id);Types.Add(E.SurfaceType);
     }return true;
 }
@@ -59,6 +84,14 @@ bool UCLSurfaceLibraryAsset::BakeAppearance(FString& Error)
         auto* M=CastChecked<UMaterialInstanceConstant>(Entry.SurfaceType->Material);const auto& A=Entry.Appearance;M->Modify();
         M->SetVectorParameterValueEditorOnly(FMaterialParameterInfo(TEXT("CLTint")),FLinearColor(A.Color.R,A.Color.G,A.Color.B,A.Roughness));
         M->SetVectorParameterValueEditorOnly(FMaterialParameterInfo(TEXT("CLDetail")),FLinearColor(A.GrainMeters*100,A.GrainStrength,A.NormalStrength,0));
+        const auto& T=Entry.Textures;
+        M->SetVectorParameterValueEditorOnly(FMaterialParameterInfo(TEXT("CLTextureDetail")),FLinearColor(T.TileMeters*100,T.IsActive()?1:0,0,0));
+        if(T.IsActive())
+        {
+            M->SetTextureParameterValueEditorOnly(FMaterialParameterInfo(TEXT("CLBaseColor")),T.BaseColor);
+            M->SetTextureParameterValueEditorOnly(FMaterialParameterInfo(TEXT("CLNormal")),T.Normal);
+            M->SetTextureParameterValueEditorOnly(FMaterialParameterInfo(TEXT("CLRoughness")),T.Roughness);
+        }
         M->PostEditChange();M->MarkPackageDirty();
     }return true;
 }
@@ -68,7 +101,7 @@ TSharedPtr<const FCLCompiledSurfaceLibrary> FCLCompiledSurfaceLibrary::Resolve(F
     if(!IsInGameThread()){Error=TEXT("Surface assets must be resolved on the game thread");return nullptr;}
     auto* Source=UCLSurfaceLibraryAsset::LoadConfigured();if(!Source||!Source->ValidateLibrary(Error)){if(Error.IsEmpty())Error=TEXT("Configured surface library is missing");return nullptr;}
     auto Out=MakeShared<FCLCompiledSurfaceLibrary>();Out->Owner.Reset(Source);auto Entries=Source->Library.Entries;Entries.Sort([](const auto& A,const auto& B){return A.Id.LexicalLess(B.Id);});
-    for(const auto& E:Entries){Out->Ids.Add(E.Id);Out->Revisions.Add(E.Revision);Out->Appearances.Add(E.Appearance);Out->NativeTypes.Add(FVoxelSurfaceType(E.SurfaceType));}return Out;
+    for(const auto& E:Entries){Out->Ids.Add(E.Id);Out->Revisions.Add(E.Revision);Out->Appearances.Add(E.Appearance);Out->Textures.Add(E.Textures);for(auto* T:{E.Textures.BaseColor.Get(),E.Textures.Normal.Get(),E.Textures.Roughness.Get()})if(T)Out->RetainedTextures.Emplace(T);Out->NativeTypes.Add(FVoxelSurfaceType(E.SurfaceType));}return Out;
 }
 int32 FCLCompiledSurfaceLibrary::Find(FName Id,int32 Revision) const
 {const int32 I=Ids.IndexOfByKey(Id);return I!=INDEX_NONE&&Revisions[I]==Revision?I:INDEX_NONE;}

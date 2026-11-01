@@ -15,6 +15,9 @@
 #include "Misc/FileHelper.h"
 #include "Interfaces/IPluginManager.h"
 #include "Async/Async.h"
+#include "Engine/Texture2D.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Surface/VoxelSurfaceTypeAsset.h"
 namespace
 {
 bool SurfaceRecipe(FCLPlanetRecipe& R,FString& E)
@@ -71,7 +74,7 @@ bool FCLSurfaceParityTest::RunTest(const FString&)
     for(int32 I=0;I<SW.Num();++I){PreviewError=FMath::Max(PreviewError,SurfaceDifference(SW[I],Section.SurfaceWeights[I]));const auto Color=CLPackSurfaceWeights(SW[I]);TestTrue(TEXT("Section packs exact material weights and radial texture positions"),Color.Equals(Section.Colors[I],.000001)&&Section.SurfaceUV1[I].Y==1&&FMath::IsNearlyEqual(Section.SurfaceUV1[I].X,Section.SourceSurfacePoints[I].Z,.000001));}
     TestEqual(TEXT("Designer evaluates the same final field masks"),PreviewError,0.);
     // Material selection never depends on face owner or world Z: a flat sphere is equally gentle everywhere.
-    auto Flat=R;Flat.BaseStructure.Reset();Flat.RegionGeneration.bEnabled=false;Flat.NoiseLayers.Reset();Flat.SurfaceStack=R.RegionGeneration.Palette[2].SurfaceStack;const auto F=FCLPlanetCompiler::Compile(Flat,E);if(!F){AddError(E);return false;}TArray<FCLSurfaceWeights> FW;F->SampleSurfaceWeights(D,FW);for(const auto& V:FW)TestTrue(TEXT("Radial up treats poles, equator and underside as flat"),V.Values[P->Surfaces->Find(TEXT("Soil"),1)]>.8);
+    auto Flat=R;Flat.BaseStructure.Reset();Flat.RegionGeneration.bEnabled=false;Flat.NoiseLayers.Reset();Flat.SurfaceStack=R.RegionGeneration.Palette[2].SurfaceStack;const auto F=FCLPlanetCompiler::Compile(Flat,E);if(!F){AddError(E);return false;}TArray<FCLSurfaceWeights> FW;F->SampleSurfaceWeights(D,FW);for(const auto& V:FW)TestTrue(TEXT("Radial up treats poles, equator and underside as flat"),V.Values[P->Surfaces->Find(TEXT("Soil"),2)]>.8);
     AddInfo(FString::Printf(TEXT("Surface parity: %d spherical samples / %d section vertices, weights %.9g, native %.9g / %.9g cm field; %.3f seconds mask evaluation; dominant %d/%d/%d"),D.Num(),SW.Num(),PreviewError,Error,Residual,Seconds,Counts[0],Counts[1],Counts[2]));return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSurfaceInheritanceTest,"Catalyst.Landform.Surfaces.LegacySourceInheritance",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -86,5 +89,36 @@ bool FCLSurfaceInheritanceTest::RunTest(const FString&)
         const auto Expected=P->SurfaceStack.Evaluate(D*500,-500,Slope),Actual=P->SurfaceWeightsAt(D,-500,Slope);
         TestTrue(TEXT("Inherited rules keep the planet's physical coordinates and mask seed"),SurfaceDifference(Expected,Actual)<1.e-10);
     }return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLScannedSurfacesTest,"Catalyst.Landform.Surfaces.ScannedBindingsAndDefaults",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLScannedSurfacesTest::RunTest(const FString&)
+{
+    FString E;const auto L=FCLCompiledSurfaceLibrary::Resolve(E);if(!L){AddError(E);return false;}
+    auto* Preview=CastChecked<UMaterialInstanceDynamic>(CLMakeSurfacePreviewMaterial(GetTransientPackage(),*L));
+    for(int32 I=0;I<L->Ids.Num();++I)
+    {
+        const auto& T=L->Textures[I];TestEqual(TEXT("Scanned artwork has an explicit new revision"),L->Revisions[I],2);
+        TestTrue(TEXT("Complete PBR maps retain physical scale"),T.BaseColor&&T.Normal&&T.Roughness&&T.TileMeters>=2&&T.TileMeters<=3);
+        if(!T.BaseColor||!T.Normal||!T.Roughness)return false;
+        TestTrue(TEXT("Colour is sRGB, normal and roughness are linear"),T.BaseColor->SRGB&&!T.Normal->SRGB&&!T.Roughness->SRGB);
+        TestTrue(TEXT("Close range artwork retains 2K scan detail"),T.BaseColor->GetSizeX()==2048&&T.Normal->GetSizeX()==2048);
+        const auto* Native=L->Owner->Library.Entries.FindByPredicate([&](const auto& V){return V.Id==L->Ids[I];})->SurfaceType->Material.Get();
+        for(const auto& Name:{TEXT("CLBaseColor"),TEXT("CLNormal"),TEXT("CLRoughness")})
+        {
+            UTexture* A=nullptr;UTexture* B=nullptr;
+            TestTrue(TEXT("Native and Designer bind the same scan, not a separate approximation"),Native->GetTextureParameterValue(FMaterialParameterInfo(Name),A)&&Preview->GetTextureParameterValue(FMaterialParameterInfo(FName(*(FString(Name)+LexToString(I)))),B)&&A==B);
+        }
+        FLinearColor A,B;Native->GetVectorParameterValue(FMaterialParameterInfo(TEXT("CLTextureDetail")),A);Preview->GetVectorParameterValue(FMaterialParameterInfo(FName(*FString::Printf(TEXT("CLTextureDetail%d"),I))),B);
+        TestTrue(TEXT("Physical texture scale agrees between native and flattened preview"),A.Equals(B)&&FMath::IsNearlyEqual(double(A.R),T.TileMeters*100));
+    }
+    auto* Copy=NewObject<UCLSurfaceLibraryAsset>();Copy->Library=L->Owner->Library;Copy->Library.Entries[0].Textures.Normal=nullptr;
+    TestFalse(TEXT("Incomplete PBR set is rejected before publication"),Copy->ValidateLibrary(E));Copy->Library=L->Owner->Library;Copy->Library.Entries[0].Textures.TileMeters*=2;
+    TestFalse(TEXT("Stale native texture scale is rejected"),Copy->ValidateLibrary(E));
+    Copy->Library=L->Owner->Library;Copy->Library.Entries[0].Textures={};TestFalse(TEXT("Removing scans requires rebaking both presentation paths"),Copy->ValidateLibrary(E));
+    FCLCompiledSurfaceStack Stack;const auto Default=FCLSurfaceStack::MakeDefault();
+    TestTrue(TEXT("New-world defaults compile without planet guide ownership"),FCLCompiledSurfaceStack::Compile(Default,*L,{},1000,7,Stack,E));
+    TestTrue(TEXT("Flat ground selects soil; cliffs select rock"),Stack.Evaluate(FVector(500,0,0),-500,0).Values[L->Find(TEXT("Soil"),2)]>.99&&Stack.Evaluate(FVector(500,0,0),-500,80).Values[L->Find(TEXT("Rock"),2)]>.99);
+    auto Old=Default;Old.DefaultSurfaceRevision=1;Stack={};TestFalse(TEXT("Placeholder artwork is not silently replaced for a pinned old recipe"),FCLCompiledSurfaceStack::Compile(Old,*L,{},1000,7,Stack,E));
+    return true;
 }
 #endif

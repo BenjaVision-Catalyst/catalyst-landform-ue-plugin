@@ -8,6 +8,8 @@
 #include "EditorViewportClient.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Materials/Material.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Surface/VoxelSurfaceTypeAsset.h"
 #include "Engine/TextureCube.h"
 #include "Async/Async.h"
 #include "InputKeyEventArgs.h"
@@ -307,7 +309,7 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
     OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;
     Scene=MakeUnique<FCLGlobeScene>();
     Mesh.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
-    Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
+    Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
     SEditorViewport::Construct(SEditorViewport::FArguments());
 }
 SCLPlanetPreview::~SCLPlanetPreview(){if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());}
@@ -338,7 +340,7 @@ void SCLPlanetPreview::Pump()
         if(TaskRevision==Revision)
         {
             Client->Plan=BuildingPlan;Client->RegionBoundaries=MoveTemp(B.RegionBoundaries);Client->RegionCentres=MoveTemp(B.RegionCentres);Client->UpdatePlacementOverlay();
-            Mesh->SetMaterial(0,B.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*B.Surfaces):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
+            Mesh->SetMaterial(0,B.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*B.Surfaces,true):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
             Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
             if(!Framed){Framed=true;Frame();}else Client->Apply();
         }
@@ -710,17 +712,52 @@ bool FCLSurfaceGlobeTest::RunTest(const FString&)
     TestTrue(TEXT("Globe packs the same final-field surface weights"),Worst<.00001);
     auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Terrain surface appearance proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();W->Client->Plan=Plan;
-    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*Plan->Surfaces));W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);W->SetGuides(Asset->Recipe.RadialGuides,false);
+    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*Plan->Surfaces,true));W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);W->SetGuides(Asset->Recipe.RadialGuides,false);
     if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
-    int32 Clipped=0,Changed=0,Earthy=0;
+    // Let the editor publish loaded material resources and the preview scene proxy
+    // before reading GPU pixels. Immediate draws can capture the fallback material.
+    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,B,Worst,Plan]
+    {
+    auto& App=FSlateApplication::Get();
+    int32 Clipped=0,Changed=0,Earthy=0,GridPixels=0;
     for(int32 Frame=0;Frame<3;++Frame)
     {
         const FVector Eye=FVector(Frame==0?1:Frame==1?-1:0,-1,Frame==2?-1:.6).GetSafeNormal()*150000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
-        for(int32 K=0;K<3;++K){V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}if(Pixels.IsEmpty()){AddError(TEXT("No rendered surface frame"));continue;}
+        for(int32 K=0;K<3;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}if(Pixels.IsEmpty()){AddError(TEXT("No rendered surface frame"));continue;}
         TSet<uint32> Colors;for(const auto& C:Pixels){if(C.R>C.G+5&&C.G>C.B+3)++Earthy;if(C.R>250&&C.G>250&&C.B>250)++Clipped;if(C.R>40||C.G>40||C.B>50)Colors.Add(C.DWColor());}Changed=FMath::Max(Changed,Colors.Num());
         TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/surface-globe-%d.png"),Frame)));
+        if(Frame==0)
+        {
+            auto* Material=CastChecked<UMaterialInstanceDynamic>(W->Mesh->GetMaterial(0));Material->SetVectorParameterValue(TEXT("CLGrid"),FLinearColor(0,10,0,0));TArray<FColor> WithoutGrid;
+            for(int32 K=0;K<3;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(WithoutGrid);}
+            for(int32 I=0;I<FMath::Min(Pixels.Num(),WithoutGrid.Num());++I)if(FMath::Abs(int32(Pixels[I].R)-WithoutGrid[I].R)+FMath::Abs(int32(Pixels[I].G)-WithoutGrid[I].G)+FMath::Abs(int32(Pixels[I].B)-WithoutGrid[I].B)>30)++GridPixels;
+            Material->SetVectorParameterValue(TEXT("CLGrid"),FLinearColor(1,10,0,0));
+        }
     }
-    TestTrue(TEXT("Shared surface material actually renders tonal detail"),Changed>1000);TestTrue(TEXT("Soil and scree render their authored warm colors instead of the default grey material"),Earthy>1000);TestTrue(TEXT("Surface orbit frames retain stable exposure"),Clipped<3*800*600/100);
-    AddInfo(FString::Printf(TEXT("Surface globe: %d vertices, %.9g weight disagreement, %d distinct lit colors, %d clipped pixels in 3 frames"),B.Vertices.Num(),Worst,Changed,Clipped));App.RequestDestroyWindow(Window);return true;
+    TestTrue(TEXT("Geographic grid is visibly rendered on the terrain"),GridPixels>400);TestTrue(TEXT("Shared surface material actually renders tonal detail"),Changed>1000);TestTrue(TEXT("Soil and scree render their authored warm colors instead of the default grey material"),Earthy>1000);TestTrue(TEXT("Surface orbit frames retain stable exposure"),Clipped<3*800*600/100);
+    AddInfo(FString::Printf(TEXT("Surface globe: %d vertices, %.9g weight disagreement, %d distinct lit colors, %d clipped pixels, %d grid pixels in 3 frames"),B.Vertices.Num(),Worst,Changed,Clipped,GridPixels));
+    // VPP chunk LODs scale their local mesh coordinates. The native shader must
+    // preserve physical texture size when the same world-space mesh is rescaled.
+    auto* Native=UMaterialInstanceDynamic::Create(Plan->Surfaces->Owner->Library.Entries[0].SurfaceType->Material,W->Mesh.Get());
+    Native->SetVectorParameterValue(TEXT("CLGrid"),FLinearColor(0,10,0,0));W->Mesh->SetMaterial(0,Native);
+    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,B]
+    {
+        auto Before=MakeShared<TArray<FColor>>();
+        for(int32 K=0;K<3;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(*Before);}
+        auto Vertices=B.Vertices;for(auto& P:Vertices)P/=25;
+        W->Mesh->SetWorldScale3D(FVector(25));W->Mesh->CreateMeshSection_LinearColor(0,Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Before]
+        {
+            TArray<FColor> After;
+            for(int32 K=0;K<3;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(After);}
+            double Difference=0;const int32 Count=FMath::Min(Before->Num(),After.Num());
+            for(int32 I=0;I<Count;++I)Difference+=FMath::Abs(int32((*Before)[I].R)-After[I].R)+FMath::Abs(int32((*Before)[I].G)-After[I].G)+FMath::Abs(int32((*Before)[I].B)-After[I].B);
+            const double Mean=Count?Difference/(Count*3):255;
+            TestTrue(TEXT("Native artwork preserves metre scale across 25x chunk transforms"),Count==800*600&&Mean<3);
+            AddInfo(FString::Printf(TEXT("Native scan projection: 1x versus 25x equivalent world mesh, mean RGB difference %.6f / 255"),Mean));
+            FSlateApplication::Get().RequestDestroyWindow(Window);
+        },.3f));
+    },.3f));
+    },.5f));return true;
 }
 #endif
