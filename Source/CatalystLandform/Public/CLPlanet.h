@@ -45,6 +45,11 @@ public:
     UFUNCTION(CallInEditor, BlueprintCallable, Category="Planet")
     virtual void RebuildTerrain();
 
+    /** Validate a complete portable recipe and resolve client materials before replacing this actor's input.
+     * Success accepts generation; VPP rendering/collision readiness is asynchronous. Call on the game thread. */
+    UFUNCTION(BlueprintCallable, Category="Planet|Recipe")
+    bool ApplyRecipeJson(const FString& Json, FString& Error);
+
     UFUNCTION(BlueprintCallable, Category="Planet")
     bool SampleRadialHeights(const TArray<FVector>& LocalDirections, TArray<double>& Heights) const;
 
@@ -62,6 +67,7 @@ public:
 
 private:
     bool bRebuilding = false;
+    bool bRuntimeRecipeApplied = false;
     TSharedPtr<const FCLPlanetStampRuntime> SamplingRuntime;
 #if WITH_EDITOR
     TWeakObjectPtr<UCLPlanetRecipeAsset> BoundRecipe;

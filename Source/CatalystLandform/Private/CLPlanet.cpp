@@ -1,4 +1,6 @@
 #include "CLPlanet.h"
+#include "Surface/CLSurfaceLibrary.h"
+#include "MegaMaterial/VoxelMegaMaterial.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SplineComponent.h"
 #include "Containers/Ticker.h"
@@ -48,6 +50,24 @@ ACLPlanet::ACLPlanet()
 {
     TerrainStamp = CreateDefaultSubobject<UVoxelStampComponent>(TEXT("SphericalLandform"));
     TerrainStamp->SetupAttachment(RootComponent);
+}
+
+bool ACLPlanet::ApplyRecipeJson(const FString& Json, FString& Error)
+{
+    Error.Reset();
+    if(!IsInGameThread()||!GetWorld()||GetWorld()->bIsTearingDown||IsTemplate()||bRebuilding)
+    {Error=TEXT("Recipe application requires an available planet actor on the game thread");return false;}
+    // Import owns the strict parser and complete compiler preflight. Do not change
+    // the live actor, its retained recipe, or its stamp on a rejected document.
+    auto Candidate=TStrongObjectPtr<UCLPlanetRecipeAsset>(NewObject<UCLPlanetRecipeAsset>(this,NAME_None,RF_Transient));
+    if(!Candidate->ImportRecipeJson(Json,Error))return false;
+    UVoxelMegaMaterial* Material=MegaMaterial;
+    if(Candidate->Recipe.SurfaceStack.IsActive())
+    {
+        Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous();
+        if(!Material){Error=TEXT("Configured client planet material is missing or was not cooked");return false;}
+    }
+    RecipeAsset=Candidate.Get();MegaMaterial=Material;bRuntimeRecipeApplied=true;RebuildTerrain();return true;
 }
 
 void ACLPlanet::RebuildTerrain()
@@ -107,7 +127,7 @@ void ACLPlanet::PostRegisterAllComponents()
     // actors have registered, rather than requiring an edit after reopening.
     FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateWeakLambda(this, [this](float)
     {
-        if (GetWorld() && !GetWorld()->bIsTearingDown) RebuildTerrain();
+        if (!bRuntimeRecipeApplied && GetWorld() && !GetWorld()->bIsTearingDown) RebuildTerrain();
         return false;
     }));
 }
@@ -120,7 +140,7 @@ void ACLPlanet::OnConstruction(const FTransform& Transform)
 
 void ACLPlanet::BeginPlay()
 {
-    RebuildTerrain();
+    if(!bRuntimeRecipeApplied)RebuildTerrain();
     Super::BeginPlay();
 }
 

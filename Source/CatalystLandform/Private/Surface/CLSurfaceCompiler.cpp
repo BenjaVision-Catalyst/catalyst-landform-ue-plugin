@@ -4,6 +4,7 @@
 #include "Model/CLSphericalPatches.h"
 #include "Surface/VoxelSurfaceTypeAsset.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "MegaMaterial/VoxelMegaMaterial.h"
 
 namespace
 {
@@ -24,7 +25,11 @@ bool FCLSurfaceStack::Validate(FString& Error) const
 }
 void FCLSurfaceStack::RenameGuide(FName Old,FName New)
 {for(auto& L:Layers)for(auto* H:{&L.LowerHeight,&L.UpperHeight}){if(H->Guide==Old)H->Guide=New;if(H->UpperGuide==Old)H->UpperGuide=New;}}
-UCLSurfaceSettings::UCLSurfaceSettings(){SurfaceLibrary=TSoftObjectPtr<UCLSurfaceLibraryAsset>(FSoftObjectPath(TEXT("/CatalystLandform/Surfaces/DA_SurfaceLibrary.DA_SurfaceLibrary")));}
+UCLSurfaceSettings::UCLSurfaceSettings()
+{
+    SurfaceLibrary=TSoftObjectPtr<UCLSurfaceLibraryAsset>(FSoftObjectPath(TEXT("/CatalystLandform/Surfaces/DA_SurfaceLibrary.DA_SurfaceLibrary")));
+    PlanetMaterial=TSoftObjectPtr<UVoxelMegaMaterial>(FSoftObjectPath(TEXT("/CatalystLandform/Surfaces/MM_LandformSurfaces.MM_LandformSurfaces")));
+}
 UCLSurfaceLibraryAsset* UCLSurfaceLibraryAsset::LoadConfigured(){return GetDefault<UCLSurfaceSettings>()->SurfaceLibrary.LoadSynchronous();}
 bool UCLSurfaceLibraryAsset::ValidateLibrary(FString& Error) const
 {

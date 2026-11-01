@@ -684,3 +684,20 @@ provide an independent regional planet. Reproduction, authoring, appearance
 baking and qualification limits are in the host's
 `Docs/SurfaceLayers.md`; the result record is
 `conformance/surface-layers-mac-arm64.json`.
+
+### Runtime recipe application
+
+`ACLPlanet::ApplyRecipeJson` accepts the existing portable recipe on the game
+thread, using the strict importer/compiler and configured client MegaMaterial.
+Rejected documents retain the previous recipe, material and native snapshot.
+Accepted input is actor-owned transient data; rendering and collision readiness
+remain asynchronous VPP state. `Catalyst Landform Surfaces` settings now own the
+native Planet Material binding as well as the surface catalog. No editor source
+asset or guide-library relationship is required by runtime input.
+
+The independent LandformLab runtime proof exports the Surface Layers planet,
+starts from a map with no authored planet and recreates it in a cooked Mac game.
+A separate changed-seed input exercises the same package and client content.
+See the host's `Docs/RuntimeRecipe.md` for the local-file delivery boundary,
+explicit cook roots, reference checks, readiness/performance measurements and
+qualified limits. This is a recipe-consumer proof, not a backend wire protocol.

@@ -6,6 +6,7 @@
 #include "UObject/StrongObjectPtr.h"
 #include "CLSurfaceLibrary.generated.h"
 class UVoxelSurfaceTypeAsset;
+class UVoxelMegaMaterial;
 
 /** Client appearance parameters shared by native surface materials and the Designer shader. */
 USTRUCT(BlueprintType)
@@ -62,6 +63,8 @@ class CATALYSTLANDFORM_API UCLSurfaceSettings : public UDeveloperSettings
 public:
     UCLSurfaceSettings();
     UPROPERTY(Config,EditAnywhere,Category="Surfaces") TSoftObjectPtr<UCLSurfaceLibraryAsset> SurfaceLibrary;
+    /** Client-owned renderer binding for recipe surface IDs; never supplied as a server asset path. */
+    UPROPERTY(Config,EditAnywhere,Category="Surfaces") TSoftObjectPtr<UVoxelMegaMaterial> PlanetMaterial;
 };
 struct CATALYSTLANDFORM_API FCLCompiledSurfaceLibrary
 {

@@ -1,0 +1,162 @@
+{
+  "date": "2026-11-02",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "configuration": "Development / Metal SM6",
+  "parent_component_revision": "43a08d7",
+  "parent_workspace_revision": "0538eb6",
+  "component_source_sha256": "b06c3d2573f95322e0df529ea9813afa2f9a9a3fdeea1576e597b4c70d378110",
+  "host_source_sha256": "d4cae38b21220a448a664d2610ee06057fceb46b693796de84691518e97b189a",
+  "source_hash_algorithm": "Sorted owner-relative Source paths, NUL, then bytes",
+  "build": {
+    "game": "passed",
+    "editor": "passed",
+    "full_asset_cook": "passed: 270 packages",
+    "archive": "passed",
+    "code_only_iterations_reused_successful_cook": true
+  },
+  "component_automation": {
+    "passed": 79,
+    "failed": 0,
+    "tests_with_warning_events": 1,
+    "warning": "Existing Engine LineSetComponentMaterial on Metal",
+    "report": "Landform/Projects/LandformLab/Saved/Verification/runtime-recipe-regression/index.json",
+    "report_sha256": "c728bda173829979818d7036421503cd9d2c56d68d0252324cef391a4b934ba6",
+    "prior_intermediate_pointer_test_failure": "Existing GeneratedRegionInspection routed-pointer check failed once; isolated recheck and final fresh Entry-world full suite passed. No assertion was weakened."
+  },
+  "fixture_verification": {
+    "passed": true,
+    "authored_planet_actors": 0,
+    "portable_input_without_asset_paths": true,
+    "cook_roots": 7,
+    "editor_asset_links": 0,
+    "existing_files_preserved": 72
+  },
+  "profile": {
+    "planet_schema": 13,
+    "radius_meters": 1000,
+    "base_seed": 1729,
+    "variant_seed": 1730,
+    "probe_count": 1016,
+    "pcg_placements": 67,
+    "regions": 36,
+    "surface_ids": [
+      "Rock",
+      "Scree",
+      "Soil"
+    ],
+    "viewport_requested": [
+      1280,
+      720
+    ],
+    "no_authored_planet_actors": true,
+    "no_editor_asset_links": true,
+    "explicit_client_cook_roots": 7
+  },
+  "packaged_executable_sha256": "3ecfdd95dd84e2aff3b53d7dcdb80fc1fe60070fb85dec3eaea8735abb036dca",
+  "same_package_for_both_recipes": true,
+  "macos_sandbox": "Existing app sandbox retained; external fixtures staged in the app-owned container and reports copied back",
+  "startup_contract": [
+    "Hold movement after possession, including component tick",
+    "Accepted runtime input fences deferred registration rebuild",
+    "Wait for current VPP update completion and a native floor agreeing with the field",
+    "Fail on startup drift or material surface penetration"
+  ],
+  "packaged_runs": {
+    "base": {
+      "editorBuild": false,
+      "memoryBeforeLoadBytes": 669663232,
+      "recipeLoadCompileSeconds": 0.5159171223640442,
+      "hasAuthoringAssetLinks": false,
+      "referenceMatched": true,
+      "maxNumericReferenceDifference": 0,
+      "rejectedReplacementsPreservingSnapshot": 5,
+      "nativeFieldErrorCm": 0.0019489908590912819,
+      "nativeSurfaceWeightError": 2.95110046864e-05,
+      "worldReadySeconds": 7.106488712131977,
+      "initialFloorFieldErrorCm": 0.0007471287171938457,
+      "collisionReadySeconds": 7.106488712131977,
+      "walkReadySeconds": 7.75257783383131,
+      "passed": true,
+      "message": "Recipe reproduced and three-way joins walked on native collision",
+      "elapsedSeconds": 56.41122787818313,
+      "frames": 5829,
+      "groundFrames": 5829,
+      "voxelFloorFrames": 5829,
+      "junctionVisits": 3,
+      "tripleFrames": 2240,
+      "closestJunctionMeters": 0.05204210601464307,
+      "maxFloorFieldErrorCm": 1.6022747486058506,
+      "minGravityDot": 0.9999999924883756,
+      "maxHoldDriftCm": 0,
+      "movementInputOnly": true,
+      "peakProcessPhysicalBytes": 975093760,
+      "processPhysicalBytes": 974176256,
+      "meanFrameMilliseconds": 8.347679119378835,
+      "p50FrameMilliseconds": 8.34096223115921,
+      "p95FrameMilliseconds": 8.880209177732468,
+      "maxFrameMilliseconds": 82.45637267827988,
+      "report_sha256": "477c95d4e97e32db0727fa2a5f5bf3793df0e6125ff1152869d19c7479e35680"
+    },
+    "variant": {
+      "editorBuild": false,
+      "memoryBeforeLoadBytes": 670990336,
+      "recipeLoadCompileSeconds": 0.5144140422344208,
+      "hasAuthoringAssetLinks": false,
+      "referenceMatched": true,
+      "maxNumericReferenceDifference": 0,
+      "rejectedReplacementsPreservingSnapshot": 5,
+      "nativeFieldErrorCm": 0.0019461472984403372,
+      "nativeSurfaceWeightError": 2.7098786085755222e-05,
+      "worldReadySeconds": 6.513663128018379,
+      "initialFloorFieldErrorCm": 0.08051479916321114,
+      "collisionReadySeconds": 6.513663128018379,
+      "walkReadySeconds": 7.161224167793989,
+      "passed": true,
+      "message": "Compiled variant matches the editor and has native collision",
+      "elapsedSeconds": 7.161227710545063,
+      "frames": 0,
+      "groundFrames": 0,
+      "voxelFloorFrames": 0,
+      "junctionVisits": 0,
+      "tripleFrames": 0,
+      "closestJunctionMeters": -1,
+      "maxFloorFieldErrorCm": 0,
+      "minGravityDot": 1,
+      "maxHoldDriftCm": 0,
+      "movementInputOnly": true,
+      "peakProcessPhysicalBytes": 944930816,
+      "processPhysicalBytes": 936394752,
+      "report_sha256": "bb7f4765561ad4c78cd0672a376a300133ec230df789ec2cdb3e9e1a8538ad3d"
+    }
+  },
+  "inputs_sha256": {
+    "Content/RuntimeRecipes/Base/planet.json": "f6f63633bbd171cbf80edec35e110ba2d3aadb5e045654136e5b76dbd852b9c9",
+    "Content/RuntimeRecipes/Base/reference.json": "b8f2308e974d0a108237b9e7c9285d1e6c448933a7d90875f48da6f38065c6dc",
+    "Content/RuntimeRecipes/Variant/planet.json": "009b532a3f331e9c6f30fbd4fed0195de5bcc4da4ac87fa1139077268421d747",
+    "Content/RuntimeRecipes/Variant/reference.json": "4bb85b64f574563e86ff54a0a36dd07e630a2205edd709606a4312886e090585"
+  },
+  "package_content_sha256": {
+    "Contents/UE/LandformLab/Content/Paks/LandformLab-Mac.pak": "5beeef58355d7621b26a731919d4dd58b843341d8fd753e3fe704aad8aac99dd",
+    "Contents/UE/LandformLab/Content/Paks/LandformLab-Mac.ucas": "cf3d041ab4ed9a9f14325f7ca2afa23ba0f23fff86691cb4d524af5c8f3e8b90",
+    "Contents/UE/LandformLab/Content/Paks/LandformLab-Mac.utoc": "b7492d05410f3abee5841cab4f03628bbe1f3b9d813d98a3a0cd7d347177940a",
+    "Contents/UE/LandformLab/Content/Paks/global.ucas": "9203dfe40d3388874381668ecc34f90b9b1a23c7e00a0f22be5f11ee5e2f998c",
+    "Contents/UE/LandformLab/Content/Paks/global.utoc": "671577ad2fe3af1add1ccf5640d7f954a8e2a3eb5dd49fef74165ca3480b21a4"
+  },
+  "client_catalog_sha256": {
+    "Content/Stamps/DA_StampLibrary.uasset": "d8f6f26f4db22493a51a48e199035fe166454b30ff7e64bb47f0e951db54ab3b",
+    "Content/Surfaces/DA_SurfaceLibrary.uasset": "394af51bdbece4348619d411853c9ea6563eb0c7a4405e59a9f9d2cf33c3109d",
+    "Content/Surfaces/MM_LandformSurfaces.uasset": "c3087a68978d8fda00f8531f58c811e38d5a66bf928aa5fec17976262fd60c70"
+  },
+  "limits": [
+    "Local JSON delivery proof, not a backend storage or Connect wire contract",
+    "Current bounded spherical compiler profile, not arbitrary VPP graph transport",
+    "Development Mac arm64 only; Shipping and other platforms unqualified",
+    "Reference compares field/placements/weights/appearance values, not pixel-identical preview composition",
+    "Variant recompiles in a fresh process using the same package; live replacement beneath a walking player is unqualified",
+    "Process memory and wall-clock frame measurements include engine/harness; no GPU-memory or production-scale throughput claim",
+    "Requested failure exit status is ignored by macOS generic UE implementation; verifier requires a successful structured report"
+  ],
+  "measurement_isolation": "Final Base and Variant runs used one packaged lab process; launcher/verifier guard against duplicate instances."
+}
