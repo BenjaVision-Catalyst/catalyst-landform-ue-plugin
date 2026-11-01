@@ -662,3 +662,25 @@ Rolling Plains alongside Mountain ridges and Plateaus. Derived three-source
 junctions refine the actual cell costs and feed native-field and walking proofs.
 Host setup, source ownership and qualification are documented in
 `Landform/Projects/LandformLab/Docs/RegionalTerrainCharacter.md`.
+
+### Radial terrain surface rules
+
+Terrain schema 8 / planet schema 13 optionally add ordered surface overlays to
+reusable Landforms, independent of planet-owned radial guide values. Slope bands
+use local radial up on the final assembled field; optional guide-relative height
+and seeded noise masks select stable client surface IDs/revisions. The same
+regional ownership functions blend material weights and terrain sources.
+
+The starter Rock, Scree and Soil catalog uses native VPP Surface Types and a
+Generated non-Nanite MegaMaterial. Shared procedural appearance parameters and
+shader code drive the Landform cross-section and Planet Builder previews. The
+Designer has a Surface layers tab with standard array editing controls. Legacy
+recipes retain their previous material path. Current limits are eight installed
+surfaces and sixteen overlays per stack, with bounded slope evaluation; this is
+a spherical-surface profile. Preview and native compositors differ, as documented.
+
+`Examples/TerrainSurfaces.json` and the three `*Surfaces.json` source examples
+provide an independent regional planet. Reproduction, authoring, appearance
+baking and qualification limits are in the host's
+`Docs/SurfaceLayers.md`; the result record is
+`conformance/surface-layers-mac-arm64.json`.

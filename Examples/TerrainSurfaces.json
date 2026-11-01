@@ -1,0 +1,530 @@
+{
+  "schemaVersion": 13,
+  "algorithmVersion": 2,
+  "name": "Surface layers \u2014 ridges, plateaus and plains",
+  "radiusMeters": 1000,
+  "baseSurfaceNormalized": 0.47,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "radialGuides": {
+    "id": "434C5247000000000000000000000011",
+    "name": "Rocky assembly proof",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.43
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.55
+      },
+      {
+        "name": "AtmosphereMax",
+        "normalizedHeight": 0.9
+      }
+    ]
+  },
+  "noiseLayers": [],
+  "baseStructure": [
+    {
+      "id": "434C5046000000000000000000000011",
+      "name": "Northern uplift belt",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": 45,
+        "y": 30
+      },
+      "headingDegrees": 0,
+      "halfExtentDegrees": {
+        "x": 72,
+        "y": 48
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.22,
+        "offsetMeters": 0
+      }
+    },
+    {
+      "id": "434C5046000000000000000000000012",
+      "name": "Great river canyon",
+      "bEnabled": true,
+      "profile": "Heightmap",
+      "collectionId": "Canyons",
+      "collectionRevision": 2,
+      "sourceId": "MFC_RiverCanyonRampDepth",
+      "locationDegrees": {
+        "x": 20,
+        "y": -30
+      },
+      "headingDegrees": 8,
+      "halfExtentDegrees": {
+        "x": 78,
+        "y": 24
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.85,
+        "offsetMeters": 0
+      }
+    },
+    {
+      "id": "434C5046000000000000000000000013",
+      "name": "Southern basin",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": -120,
+        "y": -20
+      },
+      "headingDegrees": 20,
+      "halfExtentDegrees": {
+        "x": 65,
+        "y": 50
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.12,
+        "offsetMeters": 0
+      }
+    },
+    {
+      "id": "434C5046000000000000000000000014",
+      "name": "Eastern high plain",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": -40,
+        "y": 30
+      },
+      "headingDegrees": -15,
+      "halfExtentDegrees": {
+        "x": 82,
+        "y": 68
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.35,
+        "offsetMeters": 0
+      }
+    }
+  ],
+  "terrainRegions": [],
+  "regionGeneration": {
+    "bEnabled": true,
+    "algorithmVersion": 2,
+    "regionCount": 36,
+    "seed": 73,
+    "structureGuidance": 0.8,
+    "blendFraction": 0.55,
+    "reliefStrength": 0.8,
+    "palette": [
+      {
+        "id": "434C5355000000000000000000000001",
+        "name": "Mountain \u2014 surface layers",
+        "bEnabled": true,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1.1,
+          "upliftAffinity": 1,
+          "basinAffinity": -0.6,
+          "structuralEdgeAffinity": 0.35,
+          "preferredElevation": {
+            "x": 0.36,
+            "y": 1.5
+          },
+          "preferredSlopeDegrees": {
+            "x": 5,
+            "y": 90
+          }
+        },
+        "noiseLayers": [
+          {
+            "name": "Ridge backbone",
+            "bEnabled": true,
+            "seed": 0,
+            "shape": "Ridged",
+            "blend": "Override",
+            "minimum": {
+              "mode": "IntervalHeight",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.16,
+              "offsetMeters": 0
+            },
+            "maximum": {
+              "mode": "IntervalHeight",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.43,
+              "offsetMeters": 0
+            },
+            "scale": "Meters",
+            "wavelengthMeters": 360,
+            "octaves": 4,
+            "persistence": 0.48
+          },
+          {
+            "name": "Mountain structures",
+            "bEnabled": true,
+            "operation": "StampDistribution",
+            "distribution": {
+              "collectionId": "Mountains",
+              "collectionRevision": 3,
+              "seed": 71,
+              "densityPerSquareKilometer": 24,
+              "sizeMode": "Absolute",
+              "minimumSizeMeters": 220,
+              "maximumSizeMeters": 400,
+              "reliefMode": "GuideInterval",
+              "minimumRelief": {
+                "mode": "IntervalDelta",
+                "guide": "SurfaceMin",
+                "upperGuide": "SurfaceMax",
+                "fraction": 0.13,
+                "offsetMeters": 0
+              },
+              "maximumRelief": {
+                "mode": "IntervalDelta",
+                "guide": "SurfaceMin",
+                "upperGuide": "SurfaceMax",
+                "fraction": 0.24,
+                "offsetMeters": 0
+              },
+              "blend": "Collection",
+              "blendSmoothnessRadiusFraction": 0,
+              "edgeFalloffFraction": 0.08
+            }
+          },
+          {
+            "name": "Ridge detail",
+            "bEnabled": true,
+            "seed": 12,
+            "shape": "Smooth",
+            "blend": "Add",
+            "minimum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": -0.012,
+              "offsetMeters": 0
+            },
+            "maximum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.012,
+              "offsetMeters": 0
+            },
+            "scale": "Meters",
+            "wavelengthMeters": 28,
+            "octaves": 3,
+            "persistence": 0.45
+          }
+        ],
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 1,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "surfaceId": "Scree",
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55
+            },
+            {
+              "name": "Soil on gentle ground",
+              "surfaceId": "Soil",
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax"
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85
+            }
+          ]
+        }
+      },
+      {
+        "id": "434C5355000000000000000000000002",
+        "name": "Plateaus \u2014 surface layers",
+        "bEnabled": true,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 3,
+          "upliftAffinity": 0.2,
+          "basinAffinity": -0.1,
+          "structuralEdgeAffinity": -0.3,
+          "preferredElevation": {
+            "x": 0.4,
+            "y": 1.5
+          },
+          "preferredSlopeDegrees": {
+            "x": 0,
+            "y": 5
+          }
+        },
+        "noiseLayers": [
+          {
+            "name": "Plateau mass",
+            "operation": "Noise",
+            "bEnabled": true,
+            "seed": 31,
+            "shape": "Smooth",
+            "blend": "Override",
+            "minimum": {
+              "mode": "IntervalHeight",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.1,
+              "offsetMeters": 0
+            },
+            "maximum": {
+              "mode": "IntervalHeight",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.95,
+              "offsetMeters": 0
+            },
+            "scale": "Meters",
+            "octaves": 3,
+            "persistence": 0.35,
+            "wavelengthMeters": 600
+          },
+          {
+            "name": "Terracing",
+            "operation": "Terrace",
+            "bEnabled": true,
+            "terrace": {
+              "stepHeight": {
+                "mode": "IntervalDelta",
+                "guide": "SurfaceMin",
+                "upperGuide": "SurfaceMax",
+                "fraction": 0.12,
+                "offsetMeters": 0
+              },
+              "origin": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "offsetMeters": 0
+              },
+              "softness": 0.28,
+              "strength": 1
+            }
+          },
+          {
+            "name": "Plateau surface detail",
+            "operation": "Noise",
+            "bEnabled": true,
+            "seed": 73,
+            "shape": "Smooth",
+            "blend": "Add",
+            "minimum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": -0.002,
+              "offsetMeters": 0
+            },
+            "maximum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.002,
+              "offsetMeters": 0
+            },
+            "scale": "Meters",
+            "octaves": 3,
+            "persistence": 0.45,
+            "wavelengthMeters": 40
+          }
+        ],
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 1,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "surfaceId": "Scree",
+              "slopeDegrees": {
+                "x": 12,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55
+            },
+            {
+              "name": "Soil on gentle ground",
+              "surfaceId": "Soil",
+              "slopeDegrees": {
+                "x": 0,
+                "y": 10
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax"
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85
+            }
+          ]
+        }
+      },
+      {
+        "id": "434C5355000000000000000000000003",
+        "name": "Plains \u2014 surface layers",
+        "bEnabled": true,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": -0.5,
+          "basinAffinity": 0.4,
+          "structuralEdgeAffinity": -0.4,
+          "preferredElevation": {
+            "x": -1,
+            "y": 0.36
+          },
+          "preferredSlopeDegrees": {
+            "x": 0,
+            "y": 4
+          }
+        },
+        "noiseLayers": [
+          {
+            "name": "Broad undulations",
+            "operation": "Noise",
+            "bEnabled": true,
+            "seed": 19,
+            "shape": "Smooth",
+            "blend": "Add",
+            "minimum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": -0.025,
+              "offsetMeters": 0
+            },
+            "maximum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.025,
+              "offsetMeters": 0
+            },
+            "scale": "Meters",
+            "wavelengthMeters": 280,
+            "octaves": 3,
+            "persistence": 0.4
+          },
+          {
+            "name": "Plains surface detail",
+            "operation": "Noise",
+            "bEnabled": true,
+            "seed": 83,
+            "shape": "Smooth",
+            "blend": "Add",
+            "minimum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": -0.0015,
+              "offsetMeters": 0
+            },
+            "maximum": {
+              "mode": "IntervalDelta",
+              "guide": "SurfaceMin",
+              "upperGuide": "SurfaceMax",
+              "fraction": 0.0015,
+              "offsetMeters": 0
+            },
+            "scale": "Meters",
+            "wavelengthMeters": 35,
+            "octaves": 3,
+            "persistence": 0.4
+          }
+        ],
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 1,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "surfaceId": "Scree",
+              "slopeDegrees": {
+                "x": 12,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55
+            },
+            {
+              "name": "Soil on gentle ground",
+              "surfaceId": "Soil",
+              "slopeDegrees": {
+                "x": 0,
+                "y": 30
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax"
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85
+            }
+          ]
+        }
+      }
+    ],
+    "overrides": []
+  },
+  "surfaceStack": {
+    "defaultSurfaceId": "Rock"
+  }
+}

@@ -1,4 +1,8 @@
 #include "CLPlanetPreview.h"
+#include "CLSurfacePreview.h"
+#if WITH_DEV_AUTOMATION_TESTS
+#include "ShaderCompiler.h"
+#endif
 #include "Model/CLSphericalPatches.h"
 #include "PreviewScene.h"
 #include "EditorViewportClient.h"
@@ -17,10 +21,11 @@
 
 FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution)
 {
-    FCLGlobeBuffers B;const int32 N=FMath::Clamp(Resolution,8,PreviewResolution),Row=N+1,Count=6*Row*Row;
+    FCLGlobeBuffers B;B.Surfaces=Plan.Surfaces;const int32 N=FMath::Clamp(Resolution,8,PreviewResolution),Row=N+1,Count=6*Row*Row;
     B.Vertices.Reserve(Count);B.Normals.Reserve(Count);B.SourceDirections.Reserve(Count);
     B.UV.Reserve(Count);B.Colors.Reserve(Count);B.Tangents.Reserve(Count);B.Triangles.Reserve(6*N*N*6);
-    TArray<FVector> Samples;Samples.Reserve(SampleVertexBatch*5);
+    const int32 Batch=Plan.Surfaces?512:SampleVertexBatch;
+    TArray<FVector> Samples;Samples.Reserve(Batch*5);
     auto Emit=[&]
     {
         if(Samples.IsEmpty())return;
@@ -28,19 +33,24 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
         auto Point=[&](int32 I){return Samples[I]*((Plan.RadiusMeters+H[I])/Plan.RadiusMeters*100000);};
         for(int32 K=0;K<Samples.Num();K+=5)
         {
-            B.Vertices.Add(Point(K));FVector Normal=FVector::CrossProduct(Point(K+1)-Point(K+2),Point(K+3)-Point(K+4)).GetSafeNormal();
+            B.Vertices.Add(Point(K));FVector Normal=CLSurfaceNormal(Samples,H,Plan.RadiusMeters,K);
             if(FVector::DotProduct(Normal,Samples[K])<0)Normal*=-1;B.Normals.Add(Normal);
             const double Slope=FVector::DotProduct(Normal,Samples[K]);B.Colors.Add(FMath::Lerp(FLinearColor(.38,.36,.32),FLinearColor(.34,.43,.28),FMath::Clamp((Slope-.6)/.4,0.,1.)));
-            B.UV.Add(FVector2D::ZeroVector);B.Tangents.Add(FProcMeshTangent(FVector::VectorPlaneProject(FVector::XAxisVector,Normal).GetSafeNormal(),false));
+            if(Plan.Surfaces)
+            {
+                const double Degrees=FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(Slope,0.,1.)));const auto W=Plan.SurfaceWeightsAt(Samples[K],H[K],Degrees);
+                const FVector Source=Samples[K]*(Plan.RadiusMeters+H[K])*100;B.Colors.Last()=CLPackSurfaceWeights(W);
+                B.UV.Add(FVector2D(Source.X,Source.Y));B.UV1.Add(FVector2D(Source.Z,1));B.UV2.Add(FVector2D(W.Values[4],W.Values[5]));B.UV3.Add(FVector2D(W.Values[6],W.Values[7]));
+            }
+            else B.UV.Add(FVector2D::ZeroVector);B.Tangents.Add(FProcMeshTangent(FVector::VectorPlaneProject(FVector::XAxisVector,Normal).GetSafeNormal(),false));
         }
         Samples.Reset();
     };
     for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<=N;++Y)for(int32 X=0;X<=N;++X)
     {
         const FVector D=FCLSphericalPatches::Direction(Face,FVector2D(2.*X/N-1,2.*Y/N-1));B.SourceDirections.Add(D);
-        const FVector T=FVector::CrossProduct(D,FMath::Abs(D.Z)<.8?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal(),S=FVector::CrossProduct(D,T);
-        Samples.Append({D,(D+T*.0001).GetSafeNormal(),(D-T*.0001).GetSafeNormal(),(D+S*.0001).GetSafeNormal(),(D-S*.0001).GetSafeNormal()});
-        if(Samples.Num()==SampleVertexBatch*5)Emit();
+        CLSurfaceProbe(D,Samples);
+        if(Samples.Num()==Batch*5)Emit();
     }
     Emit();
     B.DisplayRadius=(Plan.RadiusMeters+Plan.MaximumHeightMeters)/Plan.RadiusMeters*100000;
@@ -328,7 +338,8 @@ void SCLPlanetPreview::Pump()
         if(TaskRevision==Revision)
         {
             Client->Plan=BuildingPlan;Client->RegionBoundaries=MoveTemp(B.RegionBoundaries);Client->RegionCentres=MoveTemp(B.RegionCentres);Client->UpdatePlacementOverlay();
-            Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
+            Mesh->SetMaterial(0,B.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*B.Surfaces):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
+            Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
             if(!Framed){Framed=true;Frame();}else Client->Apply();
         }
         BuildingPlan.Reset();
@@ -685,5 +696,31 @@ bool FCLGlobeGeneratedInspectionTest::RunTest(const FString&)
     W->SetPlacementMode(ECLGlobePlacementMode::Move);TestFalse(TEXT("Editorial tools leave region inspection"),W->IsInspectingRegions());
     AddInfo(FString::Printf(TEXT("Generated region inspection: %d surface contour segments, %d visibly changed pixels; routed surface selection passed"),B.RegionBoundaries.Num(),Changed));
     App.ReleaseAllPointerCapture();App.RequestDestroyWindow(Window);return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSurfaceGlobeTest,"Catalyst.Landform.Surfaces.RenderedGlobe",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLSurfaceGlobeTest::RunTest(const FString&)
+{
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainSurfaces.json")));
+    auto* Asset=NewObject<UCLPlanetRecipeAsset>();if(!Asset->ImportRecipeJson(Json,Error)){AddError(Error);return false;}const auto Plan=FCLPlanetCompiler::Compile(Asset->Recipe,Error);if(!Plan){AddError(Error);return false;}
+    const auto B=FCLGlobeBuffers::Build(*Plan,48);TArray<FCLSurfaceWeights> Weights;Plan->SampleSurfaceWeights(B.SourceDirections,Weights);double Worst=0;
+    for(int32 I=0;I<Weights.Num();++I){const auto W=CLPackSurfaceWeights(Weights[I]);Worst=FMath::Max(Worst,double(FMath::Abs(W.R-B.Colors[I].R)+FMath::Abs(W.G-B.Colors[I].G)+FMath::Abs(W.B-B.Colors[I].B)+FMath::Abs(W.A-B.Colors[I].A)));}
+    TestTrue(TEXT("Globe packs the same final-field surface weights"),Worst<.00001);
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Terrain surface appearance proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();W->Client->Plan=Plan;
+    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*Plan->Surfaces));W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);W->SetGuides(Asset->Recipe.RadialGuides,false);
+    if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
+    int32 Clipped=0,Changed=0,Earthy=0;
+    for(int32 Frame=0;Frame<3;++Frame)
+    {
+        const FVector Eye=FVector(Frame==0?1:Frame==1?-1:0,-1,Frame==2?-1:.6).GetSafeNormal()*150000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+        for(int32 K=0;K<3;++K){V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}if(Pixels.IsEmpty()){AddError(TEXT("No rendered surface frame"));continue;}
+        TSet<uint32> Colors;for(const auto& C:Pixels){if(C.R>C.G+5&&C.G>C.B+3)++Earthy;if(C.R>250&&C.G>250&&C.B>250)++Clipped;if(C.R>40||C.G>40||C.B>50)Colors.Add(C.DWColor());}Changed=FMath::Max(Changed,Colors.Num());
+        TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/surface-globe-%d.png"),Frame)));
+    }
+    TestTrue(TEXT("Shared surface material actually renders tonal detail"),Changed>1000);TestTrue(TEXT("Soil and scree render their authored warm colors instead of the default grey material"),Earthy>1000);TestTrue(TEXT("Surface orbit frames retain stable exposure"),Clipped<3*800*600/100);
+    AddInfo(FString::Printf(TEXT("Surface globe: %d vertices, %.9g weight disagreement, %d distinct lit colors, %d clipped pixels in 3 frames"),B.Vertices.Num(),Worst,Changed,Clipped));App.RequestDestroyWindow(Window);return true;
 }
 #endif

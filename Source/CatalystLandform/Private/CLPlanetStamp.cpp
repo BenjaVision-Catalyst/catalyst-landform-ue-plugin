@@ -3,6 +3,7 @@
 #include "Heightmap/VoxelHeightmap.h"
 #include "Heightmap/VoxelHeightmap_Height.h"
 #include "VoxelStampUtilities.h"
+#include "Surface/VoxelSurfaceTypeBlendBuilder.h"
 
 bool FCLSphericalHeightmapPlacement::ToChart(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
@@ -155,7 +156,35 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeBulkQuery& Query, const FVox
 
 void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FVoxelVolumeTransform& Transform) const
 {
-    if (!AffectShape()) return;
-    FVoxelStampUtilities::ApplyDistances(*this, Query, Transform,
-        SampleDistances(Query.Query, FVoxelStampUtilities::ComputePositions(Query, Transform)), true, nullptr);
+    const bool Surfaces=AffectSurfaceType()&&Query.bQuerySurfaceTypes&&RecipePlan&&RecipePlan->Surfaces;
+    if(!AffectShape()&&!Surfaces)return;
+    const auto Positions=FVoxelStampUtilities::ComputePositions(Query,Transform);FVoxelFloatBuffer Alphas;
+    FVoxelStampUtilities::ApplyDistances(*this,Query,Transform,SampleDistances(Query.Query,Positions),AffectShape(),Surfaces?&Alphas:nullptr);
+    if(Surfaces)FVoxelStampUtilities::ApplySurfaceTypes(Query,SampleSurfaceTypes(Query.Query,Positions),Alphas);
+}
+
+FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const
+{
+    FVoxelSurfaceTypeBlendBuffer Out;Out.Allocate(Positions.Num());
+    if(!RecipePlan||!RecipePlan->Surfaces){for(int32 I=0;I<Positions.Num();++I)Out.Set(I,FVoxelSurfaceTypeBlend());return Out;}
+    TArray<FVector> D;D.SetNumUninitialized(Positions.Num());for(int32 I=0;I<D.Num();++I)D[I]=Positions[I].GetSafeNormal();
+    TArray<FCLSurfaceWeights> Weights;
+    if(Sources.IsEmpty())RecipePlan->SampleSurfaceWeights(D,Weights);
+    else
+    {
+        Weights.SetNumZeroed(D.Num());
+        for(int32 Start=0;Start<D.Num();Start+=512)
+        {
+            const int32 N=FMath::Min(512,D.Num()-Start);FVoxelDoubleVectorBuffer Probe;Probe.Allocate(N*5);
+            for(int32 I=0;I<N;++I){const FVector P=D[Start+I],X=FVector::CrossProduct(P,FMath::Abs(P.Z)<.8?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal(),Y=FVector::CrossProduct(P,X);Probe.Set(5*I,P);Probe.Set(5*I+1,(P+X*.0001).GetSafeNormal());Probe.Set(5*I+2,(P-X*.0001).GetSafeNormal());Probe.Set(5*I+3,(P+Y*.0001).GetSafeNormal());Probe.Set(5*I+4,(P-Y*.0001).GetSafeNormal());}
+            const auto H=SampleHeights(Query,Probe);
+            for(int32 I=0;I<N;++I){const int32 K=I*5;auto Point=[&](int32 J){return Probe[K+J]*(Stamp.Radius+H[K+J]);};const auto Normal=FVector::CrossProduct(Point(1)-Point(2),Point(3)-Point(4)).GetSafeNormal();const double Slope=FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FMath::Abs(FVector::DotProduct(Normal,D[Start+I])),0.,1.)));Weights[Start+I]=RecipePlan->SurfaceWeightsAt(D[Start+I],H[K]/100.,Slope);}
+        }
+    }
+    FVoxelSurfaceTypeBlendBuilder Builder;
+    for(int32 I=0;I<Weights.Num();++I)
+    {
+        Builder.Reset();for(int32 J=0;J<RecipePlan->Surfaces->NativeTypes.Num();++J)if(Weights[I].Values[J]>0)Builder.AddLayer(RecipePlan->Surfaces->NativeTypes[J],Weights[I].Values[J]);
+        FVoxelSurfaceTypeBlend Blend;Builder.Build(Blend);Out.Set(I,Blend);
+    }return Out;
 }

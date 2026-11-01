@@ -17,6 +17,7 @@ struct CATALYSTLANDFORM_API FCLTerrainType
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Description;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLNoiseLayer> NoiseLayers;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLLandformSuitability PlacementSuitability;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
     bool Validate(FString& Error) const;
     /** Apply a validated snapshot atomically; never changes the planet's RadialGuides/radius/seed. */
     bool ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion = nullptr) const;

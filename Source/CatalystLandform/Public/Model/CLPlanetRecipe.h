@@ -6,6 +6,8 @@
 #include "Model/CLStampDistribution.h"
 #include "Model/CLPlanetStructure.h"
 #include "Model/CLLandformSuitability.h"
+#include "Model/CLSurfaceLayers.h"
+#include "Surface/CLSurfaceCompiler.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -126,6 +128,7 @@ struct CATALYSTLANDFORM_API FCLLandformPaletteEntry
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=2;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLLandformSuitability Suitability;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) TArray<FCLNoiseLayer> NoiseLayers;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLSurfaceStack SurfaceStack;
 };
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRegionAssignmentOverride
@@ -169,6 +172,7 @@ struct CATALYSTLANDFORM_API FCLTerrainRegion
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 AlgorithmVersion = 2;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) TArray<FCLNoiseLayer> NoiseLayers;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FCLSurfaceStack SurfaceStack;
 };
 
 USTRUCT(BlueprintType)
@@ -199,6 +203,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     /** Manual broad uplift/basin layout, separate from reusable Landform definitions. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRegionGenerationSettings RegionGeneration;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
 };
 
 class UCLTerrainTypeAsset;
@@ -254,6 +259,10 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** Sorted by explicit priority then persistent ID. No UObject state on workers. */
     TArray<FRegion> Regions;
     TSharedPtr<const FCLCompiledRegionGeneration> GeneratedRegions;
+    TSharedPtr<const FCLCompiledSurfaceLibrary> Surfaces;
+    FCLCompiledSurfaceStack SurfaceStack;
+    FCLSurfaceWeights SurfaceWeightsAt(const FVector& Direction,double HeightMeters,double SlopeDegrees) const;
+    void SampleSurfaceWeights(TConstArrayView<FVector> Directions,TArray<FCLSurfaceWeights>& Out) const;
     TArray<FCLCompiledPlanetFeature> BaseStructure;
     int32 GetDistributedStampCount() const;
     /** Diagnostic coverage of distributed stamp footprints and their fade weights. */

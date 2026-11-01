@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 8,
+  "algorithmVersion": 2,
+  "id": "434C5355000000000000000000000003",
+  "name": "Plains \u2014 surface layers",
+  "description": "Gentle native VPP undulations and fine detail over neutral planet ground; prefers lower, gentler regions.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [
+    {
+      "name": "Broad undulations",
+      "operation": "Noise",
+      "bEnabled": true,
+      "seed": 19,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.025,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.025,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 280,
+      "octaves": 3,
+      "persistence": 0.4
+    },
+    {
+      "name": "Plains surface detail",
+      "operation": "Noise",
+      "bEnabled": true,
+      "seed": 83,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.0015,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.0015,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 35,
+      "octaves": 3,
+      "persistence": 0.4
+    }
+  ],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": -0.5,
+    "basinAffinity": 0.4,
+    "structuralEdgeAffinity": -0.4,
+    "preferredElevation": {
+      "x": -1,
+      "y": 0.36
+    },
+    "preferredSlopeDegrees": {
+      "x": 0,
+      "y": 4
+    }
+  },
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 1,
+    "layers": [
+      {
+        "name": "Scree on slopes",
+        "surfaceId": "Scree",
+        "slopeDegrees": {
+          "x": 12,
+          "y": 46
+        },
+        "slopeFeatherDegrees": 7,
+        "noiseAmount": 0.25,
+        "noiseWavelengthMeters": 55
+      },
+      {
+        "name": "Soil on gentle ground",
+        "surfaceId": "Soil",
+        "slopeDegrees": {
+          "x": 0,
+          "y": 30
+        },
+        "slopeFeatherDegrees": 5,
+        "bUseHeightRange": true,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMin",
+          "offsetMeters": -50
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMax"
+        },
+        "heightFeatherRadiusFraction": 0.015,
+        "noiseAmount": 0.15,
+        "noiseWavelengthMeters": 85
+      }
+    ]
+  }
+}

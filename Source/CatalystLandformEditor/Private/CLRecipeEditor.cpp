@@ -1,9 +1,11 @@
 #include "CLRecipeAssetTools.h"
 #include "CLTerrainDesigner.h"
+#include "CLSurfacePreview.h"
 #include "CLTerrainEditing.h"
 #include "CLNoiseLayerStack.h"
 #include "CLRegionGenerationPanel.h"
 #include "IDetailsView.h"
+#include "PropertyEditorModule.h"
 #include "AssetToolsModule.h"
 #include "IAssetTools.h"
 #include "FileHelpers.h"
@@ -610,7 +612,8 @@ public:
     void ApplyBuffers(const FCLSectionBuffers& B)
     {
         ++AppliedBuilds; const auto& G = B.Geometry;
-        Mesh->CreateMeshSection_LinearColor(0, G.Vertices, G.Triangles, B.Normals, B.UV, G.Colors, B.Tangents, false);
+        Mesh->SetMaterial(0,G.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*G.Surfaces):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
+        Mesh->CreateMeshSection_LinearColor(0,G.Vertices,G.Triangles,B.Normals,G.Surfaces?G.SurfaceUV:B.UV,G.SurfaceUV1,G.SurfaceUV2,G.SurfaceUV3,G.Colors,B.Tangents,false);
         if (!bCameraFramed)
         {
             bCameraFramed = true;
@@ -660,6 +663,8 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     FDelegateHandle Changed;
     static const FName SectionTab;
     static const FName NoiseTab;
+    static const FName SurfaceTab;
+    TSharedPtr<IDetailsView> SurfaceDetails;
     static const FName PlanetTab;
 public:
     virtual ~FCLRecipeToolkit()
@@ -723,11 +728,12 @@ public:
         if(!TerrainEditing)DetailsView->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
         {return P.Property.GetFName()!=GET_MEMBER_NAME_CHECKED(FCLPlanetRecipe,RadialGuides);}));
         Changed = Asset->OnRecipeChanged.AddSP(this, &FCLRecipeToolkit::Refresh);
-        const auto Layout = FTabManager::NewLayout(TerrainEditing ? "CLTerrainDesigner_v1" : "CLRecipeDesigner_v3")->AddArea(
+        auto Left=FTabManager::NewStack()->SetSizeCoefficient(.34)->AddTab(TerrainEditing?NoiseTab:PlanetTab,ETabState::OpenedTab);
+        if(TerrainEditing)Left->AddTab(SurfaceTab,ETabState::OpenedTab);
+        Left->AddTab(DetailsTabId,ETabState::OpenedTab)->AddTab(ValidationTabId,ETabState::OpenedTab)->SetForegroundTab(TerrainEditing?NoiseTab:PlanetTab);
+        const auto Layout = FTabManager::NewLayout(TerrainEditing ? "CLTerrainDesigner_v2" : "CLRecipeDesigner_v3")->AddArea(
             FTabManager::NewPrimaryArea()->SetOrientation(Orient_Horizontal)
-            ->Split(FTabManager::NewStack()->SetSizeCoefficient(.34)->AddTab(TerrainEditing ? NoiseTab : PlanetTab, ETabState::OpenedTab)
-                ->AddTab(DetailsTabId, ETabState::OpenedTab)
-                ->AddTab(ValidationTabId, ETabState::OpenedTab)->SetForegroundTab(TerrainEditing ? NoiseTab : PlanetTab))
+            ->Split(Left)
             ->Split(FTabManager::NewStack()->SetSizeCoefficient(.68)->AddTab(SectionTab, ETabState::OpenedTab)->SetHideTabWell(true)));
         InitAssetEditor(Mode, Host, GetToolkitFName(), Layout, true, true, EditingAsset.Get());
         const auto Extender = MakeShared<FExtender>();
@@ -867,15 +873,30 @@ public:
         FCFModelEditorToolkit::RegisterTabSpawners(Manager);
         Manager->RegisterTabSpawner(SectionTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnSection));
         if (!TerrainEditing) Manager->RegisterTabSpawner(PlanetTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnPlanet)).SetDisplayName(FText::FromString(TEXT("Planet")));
+        if(TerrainEditing)Manager->RegisterTabSpawner(SurfaceTab,FOnSpawnTab::CreateSP(this,&FCLRecipeToolkit::SpawnSurfaces)).SetDisplayName(FText::FromString(TEXT("Surface layers")));
         Manager->RegisterTabSpawner(NoiseTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnNoise)).SetDisplayName(FText::FromString(TEXT("Terrain layers")));
     }
     virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& Manager) override
-    { Manager->UnregisterTabSpawner(SectionTab); Manager->UnregisterTabSpawner(NoiseTab); if (!TerrainEditing) Manager->UnregisterTabSpawner(PlanetTab); FCFModelEditorToolkit::UnregisterTabSpawners(Manager); }
+    { Manager->UnregisterTabSpawner(SectionTab); Manager->UnregisterTabSpawner(NoiseTab);if(TerrainEditing)Manager->UnregisterTabSpawner(SurfaceTab); if (!TerrainEditing) Manager->UnregisterTabSpawner(PlanetTab); FCFModelEditorToolkit::UnregisterTabSpawners(Manager); }
     TSharedRef<SDockTab> SpawnNoise(const FSpawnTabArgs&)
     {
         if (!TerrainEditing) return SNew(SDockTab)[SNew(STextBlock).Text(FText::FromString(TEXT("Use Edit source to author a reusable terrain type.")))];
         return SNew(SDockTab)[SAssignNew(NoiseStack, SCLNoiseLayerStack).Session(TerrainEditing)
             .OnPreviewChanged(FSimpleDelegate::CreateSP(this, &FCLRecipeToolkit::Refresh))];
+    }
+    TSharedRef<SDockTab> SpawnSurfaces(const FSpawnTabArgs&)
+    {
+        FDetailsViewArgs Args;Args.bHideSelectionTip=true;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
+        SurfaceDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateDetailView(Args);
+        SurfaceDetails->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
+        {
+            if(P.Property.GetFName()==GET_MEMBER_NAME_CHECKED(UCLTerrainTypeAsset,TerrainType)||P.Property.GetFName()==GET_MEMBER_NAME_CHECKED(FCLTerrainType,SurfaceStack))return true;
+            for(const FProperty* Parent:P.ParentProperties)if(Parent->GetFName()==GET_MEMBER_NAME_CHECKED(FCLTerrainType,SurfaceStack))return true;return false;
+        }));
+        SurfaceDetails->SetObject(TerrainEditing->Asset);
+        return SNew(SDockTab)[SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("Layers overlay from top to bottom. The default surface fills uncovered ground. Slopes use the planet's local radial up; heights resolve from preview guides.")))]
+            +SVerticalBox::Slot().FillHeight(1)[SurfaceDetails.ToSharedRef()]];
     }
     void CreatePlanet()
     {
@@ -1156,6 +1177,7 @@ public:
 };
 const FName FCLRecipeToolkit::SectionTab(TEXT("CLRecipeSection"));
 const FName FCLRecipeToolkit::NoiseTab(TEXT("CLNoiseLayers"));
+const FName FCLRecipeToolkit::SurfaceTab(TEXT("CLSurfaceLayers"));
 const FName FCLRecipeToolkit::PlanetTab(TEXT("CLPlanetControls"));
 
 void OpenPlanetRecipe()

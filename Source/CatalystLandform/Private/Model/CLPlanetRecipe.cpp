@@ -411,7 +411,10 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 12) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 13) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    const bool HasSurfaces=Recipe.SurfaceStack.IsActive()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.SurfaceStack.IsActive();})||Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.SurfaceStack.IsActive();});
+    if(HasSurfaces&&(Recipe.SchemaVersion<13||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||!Recipe.SurfaceStack.IsActive()))return Fail(TEXT("Surface rules require schema 13 spherical terrain and a planet default surface"));
+    if(!Recipe.SurfaceStack.Validate(Error))return nullptr;
     if(Recipe.RegionGeneration.bEnabled || !Recipe.RegionGeneration.Palette.IsEmpty() || !Recipe.RegionGeneration.Overrides.IsEmpty())
     {
         if(Recipe.SchemaVersion<12)return Fail(TEXT("Generated regions and Landform palettes require recipe schema 12"));
@@ -488,6 +491,11 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             !FMath::IsFinite(Guide.Color.B) || !FMath::IsFinite(Guide.Color.A)) return Fail(FString::Printf(TEXT("Invalid Height Guide: %s"), *Guide.Name.ToString()));
         Guides.Add(Guide.Name, Guide.HeightMeters);
         Plan->Guides.Add(Guide);
+    }
+    if(HasSurfaces)
+    {
+        Plan->Surfaces=FCLCompiledSurfaceLibrary::Resolve(Error);if(!Plan->Surfaces)return nullptr;
+        if(!FCLCompiledSurfaceStack::Compile(Recipe.SurfaceStack,*Plan->Surfaces,Plan->Guides,Recipe.RadiusMeters,Recipe.Seed,Plan->SurfaceStack,Error))return nullptr;
     }
     Plan->SurfacePatch=SurfacePatch;
     if(Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface)
@@ -620,7 +628,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         else if(Region.bPlacedLandform || Region.bSphericalMask || !Region.Mask.Validate(Error)){if(Error.IsEmpty())Error=TEXT("Local regions need local masks");return nullptr;}
         if(!Region.bEnabled)continue;
         if(!Region.TerrainTypeId.IsValid() || Region.TerrainTypeName.IsEmpty())return Fail(TEXT("Terrain region requires an applied source snapshot: ")+Region.Name);
-        auto Child=Recipe;Child.BaseStructure.Reset();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;
+        auto Child=Recipe;Child.BaseStructure.Reset();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;Child.SurfaceStack=Region.SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;
         Child.Seed=int32(uint32(Recipe.Seed)+uint32(Region.SeedOffset));Child.TerrainTypeId=Region.TerrainTypeId;
         Child.TerrainTypeName=Region.TerrainTypeName;Child.NoiseLayers=Region.NoiseLayers;
         const auto Field=Compile(Child,Error,StampLibrary,Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch?&Plan->EvaluationRegion:nullptr,Region.bPlacedLandform?FCLSphericalPatches::WholeSphere:SurfacePatch);
@@ -751,8 +759,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..12 with algorithm 1, or schemaVersion 3..12 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..13 with algorithm 1, or schemaVersion 3..13 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)
@@ -836,8 +844,8 @@ void FCLPlanetRecipe::RenameGuideReferences(FName Old,FName New)
         for(auto& L:Values)for(auto* Ref:{&L.Minimum,&L.Maximum,&L.Terrace.StepHeight,&L.Terrace.Origin,&L.Distribution.MinimumRelief,&L.Distribution.MaximumRelief})
         {if(Ref->Guide==Old)Ref->Guide=New;if(Ref->UpperGuide==Old)Ref->UpperGuide=New;}
     };
-    Layers(NoiseLayers);for(auto& R:TerrainRegions)Layers(R.NoiseLayers);
-    for(auto& P:RegionGeneration.Palette){Layers(P.NoiseLayers);if(P.Suitability.LowerElevationGuide==Old)P.Suitability.LowerElevationGuide=New;if(P.Suitability.UpperElevationGuide==Old)P.Suitability.UpperElevationGuide=New;}
+    SurfaceStack.RenameGuide(Old,New);Layers(NoiseLayers);for(auto& R:TerrainRegions){Layers(R.NoiseLayers);R.SurfaceStack.RenameGuide(Old,New);}
+    for(auto& P:RegionGeneration.Palette){P.SurfaceStack.RenameGuide(Old,New);Layers(P.NoiseLayers);if(P.Suitability.LowerElevationGuide==Old)P.Suitability.LowerElevationGuide=New;if(P.Suitability.UpperElevationGuide==Old)P.Suitability.UpperElevationGuide=New;}
     for(auto& F:BaseStructure){if(F.Relief.Guide==Old)F.Relief.Guide=New;if(F.Relief.UpperGuide==Old)F.Relief.UpperGuide=New;}
 }
 bool UCLPlanetRecipeAsset::SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library,FGuid Id,FString& Error)

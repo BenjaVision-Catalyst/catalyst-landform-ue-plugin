@@ -1,0 +1,139 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "parent_component_revision": "ffe4ca3",
+  "parent_workspace_revision": "5b3af10",
+  "build": "passed",
+  "source_sha256": "a3a6df8f186887ca2a3adc8da9e9895cb267172dcd0d8431c86ec08e4f4cb6d6",
+  "source_hash_algorithm": "Sorted component-relative Source paths, NUL, then bytes",
+  "appearance_shader_sha256": "aa95941bb30c8b2d4770295a2191b350e9cf64fd025d2a8030e404ee250b7168",
+  "automation": {
+    "component_passed": 78,
+    "native_walk_passed": 1,
+    "failed": 0,
+    "tests_with_warning_events": 1,
+    "warning": "Existing Engine LineSetComponentMaterial on Metal, unchanged",
+    "report": "Landform/Projects/LandformLab/Saved/Verification/surface-final/index.json",
+    "report_sha256": "39e1c1b02b804a8f6bc400f832fd1e35cfa7f33a988ce7cd7310195c61b1267a"
+  },
+  "profile": {
+    "terrain_schema": 8,
+    "planet_schema": 13,
+    "surface_algorithm": 1,
+    "client_catalog_schema": 1,
+    "max_installed_ids": 8,
+    "max_layers": 16,
+    "max_positions_per_slope_batch": 512,
+    "max_field_samples_per_slope_batch": 2560,
+    "native_surfaces": [
+      "Rock",
+      "Scree",
+      "Soil"
+    ],
+    "legacy_material_path_preserved": true
+  },
+  "parity": {
+    "spherical_samples": 1016,
+    "section_vertices": 251001,
+    "section_max_weight_error": 4.71196415e-11,
+    "native_max_weight_error": 2.91544944e-05,
+    "native_field_residual_cm": 0,
+    "mask_evaluation_seconds_for_1016_samples": 0.006,
+    "dominant_surface_samples": [
+      28,
+      139,
+      849
+    ],
+    "globe_vertices": 14406,
+    "globe_max_weight_error": 0,
+    "rendered_globe_frames": 3,
+    "distinct_lit_colors": 8572,
+    "clipped_white_pixels": 0,
+    "preview_vertex_weight_storage": "8-bit colors plus UV channels",
+    "native_weight_storage": "VPP uint16",
+    "native_compositor": "Temporal dither",
+    "preview_compositor": "Continuous blend"
+  },
+  "native_walk": {
+    "passed": true,
+    "frames": 3635,
+    "ground_frames": 3635,
+    "voxel_floor_frames": 3635,
+    "triple_blend_frames": 1363,
+    "junction_visits": 3,
+    "closest_junction_m": 0.061868784921306916,
+    "max_floor_field_residual_cm": 1.6005084023272502,
+    "min_up_dot": 0.9999999999999993,
+    "min_gravity_dot": 0.9999999926957176,
+    "worst_route_slope_degrees": 39.98968981116346,
+    "movement_input_only": true,
+    "terrain_modified_for_route": false,
+    "dominant_source_frames": [
+      158,
+      527,
+      107
+    ]
+  },
+  "saved_assets": {
+    "passed": true,
+    "fresh_process_reload": true,
+    "recipe_matches_json": true,
+    "palette_source_links": 3,
+    "source_metadata_matches_json": true,
+    "shared_guide_reference": true,
+    "existing_files_preserved": 67,
+    "route_degrees": [
+      [
+        -101.75923694129358,
+        76.56633864581943
+      ],
+      [
+        -120.69923937541819,
+        76.8908670803266
+      ],
+      [
+        -119.79362709574754,
+        66.61476961517485
+      ],
+      [
+        -120.69923937541819,
+        76.8908670803266
+      ],
+      [
+        -130.5977554937143,
+        78.77719451849465
+      ],
+      [
+        -120.69923937541819,
+        76.8908670803266
+      ],
+      [
+        -101.75923694129358,
+        76.56633864581943
+      ]
+    ],
+    "max_sampled_route_slope_degrees": 39.98968981116346
+  },
+  "assets_sha256": {
+    "Content/Surfaces/DA_SurfaceLibrary.uasset": "394af51bdbece4348619d411853c9ea6563eb0c7a4405e59a9f9d2cf33c3109d",
+    "Content/Surfaces/MI_Rock.uasset": "da8abf8c1b630168f36739f190a52c7b4fac31943f15d8befc8e85b08dc67a22",
+    "Content/Surfaces/MI_Scree.uasset": "2340ead241fd32e96f142a96caa85afdae93713c4f4403d365154b3643f7508e",
+    "Content/Surfaces/MI_Soil.uasset": "18f0f8eac688ed2829d91d7cb6ee159795d33e2331d900a6fff497efe97ed88c",
+    "Content/Surfaces/MM_LandformSurfaces.uasset": "c3087a68978d8fda00f8531f58c811e38d5a66bf928aa5fec17976262fd60c70",
+    "Content/Surfaces/M_Surface.uasset": "0bdc55a967b5c7e01b55f944e5d82282f2f3afcbfd376af9b8fae98621b3f2ca",
+    "Content/Surfaces/M_SurfacePreview.uasset": "0823ef14e44435d2177056c58f149fe70078994db1bdb2a1e3e1e3b94448fe7a",
+    "Content/Surfaces/ST_Rock.uasset": "03d74d4e1e00b90dd8cc3025aeb427d0e2923bbf373d2e41608f787e33b794f5",
+    "Content/Surfaces/ST_Scree.uasset": "f009e9fb39b01dfe61f3561ea3ca4fd60edc3a9c81d9705913ae3b7dd42990b4",
+    "Content/Surfaces/ST_Soil.uasset": "dc11e4867570f455632eeb56482e54d3997d76bf5074a845b959243ab5603f7c"
+  },
+  "limits": [
+    "Prototype procedural materials, not a finished photogrammetric library",
+    "SphericalSurface coordinates only",
+    "One installed revision per surface ID in catalog profile 1",
+    "Texture anchoring for moving/rotating planets not qualified; native appearance uses world position",
+    "Cross-platform, packaged builds and production planet throughput not qualified",
+    "VPP compositor and preview compositor differ; matching inputs and surface ownership, not pixel-identical output"
+  ]
+}

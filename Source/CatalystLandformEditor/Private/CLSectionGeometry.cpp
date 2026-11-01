@@ -1,4 +1,5 @@
 #include "CLSectionGeometry.h"
+#include "CLSurfacePreview.h"
 
 double FCLSectionGeometry::DefaultWidth(const FCLCompiledPlanetRecipe&)
 { return 500; }
@@ -98,6 +99,11 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
             }
         }
     G.SurfaceVertexCount = G.Vertices.Num();
+    if(Plan.Surfaces)
+    {
+        G.Surfaces=Plan.Surfaces;Plan.SampleSurfaceWeights(Directions,G.SurfaceWeights);
+        for(int32 I=0;I<G.SurfaceVertexCount;++I)G.Colors[I]=CLPackSurfaceWeights(G.SurfaceWeights[I]);
+    }
     TArray<int32> Rim;
     for (int32 X = 0; X <= N; ++X) Rim.Add(X);
     for (int32 Y = 1; Y <= N; ++Y) Rim.Add(Y * (N + 1) + N);
@@ -114,6 +120,14 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
         Add(A, Top); Add(B, Top); Add(FVector(A.X, A.Y, 0), Bottom); Add(FVector(B.X, B.Y, 0), Bottom);
         Triangle(K, K + 2, K + 1); Triangle(K + 1, K + 2, K + 3);
         Triangle(BottomCentre, K + 3, K + 2);
+    }
+    if(Plan.Surfaces)
+    {
+        G.SurfaceUV.SetNumZeroed(G.Vertices.Num());G.SurfaceUV1.SetNumZeroed(G.Vertices.Num());G.SurfaceUV2.SetNumZeroed(G.Vertices.Num());G.SurfaceUV3.SetNumZeroed(G.Vertices.Num());
+        for(int32 I=0;I<G.SurfaceVertexCount;++I)
+        {
+            const auto& P=G.SourceSurfacePoints[I];const auto& W=G.SurfaceWeights[I];G.SurfaceUV[I]=FVector2D(P.X,P.Y);G.SurfaceUV1[I]=FVector2D(P.Z,1);G.SurfaceUV2[I]=FVector2D(W.Values[4],W.Values[5]);G.SurfaceUV3[I]=FVector2D(W.Values[6],W.Values[7]);
+        }
     }
     return G;
 }

@@ -11,6 +11,9 @@ struct CATALYSTLANDFORMEDITOR_API FCLSectionGeometry
     TArray<FVector> SourceSurfacePoints; // actual planet-space cm, before display unwrapping
     TArray<int32> Triangles; // UE clockwise outward faces
     TArray<FLinearColor> Colors;
+    TArray<FVector2D> SurfaceUV,SurfaceUV1,SurfaceUV2,SurfaceUV3;
+    TArray<FCLSurfaceWeights> SurfaceWeights;
+    TSharedPtr<const FCLCompiledSurfaceLibrary> Surfaces;
     int32 SurfaceVertexCount = 0;
     double HalfWidthMeters = 0;
 

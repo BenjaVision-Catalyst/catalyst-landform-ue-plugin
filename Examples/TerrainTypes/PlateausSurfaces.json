@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 8,
+  "algorithmVersion": 2,
+  "id": "434C5355000000000000000000000002",
+  "name": "Plateaus \u2014 surface layers",
+  "description": "Native VPP terrain in canonical planetary coordinates, shared across all spherical patches.",
+  "noiseLayers": [
+    {
+      "name": "Plateau mass",
+      "operation": "Noise",
+      "bEnabled": true,
+      "seed": 31,
+      "shape": "Smooth",
+      "blend": "Override",
+      "minimum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.1,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalHeight",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.95,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "octaves": 3,
+      "persistence": 0.35,
+      "wavelengthMeters": 600
+    },
+    {
+      "name": "Terracing",
+      "operation": "Terrace",
+      "bEnabled": true,
+      "terrace": {
+        "stepHeight": {
+          "mode": "IntervalDelta",
+          "guide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "fraction": 0.12,
+          "offsetMeters": 0
+        },
+        "origin": {
+          "mode": "Height",
+          "guide": "SurfaceMin",
+          "offsetMeters": 0
+        },
+        "softness": 0.28,
+        "strength": 1
+      }
+    },
+    {
+      "name": "Plateau surface detail",
+      "operation": "Noise",
+      "bEnabled": true,
+      "seed": 73,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.002,
+        "offsetMeters": 0
+      },
+      "maximum": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": 0.002,
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "octaves": 3,
+      "persistence": 0.45,
+      "wavelengthMeters": 40
+    }
+  ],
+  "coordinates": "SphericalSurface",
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 3,
+    "upliftAffinity": 0.2,
+    "basinAffinity": -0.1,
+    "structuralEdgeAffinity": -0.3,
+    "preferredElevation": {
+      "x": 0.4,
+      "y": 1.5
+    },
+    "preferredSlopeDegrees": {
+      "x": 0,
+      "y": 5
+    }
+  },
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 1,
+    "layers": [
+      {
+        "name": "Scree on slopes",
+        "surfaceId": "Scree",
+        "slopeDegrees": {
+          "x": 12,
+          "y": 46
+        },
+        "slopeFeatherDegrees": 7,
+        "noiseAmount": 0.25,
+        "noiseWavelengthMeters": 55
+      },
+      {
+        "name": "Soil on gentle ground",
+        "surfaceId": "Soil",
+        "slopeDegrees": {
+          "x": 0,
+          "y": 10
+        },
+        "slopeFeatherDegrees": 5,
+        "bUseHeightRange": true,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMin",
+          "offsetMeters": -50
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMax"
+        },
+        "heightFeatherRadiusFraction": 0.015,
+        "noiseAmount": 0.15,
+        "noiseWavelengthMeters": 85
+      }
+    ]
+  }
+}

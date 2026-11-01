@@ -18,7 +18,8 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 {
     TArray<FVector> Vertices,Normals,SourceDirections;
     TArray<int32> Triangles;
-    TArray<FVector2D> UV;
+    TArray<FVector2D> UV,UV1,UV2,UV3;
+    TSharedPtr<const FCLCompiledSurfaceLibrary> Surfaces;
     TArray<FLinearColor> Colors;
     TArray<FProcMeshTangent> Tangents;
     TArray<FCLGeneratedRegionBoundary> RegionBoundaries;
@@ -72,6 +73,7 @@ private:
     friend class FCLGlobePlacementPointerTest;
     friend class FCLGlobeLightingTest;
     friend class FCLGlobeGeneratedInspectionTest;
+    friend class FCLSurfaceGlobeTest;
 #endif
     void Pump();
     void CancelPlacementDrag();

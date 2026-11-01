@@ -4,6 +4,7 @@
 #include "Heightmap/VoxelHeightmapStamp.h"
 #include "VoxelVolumeStamp.h"
 #include "VoxelStampRef.h"
+#include "Surface/VoxelSurfaceTypeBlendBuffer.h"
 #include "Model/CLPlanetRecipe.h"
 #include "CLPlanetStamp.generated.h"
 
@@ -70,6 +71,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     virtual void Apply(const FVoxelVolumeBulkQuery& Query, const FVoxelVolumeTransform& Transform) const override;
     virtual void Apply(const FVoxelVolumeSparseQuery& Query, const FVoxelVolumeTransform& Transform) const override;
 
+    FVoxelSurfaceTypeBlendBuffer SampleSurfaceTypes(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const;
     void ApplySources(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions, FVoxelFloatBuffer& Heights) const;
     FVoxelFloatBuffer SampleHeights(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions) const;
     FVoxelFloatBuffer SampleDistances(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Positions) const;
