@@ -1,0 +1,150 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64, Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "request": "Separate reusable terrain authoring and preview guide selection from planet settings/assembly",
+  "ui": {
+    "removed": [
+      "Global preview radius",
+      "Global seed",
+      "Planet identity/context label",
+      "Apply to planet",
+      "Radius in terrain status"
+    ],
+    "retained": [
+      "Terrain definition/layers",
+      "Preview Strata selector",
+      "Read-only guide visualization",
+      "100m\u20131km coverage slider"
+    ],
+    "entrypoints": [
+      "Landform.Designer / Window Landform Designer: terrain workbench",
+      "Landform.PlanetRecipe / Window Planet Recipe: existing recipe editor"
+    ]
+  },
+  "ownership": {
+    "public_api": "Optional const FCLStrata snapshot; no planet asset parameter or retained pointer",
+    "preview": "Transient evaluator and independent guide catalog copy",
+    "save": "Terrain asset only",
+    "writes": "Editor-session planet-write helper removed; model-side assembly remains separate",
+    "guide_values": "Bound at assembly, not stored in terrain",
+    "fixed_reference": {
+      "radius_m": 1000,
+      "seed": 1729,
+      "ui_controls": false,
+      "serialized_in_terrain": false
+    }
+  },
+  "component_automation": {
+    "passed": 34,
+    "failed": 0,
+    "not_run": 0
+  },
+  "tests": {
+    "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+    "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+    "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+    "Catalyst.Landform.Designer.DeferredGesture": "Success",
+    "Catalyst.Landform.Designer.DeferredTerrainPreview": "Success",
+    "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+    "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+    "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+    "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+    "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+    "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+    "Catalyst.Landform.Designer.SurfaceArea": "Success",
+    "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+    "Catalyst.Landform.NativeGeneration.DesignerSphereParity": "Success",
+    "Catalyst.Landform.NativeGeneration.KernelAndVersioning": "Success",
+    "Catalyst.Landform.Plateaus.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Plateaus.DesignerSphereParity": "Success",
+    "Catalyst.Landform.Plateaus.TerraceSemantics": "Success",
+    "Catalyst.Landform.Recipes.HeightGuides": "Success",
+    "Catalyst.Landform.Recipes.OrderedLayers": "Success",
+    "Catalyst.Landform.Recipes.SerializationAndSnapshot": "Success",
+    "Catalyst.Landform.Recipes.VPPAndLiveEdits": "Success",
+    "Catalyst.Landform.StampDistribution.DesignerSphereParity": "Success",
+    "Catalyst.Landform.StampDistribution.DeterministicPCG": "Success",
+    "Catalyst.Landform.StampDistribution.VersioningAndSnapshots": "Success",
+    "Catalyst.Landform.Strata.AuthoringAndResize": "Success",
+    "Catalyst.Landform.Strata.Presets": "Success",
+    "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+    "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+    "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+    "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+    "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+    "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success"
+  },
+  "expanded_editor_check": [
+    "Actual terrain editor has Preview Strata and no global planet controls",
+    "Only the terrain is saveable; preview recipe/catalog excluded",
+    "Caller radius/seed/name/base not inherited",
+    "Caller guides copied by value and not live-bound",
+    "Guide selection switches only transient values",
+    "Guide edits/add/remove/set authoring blocked in preview",
+    "Opening/reopening does not alter either supplier planet",
+    "Shared guide catalog bytes/data/dirty flag unchanged",
+    "Persistent preview target refused",
+    "Planet recipe assembly remains tested outside editor session"
+  ],
+  "source_sha256": {
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "e741a420d7c2b0585a9965dcc5f2ad7421f609ba495dbf97f9cbab5aff293190",
+    "Source/CatalystLandformEditor/Private/CLStrataEditing.cpp": "83277f381fe6d2e405e5d444e5045bbc61a20c0b90fded25dc31719cd68e2985",
+    "Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "7989a06f74115893959819d9ee3b9caa9a2ddedc114e0020f6fae218234822e7",
+    "Source/CatalystLandformEditor/Public/CLStrataEditing.h": "aa7430b04feedf3afc4b2d167502250fdc78fa0c9cea92aa4335dde94cb687f6",
+    "Source/CatalystLandformEditor/Public/CLTerrainDesigner.h": "6482f5ce4ef960cd514a12878671bda06f2c8c19182783ae47a95c38d192f76c",
+    "Source/CatalystLandformEditor/Public/CLTerrainEditing.h": "43dc07277e160bb8c2da1a077542b05e639d3c35f080fb90466869a41d1b7b94",
+    "Source/CatalystLandformTests/Private/CLTerrainEditingTests.cpp": "07267beb285feb5a547d584b075431a6a20227c1cb7dc3b19d9f3bdcd583779a"
+  },
+  "preserved_user_files": {
+    "Content/LandformDesigner/DA_RollingPlains.uasset": "3e8d5abfe5116587a4a6c208edf6a0f56cdc0fd2335b628c1a619c6bf4189f62",
+    "Content/LandformDesigner/DA_StrataLibrary.uasset": "575c9349781d7e63dec531f66a158a23569b92575588f93d5eb010153145979c",
+    "Content/LandformDesigner/DA_PlateausPlanet.uasset": "353cc5226a5870fbf9ee57f29557367f615a82da67160ab8d48af8f0e519d2f8",
+    "Content/LandformDesigner/DA_StampDistributionPlanet.uasset": "dcabb22ee7e84960e1b257450e0f7c9a369a695afdafdd6c16a7e549238bc911",
+    "Content/LandformDesigner/DA_TerrainTypeComparison.uasset": "7f5f21133d189354d50c36cceb9e08ab395fbafc469d6dac1a693967086d0db0",
+    "Content/LandformDesigner/DA_MountainRidgesStampedPlanet.uasset": "2cff9aafa1bd3712a99339125fde8352282c0c92e8bd55d7dcd75e27714d6fb0",
+    "Content/LandformDesigner/DA_MotionForgeMountainsPlanet.uasset": "e4c014640257b684245c0dd8420e9e774900a21fb2686f1ba18c5cf8545ec01b",
+    "Content/LandformDesigner/DA_MountainStructuresPlanet.uasset": "03ba256e88b44e6416b82fe10251b1849d69987609c9af21168c7fc3e912357e",
+    "Content/LandformDesigner/DA_MountainRidgesNativePlanet.uasset": "2649ec565aeed94128223b9c2e8078cba0fcf2366d1be9d411b86fbb12946dd4",
+    "Content/LandformDesigner/TerrainTypes/DA_MFS_EastRidge.uasset": "bf875022f20210052b28f581db29248a091189ad336c8a23aaebb91688afcc31",
+    "Content/LandformDesigner/TerrainTypes/DA_Plateaus.uasset": "cf433418ccaae149e795068c4e3b9376be14298eaeea02b28d08e69d521d6b69",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainStructures.uasset": "e66748e4d38d37ef14c8f92f51711eefc2701fee912017ebf424488c69305270",
+    "Content/LandformDesigner/TerrainTypes/DA_MFP_RockyPeaks.uasset": "48dbe6e04b9127313857ec78daee2700ef446aeb21fe7e1c61c38fb5e4262aff",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidgesStamped.uasset": "457e3643bc5cf40527a445ca194731dd88e878b00bed1198f73540dcdfbed8b6",
+    "Content/LandformDesigner/TerrainTypes/DA_MotionForgeMountains.uasset": "0f44eda15ed5023aa9ecdc6c494940b27c40cd410b534ebd13517a9b9d26ba45",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidgesNative.uasset": "8038b58cdc3b30ee963548cc033f10fba9adb09c8f6d85fb747be272cccfdb7b",
+    "Content/LandformDesigner/TerrainTypes/DA_MFP_TerrainRidge.uasset": "cbd78963a6fdd14a51071b011172d529264a916c9df74af58edcf113eac8a076",
+    "Content/LandformDesigner/TerrainTypes/DA_MFP_GrandMountain.uasset": "33a317a2c454778522fc3c612e064def14b48ddc3bf7db6a3811b9c8b6c97c98",
+    "Content/LandformDesigner/TerrainTypes/DA_MFS_RockyMassif.uasset": "b0c000fdae1580a049b6c6a6c45d676de22ad3e2de6b86ede7f8518f7cb1586a",
+    "Content/LandformDesigner/TerrainTypes/DA_StampDistribution.uasset": "344d4bcc187d1d0a977e6826561bb417742b36d43ec931b6650bd12da7a3f0bc",
+    "Content/LandformDesigner/TerrainTypes/DA_MountainRidges.uasset": "1cf7ac8df318e6c9bd89bd19a752644fe2e58fecdada1a6c4c4cd6c71a084451",
+    "Content/LandformDesigner/TerrainTypes/DA_MFS_WestRidge.uasset": "4b76de70683ceb2cb05bfa2884760283b7765ee6d5e3f7055e2cc8570c26399e",
+    "Content/LandformDesigner/TerrainTypes/DA_MFS_GrandSpine.uasset": "3f48b2f98db6beac70f6eb24768d1b1941a324cc28e9f22823e8a41296c1cf89",
+    "Content/LandformDesigner/TerrainTypes/DA_MFP_MountainRange.uasset": "83baac0b1a358a3e3ce3e433fef692c416463f8965e7db36f71bd05653790ec2",
+    "Content/LandformDesigner/TerrainTypes/DA_MFS_CurvedRange.uasset": "0e6dc6e6d261c34dfa5f6368ad8d82fac9ca478a07d221fc742a8869919d510b",
+    "Content/LandformDesigner/MountainRidgesStampedProof.umap": "a817b0263b5a7fe2248329d0e252ee07a164a6e764809224299f32eeea33b4e0",
+    "Content/LandformDesigner/MotionForgeMountainsProof.umap": "e1fe9e77fccd20ca1853f1e70b0f326c78ff9abdfcb132ed973441c7a1f8d173",
+    "Content/LandformDesigner/MountainStructuresProof.umap": "68db0523947abfad291320a2891dbbd046a652c3665ebea8c85b29c136f0f476",
+    "Content/LandformDesigner/RollingPlainsProof.umap": "d816134d74cfb0f4329e8fc023d4279f55357664ba36d6bdfd489afc53c6a3fe",
+    "Content/LandformDesigner/PlateausProof.umap": "e4b7bc99d2751f2941772f043f7a9350b4a17d13ce823c113748c09423c88640",
+    "Content/LandformDesigner/StampDistributionProof.umap": "68df35f4e6a05389e200da683367dee97d6a43830ed37d6d0fb89953e9feb6cc",
+    "Content/LandformDesigner/MountainRidgesNativeProof.umap": "7f520c42689c0697a732c17db33e9454fc52a31b45d513acbfe6717cc5b2cfa1",
+    "Config/DefaultEngine.ini": "81750862dff126e8f06b7889194edaa3e6d17579bc7881d892d7fd3a52351192"
+  },
+  "visual_inspection": "Reopened Mountain structures with the user noise layer intact. Header shows two layers and Terrain preview, with no radius/global seed/context/Apply controls. Preview Strata, preview-only explanation, guide visibility and 500m coverage remain. Combined terrain rendered, no pending/error indicator, All Saved.",
+  "artifacts": {
+    "automation": "Saved/Verification/designer-boundary/index.json",
+    "preservation": "Saved/Backups/BeforeDesignerBoundary/sha256.json"
+  },
+  "known_warnings": "Existing recipe material warnings. No user assets, runtime generator or vendor source edited.",
+  "limits": [
+    "Fixed-reference evaluator reuses existing spherical compiler; not a regional/local-plane compiler",
+    "Exact planet field/placement parity requires identical compiler inputs; actual planet globals resolve at assembly",
+    "Per-layer procedural seeds and absolute/relative size controls remain recipe settings",
+    "The separate recipe editor is existing lab assembly tooling; a finished World Builder is not added",
+    "No serialized schema or terrain generation algorithm changed"
+  ]
+}

@@ -136,13 +136,3 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FStr
     if (!Visible.ApplyTo(Recipe, OutError)) return nullptr;
     return FCLPlanetCompiler::Compile(Recipe, OutError);
 }
-
-bool FCLTerrainEditing::ApplyToPlanet(UCLPlanetRecipeAsset* Planet)
-{
-    FCLPlanetRecipe Candidate;
-    if (!Planet) { Error = TEXT("Open this terrain from a planet to apply it"); return false; }
-    Candidate = Planet->Recipe;
-    if (!Asset->TerrainType.ApplyTo(Candidate, Error)) return false;
-    const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyAuthoredTerrain", "Apply terrain to planet"));
-    return Asset->ApplyToRecipe(Planet, Error);
-}

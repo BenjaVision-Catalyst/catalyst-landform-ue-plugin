@@ -2,8 +2,8 @@
 #include "CoreMinimal.h"
 #include "Toolkits/IToolkit.h"
 class UCLTerrainTypeAsset;
-class UCLPlanetRecipeAsset;
+struct FCLStrata;
 class IToolkitHost;
-/** Open the shared Designer with an explicit, optional planet context snapshot. */
-CATALYSTLANDFORMEDITOR_API void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, UCLPlanetRecipeAsset* Context = nullptr,
+/** Open the terrain Designer with optional preview guides. No planet identity or settings are retained. */
+CATALYSTLANDFORMEDITOR_API void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLStrata* PreviewStrata = nullptr,
     EToolkitMode::Type Mode = EToolkitMode::Standalone, TSharedPtr<IToolkitHost> Host = nullptr);

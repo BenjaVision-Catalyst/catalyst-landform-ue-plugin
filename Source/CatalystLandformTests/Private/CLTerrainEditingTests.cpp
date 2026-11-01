@@ -6,6 +6,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Editor.h"
+#include "ScopedTransaction.h"
 
 namespace
 {
@@ -99,7 +100,8 @@ bool FCLTerrainAuthoringSnapshotTest::RunTest(const FString&)
     Planet->Recipe = FCLPlanetCompiler::RollingPlains(); Planet->Recipe.RadiusMeters = 2500; Planet->Recipe.Seed = 182;
     const auto Strata = Planet->Recipe.Strata;
     Edit.SetSolo(1);
-    TestTrue(TEXT("Explicit apply succeeds"), Edit.ApplyToPlanet(Planet.Get()));
+    { const FScopedTransaction Tx(NSLOCTEXT("CL", "TestAssembleTerrain", "Assemble terrain onto planet"));
+      TestTrue(TEXT("Recipe assembly applies the definition outside the Designer session"), Asset->ApplyToRecipe(Planet.Get(), Error)); }
     TestEqual(TEXT("Apply ignores solo and uses all authored layers"), Planet->Recipe.NoiseLayers.Num(), Asset->TerrainType.NoiseLayers.Num());
     TestEqual(TEXT("Apply preserves planet radius"), Planet->Recipe.RadiusMeters, 2500.0);
     TestEqual(TEXT("Apply preserves planet seed"), Planet->Recipe.Seed, 182);
@@ -156,7 +158,8 @@ bool FCLStampIsolationTest::RunTest(const FString&)
     }
     TestTrue(TEXT("Flat areas between stamps are sampled"), FlatSamples > 0);
     TStrongObjectPtr<UCLPlanetRecipeAsset> Planet(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(), NAME_None, RF_Transactional)); Planet->Recipe = Context;
-    if (!TestTrue(TEXT("Stamp-only stack applies to a planet"), Edit.ApplyToPlanet(Planet.Get()))) { AddError(Edit.Error); return false; }
+    { const FScopedTransaction Tx(NSLOCTEXT("CL", "TestAssembleStamps", "Assemble stamps onto planet"));
+      if (!TestTrue(TEXT("Recipe assembly applies a stamp-only definition"), Asset->ApplyToRecipe(Planet.Get(), Error))) { AddError(Error); return false; } }
     TestTrue(TEXT("Applied recipe stores the resolved midpoint"), FMath::IsNearlyEqual(Planet->Recipe.BaseSurfaceNormalized, .45, 1.e-9));
     const auto Applied = FCLPlanetCompiler::Compile(Planet->Recipe, Error);
     for (const auto& P : Placements) TestEqual(TEXT("Planet and Designer share the stamp-only field"), Applied->SampleHeightMeters(P.Anchor), Stamps->SampleHeightMeters(P.Anchor));

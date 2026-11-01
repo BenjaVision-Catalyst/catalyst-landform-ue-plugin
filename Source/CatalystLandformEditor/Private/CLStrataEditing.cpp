@@ -46,6 +46,7 @@ FCLStrataSession::FCLStrataSession() = default;
 FCLStrataSession::~FCLStrataSession() = default;
 void FCLStrataSession::Open(UCLPlanetRecipeAsset* InAsset)
 {
+    bReadOnly = false;
     Asset = InAsset; Asset->SetFlags(RF_Transactional);
     const TCHAR* Path = TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary");
     Library.Reset(LoadObject<UCLStrataLibraryAsset>(nullptr, Path));
@@ -63,9 +64,34 @@ void FCLStrataSession::Open(UCLPlanetRecipeAsset* InAsset)
     { Library->Modify(); Library->Library.Sets.Add(Asset->Recipe.Strata); Library->MarkPackageDirty(); }
 }
 
+bool FCLStrataSession::OpenPreview(UCLPlanetRecipeAsset* TransientPreview, const FCLStrata* InitialStrata)
+{
+    // Preview ownership must never be installed on a persistent planet asset.
+    if (!TransientPreview || !TransientPreview->GetOutermost()->HasAnyFlags(RF_Transient)) return false;
+    Asset = TransientPreview; bReadOnly = true;
+    Library.Reset(NewObject<UCLStrataLibraryAsset>(GetTransientPackage(), NAME_None, RF_Transient));
+    if (const auto* Catalog = LoadObject<UCLStrataLibraryAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary")))
+        Library->Library = Catalog->Library;
+    else Library->Library.Sets = FCLStrataPresets::Defaults();
+    UsePreviewStrata(InitialStrata ? *InitialStrata : Asset->Recipe.Strata);
+    return true;
+}
+void FCLStrataSession::UsePreviewStrata(const FCLStrata& Strata)
+{
+    if (!bReadOnly || !Asset || !Asset->GetOutermost()->HasAnyFlags(RF_Transient)) return;
+    const FCLStrata Snapshot = Strata;
+    Asset->Recipe.Strata = Snapshot; Selected = INDEX_NONE;
+    if (auto* Entry = Library->Library.Sets.FindByPredicate([&](const FCLStrata& S) { return S.Id == Snapshot.Id; })) *Entry = Snapshot;
+    else Library->Library.Sets.Add(Snapshot);
+    // Notify the scratch renderer without a transaction, dirty flag, version
+    // update or write to the shared catalog or terrain definition.
+    if (OnPreviewChanged) OnPreviewChanged();
+    Asset->OnRecipeChanged.Broadcast();
+}
+
 void FCLStrataSession::Begin(const FText& Text)
 {
-    if (Gesture) return;
+    if (bReadOnly || Gesture) return;
     Gesture = MakeUnique<FScopedTransaction>(Text); BeforeRecipe = Asset->Recipe; BeforeLibrary = Library->Library; Asset->Modify(); Library->Modify();
 }
 
@@ -85,6 +111,7 @@ void FCLStrataSession::End(bool bCancel)
 
 void FCLStrataSession::Changed()
 {
+    if (bReadOnly) return;
     if (FCLStrata* S = Library->Library.Sets.FindByPredicate([&](const FCLStrata& V) { return V.Id == Asset->Recipe.Strata.Id; }))
         *S = Asset->Recipe.Strata;
     Library->MarkPackageDirty(); Asset->MarkPackageDirty(); bPendingChange = true;
@@ -94,7 +121,7 @@ void FCLStrataSession::Changed()
 
 void FCLStrataSession::Height(int32 Index, double Height)
 {
-    if (!Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return;
+    if (bReadOnly || !Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return;
     double& Current = Asset->Recipe.Strata.Stratum[Index].NormalizedHeight;
     if (!FMath::IsFinite(Height) || Height < 0 || Height > 1 || FMath::IsNearlyEqual(Current, Height, 1.e-10)) return;
     Current = Height; Changed();
@@ -102,7 +129,7 @@ void FCLStrataSession::Height(int32 Index, double Height)
 
 int32 FCLStrataSession::Add(double Height)
 {
-    if (!FMath::IsFinite(Height) || Height < 0 || Height > 1 || Asset->Recipe.Strata.Stratum.Num() >= 128) return INDEX_NONE;
+    if (bReadOnly || !FMath::IsFinite(Height) || Height < 0 || Height > 1 || Asset->Recipe.Strata.Stratum.Num() >= 128) return INDEX_NONE;
     Begin(NSLOCTEXT("CL", "AddStratum", "Add Stratum"));
     Selected = FCLStrataEditing::Add(Asset->Recipe.Strata, Height);
     Changed(); End(); return Selected;
@@ -110,7 +137,7 @@ int32 FCLStrataSession::Add(double Height)
 
 void FCLStrataSession::Remove(int32 Index)
 {
-    if (!Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return;
+    if (bReadOnly || !Asset->Recipe.Strata.Stratum.IsValidIndex(Index)) return;
     Begin(NSLOCTEXT("CL", "RemoveStratum", "Remove Stratum"));
     FCLStrataEditing::Remove(Asset->Recipe.Strata, Index); Selected = INDEX_NONE; Changed(); End();
 }
@@ -119,12 +146,14 @@ void FCLStrataSession::Apply(FGuid Id)
 {
     const auto* S = Library->Library.Sets.FindByPredicate([&](const FCLStrata& V) { return V.Id == Id; });
     if (!S) return;
+    if (bReadOnly) { UsePreviewStrata(*S); return; }
     Begin(NSLOCTEXT("CL", "ApplyStrata", "Apply Strata to planet"));
     Asset->Recipe.Strata = *S; Selected = INDEX_NONE; Changed(); End();
 }
 
 void FCLStrataSession::NewSet()
 {
+    if (bReadOnly) return;
     Begin(NSLOCTEXT("CL", "NewStrata", "Create Strata"));
     FCLStrata S = Asset->Recipe.Strata; S.Id = FGuid::NewGuid();
     int32 N = 1;
@@ -135,6 +164,7 @@ void FCLStrataSession::NewSet()
 
 void FCLStrataSession::RemoveSet()
 {
+    if (bReadOnly) return;
     Begin(NSLOCTEXT("CL", "RemoveStrata", "Remove Strata"));
     const FGuid Id = Asset->Recipe.Strata.Id;
     Library->Library.Sets.RemoveAll([&](const FCLStrata& S) { return S.Id == Id; });

@@ -80,15 +80,19 @@ after this base field; recipe output is clipped at the outer radius.
 `Examples/RollingPlains.json`
 is the first versioned local recipe; it is not a backend wire contract.
 
-The editor module extends Foundation's toolkit with Details, Validation and an
-orbitable solid core-to-sky cutaway. Select and drag guide ticks/labels, Delete
+The editor module has separate **Landform Designer** and **Planet Recipe**
+entry points, sharing Details, Validation and a core-to-sky cutaway. The former
+owns a reusable terrain definition; the latter owns planet settings/assembly.
+In Planet Recipe, select and drag guide ticks/labels, Delete
 to remove, use the small Core + to add a Stratum, and rename labels in place.
 Ticks, leaders and labels use light gray at 30% opacity; the selected Stratum
 becomes fully opaque, with no selection box or change in tick thickness.
 Each tick is separated from the cross-section edge by one tick width.
 Guide labels use 9-point type, vertically centred on their connection lines.
-The Strata popup selects a project catalog style; the contextual planet's applied
-copy is the default. Save persists both the recipe and catalog. Schema 1 recipes
+Planet Recipe's Strata popup selects a project catalog style; the planet's
+applied copy is the default. Its Save persists the recipe and catalog.
+Landform Designer instead has a read-only **Preview Strata** selector and saves
+only its terrain definition. Schema 1 recipes
 migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
 snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
 Perlin noise and remains reproducible. Algorithm 2 uses the native VPP Perlin
@@ -108,8 +112,9 @@ without rebuilding terrain. Only the key casts shadows. The rig is independent
 of other asset editors' environment profiles; idle redraw remains disabled.
 
 `UCLTerrainTypeAsset` supplies reusable base noise profiles through Foundation.
-The Designer's Terrain selector applies a layer snapshot while retaining the
-planet's global Strata, radius and seed. Shipped sources are Rolling plains,
+Planet Recipe's Terrain selector assembles a layer snapshot while retaining the
+planet's global Strata, radius and seed. Landform Designer's selector opens a
+terrain definition and keeps the current preview guide snapshot. Shipped sources are Rolling plains,
 Hills, Mountain ridges and Plateaus (`Examples/TerrainTypes`, with assets under
 `Content/TerrainTypes`). Schema 3 adds guide-interval heights/deltas and
 planet-relative wavelengths, resolved to scalars before worker/VPP evaluation.
@@ -122,17 +127,20 @@ layers** tab. Select, add, duplicate, remove, reorder or enable layers; the
 selected layer exposes shape, blend, seed, wavelength, octaves, persistence and
 guide-based height bounds. Guide pickers use the preview context's Stratum.
 Distance labels are unit-neutral; the suffix in each numeric field identifies
-its input unit. Preview radius uses UE's unit-aware numeric interface as well.
+its input unit. Global planet inputs are absent from Landform Designer.
 The recipe's stored metre values and serialized field names are unchanged.
 Finished property edits are transactional; invalid drafts leave the definition
 unchanged. Undo/redo refreshes the stack and preview.
 
-The terrain editor owns the reusable definition, with an independent snapshot
-of the optional planet context. Preview radius, seed and Strata selection do not
-change the planet or the project catalog. Stratum editing remains in the planet
-Designer. **Apply to planet** explicitly applies the full layer stack while
-preserving that planet's radius, seed and Strata. **Solo** isolates a layer over
-the underlying height at the preview centre and is never saved or applied.
+The terrain editor owns only the reusable definition. Its entry point accepts
+an optional Strata value snapshot, not a planet. Radius, global seed, planet
+identity and Apply-to-planet controls are absent. Opening from a planet defaults
+only the preview guides; no live planet pointer/binding is retained. The guide
+selector changes a transient evaluator and catalog copy without transactions,
+dirtying assets or saving guides into the landform. Stratum authoring remains
+outside this preview. **Solo** is preview-only and never changes the definition.
+The evaluator uses a fixed 1 km reference scale and deterministic seed; actual
+planet globals and guide values are resolved by recipe assembly/compiler owners.
 **New** and **Save as variant…** create project assets; duplication gives a new
 terrain identity. Normal Save and Foundation export operate on the terrain asset.
 Shipped plugin presets open as project working copies under
@@ -143,8 +151,11 @@ Terrain-mode previews build geometry and normals on one background worker with
 one replaceable pending request. Obsolete results cannot replace the current
 scene. UObject/mesh work remains on the editor thread, and camera framing stays
 fixed across completion. The `Landform.TerrainDesigner` command opens Mountain
-ridges by default; optional arguments are a terrain asset path and planet recipe
-path. This authoring path supports both generation versions; it does not execute
+ridges by default; optional arguments are a terrain asset path and a recipe path
+supplying only initial preview Strata. `Landform.Designer` / Window → Landform
+Designer open the terrain workbench; `Landform.PlanetRecipe` / Planet Recipe open
+the separate existing recipe editor. The optional recipe's radius/seed are ignored.
+This authoring path supports both generation versions; it does not execute
 arbitrary VPP graph assets. Stamp distribution runs its own bounded CPU PCG pipeline.
 
 
@@ -344,3 +355,15 @@ as out of date. The stamp limit remains 256 per layer; budget diagnostics now
 include the requested count and a usable density limit.
 Qualification is in `conformance/layer-controls-mac-arm64.json`; the host's
 `Docs/LayerPreviewControls.md` records the repaired user case and checks.
+
+### Designer ownership boundary
+
+The landform asset stores procedural layers and named guide references. It does
+not store a Strata selection or values, planet radius/global seed, or a planet
+binding. Guide values are supplied on assembly. Its preview has a transient,
+read-only Strata snapshot. Preview Save/export targets only the terrain asset;
+preview guide choices do not create undo transactions or dirty the shared catalog.
+The editor-session planet-write method has been removed. Explicit assembly
+remains on the model/recipe side, used by Planet Recipe and future World Builder.
+`conformance/designer-boundary-mac-arm64.json` records qualification; the host's
+`Docs/DesignerOwnership.md` explains the current workflow and reference evaluator.

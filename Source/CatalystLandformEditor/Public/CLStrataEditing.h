@@ -29,6 +29,8 @@ public:
     TFunction<void()> OnPreviewChanged;
     bool bPendingChange = false;
     void Open(UCLPlanetRecipeAsset* InAsset);
+    bool OpenPreview(UCLPlanetRecipeAsset* TransientPreview, const FCLStrata* InitialStrata = nullptr);
+    void UsePreviewStrata(const FCLStrata& Strata);
     void Begin(const FText& Text);
     void End(bool bCancel = false);
     void Changed();

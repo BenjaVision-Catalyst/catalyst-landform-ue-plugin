@@ -2,7 +2,7 @@
 #include "CoreMinimal.h"
 #include "Model/CLTerrainType.h"
 
-/** Terrain authoring owns layers; planet context and solo are preview-only values. */
+/** Terrain authoring owns layers; the evaluation snapshot and Solo are preview-only values. */
 class CATALYSTLANDFORMEDITOR_API FCLTerrainEditing
 {
 public:
@@ -21,7 +21,6 @@ public:
     void Reconcile();
     void SetSolo(int32 Index);
     TSharedPtr<const FCLCompiledPlanetRecipe> CompilePreview(FString& OutError) const;
-    bool ApplyToPlanet(UCLPlanetRecipeAsset* Planet);
 private:
     FName SoloName;
     bool Commit(TArray<FCLNoiseLayer> Layers, int32 NewSelection, int32 NewSolo, const FText& Description);
