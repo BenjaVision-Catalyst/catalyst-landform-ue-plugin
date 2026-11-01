@@ -36,13 +36,15 @@ public:
 protected:
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
     virtual void Tick(const FGeometry&,double,float) override;
-    virtual FReply OnMouseButtonDown(const FGeometry&,const FPointerEvent&) override;
+    virtual FReply OnPreviewMouseButtonDown(const FGeometry&,const FPointerEvent&) override;
     virtual FReply OnMouseMove(const FGeometry&,const FPointerEvent&) override;
     virtual FReply OnMouseButtonUp(const FGeometry&,const FPointerEvent&) override;
+    virtual void OnMouseCaptureLost(const FCaptureLostEvent&) override;
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLGlobeGuidesTest;
+    friend class FCLGlobePointerTest;
 #endif
     void Pump();
     TUniquePtr<FPreviewScene> Scene;

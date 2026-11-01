@@ -49,7 +49,11 @@ public:
     bool bHasProjection=false;
     explicit FCLGlobeClient(FPreviewScene* Scene,TSharedRef<SEditorViewport> Widget):FEditorViewportClient(nullptr,Scene,Widget)
     {SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);SetRealtime(false);ViewFOV=FOVAngle=60;Apply();}
-    virtual bool InputKey(const FInputKeyEventArgs&) override {return true;}
+    virtual bool InputKey(const FInputKeyEventArgs& E) override
+    {
+        if(E.Event==IE_Pressed && (E.Key==EKeys::MouseScrollUp || E.Key==EKeys::MouseScrollDown))Dolly(E.Key==EKeys::MouseScrollUp?1:-1);
+        return true;
+    }
     virtual bool InputAxis(const FInputKeyEventArgs&) override {return true;}
     virtual FLinearColor GetBackgroundColor() const override {return FLinearColor(.007,.012,.02);}
     virtual void Tick(float Delta) override
@@ -68,10 +72,14 @@ public:
         if(!bHasProjection)return;Indicators.Reset();Rings.Reset();
         const FRotationMatrix Axes(GetViewRotation());const FVector Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
         auto Project=[&](FVector P){FVector2D S;FSceneView::ProjectWorldToScreen(P,ViewRect,ViewProjection,S);return FVector2D((S.X-ViewRect.Min.X)/FMath::Max(1,ViewRect.Width()),(S.Y-ViewRect.Min.Y)/FMath::Max(1,ViewRect.Height()));};
-        Core=Project(FVector::ZeroVector);Sky=Project((Right+Up).GetSafeNormal()*FCLPlanetNavigation::Radius);
+        Core=Project(FVector::ZeroVector);
+        // This camera-facing plane has constant clip depth. Project its basis
+        // once, then share double-precision overlay coordinates for rings/ticks.
+        const FVector2D X=Project(Right*FCLPlanetNavigation::Radius)-Core,Y=Project(Up*FCLPlanetNavigation::Radius)-Core;
+        Sky=Core+X*FMath::Cos(UE_DOUBLE_PI/4)+Y*FMath::Sin(UE_DOUBLE_PI/4);
         Indicators.Add({TEXT("Core"),FLinearColor::White,Core,-2});Indicators.Add({TEXT("Sky boundary"),FLinearColor::White,Sky,-3});
         auto Ring=[&](double Radius)
-        {TArray<FVector2D> Points;for(int32 I=0;I<=96;++I){const double A=2*UE_PI*I/96;Points.Add(Project((Right*FMath::Cos(A)+Up*FMath::Sin(A))*FCLPlanetNavigation::Radius*Radius));}Rings.Add(MoveTemp(Points));};
+        {TArray<FVector2D> Points;for(int32 I=0;I<=96;++I){const double A=2*UE_DOUBLE_PI*I/96;Points.Add(Core+(X*FMath::Cos(A)+Y*FMath::Sin(A))*Radius);}Rings.Add(MoveTemp(Points));};
         Ring(1);
         if(bGuides)for(int32 I=0;I<Guides.Guides.Num();++I)
         {const auto& G=Guides.Guides[I];Indicators.Add({G.Name.ToString(),FLinearColor::White,FMath::Lerp(Core,Sky,G.NormalizedHeight),I});Ring(G.NormalizedHeight);}
@@ -123,7 +131,12 @@ void SCLPlanetPreview::Pump()
     if(!Task.IsValid()&&Pending){auto P=Pending;Pending.Reset();TaskRevision=Revision;Task=Async(EAsyncExecution::ThreadPool,[P]{return FCLGlobeBuffers::Build(*P);});}
 }
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
-FReply SCLPlanetPreview::OnMouseButtonDown(const FGeometry&,const FPointerEvent& E){Button=E.GetEffectingButton();Previous=E.GetScreenSpacePosition();return FReply::Handled().CaptureMouse(SharedThis(this));}
+FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry&,const FPointerEvent& E)
+{
+    const FKey Key=E.GetEffectingButton();
+    if(Key!=EKeys::LeftMouseButton && Key!=EKeys::MiddleMouseButton && Key!=EKeys::RightMouseButton)return FReply::Unhandled();
+    Button=Key;Previous=E.GetScreenSpacePosition();return FReply::Handled().CaptureMouse(SharedThis(this)).SetUserFocus(SharedThis(this));
+}
 FReply SCLPlanetPreview::OnMouseMove(const FGeometry&,const FPointerEvent& E)
 {
     if(!HasMouseCapture())return FReply::Unhandled();const auto Delta=E.GetScreenSpacePosition()-Previous;Previous=E.GetScreenSpacePosition();
@@ -131,7 +144,12 @@ FReply SCLPlanetPreview::OnMouseMove(const FGeometry&,const FPointerEvent& E)
     else if(Button==EKeys::MiddleMouseButton){Client->Navigation.PanBy(Delta);Client->Apply();}
     else if(Button==EKeys::RightMouseButton)Client->Dolly(-Delta.Y*.05);return FReply::Handled();
 }
-FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent&){Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
+FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E)
+{
+    if(!HasMouseCapture() || E.GetEffectingButton()!=Button)return FReply::Unhandled();
+    Button=FKey();return FReply::Handled().ReleaseMouseCapture();
+}
+void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();}
 FReply SCLPlanetPreview::OnMouseWheel(const FGeometry&,const FPointerEvent& E){Client->Dolly(E.GetWheelDelta());return FReply::Handled();}
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -164,12 +182,50 @@ bool FCLGlobeGuidesTest::RunTest(const FString&)
         TestEqual(TEXT("Core, sky and all four guide labels exist"),Widget->Indicators().Num(),6);
         TestEqual(TEXT("Sky plus four radial section circles"),Widget->Rings().Num(),5);
         for(const auto& I:Widget->Indicators())if(I.Index>=0)
-            TestTrue(TEXT("Drag inverts the displayed guide anchor"),FMath::IsNearlyEqual(Widget->NormalizedAtScreenY(I.Position.Y),C->Guides.Guides[I.Index].NormalizedHeight,1.e-9));
+            {TestTrue(TEXT("Drag inverts the displayed guide anchor"),FMath::IsNearlyEqual(Widget->NormalizedAtScreenY(I.Position.Y),C->Guides.Guides[I.Index].NormalizedHeight,1.e-9));
+            TestTrue(TEXT("Indicator lies on the matching rendered circle"),I.Position.Equals(Widget->Rings()[I.Index+1][12],1.e-9));}
         auto Changed=C->Guides;Changed.Guides[0].NormalizedHeight=.72;Widget->SetGuides(Changed,true);
         TestEqual(TEXT("Guide overlay updates without mesh work"),C->Guides.Guides[0].NormalizedHeight,.72);
         TestFalse(TEXT("Overlay-only edit schedules no terrain worker"),Widget->IsUpdating());
         Widget->SetGuides(Changed,false);TestEqual(TEXT("Hidden guides leave core and sky only"),Widget->Indicators().Num(),2);
     }
     return true;
+}
+#endif
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Framework/Application/SlateApplication.h"
+#include "Layout/WidgetPath.h"
+#include "Widgets/SWindow.h"
+#include "Widgets/SViewport.h"
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobePointerTest,"Catalyst.Landform.PlanetBuilder.RoutedPointerOrbit",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobePointerTest::RunTest(const FString&)
+{
+    auto& App=FSlateApplication::Get();const auto Widget=SNew(SCLPlanetPreview);
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Globe pointer routing test"))).ClientSize(FVector2D(800,600))[Widget];
+    App.AddWindow(Window,false);Window->SlatePrepass();
+    FWidgetPath WidgetPath;App.GeneratePathToWidgetUnchecked(Widget->ViewportWidget.ToSharedRef(),WidgetPath,EVisibility::All);
+    // FindPathToWidget produces a focus path. Pointer routing also requires one
+    // optional virtual-pointer slot per arranged widget (UE 5.7's modern ctor).
+    TArray<FWidgetAndPointer> PointerWidgets;for(const auto& W:WidgetPath.Widgets.GetInternalArray())PointerWidgets.Emplace(W,TOptional<FVirtualPointerPosition>());
+    const FWidgetPath Path(MakeArrayView(PointerWidgets));
+    if(!TestTrue(TEXT("Actual inner viewport is in the routed widget path"),Path.IsValid())){App.RequestDestroyWindow(Window);return false;}
+    const FVector2D Start(300,300),End(420,340);const auto InitialRotation=Widget->Client->GetViewRotation();const double InitialZoom=Widget->Client->Navigation.Zoom;
+    const FPointerEvent Down(FSlateApplication::CursorPointerIndex,Start,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState());
+    const auto Reply=App.RoutePointerDownEvent(Path,Down);
+    TestTrue(TEXT("Globe intercepts the press before the inner viewport"),Reply.GetMouseCaptor()==Widget);
+    TestTrue(TEXT("Globe owns pointer capture"),Widget->HasMouseCapture());
+    const FPointerEvent Move(FSlateApplication::CursorPointerIndex,End,Start,TSet<FKey>{EKeys::LeftMouseButton},FKey(),0,FModifierKeysState());
+    App.RoutePointerMoveEvent(Path,Move,false);
+    TestFalse(TEXT("A routed drag rotates the actual camera"),Widget->Client->GetViewRotation().Equals(InitialRotation,.01));
+    TestEqual(TEXT("Orbit does not change zoom"),Widget->Client->Navigation.Zoom,InitialZoom);
+    const FPointerEvent Up(FSlateApplication::CursorPointerIndex,End,End,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState());
+    App.RoutePointerUpEvent(Path,Up);TestFalse(TEXT("Release ends globe capture"),Widget->HasMouseCapture());
+    TestFalse(TEXT("Uncaptured move is ignored"),Widget->OnMouseMove(FGeometry(),Move).IsEventHandled());
+    Widget->Client->InputKey(FInputKeyEventArgs::CreateSimulated(EKeys::MouseScrollUp,IE_Pressed,1));
+    TestTrue(TEXT("The inner viewport wheel-key path zooms the globe"),Widget->Client->Navigation.Zoom<InitialZoom);
+    const double WheelZoom=Widget->Client->Navigation.Zoom;
+    Widget->Client->InputKey(FInputKeyEventArgs::CreateSimulated(EKeys::MouseScrollUp,IE_Released,1));
+    TestEqual(TEXT("Wheel release does not apply a second zoom step"),Widget->Client->Navigation.Zoom,WheelZoom);
+    App.ReleaseAllPointerCapture();App.RequestDestroyWindow(Window);return true;
 }
 #endif

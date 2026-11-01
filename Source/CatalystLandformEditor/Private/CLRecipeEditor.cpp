@@ -395,8 +395,10 @@ public:
     { if(IsGlobe())Globe->Dolly(E.GetWheelDelta());else {Client->Navigation.Dolly(E.GetWheelDelta());Client->ApplyNavigation();}return FReply::Handled(); }
     const FCLSectionClient::FIndicator* Indicator(int32 Index) const
     { return Indicators().FindByPredicate([&](const auto& I) { return I.Index == Index; }); }
+    double TickGap()const{return IsGlobe()?0:GuideTickWidth;}
     FVector2D Anchor(int32 Index) const
     { const auto* I = Indicator(Index); return I ? I->Position * GetCachedGeometry().GetLocalSize() : FVector2D(-1000, -1000); }
+    FVector2D TickStart(int32 Index)const{return Anchor(Index)+FVector2D(TickGap(),0);}
     FVector2D Label(int32 Index) const
     {
         const FVector2D Size = GetCachedGeometry().GetLocalSize();
@@ -421,7 +423,7 @@ public:
         Rows = Count; Canvas->ClearChildren();
         for (int32 I = 0; I < Count; ++I)
         {
-            Canvas->AddSlot().Position_Lambda([this, I] { return Anchor(I) + FVector2D(GuideTickWidth - 4, -9); }).Size(FVector2D(GuideTickWidth + 8, 18))
+            Canvas->AddSlot().Position_Lambda([this, I] { return TickStart(I) + FVector2D(-4, -9); }).Size(FVector2D(GuideTickWidth + 8, 18))
                 [SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).HeightAtScreenY([this](double Y){return NormalizedAtScreenY(Y);}).Index(I)];
             const auto LabelHandle = SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).HeightAtScreenY([this](double Y){return NormalizedAtScreenY(Y);}).Index(I).Label(true);
             Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); })
@@ -463,8 +465,8 @@ public:
         }
         for (const auto& I : Indicators())
         {
-            // Leave one full tick width clear between the projected edge and tick.
-            const FVector2D A = I.Position * Geometry.GetLocalSize() + FVector2D(GuideTickWidth, 0), L = Label(I.Index);
+            // Globe ticks meet their rings; cutaway ticks retain the requested margin.
+            const FVector2D A = TickStart(I.Index), L = Label(I.Index);
             const FLinearColor Color = GuideTint(I.Index, Session->Selected) * Style.GetColorAndOpacityTint();
             TArray<FVector2D> Tick{A, A + FVector2D(GuideTickWidth, 0)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Tick, ESlateDrawEffect::None, Color, true, 2);
@@ -1406,6 +1408,20 @@ bool FCLPlanetGuideFactoryTest::RunTest(const FString&)
     FString Error;TestTrue(TEXT("Selected set resolves"),A->SynchronizeRadialGuides(Error));
     TestEqual(TEXT("Resolved set has the referenced identity"),A->Recipe.RadialGuides.Id,A->RadialGuideSetId);
     TestTrue(TEXT("New planets contain no terrain layers or regions"),A->Recipe.NoiseLayers.IsEmpty()&&A->Recipe.TerrainRegions.IsEmpty());
+    return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGuideTickAttachmentTest,"Catalyst.Landform.PlanetBuilder.GuideTickAttachment",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGuideTickAttachmentTest::RunTest(const FString&)
+{
+    const auto Session=MakeShared<FCLRadialGuideSession>();Session->Asset=NewObject<UCLPlanetRecipeAsset>();
+    const auto Section=SNew(SCLSectionViewport);const auto Globe=SNew(SCLPlanetPreview);
+    const auto Overlay=SNew(SCLHeightAnnotations).Client(Section->Client).Session(Session).Globe(Globe).UseGlobe(true);
+    TestTrue(TEXT("Globe tick begins exactly at its projected ring anchor"),Overlay->TickStart(0).Equals(Overlay->Anchor(0)));
+    Overlay->UseGlobe.Set(false);
+    TestTrue(TEXT("Designer cutaway retains one tick-width gap"),Overlay->TickStart(0).Equals(Overlay->Anchor(0)+FVector2D(GuideTickWidth,0)));
     return true;
 }
 #endif

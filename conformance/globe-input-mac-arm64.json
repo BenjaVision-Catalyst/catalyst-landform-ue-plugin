@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "parent_component_revision": "417f3aeed315",
+  "build": "passed",
+  "source_sha256": "d9eac0c7cc7125215c05f4fca066020c6ac40101685e5228814ebacdf542407b",
+  "fixes": [
+    "Globe captures mouse presses in the Slate preview/tunnel phase before the inner SViewport consumes them",
+    "Left drag orbits; middle drag pans cropped views; right drag zooms; capture resets on release/loss",
+    "Inner viewport scroll-key events apply wheel zoom only on press",
+    "Globe ticks attach to projected rings, with matching hit targets; cutaway keeps one tick-width margin",
+    "Rings and indicator anchors share a projected plane basis and double-precision angles"
+  ],
+  "automation": {
+    "passed": 57,
+    "with_warnings": 1,
+    "failed": 0,
+    "not_run": 0,
+    "report": "LandformLab/Saved/Verification/globe-input-qualified/index.json"
+  },
+  "interaction": {
+    "routed_pointer_path": "Real constructed SEditorViewport/SViewport widget hierarchy through Slate RoutePointerDown/Move/Up",
+    "orbit_changes_camera": true,
+    "orbit_preserves_zoom": true,
+    "capture_owned_and_released": true,
+    "uncaptured_movement_ignored": true,
+    "viewport_wheel_key_zooms": true,
+    "wheel_release_does_not_double_zoom": true,
+    "ring_and_anchor_agree": true,
+    "cutaway_spacing_preserved": true
+  },
+  "saved_assets": {
+    "preserved_files": 49,
+    "user_saved_pending_guide_edits": true,
+    "asset_or_config_edits_by_fix": false
+  },
+  "scope": {
+    "runtime_or_recipe_changes": false,
+    "vendor_or_engine_changes": false
+  },
+  "limits": [
+    "Routed pointer automation covers mouse ownership and camera updates; physical mouse interaction remains a separate UI check",
+    "No new qualification of terrain physics, material realism or streaming",
+    "Existing engine material/dependency warnings remain"
+  ],
+  "visual_check": {
+    "ticks_touch_rings": true,
+    "user_planet_open": true,
+    "all_saved": true,
+    "cua_orbit_verified": false
+  }
+}
