@@ -65,6 +65,7 @@ void ACLPlanet::RebuildTerrain()
     FCLPlanetStamp Stamp;
     if (RecipeAsset)
     {
+        if(!RecipeAsset->SynchronizeRadialGuides(RecipeStatus)){RecipeStatus=TEXT("Keeping last valid terrain: ")+RecipeStatus;return;}
         const auto Plan = FCLPlanetCompiler::Compile(RecipeAsset->Recipe, RecipeStatus);
         if (!Plan) { RecipeStatus = TEXT("Keeping last valid terrain: ") + RecipeStatus; return; }
         RadiusMeters = Plan->RadiusMeters;

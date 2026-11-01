@@ -7,6 +7,7 @@
 #include "Engine/TextureCube.h"
 #include "Async/Async.h"
 #include "InputKeyEventArgs.h"
+#include "CLPlanetNavigation.h"
 
 FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution)
 {
@@ -36,14 +37,51 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
 class FCLGlobeClient : public FEditorViewportClient
 {
 public:
-    double Yaw=-45,Pitch=22,Distance=150000,Radius=50000;
+    FCLPlanetNavigation Navigation;
+    FIntPoint NavigationSize;
+    FCLRadialGuideSet Guides;
+    bool bGuides=true;
+    TArray<FCLGuideIndicator> Indicators;
+    TArray<TArray<FVector2D>> Rings;
+    FMatrix ViewProjection;
+    FIntRect ViewRect;
+    FVector2D Core,Sky;
+    bool bHasProjection=false;
     explicit FCLGlobeClient(FPreviewScene* Scene,TSharedRef<SEditorViewport> Widget):FEditorViewportClient(nullptr,Scene,Widget)
-    {SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);SetRealtime(false);Apply();}
-    virtual bool InputKey(const FInputKeyEventArgs& E) override {return true;}
+    {SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);SetRealtime(false);ViewFOV=FOVAngle=60;Apply();}
+    virtual bool InputKey(const FInputKeyEventArgs&) override {return true;}
     virtual bool InputAxis(const FInputKeyEventArgs&) override {return true;}
     virtual FLinearColor GetBackgroundColor() const override {return FLinearColor(.007,.012,.02);}
-    void Apply(){const FVector Eye=FRotator(Pitch,Yaw,0).Vector()*Distance;SetViewLocation(Eye);SetViewRotation((-Eye).Rotation());SetLookAtLocation(FVector::ZeroVector);Invalidate();}
-    void Dolly(double D){Distance=FMath::Clamp(Distance*FMath::Exp(-D*.12),Radius*1.15,Radius*8);Apply();}
+    virtual void Tick(float Delta) override
+    {FEditorViewportClient::Tick(Delta);if(Viewport&&Viewport->GetSizeXY()!=NavigationSize)Apply();}
+    virtual bool InputGesture(FViewport*,FInputDeviceId,EGestureEvent Type,const FVector2D& Delta,bool Inverted,uint64) override
+    {if(Type==EGestureEvent::Magnify)Navigation.Dolly(Delta.X*6);else if(Type==EGestureEvent::Scroll)Navigation.PanBy(Delta*(Inverted?-10:10));Apply();return true;}
+    void Apply()
+    {
+        NavigationSize=Viewport?Viewport->GetSizeXY():FIntPoint(1000,800);
+        const double H=FMath::Tan(FMath::DegreesToRadians(30.)),V=H*FMath::Max(1,NavigationSize.Y)/FMath::Max(1,NavigationSize.X);
+        const auto C=Navigation.Camera(H,V);SetViewLocation(C.Eye);SetViewRotation(C.Rotation);SetLookAtLocation(C.Target);Invalidate();
+    }
+    void Dolly(double D){Navigation.Dolly(D);Apply();}
+    void UpdateIndicators()
+    {
+        if(!bHasProjection)return;Indicators.Reset();Rings.Reset();
+        const FRotationMatrix Axes(GetViewRotation());const FVector Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
+        auto Project=[&](FVector P){FVector2D S;FSceneView::ProjectWorldToScreen(P,ViewRect,ViewProjection,S);return FVector2D((S.X-ViewRect.Min.X)/FMath::Max(1,ViewRect.Width()),(S.Y-ViewRect.Min.Y)/FMath::Max(1,ViewRect.Height()));};
+        Core=Project(FVector::ZeroVector);Sky=Project((Right+Up).GetSafeNormal()*FCLPlanetNavigation::Radius);
+        Indicators.Add({TEXT("Core"),FLinearColor::White,Core,-2});Indicators.Add({TEXT("Sky boundary"),FLinearColor::White,Sky,-3});
+        auto Ring=[&](double Radius)
+        {TArray<FVector2D> Points;for(int32 I=0;I<=96;++I){const double A=2*UE_PI*I/96;Points.Add(Project((Right*FMath::Cos(A)+Up*FMath::Sin(A))*FCLPlanetNavigation::Radius*Radius));}Rings.Add(MoveTemp(Points));};
+        Ring(1);
+        if(bGuides)for(int32 I=0;I<Guides.Guides.Num();++I)
+        {const auto& G=Guides.Guides[I];Indicators.Add({G.Name.ToString(),FLinearColor::White,FMath::Lerp(Core,Sky,G.NormalizedHeight),I});Ring(G.NormalizedHeight);}
+        Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
+    }
+    virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();}
+    double NormalizedAtScreenY(double Y)const
+    {return bHasProjection&&Core.Y-Sky.Y>1.e-9?FMath::Clamp((Core.Y-Y)/(Core.Y-Sky.Y),0.,1.):0;}
+
 };
 class FCLGlobeScene : public FPreviewScene
 {
@@ -65,7 +103,12 @@ TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){C
 void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;Pending=MoveTemp(Plan);Pump();}
 void SCLPlanetPreview::Cancel(){++Revision;Pending.Reset();}
 bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid();}
-void SCLPlanetPreview::Frame(){if(Client){Client->Distance=Client->Radius*3;Client->Apply();}}
+void SCLPlanetPreview::Frame(){if(Client){Client->Navigation.Zoom=1;Client->Navigation.Pivot=FVector::ZeroVector;Client->Navigation.Pan=FVector2D::ZeroVector;Client->Apply();}}
+void SCLPlanetPreview::Dolly(double Steps){Client->Dolly(Steps);}
+void SCLPlanetPreview::SetGuides(const FCLRadialGuideSet& Guides,bool Visible){Client->Guides=Guides;Client->bGuides=Visible;Client->UpdateIndicators();Client->Invalidate();}
+double SCLPlanetPreview::NormalizedAtScreenY(double Y)const{return Client->NormalizedAtScreenY(Y);}
+const TArray<FCLGuideIndicator>& SCLPlanetPreview::Indicators()const{return Client->Indicators;}
+const TArray<TArray<FVector2D>>& SCLPlanetPreview::Rings()const{return Client->Rings;}
 void SCLPlanetPreview::Pump()
 {
     if(Task.IsValid()&&Task.IsReady())
@@ -73,7 +116,7 @@ void SCLPlanetPreview::Pump()
         auto B=Task.Get();Task=TFuture<FCLGlobeBuffers>();
         if(TaskRevision==Revision)
         {
-            Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);Client->Radius=FMath::Max(100.,B.DisplayRadius);
+            Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
             if(!Framed){Framed=true;Frame();}else Client->Apply();
         }
     }
@@ -84,7 +127,8 @@ FReply SCLPlanetPreview::OnMouseButtonDown(const FGeometry&,const FPointerEvent&
 FReply SCLPlanetPreview::OnMouseMove(const FGeometry&,const FPointerEvent& E)
 {
     if(!HasMouseCapture())return FReply::Unhandled();const auto Delta=E.GetScreenSpacePosition()-Previous;Previous=E.GetScreenSpacePosition();
-    if(Button==EKeys::LeftMouseButton){Client->Yaw-=Delta.X*.3;Client->Pitch=FMath::Clamp(Client->Pitch+Delta.Y*.3,-85.,85.);Client->Apply();}
+    if(Button==EKeys::LeftMouseButton){Client->Navigation.Orbit(Delta);Client->Apply();}
+    else if(Button==EKeys::MiddleMouseButton){Client->Navigation.PanBy(Delta);Client->Apply();}
     else if(Button==EKeys::RightMouseButton)Client->Dolly(-Delta.Y*.05);return FReply::Handled();
 }
 FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent&){Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
@@ -101,6 +145,31 @@ bool FCLGlobePreviewTest::RunTest(const FString&)
     TestEqual(TEXT("Six complete preview faces"),Mesh.Vertices.Num(),6*17*17);
     for(int32 I=0;I<H.Num();++I){TestTrue(TEXT("Displayed vertex is the compiled spherical surface"),FMath::IsNearlyEqual(Mesh.Vertices[I].Size(),(1000+H[I])*100,1.e-7));TestTrue(TEXT("Finite unit normal"),!Mesh.Normals[I].ContainsNaN()&&FMath::IsNearlyEqual(Mesh.Normals[I].Size(),1.,1.e-9));}
     for(int32 I=0;I<Mesh.Triangles.Num();I+=3){const FVector A=Mesh.Vertices[Mesh.Triangles[I]],B=Mesh.Vertices[Mesh.Triangles[I+1]],C=Mesh.Vertices[Mesh.Triangles[I+2]];TestTrue(TEXT("UE clockwise outward winding"),FVector::DotProduct(FVector::CrossProduct(B-A,C-A),A)<0);}
+    return true;
+}
+#endif
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeGuidesTest,"Catalyst.Landform.PlanetBuilder.GuideProjection",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobeGuidesTest::RunTest(const FString&)
+{
+    const auto Widget=SNew(SCLPlanetPreview);const auto C=Widget->Client;
+    for(double Aspect:{.5,1.,2.5})
+    {
+        C->ViewRect=FIntRect(0,0,1920,int32(1920/Aspect));C->bHasProjection=true;
+        const FRotationMatrix Axes(C->GetViewRotation());const FVector Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
+        C->ViewProjection=FMatrix::Identity;
+        for(int32 I=0;I<3;++I){C->ViewProjection.M[I][0]=Right[I]/150000;C->ViewProjection.M[I][1]=Up[I]/150000;C->ViewProjection.M[I][3]=0;}
+        C->ViewProjection.M[3][0]=C->ViewProjection.M[3][1]=0;
+        Widget->SetGuides(FCLRadialGuidePresets::Defaults()[0],true);
+        TestEqual(TEXT("Core, sky and all four guide labels exist"),Widget->Indicators().Num(),6);
+        TestEqual(TEXT("Sky plus four radial section circles"),Widget->Rings().Num(),5);
+        for(const auto& I:Widget->Indicators())if(I.Index>=0)
+            TestTrue(TEXT("Drag inverts the displayed guide anchor"),FMath::IsNearlyEqual(Widget->NormalizedAtScreenY(I.Position.Y),C->Guides.Guides[I.Index].NormalizedHeight,1.e-9));
+        auto Changed=C->Guides;Changed.Guides[0].NormalizedHeight=.72;Widget->SetGuides(Changed,true);
+        TestEqual(TEXT("Guide overlay updates without mesh work"),C->Guides.Guides[0].NormalizedHeight,.72);
+        TestFalse(TEXT("Overlay-only edit schedules no terrain worker"),Widget->IsUpdating());
+        Widget->SetGuides(Changed,false);TestEqual(TEXT("Hidden guides leave core and sky only"),Widget->Indicators().Num(),2);
+    }
     return true;
 }
 #endif

@@ -147,11 +147,12 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Seed = 1729;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Coordinates == ECLTerrainCoordinates::LocalPatch", EditConditionHides)) FCLTerrainPatch TerrainPatch;
-    /** Applied planet-global snapshot, independent of its authoring catalog. */
+    /** Resolved planet-global values. The asset retains the authoring set reference. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FCLRadialGuideSet RadialGuides;
     /** Read old binary recipes once, then migrate to normalized RadialGuides. */
     UPROPERTY() TArray<FCLHeightGuide> HeightGuides_DEPRECATED;
     void MigrateLegacyGuides();
+    void RenameGuideReferences(FName Old, FName New);
     /** Applied source identity; NoiseLayers remains the authoritative self-contained snapshot. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
@@ -239,6 +240,11 @@ class CATALYSTLANDFORM_API UCLPlanetRecipeAsset : public UCFModelAsset
 public:
     UCLPlanetRecipeAsset();
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Recipe") FCLPlanetRecipe Recipe;
+    /** Authoring reference. Null means an imported/legacy self-contained recipe. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") TObjectPtr<UCLRadialGuideLibraryAsset> RadialGuideLibrary;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") FGuid RadialGuideSetId;
+    UFUNCTION(BlueprintCallable, Category="Landform|Radial Guides") bool SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library, FGuid Id, FString& Error);
+    bool SynchronizeRadialGuides(FString& Error);
     virtual FString GetSummaryText() const override;
     virtual void Serialize(FArchive& Ar) override;
     virtual void PostLoad() override;
@@ -253,8 +259,15 @@ protected:
     virtual FString GetPluginNameForPaths() const override { return TEXT("CatalystLandform"); }
     virtual int32 GetSchemaVersion() const override { return Recipe.SchemaVersion; }
     virtual UScriptStruct* GetPayloadScriptStruct() const override { return FCLPlanetRecipe::StaticStruct(); }
-    virtual void* GetPayloadMemory() override { return &Recipe; }
-    virtual const void* GetPayloadMemory() const override { return &Recipe; }
+    virtual void* GetPayloadMemory() override { FString Error; SynchronizeRadialGuides(Error); return &Recipe; }
+    virtual const void* GetPayloadMemory() const override { FString Error; const_cast<UCLPlanetRecipeAsset*>(this)->SynchronizeRadialGuides(Error); return &Recipe; }
     virtual bool ValidatePayload(FString& Error) const override;
     virtual void CollectValidationMessages(TArray<FCFValidationMessage>& Messages) const override;
+private:
+#if WITH_EDITOR
+    TWeakObjectPtr<UCLRadialGuideLibraryAsset> BoundGuideLibrary;
+    FDelegateHandle GuideLibraryChanged;
+    void BindGuideLibrary();
+    void GuideSetChanged();
+#endif
 };

@@ -4,7 +4,7 @@ bool FCLRadialGuideSet::Validate(FString& Error) const
 {
     Error.Reset();
     if (Name.TrimStartAndEnd().IsEmpty() || Guides.Num() > 128)
-    { Error = TEXT("Radial Guides requires a name and at most 128 Radial Guide"); return false; }
+    { Error = TEXT("Radial Guides requires a name and at most 128 Radial Guides"); return false; }
     TSet<FName> Names;
     for (const FCLRadialGuide& S : Guides)
     {
@@ -51,19 +51,31 @@ TArray<FCLRadialGuideSet> FCLRadialGuidePresets::Defaults()
     Add(TEXT("High relief"), 4, .30, .80, .45, .95);
     Add(TEXT("Airless rocky"), 5, .65, .82, {}, {});
     Add(TEXT("Deep atmosphere"), 6, .20, .40, .30, .95);
+    Add(TEXT("Thin atmosphere"), 7, .60, .76, .68, .84);
     return Sets;
 }
 bool FCLRadialGuidePresets::Seed(FCLRadialGuideLibrary& Library)
 {
-    if (Library.PresetRevision >= 1) return false;
+    if (Library.PresetRevision >= 2) return false;
     for (FCLRadialGuideSet Preset : Defaults())
     {
+        if(Library.PresetRevision==1 && Preset.Id.D<7)continue;
         if (Library.Sets.ContainsByPredicate([&](const FCLRadialGuideSet& S) { return S.Id == Preset.Id; })) continue;
         const FString BaseName = Preset.Name; int32 Suffix = 1;
         while (Library.Sets.ContainsByPredicate([&](const FCLRadialGuideSet& S) { return S.Name.Equals(Preset.Name, ESearchCase::IgnoreCase); }))
             Preset.Name = FString::Printf(TEXT("%s (built-in %d)"), *BaseName, Suffix++);
         Library.Sets.Add(MoveTemp(Preset));
     }
-    Library.PresetRevision = 1;
+    Library.PresetRevision = 2;
     return true;
 }
+
+const FCLRadialGuideSet* UCLRadialGuideLibraryAsset::FindSet(FGuid Id) const
+{ return Library.Sets.FindByPredicate([&](const auto& S){return S.Id==Id;}); }
+#if WITH_EDITOR
+void UCLRadialGuideLibraryAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
+{ Super::PostEditChangeProperty(Event);if(!(Event.ChangeType&EPropertyChangeType::Interactive))OnGuidesChanged.Broadcast(); }
+void UCLRadialGuideLibraryAsset::PostEditUndo()
+{ Super::PostEditUndo();OnGuidesChanged.Broadcast(); }
+#endif
+bool UCLRadialGuideLibraryAsset::SeedStarterSets(){return FCLRadialGuidePresets::Seed(Library);}

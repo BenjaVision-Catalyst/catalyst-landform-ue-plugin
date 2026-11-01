@@ -89,7 +89,7 @@ bool FCLRadialGuidesPresetTest::RunTest(const FString&)
     TestTrue(TEXT("First catalog upgrade seeds presets"), FCLRadialGuidePresets::Seed(Library));
     TestEqual(TEXT("User-edited built-in is preserved"), Library.Sets[0].Guides[0].NormalizedHeight, .42);
     TestEqual(TEXT("User-named style is preserved"), Library.Sets[1].Name, FString(TEXT("Oceanic")));
-    TestEqual(TEXT("Existing style plus custom style and four new presets"), Library.Sets.Num(), 6);
+    TestEqual(TEXT("Existing style plus custom style and five new presets"), Library.Sets.Num(), 7);
     TSet<FGuid> Ids; TSet<FString> Names;
     for (const auto& Preset : FCLRadialGuidePresets::Defaults())
     {

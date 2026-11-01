@@ -17,19 +17,7 @@ bool FCLRadialGuideEditing::Rename(FCLPlanetRecipe& Recipe, int32 Index, const F
     if (!CanRename(Recipe.RadialGuides, Index, Name, Error)) return false;
     const FName Old = Recipe.RadialGuides.Guides[Index].Name, New(*Name.TrimStartAndEnd());
     Recipe.RadialGuides.Guides[Index].Name = New;
-    auto RenameLayers = [&](TArray<FCLNoiseLayer>& Layers)
-    {
-        for (FCLNoiseLayer& L : Layers)
-        for (FCLHeightReference* Ref : {&L.Minimum, &L.Maximum, &L.Terrace.StepHeight, &L.Terrace.Origin,
-            &L.Distribution.MinimumRelief, &L.Distribution.MaximumRelief})
-        {
-            if (Ref->Guide == Old) Ref->Guide = New;
-            if (Ref->UpperGuide == Old) Ref->UpperGuide = New;
-        }
-    };
-    for(auto& F:Recipe.BaseStructure){if(F.Relief.Guide==Old)F.Relief.Guide=New;if(F.Relief.UpperGuide==Old)F.Relief.UpperGuide=New;}
-    RenameLayers(Recipe.NoiseLayers);
-    for(auto& Region:Recipe.TerrainRegions)RenameLayers(Region.NoiseLayers);
+    Recipe.RenameGuideReferences(Old,New);
     return true;
 }
 int32 FCLRadialGuideEditing::Add(FCLRadialGuideSet& RadialGuides, double Height)
@@ -53,20 +41,18 @@ void FCLRadialGuideSession::Open(UCLPlanetRecipeAsset* InAsset)
 {
     bReadOnly = false;
     Asset = InAsset; Asset->SetFlags(RF_Transactional);
-    const TCHAR* Path = TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary");
-    Library.Reset(LoadObject<UCLRadialGuideLibraryAsset>(nullptr, Path));
-    if (!Library)
+    Library.Reset(Asset->RadialGuideLibrary);
+    if(!Library)Library.Reset(LoadObject<UCLRadialGuideLibraryAsset>(nullptr,TEXT("/Game/LandformDesigner/DA_RadialGuideLibrary.DA_RadialGuideLibrary")));
+    if(!Library)
     {
-        Library.Reset(NewObject<UCLRadialGuideLibraryAsset>(CreatePackage(TEXT("/Game/LandformDesigner/DA_StrataLibrary")),
-            TEXT("DA_StrataLibrary"), RF_Public | RF_Standalone | RF_Transactional));
-        FAssetRegistryModule::AssetCreated(Library.Get());
-        Library->MarkPackageDirty();
+        Library.Reset(NewObject<UCLRadialGuideLibraryAsset>(CreatePackage(TEXT("/Game/LandformDesigner/DA_RadialGuideLibrary")),TEXT("DA_RadialGuideLibrary"),RF_Public|RF_Standalone|RF_Transactional));
+        if(const auto* Old=LoadObject<UCLRadialGuideLibraryAsset>(nullptr,TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary")))Library->Library=Old->Library;
+        FAssetRegistryModule::AssetCreated(Library.Get());Library->MarkPackageDirty();
     }
     Library->SetFlags(RF_Transactional);
-    if (FCLRadialGuidePresets::Seed(Library->Library)) Library->MarkPackageDirty();
-    if (!Asset->Recipe.RadialGuides.Id.IsValid()) Asset->Recipe.RadialGuides.Id = FGuid::NewGuid();
-    if (!Library->Library.Sets.ContainsByPredicate([&](const FCLRadialGuideSet& S) { return S.Id == Asset->Recipe.RadialGuides.Id; }))
-    { Library->Modify(); Library->Library.Sets.Add(Asset->Recipe.RadialGuides); Library->MarkPackageDirty(); }
+    if(Library->GetPathName()==TEXT("/Game/LandformDesigner/DA_RadialGuideLibrary.DA_RadialGuideLibrary") && FCLRadialGuidePresets::Seed(Library->Library))Library->MarkPackageDirty();
+    // Legacy snapshots remain detached until an explicit authoring change/selection.
+    FString Error;Asset->SynchronizeRadialGuides(Error);
 }
 
 bool FCLRadialGuideSession::OpenPreview(UCLPlanetRecipeAsset* TransientPreview, const FCLRadialGuideSet* InitialRadialGuides)
@@ -75,7 +61,9 @@ bool FCLRadialGuideSession::OpenPreview(UCLPlanetRecipeAsset* TransientPreview, 
     if (!TransientPreview || !TransientPreview->GetOutermost()->HasAnyFlags(RF_Transient)) return false;
     Asset = TransientPreview; bReadOnly = true;
     Library.Reset(NewObject<UCLRadialGuideLibraryAsset>(GetTransientPackage(), NAME_None, RF_Transient));
-    if (const auto* Catalog = LoadObject<UCLRadialGuideLibraryAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary")))
+    auto* Catalog=LoadObject<UCLRadialGuideLibraryAsset>(nullptr,TEXT("/Game/LandformDesigner/DA_RadialGuideLibrary.DA_RadialGuideLibrary"));
+    if(!Catalog)Catalog=LoadObject<UCLRadialGuideLibraryAsset>(nullptr,TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary"));
+    if (Catalog)
         Library->Library = Catalog->Library;
     else Library->Library.Sets = FCLRadialGuidePresets::Defaults();
     UsePreviewRadialGuides(InitialRadialGuides ? *InitialRadialGuides : Asset->Recipe.RadialGuides);
@@ -98,6 +86,7 @@ void FCLRadialGuideSession::Begin(const FText& Text)
 {
     if (bReadOnly || Gesture) return;
     Gesture = MakeUnique<FScopedTransaction>(Text); BeforeRecipe = Asset->Recipe; BeforeLibrary = Library->Library; Asset->Modify(); Library->Modify();
+    BeforeGuideLibrary=Asset->RadialGuideLibrary;BeforeGuideSetId=Asset->RadialGuideSetId;
 }
 
 void FCLRadialGuideSession::End(bool bCancel)
@@ -106,22 +95,37 @@ void FCLRadialGuideSession::End(bool bCancel)
     const bool bNotify = bPendingChange && !bCancel;
     if (bCancel)
     {
-        Asset->Recipe = BeforeRecipe; Library->Library = BeforeLibrary;
+        Library->Library=BeforeLibrary;FString Error;Asset->SetRadialGuideSet(BeforeGuideLibrary,BeforeGuideSetId,Error);Asset->Recipe=BeforeRecipe;
         if (OnPreviewChanged) OnPreviewChanged();
         Gesture->Cancel();
     }
     bPendingChange = false; Gesture.Reset();
-    if (bNotify) Asset->PostEditChange();
+    if (bNotify) {if(Asset->RadialGuideLibrary)Library->PostEditChange();Asset->PostEditChange();}
 }
 
 void FCLRadialGuideSession::Changed()
 {
     if (bReadOnly) return;
-    if (FCLRadialGuideSet* S = Library->Library.Sets.FindByPredicate([&](const FCLRadialGuideSet& V) { return V.Id == Asset->Recipe.RadialGuides.Id; }))
-        *S = Asset->Recipe.RadialGuides;
-    Library->MarkPackageDirty(); Asset->MarkPackageDirty(); bPendingChange = true;
-    if (OnPreviewChanged) OnPreviewChanged();
-    if (!Gesture) { bPendingChange = false; Asset->PostEditChange(); }
+    if(!Asset->RadialGuideLibrary)
+    {
+        // Do not overwrite an edited catalog entry when linking an older snapshot.
+        const auto* Existing=Library->FindSet(Asset->Recipe.RadialGuides.Id);
+        const auto& Before=Gesture?BeforeRecipe.RadialGuides:Asset->Recipe.RadialGuides;
+        if(!Existing || !FCLRadialGuideSet::StaticStruct()->CompareScriptStruct(Existing,&Before,0))
+        {
+            Asset->Recipe.RadialGuides.Id=FGuid::NewGuid();
+            const FString BaseName=Asset->Recipe.Name+TEXT(" guides");Asset->Recipe.RadialGuides.Name=BaseName;int32 Suffix=2;
+            while(Library->Library.Sets.ContainsByPredicate([&](const auto& S){return S.Name.Equals(Asset->Recipe.RadialGuides.Name,ESearchCase::IgnoreCase);}))
+                Asset->Recipe.RadialGuides.Name=FString::Printf(TEXT("%s %d"),*BaseName,Suffix++);
+        }
+    }
+    const auto Value=Asset->Recipe.RadialGuides;
+    if(auto* S=Library->Library.Sets.FindByPredicate([&](const auto& V){return V.Id==Value.Id;}))*S=Value;
+    else Library->Library.Sets.Add(Value);
+    FString Error;Asset->SetRadialGuideSet(Library.Get(),Value.Id,Error);
+    Library->MarkPackageDirty();Asset->MarkPackageDirty();bPendingChange=true;
+    if(OnPreviewChanged)OnPreviewChanged();
+    if(!Gesture){bPendingChange=false;Library->PostEditChange();Asset->PostEditChange();}
 }
 
 void FCLRadialGuideSession::Height(int32 Index, double Height)
@@ -153,7 +157,7 @@ void FCLRadialGuideSession::Apply(FGuid Id)
     if (!S) return;
     if (bReadOnly) { UsePreviewRadialGuides(*S); return; }
     Begin(NSLOCTEXT("CL", "ApplyRadial Guides", "Apply Radial Guides to planet"));
-    Asset->Recipe.RadialGuides = *S; Selected = INDEX_NONE; Changed(); End();
+    FString Error;Asset->SetRadialGuideSet(Library.Get(),Id,Error);Selected=INDEX_NONE;Changed();End();
 }
 
 void FCLRadialGuideSession::NewSet()
@@ -164,7 +168,7 @@ void FCLRadialGuideSession::NewSet()
     int32 N = 1;
     do { S.Name = FString::Printf(TEXT("New Radial Guides %d"), N++); }
     while (Library->Library.Sets.ContainsByPredicate([&](const FCLRadialGuideSet& V) { return V.Name.Equals(S.Name, ESearchCase::IgnoreCase); }));
-    Library->Library.Sets.Add(S); Asset->Recipe.RadialGuides = S; Selected = INDEX_NONE; Changed(); End();
+    Library->Library.Sets.Add(S);FString Error;Asset->SetRadialGuideSet(Library.Get(),S.Id,Error);Selected=INDEX_NONE;Changed();End();
 }
 
 void FCLRadialGuideSession::RemoveSet()
@@ -173,7 +177,8 @@ void FCLRadialGuideSession::RemoveSet()
     Begin(NSLOCTEXT("CL", "RemoveRadial Guides", "Remove Radial Guides"));
     const FGuid Id = Asset->Recipe.RadialGuides.Id;
     Library->Library.Sets.RemoveAll([&](const FCLRadialGuideSet& S) { return S.Id == Id; });
-    if (!Library->Library.Sets.IsEmpty()) Asset->Recipe.RadialGuides = Library->Library.Sets[0];
+    FString Error;Asset->SetRadialGuideSet(nullptr,FGuid(),Error);
+    if (!Library->Library.Sets.IsEmpty()) {Asset->SetRadialGuideSet(Library.Get(),Library->Library.Sets[0].Id,Error);}
     else { Asset->Recipe.RadialGuides = FCLRadialGuideSet(); Asset->Recipe.RadialGuides.Id = FGuid::NewGuid(); }
     Selected = INDEX_NONE; Changed(); End();
 }

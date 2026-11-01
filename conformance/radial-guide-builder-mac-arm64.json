@@ -1,0 +1,88 @@
+{
+  "date": "2026-11-01",
+  "platform": "Mac arm64 / Apple M3 Max",
+  "engine": "UE 5.7.4",
+  "vpp": "2.0p8",
+  "build": "passed",
+  "parent_component_revision": "89bacfd52d99",
+  "source_sha256": "fdb77eb987e14e61d124b7061af5e7f57a7dd9fb33b993b2e203542c78652b89",
+  "recipe_schema": 10,
+  "generation_algorithm_changes": false,
+  "vendor_changes": false,
+  "reference": {
+    "owner": "UCLPlanetRecipeAsset",
+    "catalog": "RadialGuideLibrary",
+    "set_key": "RadialGuideSetId",
+    "portable_payload": "Resolved RadialGuides including persistent set ID; no Unreal asset path",
+    "updates": "Committed shared set changes refresh referencing planets; independent sets do not rebuild one another",
+    "legacy": "Detached until an explicit guide edit or selection; conflicts fork unique names and IDs",
+    "importing": "Validated self-contained import clears authoring references"
+  },
+  "presets": {
+    "builtin_layouts": [
+      "Temperate",
+      "Oceanic",
+      "High relief",
+      "Airless rocky",
+      "Deep atmosphere",
+      "Thin atmosphere"
+    ],
+    "catalog_entries": 7,
+    "additional_existing_entry": "Lab plains",
+    "preset_revision": 2,
+    "terrain_or_biome_presets_added": false,
+    "existing_edits_and_deletions_preserved": true
+  },
+  "automation": {
+    "passed": 55,
+    "with_warnings": 1,
+    "failed": 0,
+    "not_run": 0,
+    "raw_report": "LandformLab/Saved/Verification/radial-guide-builder-release/index.json",
+    "coverage": [
+      "Shared drag/commit/undo/redo",
+      "Independent variants and no unrelated rebuilds",
+      "Legacy forks, name collisions and ownership undo",
+      "Shared name binding updates",
+      "Resolved JSON round-trip and detached import",
+      "Missing set diagnostic",
+      "Starter upgrades preserve edits/deletions",
+      "New planet references a set",
+      "Guide circle/anchor/inverse projection",
+      "Fit/crop orbit scale and bounded pan/recentring",
+      "Existing Designer ownership and VPP parity suite"
+    ]
+  },
+  "interaction": {
+    "guide_only_updates": 200,
+    "elapsed_ms": 0.068,
+    "mesh_builds_during_drag": 0,
+    "mesh_builds_after_release": 1,
+    "gray_opacity_unselected": 0.3,
+    "gray_opacity_selected": 1,
+    "controls": "Shared tick/label selection, drag radius, Delete, F2/double-click rename, Core + add; orbit, cropped pan, zoom",
+    "visual_inspected": true,
+    "all_saved": true,
+    "cua_click_selection_verified": false
+  },
+  "migration": {
+    "legacy_payloads_loaded": 32,
+    "guide_values_and_ids_preserved": true,
+    "earlier_saved_files_preserved": 46,
+    "new_assets": [
+      "DA_RadialGuideLibrary",
+      "DA_RadialGuidePlanet",
+      "RadialGuideProof"
+    ],
+    "legacy_catalog_resaved": false
+  },
+  "limits": [
+    "Guide circles are camera-facing central sections, not physical translucent atmosphere/water surfaces",
+    "A single unseen label rename is reconciled on load; multiple unseen renames can require named-binding repair",
+    "Deleting a referenced set/input diagnoses the missing dependency and retains last valid terrain",
+    "The lab catalog path is currently project-specific",
+    "Globe is an overview mesh; this change does not newly qualify physical walking, material realism or streaming",
+    "Existing engine material/dependency warnings remain",
+    "CUA visual check covers rendered layout; native tests cover interaction operations and projection"
+  ]
+}

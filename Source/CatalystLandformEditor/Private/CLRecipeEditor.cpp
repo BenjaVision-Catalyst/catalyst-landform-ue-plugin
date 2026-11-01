@@ -167,7 +167,7 @@ public:
     {
         return bHasProjection && Plan ? FCLSectionGeometry::RadialGuideAtScreenY(RightEdge, ViewProjection, Y) : 0;
     }
-    struct FIndicator { FString Text; FLinearColor Color; FVector2D Position; int32 Index = INDEX_NONE; };
+    using FIndicator=FCLGuideIndicator;
     TArray<FIndicator> Indicators;
     FCLSectionClient(FCLSectionScene* Scene, const TSharedRef<SEditorViewport>& Viewport)
         : FEditorViewportClient(nullptr, Scene, Viewport), SectionScene(Scene)
@@ -253,18 +253,20 @@ public:
         SLATE_ARGUMENT(TWeakPtr<SWidget>, Overlay)
         SLATE_ARGUMENT(int32, Index)
         SLATE_ARGUMENT(bool, Label)
+        SLATE_ARGUMENT(TFunction<double(double)>, HeightAtScreenY)
     SLATE_END_ARGS()
     TSharedPtr<FCLRadialGuideSession> Session;
     TSharedPtr<FCLSectionClient> Client;
     TWeakPtr<SWidget> Overlay;
     TSharedPtr<SInlineEditableTextBlock> Name;
     int32 Index = INDEX_NONE;
+    TFunction<double(double)> HeightAtScreenY;
     bool bDragging = false;
     FVector2D MouseStart;
     void Construct(const FArguments& Args)
     {
         Session = Args._Session; Client = Args._Client; Overlay = Args._Overlay;
-        Index = Args._Index;
+        Index = Args._Index;HeightAtScreenY=Args._HeightAtScreenY;
         SetToolTipText(FText::FromString(TEXT("Click to select; drag to move; Delete to remove; double-click a label or press F2 to rename")));
         if (Args._Label)
             ChildSlot[SNew(SBorder).Padding(FMargin(3, 0)).VAlign(VAlign_Center).BorderImage(FAppStyle::GetBrush("NoBorder"))
@@ -311,7 +313,7 @@ public:
             Session->Begin(NSLOCTEXT("CL", "MoveRadialGuide", "Move Radial Guide"));
             bDragging = true;
         }
-        if (bDragging) Session->Height(Index, Client->NormalizedAtScreenY(Local.Y / FMath::Max(1.0, G.GetLocalSize().Y)));
+        if (bDragging) Session->Height(Index, HeightAtScreenY?HeightAtScreenY(Local.Y / FMath::Max(1.0, G.GetLocalSize().Y)):Client->NormalizedAtScreenY(Local.Y / FMath::Max(1.0, G.GetLocalSize().Y)));
         return FReply::Handled();
     }
     virtual FReply OnMouseButtonUp(const FGeometry&, const FPointerEvent& E) override
@@ -364,14 +366,21 @@ public:
     SLATE_BEGIN_ARGS(SCLHeightAnnotations) {}
         SLATE_ARGUMENT(TSharedPtr<FCLSectionClient>, Client)
         SLATE_ARGUMENT(TSharedPtr<FCLRadialGuideSession>, Session)
+        SLATE_ARGUMENT(TSharedPtr<SCLPlanetPreview>, Globe)
+        SLATE_ATTRIBUTE(bool, UseGlobe)
     SLATE_END_ARGS()
     TSharedPtr<FCLSectionClient> Client;
     TSharedPtr<FCLRadialGuideSession> Session;
     TSharedPtr<SCanvas> Canvas;
+    TSharedPtr<SCLPlanetPreview> Globe;
+    TAttribute<bool> UseGlobe;
+    bool IsGlobe()const{return Globe&&UseGlobe.Get(false);}
+    const TArray<FCLGuideIndicator>& Indicators()const{return IsGlobe()?Globe->Indicators():Client->Indicators;}
+    double NormalizedAtScreenY(double Y)const{return IsGlobe()?Globe->NormalizedAtScreenY(Y):Client->NormalizedAtScreenY(Y);}
     int32 Rows = -1;
     void Construct(const FArguments& Args)
     {
-        Client = Args._Client; Session = Args._Session; ForceVolatile(true);
+        Client = Args._Client; Session = Args._Session;Globe=Args._Globe;UseGlobe=Args._UseGlobe; ForceVolatile(true);
         SetVisibility(EVisibility::SelfHitTestInvisible);
         ChildSlot[SAssignNew(Canvas, SCanvas).Visibility(EVisibility::SelfHitTestInvisible)];
     }
@@ -383,9 +392,9 @@ public:
         return FReply::Unhandled();
     }
     virtual FReply OnMouseWheel(const FGeometry&, const FPointerEvent& E) override
-    { Client->Navigation.Dolly(E.GetWheelDelta()); Client->ApplyNavigation(); return FReply::Handled(); }
+    { if(IsGlobe())Globe->Dolly(E.GetWheelDelta());else {Client->Navigation.Dolly(E.GetWheelDelta());Client->ApplyNavigation();}return FReply::Handled(); }
     const FCLSectionClient::FIndicator* Indicator(int32 Index) const
-    { return Client->Indicators.FindByPredicate([&](const auto& I) { return I.Index == Index; }); }
+    { return Indicators().FindByPredicate([&](const auto& I) { return I.Index == Index; }); }
     FVector2D Anchor(int32 Index) const
     { const auto* I = Indicator(Index); return I ? I->Position * GetCachedGeometry().GetLocalSize() : FVector2D(-1000, -1000); }
     FVector2D Label(int32 Index) const
@@ -393,9 +402,9 @@ public:
         const FVector2D Size = GetCachedGeometry().GetLocalSize();
         double X = 0, Previous = 8 - 24; TArray<double> Ys;
         int32 Found = INDEX_NONE;
-        for (int32 K = 0; K < Client->Indicators.Num(); ++K)
+        for (int32 K = 0; K < Indicators().Num(); ++K)
         {
-            const auto& I = Client->Indicators[K];
+            const auto& I = Indicators()[K];
             X = FMath::Max(X, I.Position.X * Size.X + GuideTickWidth * 2 + 16);
             Previous = FMath::Max(8.0, FMath::Max(I.Position.Y * Size.Y - GuideLabelHeight * .5, Previous + 24)); Ys.Add(Previous);
             if (I.Index == Index) Found = K;
@@ -413,8 +422,8 @@ public:
         for (int32 I = 0; I < Count; ++I)
         {
             Canvas->AddSlot().Position_Lambda([this, I] { return Anchor(I) + FVector2D(GuideTickWidth - 4, -9); }).Size(FVector2D(GuideTickWidth + 8, 18))
-                [SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I)];
-            const auto LabelHandle = SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).Index(I).Label(true);
+                [SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).HeightAtScreenY([this](double Y){return NormalizedAtScreenY(Y);}).Index(I)];
+            const auto LabelHandle = SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).HeightAtScreenY([this](double Y){return NormalizedAtScreenY(Y);}).Index(I).Label(true);
             Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); })
                 .Size_Lambda([LabelHandle] { return FVector2D(FMath::Min(300.0, double(LabelHandle->GetDesiredSize().X)), GuideLabelHeight); })[LabelHandle];
         }
@@ -434,7 +443,7 @@ public:
                         .IsEnabled_Lambda([this] { return Session->Asset->Recipe.RadialGuides.Guides.Num() < 128; })
                         .OnClicked_Lambda([this]
                         {
-                            Client->bGuides = true; Session->Add();
+                            Client->bGuides = true;if(Globe)Globe->SetGuides(Session->Asset->Recipe.RadialGuides,true);Session->Add();
                             return FReply::Handled().SetUserFocus(SharedThis(this));
                         })[SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9))
                             .Text(FText::FromString(TEXT("+"))).ColorAndOpacity(GuideLabelColor)]]]];
@@ -442,7 +451,17 @@ public:
     virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Clip, FSlateWindowElementList& Elements,
         int32 Layer, const FWidgetStyle& Style, bool Enabled) const override
     {
-        for (const auto& I : Client->Indicators)
+        if(IsGlobe())
+        {
+            const auto& Rings=Globe->Rings();
+            for(int32 I=0;I<Rings.Num();++I)
+            {
+                TArray<FVector2D> Points;for(const auto& P:Rings[I])Points.Add(P*Geometry.GetLocalSize());
+                const auto Color=GuideTint(I==0?-3:I-1,Session->Selected)*Style.GetColorAndOpacityTint();
+                FSlateDrawElement::MakeLines(Elements,Layer,Geometry.ToPaintGeometry(),Points,ESlateDrawEffect::None,Color,true,1);
+            }
+        }
+        for (const auto& I : Indicators())
         {
             // Leave one full tick width clear between the projected edge and tick.
             const FVector2D A = I.Position * Geometry.GetLocalSize() + FVector2D(GuideTickWidth, 0), L = Label(I.Index);
@@ -687,11 +706,14 @@ public:
             if (!Preview) return;
             Preview->Client->RadialGuides = RadialGuidesSession->Asset->Recipe.RadialGuides;
             Preview->Client->UpdateIndicators();
+            if(Globe)Globe->SetGuides(RadialGuidesSession->Asset->Recipe.RadialGuides,Preview->Client->bGuides);
             if (Annotations) Annotations->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
         };
         BuildDetailsPanel();
         if (TerrainEditing) DetailsView->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
         { return P.Property.GetFName() != GET_MEMBER_NAME_CHECKED(FCLTerrainType, NoiseLayers); }));
+        if(!TerrainEditing)DetailsView->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
+        {return P.Property.GetFName()!=GET_MEMBER_NAME_CHECKED(FCLPlanetRecipe,RadialGuides);}));
         Changed = Asset->OnRecipeChanged.AddSP(this, &FCLRecipeToolkit::Refresh);
         const auto Layout = FTabManager::NewLayout(TerrainEditing ? "CLTerrainDesigner_v1" : "CLRecipeDesigner_v2")->AddArea(
             FTabManager::NewPrimaryArea()->SetOrientation(Orient_Horizontal)
@@ -785,7 +807,7 @@ public:
     {
         FMenuBuilder Menu(true, nullptr);
         for (const FCLRadialGuideSet& S : RadialGuidesSession->Library->Library.Sets)
-            Menu.AddMenuEntry(FText::FromString(S.Name), FText::FromString(TerrainEditing ? TEXT("Preview this guide set without saving it to the terrain or changing a planet") : TEXT("Apply this Radial Guides to this planet recipe")), FSlateIcon(),
+            Menu.AddMenuEntry(FText::FromString(S.Name), FText::FromString(TerrainEditing ? TEXT("Preview this guide set without saving it to the terrain or changing a planet") : TEXT("Reference this shared guide set; edits affect every planet using it. Duplicate for an independent style.")), FSlateIcon(),
                 FUIAction(FExecuteAction::CreateLambda([Session = RadialGuidesSession, Id = S.Id] { Session->Apply(Id); })));
         return Menu.MakeWidget();
     }
@@ -852,9 +874,12 @@ public:
             for (const auto& Data : Assets) if (auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); Source && Source->TerrainType.Id == Asset->Recipe.TerrainTypeId)
             { TerrainSource.Reset(Source); break; }
         }
+        FString GuideError;const bool GuidesValid=Asset->SynchronizeRadialGuides(GuideError);
+        if(Globe)Globe->SetGuides(Asset->Recipe.RadialGuides,Preview?Preview->Client->bGuides:true);
         if (Preview) Preview->Client->RadialGuides = Asset->Recipe.RadialGuides;
         if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
-        const auto Plan = TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
+        const auto Plan = !GuidesValid?TSharedPtr<const FCLCompiledPlanetRecipe>():TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
+        if(!GuidesValid)Status=GuideError;
         bPreviewInvalid = !Plan.IsValid();
         if (Plan)
         {
@@ -939,10 +964,10 @@ public:
                         RadialGuidesSession->Begin(NSLOCTEXT("CL", "RenameRadial Guides", "Rename Radial Guides"));
                         RadialGuidesSession->Asset->Recipe.RadialGuides.Name = Text.ToString().TrimStartAndEnd(); RadialGuidesSession->Changed(); RadialGuidesSession->End();
                     })]
-                + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("New guide set")))
+                + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Duplicate guide set")))
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
                     .OnClicked_Lambda([this] { RadialGuidesSession->NewSet(); return FReply::Handled(); })]
-                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Remove guide set")))
+                + SHorizontalBox::Slot().AutoWidth().Padding(8, 0)[SNew(SButton).Text(FText::FromString(TEXT("Remove guide set"))).ToolTipText(FText::FromString(TEXT("Remove this set from the shared catalog; other planets referencing it will report a missing set until reassigned")))
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Collapsed : EVisibility::Visible; })
                     .OnClicked_Lambda([this] { RadialGuidesSession->RemoveSet(); return FReply::Handled(); })]]
             + SVerticalBox::Slot().AutoHeight().Padding(8,0)[SAssignNew(RegionControls,SVerticalBox)
@@ -951,9 +976,8 @@ public:
                 .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::Visible : EVisibility::Collapsed; })
                 .Text(FText::FromString(TEXT("Preview guides only. Guide values are supplied when this terrain is assembled onto a planet."))) ]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
-                .Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked_Lambda([this] { return !Preview || Preview->Client->bGuides ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
-                    { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate(); })[SNew(STextBlock).Text(FText::FromString(TEXT("Radial Guides")))]]]
+                    { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate();if(Globe)Globe->SetGuides(RecipeAsset()->Recipe.RadialGuides,Preview->Client->bGuides); })[SNew(STextBlock).Text(FText::FromString(TEXT("Radial Guides")))]]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
                 .Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(200)[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]]
@@ -974,8 +998,8 @@ public:
             + SVerticalBox::Slot().FillHeight(1)[SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})]
                 + SOverlay::Slot()[GlobeWidget]
-                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession)
-                    .Visibility_Lambda([this] { return !TerrainEditing&&bGlobe?EVisibility::Collapsed:TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
+                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession).Globe(Globe).UseGlobe_Lambda([this]{return !TerrainEditing&&bGlobe;})
+                    .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
                 + SOverlay::Slot().VAlign(VAlign_Top).Padding(12)[SNew(SBorder).Padding(10)
                     .Visibility_Lambda([this] { return bPreviewInvalid ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
                     .BorderBackgroundColor(FLinearColor(.12, .06, .025, .95))
@@ -985,7 +1009,7 @@ public:
                 {
                     FString Legend = RadialGuidesSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
                         TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
-                    if(!TerrainEditing&&bGlobe)Legend=TEXT("Globe: left drag orbit | right drag / wheel zoom | edit structure in Details");
+                    if(!TerrainEditing&&bGlobe)Legend=TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag / wheel: zoom | Drag guides: radius | Delete: remove | Core +: add");
                     else if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Radial Guide");
                     if ((Preview && Preview->IsUpdating()) || (Globe&&Globe->IsUpdating())) Legend = TEXT("Updating terrain preview… | ") + Legend;
                     if (Preview && Preview->Client->Plan && Preview->Client->Plan->Coordinates == ECLTerrainCoordinates::Sphere && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
@@ -1112,7 +1136,8 @@ void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLRadialGuideSet
 UCLPlanetRecipeFactory::UCLPlanetRecipeFactory()
 { SupportedClass = UCLPlanetRecipeAsset::StaticClass(); bCreateNew = true; bEditAfterNew = true; }
 UObject* UCLPlanetRecipeFactory::FactoryCreateNew(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject*, FFeedbackContext*)
-{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();return A; }
+{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();
+    FCLRadialGuideSession Session;Session.Open(A);FString Error;if(!A->SetRadialGuideSet(Session.Library.Get(),A->Recipe.RadialGuides.Id,Error))Session.Changed();return A; }
 TSoftClassPtr<UObject> UCLRecipeAssetDefinition::GetAssetClass() const { return UCLPlanetRecipeAsset::StaticClass(); }
 EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& Args) const
 {
@@ -1367,6 +1392,20 @@ bool FCLDesignerSelectionTest::RunTest(const FString&)
     TestEqual(TEXT("One undo removes the added planet guide"), Session->Asset->Recipe.RadialGuides.Guides.Num(), Before);
     TestEqual(TEXT("One undo restores the catalog"), Session->Library->Library.Sets[0].Guides.Num(), Before);
     Session->Asset->OnRecipeChanged.Clear();
+    return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetGuideFactoryTest,"Catalyst.Landform.PlanetBuilder.NewPlanetReference",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlanetGuideFactoryTest::RunTest(const FString&)
+{
+    TStrongObjectPtr<UCLPlanetRecipeFactory> Factory(NewObject<UCLPlanetRecipeFactory>());
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(CastChecked<UCLPlanetRecipeAsset>(Factory->FactoryCreateNew(UCLPlanetRecipeAsset::StaticClass(),GetTransientPackage(),NAME_None,RF_Transient|RF_Transactional,nullptr,nullptr)));
+    TestNotNull(TEXT("New planets reference the shared catalog"),A->RadialGuideLibrary.Get());
+    FString Error;TestTrue(TEXT("Selected set resolves"),A->SynchronizeRadialGuides(Error));
+    TestEqual(TEXT("Resolved set has the referenced identity"),A->Recipe.RadialGuides.Id,A->RadialGuideSetId);
+    TestTrue(TEXT("New planets contain no terrain layers or regions"),A->Recipe.NoiseLayers.IsEmpty()&&A->Recipe.TerrainRegions.IsEmpty());
     return true;
 }
 #endif

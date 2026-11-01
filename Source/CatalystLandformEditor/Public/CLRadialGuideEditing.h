@@ -26,6 +26,8 @@ public:
     TUniquePtr<FScopedTransaction> Gesture;
     FCLPlanetRecipe BeforeRecipe;
     FCLRadialGuideLibrary BeforeLibrary;
+    UCLRadialGuideLibraryAsset* BeforeGuideLibrary=nullptr;
+    FGuid BeforeGuideSetId;
     TFunction<void()> OnPreviewChanged;
     bool bPendingChange = false;
     void Open(UCLPlanetRecipeAsset* InAsset);
@@ -40,4 +42,13 @@ public:
     void Apply(FGuid Id);
     void NewSet();
     void RemoveSet();
+};
+
+/** Normalized widget coordinates shared by globe and cutaway annotations. */
+struct FCLGuideIndicator
+{
+    FString Text;
+    FLinearColor Color;
+    FVector2D Position;
+    int32 Index=INDEX_NONE;
 };

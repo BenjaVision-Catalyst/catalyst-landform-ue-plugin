@@ -4,6 +4,7 @@
 #include "ProceduralMeshComponent.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Model/CLPlanetRecipe.h"
+#include "CLRadialGuideEditing.h"
 class FCLGlobeClient;
 class FPreviewScene;
 struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
@@ -26,6 +27,11 @@ public:
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan);
     void Cancel();
     void Frame();
+    void Dolly(double Steps);
+    void SetGuides(const FCLRadialGuideSet& Guides,bool Visible);
+    double NormalizedAtScreenY(double Y) const;
+    const TArray<FCLGuideIndicator>& Indicators() const;
+    const TArray<TArray<FVector2D>>& Rings() const;
     bool IsUpdating() const;
 protected:
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
@@ -35,6 +41,9 @@ protected:
     virtual FReply OnMouseButtonUp(const FGeometry&,const FPointerEvent&) override;
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
+#if WITH_DEV_AUTOMATION_TESTS
+    friend class FCLGlobeGuidesTest;
+#endif
     void Pump();
     TUniquePtr<FPreviewScene> Scene;
     TSharedPtr<FCLGlobeClient> Client;

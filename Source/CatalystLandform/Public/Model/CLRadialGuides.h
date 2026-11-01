@@ -14,7 +14,7 @@ struct CATALYSTLANDFORM_API FCLRadialGuide
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FLinearColor Color = FLinearColor(.2, .65, 1);
 };
 
-/** A reusable style. A planet receives its own applied copy at creation/selection. */
+/** A reusable style, referenced by a planet through its catalog and persistent ID. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRadialGuideSet
 {
@@ -34,13 +34,20 @@ struct CATALYSTLANDFORM_API FCLRadialGuideLibrary
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 PresetRevision = 0;
 };
 
-/** Project authoring catalog; applied planet recipes remain self-contained. */
+/** Project authoring catalog; exported planet recipes retain resolved guide values. */
 UCLASS(BlueprintType)
 class CATALYSTLANDFORM_API UCLRadialGuideLibraryAsset : public UCFModelAsset
 {
     GENERATED_BODY()
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform") FCLRadialGuideLibrary Library;
+    const FCLRadialGuideSet* FindSet(FGuid Id) const;
+    UFUNCTION(BlueprintCallable, Category="Landform|Radial Guides") bool SeedStarterSets();
+#if WITH_EDITOR
+    FSimpleMulticastDelegate OnGuidesChanged;
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& Event) override;
+    virtual void PostEditUndo() override;
+#endif
     virtual FString GetSummaryText() const override;
 protected:
     virtual FString GetPluginNameForPaths() const override { return TEXT("CatalystLandform/RadialGuides"); }

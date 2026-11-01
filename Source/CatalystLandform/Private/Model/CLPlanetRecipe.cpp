@@ -666,11 +666,19 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
     Ar.UsingCustomVersion(RecipeAssetVersion);
     Super::Serialize(Ar);
 }
-void UCLPlanetRecipeAsset::PostLoad() { Super::PostLoad(); Recipe.MigrateLegacyGuides(); if (Recipe.SchemaVersion >= 2 && Recipe.SchemaVersion < 9) Recipe.SchemaVersion = 9; Version.SchemaVersion = Recipe.SchemaVersion; }
+void UCLPlanetRecipeAsset::PostLoad()
+{
+    Super::PostLoad();Recipe.MigrateLegacyGuides();if(Recipe.SchemaVersion>=2&&Recipe.SchemaVersion<9)Recipe.SchemaVersion=9;Version.SchemaVersion=Recipe.SchemaVersion;
+    FString Error;SynchronizeRadialGuides(Error);
+#if WITH_EDITOR
+    BindGuideLibrary();
+#endif
+}
 UCLPlanetRecipeAsset::UCLPlanetRecipeAsset() { Recipe = FCLPlanetCompiler::RollingPlains(); }
 FString UCLPlanetRecipeAsset::GetSummaryText() const
 { return FString::Printf(TEXT("%s: %d guides, %d terrain layers"), *Recipe.Name, Recipe.RadialGuides.Guides.Num(), Recipe.NoiseLayers.Num()); }
-bool UCLPlanetRecipeAsset::ValidatePayload(FString& Error) const { return FCLPlanetCompiler::Compile(Recipe, Error).IsValid(); }
+bool UCLPlanetRecipeAsset::ValidatePayload(FString& Error) const
+{ return const_cast<UCLPlanetRecipeAsset*>(this)->SynchronizeRadialGuides(Error) && FCLPlanetCompiler::Compile(Recipe,Error).IsValid(); }
 void UCLPlanetRecipeAsset::CollectValidationMessages(TArray<FCFValidationMessage>& Messages) const
 {
     Super::CollectValidationMessages(Messages);
@@ -740,7 +748,10 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     { Error = Reason.ToString(); return false; }
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
     if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 9) Candidate.SchemaVersion = 9;
-    Modify(); Recipe = MoveTemp(Candidate);
+    Modify(); RadialGuideLibrary=nullptr;RadialGuideSetId.Invalidate();Recipe = MoveTemp(Candidate);
+#if WITH_EDITOR
+    BindGuideLibrary();
+#endif
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();
 #endif
@@ -754,8 +765,67 @@ void UCLPlanetRecipeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
         const int32 I=Event.GetArrayIndex(TEXT("BaseStructure"));
         if(Recipe.BaseStructure.IsValidIndex(I)){Recipe.BaseStructure[I].Id=FGuid::NewGuid();Recipe.SchemaVersion=10;}
     }
+    FString GuideError;SynchronizeRadialGuides(GuideError);BindGuideLibrary();
     Super::PostEditChangeProperty(Event);if(!(Event.ChangeType & EPropertyChangeType::Interactive))OnRecipeChanged.Broadcast();
 }
 void UCLPlanetRecipeAsset::PostEditUndo()
-{ Super::PostEditUndo(); OnRecipeChanged.Broadcast(); }
+{ Super::PostEditUndo(); FString Error;SynchronizeRadialGuides(Error);BindGuideLibrary();OnRecipeChanged.Broadcast(); }
+#endif
+
+void FCLPlanetRecipe::RenameGuideReferences(FName Old,FName New)
+{
+    auto Layers=[&](TArray<FCLNoiseLayer>& Values)
+    {
+        for(auto& L:Values)for(auto* Ref:{&L.Minimum,&L.Maximum,&L.Terrace.StepHeight,&L.Terrace.Origin,&L.Distribution.MinimumRelief,&L.Distribution.MaximumRelief})
+        {if(Ref->Guide==Old)Ref->Guide=New;if(Ref->UpperGuide==Old)Ref->UpperGuide=New;}
+    };
+    Layers(NoiseLayers);for(auto& R:TerrainRegions)Layers(R.NoiseLayers);
+    for(auto& F:BaseStructure){if(F.Relief.Guide==Old)F.Relief.Guide=New;if(F.Relief.UpperGuide==Old)F.Relief.UpperGuide=New;}
+}
+bool UCLPlanetRecipeAsset::SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library,FGuid Id,FString& Error)
+{
+    Error.Reset();if(!Library){RadialGuideLibrary=nullptr;RadialGuideSetId.Invalidate();
+#if WITH_EDITOR
+        BindGuideLibrary();
+#endif
+        return true;}
+    if(!Library->FindSet(Id)){Error=TEXT("Radial guide set reference could not be resolved");return false;}
+    if(!Library->FindSet(Id)->Validate(Error))return false;
+    RadialGuideLibrary=Library;RadialGuideSetId=Id;Recipe.RadialGuides=*Library->FindSet(Id);
+#if WITH_EDITOR
+    BindGuideLibrary();
+#endif
+    return true;
+}
+bool UCLPlanetRecipeAsset::SynchronizeRadialGuides(FString& Error)
+{
+    Error.Reset();if(!RadialGuideLibrary)return true;
+    const auto* Set=RadialGuideLibrary->FindSet(RadialGuideSetId);
+    if(!Set){Error=TEXT("Referenced radial guide set is missing from its catalog");return false;}
+    if(!Set->Validate(Error))return false;
+    // A single label rename also carries named bindings on other referencing planets.
+    if(Recipe.RadialGuides.Id==Set->Id && Recipe.RadialGuides.Guides.Num()==Set->Guides.Num())
+    {
+        TArray<FName> Old,New;
+        for(const auto& G:Recipe.RadialGuides.Guides)if(!Set->Guides.ContainsByPredicate([&](const auto& V){return V.Name==G.Name;}))Old.Add(G.Name);
+        for(const auto& G:Set->Guides)if(!Recipe.RadialGuides.Guides.ContainsByPredicate([&](const auto& V){return V.Name==G.Name;}))New.Add(G.Name);
+        if(Old.Num()==1&&New.Num()==1)Recipe.RenameGuideReferences(Old[0],New[0]);
+    }
+    Recipe.RadialGuides=*Set;return true;
+}
+#if WITH_EDITOR
+void UCLPlanetRecipeAsset::BindGuideLibrary()
+{
+    if(BoundGuideLibrary.Get()==RadialGuideLibrary)return;
+    if(BoundGuideLibrary.IsValid())BoundGuideLibrary->OnGuidesChanged.Remove(GuideLibraryChanged);
+    BoundGuideLibrary=RadialGuideLibrary;
+    if(RadialGuideLibrary)GuideLibraryChanged=RadialGuideLibrary->OnGuidesChanged.AddUObject(this,&UCLPlanetRecipeAsset::GuideSetChanged);
+}
+void UCLPlanetRecipeAsset::GuideSetChanged()
+{
+    const auto Before=Recipe.RadialGuides;FString Error;
+    const bool Valid=SynchronizeRadialGuides(Error);
+    if(!Valid || !FCLRadialGuideSet::StaticStruct()->CompareScriptStruct(&Before,&Recipe.RadialGuides,0))
+    {if(!GetOutermost()->HasAnyFlags(RF_Transient))MarkPackageDirty();OnRecipeChanged.Broadcast();}
+}
 #endif

@@ -89,8 +89,9 @@ Ticks, leaders and labels use light gray at 30% opacity; the selected Radial Gui
 becomes fully opaque, with no selection box or change in tick thickness.
 Each tick is separated from the cross-section edge by one tick width.
 Guide labels use 9-point type, vertically centred on their connection lines.
-Planet Recipe's Radial Guide Sets popup selects a project catalog style; the planet's
-applied copy is the default. Its Save persists the recipe and catalog.
+Planet Builder's Radial Guide Sets popup references a project catalog entry by
+asset and stable set ID. Its Save persists the recipe and catalog; Duplicate guide
+set creates an independent variant. Exported recipes retain resolved values.
 Landform Designer instead has a read-only **Preview Radial Guides** selector and saves
 only its terrain definition. Schema 1 recipes
 migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
@@ -477,7 +478,9 @@ bindings remain the next assembly step.
 
 Planet Builder opens a worker-built globe with bounded orbit/zoom, editable name,
 new neutral planets, Add uplift / Add basin and Details-based placement controls.
-A separate cutaway view retains the existing guide editor. The Designer constructs
+The globe and cutaway share editable guide ticks/labels, with concentric radial
+section circles on the globe. Navigation includes bounded pan when cropped;
+the outer sky sphere defines stable framing. The Designer constructs
 neither planet controls nor a globe and still saves only its reusable source.
 Its initial context receives only a guide-value snapshot. Tests guard this
 working boundary as assembly develops.
@@ -486,3 +489,22 @@ The same immutable field supplies globe vertices, cutaways and the native VPP
 volume. The globe's 64-cell faces are an overview; native walking detail remains
 VPP-owned. Host workflow and limitations are in `Docs/PlanetBuilder.md`;
 qualification is in `conformance/planet-structure-mac-arm64.json`.
+
+### Referenced Radial Guide Sets
+
+Planet assets retain `RadialGuideLibrary` plus `RadialGuideSetId`; loaded references
+resolve on load and on committed catalog edits. Recipes sent to generation or
+JSON export contain the resolved guide values and persistent ID, without Unreal
+asset paths. Imported/legacy recipes remain self-contained until explicitly
+linked or edited. Conflicting legacy snapshots fork a new entry. Guide renames
+carry planet bindings, and missing sets/inputs are diagnosed rather than silently
+replaced. New planets reference a set; duplicated sets have independent IDs.
+
+Six starter radial layouts cover the general Temperate layout, Oceanic, High
+relief, Airless rocky, Deep atmosphere and Thin atmosphere. Catalog upgrades
+preserve existing edits/deletions. They define radial proportions only.
+
+Guide dragging updates overlays immediately and commits terrain once on release.
+Shared sets notify only referencing planets whose resolved values changed, plus
+the authoring planet. The Designer still receives only a read-only guide snapshot.
+See the host's `Docs/RadialGuides.md` for navigation, controls and qualification.
