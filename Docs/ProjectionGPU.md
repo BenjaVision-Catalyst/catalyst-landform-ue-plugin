@@ -134,3 +134,9 @@ good default for fine Nanite cluster padding. The bridge prototype must measure
 culling cost and compare tighter subdivision or cluster-level projection bounds
 before adopting it. Cache source-invariant box data rather than recalculating it
 in every gameplay frame. No frame-rate claim follows from this admission test.
+
+## Admitted normal render path
+
+The native normal-map fixture uses `CLProjectionAdmittedNormal` to map a completed physical normal after canonical sampling. The optimized entry computes only the inverse-transpose meridian/azimuth frame, reuses trigonometric terms and avoids position/domain validation for every shaded pixel. Callers must already admit the source box/chart/altitude band. Normal rescaling before the linear map preserves robustness for magnitude; final normalization remains scale-safe. The same 18-chart/2,520-query GPU oracle checks this exact entry against the independent CPU differential, including non-radial normals. Invalid queries continue through the checked evaluator rather than this trusted entry.
+
+The optimized entry passes all eight host editor tests (zero test warnings) and the cooked 18-chart/2,520-query oracle. Maximum cooked normal error is `3.2486345423e-7`; vector error remains `7.0170264419e-7`. These are shared-math correctness results; native material image/performance checks are retained separately by the host.

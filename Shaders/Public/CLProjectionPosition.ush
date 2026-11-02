@@ -32,11 +32,35 @@ void CLProjectionUnitBox(FCLProjectionFrame F, float3 Center, float3 Extent, flo
     ProjectedExtent = F.Curvature == 1 ? Extent : (L * length(Extent) + 2.e-6f).xxx;
 }
 
+// Trusted render admission avoids recomputing position/domain validation for every shaded pixel.
+// Apply J^-T in the meridian/azimuth frame; rescale before the linear map to keep tiny/large normals safe.
 float3 CLProjectionAdmittedNormal(FCLProjectionFrame F, float3 Source, float3 Normal)
 {
     if (F.Curvature == 1) return CLProjectionUnit(Normal);
-    FCLProjectionDifferential D;
-    if (!CLProjectionEvaluate(F, Source, D)) return CLProjectionUnit(Normal);
-    return CLProjectionNormal(D, Normal);
+    float R = length(Source);
+    float3 U = Source / R;
+    float C = clamp(dot(U, F.Anchor), -1.0f, 1.0f);
+    float3 Cross = cross(F.Anchor, U);
+    float S = length(Cross);
+    float Theta = atan2(S, C);
+    float3 Direction = S > 1.e-7f ? cross(Cross, F.Anchor) / S :
+        normalize(cross(F.Anchor, abs(F.Anchor.z) < .9f ? float3(0,0,1) : float3(1,0,0)));
+    float3 Azimuth = cross(F.Anchor, Direction);
+    float3 Meridian = -S * F.Anchor + C * Direction;
+    float InverseMeridian = R / (1 + F.Curvature * (R - 1));
+    float SinA = 0, CosA = 1, SincA = 1;
+    if (F.Curvature != 0)
+    {
+        float A = F.Curvature * Theta;
+        sincos(A, SinA, CosA);
+        SincA = abs(A) < .01f ? CLProjectionSinc(A) : SinA / A;
+    }
+    float SincTheta = Theta < .01f ? CLProjectionSinc(Theta) : S / Theta;
+    Normal /= max(abs(Normal.x), max(abs(Normal.y), abs(Normal.z)));
+    float NR = dot(Normal, U);
+    float NM = dot(Normal, Meridian) * InverseMeridian;
+    float NA = dot(Normal, Azimuth) * InverseMeridian * SincTheta / SincA;
+    return CLProjectionUnit((NR * CosA - NM * SinA) * F.Anchor +
+        (NR * SinA + NM * CosA) * Direction + NA * Azimuth);
 }
 #endif
