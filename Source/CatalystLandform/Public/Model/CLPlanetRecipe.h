@@ -288,6 +288,7 @@ public:
     static FCLPlanetRecipe RollingPlains();
     static FCLPlanetRecipe BasePlanet();
     static FCLPlanetRecipe TectonicBase();
+    static FCLPlanetRecipe ContinentalBase();
     /** Validate operation syntax without requiring a planet's guide values. */
     static bool ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error);
 };

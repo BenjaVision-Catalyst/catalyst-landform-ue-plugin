@@ -266,12 +266,11 @@ flat views must use matching terrain, camera and picking state; recipe geometry,
 native collision, radial gravity and returned gameplay positions stay canonical.
 The globe remains spherical and the Designer retains its fixed-size flat section.
 
-This is the adopted integration direction, not a claim that all launch paths
-already use it. The current projected playground is opt-in, and ordinary Builder
-**Walk here** still needs connection to that path. Make that connection the first
-integration gate for the next base-planet proof, retaining its snapshot/return
-contract. Keep the supported native material/shader profile and the unresolved
-60 fps qualification explicit; do not create a separate projection for this work.
+Ordinary Builder **Walk here** now adopts that path for the supported native
+Rock/Scree/Soil profile, retaining its snapshot/return contract. The globe stays
+spherical, including Tab transitions. The [continental checkpoint](ContinentalPreset.md)
+records the bounded integration and checks. General custom-material support and
+the strict 60 fps gate remain open.
 
 ## Compiler and backend boundary
 
@@ -356,7 +355,13 @@ Repeat native walking at poles, equator, patch boundaries and selected belts.
 Validate publication/cancellation and preserve old saved planets byte-for-byte
 unless an explicit migration is committed.
 
-### Proposed next proof: continental foundations and boundary settings
+### Continental foundations and boundary settings
+
+The controlled [continental preset](ContinentalPreset.md) now implements this
+bounded proof with nested tectonic algorithm 3. It provides independent crust
+domains, shared geological samples and six comparison fixtures. This advances
+milestone 1; full editable plate topology and geological history remain future
+work. The requirements below describe its intended scope and acceptance boundary.
 
 Complete more of milestone 1 before adding erosion or additional fine noise.
 The current preset is a bounded kinematic relief generator with approximate

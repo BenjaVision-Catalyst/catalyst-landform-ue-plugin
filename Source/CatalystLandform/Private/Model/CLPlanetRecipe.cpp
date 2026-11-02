@@ -680,6 +680,9 @@ FCLPlanetRecipe FCLPlanetCompiler::BasePlanet()
 FCLPlanetRecipe FCLPlanetCompiler::TectonicBase()
 {auto R=BasePlanet();R.SchemaVersion=14;R.Name=TEXT("Tectonic rocky world");R.Tectonics.bEnabled=true;R.Tectonics.AlgorithmVersion=2;return R;}
 
+FCLPlanetRecipe FCLPlanetCompiler::ContinentalBase()
+{auto R=TectonicBase();R.Name=TEXT("Continental rocky world");R.Tectonics.AlgorithmVersion=3;R.Tectonics.Activity=.7;R.SurfaceStack=FCLSurfaceStack::MakeDefault();return R;}
+
 void FCLPlanetRecipe::MigrateLegacyGuides()
 {
     if (HeightGuides_DEPRECATED.IsEmpty() && SchemaVersion != 1) return;

@@ -221,3 +221,14 @@ and future Architect buildings. This is a compatibility requirement, not an
 instruction to begin those systems or change the current Landform task.
 
 The [host handover](../../Projects/LandformLab/Docs/CurvatureHandover.md) records completed implementation, setup, verification and open limitations. It deliberately assigns no further implementation task. Earlier roadmap/checkpoint text above is historical context, not current work authorization.
+
+## Builder inspection adoption — 2026-11-02
+
+The subsequent continental base task connects ordinary Planet Builder **Walk
+here** to the same local terrain bridge, camera and interaction path for the
+supported native Rock/Scree/Soil profile. Natural, half and flat controls remain
+available; Tab restores canonical spherical globe presentation and reattaches
+walking at the retained curvature. This supersedes opt-in-only wording for that
+host inspection profile. The [continental checkpoint](ContinentalPreset.md)
+records the scope and evidence. Wider material, lighting, vista and performance
+gates remain open.

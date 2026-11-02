@@ -2,6 +2,19 @@
 #include "CoreMinimal.h"
 #include "CLTectonics.generated.h"
 
+UENUM(BlueprintType)
+enum class ECLContinentalSetting : uint8 { Collision, Subduction, Rift, Transform };
+enum class ECLGeologicalSetting : uint8 { Interior, ContinentalCollision, Subduction, ContinentalRift, OceanSpreading, Transform };
+
+/** Shared body-space context for later regional assignment. Thickness is a scaled approximation. */
+struct CATALYSTLANDFORM_API FCLGeologicalSample
+{
+    double Continentalness=0,CrustThicknessMeters=0,BaseDeltaMeters=0,DeformationMeters=0,TotalDeltaMeters=0;
+    double Convergence=0,Shear=0;
+    FGuid BoundaryId;
+    ECLGeologicalSetting Setting=ECLGeologicalSetting::Interior;
+};
+
 /** Versioned artistic progression. Body-space geometry uses +Z north, +X prime meridian. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLTectonicPreset
@@ -14,12 +27,16 @@ struct CATALYSTLANDFORM_API FCLTectonicPreset
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Activity=.55;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName LowerGuide=TEXT("SurfaceMin");
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName UpperGuide=TEXT("SurfaceMax");
-    UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bOverridePlateCount=false;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="bOverridePlateCount",ClampMin="1",ClampMax="12")) int32 PlateCount=7;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion != 3",EditConditionHides)) bool bOverridePlateCount=false;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="bOverridePlateCount && AlgorithmVersion != 3",EditConditionHides,ClampMin="1",ClampMax="12")) int32 PlateCount=7;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bOverrideMotion=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="bOverrideMotion",ClampMin="0",ClampMax="2")) double Motion=1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bOverrideRelief=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="bOverrideRelief",ClampMin="0",ClampMax="1")) double Relief=.5;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 3",EditConditionHides)) ECLContinentalSetting Setting=ECLContinentalSetting::Collision;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 3",EditConditionHides)) FRotator FoundationOrientation=FRotator::ZeroRotator;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 3",EditConditionHides,ClampMin="-1",ClampMax="1")) double MotionDirection=1;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 3",EditConditionHides,ClampMin="0.6",ClampMax="1.4")) double ContinentalExtent=1;
 };
 struct CATALYSTLANDFORM_API FCLTectonicControls
 {
@@ -45,11 +62,18 @@ public:
     double SpanMeters=0,MaximumDeltaMeters=0;
     double Continentalness(const FVector& UnitDirection) const;
     double SampleDeltaMeters(const FVector& UnitDirection) const;
+    /** Algorithm 3 only. Invalid inputs preserve Out. */
+    bool SampleGeology(const FVector& UnitDirection,FCLGeologicalSample& Out) const;
     static TSharedPtr<const FCLCompiledTectonics> Compile(const FCLTectonicPreset& Preset,int32 Seed,double SpanMeters,FString& Error);
 private:
     int32 AlgorithmVersion=2;
     FQuat NoiseRotation=FQuat::Identity;
     FVector NoiseOffset=FVector::ZeroVector;
+    FCLTectonicPreset Foundation;
+    FQuat FoundationFrame=FQuat::Identity;
+    void BuildContinentalFoundation(const FCLTectonicPreset& Preset,int32 Seed);
+    FVector FoundationDirection(const FVector& D) const;
+    double ContinentalDomain(const FVector& WarpedDirection) const;
     double SampleLegacyState(const FState& State,const FVector& D) const;
     double SampleState(const FState& State,const FVector& D) const;
 };

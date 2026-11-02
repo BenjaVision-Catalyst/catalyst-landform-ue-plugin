@@ -3,6 +3,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "ShaderCompiler.h"
 #endif
+
+
 #include "Model/CLSphericalPatches.h"
 #include "PreviewScene.h"
 #include "EditorViewportClient.h"
@@ -867,6 +869,38 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
             TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/tectonic-organic/v%d-angle%d.png"),Version,Angle)));
         }
         AddInfo(FString::Printf(TEXT("Rendered quiet/intense mean difference %.3f/255; clipped pixels %d"),Difference/(800*600*3),MostClipped));FSlateApplication::Get().RequestDestroyWindow(Window);
+    },.6f));return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLContinentalGlobeTest,"Catalyst.Landform.Continental.RenderedSettings",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLContinentalGlobeTest::RunTest(const FString&)
+{
+    FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
+    if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/ContinentalBase.json")))||!Source->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Continental foundation settings"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
+    const double Started=FPlatformTime::Seconds();
+    for(int32 I=0;I<6;++I)
+    {
+        auto R=Source->Recipe;R.Tectonics.MotionDirection=I==1?0:I==2?-1:1;R.Tectonics.Setting=I==3?ECLContinentalSetting::Subduction:I==4?ECLContinentalSetting::Rift:I==5?ECLContinentalSetting::Transform:ECLContinentalSetting::Collision;
+        auto P=FCLPlanetCompiler::Compile(R,Error);if(!P||!P->Surfaces){AddError(Error);App.RequestDestroyWindow(Window);return false;}Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
+    }
+    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];W->Mesh->CreateMeshSection_LinearColor(0,Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents,false);
+    if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();AddInfo(FString::Printf(TEXT("Six continental 192-cell buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
+    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Buffers,Plans]
+    {
+        const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/continental-settings");IFileManager::Get().MakeDirectory(*Folder,true);const TCHAR* Names[]={TEXT("collision"),TEXT("stationary"),TEXT("reversed"),TEXT("subduction"),TEXT("rift"),TEXT("transform")};
+        for(int32 I=0;I<6;++I)for(int32 Angle=0;Angle<2;++Angle)
+        {
+            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            const FVector Eye=(Angle==0?FVector(1,.35,.55):FVector(-1,-.35,.4)).GetSafeNormal()*130000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            TestEqual(TEXT("Continental comparison renders a complete frame"),Pixels.Num(),800*600);TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("%s-%d.png"),Names[I],Angle)));
+        }
+        FSlateApplication::Get().RequestDestroyWindow(Window);
     },.6f));return true;
 }
 #endif

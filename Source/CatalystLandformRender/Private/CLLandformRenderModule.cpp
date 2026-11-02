@@ -6,6 +6,7 @@
 #include "HAL/FileManager.h"
 #include "Misc/CommandLine.h"
 #include "Misc/EngineVersion.h"
+#include "Misc/ConfigCacheIni.h"
 
 static bool GCLNaniteProjectionOverlay = false;
 bool CLNaniteProjectionShaderOverlayEnabled() { return GCLNaniteProjectionOverlay; }
@@ -19,6 +20,8 @@ public:
         check(Plugin);
         AddShaderSourceDirectoryMapping(TEXT("/Plugin/CatalystLandform"), Plugin->GetBaseDir() / TEXT("Shaders"));
         GCLNaniteProjectionOverlay = FParse::Param(FCommandLine::Get(), TEXT("CLNaniteProjectionShaders"));
+        bool ProjectDefault=false;GConfig->GetBool(TEXT("CatalystLandform.Presentation"),TEXT("bEnableProjectionShaders"),ProjectDefault,GGameIni);
+        GCLNaniteProjectionOverlay|=ProjectDefault;
         if (GCLNaniteProjectionOverlay) UE_LOG(LogTemp, Display, TEXT("CL_NANITE_PROJECTION_OVERLAY: enabled; cooked=%d"), FPlatformProperties::RequiresCookedData());
         if (GCLNaniteProjectionOverlay && !FPlatformProperties::RequiresCookedData())
         {

@@ -6,9 +6,11 @@ FVector Unit(FRandomStream& R){const double Z=R.FRandRange(-1.f,1.f),A=R.FRandRa
 }
 bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls& O,FString& Error)
 {
-    if((P.AlgorithmVersion!=1&&P.AlgorithmVersion!=2)||!FMath::IsFinite(P.Activity)||P.Activity<0||P.Activity>1||P.LowerGuide.IsNone()||P.UpperGuide.IsNone()||
+    if((P.AlgorithmVersion<1||P.AlgorithmVersion>3)||!FMath::IsFinite(P.Activity)||P.Activity<0||P.Activity>1||P.LowerGuide.IsNone()||P.UpperGuide.IsNone()||
         P.PlateCount<1||P.PlateCount>12||!FMath::IsFinite(P.Motion)||P.Motion<0||P.Motion>2||!FMath::IsFinite(P.Relief)||P.Relief<0||P.Relief>1)
-    {Error=TEXT("Tectonic preset requires algorithm 1 or 2, activity 0..1 and valid advanced controls");return false;}
+    {Error=TEXT("Tectonic preset requires algorithm 1..3, activity 0..1 and valid advanced controls");return false;}
+    if(P.AlgorithmVersion==3&&(uint8(P.Setting)>uint8(ECLContinentalSetting::Transform)||P.FoundationOrientation.ContainsNaN()||!FMath::IsFinite(P.MotionDirection)||FMath::Abs(P.MotionDirection)>1||!FMath::IsFinite(P.ContinentalExtent)||P.ContinentalExtent<.6||P.ContinentalExtent>1.4||(P.bOverridePlateCount&&P.PlateCount!=2)))
+    {Error=TEXT("Continental foundation requires finite orientation, extent 0.6..1.4, signed motion -1..1 and its two controlled plates");return false;}
     const double A=P.Activity,Count=1+11*A;
     O.LowerPlateCount=P.bOverridePlateCount?P.PlateCount:FMath::Min(12,FMath::FloorToInt(Count));
     O.UpperPlateCount=P.bOverridePlateCount?P.PlateCount:FMath::Min(12,O.LowerPlateCount+1);
@@ -17,10 +19,12 @@ bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls
     O.CrustThickness=.008+.032*Smooth(A);
     O.BeltWidth=FMath::DegreesToRadians(3.+4.*A);
     O.Relief=P.bOverrideRelief?P.Relief:.12+.8*A;
+    if(P.AlgorithmVersion==3){O.LowerPlateCount=O.UpperPlateCount=2;O.PlateTransition=0;}
     return true;
 }
 double FCLCompiledTectonics::Continentalness(const FVector& D) const
 {
+    if(AlgorithmVersion==3)return ContinentalDomain(FoundationDirection(D.GetSafeNormal()));
     double Sum=0;for(const FVector& C:Continents)Sum+=2.7*FMath::Exp((FVector::DotProduct(D,C)-1)*5.);
     return 1-FMath::Exp(-Sum);
 }
@@ -29,6 +33,7 @@ TSharedPtr<const FCLCompiledTectonics> FCLCompiledTectonics::Compile(const FCLTe
     auto Out=MakeShared<FCLCompiledTectonics>();if(!FCLTectonicControls::Resolve(P,Out->Controls,Error))return nullptr;
     if(!FMath::IsFinite(Span)||Span<=0){Error=TEXT("Tectonics requires an ordered, nonempty guide interval");return nullptr;}
     Out->AlgorithmVersion=P.AlgorithmVersion;Out->SpanMeters=Span;Out->MaximumDeltaMeters=Span*(.035+.46*Out->Controls.Relief);
+    if(P.AlgorithmVersion==3){Out->MaximumDeltaMeters=Span*.8;Out->BuildContinentalFoundation(P,Seed);return Out;}
     FRandomStream R(int32(uint32(Seed)^0x43544c31U));const FQuat Rotation(Unit(R),R.FRandRange(0.f,2*PI));
     // Independent crust domains: no plate is labelled wholly continental/oceanic.
     Out->Continents={Rotation.RotateVector(FVector(.2,.8,.55).GetSafeNormal()),Rotation.RotateVector(FVector(-.75,-.3,.6).GetSafeNormal()),Rotation.RotateVector(FVector(.65,-.7,-.3).GetSafeNormal())};
@@ -168,6 +173,7 @@ double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
 }
 double FCLCompiledTectonics::SampleDeltaMeters(const FVector& Direction) const
 {
+    if(AlgorithmVersion==3){FCLGeologicalSample Sample;return SampleGeology(Direction.GetSafeNormal(),Sample)?Sample.TotalDeltaMeters:0;}
     const FVector D=Direction.GetSafeNormal();const double C=Continentalness(D);
     const double Crust=(C-.5)*(.12+Controls.CrustThickness*10);
     const double LowDelta=AlgorithmVersion==1?SampleLegacyState(Lower,D):SampleState(Lower,D);

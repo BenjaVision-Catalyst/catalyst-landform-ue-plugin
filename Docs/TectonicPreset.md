@@ -2,7 +2,7 @@
 
 The first tectonic preset adds present-day structural relief to the shared planet
 field. Planet Builder exposes it in the left **Base planet preset** section.
-Enable **Tectonic rocky world**, then adjust **Tectonic activity** from Quiet to
+Select **Tectonic rocky world** and enable it, then adjust **Tectonic activity** from Quiet to
 Intense. The globe and cross-section regenerate while the slider is being used.
 **Advanced** is a standard collapsible row directly below the knob. It reveals
 the detailed controls in place, keeping the knob visible on the Planet tab.
@@ -24,6 +24,11 @@ Quiet and Intense comparison assets alongside it. All three reference the new
 `DA_TectonicGuides` catalog and use the existing scanned rock, scree and soil
 materials. They do not replace the earlier saved planets. **Walk here** uses the
 same accepted recipe through the existing collision-ready inspection host.
+
+The same menu also offers [Continental rocky world](ContinentalPreset.md), a
+separate controlled two-plate construction using algorithm 3. It shares the live
+knob and inline Advanced layout; the plate-count progression below belongs to
+the original tectonic preset.
 
 ## One control and advanced overrides
 

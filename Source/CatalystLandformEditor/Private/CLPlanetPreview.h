@@ -79,6 +79,7 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLGlobeWalkPickingTest;
     friend class FCLTectonicGlobeTest;
+    friend class FCLContinentalGlobeTest;
     friend class FCLGlobeGuidesTest;
     friend class FCLGlobePointerTest;
     friend class FCLGlobePlacementPointerTest;
