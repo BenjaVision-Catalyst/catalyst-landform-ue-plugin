@@ -5,6 +5,7 @@
 #include "Model/CLRadialGuides.h"
 #include "Model/CLStampDistribution.h"
 #include "Model/CLPlanetStructure.h"
+#include "Model/CLTectonics.h"
 #include "Model/CLLandformSuitability.h"
 #include "Model/CLSurfaceLayers.h"
 #include "Surface/CLSurfaceCompiler.h"
@@ -200,6 +201,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Terrain layers")) TArray<FCLNoiseLayer> NoiseLayers;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLTerrainRegion> TerrainRegions;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLTectonicPreset Tectonics;
     /** Manual broad uplift/basin layout, separate from reusable Landform definitions. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRegionGenerationSettings RegionGeneration;
@@ -264,6 +266,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     FCLSurfaceWeights SurfaceWeightsAt(const FVector& Direction,double HeightMeters,double SlopeDegrees) const;
     void SampleSurfaceWeights(TConstArrayView<FVector> Directions,TArray<FCLSurfaceWeights>& Out) const;
     TArray<FCLCompiledPlanetFeature> BaseStructure;
+    TSharedPtr<const FCLCompiledTectonics> Tectonics;
     int32 GetDistributedStampCount() const;
     /** Diagnostic coverage of distributed stamp footprints and their fade weights. */
     void GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight) const;
@@ -284,6 +287,7 @@ public:
     static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE);
     static FCLPlanetRecipe RollingPlains();
     static FCLPlanetRecipe BasePlanet();
+    static FCLPlanetRecipe TectonicBase();
     /** Validate operation syntax without requiring a planet's guide values. */
     static bool ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers, FString& Error);
 };

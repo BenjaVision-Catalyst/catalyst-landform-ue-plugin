@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 14,
+  "algorithmVersion": 2,
+  "name": "Tectonic rocky world",
+  "radiusMeters": 1000,
+  "baseSurfaceNormalized": 0.45,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "terrainPatch": {
+    "anchor": {
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "tangentX": {
+      "x": 1,
+      "y": 0,
+      "z": 0
+    },
+    "halfWidthMeters": 750,
+    "transitionMeters": 100
+  },
+  "radialGuides": {
+    "id": "434C5447000000000000000000000001",
+    "name": "Tectonic rocky world guides",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.43,
+        "color": {
+          "r": 0.20000000298023224,
+          "g": 0.6499999761581421,
+          "b": 1,
+          "a": 1
+        }
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.55,
+        "color": {
+          "r": 0.20000000298023224,
+          "g": 0.6499999761581421,
+          "b": 1,
+          "a": 1
+        }
+      },
+      {
+        "name": "AtmosphereMax",
+        "normalizedHeight": 0.9,
+        "color": {
+          "r": 0.20000000298023224,
+          "g": 0.6499999761581421,
+          "b": 1,
+          "a": 1
+        }
+      }
+    ]
+  },
+  "noiseLayers": [],
+  "terrainRegions": [],
+  "baseStructure": [],
+  "regionGeneration": {
+    "bEnabled": false
+  },
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 2,
+    "layers": [
+      {
+        "name": "Scree on slopes",
+        "bEnabled": true,
+        "surfaceId": "Scree",
+        "surfaceRevision": 2,
+        "slopeDegrees": {
+          "x": 18,
+          "y": 46
+        },
+        "slopeFeatherDegrees": 7,
+        "bUseHeightRange": false,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "None",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "None",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "heightFeatherRadiusFraction": 0.005,
+        "strength": 1,
+        "noiseAmount": 0.25,
+        "noiseWavelengthMeters": 55,
+        "noiseSeed": 31
+      },
+      {
+        "name": "Soil on gentle ground",
+        "bEnabled": true,
+        "surfaceId": "Soil",
+        "surfaceRevision": 2,
+        "slopeDegrees": {
+          "x": 0,
+          "y": 14
+        },
+        "slopeFeatherDegrees": 5,
+        "bUseHeightRange": true,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMin",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": -50
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMax",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "heightFeatherRadiusFraction": 0.015,
+        "strength": 1,
+        "noiseAmount": 0.15,
+        "noiseWavelengthMeters": 85,
+        "noiseSeed": 31
+      }
+    ]
+  },
+  "tectonics": {
+    "bEnabled": true,
+    "algorithmVersion": 1,
+    "activity": 0.55,
+    "lowerGuide": "SurfaceMin",
+    "upperGuide": "SurfaceMax"
+  }
+}

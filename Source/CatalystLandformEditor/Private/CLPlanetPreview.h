@@ -54,6 +54,10 @@ public:
     bool IsWalkPicking() const;
     void SetWalkLocation(FVector Direction);
     FVector WalkLocation() const;
+    void SetDraftMode(bool Enabled){if(bDraft!=Enabled)++Epoch;bDraft=Enabled;}
+    uint64 PublishedBuilds() const{return AppliedBuilds;}
+    bool IsDraftMode() const{return bDraft;}
+    bool HasDraftMesh() const{return bLastPublishedDraft;}
     void Frame();
     void Dolly(double Steps);
     void SetGuides(const FCLRadialGuideSet& Guides,bool Visible);
@@ -73,6 +77,7 @@ protected:
 private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLGlobeWalkPickingTest;
+    friend class FCLTectonicGlobeTest;
     friend class FCLGlobeGuidesTest;
     friend class FCLGlobePointerTest;
     friend class FCLGlobePlacementPointerTest;
@@ -101,7 +106,8 @@ private:
     TSharedPtr<const FCLCompiledPlanetRecipe> Pending;
     TFuture<FCLGlobeBuffers> Task;
     uint64 Revision=0,TaskRevision=0;
-    bool Framed=false;
+    bool Framed=false,bDraft=false,bTaskDraft=false,bLastPublishedDraft=false;
+    uint64 AppliedBuilds=0,Epoch=0,TaskEpoch=0;
     FVector2D Previous;
     FKey Button;
 };

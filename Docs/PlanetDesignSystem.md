@@ -218,6 +218,13 @@ independent planet fragment. Compatibility rules and sensible defaults resolve
 the relationships. Explain conflicts in terms of the selected features and offer
 concrete alternatives rather than requiring the user to understand the solver.
 
+A preset's primary intensity control coordinates many underlying variables along
+an authored progression, rather than multiplying all values uniformly. Its seeded
+identity remains stable as the effect becomes more pronounced. The knob generates
+live previews during use, with bounded coalescing and optional draft quality;
+release refines quality rather than triggering the first visible change. Advanced
+parameters can be explicitly pinned while the other values follow the knob.
+
 Basic controls express intent. Plate motion, crust thickness, rock properties,
 erosion coefficients, process history and diagnostic overlays belong in optional
 Advanced controls. They edit the same recipe; there is no separate advanced
@@ -304,7 +311,9 @@ owner/integration work, not a speculative parallel service.
 
 ### First implementation scope
 
-Implement milestone 1 next. Use a small explicit Earth-like test setup with
+The first executable subset is the [one-control tectonic preset](TectonicPreset.md),
+which provides bounded kinematic relief and live preview. Milestone 1 still needs
+full editorial plate controls and the wider geological cases below. Use a small explicit Earth-like test setup with
 continental and oceanic crust distributed independently of its plate partition.
 Compare convergent, divergent, transform and stationary versions of the same
 constraints. Produce real curved belts and basin/trench structure before adding

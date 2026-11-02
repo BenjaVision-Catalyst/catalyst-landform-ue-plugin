@@ -16,6 +16,7 @@
 #include "CLSectionGeometry.h"
 #include "CLPlanetPreview.h"
 #include "CLPlanetInspection.h"
+#include "Containers/Ticker.h"
 #include "PropertyPath.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "CLSectionNavigation.h"
@@ -491,9 +492,9 @@ struct FCLSectionBuffers
     TArray<FVector> Normals;
     TArray<FVector2D> UV;
     TArray<FProcMeshTangent> Tangents;
-    static FCLSectionBuffers Build(const FCLCompiledPlanetRecipe& Plan, double Width)
+    static FCLSectionBuffers Build(const FCLCompiledPlanetRecipe& Plan, double Width,int32 Resolution=0)
     {
-        FCLSectionBuffers B; B.Geometry = FCLSectionGeometry::Build(Plan, 0, Width);
+        FCLSectionBuffers B; B.Geometry = FCLSectionGeometry::Build(Plan, Resolution, Width);
         B.Finish(); return B;
     }
     void Finish()
@@ -533,6 +534,9 @@ public:
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingPlan;
     double PendingWidth = 500;
     uint64 Revision = 0, TaskRevision = 0;
+    bool bDraft=false,bTaskDraft=false;
+    uint64 Epoch=0,TaskEpoch=0;
+    void SetDraftMode(bool Enabled){if(bDraft!=Enabled)++Epoch;bDraft=Enabled;}
     int32 StartedBuilds = 0, AppliedBuilds = 0;
     FKey NavigationButton;
     FVector2D PreviousMouse;
@@ -577,19 +581,19 @@ public:
     { Client = MakeShared<FCLSectionClient>(&Scene, SharedThis(this)); return Client.ToSharedRef(); }
     bool IsUpdating() const { return BuildTask.IsValid() || PendingPlan.IsValid(); }
     void CancelPendingBuild()
-    { ++Revision; PendingPlan.Reset(); }
+    { ++Revision;++Epoch; PendingPlan.Reset(); }
     void PumpBuild()
     {
         if (BuildTask.IsValid() && BuildTask.IsReady())
         {
             auto Buffers = BuildTask.Get(); BuildTask = TFuture<FCLSectionBuffers>();
-            if (TaskRevision == Revision) ApplyBuffers(Buffers);
+            if (TaskRevision == Revision||(bDraft&&bTaskDraft&&TaskEpoch==Epoch&&PendingPlan.IsValid())) ApplyBuffers(Buffers);
         }
         if (!BuildTask.IsValid() && PendingPlan)
         {
             const auto Plan = PendingPlan; const double Width = PendingWidth;
             PendingPlan.Reset(); TaskRevision = Revision; ++StartedBuilds;
-            BuildTask = Async(EAsyncExecution::ThreadPool, [Plan, Width] { return FCLSectionBuffers::Build(*Plan, Width); });
+            bTaskDraft=bDraft;TaskEpoch=Epoch;const int32 Resolution=bDraft?64:0;BuildTask = Async(EAsyncExecution::ThreadPool, [Plan, Width, Resolution] { return FCLSectionBuffers::Build(*Plan, Width, Resolution); });
         }
     }
     virtual void Tick(const FGeometry& G, double T, float D) override
@@ -628,10 +632,15 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
 {
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLTerrainWorkspaceTest;
+    friend class FCLTectonicLiveKnobTest;
 #endif
     TSharedPtr<SCLSectionViewport> Preview;
     TSharedPtr<SCLPlanetPreview> Globe;
-    bool bGlobe=true;
+    bool bGlobe=true,bTectonicDragging=false;
+    double PendingTectonicActivity=.55,LastTectonicApply=0,AppliedTectonicActivity=.55;
+    FTSTicker::FDelegateHandle TectonicTicker;
+    TUniquePtr<FScopedTransaction> TectonicDragTransaction;
+    TSharedPtr<SSlider> TectonicSlider;
     FGuid WalkRequestId;
     FString WalkStatus=TEXT("Choose a location on the globe, then walk there.");
     TSharedPtr<SCLHeightAnnotations> Annotations;
@@ -672,6 +681,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
 public:
     virtual ~FCLRecipeToolkit()
     {
+        FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicDragTransaction.Reset();
         if (SelectionInput && FSlateApplication::IsInitialized()) FSlateApplication::Get().UnregisterInputPreProcessor(SelectionInput);
         if (EditingAsset) RecipeAsset()->OnRecipeChanged.Remove(Changed);
         if (TerrainEditing) TerrainEditing->Asset->OnTerrainChanged.Remove(TerrainChanged);
@@ -907,6 +917,47 @@ public:
         if(auto* A=Cast<UCLPlanetRecipeAsset>(Tools.CreateAssetWithDialog(TEXT("DA_NewPlanet"),TEXT("/Game/LandformDesigner/Planets"),UCLPlanetRecipeAsset::StaticClass(),NewObject<UCLPlanetRecipeFactory>())))
             GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(A);
     }
+    bool CommitTectonicPreset(FCLTectonicPreset Preset)
+    {
+        auto* A=RecipeAsset();auto Candidate=A->Recipe;Candidate.SchemaVersion=FMath::Max(14,Candidate.SchemaVersion);Candidate.Tectonics=Preset;
+        FString Error;if(!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;return false;}
+        TUniquePtr<FScopedTransaction> Tx;if(!TectonicDragTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change tectonic preset")));A->Modify();A->Recipe=MoveTemp(Candidate);A->MarkPackageDirty();A->PostEditChange();return true;
+    }
+    void BeginTectonicDrag()
+    {
+        if(bTectonicDragging)return;
+        PendingTectonicActivity=AppliedTectonicActivity=RecipeAsset()->Recipe.Tectonics.Activity;LastTectonicApply=0;bTectonicDragging=true;
+        TectonicDragTransaction=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change tectonic activity")));RecipeAsset()->Modify();
+        if(Globe)Globe->SetDraftMode(true);if(Preview)Preview->SetDraftMode(true);
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        TectonicTicker=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak](float)
+        {if(auto Editor=Weak.Pin();Editor&&Editor->bTectonicDragging){Editor->PumpTectonicChanges(false);return true;}return false;}));
+    }
+    void PumpTectonicChanges(bool Force)
+    {
+        if(FMath::IsNearlyEqual(PendingTectonicActivity,AppliedTectonicActivity,1.e-7))return;
+        const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastTectonicApply<.12)return;
+        auto P=RecipeAsset()->Recipe.Tectonics;P.Activity=PendingTectonicActivity;
+        if(CommitTectonicPreset(P))AppliedTectonicActivity=PendingTectonicActivity;LastTectonicApply=Now;
+    }
+    void EndTectonicDrag()
+    {
+        if(!bTectonicDragging)return;PumpTectonicChanges(true);bTectonicDragging=false;
+        FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicTicker.Reset();TectonicDragTransaction.Reset();
+        if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
+    }
+    FText TectonicCaption() const
+    {
+        auto P=RecipeAsset()->Recipe.Tectonics;if(!P.bEnabled)return FText::FromString(TEXT("Enable this preset to add tectonic structure"));if(bTectonicDragging)P.Activity=PendingTectonicActivity;
+        FCLTectonicControls C;FString Error;if(!FCLTectonicControls::Resolve(P,C,Error))return FText::FromString(Error);
+        return FText::FromString(FString::Printf(TEXT("%s · %.0f%% activity · %d%s plates"),P.Activity<.2?TEXT("Quiet"):P.Activity<.75?TEXT("Active"):TEXT("Intense"),P.Activity*100,C.LowerPlateCount,C.UpperPlateCount!=C.LowerPlateCount&&C.PlateTransition>1.e-5?*FString::Printf(TEXT("–%d"),C.UpperPlateCount):TEXT("")));
+    }
+    void EditTectonics()
+    {
+        FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(UCLPlanetRecipeAsset::StaticClass(),TEXT("Recipe"))));
+        Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLPlanetRecipe::StaticStruct(),TEXT("Tectonics"))));
+        GetTabManager()->TryInvokeTab(DetailsTabId);DetailsView->ScrollPropertyIntoView(Path,true);
+    }
     void EditStructure()
     {
         FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(UCLPlanetRecipeAsset::StaticClass(),TEXT("Recipe"))));
@@ -1049,6 +1100,25 @@ public:
                 .HintText(FText::FromString(TEXT("Planet name"))).OnTextCommitted_Lambda([this](const FText& T,ETextCommit::Type)
                 {const FString Name=T.ToString().TrimStartAndEnd();if(Name.IsEmpty()||Name==RecipeAsset()->Recipe.Name)return;FScopedTransaction Tx(FText::FromString(TEXT("Rename planet")));auto* A=RecipeAsset();A->Modify();A->Recipe.Name=Name;A->MarkPackageDirty();A->PostEditChange();})]
             +SVerticalBox::Slot().AutoHeight().Padding(0,6,0,0)[SNew(SButton).Text(FText::FromString(TEXT("New planet…"))).OnClicked_Lambda([this]{CreatePlanet();return FReply::Handled();})]);
+        AddSection(TEXT("Base planet preset"),SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight()[SNew(SCheckBox)
+                .IsChecked_Lambda([this]{return RecipeAsset()->Recipe.Tectonics.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto P=RecipeAsset()->Recipe.Tectonics;P.bEnabled=V==ECheckBoxState::Checked;CommitTectonicPreset(P);})
+                [SNew(STextBlock).Text(FText::FromString(TEXT("Tectonic rocky world")))]]
+            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(STextBlock).Text(this,&FCLRecipeToolkit::TectonicCaption)]
+            +SVerticalBox::Slot().AutoHeight()[SAssignNew(TectonicSlider,SSlider)
+                .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Tectonics.bEnabled;})
+                .Value_Lambda([this]{return float(bTectonicDragging?PendingTectonicActivity:RecipeAsset()->Recipe.Tectonics.Activity);})
+                .OnMouseCaptureBegin_Lambda([this]{BeginTectonicDrag();})
+                .OnControllerCaptureBegin_Lambda([this]{BeginTectonicDrag();})
+                .OnMouseCaptureEnd_Lambda([this]{EndTectonicDrag();})
+                .OnControllerCaptureEnd_Lambda([this]{EndTectonicDrag();})
+                .OnValueChanged_Lambda([this](float V){PendingTectonicActivity=FMath::Clamp(double(V),0.,1.);if(bTectonicDragging)PumpTectonicChanges(false);else{auto P=RecipeAsset()->Recipe.Tectonics;P.Activity=PendingTectonicActivity;CommitTectonicPreset(P);}})]
+            +SVerticalBox::Slot().AutoHeight().Padding(0,5)[SNew(STextBlock).AutoWrapText(true)
+                .Text_Lambda([this]{return FText::FromString(bTectonicDragging?TEXT("Live draft preview · refining as you drag"):TEXT("Quiet crust → active plates → pronounced tectonic relief"));})]
+            +SVerticalBox::Slot().AutoHeight()[SNew(SButton).Text(FText::FromString(TEXT("Advanced…")))
+                .OnClicked_Lambda([this]{EditTectonics();return FReply::Handled();})]);
         AddSection(TEXT("View"), SNew(SVerticalBox)
             +SVerticalBox::Slot().AutoHeight()[SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
                 +SWrapBox::Slot()[SNew(SButton).Text_Lambda([this]{return FText::FromString(bGlobe?TEXT("Cross-section"):TEXT("Globe"));}).OnClicked_Lambda([this]{bGlobe=!bGlobe;Refresh();return FReply::Handled();})]
@@ -1609,5 +1679,51 @@ bool FCLGuideTickAttachmentTest::RunTest(const FString&)
     Overlay->UseGlobe.Set(false);
     TestTrue(TEXT("Designer cutaway retains one tick-width gap"),Overlay->TickStart(0).Equals(Overlay->Anchor(0)+FVector2D(GuideTickWidth,0)));
     return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+namespace
+{
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicLiveKnobTest,"Catalyst.Landform.Tectonics.LiveKnobAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLTectonicLiveKnobTest::RunTest(const FString&)
+{
+    auto* Source=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/TectonicBase/DA_TectonicBase.DA_TectonicBase"));if(!Source){AddError(TEXT("Tectonic fixture missing"));return false;}
+    auto* Package=CreatePackage(*(TEXT("/Temp/CLLiveTectonics_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
+    auto Owned=MakeShared<TStrongObjectPtr<UCLPlanetRecipeAsset>>(DuplicateObject<UCLPlanetRecipeAsset>(Source,Package));auto* Asset=Owned->Get();Asset->SetFlags(RF_Transactional);Asset->Recipe.Tectonics.Activity=.55;
+    auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset,EToolkitMode::Standalone,nullptr);Editor->GetTabManager()->TryInvokeTab(FName(TEXT("CLPlanetControls")));
+    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned]
+    {
+        auto& App=FSlateApplication::Get();FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(Editor->TectonicSlider.ToSharedRef(),Actual,EVisibility::All);
+        if(Actual.Widgets.Num()==0){AddError(TEXT("Live slider has no routed path"));Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return;}
+        const auto Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const auto Path=MakeShared<FWidgetPath>(MakeArrayView(Arranged));
+        const FVector2D Start=Geometry.LocalToAbsolute(FVector2D(Geometry.GetLocalSize().X*.2,Geometry.GetLocalSize().Y*.5));
+        const FVector2D Mid=Geometry.LocalToAbsolute(FVector2D(Geometry.GetLocalSize().X*.6,Geometry.GetLocalSize().Y*.5));
+        const FVector2D End=Geometry.LocalToAbsolute(FVector2D(Geometry.GetLocalSize().X*.85,Geometry.GetLocalSize().Y*.5));
+        const uint64 Before=Editor->Globe->PublishedBuilds();
+        App.RoutePointerDownEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,Start,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState()));
+        App.RoutePointerMoveEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,Mid,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
+        TestTrue(TEXT("Real slider drag enters live draft mode"),Editor->bTectonicDragging&&Editor->Globe->IsDraftMode());
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,Mid,End,Before]
+        {
+            TestTrue(TEXT("Queued middle value is applied while the button is held"),Owned->Get()->Recipe.Tectonics.Activity>.5);
+            FSlateApplication::Get().RoutePointerMoveEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,End,Mid,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
+            ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,End,Before]
+            {
+                TestTrue(TEXT("Newest value is applied before mouse release"),Owned->Get()->Recipe.Tectonics.Activity>.75);
+                TestTrue(TEXT("A generated draft mesh is published during the drag"),Editor->bTectonicDragging&&Editor->Globe->PublishedBuilds()>Before&&Editor->Globe->HasDraftMesh());
+                FSlateApplication::Get().RoutePointerUpEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,End,End,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));
+                const double Final=Owned->Get()->Recipe.Tectonics.Activity;TestFalse(TEXT("Release ends draft mode"),Editor->Globe->IsDraftMode());
+                GEditor->UndoTransaction();TestTrue(TEXT("One undo restores the entire drag"),FMath::IsNearlyEqual(Owned->Get()->Recipe.Tectonics.Activity,.55,1.e-6));
+                GEditor->RedoTransaction();TestTrue(TEXT("One redo restores the final activity"),FMath::IsNearlyEqual(Owned->Get()->Recipe.Tectonics.Activity,Final,1.e-6));
+                ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned]
+                {
+                    TestFalse(TEXT("A full quality mesh replaces the draft after release"),Editor->Globe->HasDraftMesh());
+                    Owned->Get()->GetOutermost()->SetDirtyFlag(false);TestTrue(TEXT("Live editor retires cleanly"),Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));
+                },7.f));
+            },2.f));
+        },.4f));
+    },3.f));return true;
+}
 }
 #endif

@@ -717,3 +717,9 @@ marked. See [the inspection contract](Docs/SurfaceInspection.md) for ownership a
 [Planet geological design](Docs/PlanetDesignSystem.md) reviews the earlier research
 and proposes tectonic structure, rock units, drainage and contextual Landform
 assembly, with a bounded implementation and qualification sequence.
+
+## Tectonic base preset
+
+The first [tectonic preset](Docs/TectonicPreset.md) adds a single activity slider
+to Planet Builder, coordinating seeded plates, crust contrast, motion and curved
+structural relief. Advanced overrides edit the same portable schema 14 recipe.

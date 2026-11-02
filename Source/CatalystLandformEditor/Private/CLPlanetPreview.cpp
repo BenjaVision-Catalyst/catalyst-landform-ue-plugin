@@ -327,7 +327,7 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
 SCLPlanetPreview::~SCLPlanetPreview(){if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());}
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
 void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;Pending=MoveTemp(Plan);Pump();}
-void SCLPlanetPreview::Cancel(){++Revision;Pending.Reset();}
+void SCLPlanetPreview::Cancel(){++Revision;++Epoch;Pending.Reset();}
 bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid();}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
@@ -350,8 +350,9 @@ void SCLPlanetPreview::Pump()
     if(Task.IsValid()&&Task.IsReady())
     {
         auto B=Task.Consume(); // Move the completed buffers; do not copy a dense mesh on the UI thread.
-        if(TaskRevision==Revision)
+        if(TaskRevision==Revision||(bDraft&&bTaskDraft&&TaskEpoch==Epoch&&Pending.IsValid()))
         {
+            ++AppliedBuilds;bLastPublishedDraft=bTaskDraft;
             Client->Plan=BuildingPlan;Client->RegionBoundaries=MoveTemp(B.RegionBoundaries);Client->RegionCentres=MoveTemp(B.RegionCentres);Client->UpdatePlacementOverlay();
             Mesh->SetMaterial(0,B.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*B.Surfaces,true):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
             Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
@@ -359,7 +360,7 @@ void SCLPlanetPreview::Pump()
         }
         BuildingPlan.Reset();
     }
-    if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;Task=Async(EAsyncExecution::ThreadPool,[P]{return FCLGlobeBuffers::Build(*P);});}
+    if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;bTaskDraft=bDraft;TaskEpoch=Epoch;const int32 Resolution=bDraft?64:FCLGlobeBuffers::PreviewResolution;Task=Async(EAsyncExecution::ThreadPool,[P,Resolution]{return FCLGlobeBuffers::Build(*P,Resolution);});}
 }
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
@@ -807,5 +808,43 @@ bool FCLGlobeWalkPickingTest::RunTest(const FString&)
     W->SetWalkPicking(false);TestTrue(TEXT("Exiting picker retains the return marker"),W->WalkLocation().Equals(FVector::ZAxisVector,.001));
     W->SetWalkPicking(true);Click(G.LocalToAbsolute(FVector2D(1,1)));TestTrue(TEXT("Empty-space click clears walking destination"),W->WalkLocation().IsNearlyZero());
     App.RequestDestroyWindow(Window);return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicGlobeTest,"Catalyst.Landform.Tectonics.RenderedProgression",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLTectonicGlobeTest::RunTest(const FString&)
+{
+    auto* A=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/TectonicBase/DA_TectonicBase.DA_TectonicBase"));
+    if(!A){AddError(TEXT("Create the tectonic proof assets first"));return false;}
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic activity progression"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
+    const double Started=FPlatformTime::Seconds();
+    for(double Activity:{0.,.55,1.})
+    {
+        auto R=A->Recipe;R.Tectonics.Activity=Activity;FString Error;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+        Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
+    }
+    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));
+    const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];W->Mesh->CreateMeshSection_LinearColor(0,Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents,false);
+    if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
+    AddInfo(FString::Printf(TEXT("Three 192-cell tectonic globe buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
+    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Buffers,Plans]
+    {
+        IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-preset")),true);
+        TArray<FColor> First;int32 MostClipped=0,Earthy=0;double Difference=0;
+        for(int32 I=0;I<3;++I)
+        {
+            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            const FVector Eye=FVector(1,-1,.65).GetSafeNormal()*165000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            TestEqual(TEXT("Globe frame is rendered"),Pixels.Num(),800*600);int32 Clipped=0;for(const auto& C:Pixels){Clipped+=C.R>250&&C.G>250&&C.B>250;Earthy+=C.R>C.G+5&&C.G>C.B+3;}MostClipped=FMath::Max(MostClipped,Clipped);
+            if(I==0)First=Pixels;else if(I==2)for(int32 K=0;K<Pixels.Num()&&K<First.Num();++K)Difference+=FMath::Abs(int32(Pixels[K].R)-First[K].R)+FMath::Abs(int32(Pixels[K].G)-First[K].G)+FMath::Abs(int32(Pixels[K].B)-First[K].B);
+            TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/tectonic-preset/globe-%d.png"),I)));
+        }
+        TestTrue(TEXT("Scanned geological materials actually render"),Earthy>1000);TestTrue(TEXT("Activity changes the rendered surface visibly"),Difference/(800*600*3)>2);TestTrue(TEXT("Exposure remains legible"),MostClipped<800*600/100);
+        AddInfo(FString::Printf(TEXT("Rendered quiet/intense mean difference %.3f/255; clipped pixels %d"),Difference/(800*600*3),MostClipped));FSlateApplication::Get().RequestDestroyWindow(Window);
+    },.6f));return true;
 }
 #endif
