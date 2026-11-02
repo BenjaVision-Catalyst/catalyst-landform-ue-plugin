@@ -200,3 +200,8 @@ are checked against the matching projection snapshots. The host checkpoint
 retains results, source/binary hashes and performance limits. Interaction rays,
 animation, effects, chart handover and repeated vistas remain subsequent gates;
 local presentation does not close the strict 60 fps or temporal-image gates.
+
+
+## Local interaction checkpoint — 2026-11-02
+
+[Projected interaction tracing](ProjectedInteractions.md) now maps finite screen rays to conservatively bounded canonical curves and returns native hits with separate projected point/normal/distance. Natural curvature uses one line trace; curved queries refine swept envelopes with explicit budgets and refusal states. The host adds on-demand reticle selection and canonical hit events, plus packaged screen/normal/identity probes. The preceding gameplay checkpoint's statement that interaction tracing remained future work is superseded for this local fixture. Chart handover, repeated vistas and wider performance/lighting/temporal gates remain open.
