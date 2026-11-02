@@ -10,8 +10,8 @@ both endpoints. Repeated distant scenery is a later, explicitly bounded layer.
 
 The host's [packaged Nanite baseline](../../Projects/LandformLab/Docs/NaniteBaseline.md)
 records UE 5.7.4 / VPP 2.0p8 / M3 Max. Nanite, cooking and native walking pass;
-the strict 60 fps presented-interval p99 gate remains open. At 1080p High, GPU p99
-is 12.84 ms and presented-interval p99 is 17.78 ms. At Epic, GPU p99 is 16.36 ms,
+the strict 60 fps wall-clock game-frame p99 gate remains open. At 1080p High, GPU p99
+is 12.84 ms and wall-clock game-frame p99 is 17.78 ms. At Epic, GPU p99 is 16.36 ms,
 leaving insufficient room for the provisional 0.8 ms GPU projection budget.
 These are bounded Development-build results, not a minimum desktop specification.
 
@@ -156,3 +156,16 @@ including conservative residual WPO bounds, canonical material coordinates and
 current/previous frame state. Retain the unprojected control and the existing
 packaged gameplay/Nanite checks. Measure the 60 fps gap separately from any added
 projection cost before enabling the feature for gameplay.
+
+## GPU and chunk-fit checkpoint — 2026-11-02
+
+The shared shader, asynchronous cooked GPU verification and conservative chunk
+fit are implemented and tested. See [the GPU/chunk qualification](ProjectionGPU.md)
+for exact results, float-boundary semantics, the near-anchor CPU correction and
+live VPP chunk admission. These diagnostics do not apply render deformation.
+
+Next gate: implement the render-only VPP scene-proxy/material bridge with local
+WPO bounds, conservative detail selection, canonical coordinates and current/
+previous state. The large source chunks observed in the live probe require
+explicit culling-cost measurement; do not assume a passing analytic bound is a
+fast bound. Keep the original cooked Nanite control and the 60 fps gate intact.

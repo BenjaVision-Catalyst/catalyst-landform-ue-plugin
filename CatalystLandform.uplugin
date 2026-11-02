@@ -33,6 +33,11 @@
   ],
   "Modules": [
     {
+      "Name": "CatalystLandformRender",
+      "Type": "Runtime",
+      "LoadingPhase": "PostConfigInit"
+    },
+    {
       "Name": "CatalystLandform",
       "Type": "Runtime",
       "LoadingPhase": "Default"

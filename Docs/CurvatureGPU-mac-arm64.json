@@ -1,0 +1,234 @@
+{
+  "date": "2026-11-02",
+  "engine": "5.7.4",
+  "vpp": "2.0p8",
+  "platform": "Mac arm64 Metal SM6",
+  "hardware": "Apple M3 Max, 128 GB RAM",
+  "configuration": "Editor Development and cooked Game Development",
+  "source_sha256": {
+    "CatalystLandform.uplugin": "6664c17ee6fc87d7ad01952c28c9bea4c7e02ce0e680d0c29e630191f47b0de3",
+    "Shaders/Private/CLProjectionParity.usf": "20d70efc3f37b60982299de7ae6da37d8a56ae608c8b478c4ab7c23126d73e93",
+    "Shaders/Public/CLProjection.ush": "09720a90b5434bdae15de2e38b5998360d5792aae636aea3481cc6e7059b925b",
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "7e01b7624f7a0314099718592c4d6f7e582a0181f36b3cea3d08fb8b5b7ca44d",
+    "Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "d4902ad4ad1dfbdef7db78db7d6e9ae74aee1e2ee30c81f3f82464a375c64bd7",
+    "Source/CatalystLandform/Private/Presentation/CLProjectionChunk.cpp": "43395af89d9833bfbce6b02a0554b96e805487539e7e5ecda614c05152377ea5",
+    "Source/CatalystLandform/Private/Presentation/CLProjectionGPUVerification.cpp": "c953a6306a95743c5942cf4f2b85f40d08c7b316e1a7f3c212ee646d53b677fb",
+    "Source/CatalystLandform/Public/Presentation/CLPlanetProjection.h": "66f601f43b98f5a36dcb6cf420e0308c41aa5ec451bd710709e1b8b1932262ed",
+    "Source/CatalystLandform/Public/Presentation/CLProjectionChunk.h": "cb347debf54b6454bd74c9d46d69de0926d0ee9d4da96c550da97e83e2d2114f",
+    "Source/CatalystLandform/Public/Presentation/CLProjectionGPUVerification.h": "aa2fe90e22def7d5c542f3b3664e9ffb2a60fb89849834ea6b7cf6cab39428f2",
+    "Source/CatalystLandformRender/CatalystLandformRender.Build.cs": "a6d9f953b220b641ffc1d2be1db6d470a97a6a4ddb7188f2e78fb88daecc20f3",
+    "Source/CatalystLandformRender/Private/CLLandformRenderModule.cpp": "524ba3bef6bde26d2d45eeb636eeeaecd3edbeb5cce4987eeb44b477bf6656ee",
+    "Source/CatalystLandformRender/Private/CLProjectionGPU.cpp": "0331f91ca6de1156b156c2c176e13d929c9443131bbc23e22de1255e29e4737d",
+    "Source/CatalystLandformRender/Public/CLProjectionGPU.h": "fa4e85661e89ca8614b5fdb915bdcc8d3cfdffbed976daf3ef97c30775e6223e",
+    "Source/CatalystLandformTests/Private/CLPlanetProjectionTests.cpp": "05775eb4b10cd1a9b757636b4f420ba10e10dca45405fda182a729f7f0303d07",
+    "Source/CatalystLandformTests/Private/CLProjectionChunkTests.cpp": "afebb822defac0d0feaeea3980f8cf85791c145cd8bb2893029cacd478343b5b",
+    "Source/CatalystLandformTests/Private/CLProjectionGPUParityTests.cpp": "969422e36d87bd8c1290801dcc9924b8ee66ae5c33f0feba29c0fb8d64492bb9"
+  },
+  "editor_tests": {
+    "path": "Saved/Verification/projection-gpu-tight/index.json",
+    "succeeded": 7,
+    "failed": 0,
+    "test_warnings": 0,
+    "tests": [
+      {
+        "path": "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+        "state": "Success"
+      },
+      {
+        "path": "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+        "state": "Success"
+      },
+      {
+        "path": "Catalyst.Landform.Presentation.Endpoints",
+        "state": "Success"
+      },
+      {
+        "path": "Catalyst.Landform.Presentation.GPUParity",
+        "state": "Success"
+      },
+      {
+        "path": "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+        "state": "Success"
+      },
+      {
+        "path": "LandformLab.Inspection.EditorRoundTrip",
+        "state": "Success"
+      },
+      {
+        "path": "LandformLab.VPP.NativeFunctionRegistration",
+        "state": "Success"
+      }
+    ],
+    "sha256": "5bafe107e14b43a28a53fec227db20ae92d4a20c973955adc3821b9f5506c2b5"
+  },
+  "packaged_gpu": {
+    "run": {
+      "binary_sha256": "b224633b757c47b3f61301b9212d6233631e2500d945ae5a6d82d5d720eebd7f",
+      "bundle_id": "com.YourCompany.LandformLab",
+      "returncode": 0,
+      "scope": "Cooked GPU correctness diagnostic only; no gameplay performance claim",
+      "artifacts_sha256": {
+        "report.json": "98d0fa373e5f822ee1daad0c7843f2dbb2dd95aaa8164efadc5f03ddce66d7d5",
+        "runtime.log": "43f5e26d78e3cbd7a6f3b7fd99748b602eb7b6abebe28d9214d2c6d7f2d07107"
+      }
+    },
+    "results": {
+      "projectionGPUParity": true,
+      "projectionCharts": 18,
+      "projectionQueries": 2520,
+      "maxProjectionPositionErrorRadii": 3.1459401533412545e-07,
+      "maxProjectionInverseErrorRadii": 3.5408440064575e-07,
+      "maxProjectionVectorError": 7.017026441921005e-07,
+      "maxProjectionNormalError": 3.1418990815563915e-07,
+      "passed": true,
+      "elapsedSeconds": 0.6506366282701492
+    },
+    "artifacts_sha256": {
+      "report.json": "98d0fa373e5f822ee1daad0c7843f2dbb2dd95aaa8164efadc5f03ddce66d7d5",
+      "runtime.log": "43f5e26d78e3cbd7a6f3b7fd99748b602eb7b6abebe28d9214d2c6d7f2d07107",
+      "run.json": "26ee441d7c218361ab03ece6236deea4214dda1e9fa207f436baa9a0d1c8e2d1"
+    }
+  },
+  "nanite_control": {
+    "run": {
+      "binary_sha256": "b224633b757c47b3f61301b9212d6233631e2500d945ae5a6d82d5d720eebd7f",
+      "bundle_id": "com.YourCompany.LandformLab",
+      "sandbox_container": "/Users/jupiter/Library/Containers/com.YourCompany.LandformLab/Data/Library/Caches/CLRuntimeRecipeProof/Base",
+      "input_sha256": "b44262966dc9f08813a25674103126ca61697e89d7094db99e72940d863854a9",
+      "returncode": 0,
+      "renderer": "nanite",
+      "tessellation": false,
+      "chunk_probe": true,
+      "benchmark": true,
+      "requested_resolution": [
+        1920,
+        1080
+      ],
+      "trace": false,
+      "quality": "high",
+      "offscreen": false,
+      "fullscreen": false,
+      "meets_60fps_p99": false
+    },
+    "performance": {
+      "warmupSeconds": 5,
+      "samples": 3513,
+      "offscreenDiagnostic": false,
+      "timingScope": "Wall-clock intervals and delayed engine thread/GPU counters; not aligned per-frame critical paths",
+      "viewportWidthPixels": 1920,
+      "viewportHeightPixels": 1080,
+      "r.Nanite": 1,
+      "r.Nanite.ProjectEnabled": 1,
+      "r.VSync": 0,
+      "t.MaxFPS": 0,
+      "r.ScreenPercentage": 100,
+      "r.DynamicRes.OperationMode": 0,
+      "r.Shadow.Virtual.Enable": 1,
+      "sg.GlobalIlluminationQuality": 2,
+      "sg.ReflectionQuality": 2,
+      "sg.ShadowQuality": 2,
+      "sg.ViewDistanceQuality": 2,
+      "rhi.Metal.NonBlockingPresent": 0,
+      "r.OneFrameThreadLag": 1,
+      "wall": {
+        "meanMs": 12.42512532072701,
+        "p50Ms": 9.261582046747208,
+        "p95Ms": 17.384834587574005,
+        "p99Ms": 17.71458238363266,
+        "p999Ms": 18.792085349559784,
+        "maxMs": 30.04816547036171,
+        "framesOver16_67Ms": 1104
+      },
+      "game": {
+        "meanMs": 1.36749398721917,
+        "p50Ms": 1.3021667003631592,
+        "p95Ms": 1.9019166231155396,
+        "p99Ms": 2.8104584217071533,
+        "p999Ms": 3.676041603088379,
+        "maxMs": 4.243750095367432,
+        "framesOver16_67Ms": 0
+      },
+      "render": {
+        "meanMs": 12.421188619446966,
+        "p50Ms": 9.041250228881836,
+        "p95Ms": 17.290040969848633,
+        "p99Ms": 17.462833404541016,
+        "p999Ms": 17.811416625976562,
+        "maxMs": 30.569042205810547,
+        "framesOver16_67Ms": 1119
+      },
+      "rhi": {
+        "meanMs": 1.3549980066659408,
+        "p50Ms": 1.327541708946228,
+        "p95Ms": 1.6539583206176758,
+        "p99Ms": 1.8544166088104248,
+        "p999Ms": 2.145250082015991,
+        "maxMs": 2.6586666107177734,
+        "framesOver16_67Ms": 0
+      },
+      "gpu": {
+        "meanMs": 11.17910200640784,
+        "p50Ms": 11.107749938964844,
+        "p95Ms": 12.26270866394043,
+        "p99Ms": 12.968500137329102,
+        "p999Ms": 14.387749671936035,
+        "maxMs": 16.01183319091797,
+        "framesOver16_67Ms": 0
+      },
+      "rawSamplesSaved": true
+    },
+    "nanite_scene_proxies": 240,
+    "gameplay_passed": true,
+    "chunk_probe": {
+      "scope": "Canonical Nanite mesh admission and CPU bound diagnostic; no render deformation applied",
+      "referenceRadiusCm": 47000,
+      "minSourceBoxSphereRadiusCm": 118.8850185291122,
+      "maxSourceBoxSphereRadiusCm": 21799.790154929367,
+      "cases": [
+        {
+          "curvature": 0,
+          "chartValid": true,
+          "admittedChunks": 183,
+          "maxResidualCm": 8243.869442322226,
+          "maxResidualToSourceRadius": 0.794536113788476,
+          "maxStretch": 1.6161462149343209
+        },
+        {
+          "curvature": 0.5,
+          "chartValid": true,
+          "admittedChunks": 183,
+          "maxResidualCm": 4528.771754470565,
+          "maxResidualToSourceRadius": 0.4364786142244459,
+          "maxStretch": 1.3472836647973683
+        },
+        {
+          "curvature": 1,
+          "chartValid": true,
+          "admittedChunks": 183,
+          "maxResidualCm": 0,
+          "maxResidualToSourceRadius": 0,
+          "maxStretch": 1
+        }
+      ]
+    },
+    "artifacts_sha256": {
+      "report.json": "5ce770084625c0b4a81ba2989bc6f7fb78991d2c1b072aa240c384241c278df1",
+      "report.csv": "abc76896e5fe2d5e65692859645dfcb00d11b57cad93d7a2cb77c393715718b1",
+      "runtime.log": "363d71a83c5f4de227219836e90baf118042143de779d04faf4006ccfe35ecc9",
+      "run.json": "b1be76370592d5b5e98d3c7677f12641bc93bd643ad9de625b6ef79f634839e6"
+    }
+  },
+  "limitations": [
+    "GPU compute parity does not qualify Nanite programmable raster/material/depth/velocity/shadow integration",
+    "No terrain deformation applied in the control/probe",
+    "No curvature transition or incremental GPU/CPU frame cost measured",
+    "Current/previous presentation state, source residency/LOD, VSM/Lumen, projected gameplay queries and repeated vistas remain unimplemented",
+    "The strict 60 fps wall-clock game-frame p99 gate remains open"
+  ],
+  "host_source_sha256": {
+    "Source/LandformLab/Private/CLRuntimeRecipeProof.cpp": "6649164aa44b8a6d2ec50b2baab26f79c4de517af8859ce07adfd485c1662bbb",
+    "Source/LandformLab/Public/CLRuntimeRecipeProof.h": "c3d826d0c29a6ca770e19fc6c9ae4697a2e342295e2971d80a9a7984579ef467",
+    "scripts/verify-packaged-runtime-recipe.py": "004125924156c08a519e5bcda2d0a868e86c0b85a562ebb87b873ae075f1245d",
+    "scripts/verify-packaged-projection-gpu.py": "6f49deec5f6fdfc00c9ec97a598b35ff404f35cf82fafc8202ab97ff9b13bcce"
+  }
+}

@@ -155,6 +155,36 @@ bool FCLProjectionDomainTest::RunTest(const FString&)
         TestEqual(TEXT("Rejected settings preserve previous chart"), Projection.GetSettings().Curvature, S.Curvature);
     }
     TestTrue(TEXT("Previously valid chart remains usable"), Projection.TryProjectPosition(FVector(0, 0, 10000), Out));
+    for (const double C : {0., .5, 1.})
+    {
+        auto Far = S;
+        Far.Center = FVector(1.e9, -2.e9, 3.e9);
+        Far.AnchorDirection = FVector(1, 2, 3).GetSafeNormal();
+        Far.Curvature = C;
+        FCLPlanetProjection NearAnchor;
+        TestTrue(TEXT("Far-origin chart accepted"), FCLPlanetProjection::TryCreate(Far, NearAnchor));
+        FVector Tangent, Other;
+        Far.AnchorDirection.FindBestAxisVectors(Tangent, Other);
+        const FVector Source = Far.Center + Far.ReferenceRadiusCm * Far.AnchorDirection + 1.e-5 * Tangent;
+        const FVector U = (Source - Far.Center).GetSafeNormal();
+        FVector Actual;
+        TestTrue(TEXT("Near-anchor radial normal accepted"), NearAnchor.TryProjectNormal(Source, U, Actual));
+        TestTrue(TEXT("Near-anchor basis stays orthogonal"), Actual.Equals(Far.AnchorDirection, 2.e-9));
+    }
+    S.Curvature = 0;
+    TestTrue(TEXT("Flat chart admitted for normal scale check"), FCLPlanetProjection::TryCreate(S, Projection));
+    // Use a source inside the anchor cap, with a non-unit altitude Jacobian.
+    const FVector NormalPoint = FVector(.2, .1, 1).GetSafeNormal() * 9500;
+    const FVector Normal = FVector(1, -2, 3).GetSafeNormal();
+    FVector Expected;
+    TestTrue(TEXT("Unit normal accepted"), Projection.TryProjectNormal(NormalPoint, Normal, Expected));
+    for (const double Scale : {.0002, 1., 1.e30, 1.e300})
+    {
+        FVector Actual;
+        TestTrue(TEXT("Finite normal magnitude accepted"), Projection.TryProjectNormal(NormalPoint, Scale * Normal, Actual));
+        TestTrue(TEXT("Normal direction is independent of its magnitude"), Actual.Equals(Expected, 1.e-12));
+    }
+
     return true;
 }
 #endif

@@ -49,8 +49,8 @@ bool FCLPlanetProjection::Evaluate(const FVector& Source, FDifferential& Out) co
     if (!FMath::IsFinite(Radius) || Radius <= 0) return false;
     const FVector U = Offset / Radius;
     const double CosTheta = FMath::Clamp(FVector::DotProduct(U, S.AnchorDirection), -1., 1.);
-    const FVector Tangent = U - CosTheta * S.AnchorDirection;
-    const double SinTheta = Tangent.Length();
+    const FVector Cross = FVector::CrossProduct(S.AnchorDirection, U);
+    const double SinTheta = Cross.Length();
     const double Theta = FMath::Atan2(SinTheta, CosTheta);
     const double H = Radius - S.ReferenceRadiusCm;
     const double Tolerance = S.ReferenceRadiusCm * 1.e-12;
@@ -58,7 +58,7 @@ bool FCLPlanetProjection::Evaluate(const FVector& Source, FDifferential& Out) co
         return false;
 
     FVector D;
-    if (SinTheta > 1.e-12) D = Tangent / SinTheta;
+    if (SinTheta > 1.e-12) D = FVector::CrossProduct(Cross, S.AnchorDirection) / SinTheta;
     else
     {
         FVector Other;
@@ -130,9 +130,10 @@ bool FCLPlanetProjection::TryProjectNormal(const FVector& Source, const FVector&
 {
     FDifferential D;
     if (!Finite(Normal) || Normal.IsNearlyZero() || !Evaluate(Source, D)) return false;
-    const FVector Result = (FVector::DotProduct(Normal, D.SourceRadial) * D.PresentedRadial +
-        FVector::DotProduct(Normal, D.SourceMeridian) / D.MeridianScale * D.PresentedMeridian +
-        FVector::DotProduct(Normal, D.Azimuth) / D.AzimuthScale * D.Azimuth).GetSafeNormal();
+    const FVector Unit = (Normal / Normal.GetAbsMax()).GetSafeNormal();
+    const FVector Result = (FVector::DotProduct(Unit, D.SourceRadial) * D.PresentedRadial +
+        FVector::DotProduct(Unit, D.SourceMeridian) / D.MeridianScale * D.PresentedMeridian +
+        FVector::DotProduct(Unit, D.Azimuth) / D.AzimuthScale * D.Azimuth).GetSafeNormal();
     if (!Finite(Result) || Result.IsNearlyZero()) return false;
     Out = Result;
     return true;

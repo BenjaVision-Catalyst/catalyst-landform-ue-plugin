@@ -1,0 +1,116 @@
+#ifndef CL_PLANET_PROJECTION_USH
+#define CL_PLANET_PROJECTION_USH
+
+// Planet-relative positions divided by the physical reference radius. No absolute world floats.
+// The CPU admits a chart strictly inside a hemisphere; this is its FP32 implementation.
+struct FCLProjectionFrame
+{
+    float3 Anchor;
+    float Curvature;
+    float MaxArc;
+    float MinAltitude;
+    float MaxAltitude;
+};
+
+struct FCLProjectionDifferential
+{
+    float3 Position;
+    float3 SourceRadial;
+    float3 SourceMeridian;
+    float3 Azimuth;
+    float3 PresentedRadial;
+    float3 PresentedMeridian;
+    float MeridianScale;
+    float AzimuthScale;
+};
+
+float CLProjectionSinc(float X)
+{
+    if (abs(X) < 0.01f)
+    {
+        float X2 = X * X;
+        return 1.0f - X2 / 6.0f + X2 * X2 / 120.0f;
+    }
+    return sin(X) / X;
+}
+
+bool CLProjectionEvaluate(FCLProjectionFrame F, float3 Source, out FCLProjectionDifferential D)
+{
+    D = (FCLProjectionDifferential)0;
+    float Radius = length(Source);
+    if (!all(isfinite(Source)) || !isfinite(Radius) || Radius <= 0.0f) return false;
+    float3 U = Source / Radius;
+    float CosTheta = clamp(dot(U, F.Anchor), -1.0f, 1.0f);
+    float3 Cross = cross(F.Anchor, U);
+    float SinTheta = length(Cross);
+    float Theta = atan2(SinTheta, CosTheta);
+    float H = Radius - 1.0f;
+    // Admission tolerance covers float input quantization, not additional terrain coverage.
+    const float DomainTolerance = 2.0e-6f;
+    if (Theta > F.MaxArc + DomainTolerance || H < F.MinAltitude - DomainTolerance ||
+        H > F.MaxAltitude + DomainTolerance) return false;
+    float3 Direction;
+    if (SinTheta > 1.0e-7f) Direction = cross(Cross, F.Anchor) / SinTheta;
+    else Direction = normalize(cross(F.Anchor, abs(F.Anchor.z) < 0.9f ? float3(0, 0, 1) : float3(1, 0, 0)));
+    float A = F.Curvature * Theta;
+    float SinA, CosA;
+    sincos(A, SinA, CosA);
+    float TangentDistance = (1.0f + F.Curvature * H) * Theta * CLProjectionSinc(A);
+    float HalfSinc = CLProjectionSinc(A * 0.5f);
+    float Z = H * CosA - 0.5f * F.Curvature * Theta * Theta * HalfSinc * HalfSinc;
+    D.Position = F.Curvature == 1.0f ? Source : (1.0f + Z) * F.Anchor + TangentDistance * Direction;
+    D.SourceRadial = U;
+    D.SourceMeridian = -SinTheta * F.Anchor + CosTheta * Direction;
+    D.Azimuth = cross(F.Anchor, Direction);
+    D.PresentedRadial = CosA * F.Anchor + SinA * Direction;
+    D.PresentedMeridian = -SinA * F.Anchor + CosA * Direction;
+    D.MeridianScale = (1.0f + F.Curvature * H) / Radius;
+    D.AzimuthScale = D.MeridianScale * CLProjectionSinc(A) / CLProjectionSinc(Theta);
+    return all(isfinite(D.Position)) && D.MeridianScale > 0.0f && D.AzimuthScale > 0.0f;
+}
+
+bool CLProjectionInverse(FCLProjectionFrame F, float3 Presented, out float3 Source)
+{
+    Source = 0;
+    if (!all(isfinite(Presented))) return false;
+    float3 V = Presented - F.Anchor;
+    float Z = dot(V, F.Anchor);
+    float3 Tangent = V - Z * F.Anchor;
+    float X = length(Tangent);
+    float CX = F.Curvature * X;
+    float OnePlusCZ = 1.0f + F.Curvature * Z;
+    if (OnePlusCZ <= 0.0f || !isfinite(X)) return false;
+    float Arc = F.Curvature > 0.0f ? atan2(CX, OnePlusCZ) / F.Curvature : X;
+    float H = F.Curvature > 0.0f ? (2.0f * Z + F.Curvature * (X * X + Z * Z)) /
+        (sqrt(CX * CX + OnePlusCZ * OnePlusCZ) + 1.0f) : Z;
+    float SinArc, CosArc;
+    sincos(Arc, SinArc, CosArc);
+    float3 Candidate = (1.0f + H) * (CosArc * F.Anchor + SinArc * (X > 0.0f ? Tangent / X : float3(0, 0, 0)));
+    FCLProjectionDifferential Check;
+    if (!CLProjectionEvaluate(F, Candidate, Check) || length(Check.Position - Presented) > 4.0e-6f) return false;
+    Source = Candidate;
+    return true;
+}
+
+float3 CLProjectionVector(FCLProjectionDifferential D, float3 Vector)
+{
+    return dot(Vector, D.SourceRadial) * D.PresentedRadial +
+        dot(Vector, D.SourceMeridian) * D.MeridianScale * D.PresentedMeridian +
+        dot(Vector, D.Azimuth) * D.AzimuthScale * D.Azimuth;
+}
+
+float3 CLProjectionUnit(float3 V)
+{
+    // Normalize at unit scale, avoiding overflow and Metal's inaccurate tiny-vector normalize.
+    V /= max(abs(V.x), max(abs(V.y), abs(V.z)));
+    return normalize(V);
+}
+
+float3 CLProjectionNormal(FCLProjectionDifferential D, float3 Normal)
+{
+    Normal = CLProjectionUnit(Normal);
+    return CLProjectionUnit(dot(Normal, D.SourceRadial) * D.PresentedRadial +
+        dot(Normal, D.SourceMeridian) / D.MeridianScale * D.PresentedMeridian +
+        dot(Normal, D.Azimuth) / D.AzimuthScale * D.Azimuth);
+}
+#endif

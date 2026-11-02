@@ -1,0 +1,58 @@
+#include "/Engine/Public/Platform.ush"
+#include "/Plugin/CatalystLandform/Public/CLProjection.ush"
+
+struct FCLProjectionQuery
+{
+    float4 Source;
+    float4 Presented;
+    float4 Vector;
+    float4 Normal;
+};
+struct FCLProjectionResult
+{
+    float4 Position;
+    float4 Inverse;
+    float4 Vector;
+    float4 Normal;
+};
+StructuredBuffer<FCLProjectionQuery> Inputs;
+RWStructuredBuffer<FCLProjectionResult> Outputs;
+uint NumQueries;
+float3 AnchorDirection;
+float Curvature;
+float MaxArcRadians;
+float MinAltitude;
+float MaxAltitude;
+
+[numthreads(64, 1, 1)]
+void MainCS(uint3 DispatchThreadId : SV_DispatchThreadID)
+{
+    uint Index = DispatchThreadId.x;
+    if (Index >= NumQueries) return;
+    FCLProjectionFrame F;
+    F.Anchor = normalize(AnchorDirection);
+    F.Curvature = Curvature;
+    F.MaxArc = MaxArcRadians;
+    F.MinAltitude = MinAltitude;
+    F.MaxAltitude = MaxAltitude;
+    FCLProjectionQuery Q = Inputs[Index];
+    FCLProjectionResult Result = (FCLProjectionResult)0;
+    FCLProjectionDifferential D;
+    if (CLProjectionEvaluate(F, Q.Source.xyz, D))
+    {
+        Result.Position = float4(D.Position, 1);
+        if (all(isfinite(Q.Vector.xyz)))
+        {
+            float3 V = F.Curvature == 1.0f ? Q.Vector.xyz : CLProjectionVector(D, Q.Vector.xyz);
+            Result.Vector = float4(V, all(isfinite(V)) ? 1 : 0);
+        }
+        if (all(isfinite(Q.Normal.xyz)) && any(abs(Q.Normal.xyz) > 1.0e-4f))
+        {
+            float3 N = F.Curvature == 1.0f ? CLProjectionUnit(Q.Normal.xyz) : CLProjectionNormal(D, Q.Normal.xyz);
+            Result.Normal = float4(N, all(isfinite(N)) ? 1 : 0);
+        }
+    }
+    float3 Source;
+    if (CLProjectionInverse(F, Q.Presented.xyz, Source)) Result.Inverse = float4(Source, 1);
+    Outputs[Index] = Result;
+}
