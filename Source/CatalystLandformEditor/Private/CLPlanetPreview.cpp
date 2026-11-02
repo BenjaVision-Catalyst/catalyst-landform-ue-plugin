@@ -822,8 +822,12 @@ bool FCLGlobeWalkPickingTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicGlobeTest,"Catalyst.Landform.Tectonics.RenderedProgression",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLTectonicGlobeTest::RunTest(const FString&)
 {
-    auto* A=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/TectonicBase/DA_TectonicBase.DA_TectonicBase"));
-    if(!A){AddError(TEXT("Create the tectonic proof assets first"));return false;}
+    // The comparison owns its input; editing the user's planet may legitimately
+    // remove its material stack or pin controls that invalidate a progression test.
+    FString Json,ImportError;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
+    if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/TectonicBase.json")))||!A->ImportRecipeJson(Json,ImportError))
+    {AddError(TEXT("Cannot load the owned tectonic comparison: ")+ImportError);return false;}
     auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic activity progression"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
@@ -831,6 +835,7 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
     for(int32 I=0;I<4;++I)
     {
         auto R=A->Recipe;R.Tectonics.Activity=I==0?0:I==1?.55:1.;R.Tectonics.AlgorithmVersion=I==3?1:2;FString Error;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+        if(!P->Surfaces){AddError(TEXT("The owned comparison requires its geological material stack"));App.RequestDestroyWindow(Window);return false;}
         Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
     }
     W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));

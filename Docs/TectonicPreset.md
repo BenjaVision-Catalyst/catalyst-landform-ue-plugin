@@ -4,6 +4,9 @@ The first tectonic preset adds present-day structural relief to the shared plane
 field. Planet Builder exposes it in the left **Base planet preset** section.
 Enable **Tectonic rocky world**, then adjust **Tectonic activity** from Quiet to
 Intense. The globe and cross-section regenerate while the slider is being used.
+**Advanced** is a standard collapsible row directly below the knob. It reveals
+the detailed controls in place, keeping the knob visible on the Planet tab.
+Expanding or collapsing the row does not change the recipe or regenerate terrain.
 A drag produces one undoable change;
 camera navigation and idle frames do not regenerate terrain. Rapid input is
 coalesced to the newest value at up to roughly eight updates per second. Draft
@@ -96,6 +99,14 @@ cross-belt relief paths over long boundaries at maximum activity, checks
 continuity on all six sphere faces, and renders both algorithms from three
 directions. These checks support a geometry regression review; they do not
 establish that a noise deformation is a physical plate-history simulation.
+
+`Catalyst.Landform.Tectonics.InlineAdvanced` checks that the native expander keeps
+the Planet tab foreground, advanced edits validate before changing the recipe,
+and Undo/Redo synchronizes the inline property draft. On Mac arm64 / UE 5.7.4,
+all seven tectonic checks pass, including live knob input and rendered progression;
+the report is `Saved/Verification/tectonic-inline-advanced/index.json`. Render
+comparisons own a fixed example recipe so user-edited material stacks and pins do
+not change the test fixture.
 
 In LandformLab, `scripts/create-tectonic-preset.py` creates only the owned assets
 and exports `Content/RuntimeRecipes/Tectonic`. Run

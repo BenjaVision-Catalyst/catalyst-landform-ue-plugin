@@ -5,6 +5,7 @@
 #include "CLNoiseLayerStack.h"
 #include "CLRegionGenerationPanel.h"
 #include "IDetailsView.h"
+#include "IStructureDetailsView.h"
 #include "PropertyEditorModule.h"
 #include "AssetToolsModule.h"
 #include "IAssetTools.h"
@@ -633,6 +634,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLTerrainWorkspaceTest;
     friend class FCLTectonicLiveKnobTest;
+    friend class FCLTectonicAdvancedTest;
 #endif
     TSharedPtr<SCLSectionViewport> Preview;
     TSharedPtr<SCLPlanetPreview> Globe;
@@ -641,6 +643,9 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     FTSTicker::FDelegateHandle TectonicTicker;
     TUniquePtr<FScopedTransaction> TectonicDragTransaction;
     TSharedPtr<SSlider> TectonicSlider;
+    TSharedPtr<SExpandableArea> TectonicAdvanced;
+    TSharedPtr<IStructureDetailsView> TectonicDetails;
+    TSharedPtr<FStructOnScope> TectonicDraft;
     FGuid WalkRequestId;
     FString WalkStatus=TEXT("Choose a location on the globe, then walk there.");
     TSharedPtr<SCLHeightAnnotations> Annotations;
@@ -757,6 +762,7 @@ public:
                     FText::FromString(TerrainEditing ? TEXT("Export terrain type") : TEXT("Export recipe")), FText::FromString(TEXT("Export the authored definition through Foundation")));
             }));
         AddToolbarExtender(Extender); RegenerateMenusAndToolbars();
+        if(!TerrainEditing)GetTabManager()->TryInvokeTab(PlanetTab);
         // Explicit asset target; don't use Foundation's legacy first-PIE-service lookup.
         Refresh();
     }
@@ -952,11 +958,26 @@ public:
         FCLTectonicControls C;FString Error;if(!FCLTectonicControls::Resolve(P,C,Error))return FText::FromString(Error);
         return FText::FromString(FString::Printf(TEXT("%s · %.0f%% activity · %d%s plates"),P.Activity<.2?TEXT("Quiet"):P.Activity<.75?TEXT("Active"):TEXT("Intense"),P.Activity*100,C.LowerPlateCount,C.UpperPlateCount!=C.LowerPlateCount&&C.PlateTransition>1.e-5?*FString::Printf(TEXT("–%d"),C.UpperPlateCount):TEXT("")));
     }
-    void EditTectonics()
+    TSharedRef<SWidget> BuildTectonicAdvanced()
     {
-        FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(UCLPlanetRecipeAsset::StaticClass(),TEXT("Recipe"))));
-        Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLPlanetRecipe::StaticStruct(),TEXT("Tectonics"))));
-        GetTabManager()->TryInvokeTab(DetailsTabId);DetailsView->ScrollPropertyIntoView(Path,true);
+        TectonicDraft=MakeShared<FStructOnScope>(FCLTectonicPreset::StaticStruct());
+        *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=RecipeAsset()->Recipe.Tectonics;
+        FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.bUpdatesFromSelection=false;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
+        FStructureDetailsViewArgs StructArgs;
+        TectonicDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,StructArgs,TSharedPtr<FStructOnScope>(),FText::GetEmpty());
+        TectonicDetails->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
+        {const FName Name=P.Property.GetFName();return Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,Activity)&&Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,bEnabled)&&Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,AlgorithmVersion);}));
+        TectonicDetails->GetOnFinishedChangingPropertiesDelegate().AddSPLambda(this,[this](const FPropertyChangedEvent& Event)
+        {
+            if(!TectonicDraft||(Event.ChangeType&EPropertyChangeType::Interactive))return;
+            // Keep property gestures in a draft so validation and one-step Undo own the commit.
+            const auto Preset=*reinterpret_cast<const FCLTectonicPreset*>(TectonicDraft->GetStructMemory());
+            if(!CommitTectonicPreset(Preset))*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=RecipeAsset()->Recipe.Tectonics;
+        });
+        TectonicDetails->SetStructureData(TectonicDraft);
+        return SAssignNew(TectonicAdvanced,SExpandableArea).InitiallyCollapsed(true)
+            .HeaderContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Advanced")))]
+            .BodyContent()[SNew(SBox).Padding(FMargin(0,6,0,0)).IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Tectonics.bEnabled&&!bTectonicDragging;})[TectonicDetails->GetWidget().ToSharedRef()]];
     }
     void EditStructure()
     {
@@ -990,6 +1011,7 @@ public:
     void Refresh()
     {
         auto* Asset = RecipeAsset();
+        if(TectonicDraft)*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=Asset->Recipe.Tectonics;
         if (TerrainEditing) TerrainSource.Reset(TerrainEditing->Asset);
         else if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
         else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
@@ -1117,8 +1139,7 @@ public:
                 .OnValueChanged_Lambda([this](float V){PendingTectonicActivity=FMath::Clamp(double(V),0.,1.);if(bTectonicDragging)PumpTectonicChanges(false);else{auto P=RecipeAsset()->Recipe.Tectonics;P.Activity=PendingTectonicActivity;CommitTectonicPreset(P);}})]
             +SVerticalBox::Slot().AutoHeight().Padding(0,5)[SNew(STextBlock).AutoWrapText(true)
                 .Text_Lambda([this]{return FText::FromString(bTectonicDragging?TEXT("Live draft preview · refining as you drag"):TEXT("Quiet crust → active plates → pronounced tectonic relief"));})]
-            +SVerticalBox::Slot().AutoHeight()[SNew(SButton).Text(FText::FromString(TEXT("Advanced…")))
-                .OnClicked_Lambda([this]{EditTectonics();return FReply::Handled();})]);
+            +SVerticalBox::Slot().AutoHeight()[BuildTectonicAdvanced()]);
         AddSection(TEXT("View"), SNew(SVerticalBox)
             +SVerticalBox::Slot().AutoHeight()[SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
                 +SWrapBox::Slot()[SNew(SButton).Text_Lambda([this]{return FText::FromString(bGlobe?TEXT("Cross-section"):TEXT("Globe"));}).OnClicked_Lambda([this]{bGlobe=!bGlobe;Refresh();return FReply::Handled();})]
@@ -1695,6 +1716,30 @@ public:
     virtual bool Update() override
     {if(Globe->IsUpdating()&&FPlatformTime::Seconds()-Started<30)return false;Check();return true;}
 };
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicAdvancedTest,"Catalyst.Landform.Tectonics.InlineAdvanced",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLTectonicAdvancedTest::RunTest(const FString&)
+{
+    const auto Package=CreatePackage(*(TEXT("/Temp/CLAdvanced_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));Asset->Recipe=FCLPlanetCompiler::TectonicBase();
+    const auto Original=Asset->Recipe;const auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset.Get(),EToolkitMode::Standalone,nullptr);
+    Editor->Globe->Cancel();const uint64 Builds=Editor->Globe->PublishedBuilds();
+    TestFalse(TEXT("Advanced starts collapsed below the knob"),Editor->TectonicAdvanced->IsExpanded());Editor->TectonicAdvanced->SetExpanded(true);
+    TestTrue(TEXT("Revealing Advanced keeps the Planet tab foreground"),Editor->GetTabManager()->FindExistingLiveTab(FCLRecipeToolkit::PlanetTab)->IsForeground());
+    TestTrue(TEXT("Revealing controls preserves the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
+    TestTrue(TEXT("The one-knob control remains in the same editor"),Editor->TectonicSlider.IsValid());
+    auto* Property=FCLTectonicPreset::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,PlateCount));
+    auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(Editor->TectonicDraft->GetStructMemory());Draft.bOverridePlateCount=true;Draft.PlateCount=4;
+    FPropertyChangedEvent Interactive(Property,EPropertyChangeType::Interactive);Editor->TectonicDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Interactive);
+    TestFalse(TEXT("Interactive advanced edits stay in their draft"),Asset->Recipe.Tectonics.bOverridePlateCount);
+    FPropertyChangedEvent Finished(Property,EPropertyChangeType::ValueSet);Editor->TectonicDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Finished);
+    FString Error;FCLTectonicControls Controls;FCLTectonicControls::Resolve(Asset->Recipe.Tectonics,Controls,Error);
+    TestEqual(TEXT("Committed advanced pin reaches the planet compiler"),Controls.LowerPlateCount,4);TestEqual(TEXT("Pin leaves activity unchanged"),Asset->Recipe.Tectonics.Activity,Original.Tectonics.Activity);
+    GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the advanced edit"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
+    TestFalse(TEXT("Inline draft follows Undo"),Draft.bOverridePlateCount);GEditor->RedoTransaction();TestEqual(TEXT("Redo restores the pin"),Asset->Recipe.Tectonics.PlateCount,4);
+    Draft.PlateCount=99;Editor->TectonicDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Finished);TestEqual(TEXT("Invalid advanced edits preserve the accepted recipe"),Asset->Recipe.Tectonics.PlateCount,4);TestEqual(TEXT("Invalid draft returns to the accepted value"),Draft.PlateCount,4);
+    Editor->TectonicAdvanced->SetExpanded(false);TestEqual(TEXT("Reveal alone publishes no geometry"),Editor->Globe->PublishedBuilds(),Builds);
+    Asset->GetOutermost()->SetDirtyFlag(false);TestTrue(TEXT("Inline editor retires"),Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicLiveKnobTest,"Catalyst.Landform.Tectonics.LiveKnobAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLTectonicLiveKnobTest::RunTest(const FString&)
 {
