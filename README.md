@@ -6,6 +6,12 @@ data, and radial character movement alongside explicit Foundation/Connect/VPP
 dependencies. The first local recipe compiler and Designer section preview are
 implemented; backend delivery and the full Designer remain future work.
 
+The [shared scene foundation](Docs/PlanetDesignSystem.md#shared-scene-foundation-checkpoint--3-november-2026)
+adds immutable body-space XYZ queries around the existing radial compiler and
+routes recipe-only spherical VPP terrain through them. This preserves current
+height-based worlds; general cave/overhang topology and volume previews are the
+next implementation slice, not capabilities of this bridge.
+
 `FCLFlatStampGrid` holds ordinary rectangular height samples. `FCLPlanetShape`
 maps surface directions into that flat grid using the spherical logarithm map,
 and evaluates a closed radial field for VPP's standard shape stamp. Its zero

@@ -8,6 +8,8 @@
 #include "Model/CLPlanetRecipe.h"
 #include "CLPlanetStamp.generated.h"
 
+class FCLScene;
+
 /** Immutable placement copied from an authoring actor; all distances are cm. */
 USTRUCT()
 struct CATALYSTLANDFORM_API FCLSphericalHeightmapPlacement
@@ -65,6 +67,9 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     TArray<FSource> Sources;
     double Extent = 10000;
     TSharedPtr<const FCLCompiledPlanetRecipe> RecipePlan;
+    /** Shared XYZ scene for recipe-only spherical terrain with matching radii.
+     * Actor/planar/custom-radius profiles retain their pinned legacy path. */
+    TSharedPtr<const FCLScene> Scene;
 
     virtual bool Initialize(FVoxelDependencyCollector& Dependencies) override;
     virtual FVoxelBox GetLocalBounds() const override;

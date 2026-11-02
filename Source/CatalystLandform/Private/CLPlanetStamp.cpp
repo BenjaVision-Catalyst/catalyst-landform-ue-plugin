@@ -4,6 +4,8 @@
 #include "Heightmap/VoxelHeightmap_Height.h"
 #include "VoxelStampUtilities.h"
 #include "Surface/VoxelSurfaceTypeBlendBuilder.h"
+#include "Scene/CLBodyFrame.h"
+#include "Scene/CLScene.h"
 
 bool FCLSphericalHeightmapPlacement::ToChart(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
@@ -88,7 +90,17 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
             FMath::Abs(Placement.HeightOffset) + Placement.Source.Smoothness;
         Sources.Add(MoveTemp(Source));
     }
-    if (RecipePlan) Extent = Stamp.Radius;
+    if (RecipePlan)
+    {
+        Extent = Stamp.Radius;
+        if (Sources.IsEmpty() && !Stamp.bPlanarSources && RecipePlan->Coordinates != ECLTerrainCoordinates::LocalPatch &&
+            FMath::IsNearlyEqual(Stamp.Radius, RecipePlan->RadiusMeters * 100., 1.e-6))
+        {
+            FString Error;
+            Scene = FCLScene::FromLegacyRadial(RecipePlan, Error);
+            if (!Scene) return false;
+        }
+    }
     return true;
 }
 
@@ -141,6 +153,29 @@ void FCLPlanetStampRuntime::ApplySources(const FVoxelQuery& Query, const FVoxelD
 
 FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Positions) const
 {
+    if (Scene)
+    {
+        FVoxelFloatBuffer Distances;
+        Distances.Allocate(Positions.Num());
+        const FCLBodyFrame Frame;
+        for (int32 Start = 0; Start < Positions.Num(); Start += 512)
+        {
+            const int32 Count = FMath::Min(512, Positions.Num() - Start);
+            TArray<FVector3d> BodyPositions;
+            BodyPositions.Reserve(Count);
+            for (int32 I = 0; I < Count; ++I) BodyPositions.Add(Frame.NativeToBodyMeters(Positions[Start + I]));
+            TArray<FCLSceneShapeSample> Samples;
+            FString Error;
+            const bool bSampled = Scene->SampleShape({BodyPositions}, Samples, Error);
+            checkf(bSampled, TEXT("Compiled point scene query failed: %s"), *Error);
+            for (int32 I = 0; I < Count; ++I)
+            {
+                check(Samples[I].State == ECLSceneSampleState::Known);
+                Distances.Set(Start + I, Samples[I].FieldMeters * 100.);
+            }
+        }
+        return Distances;
+    }
     FVoxelFloatBuffer Distances = SampleHeights(Query, Positions);
     for (int32 I = 0; I < Positions.Num(); ++I)
         Distances.Set(I, Positions[I].Size() - Stamp.Radius - Distances[I]);
@@ -167,6 +202,36 @@ FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVo
 {
     FVoxelSurfaceTypeBlendBuffer Out;Out.Allocate(Positions.Num());
     if(!RecipePlan||!RecipePlan->Surfaces){for(int32 I=0;I<Positions.Num();++I)Out.Set(I,FVoxelSurfaceTypeBlend());return Out;}
+    if (Scene)
+    {
+        const FCLBodyFrame Frame;
+        FVoxelSurfaceTypeBlendBuilder Builder;
+        for (int32 Start = 0; Start < Positions.Num(); Start += 512)
+        {
+            const int32 Count = FMath::Min(512, Positions.Num() - Start);
+            TArray<FVector3d> BodyPositions;
+            BodyPositions.Reserve(Count);
+            for (int32 I = 0; I < Count; ++I) BodyPositions.Add(Frame.NativeToBodyMeters(Positions[Start + I]));
+            TArray<FCLSceneSurfaceSample> Samples;
+            FString Error;
+            const bool bSampled = Scene->SampleSurfaces({BodyPositions}, Samples, Error);
+            checkf(bSampled, TEXT("Compiled surface scene query failed: %s"), *Error);
+            for (int32 I = 0; I < Count; ++I)
+            {
+                Builder.Reset();
+                for (const auto& Weight : Samples[I].Weights)
+                {
+                    const int32 Index = RecipePlan->Surfaces->Find(Weight.Id, Weight.Revision);
+                    check(Index != INDEX_NONE);
+                    Builder.AddLayer(RecipePlan->Surfaces->NativeTypes[Index], Weight.Weight);
+                }
+                FVoxelSurfaceTypeBlend Blend;
+                Builder.Build(Blend);
+                Out.Set(Start + I, Blend);
+            }
+        }
+        return Out;
+    }
     TArray<FVector> D;D.SetNumUninitialized(Positions.Num());for(int32 I=0;I<D.Num();++I)D[I]=Positions[I].GetSafeNormal();
     TArray<FCLSurfaceWeights> Weights;
     if(Sources.IsEmpty())RecipePlan->SampleSurfaceWeights(D,Weights);

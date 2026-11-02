@@ -1094,3 +1094,108 @@ resource descriptors and revision identity start in P1; P3/P5 deepen those same
 contracts. Visual geology work may proceed on bounded examples after P1/P2,
 but production readiness waits for resource, activation and performance gates.
 No runtime capability is implemented or qualified by this planning change.
+
+## Shared scene foundation checkpoint — 3 November 2026
+
+This is the first bounded implementation slice of P0/P1, not completion of the
+general-volume milestone. Existing recipe-only spherical terrain now evaluates
+native VPP shape and material queries through an immutable XYZ scene boundary.
+The authored schema, geological algorithms, guide behavior and saved assets are
+unchanged. The portable generalized recipe and accepted-scene identity/resource
+protocol are still planned; query contract version 1 is not that backend format.
+
+### Implemented boundary
+
+- [FCLScene](../Source/CatalystLandform/Public/Scene/CLScene.h) owns an existing
+  compiled radial plan and provides body-space shape and logical material queries.
+  Its public headers contain no VPP/editor types or UObject references. Native
+  catalog/asset ownership stays behind the retained compiled provider.
+- [Query values](../Source/CatalystLandform/Public/Scene/CLSceneQuery.h) distinguish
+  known field values, no contribution, unavailable data, outside-domain and invalid
+  queries. The resident radial provider returns known shape values or invalid
+  samples; absent exterior material is no contribution. A pager does not yet
+  produce the reserved unavailable/outside-domain states. Invalid requests clear
+  old output; invalid points do not become known air. Nonzero sampling footprints
+  are explicitly refused until filtering is qualified.
+- [FCLBodyFrame](../Source/CatalystLandform/Public/Scene/CLBodyFrame.h) converts
+  rigid local native centimetres to double body metres and back. It has no scale
+  or curvature deformation. Shape evaluation cancels radial offsets in double
+  before the adapter converts the local signed value to native float centimetres.
+- The radial field declares signed-implicit semantics and no conservative march
+  step bound. It must not be passed to an exact-SDF marcher. Its zero interface,
+  exterior material attribution and outer-sky clipping retain the pinned provider.
+- [CLPlanetStamp](../Source/CatalystLandform/Private/CLPlanetStamp.cpp) uses the
+  scene for recipe-only spherical profiles with matching recipe/stamp radii. Both
+  native bulk and sparse shape paths, and sparse logical-to-native material
+  binding, consume that scene. Native slot capacity is absent from the scene API.
+  Sampling scratch work is bounded in 512-point batches.
+- Actor stamp, planar/local-patch and independently sized stamp profiles retain
+  the explicit legacy path. Local and face-scoped plans cannot claim to be a
+  complete body scene. Native additive base composition is covered; this does
+  not qualify arbitrary volume Override graphs or every VPP operator combination.
+
+The existing Designer/globe height-mesh fast paths still consume the same retained
+radial compiler output. They have not been converted to render arbitrary volume
+topology. No camera, projection shader, picking/physics coordinate convention or
+studio lighting behavior changes in this slice.
+
+### Independent preservation evidence
+
+The host's [capture script](../../Projects/LandformLab/scripts/capture-scene-reference.py)
+ran with the pre-scene editor binary before staging/rebuilding the implementation.
+It did not save assets. The committed [reference](../conformance/scene-preservation-v1.json)
+contains six resolved saved examples: mountains, plateaus, mixed local terrain,
+mountain structures/stamps, continents and tectonics. It retains 462 selected
+face-grid samples, logical material weights, 185 complete stamp placements,
+resource identities and old module binary/staging hashes. The mixed local example
+remains a preservation case on its original domain, not a spherical-scene claim.
+The capture also hashed 205 existing host/component content and configuration
+files; their local preservation manifest remains under host
+`Saved/Verification/scene-foundation-before/protected-files.json`.
+
+The [scene tests](../Source/CatalystLandformTests/Private/CLSceneTests.cpp) compare
+against that old-binary reference, analytic rigid-frame/flat-sphere oracles and
+actual VPP queries. They cover invalid/empty inputs, point-vs-filtered requests,
+512/513/1025 sample boundaries, frozen-plan lifetime after authoring changes,
+worker execution, local/face refusal and explicit unmigrated native profiles.
+The native test uses VPP's canonical void value and normal additive composition;
+an early fixture incorrectly used volume Override, whose material alpha is a
+graph responsibility, and was corrected without changing vendor code.
+
+The [qualification record](../conformance/scene-foundation-mac-arm64.json) retains
+source/report/binary hashes, actual results and remaining gates. The full affected
+editor suite passed all **125 checks** (123 clean, two with nonblocking warnings:
+the existing disabled Mesh Modeling material dependency and a transient HTTP
+timeout). The final three scene/oracle tests pass cleanly. An added independent
+90-degree axis/unit oracle initially used float `UE_PI`; it was corrected to
+`UE_DOUBLE_PI` without loosening the precision tolerance.
+
+| Check | Observed result |
+| --- | --- |
+| Old-binary reference, six cases / 462 samples | Maximum height difference `2.32035e-10 m`; material-weight difference `1.02455e-11`; all 185 complete stamp placements preserved |
+| Shared scene interfaces on five spherical cases | Maximum residual `2.84217e-13 m`; local-patch case remains on its declared domain |
+| Native bulk/sparse grid, 105 points | Field difference `3.80797e-6 cm`; material quantization difference `1.52190e-5` |
+| Old/new native field equation | Maximum change from delaying height-float conversion `0.000970026 cm` |
+| Double frame round trip | Maximum local error `2.61964e-8 cm` in the bounded CPU fixture |
+| Packaged native walking and shared camera | Shared scene active, contract version 1; three joins crossed; three jumps/takeoffs/landings; 4,507/4,507 grounded frames on native voxel collision |
+| Packaged projected interactions | 182 queries, 93 canonical hit dispatches, 89 clear misses, zero refusals; existing inverse-ray/projection checks pass |
+| Saved content/configuration preservation | All 205 original file hashes unchanged |
+
+The Mac Development executable was rebuilt and packaged with the unchanged,
+previously qualified native-material/shader cook. The functional run used the
+native scanned-rock projection fixture and is not a performance benchmark; an
+editor test build overlapped its beginning. The strict 60 fps gate stays open.
+CPU frame tests do not qualify Mars/Earth native terrain precision. The first
+slice also does not establish full volume previews, live paging or spherical
+navigation. Raw reports, screenshots, binary and preservation manifest remain
+local under the host's `Saved/Verification/scene-foundation-*` and
+`Saved/Packages/SceneFoundation`.
+
+### Next bounded change
+
+Add bounded analytic solid providers and ordered union/subtraction to this same
+query boundary. Complete the arch, two-floor cave and detached-formation fixture,
+including 3D geological attribution, general preview/picking and native collision.
+Keep exact final guide semantics for existing recipes; settle the explicit new
+volume height policy before adopting it. Do not mark P0 or P1 fully complete from
+the radial-provider bridge alone.

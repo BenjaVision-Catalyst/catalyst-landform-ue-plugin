@@ -1,0 +1,269 @@
+{
+  "date": "2026-11-03",
+  "platform": "UE 5.7.4 / VPP 2.0p8 / macOS arm64 / Metal SM6",
+  "component_parent": "c3c4ce54e38f22a9d41f9def28ebca3bf9dc7759",
+  "workspace_parent": "c8bb504d89f93267d5c06017d90304e198f9b409",
+  "scope": "First P0/P1 slice: frozen radial provider behind an immutable XYZ scene; general volume topology and full milestones remain open",
+  "source_sha256": {
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanetStamp.cpp": "0abab286da20286d0fb0343b46ad114180763c77a7450271f73b4d497f184424",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanetStamp.h": "8be32f79a052b0b5bbc701d2fd49eb581eb78b112911b3d0831d20def995823f",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLSceneTests.cpp": "3538cba932958a5885a3ec412b1a40dd9e06177b9dc9a586aa13e036278cbabf",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLRuntimeRecipeProof.cpp": "6b46910beb2fd5f9f36d9703143ab1b48469b5375359fe9cf8ba5ff7ec4ae61a",
+    "Landform/Projects/LandformLab/scripts/capture-scene-reference.py": "aa73cbb757713cfba6060d5f93243987825f3b05e7f802010e9115ba14a37b0e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLBodyFrame.h": "e1abe58b3f9dac0c880c858b3c4dea2556a7b99648a166b31c3676ff72cd6469",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLScene.h": "41e66c7f62f7092ba93d1e3f77d18344bfb8849be7c9f56364777a3bc9e0c77a",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLSceneQuery.h": "dd37b7dbf05a762259d8d2c4ae8ba479ce492982f861f3c4a827c3d77b8bb569",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLBodyFrame.cpp": "eefee291bdfef937bdf52ad7466af2b4bbfa0a0d7de71cacc64270302218c308",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLScene.cpp": "cb0a0eef249f1e489a28bb0b0c404282975422cb2e87c4d9e4e3a9b57ed793c5"
+  },
+  "reference": {
+    "path": "conformance/scene-preservation-v1.json",
+    "sha256": "adfc6318c5e8434edee4e6f37ddb9807fc8fb868456030501d7ac4bfe5560053",
+    "cases": 6,
+    "selected_samples": 462,
+    "complete_stamp_placements": 185,
+    "sphere_scene_cases": 5,
+    "unmigrated_local_case": 1,
+    "old_binary_hashes": {
+      "UnrealEditor-CatalystLandform.dylib": "c4264f5783b85568c73fb5d87b223ea8120da6e97dec5971070e67f3b5a912a7",
+      "UnrealEditor-CatalystLandformEditor.dylib": "1e9b0a976c3a32a3219bfb41e16fe62c110bf9d2c7998505974ce2f624d7004e",
+      "UnrealEditor-CatalystLandformRender.dylib": "dcefac7564b33a85b8dc471004e526240d009e31168029b8b90b79b87f849034",
+      "UnrealEditor-CatalystLandformTests.dylib": "eaed777385d13b7dbb37c197aef8be6dbbda121498da1546b0aabe5fb8bc458a"
+    }
+  },
+  "editor_regression": {
+    "path": "Saved/Verification/scene-foundation-qualified/index.json",
+    "sha256": "1b31ee881e7bb0d8ab9c670e7db89d48406a9a74527333b9aaa75620faf49111",
+    "counts": {
+      "succeeded": 123,
+      "succeededWithWarnings": 2,
+      "failed": 0,
+      "notRun": 0
+    },
+    "events": [
+      {
+        "test": "Catalyst.Landform.Recipes.VPPAndLiveEdits",
+        "type": "Warning",
+        "message": "LogMaterial: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Content/EngineMaterials/LineSetComponentMaterial.uasset: Failed to compile Material for platform SF_METAL_SM6, Default Material will be used in game.\n\tMissing Material Function\n\tMissing Material Function\n"
+      },
+      {
+        "test": "Catalyst.Landform.Recipes.VPPAndLiveEdits",
+        "type": "Warning",
+        "message": "LoadErrors: While trying to load package /Engine/EngineMaterials/LineSetComponentMaterial, a dependent package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was not available. Additional explanatory information follows:\nFPackageName: Unable to identify a valid mount point associated with skipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias. The package root is unknown.\nSkipped package /MeshModelingToolsetExp/Materials/GetDisplacementVectorForDepthBias was expected to be found in plugin Experimental Mesh Modeling Toolset, however that plugin is not mounted. [ExplicitlyLoaded = FALSE, Enabled = FALSE]."
+      },
+      {
+        "test": "Catalyst.Landform.Scene.NativeBulkSparseParity",
+        "type": "Info",
+        "message": "Native 105-point bulk/sparse parity: field 3.80796700483e-06 cm, material 1.52190215885e-05, legacy rounding delta 0.000970025575953 cm"
+      },
+      {
+        "test": "Catalyst.Landform.Scene.PreMigrationPreservation",
+        "type": "Info",
+        "message": "Six pre-migration cases / 462 samples: height 2.3203483579e-10 m, material 1.02454711381e-11, scene interface 2.84217094304e-13 m"
+      },
+      {
+        "test": "Catalyst.Landform.Scene.QueryAndFrameContract",
+        "type": "Info",
+        "message": "Body frame round-trip error 2.61963716753e-08 cm"
+      },
+      {
+        "test": "Catalyst.Landform.Surfaces.NativePreviewAndBoundaries",
+        "type": "Warning",
+        "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204"
+      }
+    ]
+  },
+  "final_scene_oracles": {
+    "path": "Saved/Verification/scene-foundation-oracles-double-final/index.json",
+    "sha256": "2997465005ad8b98070505fbcc2537aec1e680d281325ea6a9e63ed71f96b2ec",
+    "counts": {
+      "succeeded": 3,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0
+    },
+    "events": [
+      {
+        "test": "Catalyst.Landform.Scene.NativeBulkSparseParity",
+        "type": "Info",
+        "message": "Native 105-point bulk/sparse parity: field 3.80796700483e-06 cm, material 1.52190215885e-05, legacy rounding delta 0.000970025575953 cm"
+      },
+      {
+        "test": "Catalyst.Landform.Scene.PreMigrationPreservation",
+        "type": "Info",
+        "message": "Six pre-migration cases / 462 samples: height 2.3203483579e-10 m, material 1.02454711381e-11, scene interface 2.84217094304e-13 m"
+      },
+      {
+        "test": "Catalyst.Landform.Scene.QueryAndFrameContract",
+        "type": "Info",
+        "message": "Body frame round-trip error 2.61963716753e-08 cm"
+      }
+    ]
+  },
+  "diagnostic_history": [
+    {
+      "run": {
+        "path": "Saved/Verification/scene-foundation-focused/index.json",
+        "sha256": "384087fde6ff972fa3e6bd0de1c96d231c7d3c982bfa847f579e297c67ad456c",
+        "counts": {
+          "succeeded": 1,
+          "succeededWithWarnings": 0,
+          "failed": 2,
+          "notRun": 0
+        },
+        "events": [
+          {
+            "test": "Catalyst.Landform.Scene.NativeBulkSparseParity",
+            "type": "Error",
+            "message": "Expected 'Native metadata keeps scene material weights within uint16 quantization' to be true."
+          },
+          {
+            "test": "Catalyst.Landform.Scene.NativeBulkSparseParity",
+            "type": "Info",
+            "message": "Native 105-point bulk/sparse parity: field 3.80796700483e-06 cm, material 0.926302905101, legacy rounding delta 0.000970025575953 cm"
+          },
+          {
+            "test": "Catalyst.Landform.Scene.PreMigrationPreservation",
+            "type": "Error",
+            "message": "composition: Legacy radial scene requires a compiled spherical planet"
+          },
+          {
+            "test": "Catalyst.Landform.Scene.QueryAndFrameContract",
+            "type": "Info",
+            "message": "Body frame round-trip error 2.61963716753e-08 cm"
+          }
+        ]
+      },
+      "resolution": "Corrected fixture domain classification and VPP additive/canonical-void material composition; no vendor changes"
+    },
+    {
+      "run": {
+        "path": "Saved/Verification/scene-foundation-oracles-final/index.json",
+        "sha256": "056a0656d85aa7f6c95279bc2d81fe891733341f8d0bd36950ac50b51428754e",
+        "counts": {
+          "succeeded": 2,
+          "succeededWithWarnings": 0,
+          "failed": 1,
+          "notRun": 0
+        },
+        "events": [
+          {
+            "test": "Catalyst.Landform.Scene.NativeBulkSparseParity",
+            "type": "Info",
+            "message": "Native 105-point bulk/sparse parity: field 3.80796700483e-06 cm, material 1.52190215885e-05, legacy rounding delta 0.000970025575953 cm"
+          },
+          {
+            "test": "Catalyst.Landform.Scene.PreMigrationPreservation",
+            "type": "Info",
+            "message": "Six pre-migration cases / 462 samples: height 2.3203483579e-10 m, material 1.02454711381e-11, scene interface 2.84217094304e-13 m"
+          },
+          {
+            "test": "Catalyst.Landform.Scene.QueryAndFrameContract",
+            "type": "Error",
+            "message": "Expected 'Independent axis/unit oracle: 100/200/300 cm becomes rotated -2/1/3 metres' to be true."
+          },
+          {
+            "test": "Catalyst.Landform.Scene.QueryAndFrameContract",
+            "type": "Info",
+            "message": "Body frame round-trip error 2.61963716753e-08 cm"
+          }
+        ]
+      },
+      "resolution": "Independent axis oracle used float UE_PI; changed the fixture to UE_DOUBLE_PI without relaxing tolerance"
+    }
+  ],
+  "packaged": {
+    "archive": "Saved/Packages/SceneFoundation",
+    "code_rebuilt": true,
+    "cook": "Reused qualified native material/shader cook; packaging verified unchanged input hashes",
+    "binary_sha256": "de0c00f14bdd43dd941c989ec9eea712b3c22720e0fc9c1282730e918040b36e",
+    "report_path": "Saved/Verification/scene-foundation-packaged/report.json",
+    "report_sha256": "bfbc73f13d71a55511ff37118540067411d6c41b5378e83df4ef9efd3a3ce2ca",
+    "run_sha256": "0245b3670d04a9ceb093e8f00620eca0c6a17ba747e52b143eb1024d2d0acbd8",
+    "screenshot_sha256": "49d690a491493d0066326d8ecd17c3b894ea16106c7893a2ad5f6c49ad440186",
+    "summary": {
+      "passed": true,
+      "message": "Recipe reproduced and three-way joins walked on native collision",
+      "editorBuild": false,
+      "sharedSceneActive": true,
+      "sceneQueryContractVersion": 1,
+      "referenceMatched": true,
+      "maxNumericReferenceDifference": 0,
+      "nativeFieldErrorCm": 2.2737367544323206e-11,
+      "nativeSurfaceWeightError": 2.95110046864e-05,
+      "rejectedReplacementsPreservingSnapshot": 5,
+      "frames": 4738,
+      "groundFrames": 4507,
+      "voxelFloorFrames": 4507,
+      "junctionVisits": 3,
+      "jumpRequests": 3,
+      "jumpTakeoffs": 3,
+      "jumpLandings": 3,
+      "maxHoldDriftCm": 0,
+      "initialFloorFieldErrorCm": 0.0007471287171938457,
+      "minGravityDot": 0.9999999913785647
+    },
+    "gameplay_presentation": {
+      "valid": true,
+      "frames": 4739,
+      "cameraFrames": 4738,
+      "propBudget": 3,
+      "maxVisibleProps": 3,
+      "maxRigidCornerErrorCm": 0.05156326069992644,
+      "maxPropFootErrorCm": 0.008253950682997373,
+      "maxCameraInverseErrorCm": 2.371672018926856e-11,
+      "maxCameraHistoryErrorCm": 0,
+      "maxBodyDisplacementCm": 1.977971486228663e-08,
+      "maxPropDisplacementCm": 49.05590529207277,
+      "previousFrameRetained": true,
+      "cleanupVerified": true,
+      "scope": "Post-physics local camera, rigid no-collision body/marker visuals; canonical simulation and prop colliders unchanged; 30 m prop range, 2 cm visual error limit",
+      "cpuP99Ms": 0.013917684555053711,
+      "cpuMaxMs": 0.021126121282577515
+    },
+    "projected_interactions": {
+      "verificationRequested": true,
+      "valid": true,
+      "queries": 182,
+      "hits": 93,
+      "misses": 89,
+      "refusals": 0,
+      "maxWorldQueries": 9,
+      "totalWorldQueries": 541,
+      "terrainProbes": 78,
+      "skyProbes": 89,
+      "marker1Probes": 7,
+      "marker2Probes": 6,
+      "marker3Probes": 2,
+      "canonicalDispatches": 93,
+      "maxRayErrorCm": 0.2179979018255259,
+      "maxScreenErrorPixels": 1.299269597236429,
+      "minGeometricNormalDot": 0.9999999999999997,
+      "minHitCurvature": 0,
+      "maxHitCurvature": 1,
+      "rangeCm": 1900,
+      "hitToleranceCm": 0.5,
+      "queryBudget": 64,
+      "cpuTimingScope": "Native curved collision trace call, excludes screen deprojection and verification oracles",
+      "cpuP99Ms": 0.04754215478897095,
+      "cpuMaxMs": 0.08371099829673767
+    },
+    "performance_qualification": false,
+    "performance_note": "Functional run only; an editor test build overlapped the beginning of traversal. No performance improvement or 60 fps certification is claimed."
+  },
+  "preservation": {
+    "protected_files": 205,
+    "changed_files": 0,
+    "manifest_path": "Saved/Verification/scene-foundation-before/protected-files.json",
+    "manifest_sha256": "051b1931b026cc7c7ba1d0dc74b0a6e4328c1c096d7c842157012432bbf77355"
+  },
+  "open_gates": [
+    "General solid operators, multi-hit queries and true volume previews/material attribution",
+    "Complete P0 identity/resource/capability and new-volume height-policy contracts",
+    "Native planetary precision, datum support and multi-body activation",
+    "Streaming resources and coherent live scene publication",
+    "Production 16.67 ms wall-p99 performance gate",
+    "Sparse SDF export and spherical navigation"
+  ],
+  "raw_evidence": "Saved evidence and packaged executable are local build artifacts; published hashes/references do not distribute licensed VPP or those binaries"
+}
