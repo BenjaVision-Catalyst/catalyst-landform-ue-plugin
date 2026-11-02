@@ -256,6 +256,23 @@ cancellable. Idle frames never rerun generation. Stable IDs, transactions and
 seed scopes preserve unaffected editorial work. Walk here inspects a frozen
 accepted snapshot and returns to the same authored planet.
 
+### Surface inspection presentation — user direction, 2 November 2026
+
+Use the shared [curvature presentation](CurvaturePresentation.md) and projected
+camera/interaction path for subsequent ground-level Landform and base-planet
+inspection. The host's [curvature handover](../../Projects/LandformLab/Docs/CurvatureHandover.md)
+records the completed implementation and qualification limits. Natural, half and
+flat views must use matching terrain, camera and picking state; recipe geometry,
+native collision, radial gravity and returned gameplay positions stay canonical.
+The globe remains spherical and the Designer retains its fixed-size flat section.
+
+This is the adopted integration direction, not a claim that all launch paths
+already use it. The current projected playground is opt-in, and ordinary Builder
+**Walk here** still needs connection to that path. Make that connection the first
+integration gate for the next base-planet proof, retaining its snapshot/return
+contract. Keep the supported native material/shader profile and the unresolved
+60 fps qualification explicit; do not create a separate projection for this work.
+
 ## Compiler and backend boundary
 
 Extend the existing compiler with a structural producer and typed compiled
@@ -338,6 +355,34 @@ Use the existing globe-to-ground workflow for visual and collision inspection.
 Repeat native walking at poles, equator, patch boundaries and selected belts.
 Validate publication/cancellation and preserve old saved planets byte-for-byte
 unless an explicit migration is committed.
+
+### Proposed next proof: continental foundations and boundary settings
+
+Complete more of milestone 1 before adding erosion or additional fine noise.
+The current preset is a bounded kinematic relief generator with approximate
+continental contrast; it is not yet the proposed crust/history model.
+
+Start with one **Continental rocky world** preset: coherent continental interiors,
+broad ocean basins, continental margins and thickened collision terrain. Keep
+continental domains independent of plate cells, preserve seeded/pinned identities,
+and use the planet's resolved guides for scale and any pinned sea datum. Water
+rendering is outside this proof. Store crust and boundary context as shared
+compiled data so later regional Landforms can respond to the same structure.
+
+Use the existing live Tectonic activity control and inline Advanced disclosure.
+Prove four controlled settings of the same construction: continental collision
+with a broad plateau and flanking basins; a subduction margin with distinct arc
+and trench; rifting/spreading; and predominantly transform motion. Include a
+stationary control and reverse relative motion to check the structural response.
+These remain declared approximations, without claiming simulated geological age.
+
+Inspect the same accepted terrain in the globe and through the shared projected
+walking view at natural, half and flat curvature. Require field/collision parity,
+native grounded movement, canonical return/pick coordinates, and no source mesh
+or collision regeneration caused solely by changing presentation curvature.
+Keep generation/cancellation and frame-time evidence separate. This provides the
+foundation for subsequent rock units, drainage and erosion; it does not authorize
+ecosystem, water-rendering or Architect implementation.
 
 ## How to judge realism
 
