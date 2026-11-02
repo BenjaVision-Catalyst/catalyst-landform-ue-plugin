@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-02",
+  "engine": "5.7.4",
+  "platform": "Mac arm64",
+  "configuration": "Editor Development, null RHI; CPU geometry contract only",
+  "tests": [
+    {
+      "fullTestPath": "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Presentation.Endpoints",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "state": "Success"
+    }
+  ],
+  "succeeded": 3,
+  "failed": 0,
+  "succeeded_with_warnings": 0,
+  "oracles": "1800 round trips and differential oracles; max inverse 6.98491930962e-10 cm, vector 7.59237583492e-10, min normal dot 1",
+  "radii_cm": [
+    1000,
+    100000,
+    1000000
+  ],
+  "curvatures": [
+    0,
+    1e-12,
+    1e-06,
+    0.1,
+    0.5,
+    1
+  ],
+  "source_sha256": {
+    "Source/CatalystLandform/Public/Presentation/CLPlanetProjection.h": "66f601f43b98f5a36dcb6cf420e0308c41aa5ec451bd710709e1b8b1932262ed",
+    "Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "b76fec7b1c187feb3ee40652d6e1da9ef86b2787165062f1e69daad03d043f14",
+    "Source/CatalystLandformTests/Private/CLPlanetProjectionTests.cpp": "fcc6f4741540f8f49e71dab212a642d2a44ddc80888449800ade0fad23e10a27"
+  },
+  "report_sha256": "4b5a9b712ae931e5c963a5d82eda59ed76145d8f373ec2126c6980720322688f",
+  "log_sha256": "58f4adf5d542de7fa8d3537fce932a7560d3ea237313ffd1363ba3cdba16656c",
+  "limitations": [
+    "No material/Nanite/render integration yet",
+    "No gameplay query adapter or repeated charts yet",
+    "No GPU readback parity or curvature performance measured",
+    "Existing Nanite packaged baseline remains separately scoped"
+  ]
+}

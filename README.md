@@ -28,6 +28,11 @@ state; those owners must have explicit GameInstance/world/planet context.
 Commercial VPP sources and binaries are supplied through the vendor installer and
 are not distributed by this repository.
 
+The [curvature presentation plan](Docs/CurvaturePresentation.md) defines the
+bounded CPU/GPU chart contract and Nanite/gameplay integration gates. The first
+CPU projection reference and geometric tests are implemented; runtime deformation
+and its performance qualification remain subsequent milestones.
+
 The 100 m lab proof uses a 65 x 65 flat grid over a 60 x 40 m footprint with an
 8 m ridge. Its geodesic field test and physical 360-degree walk, including an
 underside jump, passed on UE 5.7.4 / VPP 2.0p8 / Mac arm64. Qualification and
