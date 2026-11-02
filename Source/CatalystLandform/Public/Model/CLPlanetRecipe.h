@@ -199,6 +199,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     void RenameGuideReferences(FName Old, FName New);
     /** Explicit edit-time conversion; loading a pinned legacy recipe never changes it. */
     void SeparateGeologyLayers();
+    void UseGuidedGeology();
     /** Applied source identity; NoiseLayers remains the authoritative self-contained snapshot. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
@@ -242,11 +243,14 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** -1 is the six-patch router; -2 is the bounded whole-field reference oracle. */
     int32 SurfacePatch = INDEX_NONE;
     TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> SurfacePatches;
+    TSharedPtr<const FCLCompiledPlanetRecipe> UnmappedSurface;
+    TSharedPtr<const struct FCLSurfaceRange> SurfaceRange;
     FBox2D EvaluationRegion;
     FVector TerrainDirection(const FVector2D& Meters) const;
     bool TerrainPosition(const FVector& Direction, FVector2D& Meters) const;
     /** Direct metric field, independent of assembly curvature and its boundary transition. */
     void SampleLocalHeightsMeters(TConstArrayView<FVector> Positions, TArray<double>& Heights) const;
+    bool bDeferRadialBounds=false;
     double BaseHeightMeters = 0;
     double MinimumHeightMeters = 0, MaximumHeightMeters = 0;
     TArray<FCLHeightGuide> Guides;
@@ -290,6 +294,7 @@ class CATALYSTLANDFORM_API FCLPlanetCompiler
 public:
     /** Returns no plan on error; callers may retain their last successful plan. */
     static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE);
+    static TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmapped(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* StampLibrary,const FBox2D* LocalRegion,int32 SurfacePatch);
     static FCLPlanetRecipe RollingPlains();
     static FCLPlanetRecipe BasePlanet();
     static FCLPlanetRecipe TectonicBase();

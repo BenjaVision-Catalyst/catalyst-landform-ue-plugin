@@ -82,7 +82,7 @@ bool FCLTectonicBeltsTest::RunTest(const FString&)
     // Retained algorithm-1 reference samples, recorded before the geometry change.
     const double Recorded[]={-18.59694152632665,-17.99704511739856,-17.05154952513567};
     for(int32 X=0;X<3;++X)TestTrue(TEXT("Algorithm 1 retains its published field"),FMath::IsNearlyEqual(Legacy->SampleDeltaMeters(FCLSphericalPatches::Direction(0,FVector2D(X/6.-1,-1))),Recorded[X],1.e-8));
-    P.AlgorithmVersion=4;FCLTectonicControls Controls;TestFalse(TEXT("Unknown geometry version is refused"),FCLTectonicControls::Resolve(P,Controls,Error));
+    P.AlgorithmVersion=5;FCLTectonicControls Controls;TestFalse(TEXT("Unknown geometry version is refused"),FCLTectonicControls::Resolve(P,Controls,Error));
     double Changes[2]={};int32 Edges=0;double WorstJump=0;
     for(int32 Seed:{0,1729,-531})
     {

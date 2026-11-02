@@ -1,3 +1,7 @@
+> Current guided controls and exact completed-surface guide semantics are defined
+> in [GuidedGeology.md](GuidedGeology.md). The schema-16 calibration below is retained
+> as historical context and remains available to pinned recipes.
+
 # Planet layers and inspector
 
 Continents and Tectonics are independent layers in one planet. A preset is a

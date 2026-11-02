@@ -961,14 +961,14 @@ bool FCLGeologyRenderedTest::RunTest(const FString&)
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Calibrated geology"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     FString Json,Error;TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
-    FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/LayeredGeology.json")));
+    FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/GuidedGeology.json")));
     if(!Source->ImportRecipeJson(Json,Error)){AddError(Error);App.RequestDestroyWindow(Window);return false;}
     auto Base=Source->Recipe;Base.Continents.bOverrideExtent=false;Base.Continents.bOverrideRelief=false;Base.Tectonics.bOverrideMotion=false;Base.Tectonics.bOverrideRelief=false;
     const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/planet-tuning-frames");IFileManager::Get().MakeDirectory(*Folder,true);
     auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();
     for(int32 I=0;I<6;++I)
     {
-        auto R=Base;R.Continents.Strength=R.Tectonics.Activity=I==0?0:I==1?.5:1.;
+        auto R=Base;const double Position=I==0?0:I==1?.5:1.;R.Continents.ApplyProgression(Position);R.Tectonics.ApplyProgression(Position);
         if(I==3)R.Continents.Seed=529;if(I==4)R.Tectonics.Seed=817;
         const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P||!P->Surfaces){AddError(Error);App.RequestDestroyWindow(Window);return false;}
         Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,128));

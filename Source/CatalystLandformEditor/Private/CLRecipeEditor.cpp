@@ -756,7 +756,7 @@ public:
     void OpenDesigner(EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         auto* Asset = RecipeAsset();
-        InspectorRecipe=Asset->Recipe;InspectorRecipe.SeparateGeologyLayers();
+        InspectorRecipe=Asset->Recipe;InspectorRecipe.UseGuidedGeology();
         RadialGuidesSession = MakeShared<FCLRadialGuideSession>();
         if (TerrainEditing)
         {
@@ -945,7 +945,7 @@ public:
     {
         if(FMath::IsNearlyEqual(PendingTectonicActivity,AppliedTectonicActivity,1.e-7))return;
         const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastTectonicApply<.12)return;
-        auto P=RecipeAsset()->Recipe.Tectonics;P.Activity=PendingTectonicActivity;
+        auto P=LayeredRecipe().Tectonics;P.ApplyProgression(PendingTectonicActivity);
         if(CommitTectonicLayer(P))AppliedTectonicActivity=PendingTectonicActivity;LastTectonicApply=Now;
     }
     void EndTectonicDrag()
@@ -975,7 +975,7 @@ public:
     {
         if(FMath::IsNearlyEqual(PendingContinentalStrength,AppliedContinentalStrength,1.e-7))return;
         const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastTectonicApply<.12)return;
-        auto L=LayeredRecipe().Continents;L.Strength=PendingContinentalStrength;
+        auto L=LayeredRecipe().Continents;L.ApplyProgression(PendingContinentalStrength);
         if(CommitContinents(L))AppliedContinentalStrength=PendingContinentalStrength;LastTectonicApply=Now;
     }
     void EndContinentalDrag()
@@ -998,7 +998,7 @@ public:
         FStructureDetailsViewArgs StructArgs;
         TectonicDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,StructArgs,TSharedPtr<FStructOnScope>(),FText::GetEmpty());
         TectonicDetails->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
-        {const FName Name=P.Property.GetFName();return Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,Activity)&&Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,bEnabled)&&Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,AlgorithmVersion);}));
+        {const FName Name=P.Property.GetFName();return !Name.ToString().StartsWith(TEXT("bOverride"))&&Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,Activity)&&Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,bEnabled)&&Name!=GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,AlgorithmVersion);}));
         TectonicDetails->GetOnFinishedChangingPropertiesDelegate().AddSPLambda(this,[this](const FPropertyChangedEvent& Event)
         {
             if(!TectonicDraft||(Event.ChangeType&EPropertyChangeType::Interactive))return;
@@ -1039,7 +1039,7 @@ public:
     }
     FCLTectonicPreset ResolvedTectonicDraft() const
     {
-        auto P=LayeredRecipe().Tectonics;FCLTectonicControls C;FString Error;
+        auto P=LayeredRecipe().Tectonics;if(P.AlgorithmVersion==4)return P;FCLTectonicControls C;FString Error;
         if(FCLTectonicControls::Resolve(P,C,Error,true))
         {if(!P.bOverrideMotion)P.Motion=C.Motion;if(!P.bOverrideRelief)P.Relief=C.Relief;if(!P.bOverridePlateCount)P.PlateCount=C.LowerPlateCount;}
         return P;
@@ -1052,7 +1052,7 @@ public:
     void Refresh()
     {
         auto* Asset = RecipeAsset();
-        InspectorRecipe=Asset->Recipe;InspectorRecipe.SeparateGeologyLayers();
+        InspectorRecipe=Asset->Recipe;InspectorRecipe.UseGuidedGeology();
         if(TectonicDraft)
         {
             auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory());const auto Accepted=ResolvedTectonicDraft();const bool VersionChanged=Draft.AlgorithmVersion!=Accepted.AlgorithmVersion;Draft=Accepted;
@@ -1146,7 +1146,7 @@ public:
         FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.bUpdatesFromSelection=false;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
         ContinentalDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,FStructureDetailsViewArgs(),nullptr,FText::GetEmpty());
         ContinentalDetails->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
-        {const FName N=P.Property.GetFName();return N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,bEnabled)&&N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,Strength);}));
+        {const FName N=P.Property.GetFName();return !N.ToString().StartsWith(TEXT("bOverride"))&&N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,AlgorithmVersion)&&N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,bCoastalMargin)&&N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,bEnabled)&&N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,Strength);}));
         ContinentalDetails->GetOnFinishedChangingPropertiesDelegate().AddSPLambda(this,[this](const FPropertyChangedEvent& E)
         {
             if(E.ChangeType&EPropertyChangeType::Interactive)return;
@@ -1187,30 +1187,26 @@ public:
             auto& C=B.EditCategory(TEXT("ContinentalLayer"),FText::FromString(TEXT("Continents")));C.SetSortOrder(0);
             C.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return LayeredRecipe().Continents.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Continents;L.bEnabled=V==ECheckBoxState::Checked;CommitContinents(L);}));
-            InspectorRow(C,TEXT("Strength"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Continents.bEnabled;})
+            InspectorRow(C,TEXT("Character"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Continents.bEnabled;})
                 +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(0,0,8,0)[SAssignNew(ContinentalSlider,SSlider)
                     .Value_Lambda([this]{return float(bContinentalDragging?PendingContinentalStrength:LayeredRecipe().Continents.Strength);})
                     .OnMouseCaptureBegin_Lambda([this]{BeginContinentalDrag();}).OnMouseCaptureEnd_Lambda([this]{EndContinentalDrag();})
                     .OnControllerCaptureBegin_Lambda([this]{BeginContinentalDrag();}).OnControllerCaptureEnd_Lambda([this]{EndContinentalDrag();})
-                    .OnValueChanged_Lambda([this](float V){PendingContinentalStrength=V;if(bContinentalDragging)PumpContinentalChanges(false);else{auto L=LayeredRecipe().Continents;L.Strength=V;CommitContinents(L);}})]
+                    .OnValueChanged_Lambda([this](float V){PendingContinentalStrength=V;if(bContinentalDragging)PumpContinentalChanges(false);else{auto L=LayeredRecipe().Continents;L.ApplyProgression(V);CommitContinents(L);}})]
                 +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::AsPercent(bContinentalDragging?PendingContinentalStrength:LayeredRecipe().Continents.Strength);})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(6,0)[VariationButton(true)]);
             C.AddCustomRow(FText::FromString(TEXT("Continental settings")),true).WholeRowContent()[BuildContinentalAdvanced()];C.SetShowAdvanced(false);
             auto& T=B.EditCategory(TEXT("TectonicLayer"),FText::FromString(TEXT("Tectonics")));T.SetSortOrder(1);TectonicAdvanced=&T;
             T.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Tectonics;L.bEnabled=V==ECheckBoxState::Checked;CommitTectonicLayer(L);}));
-            InspectorRow(T,TEXT("Activity"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled;})
+            InspectorRow(T,TEXT("Character"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled;})
                 +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(0,0,8,0)[SAssignNew(TectonicSlider,SSlider)
                     .Value_Lambda([this]{return float(bTectonicDragging?PendingTectonicActivity:LayeredRecipe().Tectonics.Activity);})
                     .OnMouseCaptureBegin_Lambda([this]{BeginTectonicDrag();}).OnMouseCaptureEnd_Lambda([this]{EndTectonicDrag();})
                     .OnControllerCaptureBegin_Lambda([this]{BeginTectonicDrag();}).OnControllerCaptureEnd_Lambda([this]{EndTectonicDrag();})
-                    .OnValueChanged_Lambda([this](float V){PendingTectonicActivity=V;if(bTectonicDragging)PumpTectonicChanges(false);else{auto L=LayeredRecipe().Tectonics;L.Activity=V;CommitTectonicLayer(L);}})]
+                    .OnValueChanged_Lambda([this](float V){PendingTectonicActivity=V;if(bTectonicDragging)PumpTectonicChanges(false);else{auto L=LayeredRecipe().Tectonics;L.ApplyProgression(V);CommitTectonicLayer(L);}})]
                 +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::AsPercent(bTectonicDragging?PendingTectonicActivity:LayeredRecipe().Tectonics.Activity);})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(6,0)[VariationButton(false)]);
-            InspectorRow(T,TEXT("Plate model"),SNew(SComboButton).OnGetMenuContent_Lambda([this]
-            {
-                FMenuBuilder Menu(true,nullptr);for(int32 Version:{2,3})Menu.AddMenuEntry(FText::FromString(Version==2?TEXT("Moving plates"):TEXT("Controlled boundary")),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Version]{auto L=LayeredRecipe().Tectonics;L.AlgorithmVersion=Version;if(Version==3){L.bOverridePlateCount=false;L.PlateCount=2;}CommitTectonicLayer(L);})));return Menu.MakeWidget();
-            }).ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(LayeredRecipe().Tectonics.AlgorithmVersion==3?TEXT("Controlled boundary"):TEXT("Moving plates"));})],true);
             T.AddCustomRow(FText::FromString(TEXT("Tectonic settings")),true).WholeRowContent()[BuildTectonicAdvanced()];T.SetShowAdvanced(false);
 
         }
@@ -1831,15 +1827,19 @@ bool FCLTectonicAdvancedTest::RunTest(const FString&)
     TestTrue(TEXT("Revealing Advanced keeps the Planet tab foreground"),Editor->GetTabManager()->FindExistingLiveTab(FCLRecipeToolkit::PlanetTab)->IsForeground());
     TestTrue(TEXT("Revealing controls preserves the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
     TestTrue(TEXT("The one-knob control remains in the same editor"),Editor->TectonicSlider.IsValid());
+    FString Visible;
+    for(const auto& Path:Editor->TectonicDetails->GetDetailsView()->GetPropertiesInOrderDisplayed())Visible+=Path.ToString()+TEXT(";");
+    TestFalse(TEXT("Advanced contains no override checkboxes"),Visible.Contains(TEXT("bOverride")));
+    TestTrue(TEXT("Advanced shows the driven shape values"),Visible.Contains(TEXT("PlateCount"))&&Visible.Contains(TEXT("Motion"))&&Visible.Contains(TEXT("BeltWidthDegrees"))&&Visible.Contains(TEXT("Roughness")));
     auto* Property=FCLTectonicPreset::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLTectonicPreset,PlateCount));
-    auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(Editor->TectonicDraft->GetStructMemory());Draft.bOverridePlateCount=true;Draft.PlateCount=4;
+    auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(Editor->TectonicDraft->GetStructMemory());Draft.PlateCount=4;
     FPropertyChangedEvent Interactive(Property,EPropertyChangeType::Interactive);Editor->TectonicDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Interactive);
-    TestFalse(TEXT("Interactive advanced edits stay in their draft"),Asset->Recipe.Tectonics.bOverridePlateCount);
+    TestEqual(TEXT("Interactive advanced edits stay in their draft"),Asset->Recipe.Tectonics.PlateCount,Original.Tectonics.PlateCount);
     FPropertyChangedEvent Finished(Property,EPropertyChangeType::ValueSet);Editor->TectonicDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Finished);
     FString Error;FCLTectonicControls Controls;FCLTectonicControls::Resolve(Asset->Recipe.Tectonics,Controls,Error);
-    TestEqual(TEXT("Committed advanced pin reaches the planet compiler"),Controls.LowerPlateCount,4);TestEqual(TEXT("Pin leaves activity unchanged"),Asset->Recipe.Tectonics.Activity,Original.Tectonics.Activity);
+    TestEqual(TEXT("Direct advanced edit reaches the planet compiler"),Controls.LowerPlateCount,4);TestEqual(TEXT("Advanced edit leaves character unchanged"),Asset->Recipe.Tectonics.Activity,Original.Tectonics.Activity);
     GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the advanced edit"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
-    TestFalse(TEXT("Inline draft follows Undo"),Draft.bOverridePlateCount);GEditor->RedoTransaction();TestEqual(TEXT("Redo restores the pin"),Asset->Recipe.Tectonics.PlateCount,4);
+    TestEqual(TEXT("Inline draft follows Undo"),Draft.PlateCount,Editor->LayeredRecipe().Tectonics.PlateCount);GEditor->RedoTransaction();TestEqual(TEXT("Redo restores the advanced edit"),Asset->Recipe.Tectonics.PlateCount,4);
     Draft.PlateCount=99;Editor->TectonicDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Finished);TestEqual(TEXT("Invalid advanced edits preserve the accepted recipe"),Asset->Recipe.Tectonics.PlateCount,4);TestEqual(TEXT("Invalid draft returns to the accepted value"),Draft.PlateCount,4);
     Editor->TectonicAdvanced->SetShowAdvanced(false);TestEqual(TEXT("Reveal alone publishes no geometry"),Editor->Globe->PublishedBuilds(),Builds);
     Asset->GetOutermost()->SetDirtyFlag(false);TestTrue(TEXT("Inline editor retires"),Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));return true;
@@ -1854,7 +1854,7 @@ bool FCLPlanetInspectorTest::RunTest(const FString&)
     TestEqual(TEXT("Workflow has five native Details views"),Editor->PlanetInspectors.Num(),5);
     TestTrue(TEXT("Both layer controls coexist in Geology"),Editor->ContinentalSlider.IsValid()&&Editor->TectonicSlider.IsValid()&&Editor->InspectorPage==1);
     Editor->ContinentalVariation->SimulateClick();const auto CSeed=Asset->Recipe.Continents.Seed;
-    TestTrue(TEXT("Continental variation converts and preserves both layers"),Asset->Recipe.SchemaVersion==16&&Asset->Recipe.Continents.bEnabled&&Asset->Recipe.Tectonics.bEnabled&&CSeed!=0);
+    TestTrue(TEXT("Continental variation converts and preserves both layers"),Asset->Recipe.SchemaVersion==17&&Asset->Recipe.Continents.bEnabled&&Asset->Recipe.Tectonics.bEnabled&&CSeed!=0);
     TestEqual(TEXT("Continental variation preserves tectonic seed"),Asset->Recipe.Tectonics.Seed,Original.Tectonics.Seed);
     TestEqual(TEXT("Variation preserves the knob setting"),Asset->Recipe.Tectonics.Activity,Original.Tectonics.Activity);
     const auto AfterContinental=Asset->Recipe;

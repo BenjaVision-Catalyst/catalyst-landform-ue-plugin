@@ -4,6 +4,7 @@
 FCLContinentalControls FCLContinentalControls::Resolve(const FCLContinentalLayer& L)
 {
     FCLContinentalControls C;
+    if(L.AlgorithmVersion==2){C.Extent=L.Extent;C.Relief=L.Relief;return C;}
     C.Extent=L.bOverrideExtent?L.Extent:.7+.5*L.Strength;
     C.Relief=L.bOverrideRelief?L.Relief:.05+.17*L.Strength;
     return C;
@@ -21,6 +22,8 @@ TSharedPtr<const FCLCompiledContinents> FCLCompiledContinents::Compile(const FCL
         if(!Out->LegacyCrust)return nullptr;
         Out->SpanMeters=Span;Out->Relief=L.bOverrideRelief?L.Relief:.2+.8*L.Strength;Out->MaximumDeltaMeters=Span*.42*Out->Relief;return Out;
     }
+    if(L.AlgorithmVersion<1||L.AlgorithmVersion>2||L.DomainCount<1||L.DomainCount>8||!FMath::IsFinite(L.CoastWarp)||L.CoastWarp<0||L.CoastWarp>1||!FMath::IsFinite(L.InteriorRoughness)||L.InteriorRoughness<0||L.InteriorRoughness>1||!FMath::IsFinite(L.CoastSharpness)||L.CoastSharpness<.5||L.CoastSharpness>3)
+    {Error=TEXT("Invalid guided continental shape settings");return nullptr;}
     const auto Controls=FCLContinentalControls::Resolve(L);
     auto Out=MakeShared<FCLCompiledContinents>();
     FRandomStream R(int32(uint32(Seed)^uint32(L.Seed)^0x434c4332U));
@@ -29,8 +32,18 @@ TSharedPtr<const FCLCompiledContinents> FCLCompiledContinents::Compile(const FCL
     Out->NoiseOffset=FVector(R.FRandRange(5,55),R.FRandRange(5,55),R.FRandRange(5,55));
     for(const FVector D:{FVector(.84,.42,.12),FVector(.84,-.42,-.12),FVector(-.72,.55,.34),FVector(-.1,-.7,-.8)})
         Out->Centres.Add((D+FVector(R.FRandRange(-.22,.22),R.FRandRange(-.22,.22),R.FRandRange(-.22,.22))).GetSafeNormal());
-    Out->Extent=Controls.Extent*(L.bCoastalMargin?.85:1.);
-    Out->DatumOffsetMeters=DatumOffset;Out->SpanMeters=Span;Out->Relief=Controls.Relief;Out->MaximumDeltaMeters=FMath::Abs(DatumOffset)+Span*.42*Out->Relief;return Out;
+    if(L.AlgorithmVersion==2)
+    {
+        Out->Centres.Reset();
+        for(int32 I=0;I<L.DomainCount;++I)
+        {
+            const double Z=1-2*(I+.5)/L.DomainCount,A=I*2.399963229728653;
+            Out->Centres.Add(FVector(FMath::Cos(A)*FMath::Sqrt(1-Z*Z),FMath::Sin(A)*FMath::Sqrt(1-Z*Z),Z));
+        }
+        Out->CoastWarp=L.CoastWarp;Out->InteriorRoughness=L.InteriorRoughness;Out->CoastSharpness=L.CoastSharpness;
+    }
+    Out->Extent=Controls.Extent*(L.AlgorithmVersion==1&&L.bCoastalMargin?.85:1.);
+    Out->DatumOffsetMeters=DatumOffset;Out->SpanMeters=Span;Out->Relief=Controls.Relief;Out->MaximumDeltaMeters=FMath::Abs(DatumOffset)+Span*(L.AlgorithmVersion==2?.26+1.35*L.InteriorRoughness:.42)*Out->Relief;return Out;
 }
 double FCLCompiledContinents::Continentalness(const FVector& D) const
 {
@@ -38,10 +51,10 @@ double FCLCompiledContinents::Continentalness(const FVector& D) const
     const FVector P=Frame.UnrotateVector(D.GetSafeNormal());
     const FVector Q=P*3.1+NoiseOffset;
     const FVector Warp(FMath::PerlinNoise3D(Q),FMath::PerlinNoise3D(Q+FVector(17,3,11)),FMath::PerlinNoise3D(Q+FVector(3,23,7)));
-    const FVector W=(P+Warp*.22).GetSafeNormal();
+    const FVector W=(P+Warp*CoastWarp).GetSafeNormal();
     double Sum=0;
     for(const auto& C:Centres)Sum+=1.7*FMath::Exp((FVector::DotProduct(W,C)-1)*7./FMath::Square(Extent));
-    return 1-FMath::Exp(-Sum);
+    return FMath::Pow(1-FMath::Exp(-Sum),CoastSharpness);
 }
 double FCLCompiledContinents::SampleDeltaMeters(const FVector& D) const
 {
@@ -50,6 +63,6 @@ double FCLCompiledContinents::SampleDeltaMeters(const FVector& D) const
     // A continuous basin-to-upland profile; no saturated shelf/interior terraces.
     // Low-amplitude long wavelengths keep interiors readable without a flat cap.
     const FVector P=Frame.UnrotateVector(D.GetSafeNormal());
-    const double Detail=FMath::PerlinNoise3D(P*7.1+NoiseOffset)*.035+FMath::PerlinNoise3D(P*17.3+NoiseOffset)*.012;
+    const double Detail=FMath::PerlinNoise3D(P*7.1+NoiseOffset)*InteriorRoughness+FMath::PerlinNoise3D(P*17.3+NoiseOffset)*(InteriorRoughness*(.012/.035));
     return DatumOffsetMeters+SpanMeters*Relief*(-.26+.52*C+Detail);
 }
