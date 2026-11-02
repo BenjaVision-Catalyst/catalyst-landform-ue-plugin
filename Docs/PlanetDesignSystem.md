@@ -11,6 +11,10 @@ units, connected drainage and accepted erosion products. It retains artistic
 control over continents, belts and landmarks, with an efficient immutable field
 for Unreal presentation.
 
+The primary user experience is assembling presets into a realistic planet. The
+world builder must be able to complete that workflow without opening geological
+parameters. Detailed controls are available by choice through progressive disclosure.
+
 ## Existing work and what to retain
 
 The current compiler has broad oriented uplift/basin shapes and heightmap
@@ -192,14 +196,47 @@ substituting another source. With several selected Landforms, use contextual
 suitability and deterministic variation, provide an explanation and allow manual
 overrides. Do not silently introduce unselected terrain types.
 
-## Editorial controls
+## Preset assembly and editorial controls
+
+World Builder assembles a planet through the Planet Builder editor. Its default
+workflow is:
+
+1. Choose a base planet preset with a coherent geological style and defaults.
+2. Combine structural presets such as a continental collision belt, island arc,
+   rift, volcanic province or impact basin, plus a palette of reusable Landforms.
+3. Let the builder arrange them appropriately, or position and pin selected
+   features on the globe. Adjust a few meaningful controls such as extent,
+   prominence and variation.
+4. Generate a preview, vary selected presets while preserving pinned work, then
+   inspect the globe or walk the surface and accept the result.
+
+Provide visual preset cards and a clear list of applied presets. A complete world
+preset can bundle a base, structural features and Landform palette; individual
+presets remain composable and editable. Adding a preset supplies constraints and
+parameters to the shared geological construction, rather than constructing an
+independent planet fragment. Compatibility rules and sensible defaults resolve
+the relationships. Explain conflicts in terms of the selected features and offer
+concrete alternatives rather than requiring the user to understand the solver.
+
+Basic controls express intent. Plate motion, crust thickness, rock properties,
+erosion coefficients, process history and diagnostic overlays belong in optional
+Advanced controls. They edit the same recipe; there is no separate advanced
+generation path or loss of preset editability when details are opened. The
+Radial Guide Set remains a planet reference, separate from Landform definitions.
+Preset identities, versions, overrides and variation scopes are retained in the
+saved description so the backend can reproduce the assembled result.
+
+Usability acceptance is a complete preset-only workflow: create a coherent planet
+with several presets, vary one, preserve a pinned landmark, inspect and save it
+without opening Advanced. The first implementation should expose a small useful
+preset collection while its geological machinery is developed and qualified.
 
 Planet Builder owns the globe, plates, continents, broad process features,
-history, global guides, palette and accepted generation. Keep controls in the left
-panel and make diagnostic views selectable there: elevation, crust, plate motion,
+history, global guides, palette and accepted generation. Keep preset assembly and
+controls in the left panel. Advanced diagnostic views include elevation, crust, plate motion,
 boundaries, age, uplift, lithology, drainage, sediment and Landform assignments.
 
-The creator can sketch or move continents, edit boundary curves and Euler motion,
+Through optional detailed tools, the creator can sketch or move continents, edit boundary curves and Euler motion,
 place a hotspot or impact, draw a desired mountain belt and pin important basins
 or landmarks. Constrained generation adjusts unpinned content and reports conflicts.
 An arbitrary requested mountain range is either reconciled with the structure or
