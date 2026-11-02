@@ -58,7 +58,7 @@ TSharedPtr<FCLProjectionGPUReadback> FCLProjectionGPUReadback::TryStart(
         !FMath::IsFinite(Frame.MinAltitude) || !FMath::IsFinite(Frame.MaxAltitude) ||
         Frame.MinAltitude <= -1 || Frame.MinAltitude > Frame.MaxAltitude)
     { Error = TEXT("Invalid projection GPU frame or query count (1..4096)"); return nullptr; }
-    static_assert(sizeof(FCLProjectionGPUInput) == 64 && sizeof(FCLProjectionGPUOutput) == 64);
+    static_assert(sizeof(FCLProjectionGPUInput) == 64 && sizeof(FCLProjectionGPUOutput) == 96);
     auto Job = TSharedPtr<FCLProjectionGPUReadback>(new FCLProjectionGPUReadback());
     Job->State->NumQueries = Inputs.Num();
     ENQUEUE_RENDER_COMMAND(CLProjectionDispatch)([State = Job->State, Frame, Inputs = MoveTemp(Inputs)](FRHICommandListImmediate& RHICmdList)

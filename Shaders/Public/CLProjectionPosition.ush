@@ -1,0 +1,42 @@
+#ifndef CL_PROJECTION_POSITION_USH
+#define CL_PROJECTION_POSITION_USH
+#include "/Plugin/CatalystLandform/Public/CLProjection.ush"
+
+// Position-only entry for admitted render geometry. No differential/normal evaluation.
+float3 CLProjectionPosition(FCLProjectionFrame F, float3 Source)
+{
+    if (F.Curvature == 1.0f) return Source;
+    float R = length(Source);
+    float3 U = Source / max(R, 1.e-12f);
+    float C = clamp(dot(U, F.Anchor), -1.0f, 1.0f);
+    float3 Cross = cross(F.Anchor, U);
+    float S = length(Cross);
+    float Theta = atan2(S, C);
+    float3 Direction = S > 1.e-7f ? cross(Cross, F.Anchor) / S : float3(0, 0, 0);
+    float H = R - 1;
+    if (F.Curvature == 0.0f) return R * F.Anchor + Theta * Direction;
+    float A = F.Curvature * Theta;
+    float SinA, CosA;
+    sincos(A, SinA, CosA);
+    float HalfSinc = CLProjectionSinc(.5f * A);
+    float Z = H * CosA - .5f * F.Curvature * Theta * Theta * HalfSinc * HalfSinc;
+    return (1 + Z) * F.Anchor + ((1 - F.Curvature) + F.Curvature * R) * Theta * CLProjectionSinc(A) * Direction;
+}
+
+// All source geometry and the centre-to-geometry segments lie in one admitted convex box.
+// L is a single conservative Lipschitz bound for the whole primitive, shared by its DAG.
+void CLProjectionUnitBox(FCLProjectionFrame F, float3 Center, float3 Extent, float L,
+    out float3 ProjectedCenter, out float3 ProjectedExtent)
+{
+    ProjectedCenter = CLProjectionPosition(F, Center);
+    ProjectedExtent = F.Curvature == 1 ? Extent : (L * length(Extent) + 2.e-6f).xxx;
+}
+
+float3 CLProjectionAdmittedNormal(FCLProjectionFrame F, float3 Source, float3 Normal)
+{
+    if (F.Curvature == 1) return CLProjectionUnit(Normal);
+    FCLProjectionDifferential D;
+    if (!CLProjectionEvaluate(F, Source, D)) return CLProjectionUnit(Normal);
+    return CLProjectionNormal(D, Normal);
+}
+#endif

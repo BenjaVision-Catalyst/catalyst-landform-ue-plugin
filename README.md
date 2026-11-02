@@ -32,8 +32,9 @@ The [curvature presentation plan](Docs/CurvaturePresentation.md) defines the
 bounded CPU/GPU chart contract and Nanite/gameplay integration gates. The first
 CPU/GPU projection references, asynchronous cooked parity checks and conservative
 chunk fits are implemented; [qualification](Docs/ProjectionGPU.md) records their
-scope. Runtime render deformation and its performance qualification remain
-subsequent milestones.
+scope. The opt-in [Nanite render prototype](Docs/NaniteProjectionPrototype.md)
+adds runtime deformation and GPU node/cluster bounds; the host records packaged
+image comparisons and performance separately from full gameplay qualification.
 
 The 100 m lab proof uses a 65 x 65 flat grid over a 60 x 40 m footprint with an
 8 m ridge. Its geodesic field test and physical 360-degree walk, including an

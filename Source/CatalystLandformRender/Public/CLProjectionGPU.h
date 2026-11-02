@@ -20,7 +20,7 @@ struct FCLProjectionGPUInput
 struct FCLProjectionGPUOutput
 {
     // xyz is the value, w is 1 on success or 0 on rejection. Rejected values are zero.
-    FVector4f Position, Inverse, Vector, Normal;
+    FVector4f Position, Inverse, Vector, Normal, BoundsCenter, BoundsExtent;
 };
 
 enum class ECLProjectionReadbackStatus : uint8 { Pending, Complete, Failed };

@@ -169,3 +169,7 @@ WPO bounds, conservative detail selection, canonical coordinates and current/
 previous state. The large source chunks observed in the live probe require
 explicit culling-cost measurement; do not assume a passing analytic bound is a
 fast bound. Keep the original cooked Nanite control and the 60 fps gate intact.
+
+## Render-only checkpoint — 2026-11-02
+
+The opt-in [Nanite render prototype](NaniteProjectionPrototype.md) now implements position/normal deformation, current/previous WPO and projected node/cluster bounds. A version-pinned host overlay avoids editing engine files; a small VPP extension protects earlier scene-wide culling. The host qualification record separates packaged image correctness, dynamic render cost and remaining gameplay integration. This supersedes the earlier statement that no render path uses the projection; the full gameplay adapter and distant vista charts remain future gates.

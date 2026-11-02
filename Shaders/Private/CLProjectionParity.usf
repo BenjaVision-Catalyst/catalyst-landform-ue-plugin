@@ -1,5 +1,5 @@
 #include "/Engine/Public/Platform.ush"
-#include "/Plugin/CatalystLandform/Public/CLProjection.ush"
+#include "/Plugin/CatalystLandform/Public/CLProjectionPosition.ush"
 
 struct FCLProjectionQuery
 {
@@ -14,6 +14,8 @@ struct FCLProjectionResult
     float4 Inverse;
     float4 Vector;
     float4 Normal;
+    float4 BoundsCenter;
+    float4 BoundsExtent;
 };
 StructuredBuffer<FCLProjectionQuery> Inputs;
 RWStructuredBuffer<FCLProjectionResult> Outputs;
@@ -40,7 +42,10 @@ void MainCS(uint3 DispatchThreadId : SV_DispatchThreadID)
     FCLProjectionDifferential D;
     if (CLProjectionEvaluate(F, Q.Source.xyz, D))
     {
-        Result.Position = float4(D.Position, 1);
+        Result.Position = float4(CLProjectionPosition(F, Q.Source.xyz), 1);
+        float3 BC, BE;
+        CLProjectionUnitBox(F, Q.Source.xyz, Q.Source.w.xxx, Q.Presented.w, BC, BE);
+        Result.BoundsCenter = float4(BC, 1);Result.BoundsExtent = float4(BE, 1);
         if (all(isfinite(Q.Vector.xyz)))
         {
             float3 V = F.Curvature == 1.0f ? Q.Vector.xyz : CLProjectionVector(D, Q.Vector.xyz);
@@ -48,7 +53,7 @@ void MainCS(uint3 DispatchThreadId : SV_DispatchThreadID)
         }
         if (all(isfinite(Q.Normal.xyz)) && any(abs(Q.Normal.xyz) > 1.0e-4f))
         {
-            float3 N = F.Curvature == 1.0f ? CLProjectionUnit(Q.Normal.xyz) : CLProjectionNormal(D, Q.Normal.xyz);
+            float3 N = F.Curvature == 1.0f ? CLProjectionUnit(Q.Normal.xyz) : CLProjectionAdmittedNormal(F, Q.Source.xyz, Q.Normal.xyz);
             Result.Normal = float4(N, all(isfinite(N)) ? 1 : 0);
         }
     }

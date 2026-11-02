@@ -7,8 +7,11 @@
 
 struct FCLProjectionGPUVerification::FImpl
 {
-    struct FExpected { FVector Position, Inverse, Vector, Normal; bool bPosition, bInverse, bVector, bNormal; };
+    struct FExpected { FVector Position, Inverse, Vector, Normal, Source; double Extent=0; bool bPosition, bInverse, bVector, bNormal; };
     TArray<FExpected> Expected;
+    FCLPlanetProjection OracleProjection;
+    FVector OracleCenter;
+    double OracleRadius=1;
     TSharedPtr<FCLProjectionGPUReadback> Readback;
     FCLProjectionGPUVerificationResult Result;
     double Started = FPlatformTime::Seconds();
@@ -33,6 +36,7 @@ struct FCLProjectionGPUVerification::FImpl
         Oracle.MaxArcRadians += 2.e-6;
         FCLPlanetProjection Projection;
         if (!FCLPlanetProjection::TryCreate(Oracle, Projection)) { Error = TEXT("CPU fixture chart refused"); return false; }
+        OracleProjection=Projection;OracleCenter=S.Center;OracleRadius=S.ReferenceRadiusCm;
         TArray<FCLProjectionGPUInput> Inputs;
         Expected.Reset();
         FVector D1, D2;
@@ -49,6 +53,13 @@ struct FCLProjectionGPUVerification::FImpl
             FCLProjectionGPUInput Q{Unit(Source), Unit(Presented), FVector4f(FVector3f(Vector), 0), FVector4f(FVector3f(Normal), 0)};
             if (E.bPosition) E.Position = (E.Position - S.Center) / S.ReferenceRadiusCm;
             if (E.bInverse) E.Inverse = (E.Inverse - S.Center) / S.ReferenceRadiusCm;
+            E.Source = (Source - S.Center) / S.ReferenceRadiusCm;
+            const double H=E.Source.Length()-1;
+            const double Cos=FVector::DotProduct(E.Source.GetSafeNormal(),S.AnchorDirection);
+            E.Extent=E.bPosition&&H>-.395&&H<.295&&Cos>FMath::Cos(.95*S.MaxArcRadians)?1.e-4:0;
+            const double Ratio=S.Curvature==0?1:FMath::Sin(S.Curvature*S.MaxArcRadians)/(S.Curvature*S.MaxArcRadians);
+            const double L=FMath::Max(1.,(S.Curvature+(1-S.Curvature)/.6)*Ratio/(FMath::Sin(S.MaxArcRadians)/S.MaxArcRadians));
+            Q.Source.W=E.Extent;Q.Presented.W=L+2.e-6;
             Inputs.Add(Q);
             Expected.Add(E);
         };
@@ -105,6 +116,22 @@ struct FCLProjectionGPUVerification::FImpl
                 !Compare(A.Inverse, E.Inverse, E.bInverse, 2.e-6, Result.MaxInverseErrorRadii, TEXT("inverse")) ||
                 !Compare(A.Vector, E.Vector, E.bVector, 5.e-6, Result.MaxVectorError, TEXT("vector")) ||
                 !Compare(A.Normal, E.Normal, E.bNormal, 5.e-6, Result.MaxNormalError, TEXT("normal"))) return false;
+            if(A.BoundsCenter.W!=(E.bPosition?1.f:0.f)||A.BoundsExtent.W!=(E.bPosition?1.f:0.f))
+            {Result.Message=TEXT("GPU bounds status mismatch");return false;}
+            if(E.bPosition)
+            {
+                const FVector Center(A.BoundsCenter.X,A.BoundsCenter.Y,A.BoundsCenter.Z);
+                const FVector Extent(A.BoundsExtent.X,A.BoundsExtent.Y,A.BoundsExtent.Z);
+                if(Center.ContainsNaN()||Extent.ContainsNaN()||Extent.GetMin()<0){Result.Message=TEXT("GPU bounds invalid");return false;}
+                for(int32 K=0;K<8;++K)
+                {
+                    const FVector Offset=E.Extent*FVector(K&1?1:-1,K&2?1:-1,K&4?1:-1);
+                    FVector P;
+                    if(!OracleProjection.TryProjectPosition(OracleCenter+OracleRadius*(E.Source+Offset),P)||
+                       ((P-OracleCenter)/OracleRadius-Center).GetAbs().ComponentMin(Extent+FVector(2.e-6))!=((P-OracleCenter)/OracleRadius-Center).GetAbs())
+                    {Result.Message=FString::Printf(TEXT("GPU projected bound missed corner, chart %d query %d"),Result.Charts,I);return false;}
+                }
+            }
             ++Result.Queries;
         }
         ++Result.Charts;

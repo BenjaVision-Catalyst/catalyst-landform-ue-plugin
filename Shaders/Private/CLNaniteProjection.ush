@@ -1,0 +1,53 @@
+#ifndef CL_NANITE_PROJECTION_USH
+#define CL_NANITE_PROJECTION_USH
+#include "/Plugin/CatalystLandform/Public/CLProjectionPosition.ush"
+
+bool CLHasProjection(FPrimitiveSceneData P)
+{
+    return P.CustomPrimitiveData[2].w == 9137.0f;
+}
+FCLProjectionFrame CLNaniteFrame(float4 Data)
+{
+    FCLProjectionFrame F;
+    F.Anchor = normalize(Data.xyz);
+    F.Curvature = Data.w;
+    F.MaxArc = 1.0471975512f;
+    F.MinAltitude = -.4f;
+    F.MaxAltitude = .3f;
+    return F;
+}
+void CLNaniteProjectBox(FPrimitiveSceneData P, FInstanceSceneData I, inout float3 Center, inout float3 Extent)
+{
+    if (!CLHasProjection(P) || (P.CustomPrimitiveData[0].w == 1 && P.CustomPrimitiveData[1].w == 1)) return;
+    const float4 Packet = P.CustomPrimitiveData[2];
+    // Prototype contract: planet at world origin, uniformly scaled static VPP instances.
+    const float4x4 L2W = DFHackToFloat(I.LocalToWorld);
+    const float4x4 W2L = DFHackToFloat(I.WorldToLocal);
+    float3 SourceCenter = Center, SourceExtent = Extent;
+    if (Packet.z == 2) { SourceCenter = P.CustomPrimitiveData[3].xyz; SourceExtent = P.CustomPrimitiveData[4].xyz; }
+    float3 C = mul(float4(SourceCenter, 1), L2W).xyz / Packet.x;
+    float3 E = mul(SourceExtent, abs((float3x3)L2W)) / Packet.x;
+    float3 C0, E0, C1, E1;
+    CLProjectionUnitBox(CLNaniteFrame(P.CustomPrimitiveData[0]), C, E, Packet.y, C0, E0);
+    CLProjectionUnitBox(CLNaniteFrame(P.CustomPrimitiveData[1]), C, E, Packet.y, C1, E1);
+    float3 BMin = min(C0 - E0, C1 - E1) * Packet.x;
+    float3 BMax = max(C0 + E0, C1 + E1) * Packet.x;
+    Center = mul(float4((BMin + BMax) * .5f, 1), W2L).xyz;
+    Extent = mul((BMax - BMin) * .5f, abs((float3x3)W2L));
+}
+void CLNaniteProjectNode(FPrimitiveSceneData P, FInstanceSceneData I, inout FNodeCullingBounds B)
+{
+    if (!CLHasProjection(P) || (P.CustomPrimitiveData[0].w == 1 && P.CustomPrimitiveData[1].w == 1)) return;
+    CLNaniteProjectBox(P, I, B.BoxCenter, B.BoxExtent);
+    const float4 Packet = P.CustomPrimitiveData[2];
+    const float4x4 L2W = DFHackToFloat(I.LocalToWorld);
+    const float4x4 W2L = DFHackToFloat(I.WorldToLocal);
+    float3 Source = mul(float4(B.Sphere.xyz, 1), L2W).xyz / Packet.x;
+    float3 Presented = CLProjectionPosition(CLNaniteFrame(P.CustomPrimitiveData[0]), Source) * Packet.x;
+    B.Sphere.xyz = mul(float4(Presented, 1), W2L).xyz;
+    B.Sphere.w *= Packet.y;
+    // Keep this identical throughout the primitive's hierarchy to preserve the LOD cut.
+    B.MeshMinDeformScale *= Packet.y;
+    B.NodeMaxDeformScale *= Packet.y;
+}
+#endif
