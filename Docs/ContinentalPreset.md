@@ -4,7 +4,7 @@ This records the original combined schema 14 proof. The current
 [Planet layers inspector](PlanetLayers.md) composes Continents and Tectonics as
 independent layers; they are no longer mutually exclusive planet presets.
 Earlier saved recipes retain this document's pinned generation semantics until
-an explicit geology edit converts them to schema 15.
+an explicit geology edit now adopts schema 16; see PlanetLayers.md.
 
 **Continental rocky world** extends the base-planet producer with continental
 interiors, shelf transitions, ocean basins and motion-dependent deformation.

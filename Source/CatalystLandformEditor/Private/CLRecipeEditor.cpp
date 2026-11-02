@@ -670,6 +670,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SSlider> TectonicSlider;
     IDetailCategoryBuilder* TectonicAdvanced=nullptr;
     TSharedPtr<IStructureDetailsView> ContinentalDetails;
+    TSharedPtr<SButton> ContinentalVariation,TectonicVariation;
     TSharedPtr<FStructOnScope> ContinentalDraft;
     TSharedPtr<SSlider> ContinentalSlider;
     TArray<TSharedPtr<IDetailsView>> PlanetInspectors;
@@ -992,7 +993,7 @@ public:
     TSharedRef<SWidget> BuildTectonicAdvanced()
     {
         TectonicDraft=MakeShared<FStructOnScope>(FCLTectonicPreset::StaticStruct());
-        *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=LayeredRecipe().Tectonics;
+        *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=ResolvedTectonicDraft();
         FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.bUpdatesFromSelection=false;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
         FStructureDetailsViewArgs StructArgs;
         TectonicDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,StructArgs,TSharedPtr<FStructOnScope>(),FText::GetEmpty());
@@ -1003,7 +1004,7 @@ public:
             if(!TectonicDraft||(Event.ChangeType&EPropertyChangeType::Interactive))return;
             // Keep property gestures in a draft so validation and one-step Undo own the commit.
             const auto Preset=*reinterpret_cast<const FCLTectonicPreset*>(TectonicDraft->GetStructMemory());
-            if(!CommitTectonicLayer(Preset))*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=LayeredRecipe().Tectonics;
+            if(!CommitTectonicLayer(Preset))*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=ResolvedTectonicDraft();
         });
         TectonicDetails->SetStructureData(TectonicDraft);
         return SNew(SBox).IsEnabled_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled&&!bTectonicDragging;})[TectonicDetails->GetWidget().ToSharedRef()];
@@ -1036,16 +1037,28 @@ public:
             CLOpenTerrainDesigner(Terrain, &RecipeAsset()->Recipe.RadialGuides);
         }
     }
+    FCLTectonicPreset ResolvedTectonicDraft() const
+    {
+        auto P=LayeredRecipe().Tectonics;FCLTectonicControls C;FString Error;
+        if(FCLTectonicControls::Resolve(P,C,Error,true))
+        {if(!P.bOverrideMotion)P.Motion=C.Motion;if(!P.bOverrideRelief)P.Relief=C.Relief;if(!P.bOverridePlateCount)P.PlateCount=C.LowerPlateCount;}
+        return P;
+    }
+    FCLContinentalLayer ResolvedContinentalDraft() const
+    {
+        auto L=LayeredRecipe().Continents;const auto C=FCLContinentalControls::Resolve(L);
+        if(!L.bOverrideExtent)L.Extent=C.Extent;if(!L.bOverrideRelief)L.Relief=C.Relief;return L;
+    }
     void Refresh()
     {
         auto* Asset = RecipeAsset();
         InspectorRecipe=Asset->Recipe;InspectorRecipe.SeparateGeologyLayers();
         if(TectonicDraft)
         {
-            auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory());const auto Accepted=LayeredRecipe().Tectonics;const bool VersionChanged=Draft.AlgorithmVersion!=Accepted.AlgorithmVersion;Draft=Accepted;
+            auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory());const auto Accepted=ResolvedTectonicDraft();const bool VersionChanged=Draft.AlgorithmVersion!=Accepted.AlgorithmVersion;Draft=Accepted;
             if(VersionChanged&&TectonicDetails)TectonicDetails->SetStructureData(TectonicDraft);
         }
-        if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=LayeredRecipe().Continents;
+        if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
         if (TerrainEditing) TerrainSource.Reset(TerrainEditing->Asset);
         else if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
         else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
@@ -1121,7 +1134,7 @@ public:
     {return Category.AddCustomRow(FText::FromString(Label),Advanced).NameContent()[InspectorLabel(Label)].ValueContent().MinDesiredWidth(220).MaxDesiredWidth(900)[Widget];}
     TSharedRef<SWidget> VariationButton(bool Continental)
     {
-        return SNew(SButton).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3)
+        return SAssignNew((Continental?ContinentalVariation:TectonicVariation),SButton).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3)
             .ToolTipText(FText::FromString(TEXT("New variation")))
             .OnClicked_Lambda([this,Continental]{VaryLayer(Continental);return FReply::Handled();})
             [SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))];
@@ -1129,7 +1142,7 @@ public:
     TSharedRef<SWidget> BuildContinentalAdvanced()
     {
         ContinentalDraft=MakeShared<FStructOnScope>(FCLContinentalLayer::StaticStruct());
-        *reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=LayeredRecipe().Continents;
+        *reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
         FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.bUpdatesFromSelection=false;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
         ContinentalDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,FStructureDetailsViewArgs(),nullptr,FText::GetEmpty());
         ContinentalDetails->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
@@ -1138,7 +1151,7 @@ public:
         {
             if(E.ChangeType&EPropertyChangeType::Interactive)return;
             if(!CommitContinents(*reinterpret_cast<const FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())))
-                *reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=LayeredRecipe().Continents;
+                *reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
         });
         ContinentalDetails->SetStructureData(ContinentalDraft);
         return SNew(SBox).IsEnabled_Lambda([this]{return LayeredRecipe().Continents.bEnabled&&!bContinentalDragging;})[ContinentalDetails->GetWidget().ToSharedRef()];
@@ -1255,6 +1268,8 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Frame"))).OnClicked_Lambda([this]{if(Globe&&bGlobe)Globe->Frame();return FReply::Handled();})]);
             InspectorRow(C,TEXT("Radial Guides"),SNew(SCheckBox).IsChecked_Lambda([this]{return Preview&&Preview->Client->bGuides?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Preview){Preview->Client->bGuides=V==ECheckBoxState::Checked;Preview->Client->Invalidate();if(Globe)Globe->SetGuides(RecipeAsset()->Recipe.RadialGuides,Preview->Client->bGuides);}}));
+            InspectorRow(C,TEXT("Ocean"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsOceanVisible()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetOceanVisible(V==ECheckBoxState::Checked);}));
             InspectorRow(C,TEXT("Regions"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsInspectingRegions()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetRegionInspection(V==ECheckBoxState::Checked);}));
             InspectorRow(C,TEXT("Section area"),SNew(SHorizontalBox)
@@ -1838,11 +1853,18 @@ bool FCLPlanetInspectorTest::RunTest(const FString&)
     TestTrue(TEXT("Opening the new inspector preserves the saved recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
     TestEqual(TEXT("Workflow has five native Details views"),Editor->PlanetInspectors.Num(),5);
     TestTrue(TEXT("Both layer controls coexist in Geology"),Editor->ContinentalSlider.IsValid()&&Editor->TectonicSlider.IsValid()&&Editor->InspectorPage==1);
-    Editor->VaryLayer(true);const auto CSeed=Asset->Recipe.Continents.Seed;
-    TestTrue(TEXT("Continental variation converts and preserves both layers"),Asset->Recipe.SchemaVersion==15&&Asset->Recipe.Continents.bEnabled&&Asset->Recipe.Tectonics.bEnabled&&CSeed!=0);
+    Editor->ContinentalVariation->SimulateClick();const auto CSeed=Asset->Recipe.Continents.Seed;
+    TestTrue(TEXT("Continental variation converts and preserves both layers"),Asset->Recipe.SchemaVersion==16&&Asset->Recipe.Continents.bEnabled&&Asset->Recipe.Tectonics.bEnabled&&CSeed!=0);
     TestEqual(TEXT("Continental variation preserves tectonic seed"),Asset->Recipe.Tectonics.Seed,Original.Tectonics.Seed);
     TestEqual(TEXT("Variation preserves the knob setting"),Asset->Recipe.Tectonics.Activity,Original.Tectonics.Activity);
-    const auto AfterContinental=Asset->Recipe;Editor->VaryLayer(false);
+    const auto AfterContinental=Asset->Recipe;
+    const auto& CD=*reinterpret_cast<const FCLContinentalLayer*>(Editor->ContinentalDraft->GetStructMemory());
+    TestEqual(TEXT("Advanced shows resolved continental relief"),CD.Relief,FCLContinentalControls::Resolve(Asset->Recipe.Continents).Relief);
+    auto T=Asset->Recipe.Tectonics;T.Activity=.9;T.bOverrideMotion=false;T.bOverrideRelief=false;Editor->CommitTectonicLayer(T);
+    const auto& TD=*reinterpret_cast<const FCLTectonicPreset*>(Editor->TectonicDraft->GetStructMemory());FCLTectonicControls Controls;FString ResolveError;FCLTectonicControls::Resolve(T,Controls,ResolveError,true);
+    TestEqual(TEXT("Advanced follows motion driven by knob"),TD.Motion,Controls.Motion);TestEqual(TEXT("Advanced follows relief driven by knob"),TD.Relief,Controls.Relief);
+    GEditor->UndoTransaction();
+    Editor->TectonicVariation->SimulateClick();
     TestTrue(TEXT("Tectonic variation changes its own seed"),Asset->Recipe.Tectonics.Seed!=AfterContinental.Tectonics.Seed);
     TestEqual(TEXT("Tectonic variation preserves the continental seed"),Asset->Recipe.Continents.Seed,CSeed);
     GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores one variation"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&AfterContinental,&Asset->Recipe,0));
@@ -1894,6 +1916,10 @@ bool FCLTectonicLiveKnobTest::RunTest(const FString& Parameters)
             {
                 TestTrue(TEXT("Newest value is applied before mouse release"),(Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity)>.75);
                 TestTrue(TEXT("A generated draft mesh is published during the drag"),(Crust?Editor->bContinentalDragging:Editor->bTectonicDragging)&&Editor->Globe->PublishedBuilds()>Before&&Editor->Globe->HasDraftMesh());
+                const auto& TD=*reinterpret_cast<const FCLTectonicPreset*>(Editor->TectonicDraft->GetStructMemory());
+                const auto& CD=*reinterpret_cast<const FCLContinentalLayer*>(Editor->ContinentalDraft->GetStructMemory());
+                FCLTectonicControls TC;FString E;FCLTectonicControls::Resolve(Owned->Get()->Recipe.Tectonics,TC,E,true);
+                TestEqual(TEXT("Advanced relief follows accepted live knob before release"),Crust?CD.Relief:TD.Relief,Crust?FCLContinentalControls::Resolve(Owned->Get()->Recipe.Continents).Relief:TC.Relief);
                 FSlateApplication::Get().RoutePointerUpEvent(*Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,End,End,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));
                 const double Final=(Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity);TestFalse(TEXT("Release ends draft mode"),Editor->Globe->IsDraftMode());
                 GEditor->UndoTransaction();TestTrue(TEXT("One undo restores the entire drag"),FMath::IsNearlyEqual((Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity),.55,1.e-6));

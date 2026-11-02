@@ -5,7 +5,7 @@ namespace
 double Smooth(double T){T=FMath::Clamp(T,0.,1.);return T*T*T*(T*(6*T-15)+10);}
 FVector Unit(FRandomStream& R){const double Z=R.FRandRange(-1.f,1.f),A=R.FRandRange(0.f,2*PI);return FVector(FMath::Sqrt(1-Z*Z)*FMath::Cos(A),FMath::Sqrt(1-Z*Z)*FMath::Sin(A),Z);}
 }
-bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls& O,FString& Error)
+bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls& O,FString& Error,bool Layered)
 {
     if((P.AlgorithmVersion<1||P.AlgorithmVersion>3)||!FMath::IsFinite(P.Activity)||P.Activity<0||P.Activity>1||P.LowerGuide.IsNone()||P.UpperGuide.IsNone()||
         P.PlateCount<1||P.PlateCount>12||!FMath::IsFinite(P.Motion)||P.Motion<0||P.Motion>2||!FMath::IsFinite(P.Relief)||P.Relief<0||P.Relief>1)
@@ -20,6 +20,12 @@ bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls
     O.CrustThickness=.008+.032*Smooth(A);
     O.BeltWidth=FMath::DegreesToRadians(3.+4.*A);
     O.Relief=P.bOverrideRelief?P.Relief:.12+.8*A;
+    if(Layered)
+    {
+        O.Motion=P.bOverrideMotion?P.Motion:1.1*A*A;
+        O.Relief=P.bOverrideRelief?P.Relief:.03+.22*A;
+        O.BeltWidth=FMath::DegreesToRadians(6.+6.*A);
+    }
     if(P.AlgorithmVersion==3){O.LowerPlateCount=O.UpperPlateCount=2;O.PlateTransition=0;}
     return true;
 }
@@ -30,10 +36,10 @@ double FCLCompiledTectonics::Continentalness(const FVector& D) const
     double Sum=0;for(const FVector& C:Continents)Sum+=2.7*FMath::Exp((FVector::DotProduct(D,C)-1)*5.);
     return 1-FMath::Exp(-Sum);
 }
-TSharedPtr<const FCLCompiledTectonics> FCLCompiledTectonics::Compile(const FCLTectonicPreset& P,int32 Seed,double Span,FString& Error,bool Layered,TSharedPtr<const FCLCompiledContinents> Crust)
+TSharedPtr<const FCLCompiledTectonics> FCLCompiledTectonics::Compile(const FCLTectonicPreset& P,int32 Seed,double Span,FString& Error,bool Layered,TSharedPtr<const FCLCompiledContinents> Crust,bool Calibrated)
 {
-    auto Out=MakeShared<FCLCompiledTectonics>();if(!FCLTectonicControls::Resolve(P,Out->Controls,Error))return nullptr;
-    Out->bLayered=Layered;Out->SharedCrust=MoveTemp(Crust);
+    auto Out=MakeShared<FCLCompiledTectonics>();if(!FCLTectonicControls::Resolve(P,Out->Controls,Error,Calibrated))return nullptr;
+    Out->bLayered=Layered;Out->bCalibrated=Calibrated;Out->SharedCrust=MoveTemp(Crust);
     if(!FMath::IsFinite(Span)||Span<=0){Error=TEXT("Tectonics requires an ordered, nonempty guide interval");return nullptr;}
     Out->AlgorithmVersion=P.AlgorithmVersion;Out->SpanMeters=Span;Out->MaximumDeltaMeters=Span*(.035+.46*Out->Controls.Relief);
     if(P.AlgorithmVersion==3){Out->MaximumDeltaMeters=Span*.8;Out->BuildContinentalFoundation(P,Seed);return Out;}

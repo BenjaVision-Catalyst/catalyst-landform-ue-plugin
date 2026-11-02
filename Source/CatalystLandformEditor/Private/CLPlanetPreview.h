@@ -59,6 +59,8 @@ public:
     uint64 PublishedBuilds() const{return AppliedBuilds;}
     bool IsDraftMode() const{return bDraft;}
     bool HasDraftMesh() const{return bLastPublishedDraft;}
+    void SetOceanVisible(bool Visible);
+    bool IsOceanVisible() const{return bOceanVisible;}
     void Frame();
     void Dolly(double Steps);
     void SetGuides(const FCLRadialGuideSet& Guides,bool Visible);
@@ -77,6 +79,9 @@ protected:
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
 #if WITH_DEV_AUTOMATION_TESTS
+    friend class FCLGlobePublicationTest;
+    friend class FCLGeologyRenderedTest;
+    friend class FCLGlobeOceanTest;
     friend class FCLGlobeWalkPickingTest;
     friend class FCLTectonicGlobeTest;
     friend class FCLContinentalGlobeTest;
@@ -88,6 +93,9 @@ private:
     friend class FCLSurfaceGlobeTest;
 #endif
     void Pump();
+    void UpdateOcean();
+    bool bOceanVisible=false;
+    TStrongObjectPtr<UProceduralMeshComponent> Ocean;
     void CancelPlacementDrag();
     FVector2D PointerPosition(const FGeometry& Geometry,const FPointerEvent& Event) const;
     FOnCLGlobePlacementCommitted OnPlacementCommitted;
@@ -109,6 +117,7 @@ private:
     TFuture<FCLGlobeBuffers> Task;
     TSharedPtr<TAtomic<bool>,ESPMode::ThreadSafe> Stop;
     uint64 Revision=0,TaskRevision=0;
+    bool bPreviewFirst=false;
     bool Framed=false,bDraft=false,bTaskDraft=false,bLastPublishedDraft=false;
     uint64 AppliedBuilds=0,Epoch=0,TaskEpoch=0;
     FVector2D Previous;

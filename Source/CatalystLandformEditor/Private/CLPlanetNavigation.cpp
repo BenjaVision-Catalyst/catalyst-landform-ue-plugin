@@ -1,6 +1,6 @@
 #include "CLPlanetNavigation.h"
 void FCLPlanetNavigation::Orbit(FVector2D Pixels)
-{Yaw-=Pixels.X*.3;Elevation=FMath::Clamp(Elevation+Pixels.Y*.3,-85.,85.);}
+{Yaw+=Pixels.X*.3;Elevation=FMath::Clamp(Elevation+Pixels.Y*.3,-85.,85.);}
 void FCLPlanetNavigation::PanBy(FVector2D Pixels)
 {
     if(Zoom>=1)return;

@@ -44,7 +44,7 @@ struct CATALYSTLANDFORM_API FCLTectonicControls
 {
     int32 LowerPlateCount=1,UpperPlateCount=1;
     double PlateTransition=0,Motion=0,CrustThickness=0,BeltWidth=0,Relief=0;
-    static bool Resolve(const FCLTectonicPreset& Preset,FCLTectonicControls& Out,FString& Error);
+    static bool Resolve(const FCLTectonicPreset& Preset,FCLTectonicControls& Out,FString& Error,bool Layered=false);
 };
 /** Immutable kinematic construction, not a mantle/history simulation. All lengths are metre offsets. */
 class CATALYSTLANDFORM_API FCLCompiledTectonics
@@ -68,9 +68,9 @@ public:
     /** Algorithm 3 only. Invalid inputs preserve Out. */
     bool SampleGeology(const FVector& UnitDirection,FCLGeologicalSample& Out) const;
     static double CrustBaseFraction(double Continentalness);
-    static TSharedPtr<const FCLCompiledTectonics> Compile(const FCLTectonicPreset& Preset,int32 Seed,double SpanMeters,FString& Error,bool Layered=false,TSharedPtr<const FCLCompiledContinents> Crust=nullptr);
+    static TSharedPtr<const FCLCompiledTectonics> Compile(const FCLTectonicPreset& Preset,int32 Seed,double SpanMeters,FString& Error,bool Layered=false,TSharedPtr<const FCLCompiledContinents> Crust=nullptr,bool Calibrated=false);
 private:
-    bool bLayered=false;
+    bool bLayered=false,bCalibrated=false;
     TSharedPtr<const FCLCompiledContinents> SharedCrust;
     int32 AlgorithmVersion=2;
     FQuat NoiseRotation=FQuat::Identity;

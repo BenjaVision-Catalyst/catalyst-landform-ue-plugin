@@ -262,7 +262,7 @@ public:
         StudioScene=static_cast<FCLGlobeScene*>(Scene);
         static_cast<FAssetEditorModeManager*>(ModeTools.Get())->SetPreviewScene(Scene);
         ModeTools->ActivateMode(GlobePlacementModeId);this->Widget->SetUsesEditorModeTools(ModeTools.Get());ShowWidget(false);
-        SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);
+        SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);EngineShowFlags.SetTranslucency(true);
         // Every camera angle uses the same studio exposure; nothing adapts while
         // this non-realtime viewport redraws intermittently during an orbit.
         ExposureSettings.bFixed=true;ExposureSettings.FixedEV100=-2;
@@ -329,11 +329,25 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
     Scene=MakeUnique<FCLGlobeScene>();
     Mesh.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
     Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
+    Ocean.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));
+    FCLCompiledPlanetRecipe UnitSphere;UnitSphere.RadiusMeters=1;UnitSphere.BaseHeightMeters=0;UnitSphere.Coordinates=ECLTerrainCoordinates::Sphere;
+    auto Sphere=FCLGlobeBuffers::Build(UnitSphere,96);for(auto& V:Sphere.Vertices)V=V.GetSafeNormal()*50.;
+    Ocean->CreateMeshSection_LinearColor(0,Sphere.Vertices,Sphere.Triangles,Sphere.Normals,Sphere.UV,Sphere.Colors,Sphere.Tangents,false);
+    Ocean->SetCollisionEnabled(ECollisionEnabled::NoCollision);Ocean->SetCastShadow(false);Ocean->SetVisibility(false);Ocean->bSelectable=false;
+    auto* Glass=NewObject<UMaterial>(Ocean.Get(),NAME_None,RF_Transient);
+    Glass->TwoSided=true;Glass->BlendMode=BLEND_Translucent;Glass->TranslucencyLightingMode=TLM_SurfacePerPixelLighting;
+    auto* Inputs=Glass->GetEditorOnlyData();
+    Inputs->BaseColor.UseConstant=true;Inputs->BaseColor.Constant=FLinearColor(.015,.14,.48);
+    Inputs->EmissiveColor.UseConstant=true;Inputs->EmissiveColor.Constant=FLinearColor(.005,.025,.10);
+    Inputs->Opacity.UseConstant=true;Inputs->Opacity.Constant=.32;
+    Inputs->Roughness.UseConstant=true;Inputs->Roughness.Constant=.12;
+    Inputs->Specular.UseConstant=true;Inputs->Specular.Constant=.35;
+    Glass->PostEditChange();Ocean->SetMaterial(0,Glass);Scene->AddComponent(Ocean.Get(),FTransform::Identity);
     SEditorViewport::Construct(SEditorViewport::FArguments());
 }
-SCLPlanetPreview::~SCLPlanetPreview(){if(Stop)Stop->Store(true);if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());}
+SCLPlanetPreview::~SCLPlanetPreview(){if(Stop)Stop->Store(true);if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());}
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
-void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;Pending=MoveTemp(Plan);if(Stop&&!(bDraft&&bTaskDraft&&TaskEpoch==Epoch))Stop->Store(true);Pump();}
+void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;bPreviewFirst=!bDraft;Pending=MoveTemp(Plan);if(Stop&&!(bDraft&&bTaskDraft&&TaskEpoch==Epoch))Stop->Store(true);Pump();}
 void SCLPlanetPreview::Cancel(){++Revision;++Epoch;Pending.Reset();if(Stop)Stop->Store(true);}
 bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid();}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
@@ -348,7 +362,17 @@ void SCLPlanetPreview::SelectGeneratedRegion(FGuid Id)
 FGuid SCLPlanetPreview::GeneratedSelection() const{return Client->SelectedRegion;}
 void SCLPlanetPreview::Frame(){if(Client){Client->Navigation.Zoom=1;Client->Navigation.Pivot=FVector::ZeroVector;Client->Navigation.Pan=FVector2D::ZeroVector;Client->Apply();}}
 void SCLPlanetPreview::Dolly(double Steps){Client->Dolly(Steps);}
-void SCLPlanetPreview::SetGuides(const FCLRadialGuideSet& Guides,bool Visible){Client->Guides=Guides;Client->bGuides=Visible;Client->UpdateIndicators();Client->Invalidate();}
+void SCLPlanetPreview::SetGuides(const FCLRadialGuideSet& Guides,bool Visible){Client->Guides=Guides;Client->bGuides=Visible;UpdateOcean();Client->UpdateIndicators();Client->Invalidate();}
+void SCLPlanetPreview::SetOceanVisible(bool Visible){bOceanVisible=Visible;UpdateOcean();}
+void SCLPlanetPreview::UpdateOcean()
+{
+    if(!Client||!Ocean)return;
+    const auto* Guide=Client->Guides.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("OceanHeight");});
+    const bool Show=bOceanVisible&&Guide&&FMath::IsFinite(Guide->NormalizedHeight)&&Guide->NormalizedHeight>0&&Guide->NormalizedHeight<=1;
+    Ocean->SetVisibility(Show);
+    if(Show)Ocean->SetWorldScale3D(FVector(Guide->NormalizedHeight*FCLPlanetNavigation::Radius/50.));
+    Client->Invalidate();
+}
 double SCLPlanetPreview::NormalizedAtScreenY(double Y)const{return Client->NormalizedAtScreenY(Y);}
 const TArray<FCLGuideIndicator>& SCLPlanetPreview::Indicators()const{return Client->Indicators;}
 const TArray<TArray<FVector2D>>& SCLPlanetPreview::Rings()const{return Client->Rings;}
@@ -364,10 +388,12 @@ void SCLPlanetPreview::Pump()
             Mesh->SetMaterial(0,B.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*B.Surfaces,true):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
             Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
             if(!Framed){Framed=true;Frame();}else Client->Apply();
+            // Publish a quick variation before refining the same immutable plan.
+            if(bTaskDraft&&!bDraft&&TaskRevision==Revision&&!Pending)Pending=BuildingPlan;
         }
         BuildingPlan.Reset();Stop.Reset();
     }
-    if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;bTaskDraft=bDraft;TaskEpoch=Epoch;const int32 Resolution=bDraft?64:FCLGlobeBuffers::PreviewResolution;Stop=MakeShared<TAtomic<bool>,ESPMode::ThreadSafe>(false);auto Cancellation=Stop;Task=Async(EAsyncExecution::ThreadPool,[P,Resolution,Cancellation]{return FCLGlobeBuffers::Build(*P,Resolution,Cancellation.Get());});}
+    if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;bTaskDraft=bDraft||bPreviewFirst;bPreviewFirst=false;TaskEpoch=Epoch;const int32 Resolution=bTaskDraft?64:FCLGlobeBuffers::PreviewResolution;Stop=MakeShared<TAtomic<bool>,ESPMode::ThreadSafe>(false);auto Cancellation=Stop;Task=Async(EAsyncExecution::ThreadPool,[P,Resolution,Cancellation]{return FCLGlobeBuffers::Build(*P,Resolution,Cancellation.Get());});}
 }
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
@@ -541,7 +567,7 @@ bool FCLGlobePointerTest::RunTest(const FString&)
     TArray<FWidgetAndPointer> PointerWidgets;for(const auto& W:WidgetPath.Widgets.GetInternalArray())PointerWidgets.Emplace(W,TOptional<FVirtualPointerPosition>());
     const FWidgetPath Path(MakeArrayView(PointerWidgets));
     if(!TestTrue(TEXT("Actual inner viewport is in the routed widget path"),Path.IsValid())){App.RequestDestroyWindow(Window);return false;}
-    const FVector2D Start(300,300),End(420,340);const auto InitialRotation=Widget->Client->GetViewRotation();const double InitialZoom=Widget->Client->Navigation.Zoom;
+    const FVector2D Start(300,300),End(420,340);const auto InitialRotation=Widget->Client->GetViewRotation();const double InitialZoom=Widget->Client->Navigation.Zoom;const double InitialYaw=Widget->Client->Navigation.Yaw;
     const FPointerEvent Down(FSlateApplication::CursorPointerIndex,Start,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState());
     const auto Reply=App.RoutePointerDownEvent(Path,Down);
     TestTrue(TEXT("Globe intercepts the press before the inner viewport"),Reply.GetMouseCaptor()==Widget);
@@ -549,6 +575,7 @@ bool FCLGlobePointerTest::RunTest(const FString&)
     const FPointerEvent Move(FSlateApplication::CursorPointerIndex,End,Start,TSet<FKey>{EKeys::LeftMouseButton},FKey(),0,FModifierKeysState());
     App.RoutePointerMoveEvent(Path,Move,false);
     TestFalse(TEXT("A routed drag rotates the actual camera"),Widget->Client->GetViewRotation().Equals(InitialRotation,.01));
+    TestTrue(TEXT("Rightward drag increases globe yaw"),Widget->Client->Navigation.Yaw>InitialYaw);
     TestEqual(TEXT("Orbit does not change zoom"),Widget->Client->Navigation.Zoom,InitialZoom);
     const FPointerEvent Up(FSlateApplication::CursorPointerIndex,End,End,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState());
     App.RoutePointerUpEvent(Path,Up);TestFalse(TEXT("Release ends globe capture"),Widget->HasMouseCapture());
@@ -902,5 +929,137 @@ bool FCLContinentalGlobeTest::RunTest(const FString&)
         }
         FSlateApplication::Get().RequestDestroyWindow(Window);
     },.6f));return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeOceanTest,"Catalyst.Landform.PlanetBuilder.DisplayOcean",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobeOceanTest::RunTest(const FString&)
+{
+    auto R=FCLPlanetCompiler::ContinentalBase();const auto Original=R;
+    const auto W=SNew(SCLPlanetPreview);W->SetGuides(R.RadialGuides,true);
+    TestFalse(TEXT("Ocean starts hidden"),W->IsOceanVisible()||W->Ocean->IsVisible());
+    W->SetOceanVisible(true);const auto* G=R.RadialGuides.Guides.FindByPredicate([](const auto& V){return V.Name==TEXT("OceanHeight");});
+    if(!TestNotNull(TEXT("Fixture has OceanHeight"),G))return false;
+    TestTrue(TEXT("Display ocean is visible"),W->Ocean->IsVisible());
+    TestTrue(TEXT("Ocean radius follows normalized guide"),FMath::IsNearlyEqual(W->Ocean->GetComponentScale().X*50,G->NormalizedHeight*100000,1.e-6));
+    auto Guides=R.RadialGuides;Guides.Guides.FindByPredicate([](const auto& V){return V.Name==TEXT("OceanHeight");})->NormalizedHeight=.47;W->SetGuides(Guides,false);
+    TestTrue(TEXT("Hidden guide rings still update ocean geometry"),FMath::IsNearlyEqual(W->Ocean->GetComponentScale().X*50,47000.,1.e-6));
+    Guides.Guides.RemoveAll([](const auto& V){return V.Name==TEXT("OceanHeight");});W->SetGuides(Guides,true);
+    TestFalse(TEXT("Missing guide suppresses ocean"),W->Ocean->IsVisible());
+    TestEqual(TEXT("Ocean has no collision"),W->Ocean->GetCollisionEnabled(),ECollisionEnabled::NoCollision);
+    TestTrue(TEXT("Ocean does not alter recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&R,&Original,0));
+    return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGeologyRenderedTest,"Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGeologyRenderedTest::RunTest(const FString&)
+{
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Calibrated geology"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    FString Json,Error;TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
+    FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/LayeredGeology.json")));
+    if(!Source->ImportRecipeJson(Json,Error)){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+    auto Base=Source->Recipe;Base.Continents.bOverrideExtent=false;Base.Continents.bOverrideRelief=false;Base.Tectonics.bOverrideMotion=false;Base.Tectonics.bOverrideRelief=false;
+    const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/planet-tuning-frames");IFileManager::Get().MakeDirectory(*Folder,true);
+    auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();
+    for(int32 I=0;I<6;++I)
+    {
+        auto R=Base;R.Continents.Strength=R.Tectonics.Activity=I==0?0:I==1?.5:1.;
+        if(I==3)R.Continents.Seed=529;if(I==4)R.Tectonics.Seed=817;
+        const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P||!P->Surfaces){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+        Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,128));
+    }
+    FVector EyeDirection=FVector(1,-1,.65).GetSafeNormal();double Best=1.e9;
+    const auto* OceanGuide=Base.RadialGuides.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("OceanHeight");});
+    for(int32 K=0;OceanGuide&&K<256;++K)
+    {
+        const double Z=1-2*(K+.5)/256.,A=K*2.399963229728653;const FVector D(FMath::Cos(A)*FMath::Sqrt(1-Z*Z),FMath::Sin(A)*FMath::Sqrt(1-Z*Z),Z);
+        const double Distance=FMath::Abs((*Plans)[2]->SampleHeightMeters(D)-(OceanGuide->NormalizedHeight-1)*Base.RadiusMeters);
+        if(Distance<Best){Best=Distance;EyeDirection=D;}
+    }
+    auto Intense=MakeShared<TArray<FColor>>();auto Differences=MakeShared<TArray<double>>();Differences->Init(0,3);
+    for(int32 I=0;I<6;++I)
+    {
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([W,Plans,Buffers,Base,EyeDirection,I]
+        {
+            const auto& P=(*Plans)[I];const auto& B=(*Buffers)[I];W->Client->Plan=P;
+            W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*P->Surfaces,true));
+            W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            W->SetGuides(Base.RadialGuides,false);W->SetOceanVisible(I==5);
+            const FVector Eye=EyeDirection*135000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());
+        },.05f));
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Folder,I,Intense,Differences]
+        {
+            // Visibility/render-state changes need an editor frame before readback.
+            if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+            for(int32 K=0;K<5;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            TestEqual(TEXT("Rendered tuning frame exists"),Pixels.Num(),800*600);
+            if(I==2)*Intense=Pixels;
+            if(I>=3)for(int32 K=0;K<Pixels.Num()&&K<Intense->Num();++K)
+                (*Differences)[I-3]+=FMath::Abs(int32(Pixels[K].R)-(*Intense)[K].R)+FMath::Abs(int32(Pixels[K].G)-(*Intense)[K].G)+FMath::Abs(int32(Pixels[K].B)-(*Intense)[K].B);
+            TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("globe-%d.png"),I)));
+            if(I==5)
+            {
+                TestTrue(TEXT("Continental variation changes rendered globe"),(*Differences)[0]/(800*600*3)>.2);
+                TestTrue(TEXT("Tectonic variation changes rendered globe"),(*Differences)[1]/(800*600*3)>.2);
+                TestTrue(TEXT("Ocean is visibly rendered over terrain"),(*Differences)[2]/(800*600*3)>1);
+                int32 Blue=0;for(int32 K=0;K<Pixels.Num()&&K<Intense->Num();++K)Blue+=(int32(Pixels[K].B)-Pixels[K].R)-(int32((*Intense)[K].B)-(*Intense)[K].R)>10;
+                TestTrue(TEXT("Glass is visibly blue rather than a neutral overlay"),Blue>1000);
+                AddInfo(FString::Printf(TEXT("Rendered mean differences: continents %.3f, tectonics %.3f, ocean %.3f"),(*Differences)[0]/(800*600*3),(*Differences)[1]/(800*600*3),(*Differences)[2]/(800*600*3)));
+                FSlateApplication::Get().RequestDestroyWindow(Window);
+            }
+        },.2f));
+    }
+    return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+namespace
+{
+class FCLGlobeAwait : public IAutomationLatentCommand
+{
+    TFunction<bool()> Check;
+public:
+    explicit FCLGlobeAwait(TFunction<bool()> In):Check(MoveTemp(In)){}
+    virtual bool Update() override{return Check();}
+};
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobePublicationTest,"Catalyst.Landform.PlanetLayers.VariationPublication",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGlobePublicationTest::RunTest(const FString&)
+{
+    auto R=FCLPlanetCompiler::BasePlanet();R.SeparateGeologyLayers();R.Continents.bEnabled=true;R.Tectonics.bEnabled=true;R.Tectonics.AlgorithmVersion=2;
+    FString Error;const auto Initial=FCLPlanetCompiler::Compile(R,Error);R.Continents.Seed=817;const auto Changed=FCLPlanetCompiler::Compile(R,Error);
+    if(!Initial||!Changed){AddError(Error);return false;}
+    const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).ClientSize(FVector2D(640,480))[W];FSlateApplication::Get().AddWindow(Window,false);Window->SlatePrepass();W->Rebuild(Initial);
+    auto Phase=MakeShared<int32>(0);auto Before=MakeShared<uint64>(0);auto Started=MakeShared<double>(FPlatformTime::Seconds());
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,Initial,Changed,Phase,Before,Started]
+    {
+        W->Pump();
+        auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+        if(FPlatformTime::Seconds()-*Started>30){AddError(FString::Printf(TEXT("Globe variation failed to publish/refine within 30 seconds; phase %d, builds %llu"),*Phase,W->PublishedBuilds()));return Close();}
+        if(*Phase==0)
+        {
+            if(W->IsUpdating())return false;
+            TestTrue(TEXT("Initial plan is displayed"),W->Client->Plan==Initial);*Before=W->PublishedBuilds();W->Rebuild(Changed);*Started=FPlatformTime::Seconds();*Phase=1;return false;
+        }
+        if(W->IsUpdating())return false;
+        TestTrue(TEXT("Variation publishes a draft and a refined mesh"),W->PublishedBuilds()==*Before+2);
+        TestTrue(TEXT("Newest variation owns the displayed plan"),W->Client->Plan==Changed);
+        TestFalse(TEXT("Variation finishes at full quality"),W->HasDraftMesh());
+        const auto* Section=W->Mesh->GetProcMeshSection(0);double Worst=0,Delta=0;
+        for(int32 I=0;Section&&I<Section->ProcVertexBuffer.Num();I+=1024)
+        {
+            const FVector V(Section->ProcVertexBuffer[I].Position),D=V.GetSafeNormal();
+            const double Expected=(Changed->RadiusMeters+Changed->SampleHeightMeters(D))/Changed->RadiusMeters*100000;
+            Worst=FMath::Max(Worst,FMath::Abs(V.Size()-Expected));Delta+=FMath::Abs(Changed->SampleHeightMeters(D)-Initial->SampleHeightMeters(D));
+        }
+        TestTrue(TEXT("Published vertices belong to the new compiled variation"),Section&&Worst<.02&&Delta>1);
+        AddInfo(FString::Printf(TEXT("Variation publication: worst display residual %.6f cm"),Worst));return Close();
+    }));return true;
 }
 #endif

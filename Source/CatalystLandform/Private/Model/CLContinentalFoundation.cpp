@@ -9,6 +9,8 @@ void FCLCompiledTectonics::BuildContinentalFoundation(const FCLTectonicPreset& P
 {
     Foundation=P;FoundationFrame=P.FoundationOrientation.Quaternion();
     FRandomStream Random(int32(uint32(Seed)^0x434c4633U));
+    if(bCalibrated)
+        FoundationFrame=FoundationFrame*FRotator(Random.FRandRange(-65,65),Random.FRandRange(-180,180),Random.FRandRange(-180,180)).Quaternion();
     NoiseOffset=FVector(Random.FRandRange(5,55),Random.FRandRange(5,55),Random.FRandRange(5,55));
     // Crust domains are independent of the two plate half-spaces.
     Continents={FoundationFrame.RotateVector(FVector(.84,.42,.12).GetSafeNormal()),
@@ -74,7 +76,7 @@ bool FCLCompiledTectonics::SampleGeology(const FVector& Direction,FCLGeologicalS
     Result.BaseDeltaMeters=bLayered?0:SpanMeters*CrustBaseFraction(C);
     auto Crust=[&](FVector Q){return bLayered?Continentalness(Q):ContinentalDomain(Q);};
     const double CA=Crust((Projected+N*.12).GetSafeNormal()),CB=Crust((Projected-N*.12).GetSafeNormal());
-    const double Collision=Ease((CA-.3)/.4)*Ease((CB-.3)/.4),Side=CA>=CB?1:-1;
+    const double Collision=Ease((CA-.3)/.4)*Ease((CB-.3)/.4),Side=bCalibrated?FMath::Tanh((CA-CB)*8.):(CA>=CB?1:-1);
     const double Drive=1-FMath::Exp(-FMath::Abs(Con));double Deformation=0,Thickening=0;
     Result.Convergence=Con;Result.Shear=Shear;
     if(Con>1.e-10)
