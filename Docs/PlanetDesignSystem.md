@@ -2,7 +2,9 @@
 
 2 November 2026. Proposed design and implementation sequence for review. The
 existing UE 5.7.4 / VPP 2.0p8 proof remains the executable baseline. This document
-adds no geology implementation and changes no saved planets.
+adds no geology implementation and changes no saved planets. The [3 November
+recipe-to-world research](#recipe-to-world-architecture-research--3-november-2026)
+extends the proposal to general volumes, measured data and planetary precision.
 
 Build planets from a shared geological history and structure, refine them through
 landscape processes, then use reusable Landforms to express the resulting terrain.
@@ -412,3 +414,336 @@ peak memory, voxel query cost and native render/collision error. Record numeric
 thresholds after establishing baseline cases, before tuning the generator. Keep
 expert visual review alongside metrics: a smooth seam or a plausible histogram
 alone does not establish believable geology.
+
+
+## Recipe to world architecture research — 3 November 2026
+
+The product contract is: an accepted recipe and its referenced resources produce
+an ultra-realistic, reproducible world. The recipe must describe more than a
+radial height surface. Recommend a versioned, engine-independent scene program
+with full 3D shape, geological/material attributes, resource providers and
+placement outputs. Compile that program into an immutable, spatially indexed
+scene; lower it into VPP through qualified native adapters. Meshes, previews,
+collision and exported data are products of that scene.
+
+```mermaid
+flowchart LR
+    R[Recipe and pinned resources] --> C[Scene compiler]
+    C --> S[Immutable 3D scene]
+    S --> V[VPP rendering and collision]
+    S --> P[Designer and globe]
+    S --> Q[Queries PCG and export]
+```
+
+This is a proposal for review, not an implemented replacement or a change to
+current saved recipes. The inspected baseline is component `19490fe` and workspace
+`fdf311f`, UE 5.7.4 / VPP 2.0p8 on Mac arm64. The current radial kernels, source
+assets, one-knob authoring and canonical curvature/picking work remain useful.
+The representation boundary must widen before more features depend on it.
+
+### Evidence and architecture choice
+
+Earlier research already proposes a canonical body description, immutable
+composition, bounded operators, accepted process artifacts and a composite VPP
+volume adapter. See [the research composition proposal](../../../../landform-workspace/research/unreal-landform/COMPOSITION.md)
+and [the research review](../../../../landform-workspace/research/unreal-landform/README.md).
+Their old absolute-radius guide conventions do not override today's normalized
+Radial Guide Set and outer-sky radius contract. Their prototypes are not evidence
+that the current plugin implements general volumes.
+
+| Candidate | Strength | Limitation for this product | Recommended role |
+| --- | --- | --- | --- |
+| Radial heightfield | Compact exterior terrain, DEMs, noise and regional relief | One boundary per direction; no general caves, arches or detached solids | Optimized exterior provider within the scene |
+| One fully sampled planet SDF | Arbitrary solid topology | Fine dense storage scales with volume; global high resolution is impractical | Avoid as the authoritative world format |
+| Procedural 3D field everywhere | Compact recipe, arbitrary topology | Cost can grow with feature count; process output and measured data cannot always be regenerated from a seed | Default shape semantics with spatial pruning and cached providers |
+| Hybrid scene with procedural fields, tiled rasters and sparse volume artifacts | Supports all known terrain families, measurements and expensive process output | Requires explicit resource, precision, LOD and readiness contracts | Recommended foundation |
+| Cesium or 3D Tiles as the whole terrain system | Mature planetary frames and streamed geospatial geometry | Streamed meshes alone do not supply our editable volumetric geology | Reference architecture and optional derived geometry/data adapter |
+| UE Sparse Volume Texture as solid terrain | Sparse sampled volume data | Its documented workflow targets volumetric media; no established Landform solid meshing/collision bridge | Do not adopt as the solid-terrain foundation |
+
+[VPP stamp domains](https://docs.voxelplugin.com/knowledgebase/working-with-stamps/stamp-types/)
+provide height and fully volumetric contributions. VPP should retain ownership of
+native terrain meshing and collision generation. A new custom planetary mesher is
+not required to define the canonical scene. [UE SVTs](https://dev.epicgames.com/documentation/en-us/unreal-engine/sparse-volume-textures-in-unreal-engine?application_version=5.7)
+are useful volume assets, but their existence does not establish a solid-terrain
+pipeline. [Cesium's Moon/Mars workflow](https://cesium.com/learn/unreal/unreal-moon-mars/)
+provides a concrete reference for non-Earth figures and global dataset presentation.
+
+### Recipe and compiler boundary
+
+Keep authoring intent, accepted world data and renderer activation distinct:
+
+1. The authored recipe contains planet/frame identity, figure, normalized guides,
+   geological construction, Landform instances, feature programs and explicit
+   source/scale policies. One-knob presets expand to resolved settings with a
+   preset version and seed; clients must not reinterpret old positions through
+   a newer curve.
+2. An accepted scene revision pins operator versions, resolved parameters,
+   referenced assets/data, coordinate definitions, numeric profile, dependency
+   digests, any upstream simulation outputs, and target capability requirements.
+3. The runtime plan binds installed kernels and cooked assets, spatial indices,
+   resource residency, render quality and collision requirements. Camera LOD,
+   caches and origin placement do not change the accepted world identity.
+
+Declare the reproducibility profile. A seed and vendor algorithm name do not
+establish bitwise cross-platform output across future releases. Pin kernels and
+numeric settings; use accepted data artifacts where exact identity is required,
+and declare measured geometric tolerances where a qualified procedural path is
+permitted. Never let each client independently rerun an unversioned erosion or
+learned-generation job to recreate an accepted world.
+
+Use typed providers and operations rather than serialized UE object layouts or
+raw editor graph strings. A contribution can supply exterior elevation, a 3D
+solid field, material/geological attributes, a mesh-derived field, a feature
+network, or placements. Composition specifies channel rules, transforms, order,
+blend/contact policy and bounds. Static and time-dependent edits have explicit
+ordered semantics. Natural caves may belong within geological chronology, rather
+than always being applied after every other process.
+
+The server can rearrange and parameterize installed capabilities and reference
+new accepted data. A recipe cannot introduce an uninstalled C++ operator, shader
+or uncooked asset. The runtime must validate capability/resource closure and
+report unsupported inputs before activation. New operator kinds need an
+implementation/content release; ordinary planet variation does not.
+
+The source inspection confirms that VPP supports compiled runtime graphs, while
+editor graph construction/translation has editor-only paths. Arbitrary runtime
+graph authoring is not qualified. Start with the Catalyst composite runtime and
+reusable cooked VPP graph/asset templates. Prove any more dynamic graph compiler
+path in a packaged build before making it a recipe dependency.
+
+### One 3D scene with explicit query contracts
+
+The primary query accepts body-local XYZ, a scene revision, a requested footprint
+or precision, and requested channels. It returns a signed implicit shape field,
+validity, normal/gradient information where supported, and geological/material
+attributes. Multi-hit ray queries, surface extraction and contact queries are
+separate consumers. An exterior-height query remains a useful optional shortcut;
+it must not substitute for the full scene when a cave or detached surface exists.
+
+Declare field metric and validity. Radial sign fields, transformed fields and
+CSG combinations must not be silently advertised as exact Euclidean distances.
+A marcher needs a qualified conservative step bound or another intersection
+method. SDF export can re-distance sampled, bounded bands at a declared error.
+Known solid/air, outside-contribution identity, unavailable resources and VPP void
+are different states. Missing DEM tiles must not become terrain holes.
+
+Geological units and structural coordinates exist in 3D, so excavating a passage
+exposes the appropriate rock. Exposure, scree, soil and deposits are later material
+rules. Walkability compares a surface normal with the selected gravity policy;
+radial height alone cannot choose a cavern floor or distinguish it from a ceiling.
+Material IDs are logical catalog references; the current eight-surface blend cap
+is a target/profile constraint, not a permanent planet-schema limit.
+
+Existing terrain kernels can be wrapped as the initial exterior provider. Import
+legacy schema-17 recipes through their pinned algorithms to preserve geometry;
+introduce the generalized scene through an explicit versioned adoption. Do not
+rewrite every terrain asset or discard its authoring UI to make this boundary.
+
+### Coordinates, body figure and precision
+
+Use an explicit body-fixed frame in double-precision metres, with handedness,
+axes, angular conventions and a sphere or ellipsoid definition. Keep the solid
+reference figure distinct from the outer-sky radius. A guide remains a normalized
+radius from Core; ellipsoid-normal height and areoid elevation require declared
+conversion and must not be treated as that radius fraction.
+
+Rendering and physics operate in bounded local frames. Subtract a high-precision
+anchor before conversion to floats; shader position, texture phase and procedural
+noise must retain canonical meaning across rebases. Use UE translated-world/LWC
+facilities instead of transporting absolute planet-scale float positions through
+UVs. [Epic's rendering guidance](https://dev.epicgames.com/documentation/en-us/unreal-engine/large-world-coordinates-rendering-in-unreal-engine-5?application_version=5.7)
+explains DoubleFloat and camera-relative material coordinates. [UE georeferencing](https://dev.epicgames.com/documentation/en-us/unreal-engine/georeferencing-a-level-in-unreal-engine?application_version=5.7)
+already provides round-planet coordinate transformations; custom-body and datum
+support still need qualification against our input profiles.
+
+The current native adapter converts radial height offsets to float before its
+final radius subtraction. That must be audited and changed where necessary so
+large offsets are cancelled in double precision and only small local distances
+are demoted. Float32 preview UVs fix overflow but do not establish centimetre
+precision everywhere on Mars. Precision budgets cover model evaluation, source
+quantization, native distance transport, mesh error, collision and material phase
+separately.
+
+Gravity/frame transitions are owned by the body/physics integration. Terrain
+provides surfaces and metadata, including detached solids; it does not automatically
+turn disconnected terrain into moving physics bodies. Multiple nearby planets
+need explicit frame and velocity handovers. Preserve the shared canonical
+curvature camera: its flat/curved presentation must not change source fields,
+collision or authoritative positions. Rebased frames and curvature projection
+are separate transforms. Other future content consumes that same transform
+contract rather than acquiring an independent world bend.
+
+### Detail, streaming and native VPP use
+
+Index exterior data on a spherical atlas with declared chart domains, seams,
+metric/Jacobian and polar handling. Index volumetric features in body-local 3D.
+Projection belongs to each asset/operator: a georeferenced global raster and a
+small tangent-chart stamp have different mappings. A wide planar stamp cannot
+assume an undistorted global chart; a warped 3D distance field also needs an
+explicit metric/error treatment.
+Storage tiles, geological regions, PCG cells, render chunks and navigation tiles
+are independent partitions. Each feature declares its support, derivative/read
+halo, minimum meaningful scale and conservative bounds.
+
+Use VPP bulk/sparse volume queries, bounded native stamps and instancing where
+qualified. A composite stamp can advertise child bounds and partial invalidation;
+there need not be an actor per feature. [VPP instancing](https://docs.voxelplugin.com/knowledgebase/working-with-stamps/instanced-stamps)
+avoids actor/component overhead, but its instance transforms are world-space and
+do not follow movement of the instanced component. Body/frame movement therefore
+needs explicit rebinding; attaching the component is insufficient.
+
+[VPP 2.0p8](https://docs.voxelplugin.com/resources/change-log/2.0p8-changelog)
+already samples chunk contents sparsely near surfaces and offers background-task
+and render-chunk controls. Its bounds and valid-band semantics remain important:
+[VPP bounds and voids](https://docs.voxelplugin.com/knowledgebase/working-with-stamps/bounds-ranges-and-voids)
+are not equivalent to a globally valid SDF. [Layer order](https://docs.voxelplugin.com/knowledgebase/working-with-stamps/execution-order-layers-and-priority)
+and [Override channel rules](https://docs.voxelplugin.com/knowledgebase/working-with-stamps/blend-modes/override-stamps-and-get-previous-nodes)
+must be preserved when lowering the scene. Execute each contribution exactly once.
+
+First qualify native VPP LOD across the required planetary extent. Keep the
+render-plan interface able to use localized VPP detail and scene-derived distant
+geometry if native whole-planet generation does not meet resource budgets. A far
+proxy must include significant detached formations and silhouettes; a single
+radial height globe is insufficient as the general fallback. Every representation
+carries scene revision and geometric error, with collision available before a
+player is released into the region. Native LOD transitions and any far/near
+handover require seam and topology tests. The [3D Tiles specification](https://docs.ogc.org/cs/22-025r4/22-025r4.pdf)
+provides a useful geometric-error/hierarchical-streaming model, without requiring
+us to adopt that mesh format as terrain authority.
+
+Avoid evaluating full-resolution procedural octaves at distant footprints.
+Filter detail by requested scale with stable phase, preserve gameplay-critical
+openings in the active collision domain, and budget memory, sample cost,
+generation latency, bandwidth and visible feature density. A render LOD may
+omit a subpixel cave entrance; it cannot authorize closing its collision or
+navigation connection beside the player.
+
+### Measured data and sparse volume resources
+
+Treat DEMs as georeferenced providers with source CRS, body/figure, longitude and
+latitude convention, datum, units, pixel registration, NoData/coverage mask,
+interpolation, source resolution/uncertainty, and provenance. Preserve original
+source values. Generate tiled multiresolution data with calibrated local offsets,
+lossless or explicitly error-bounded compression and border/halo ownership.
+[GDAL's COG driver](https://gdal.org/en/stable/drivers/raster/cog.html)
+provides tiled georeferenced files and overviews for ingestion/distribution; it
+is not an existing VPP network-streaming integration.
+
+[MOLA products](https://pds-geosciences.wustl.edu/missions/mgs/megdr.html)
+distinguish planetary radius from areoid-relative topography. Use those definitions
+when converting Mars data to our body frame. Regional [HiRISE DTMs](https://hirise.lpl.arizona.edu/dtm/about.php)
+provide finer terrain with their own coverage, artifacts and precision. Interpolating
+or adding procedural detail cannot be presented as new measured accuracy.
+
+The current VPP height data API accepts float as well as uint16 data and holds a
+resident height-data array. This does not establish an out-of-core, network-paged
+DEM backend. Implement and qualify a read-only tiled provider with bounded
+residency and explicit NotReady results, or pre-stage bounded assets for the
+first proof. Voxel generation jobs must not block on network I/O or load UObjects.
+
+Use the same resource-provider contract for accepted erosion fields, sparse
+volume blocks, mesh-derived solids and sculpt/edit payloads. OpenVDB is a candidate
+upstream interchange/processing format; NanoVDB is a candidate compact query
+representation. [NanoVDB documentation](https://www.openvdb.org/documentation/doxygen/NanoVDB_FAQ.html)
+and the [current release notes](https://www.openvdb.org/documentation/doxygen/changes.html)
+need to be read together: tooling evolves beyond the older static-topology FAQ.
+Neither is a qualified Mac/VPP terrain streamer here. Do not require CUDA on the
+Unreal client or make one storage codec the planet's semantic representation.
+
+An export of the entire planet can be a manifest of sparse SDF bands/tiles,
+transforms, error bounds and constant regions. It need not allocate the interior
+at the same resolution as a walkable cave wall. Sparsity alone is insufficient:
+storing the complete exterior at walking resolution is still enormous. Keep
+global structure coarse, derive requested fine detail on demand, and retain
+irreducible measured data and accepted edits in the appropriate tiles.
+Navigation is a separately derived
+product tied to the same scene, agent/gravity profile and revision; a conventional
+flat navmesh is not assumed to cover a spherical world.
+
+### Guide policies and scientific fidelity
+
+Keep the user's exact final SurfaceMin/SurfaceMax requirement for existing
+procedural recipes. General volumes introduce an explicit design decision:
+whether those names constrain the exterior relief, every solid/air boundary,
+or a selected traversable envelope. Underground floors and floating formations
+make those meanings different. Record that scope in the new recipe profile;
+do not silently reinterpret old recipes.
+
+Measured-data profiles preserve physical elevations and derive matching guide
+extrema unless the author explicitly requests a calibrated resize or exaggeration.
+A global post-composition height remap cannot be applied blindly to caves,
+wall thickness, imported measurements or local edits. Any constrained procedural
+policy must validate the final composed result and its topology. Solving exact
+global extrema also creates nonlocal dependencies: a local edit can change the
+scale of everything if the present global remap remains active. Avoid hiding that
+cost inside a supposedly local terrain edit.
+
+### Realism, materials and interaction
+
+Use geological structure and accepted drainage/erosion products to organize
+relief and deposits. Reusable Landforms express those constraints, with PCG used
+for smaller contextual features. [Multiscale erosion research](https://research.adobe.com/publication/terrain-amplification-using-multi-scale-erosion/)
+supports coherent refinement of coarse terrain. [Arenite](https://jango6324.github.io/arenite/)
+demonstrates stress/erosion-driven 3D sandstone structures. These are upstream
+producer candidates, not constant-cost runtime operators or proven Mac plugins.
+[Implicit multiscale geometry research](https://graphics.unizar.es/projects/MultiscaleGeometry_2025/)
+is relevant to porous and granular material detail; its renderer is not VPP's.
+
+Compile geometry, geological contacts, materials and placements from the same
+accepted scene. Treat structural/collision geometry, visual displacement and
+shading-scale detail as distinct error budgets. A normal map does not make a
+walkable ledge, and material displacement must not be assumed to update collision.
+Nanite/material quality does not replace coherent source geometry or good assets.
+One-knob curves require a reference portfolio across seeds and the entire range,
+including extreme endpoints, with visual review plus slope/relief/connectivity
+checks. A valid recipe is not automatically aesthetically good at arbitrary
+advanced settings.
+
+Use native VPP Nanite/MegaMaterials as the primary runtime target on qualified
+hardware, preserving the owned native lifecycle bridge. Match cave lighting,
+shadows and fallback representations to actual geometry. [UE's Nanite overview](https://dev.epicgames.com/documentation/en-us/unreal-engine/nanite-virtualized-geometry-in-unreal-engine?application_version=5.7)
+describes fine-grained geometric LOD, with remaining material/instance budgets;
+[Mac requirements](https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine?application_version=5.7)
+mark Nanite/VSM as M2+ beta support. Newer UE features are capability-gated, not
+an implicit host upgrade. World Partition may stream authored actors, but is not
+terrain authority or proof of spherical navigation. UE volume effects are not a
+replacement solid-terrain renderer.
+
+PCG, object placement, collision and navigation bind a named scene revision and
+stage. PCG placing stamps reads a declared predecessor stage to avoid feedback;
+downstream dressing reads the final terrain. Publish readiness only when required
+resources and native collision correspond to the accepted region. Missing data,
+failed generation and cancelled/stale jobs keep the previous coherent scene or
+an explicit unready state, rather than dropping the player through empty terrain.
+A coherent activation boundary must be proved against native VPP publication
+signals; partial invalidation APIs do not establish an atomic mesh/collider swap
+across several worlds or chunks. This may require staged regions or an explicit
+movement hold while the required collision becomes ready.
+Gravity, water, ecosystem and Architect remain external consumers/owners; this
+architecture introduces interfaces, not work on those systems.
+
+### Proof sequence before broad migration
+
+| Gate | Bounded proof | Required evidence |
+| --- | --- | --- |
+| Semantic scene | Adapt the existing mountain/plateau planet; add an arch, cave with two floors, exposed rock contact and detached formation | Several radial intersections; native bulk/sparse parity; same 3D result in globe, cutaway and walking; old recipe output preserved |
+| Planetary precision | Same synthetic features at 100 m, 1 km, Mars and Earth scales, near poles/seams and across local-frame changes | Double-reference comparison, explicit distance/material error budgets, unchanged texture/noise phase, stable gravity/picking and native contact |
+| Measured source | One real Mars regional DEM plus coarse global context and missing-data boundaries | Datum/coordinates independently checked; original elevations retained within source/error budget; borders and pole/longitude handling verified |
+| Streaming and edits | Cold/warm caches, interrupted loads, rapid recipe changes and a local cave excavation | Bounded residency/work, no missing-as-air, stale results rejected, measured dirty closure, collision readiness before movement |
+| Globe to ground | Native VPP LOD first; compare any necessary scene-derived far proxy at the same revision | Error-controlled silhouette/topology, detached objects retained, no visible/collision cracks across transitions, multiple views considered |
+| Multi-body and navigation boundary | Transfer between two 100 m bodies; traverse cave floors and a body/patch seam | Explicit frame/velocity/gravity handover; spherical pathfinding/export strategy proved separately from character walking |
+| Production quality | A seed/knob portfolio with actual materials and lighting in a packaged build | Reviewed realism, CPU/GPU/memory/IO results, worst-case traversal and edits; retain the existing strict 16.67 ms wall-p99 gate and its open status |
+
+The first implementation slice should be the semantic-scene gate plus the
+precision oracle, before adding new geological families or importing a whole
+planet. Keep the runtime plan replaceable while freezing coordinate, query,
+resource, versioning and readiness semantics. Height operators and imported
+assets then remain useful regardless of later meshing, streaming or codec choices.
+
+This research changes documentation only. No engine/VPP code, project settings,
+assets or running editor state are modified. Documentation checks do not qualify
+any of the proposed runtime capabilities. The existing research graph contained
+165 primarily vendor-source nodes and did not index the planet-design notes;
+those notes were inspected directly. Current public documentation was checked
+alongside the installed VPP 2.0p8 headers. Installed licensed source is not copied
+into this proposal.
