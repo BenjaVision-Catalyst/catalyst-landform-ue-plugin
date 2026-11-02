@@ -121,7 +121,7 @@ this final planet range is not saved into them.
 ## Radial Guide measurements
 
 The shared annotation overlay shows every guide's radial distance from Core in
-metres, with Core at 0 and Sky boundary at the planet's outer radius. Only the
+metres rounded to the nearest whole metre, with Core at 0 and Sky boundary at the planet's outer radius. Only the
 name is editable in place; measurements are derived display values. They update
 as guides move or the preview radius changes, in both Designer and Planet Builder.
 

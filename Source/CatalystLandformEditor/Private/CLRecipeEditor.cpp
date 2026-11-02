@@ -2007,8 +2007,8 @@ bool FCLGuideMeasurementsTest::RunTest(const FString&)
     const auto Session=MakeShared<FCLRadialGuideSession>();Session->Asset=NewObject<UCLPlanetRecipeAsset>();Session->Asset->Recipe=Before;
     const auto Handle=SNew(SCLRadialGuideHandle).Session(Session).Index(Low).Label(true);
     TestEqual(TEXT("Editable guide name excludes the display measurement"),Handle->Name->GetText().ToString(),TEXT("SurfaceMin"));
-    Session->Asset->Recipe.RadialGuides.Guides[Low].NormalizedHeight=.35;
-    TestEqual(TEXT("Dragging a guide updates its live metre value"),FCLRadialGuideMeasurements::Height(Session->Asset->Recipe,Low).ToString(),TEXT("350 m"));
+    Session->Asset->Recipe.RadialGuides.Guides[Low].NormalizedHeight=.3506;
+    TestEqual(TEXT("Dragging a guide updates its live metre value"),FCLRadialGuideMeasurements::Height(Session->Asset->Recipe,Low).ToString(),TEXT("351 m"));
     return true;
 }
 #endif

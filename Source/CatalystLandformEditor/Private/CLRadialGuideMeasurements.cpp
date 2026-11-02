@@ -2,7 +2,7 @@
 
 FText FCLRadialGuideMeasurements::Meters(double Value)
 {
-    FNumberFormattingOptions Format; Format.SetMaximumFractionalDigits(1);
+    FNumberFormattingOptions Format; Format.SetMaximumFractionalDigits(0);
     return FText::Format(NSLOCTEXT("CL", "RadialMeters", "{0} m"), FText::AsNumber(Value, &Format));
 }
 FText FCLRadialGuideMeasurements::Height(const FCLPlanetRecipe& Recipe, int32 Index)
