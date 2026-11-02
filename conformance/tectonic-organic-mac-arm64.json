@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-02",
+  "platform": "Mac arm64 / UE 5.7.4 / VPP 2.0p8",
+  "profile": "Tectonic algorithm 2 / recipe schema 14",
+  "automation": {
+    "succeeded": 87,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0
+  },
+  "existing_warning": "EngineLineSetComponentMaterial references a missing MeshModelingToolsetExp function",
+  "tectonic_test_observations": [
+    "Tectonics RMS relief: 14.1610 / 28.7553 / 50.0892 m; threshold change 5.20202015e-05 m",
+    "Native tectonics: 1014 probes, 0.00195184245 cm residual",
+    "Long belts 75; mean lateral variation legacy/organic 0.6121 / 1.5842 belt widths; worst microstep 0.0027795862 m",
+    "Four 192-cell tectonic globe buffers: 3.758 seconds",
+    "Rendered quiet/intense mean difference 5.244/255; clipped pixels 0"
+  ],
+  "live_preview": {
+    "routed_drag_passed": true,
+    "generated_draft_before_release": true,
+    "single_undo_redo_passed": true,
+    "completed_full_quality_after_release": true,
+    "obsolete_full_builds_cooperatively_cancelled": true,
+    "cancelled_buffers_not_rendered": true,
+    "one_worker_and_one_replaceable_pending_plan": true
+  },
+  "compatibility": {
+    "algorithm_1_retained": true,
+    "algorithm_1_reference_samples_verified": 3,
+    "new_factory_and_enable_select_algorithm_2": true,
+    "saved_activity_before": 0.9961685538291931,
+    "saved_activity_after": 0.9961685538291931,
+    "all_other_authored_settings_and_guide_links_preserved": true,
+    "other_saved_asset_config_files_preserved": 96
+  },
+  "render": {
+    "resolution": 192,
+    "angles_per_algorithm": 3,
+    "comparison_activity": 1,
+    "versions": [
+      1,
+      2
+    ],
+    "scope": "Actual UE material renders; no erosion or geological history simulation."
+  },
+  "package": "Mac Development code rebuild/stage passed; unchanged runtime map and material cook reused",
+  "packaged_inspection": {
+    "passed": true,
+    "activity": 1,
+    "algorithm_version": 2,
+    "locations": 12,
+    "frames": 4161,
+    "native_grounded_frames": 4161,
+    "max_floor_field_error_cm": 1.7330698246587417,
+    "max_landing_adjustment_meters": 5,
+    "max_hold_drift_cm": 7.275957614183426e-12,
+    "targets": "Poles, four equatorial sites, spherical patch boundary, three plate interiors and two nominal plate-boundary scaffold anchors. Curved belt crests were not separately targeted.",
+    "binary_sha256": "78b7d7263632531811f9c61b0690b21e2045ced32c4efad34d3ec3c0df445c52"
+  },
+  "component_source_sha256": {
+    "Docs/TectonicPreset.md": "1945991222c480c138cee3cf0526edde38cf4a719930a201a6095339c5dc5129",
+    "Examples/TectonicBase.json": "5b2275a5bd4f18657bd11b85e024f6dcb5025cb8ea75d54d7183f9efb23ab044",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "064177f0583387bd3378f18dde27257f42823ffae7dbf64f2cdec40ee759cc13",
+    "Source/CatalystLandform/Private/Model/CLTectonics.cpp": "3e0442864264bdd44eb1e9a04e8d1e8cee26a45546778577a0d2a8cbd51c778f",
+    "Source/CatalystLandform/Public/Model/CLTectonics.h": "6927bf0b7df676a7cc09655706c8fbf7fbd769720a46beadfd64dae95da059db",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "900d3876c14850acfbfed95fd4e76e2c34c509dea65f44ec16e26ae79da89cbd",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "a24066feff36eca6eae1b8e0b0a4f41377fcbd2fd6fba00b45a43aeeb42dcc9e",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "d4c3d4bdf034b08cde2bdbb7287158f15ab174a95d75f3538e952872f01bf396",
+    "Source/CatalystLandformTests/Private/CLTectonicTests.cpp": "79f6c727914e6359a4997350d335dcf7766f46cd9a910cbc19043eac6343b158"
+  },
+  "owned_asset_sha256": {
+    "Content/LandformDesigner/TectonicBase/DA_TectonicGuides.uasset": "fcf7075a641d72bf740a66d83605f67985133bc3cc612d78204a365e94aa2fc4",
+    "Content/LandformDesigner/TectonicBase/DA_TectonicBase.uasset": "bb855bb27f8221d2ccf9512103ed40633e5dae47d70920c5fc61377d7bd9c6ce",
+    "Content/LandformDesigner/TectonicBase/DA_TectonicQuiet.uasset": "7815f85f7b321c62e06411e739255ebc48edc56f36cc5038b4ae89f8e300a5d2",
+    "Content/LandformDesigner/TectonicBase/DA_TectonicIntense.uasset": "2415ede650fb585f0aa130c621369863b317d414b6267a974519e695a7fc89b6"
+  },
+  "portable_fixture_sha256": {
+    "Content/RuntimeRecipes/Tectonic/reference.json": "09ca2fd400d88576fb4ca6fe55882554d52c02211ece2c507ddb120985cb7902",
+    "Content/RuntimeRecipes/Tectonic/planet.json": "ef2f0895e8fe2a91d749f8a91c1508ff45486e97e428b6f068b5ca088a417415"
+  },
+  "evidence_sha256": {
+    "Saved/Verification/tectonic-organic-suite/index.json": "abe6ed27f90b33172bbddd3a6f3b2d90845dfd7f869f4150bbfe6db641742dac",
+    "Saved/Verification/runtime-inspection-tectonic-organic/report.json": "ad7d1378e04fc11830d7764f0ad9dcbb9e805fbb5c003322e26c7f3021d2fd6d",
+    "Saved/Verification/runtime-inspection-tectonic-organic/run.json": "28252f42f3ed54045877dfcbbe8d4dc0e6d7cd705ed84dc86fc61873d73d3599",
+    "Saved/Verification/tectonic-organic/v1-angle0.png": "fa6f9f4852eaf6dce5faf00be12b06497a727e744d6e52ac1b742003b04565f8",
+    "Saved/Verification/tectonic-organic/v1-angle1.png": "ef3bdaada39a21742aa0587bd141bf27f8e6bb24f356b341b114d444731c216d",
+    "Saved/Verification/tectonic-organic/v1-angle2.png": "afdf783d882cc16fb0380a49f08fcd1036bcd0a9bbd0311f2443826af1596c7b",
+    "Saved/Verification/tectonic-organic/v2-angle0.png": "fe898ead1f2b8188f12cc6d3f3cc2e24b85a4e39f75fd2725da5746aaffd6692",
+    "Saved/Verification/tectonic-organic/v2-angle1.png": "9e82dbcf0fd6c38da5ff7cfeac8c6d0ba81a56ba0d52414cb9f70b1b9f3a947f",
+    "Saved/Verification/tectonic-organic/v2-angle2.png": "0b04888ed19055df40adbb6918d33e221b60c46dddd6264c7cbd6af142062b2d"
+  },
+  "scope": "1 km outer-radius, 120 m relief-guide interval, bounded kinematic/artistic structural preset. Deterministic shared domain deformation changes boundary-zone morphology; not a physical mantle, erosion or plate-history model."
+}

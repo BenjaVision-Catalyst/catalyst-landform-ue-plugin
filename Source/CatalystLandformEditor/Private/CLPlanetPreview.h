@@ -25,10 +25,11 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
     TArray<FCLGeneratedRegionBoundary> RegionBoundaries;
     TArray<FVector> RegionCentres;
     double DisplayRadius=50000;
+    bool bCancelled=false;
     static constexpr int32 PreviewResolution=512;
     /** Bound worker scratch to 20,480 field samples, regardless of mesh resolution. */
     static constexpr int32 SampleVertexBatch=4096;
-    static FCLGlobeBuffers Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution=PreviewResolution);
+    static FCLGlobeBuffers Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution=PreviewResolution,const TAtomic<bool>* Stop=nullptr);
 };
 /** Coalesced worker-built globe. Shared field; separate navigation from the cutaway. */
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport
@@ -54,7 +55,7 @@ public:
     bool IsWalkPicking() const;
     void SetWalkLocation(FVector Direction);
     FVector WalkLocation() const;
-    void SetDraftMode(bool Enabled){if(bDraft!=Enabled)++Epoch;bDraft=Enabled;}
+    void SetDraftMode(bool Enabled){if(bDraft!=Enabled){++Epoch;if(Stop)Stop->Store(true);}bDraft=Enabled;}
     uint64 PublishedBuilds() const{return AppliedBuilds;}
     bool IsDraftMode() const{return bDraft;}
     bool HasDraftMesh() const{return bLastPublishedDraft;}
@@ -105,6 +106,7 @@ private:
     TStrongObjectPtr<UProceduralMeshComponent> Mesh;
     TSharedPtr<const FCLCompiledPlanetRecipe> Pending;
     TFuture<FCLGlobeBuffers> Task;
+    TSharedPtr<TAtomic<bool>,ESPMode::ThreadSafe> Stop;
     uint64 Revision=0,TaskRevision=0;
     bool Framed=false,bDraft=false,bTaskDraft=false,bLastPublishedDraft=false;
     uint64 AppliedBuilds=0,Epoch=0,TaskEpoch=0;

@@ -21,8 +21,10 @@
 #include "AssetEditorModeManager.h"
 #include "SceneView.h"
 
-FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution)
+FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution,const TAtomic<bool>* Stop)
 {
+    auto Aborted=[] {FCLGlobeBuffers Result;Result.bCancelled=true;return Result;};
+    if(Stop&&Stop->Load())return Aborted();
     FCLGlobeBuffers B;B.Surfaces=Plan.Surfaces;const int32 N=FMath::Clamp(Resolution,8,PreviewResolution),Row=N+1,Count=6*Row*Row;
     B.Vertices.Reserve(Count);B.Normals.Reserve(Count);B.SourceDirections.Reserve(Count);
     B.UV.Reserve(Count);B.Colors.Reserve(Count);B.Tangents.Reserve(Count);B.Triangles.Reserve(6*N*N*6);
@@ -30,7 +32,8 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
     TArray<FVector> Samples;Samples.Reserve(Batch*5);
     auto Emit=[&]
     {
-        if(Samples.IsEmpty())return;
+        if(Stop&&Stop->Load())return false;
+        if(Samples.IsEmpty())return true;
         TArray<double> H;Plan.SampleHeightsMeters(Samples,H);
         auto Point=[&](int32 I){return Samples[I]*((Plan.RadiusMeters+H[I])/Plan.RadiusMeters*100000);};
         for(int32 K=0;K<Samples.Num();K+=5)
@@ -47,17 +50,19 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
             else B.UV.Add(FVector2D::ZeroVector);B.Tangents.Add(FProcMeshTangent(FVector::VectorPlaneProject(FVector::XAxisVector,Normal).GetSafeNormal(),false));
         }
         Samples.Reset();
+        return true;
     };
     for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<=N;++Y)for(int32 X=0;X<=N;++X)
     {
         const FVector D=FCLSphericalPatches::Direction(Face,FVector2D(2.*X/N-1,2.*Y/N-1));B.SourceDirections.Add(D);
         CLSurfaceProbe(D,Samples);
-        if(Samples.Num()==Batch*5)Emit();
+        if(Samples.Num()==Batch*5&&!Emit())return Aborted();
     }
-    Emit();
+    if(!Emit())return Aborted();
     B.DisplayRadius=(Plan.RadiusMeters+Plan.MaximumHeightMeters)/Plan.RadiusMeters*100000;
     for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<N;++Y)for(int32 X=0;X<N;++X)
     {
+        if(X==0&&Stop&&Stop->Load())return Aborted();
         const int32 A=Face*Row*Row+Y*Row+X;B.Triangles.Append({A,A+Row,A+1,A+1,A+Row,A+Row+1});
     }
     if(Plan.GeneratedRegions)
@@ -66,7 +71,7 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
         for(const auto& Edge:B.RegionBoundaries)D.Append({Edge.A,Edge.B});for(const auto& Cell:Plan.GeneratedRegions->Cells)D.Add(Cell.Centre);
         TArray<FVector> Positions;Positions.SetNumUninitialized(D.Num());
         for(int32 Start=0;Start<D.Num();Start+=SampleVertexBatch)
-        {const int32 Size=FMath::Min(SampleVertexBatch,D.Num()-Start);TArray<double> H;Plan.SampleHeightsMeters(MakeArrayView(D.GetData()+Start,Size),H);for(int32 I=0;I<Size;++I)Positions[Start+I]=D[Start+I]*((Plan.RadiusMeters+H[I])/Plan.RadiusMeters*100000+100);}
+        {if(Stop&&Stop->Load())return Aborted();const int32 Size=FMath::Min(SampleVertexBatch,D.Num()-Start);TArray<double> H;Plan.SampleHeightsMeters(MakeArrayView(D.GetData()+Start,Size),H);for(int32 I=0;I<Size;++I)Positions[Start+I]=D[Start+I]*((Plan.RadiusMeters+H[I])/Plan.RadiusMeters*100000+100);}
         for(int32 I=0;I<B.RegionBoundaries.Num();++I){B.RegionBoundaries[I].A=Positions[2*I];B.RegionBoundaries[I].B=Positions[2*I+1];}
         for(int32 I=2*B.RegionBoundaries.Num();I<Positions.Num();++I)B.RegionCentres.Add(Positions[I]);
     }
@@ -324,10 +329,10 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
     Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
     SEditorViewport::Construct(SEditorViewport::FArguments());
 }
-SCLPlanetPreview::~SCLPlanetPreview(){if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());}
+SCLPlanetPreview::~SCLPlanetPreview(){if(Stop)Stop->Store(true);if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());}
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
-void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;Pending=MoveTemp(Plan);Pump();}
-void SCLPlanetPreview::Cancel(){++Revision;++Epoch;Pending.Reset();}
+void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;Pending=MoveTemp(Plan);if(Stop&&!(bDraft&&bTaskDraft&&TaskEpoch==Epoch))Stop->Store(true);Pump();}
+void SCLPlanetPreview::Cancel(){++Revision;++Epoch;Pending.Reset();if(Stop)Stop->Store(true);}
 bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid();}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
@@ -350,7 +355,7 @@ void SCLPlanetPreview::Pump()
     if(Task.IsValid()&&Task.IsReady())
     {
         auto B=Task.Consume(); // Move the completed buffers; do not copy a dense mesh on the UI thread.
-        if(TaskRevision==Revision||(bDraft&&bTaskDraft&&TaskEpoch==Epoch&&Pending.IsValid()))
+        if(!B.bCancelled&&(TaskRevision==Revision||(bDraft&&bTaskDraft&&TaskEpoch==Epoch&&Pending.IsValid())))
         {
             ++AppliedBuilds;bLastPublishedDraft=bTaskDraft;
             Client->Plan=BuildingPlan;Client->RegionBoundaries=MoveTemp(B.RegionBoundaries);Client->RegionCentres=MoveTemp(B.RegionCentres);Client->UpdatePlacementOverlay();
@@ -358,9 +363,9 @@ void SCLPlanetPreview::Pump()
             Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
             if(!Framed){Framed=true;Frame();}else Client->Apply();
         }
-        BuildingPlan.Reset();
+        BuildingPlan.Reset();Stop.Reset();
     }
-    if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;bTaskDraft=bDraft;TaskEpoch=Epoch;const int32 Resolution=bDraft?64:FCLGlobeBuffers::PreviewResolution;Task=Async(EAsyncExecution::ThreadPool,[P,Resolution]{return FCLGlobeBuffers::Build(*P,Resolution);});}
+    if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;bTaskDraft=bDraft;TaskEpoch=Epoch;const int32 Resolution=bDraft?64:FCLGlobeBuffers::PreviewResolution;Stop=MakeShared<TAtomic<bool>,ESPMode::ThreadSafe>(false);auto Cancellation=Stop;Task=Async(EAsyncExecution::ThreadPool,[P,Resolution,Cancellation]{return FCLGlobeBuffers::Build(*P,Resolution,Cancellation.Get());});}
 }
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
@@ -484,6 +489,8 @@ bool FCLGlobePreviewTest::RunTest(const FString&)
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}const auto Mesh=FCLGlobeBuffers::Build(*P,16);
     TArray<double> H;P->SampleHeightsMeters(Mesh.SourceDirections,H);
     TestEqual(TEXT("Six complete preview faces"),Mesh.Vertices.Num(),6*17*17);
+    TAtomic<bool> Stop(true);const auto Cancelled=FCLGlobeBuffers::Build(*P,FCLGlobeBuffers::PreviewResolution,&Stop);
+    TestTrue(TEXT("Cancelled builds return no partial render buffers"),Cancelled.bCancelled&&Cancelled.Vertices.IsEmpty()&&Cancelled.Triangles.IsEmpty());
     for(int32 I=0;I<H.Num();++I){TestTrue(TEXT("Displayed vertex is the compiled spherical surface"),FMath::IsNearlyEqual(Mesh.Vertices[I].Size(),(1000+H[I])*100,1.e-7));TestTrue(TEXT("Finite unit normal"),!Mesh.Normals[I].ContainsNaN()&&FMath::IsNearlyEqual(Mesh.Normals[I].Size(),1.,1.e-9));}
     for(int32 I=0;I<Mesh.Triangles.Num();I+=3){const FVector A=Mesh.Vertices[Mesh.Triangles[I]],B=Mesh.Vertices[Mesh.Triangles[I+1]],C=Mesh.Vertices[Mesh.Triangles[I+2]];TestTrue(TEXT("UE clockwise outward winding"),FVector::DotProduct(FVector::CrossProduct(B-A,C-A),A)<0);}
     return true;
@@ -821,15 +828,15 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
     const double Started=FPlatformTime::Seconds();
-    for(double Activity:{0.,.55,1.})
+    for(int32 I=0;I<4;++I)
     {
-        auto R=A->Recipe;R.Tectonics.Activity=Activity;FString Error;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+        auto R=A->Recipe;R.Tectonics.Activity=I==0?0:I==1?.55:1.;R.Tectonics.AlgorithmVersion=I==3?1:2;FString Error;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);App.RequestDestroyWindow(Window);return false;}
         Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
     }
     W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));
     const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];W->Mesh->CreateMeshSection_LinearColor(0,Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents,false);
     if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
-    AddInfo(FString::Printf(TEXT("Three 192-cell tectonic globe buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
+    AddInfo(FString::Printf(TEXT("Four 192-cell tectonic globe buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
     ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Buffers,Plans]
     {
         IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-preset")),true);
@@ -844,6 +851,16 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
             TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/tectonic-preset/globe-%d.png"),I)));
         }
         TestTrue(TEXT("Scanned geological materials actually render"),Earthy>1000);TestTrue(TEXT("Activity changes the rendered surface visibly"),Difference/(800*600*3)>2);TestTrue(TEXT("Exposure remains legible"),MostClipped<800*600/100);
+        IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-organic")),true);
+        const FVector Views[]={FVector(1,-1,.65),FVector(-1,.2,-.8),FVector(.2,1,.3)};
+        for(int32 Version=1;Version<=2;++Version)for(int32 Angle=0;Angle<3;++Angle)
+        {
+            const int32 I=Version==1?3:2;const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            const FVector Eye=Views[Angle].GetSafeNormal()*165000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            TestEqual(TEXT("Full-activity comparison frame is rendered"),Pixels.Num(),800*600);
+            TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/tectonic-organic/v%d-angle%d.png"),Version,Angle)));
+        }
         AddInfo(FString::Printf(TEXT("Rendered quiet/intense mean difference %.3f/255; clipped pixels %d"),Difference/(800*600*3),MostClipped));FSlateApplication::Get().RequestDestroyWindow(Window);
     },.6f));return true;
 }

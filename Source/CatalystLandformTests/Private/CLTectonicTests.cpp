@@ -10,7 +10,7 @@
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicProgressionTest,"Catalyst.Landform.Tectonics.ProgressionAndTopology",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLTectonicProgressionTest::RunTest(const FString&)
 {
-    FString Error;FCLTectonicPreset P;P.bEnabled=true;
+    FString Error;FCLTectonicPreset P;P.bEnabled=true;P.AlgorithmVersion=2;
     for(int32 Seed:{0,1729,-531})for(int32 Count=1;Count<=12;++Count)
     {
         P.bOverridePlateCount=true;P.PlateCount=Count;const auto T=FCLCompiledTectonics::Compile(P,Seed,300,Error);if(!T){AddError(Error);return false;}
@@ -72,4 +72,56 @@ bool FCLTectonicNativeTest::RunTest(const FString&)
     FVoxelDoubleVectorBuffer Points;Points.Allocate(D.Num());for(int32 I=0;I<D.Num();++I)Points.Set(I,D[I]*(R.RadiusMeters+H[I])*100);const auto Dist=Native->SampleDistances(Query,Points);double Worst=0;
     for(int32 I=0;I<D.Num();++I){TestTrue(TEXT("Atlas and whole-sphere sampling agree"),FMath::IsNearlyEqual(H[I],HW[I],1.e-9));Worst=FMath::Max(Worst,FMath::Abs(double(Dist[I])));}
     TestTrue(TEXT("VPP zero set matches the Builder field"),Worst<.02);AddInfo(FString::Printf(TEXT("Native tectonics: %d probes, %.9g cm residual"),D.Num(),Worst));return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicBeltsTest,"Catalyst.Landform.Tectonics.OrganicBeltsAndLegacy",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLTectonicBeltsTest::RunTest(const FString&)
+{
+    FString Error;FCLTectonicPreset P;P.bEnabled=true;P.AlgorithmVersion=1;
+    auto Legacy=FCLCompiledTectonics::Compile(P,1729,120,Error);
+    // Retained algorithm-1 reference samples, recorded before the geometry change.
+    const double Recorded[]={-18.59694152632665,-17.99704511739856,-17.05154952513567};
+    for(int32 X=0;X<3;++X)TestTrue(TEXT("Algorithm 1 retains its published field"),FMath::IsNearlyEqual(Legacy->SampleDeltaMeters(FCLSphericalPatches::Direction(0,FVector2D(X/6.-1,-1))),Recorded[X],1.e-8));
+    P.AlgorithmVersion=3;FCLTectonicControls Controls;TestFalse(TEXT("Unknown geometry version is refused"),FCLTectonicControls::Resolve(P,Controls,Error));
+    double Changes[2]={};int32 Edges=0;double WorstJump=0;
+    for(int32 Seed:{0,1729,-531})
+    {
+        P.Activity=1;P.AlgorithmVersion=1;Legacy=FCLCompiledTectonics::Compile(P,Seed,120,Error);
+        P.AlgorithmVersion=2;const auto Organic=FCLCompiledTectonics::Compile(P,Seed,120,Error);
+        P.bOverrideMotion=true;P.Motion=0;const auto Crust=FCLCompiledTectonics::Compile(P,Seed,120,Error);P.bOverrideMotion=false;
+        for(const auto& E:Organic->Lower.Boundaries)
+        {
+            const double Half=FMath::Acos(FMath::Clamp(E.HalfCos,-1.,1.));if(Half<.25)continue;
+            const FVector Axis=FVector::CrossProduct(E.Normal,E.Mid).GetSafeNormal();double Min[2]={1,1},Max[2]={-1,-1};
+            // Track the cross-belt centre of relief along each long boundary.
+            for(int32 K=0;K<=12;++K)
+            {
+                const double T=Half*(K/6.-1)*.7;const FVector Center=E.Mid*FMath::Cos(T)+Axis*FMath::Sin(T);
+                for(int32 Version=0;Version<2;++Version)
+                {
+                    const auto& Field=Version==0?Legacy:Organic;double Sum=0,Weighted=0;
+                    for(int32 J=-48;J<=48;++J)
+                    {
+                        const double Offset=J/16.*Organic->Controls.BeltWidth;
+                        const FVector D=Center*FMath::Cos(Offset)+E.Normal*FMath::Sin(Offset);
+                        const double Weight=FMath::Abs(Field->SampleDeltaMeters(D)-Crust->SampleDeltaMeters(D));
+                        Sum+=Weight;Weighted+=Weight*Offset;
+                    }
+                    const double Position=Sum>1.e-6?Weighted/Sum:0;Min[Version]=FMath::Min(Min[Version],Position);Max[Version]=FMath::Max(Max[Version],Position);
+                }
+            }
+            for(int32 V=0;V<2;++V)Changes[V]+=(Max[V]-Min[V])/Organic->Controls.BeltWidth;++Edges;
+        }
+        for(int32 F=0;F<6;++F)for(int32 Y=0;Y<=24;++Y)for(int32 X=0;X<=24;++X)
+        {
+            const FVector D=FCLSphericalPatches::Direction(F,FVector2D(X/12.-1,Y/12.-1));
+            const FVector T=FVector::CrossProduct(D,FMath::Abs(D.Z)<.9?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal();
+            const double H=Organic->SampleDeltaMeters(D),Near=Organic->SampleDeltaMeters((D+T*1.e-6).GetSafeNormal());
+            TestTrue(TEXT("Organic relief remains inside the native field bound"),FMath::IsFinite(H)&&FMath::Abs(H)<=Organic->MaximumDeltaMeters);
+            WorstJump=FMath::Max(WorstJump,FMath::Abs(H-Near));
+        }
+    }
+    TestTrue(TEXT("Deformation removes the straight belt centre lines"),Edges>30&&Changes[1]>Changes[0]*1.2);
+    TestTrue(TEXT("No discontinuity across spherical sampling directions"),WorstJump<.01);
+    AddInfo(FString::Printf(TEXT("Long belts %d; mean lateral variation legacy/organic %.4f / %.4f belt widths; worst microstep %.9g m"),Edges,Changes[0]/Edges,Changes[1]/Edges,WorstJump));return true;
 }

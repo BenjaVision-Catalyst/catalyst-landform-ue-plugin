@@ -1104,7 +1104,7 @@ public:
             +SVerticalBox::Slot().AutoHeight()[SNew(SCheckBox)
                 .IsChecked_Lambda([this]{return RecipeAsset()->Recipe.Tectonics.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto P=RecipeAsset()->Recipe.Tectonics;P.bEnabled=V==ECheckBoxState::Checked;CommitTectonicPreset(P);})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto P=RecipeAsset()->Recipe.Tectonics;P.bEnabled=V==ECheckBoxState::Checked;if(P.bEnabled)P.AlgorithmVersion=2;CommitTectonicPreset(P);})
                 [SNew(STextBlock).Text(FText::FromString(TEXT("Tectonic rocky world")))]]
             +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(STextBlock).Text(this,&FCLRecipeToolkit::TectonicCaption)]
             +SVerticalBox::Slot().AutoHeight()[SAssignNew(TectonicSlider,SSlider)
@@ -1685,6 +1685,16 @@ bool FCLGuideTickAttachmentTest::RunTest(const FString&)
 #if WITH_DEV_AUTOMATION_TESTS
 namespace
 {
+class FCLWaitForGlobeRefinement : public IAutomationLatentCommand
+{
+    TSharedPtr<SCLPlanetPreview> Globe;
+    TFunction<void()> Check;
+    double Started=FPlatformTime::Seconds();
+public:
+    FCLWaitForGlobeRefinement(TSharedPtr<SCLPlanetPreview> InGlobe,TFunction<void()> InCheck):Globe(MoveTemp(InGlobe)),Check(MoveTemp(InCheck)){}
+    virtual bool Update() override
+    {if(Globe->IsUpdating()&&FPlatformTime::Seconds()-Started<30)return false;Check();return true;}
+};
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicLiveKnobTest,"Catalyst.Landform.Tectonics.LiveKnobAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLTectonicLiveKnobTest::RunTest(const FString&)
 {
@@ -1694,21 +1704,22 @@ bool FCLTectonicLiveKnobTest::RunTest(const FString&)
     auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset,EToolkitMode::Standalone,nullptr);Editor->GetTabManager()->TryInvokeTab(FName(TEXT("CLPlanetControls")));
     ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned]
     {
-        auto& App=FSlateApplication::Get();FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(Editor->TectonicSlider.ToSharedRef(),Actual,EVisibility::All);
+        auto& App=FSlateApplication::Get();App.ReleaseAllPointerCapture();FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(Editor->TectonicSlider.ToSharedRef(),Actual,EVisibility::All);
         if(Actual.Widgets.Num()==0){AddError(TEXT("Live slider has no routed path"));Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return;}
         const auto Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const auto Path=MakeShared<FWidgetPath>(MakeArrayView(Arranged));
         const FVector2D Start=Geometry.LocalToAbsolute(FVector2D(Geometry.GetLocalSize().X*.2,Geometry.GetLocalSize().Y*.5));
         const FVector2D Mid=Geometry.LocalToAbsolute(FVector2D(Geometry.GetLocalSize().X*.6,Geometry.GetLocalSize().Y*.5));
         const FVector2D End=Geometry.LocalToAbsolute(FVector2D(Geometry.GetLocalSize().X*.85,Geometry.GetLocalSize().Y*.5));
+        const FVector2D SavedCursor=App.GetCursorPos();App.SetCursorPos(Start);
         const uint64 Before=Editor->Globe->PublishedBuilds();
         App.RoutePointerDownEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,Start,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState()));
-        App.RoutePointerMoveEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,Mid,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
+        App.SetCursorPos(Mid);App.RoutePointerMoveEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,Mid,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
         TestTrue(TEXT("Real slider drag enters live draft mode"),Editor->bTectonicDragging&&Editor->Globe->IsDraftMode());
-        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,Mid,End,Before]
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,Mid,End,Before,SavedCursor]
         {
             TestTrue(TEXT("Queued middle value is applied while the button is held"),Owned->Get()->Recipe.Tectonics.Activity>.5);
-            FSlateApplication::Get().RoutePointerMoveEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,End,Mid,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
-            ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,End,Before]
+            FSlateApplication::Get().SetCursorPos(End);FSlateApplication::Get().RoutePointerMoveEvent(*Path,FPointerEvent(FSlateApplication::CursorPointerIndex,End,Mid,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
+            ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,End,Before,SavedCursor]
             {
                 TestTrue(TEXT("Newest value is applied before mouse release"),Owned->Get()->Recipe.Tectonics.Activity>.75);
                 TestTrue(TEXT("A generated draft mesh is published during the drag"),Editor->bTectonicDragging&&Editor->Globe->PublishedBuilds()>Before&&Editor->Globe->HasDraftMesh());
@@ -1716,11 +1727,12 @@ bool FCLTectonicLiveKnobTest::RunTest(const FString&)
                 const double Final=Owned->Get()->Recipe.Tectonics.Activity;TestFalse(TEXT("Release ends draft mode"),Editor->Globe->IsDraftMode());
                 GEditor->UndoTransaction();TestTrue(TEXT("One undo restores the entire drag"),FMath::IsNearlyEqual(Owned->Get()->Recipe.Tectonics.Activity,.55,1.e-6));
                 GEditor->RedoTransaction();TestTrue(TEXT("One redo restores the final activity"),FMath::IsNearlyEqual(Owned->Get()->Recipe.Tectonics.Activity,Final,1.e-6));
-                ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned]
+                FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLWaitForGlobeRefinement>(Editor->Globe,[this,Editor,Owned,SavedCursor]
                 {
-                    TestFalse(TEXT("A full quality mesh replaces the draft after release"),Editor->Globe->HasDraftMesh());
+                    TestTrue(TEXT("A full quality mesh replaces the draft after release"),!Editor->Globe->IsUpdating()&&!Editor->Globe->HasDraftMesh());
+                    FSlateApplication::Get().ReleaseAllPointerCapture();FSlateApplication::Get().SetCursorPos(SavedCursor);
                     Owned->Get()->GetOutermost()->SetDirtyFlag(false);TestTrue(TEXT("Live editor retires cleanly"),Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));
-                },7.f));
+                }));
             },2.f));
         },.4f));
     },3.f));return true;

@@ -133,7 +133,7 @@
   },
   "tectonics": {
     "bEnabled": true,
-    "algorithmVersion": 1,
+    "algorithmVersion": 2,
     "activity": 0.55,
     "lowerGuide": "SurfaceMin",
     "upperGuide": "SurfaceMax"

@@ -8,6 +8,8 @@ struct CATALYSTLANDFORM_API FCLTectonicPreset
 {
     GENERATED_BODY()
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
+    // Keep the serialized default: assets that omit this property retain algorithm 1.
+    // New presets explicitly select algorithm 2.
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Activity=.55;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName LowerGuide=TEXT("SurfaceMin");
@@ -45,5 +47,9 @@ public:
     double SampleDeltaMeters(const FVector& UnitDirection) const;
     static TSharedPtr<const FCLCompiledTectonics> Compile(const FCLTectonicPreset& Preset,int32 Seed,double SpanMeters,FString& Error);
 private:
+    int32 AlgorithmVersion=2;
+    FQuat NoiseRotation=FQuat::Identity;
+    FVector NoiseOffset=FVector::ZeroVector;
+    double SampleLegacyState(const FState& State,const FVector& D) const;
     double SampleState(const FState& State,const FVector& D) const;
 };

@@ -678,7 +678,7 @@ FCLPlanetRecipe FCLPlanetCompiler::BasePlanet()
 }
 
 FCLPlanetRecipe FCLPlanetCompiler::TectonicBase()
-{auto R=BasePlanet();R.SchemaVersion=14;R.Name=TEXT("Tectonic rocky world");R.Tectonics.bEnabled=true;return R;}
+{auto R=BasePlanet();R.SchemaVersion=14;R.Name=TEXT("Tectonic rocky world");R.Tectonics.bEnabled=true;R.Tectonics.AlgorithmVersion=2;return R;}
 
 void FCLPlanetRecipe::MigrateLegacyGuides()
 {
