@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "SEditorViewport.h"
-#include "ProceduralMeshComponent.h"
+#include "CLPreviewMesh.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Model/CLPlanetRecipe.h"
 #include "CLRadialGuideEditing.h"
@@ -91,6 +91,7 @@ private:
     friend class FCLGlobeLightingTest;
     friend class FCLGlobeGeneratedInspectionTest;
     friend class FCLSurfaceGlobeTest;
+    friend class FCLPreviewPrecisionTest;
 #endif
     void Pump();
     void UpdateOcean();
@@ -112,7 +113,7 @@ private:
     TSharedPtr<const FCLCompiledPlanetRecipe> BuildingPlan;
     TUniquePtr<FPreviewScene> Scene;
     TSharedPtr<FCLGlobeClient> Client;
-    TStrongObjectPtr<UProceduralMeshComponent> Mesh;
+    TStrongObjectPtr<UDynamicMeshComponent> Mesh;
     TSharedPtr<const FCLCompiledPlanetRecipe> Pending;
     TFuture<FCLGlobeBuffers> Task;
     TSharedPtr<TAtomic<bool>,ESPMode::ThreadSafe> Stop;

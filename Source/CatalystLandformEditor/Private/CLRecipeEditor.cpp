@@ -1,3 +1,4 @@
+#include "CLPreviewMesh.h"
 #include "CLRecipeAssetTools.h"
 #include "CLTerrainDesigner.h"
 #include "CLSurfacePreview.h"
@@ -578,7 +579,7 @@ class SCLSectionViewport : public SEditorViewport
 public:
     SLATE_BEGIN_ARGS(SCLSectionViewport) {} SLATE_END_ARGS()
     FCLSectionScene Scene;
-    TStrongObjectPtr<UProceduralMeshComponent> Mesh;
+    TStrongObjectPtr<UDynamicMeshComponent> Mesh;
     TSharedPtr<FCLSectionClient> Client;
     bool bCameraFramed = false;
     TFuture<FCLSectionBuffers> BuildTask;
@@ -618,7 +619,7 @@ public:
     virtual FReply OnKeyDown(const FGeometry&, const FKeyEvent&) override { return FReply::Unhandled(); }
     void Construct(const FArguments& Args)
     {
-        Mesh.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));
+        Mesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));
         Scene.AddComponent(Mesh.Get(), FTransform::Identity);
         Mesh->SetMaterial(0, LoadObject<UMaterial>(nullptr, TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
         SEditorViewport::Construct(SEditorViewport::FArguments());
@@ -669,7 +670,7 @@ public:
     {
         ++AppliedBuilds; const auto& G = B.Geometry;
         Mesh->SetMaterial(0,G.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*G.Surfaces):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
-        Mesh->CreateMeshSection_LinearColor(0,G.Vertices,G.Triangles,B.Normals,G.Surfaces?G.SurfaceUV:B.UV,G.SurfaceUV1,G.SurfaceUV2,G.SurfaceUV3,G.Colors,B.Tangents,false);
+        CLSetPreviewMesh(*Mesh.Get(),G.Vertices,G.Triangles,B.Normals,G.Surfaces?G.SurfaceUV:B.UV,G.SurfaceUV1,G.SurfaceUV2,G.SurfaceUV3,G.Colors,B.Tangents);
         if (!bCameraFramed)
         {
             bCameraFramed = true;
@@ -1611,7 +1612,7 @@ bool FCLDeferredTerrainPreviewTest::RunTest(const FString&)
     TestEqual(TEXT("Only the final pending snapshot starts a second worker"), Preview->StartedBuilds, 2);
     TestEqual(TEXT("Obsolete geometry never reaches the scene"), Preview->AppliedBuilds, 1);
     const auto Expected = FCLSectionGeometry::Build(*Latest, 0, 100);
-    TestTrue(TEXT("Displayed mesh matches latest settings"), Preview->Mesh->GetProcMeshSection(0)->ProcVertexBuffer[0].Position.Equals(Expected.Vertices[0], .01));
+    TestTrue(TEXT("Displayed mesh matches latest settings"), Preview->Mesh->GetMesh()->GetVertex(0).Equals(Expected.Vertices[0], .01));
     // Exercise the complete render-buffer path at the detailed grid cap, not
     // just height sampling. This catches accidental generic overlap searches.
     auto Dense = Expected;
@@ -1749,7 +1750,7 @@ bool FCLFixedDesignerFrameTest::RunTest(const FString&)
     const FRotator Rotation = Preview->Client->GetViewRotation() + FRotator(2, 3, 0);
     Preview->Client->SetViewLocation(Eye); Preview->Client->SetViewRotation(Rotation);
     const FVector Target = Preview->Client->GetLookAtLocation();
-    const FBox InitialBounds = Preview->Mesh->GetProcMeshSection(0)->SectionLocalBox;
+    const FBox InitialBounds = CLPreviewMeshBounds(*Preview->Mesh.Get());
     FVector PreviousCorner; bool bPrevious = false;
     for (double Width : {100.0, 500.0, 1000.0})
     {
@@ -1758,7 +1759,7 @@ bool FCLFixedDesignerFrameTest::RunTest(const FString&)
         TestTrue(TEXT("Coverage preserves the user's camera position"), Preview->Client->GetViewLocation().Equals(Eye, .001));
         TestTrue(TEXT("Coverage preserves the user's camera rotation"), Preview->Client->GetViewRotation().Equals(Rotation, .001));
         TestTrue(TEXT("Coverage preserves the orbit target"), Preview->Client->GetLookAtLocation().Equals(Target, .001));
-        const FBox Bounds = Preview->Mesh->GetProcMeshSection(0)->SectionLocalBox;
+        const FBox Bounds = CLPreviewMeshBounds(*Preview->Mesh.Get());
         TestTrue(TEXT("Coverage leaves the displayed block bounds unchanged"), Bounds.Min.Equals(InitialBounds.Min, .01) && Bounds.Max.Equals(InitialBounds.Max, .01));
         const FVector Corner = FCLSectionGeometry::SourceSurfacePoint(*Plan, Width / 2, Width / 2, 0);
         if (bPrevious) TestFalse(TEXT("Larger coverage samples different data at the same displayed corner"), Corner.Equals(PreviousCorner, .01));
@@ -1767,7 +1768,7 @@ bool FCLFixedDesignerFrameTest::RunTest(const FString&)
     Recipe.RadiusMeters = 100;
     Preview->Rebuild(FCLPlanetCompiler::Compile(Recipe, Error));
     TestTrue(TEXT("Resizing a planet preserves the display camera"), Preview->Client->GetViewLocation().Equals(Eye, .001));
-    const FBox ResizedBounds = Preview->Mesh->GetProcMeshSection(0)->SectionLocalBox;
+    const FBox ResizedBounds = CLPreviewMeshBounds(*Preview->Mesh.Get());
     TestTrue(TEXT("Normalized display bounds are independent of planet radius"), ResizedBounds.Min.Equals(InitialBounds.Min, .01) && ResizedBounds.Max.Equals(InitialBounds.Max, .01));
     const FVector BeforeKeys = Preview->Client->GetViewLocation();
     Preview->Client->InputKey(FInputKeyEventArgs::CreateSimulated(EKeys::W, IE_Pressed, 1));

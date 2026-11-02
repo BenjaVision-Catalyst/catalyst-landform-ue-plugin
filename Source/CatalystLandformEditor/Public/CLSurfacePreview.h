@@ -2,6 +2,6 @@
 #include "CoreMinimal.h"
 #include "Surface/CLSurfaceCompiler.h"
 class UMaterialInterface;
-/** UV0 = source XY cm; UV1 = source Z cm / surface mask; UV2/3 = weights 4..7. */
+/** Full-precision Dynamic Mesh UVs: UV0 = source XY cm; UV1 = source Z cm / surface mask; UV2/3 = weights 4..7. */
 CATALYSTLANDFORMEDITOR_API UMaterialInterface* CLMakeSurfacePreviewMaterial(UObject* Outer,const FCLCompiledSurfaceLibrary& Library,bool bGlobeGrid=false);
 CATALYSTLANDFORMEDITOR_API FLinearColor CLPackSurfaceWeights(const FCLSurfaceWeights& Weights);

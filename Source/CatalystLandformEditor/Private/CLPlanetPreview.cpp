@@ -1,4 +1,7 @@
 #include "CLPlanetPreview.h"
+#include "CLPreviewMesh.h"
+#include "DynamicMesh/DynamicMeshAttributeSet.h"
+#include "Math/Float16.h"
 #include "CLSurfacePreview.h"
 #if WITH_DEV_AUTOMATION_TESTS
 #include "ShaderCompiler.h"
@@ -327,7 +330,7 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
 {
     OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;
     Scene=MakeUnique<FCLGlobeScene>();
-    Mesh.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
+    Mesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
     Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
     Ocean.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));
     FCLCompiledPlanetRecipe UnitSphere;UnitSphere.RadiusMeters=1;UnitSphere.BaseHeightMeters=0;UnitSphere.Coordinates=ECLTerrainCoordinates::Sphere;
@@ -386,7 +389,7 @@ void SCLPlanetPreview::Pump()
             ++AppliedBuilds;bLastPublishedDraft=bTaskDraft;
             Client->Plan=BuildingPlan;Client->RegionBoundaries=MoveTemp(B.RegionBoundaries);Client->RegionCentres=MoveTemp(B.RegionCentres);Client->UpdatePlacementOverlay();
             Mesh->SetMaterial(0,B.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*B.Surfaces,true):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
-            Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            CLSetPreviewMesh(*Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
             if(!Framed){Framed=true;Frame();}else Client->Apply();
             // Publish a quick variation before refining the same immutable plan.
             if(bTaskDraft&&!bDraft&&TaskRevision==Revision&&!Pending)Pending=BuildingPlan;
@@ -666,7 +669,7 @@ bool FCLGlobePlacementPointerTest::RunTest(const FString&)
     const auto W=SNew(SCLPlanetPreview).OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateLambda([&](const auto& Target,bool Resize){++Commits;TestTrue(TEXT("Native widget commits a valid spherical placement"),FCLGlobePlacementEditing::Apply(Recipe,Target,Resize,Error));}));
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native globe widget proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
-    const auto C=W->Client;C->Plan=Plan;C->SetViewLocation(FVector(80000,-60000,200000));C->SetViewRotation((FVector(0,0,45000)-C->GetViewLocation()).Rotation());C->StudioScene->AimLights(C->GetViewRotation());const auto B=FCLGlobeBuffers::Build(*Plan,32);W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);W->SetAuthoringRecipe(Recipe);W->Select({Region.Id,false});
+    const auto C=W->Client;C->Plan=Plan;C->SetViewLocation(FVector(80000,-60000,200000));C->SetViewRotation((FVector(0,0,45000)-C->GetViewLocation()).Rotation());C->StudioScene->AimLights(C->GetViewRotation());const auto B=FCLGlobeBuffers::Build(*Plan,32);CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents);W->SetAuthoringRecipe(Recipe);W->Select({Region.Id,false});
     FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(W->ViewportWidget.ToSharedRef(),Actual,EVisibility::All);
     const auto Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const FWidgetPath Path(MakeArrayView(Arranged));
     auto Screen=[&](FVector2D P){return Geometry.LocalToAbsolute(P/FVector2D(V->GetSizeXY())*Geometry.GetLocalSize());};
@@ -706,7 +709,7 @@ bool FCLGlobeLightingTest::RunTest(const FString&)
 {
     auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Globe exposure orbit proof"))).ClientSize(FVector2D(640,480))[W];App.AddWindow(Window,false);Window->SlatePrepass();const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,640,480,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto Recipe=FCLPlanetCompiler::BasePlanet();FString Error;const auto Plan=FCLPlanetCompiler::Compile(Recipe,Error);if(!Plan){AddError(Error);App.RequestDestroyWindow(Window);return false;}
-    const auto B=FCLGlobeBuffers::Build(*Plan,48);W->Client->Plan=Plan;W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
+    const auto B=FCLGlobeBuffers::Build(*Plan,48);W->Client->Plan=Plan;CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents);
     TestTrue(TEXT("Fixed studio exposure is stable during orbit"),W->Client->ExposureSettings.bFixed&&W->Client->ExposureSettings.FixedEV100==-2);
     TestFalse(TEXT("Automatic exposure cannot flash between intermittent orbit frames"),W->Client->EngineShowFlags.EyeAdaptation);
     int32 Frames=0,WorstBackground=0,MostClipped=0,LeastTerrain=MAX_int32,DarkestCentre=255;
@@ -740,7 +743,7 @@ bool FCLGlobeGeneratedInspectionTest::RunTest(const FString&)
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const auto C=W->Client;C->Plan=Plan;const auto B=FCLGlobeBuffers::Build(*Plan,96);C->RegionBoundaries=B.RegionBoundaries;C->RegionCentres=B.RegionCentres;
     TestTrue(TEXT("Compiled regions have rendered surface contours"),B.RegionBoundaries.Num()>100&&B.RegionCentres.Num()==24);
-    W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
+    CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents);
     C->SetViewLocation(Plan->GeneratedRegions->Cells[0].Centre*150000);C->SetViewRotation((-C->GetViewLocation()).Rotation());C->StudioScene->AimLights(C->GetViewRotation());W->Scene->UpdateCaptureContents();
     auto Render=[&](TArray<FColor>& Pixels){V->Invalidate();V->Draw(false);FlushRenderingCommands();return V->ReadPixels(Pixels);};
     TArray<FColor> Hidden,Visible;W->SetRegionInspection(false);Render(Hidden);Render(Hidden);W->SetRegionInspection(true);TestTrue(TEXT("Region overlay frame renders"),Render(Visible));
@@ -771,7 +774,7 @@ bool FCLSurfaceGlobeTest::RunTest(const FString&)
     TestTrue(TEXT("Globe packs the same final-field surface weights"),Worst<.00001);
     auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Terrain surface appearance proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();W->Client->Plan=Plan;
-    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*Plan->Surfaces,true));W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);W->SetGuides(Asset->Recipe.RadialGuides,false);
+    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*Plan->Surfaces,true));CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);W->SetGuides(Asset->Recipe.RadialGuides,false);
     if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
     // Let the editor publish loaded material resources and the preview scene proxy
     // before reading GPU pixels. Immediate draws can capture the fallback material.
@@ -804,7 +807,7 @@ bool FCLSurfaceGlobeTest::RunTest(const FString&)
         auto Before=MakeShared<TArray<FColor>>();
         for(int32 K=0;K<3;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(*Before);}
         auto Vertices=B.Vertices;for(auto& P:Vertices)P/=25;
-        W->Mesh->SetWorldScale3D(FVector(25));W->Mesh->CreateMeshSection_LinearColor(0,Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+        W->Mesh->SetWorldScale3D(FVector(25));CLSetPreviewMesh(*W->Mesh.Get(),Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
         ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Before]
         {
             TArray<FColor> After;
@@ -829,7 +832,7 @@ bool FCLGlobeWalkPickingTest::RunTest(const FString&)
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,640,480,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto R=FCLPlanetCompiler::BasePlanet();R.RadiusMeters=1000;R.BaseSurfaceNormalized=.5;R.NoiseLayers.Reset();FString Error;const auto Plan=FCLPlanetCompiler::Compile(R,Error);
     if(!Plan){AddError(Error);App.RequestDestroyWindow(Window);return false;}
-    W->Client->Plan=Plan;const auto B=FCLGlobeBuffers::Build(*Plan,8);W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents,false);
+    W->Client->Plan=Plan;const auto B=FCLGlobeBuffers::Build(*Plan,8);CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents);
     W->SetWalkPicking(true);W->Client->SetViewLocation(FVector(0,0,220000));W->Client->SetViewRotation(FRotator(-90,0,0));V->Invalidate();V->Draw(false);FlushRenderingCommands();
     FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(W->ViewportWidget.ToSharedRef(),Actual,EVisibility::All);const auto G=Actual.Widgets.Last().Geometry;
     TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const FWidgetPath Path(MakeArrayView(Arranged));
@@ -868,7 +871,7 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
         Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
     }
     W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));
-    const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];W->Mesh->CreateMeshSection_LinearColor(0,Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents,false);
+    const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];CLSetPreviewMesh(*W->Mesh.Get(),Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents);
     if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
     AddInfo(FString::Printf(TEXT("Four 192-cell tectonic globe buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
     ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Buffers,Plans]
@@ -877,7 +880,7 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
         TArray<FColor> First;int32 MostClipped=0,Earthy=0;double Difference=0;
         for(int32 I=0;I<3;++I)
         {
-            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
             const FVector Eye=FVector(1,-1,.65).GetSafeNormal()*165000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
             for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
             TestEqual(TEXT("Globe frame is rendered"),Pixels.Num(),800*600);int32 Clipped=0;for(const auto& C:Pixels){Clipped+=C.R>250&&C.G>250&&C.B>250;Earthy+=C.R>C.G+5&&C.G>C.B+3;}MostClipped=FMath::Max(MostClipped,Clipped);
@@ -889,7 +892,7 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
         const FVector Views[]={FVector(1,-1,.65),FVector(-1,.2,-.8),FVector(.2,1,.3)};
         for(int32 Version=1;Version<=2;++Version)for(int32 Angle=0;Angle<3;++Angle)
         {
-            const int32 I=Version==1?3:2;const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            const int32 I=Version==1?3:2;const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
             const FVector Eye=Views[Angle].GetSafeNormal()*165000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
             for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
             TestEqual(TEXT("Full-activity comparison frame is rendered"),Pixels.Num(),800*600);
@@ -915,14 +918,14 @@ bool FCLContinentalGlobeTest::RunTest(const FString&)
         auto R=Source->Recipe;R.Tectonics.MotionDirection=I==1?0:I==2?-1:1;R.Tectonics.Setting=I==3?ECLContinentalSetting::Subduction:I==4?ECLContinentalSetting::Rift:I==5?ECLContinentalSetting::Transform:ECLContinentalSetting::Collision;
         auto P=FCLPlanetCompiler::Compile(R,Error);if(!P||!P->Surfaces){AddError(Error);App.RequestDestroyWindow(Window);return false;}Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
     }
-    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];W->Mesh->CreateMeshSection_LinearColor(0,Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents,false);
+    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];CLSetPreviewMesh(*W->Mesh.Get(),Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents);
     if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();AddInfo(FString::Printf(TEXT("Six continental 192-cell buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
     ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Buffers,Plans]
     {
         const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/continental-settings");IFileManager::Get().MakeDirectory(*Folder,true);const TCHAR* Names[]={TEXT("collision"),TEXT("stationary"),TEXT("reversed"),TEXT("subduction"),TEXT("rift"),TEXT("transform")};
         for(int32 I=0;I<6;++I)for(int32 Angle=0;Angle<2;++Angle)
         {
-            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
             const FVector Eye=(Angle==0?FVector(1,.35,.55):FVector(-1,-.35,.4)).GetSafeNormal()*130000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
             for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
             TestEqual(TEXT("Continental comparison renders a complete frame"),Pixels.Num(),800*600);TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("%s-%d.png"),Names[I],Angle)));
@@ -988,7 +991,7 @@ bool FCLGeologyRenderedTest::RunTest(const FString&)
         {
             const auto& P=(*Plans)[I];const auto& B=(*Buffers)[I];W->Client->Plan=P;
             W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*P->Surfaces,true));
-            W->Mesh->CreateMeshSection_LinearColor(0,B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents,false);
+            CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
             W->SetGuides(Base.RadialGuides,false);W->SetOceanVisible(I==5);
             const FVector Eye=EyeDirection*135000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());
         },.05f));
@@ -1051,15 +1054,85 @@ bool FCLGlobePublicationTest::RunTest(const FString&)
         TestTrue(TEXT("Variation publishes a draft and a refined mesh"),W->PublishedBuilds()==*Before+2);
         TestTrue(TEXT("Newest variation owns the displayed plan"),W->Client->Plan==Changed);
         TestFalse(TEXT("Variation finishes at full quality"),W->HasDraftMesh());
-        const auto* Section=W->Mesh->GetProcMeshSection(0);double Worst=0,Delta=0;
-        for(int32 I=0;Section&&I<Section->ProcVertexBuffer.Num();I+=1024)
+        const auto* Section=W->Mesh->GetMesh();double Worst=0,Delta=0;
+        for(int32 I=0;Section&&I<Section->VertexCount();I+=1024)
         {
-            const FVector V(Section->ProcVertexBuffer[I].Position),D=V.GetSafeNormal();
+            const FVector V(Section->GetVertex(I)),D=V.GetSafeNormal();
             const double Expected=(Changed->RadiusMeters+Changed->SampleHeightMeters(D))/Changed->RadiusMeters*100000;
             Worst=FMath::Max(Worst,FMath::Abs(V.Size()-Expected));Delta+=FMath::Abs(Changed->SampleHeightMeters(D)-Initial->SampleHeightMeters(D));
         }
         TestTrue(TEXT("Published vertices belong to the new compiled variation"),Section&&Worst<.02&&Delta>1);
         AddInfo(FString::Printf(TEXT("Variation publication: worst display residual %.6f cm"),Worst));return Close();
     }));return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPreviewPrecisionTest,"Catalyst.Landform.Surfaces.LargeRadiusPreviewPrecision",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPreviewPrecisionTest::RunTest(const FString&)
+{
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Preview coordinate precision"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/preview-precision");IFileManager::Get().MakeDirectory(*Folder,true);
+    auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
+    FString Error;
+    for(double Radius:{1000.,10000.,6371000.})
+    {
+        auto R=FCLPlanetCompiler::BasePlanet();R.SchemaVersion=17;R.RadiusMeters=Radius;R.BaseSurfaceNormalized=.75;R.SurfaceStack=FCLSurfaceStack::MakeDefault();
+        const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+        Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,64));
+    }
+    auto GoldCounts=MakeShared<TArray<int32>>();GoldCounts->Init(0,4);
+    for(int32 Case=0;Case<4;++Case)
+    {
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Plans,Buffers,Case]
+        {
+            const int32 Index=FMath::Max(0,Case-1);const auto P=(*Plans)[Index];auto B=(*Buffers)[Index];
+            if(Case==0)
+            {
+                // Reproduce the old PMC GPU conversion, now deliberately injected
+                // into the full-precision renderer as a before/after control.
+                for(auto& UV:B.UV){UV.X=FFloat16(float(UV.X)).GetFloat();UV.Y=FFloat16(float(UV.Y)).GetFloat();}
+                for(auto& UV:B.UV1)UV.X=FFloat16(float(UV.X)).GetFloat();
+            }
+            W->Client->Plan=P;auto* Material=CastChecked<UMaterialInstanceDynamic>(CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*P->Surfaces,true));
+            for(int32 I=0;I<8;++I)
+            {
+                Material->SetVectorParameterValue(FName(*FString::Printf(TEXT("CLTextureDetail%d"),I)),FLinearColor(270,0,0,0));
+                Material->SetVectorParameterValue(FName(*FString::Printf(TEXT("CLTint%d"),I)),FLinearColor(.5,.5,.5,.95));
+                Material->SetVectorParameterValue(FName(*FString::Printf(TEXT("CLDetail%d"),I)),FLinearColor(12,0,0,0));
+            }
+            W->Mesh->SetMaterial(0,Material);CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
+            W->SetGuides({},false);W->SetOceanVisible(false);
+            const FVector Eye=FVector(1,-1,.6).GetSafeNormal()*165000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());
+            if(Case>0)
+            {
+                const auto* UV=W->Mesh->GetMesh()->Attributes()->GetUVLayer(0);double Worst=0;
+                for(int32 I=0;I<B.UV.Num();++I){const auto Actual=UV->GetElement(I);Worst=FMath::Max(Worst,FVector2D::Distance(FVector2D(Actual),B.UV[I]));TestTrue(TEXT("Large source attributes remain finite"),FMath::IsFinite(Actual.X)&&FMath::IsFinite(Actual.Y));}
+                TestTrue(TEXT("Source channels retain float32 precision"),Worst<P->RadiusMeters*100*1.e-7);
+                AddInfo(FString::Printf(TEXT("Radius %.0f m: maximum UV0 upload rounding %.6g cm"),P->RadiusMeters,Worst));
+            }
+        },.1f));
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,V,Window,Folder,GoldCounts,Case]
+        {
+            if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();W->Scene->UpdateCaptureContents();
+            auto Render=[&](TArray<FColor>& Pixels){for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}};
+            TArray<FColor> WithGrid,WithoutGrid;Render(WithGrid);TestEqual(TEXT("Precision proof renders GPU pixels"),WithGrid.Num(),800*600);
+            auto* Material=CastChecked<UMaterialInstanceDynamic>(W->Mesh->GetMaterial(0));Material->SetVectorParameterValue(TEXT("CLGrid"),FLinearColor(0,10,0,0));Render(WithoutGrid);
+            int32 Gold=0;for(int32 I=0;I<WithGrid.Num()&&I<WithoutGrid.Num();++I)
+            {const auto C=WithGrid[I],B=WithoutGrid[I];Gold+=int32(C.B)<int32(B.B)-10&&int32(C.R)>int32(C.B)+35&&int32(C.G)>int32(C.B)+20;}
+            (*GoldCounts)[Case]=Gold;
+            TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(800,600,WithGrid,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("globe-%d.png"),Case)));
+            AddInfo(FString::Printf(TEXT("Precision case %d: gold overlay pixels %d"),Case,Gold));
+            if(Case>0)TestTrue(TEXT("Only a narrow gold equator is rendered"),Gold>100&&Gold<800*600*.03);
+            if(Case==3)
+            {
+                TestTrue(TEXT("Old half-precision control reproduces giant yellow patches"),(*GoldCounts)[0]>(*GoldCounts)[1]*4);
+                FSlateApplication::Get().RequestDestroyWindow(Window);
+            }
+        },.15f));
+    }
+    return true;
 }
 #endif

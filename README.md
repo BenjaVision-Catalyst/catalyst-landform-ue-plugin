@@ -691,6 +691,15 @@ recipes retain their previous material path. Current limits are eight installed
 surfaces and sixteen overlays per stack, with bounded slope evaluation; this is
 a spherical-surface profile. Preview and native compositors differ, as documented.
 
+Globe and cross-section terrain previews use UE Dynamic Mesh rendering with
+full-precision (32-bit) UV channels. Their canonical source positions remain in
+centimetres, preserving the existing shared material graph and physical texture
+scale without half-precision overflow above 655 m. All four attribute channels,
+material weights, explicit normals/tangents and neutral cut-wall masks are retained.
+The editor-only upload has no collision; native VPP remains the walking surface.
+Float32 still has magnitude-dependent rounding at planetary distances; this change
+removes half-precision overflow, not every future large-world precision concern.
+
 `Examples/TerrainSurfaces.json` and the three `*Surfaces.json` source examples
 provide an independent regional planet. Reproduction, authoring, appearance
 baking and qualification limits are in the host's
