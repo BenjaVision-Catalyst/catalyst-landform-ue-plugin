@@ -118,7 +118,9 @@ jumping, landing, interactions and camera motion while curvature changes and the
 anchor crosses chart/rebase boundaries. Canonical field/collision fingerprints
 and build counters must remain unchanged.
 
-## 4. Distant vista charts
+## 4. Deferred: distant vista charts
+
+User direction on 2026-11-02 defers this layer until the composed scene follows curvature correctly. This remains a future feature contract, not the next implementation task.
 
 Use a fixed, explicit chart/instance budget and visibility admission. Repeated
 source sections are presentation instances sharing canonical data, with a stable
@@ -205,3 +207,32 @@ local presentation does not close the strict 60 fps or temporal-image gates.
 ## Local interaction checkpoint — 2026-11-02
 
 [Projected interaction tracing](ProjectedInteractions.md) now maps finite screen rays to conservatively bounded canonical curves and returns native hits with separate projected point/normal/distance. Natural curvature uses one line trace; curved queries refine swept envelopes with explicit budgets and refusal states. The host adds on-demand reticle selection and canonical hit events, plus packaged screen/normal/identity probes. The preceding gameplay checkpoint's statement that interaction tracing remained future work is superseded for this local fixture. Chart handover, repeated vistas and wider performance/lighting/temporal gates remain open.
+
+
+## Next milestone revised — 2026-11-02
+
+The user requires the entire composed world to participate in curvature and eventual
+vistas: base Landform/VPP terrain, ecosystem PCG and terrain stamps, grass/trees,
+subsequent landscape edits, and future Catalyst Architect buildings. Architect does
+not exist yet. Terrain-only distant scenery would not satisfy this requirement.
+
+The next bounded implementation is a single-chart composition fixture: native VPP
+terrain with an applied edit, PCG grass and instanced trees, and a simple building
+standing in for Architect output. Establish consistent geometry/material/normal/
+bounds/shadow presentation while walking and changing curvature before adding
+vista caches, distant proxies, chart handover or repetition machinery. Those later
+features are deferred; continue packaged performance measurement alongside useful
+integration instead of making another optimization phase the immediate objective.
+
+Simulation, placement, terrain sampling and PCG generation remain canonical.
+Curvature changes update presentation state and must not regenerate PCG, terrain
+or collision. Real terrain edits can legitimately regenerate affected source data;
+the fixture must check the resulting terrain/vegetation/building alignment. Wind
+and authored source WPO need composition with the projection. The existing small
+rigid-body/marker approximation does not establish support for tall trees or whole
+buildings; test their visible geometry, not only actor pivots. Grass/instance
+presentation must avoid CPU traversal of every instance per curvature update.
+
+Retain the agreed [Simulator/Ecosystem ownership boundary](../../../Simulation/catalyst-simulator/docs/Component-Boundaries.md): domain providers own their content and policies; shared simulation presentation machinery/budgets retain their existing owner. This checkpoint does not create an Architect implementation or a competing ecosystem cache, scheduler or provider system.
+
+See the [host handover](../../Projects/LandformLab/Docs/CurvatureHandover.md) for published implementation checkpoints, setup, evidence and the revised next task.
