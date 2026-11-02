@@ -711,3 +711,9 @@ qualified limits. This is a recipe-consumer proof, not a backend wire protocol.
 Planet Builder’s left **Surface inspection** panel selects a globe location and
 launches a collision-ready walking preview. Esc returns with the last location
 marked. See [the inspection contract](Docs/SurfaceInspection.md) for ownership and qualification.
+
+## Geological planet design proposal
+
+[Planet geological design](Docs/PlanetDesignSystem.md) reviews the earlier research
+and proposes tectonic structure, rock units, drainage and contextual Landform
+assembly, with a bounded implementation and qualification sequence.
