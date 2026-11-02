@@ -389,6 +389,15 @@ Keep generation/cancellation and frame-time evidence separate. This provides the
 foundation for subsequent rock units, drainage and erosion; it does not authorize
 ecosystem, water-rendering or Architect implementation.
 
+## Current layer boundary — 2 November 2026
+
+[Planet layers](PlanetLayers.md) now separates continental foundation from
+tectonic deformation in schema 15. Both can be enabled on one planet, with
+independent controls and seeds. The inspector uses native Details rows grouped
+by the design workflow. A preset maps a layer's one knob to its underlying data;
+it does not replace other geological layers. Pinned schema 14 examples remain
+available with their original combined semantics.
+
 ## How to judge realism
 
 Use a suite of comparable terrain classes and parameter ranges, not one attractive

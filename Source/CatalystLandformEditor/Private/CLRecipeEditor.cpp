@@ -5,6 +5,13 @@
 #include "CLNoiseLayerStack.h"
 #include "CLRegionGenerationPanel.h"
 #include "IDetailsView.h"
+#include "IDetailCustomization.h"
+#include "DetailLayoutBuilder.h"
+#include "DetailCategoryBuilder.h"
+#include "DetailWidgetRow.h"
+#include "IDetailPropertyRow.h"
+#include "PropertyHandle.h"
+#include "Widgets/Layout/SWidgetSwitcher.h"
 #include "IStructureDetailsView.h"
 #include "PropertyEditorModule.h"
 #include "AssetToolsModule.h"
@@ -32,6 +39,7 @@
 #include "UObject/Package.h"
 #include "Widgets/SCanvas.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SComboButton.h"
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 #include "Framework/Application/SlateApplication.h"
@@ -631,21 +639,44 @@ public:
     }
 };
 
+class FCLPlanetDetailsLayout : public IDetailCustomization
+{
+    TFunction<void(IDetailLayoutBuilder&)> Build;
+public:
+    explicit FCLPlanetDetailsLayout(TFunction<void(IDetailLayoutBuilder&)> InBuild):Build(MoveTemp(InBuild)){}
+    virtual void CustomizeDetails(IDetailLayoutBuilder& Layout) override
+    {
+        TArray<FName> Categories;Layout.GetCategoryNames(Categories);for(FName Name:Categories)Layout.HideCategory(Name);
+        Build(Layout);
+    }
+};
+
 class FCLRecipeToolkit : public FCFModelEditorToolkit
 {
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLTerrainWorkspaceTest;
+    friend class FCLPlanetInspectorTest;
     friend class FCLTectonicLiveKnobTest;
     friend class FCLTectonicAdvancedTest;
 #endif
     TSharedPtr<SCLSectionViewport> Preview;
+    FCLPlanetRecipe InspectorRecipe;
+    FString InspectorError;
     TSharedPtr<SCLPlanetPreview> Globe;
     bool bGlobe=true,bTectonicDragging=false;
     double PendingTectonicActivity=.55,LastTectonicApply=0,AppliedTectonicActivity=.55;
     FTSTicker::FDelegateHandle TectonicTicker;
     TUniquePtr<FScopedTransaction> TectonicDragTransaction;
     TSharedPtr<SSlider> TectonicSlider;
-    TSharedPtr<SExpandableArea> TectonicAdvanced;
+    IDetailCategoryBuilder* TectonicAdvanced=nullptr;
+    TSharedPtr<IStructureDetailsView> ContinentalDetails;
+    TSharedPtr<FStructOnScope> ContinentalDraft;
+    TSharedPtr<SSlider> ContinentalSlider;
+    TArray<TSharedPtr<IDetailsView>> PlanetInspectors;
+    TSharedPtr<SWidgetSwitcher> InspectorPages;
+    int32 InspectorPage=1;
+    bool bContinentalDragging=false;
+    double PendingContinentalStrength=.7,AppliedContinentalStrength=.7;
     TSharedPtr<IStructureDetailsView> TectonicDetails;
     TSharedPtr<FStructOnScope> TectonicDraft;
     FGuid WalkRequestId;
@@ -658,7 +689,6 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TStrongObjectPtr<UCLPlanetRecipeAsset> PreviewContext;
     TSharedPtr<SCLNoiseLayerStack> NoiseStack;
     TSharedPtr<SCLRegionGenerationPanel> GenerationPanel;
-    TSharedPtr<SVerticalBox> RegionControls;
     FDelegateHandle TerrainChanged;
     UCLPlanetRecipeAsset* RecipeAsset() const
     { return PreviewContext ? PreviewContext.Get() : CastChecked<UCLPlanetRecipeAsset>(EditingAsset); }
@@ -725,6 +755,7 @@ public:
     void OpenDesigner(EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         auto* Asset = RecipeAsset();
+        InspectorRecipe=Asset->Recipe;InspectorRecipe.SeparateGeologyLayers();
         RadialGuidesSession = MakeShared<FCLRadialGuideSession>();
         if (TerrainEditing)
         {
@@ -750,8 +781,9 @@ public:
         Changed = Asset->OnRecipeChanged.AddSP(this, &FCLRecipeToolkit::Refresh);
         auto Left=FTabManager::NewStack()->SetSizeCoefficient(.34)->AddTab(TerrainEditing?NoiseTab:PlanetTab,ETabState::OpenedTab);
         if(TerrainEditing)Left->AddTab(SurfaceTab,ETabState::OpenedTab);
-        Left->AddTab(DetailsTabId,ETabState::OpenedTab)->AddTab(ValidationTabId,ETabState::OpenedTab)->SetForegroundTab(TerrainEditing?NoiseTab:PlanetTab);
-        const auto Layout = FTabManager::NewLayout(TerrainEditing ? "CLTerrainDesigner_v2" : "CLRecipeDesigner_v3")->AddArea(
+        if(TerrainEditing)Left->AddTab(DetailsTabId,ETabState::OpenedTab)->AddTab(ValidationTabId,ETabState::OpenedTab);
+        Left->SetForegroundTab(TerrainEditing?NoiseTab:PlanetTab);
+        const auto Layout = FTabManager::NewLayout(TerrainEditing ? "CLTerrainDesigner_v2" : "CLRecipeDesigner_v4")->AddArea(
             FTabManager::NewPrimaryArea()->SetOrientation(Orient_Horizontal)
             ->Split(Left)
             ->Split(FTabManager::NewStack()->SetSizeCoefficient(.68)->AddTab(SectionTab, ETabState::OpenedTab)->SetHideTabWell(true)));
@@ -760,6 +792,8 @@ public:
         Extender->AddToolBarExtension(TEXT("Asset"), EExtensionHook::After, nullptr,
             FToolBarExtensionDelegate::CreateLambda([this](FToolBarBuilder& Builder)
             {
+                if(!TerrainEditing)Builder.AddToolBarButton(FUIAction(FExecuteAction::CreateSP(this,&FCLRecipeToolkit::CreatePlanet)),NAME_None,
+                    FText::FromString(TEXT("New planet")),FText::GetEmpty(),FSlateIcon(FAppStyle::GetAppStyleSetName(),TEXT("Icons.Plus")));
                 Builder.AddToolBarButton(FUIAction(FExecuteAction::CreateSP(this, &FCLRecipeToolkit::Export)), NAME_None,
                     FText::FromString(TerrainEditing ? TEXT("Export terrain type") : TEXT("Export recipe")), FText::FromString(TEXT("Export the authored definition through Foundation")));
             }));
@@ -841,42 +875,6 @@ public:
             Menu.AddMenuEntry(FText::FromString((T.Key.bStructure?TEXT("Structure: "):TEXT("Landform: "))+T.Name),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Key=T.Key]{if(Globe)Globe->Select(Key);})));
         return Menu.MakeWidget();
     }
-    void RefreshRegionControls()
-    {
-        if (!RegionControls || TerrainEditing) return;
-        RegionControls->ClearChildren();
-        RegionControls->AddSlot().AutoHeight()[SNew(SComboButton)
-            .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates!=ECLTerrainCoordinates::Sphere && RecipeAsset()->Recipe.TerrainRegions.Num()<8;})
-            .OnGetMenuContent_Lambda([this]{return TerrainSourceMenu(FGuid(),true);})
-            .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Add Landform")))]];
-        for (const auto& Region : RecipeAsset()->Recipe.TerrainRegions)
-        {
-            const FGuid Id = Region.Id;
-            RegionControls->AddSlot().AutoHeight().Padding(0,8,0,0)[SNew(SBorder).Padding(8)[SNew(SVerticalBox)
-                +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(Region.Name))]
-                +SVerticalBox::Slot().AutoHeight().Padding(0,4)[SNew(SComboButton).OnGetMenuContent_Lambda([this,Id]{return TerrainSourceMenu(Id,false);})
-                    .ButtonContent()[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(Region.TerrainTypeName))]]
-                +SVerticalBox::Slot().AutoHeight()[SNew(SComboButton).OnGetMenuContent_Lambda([this,Id]{return StructureMenu(Id);})
-                    .ToolTipText(FText::FromString(TEXT("Parent coordinate frame")))
-                    .ButtonContent()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this,Id]{const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}return FText::FromString(TEXT("Planet frame"));})]]
-                +SVerticalBox::Slot().AutoHeight().Padding(0,4,0,0)[SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
-                    +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Placement")))
-                        .OnClicked_Lambda([this,Id]{if(Globe){const bool WasGlobe=bGlobe;bGlobe=true;if(!WasGlobe)Refresh();Globe->Select({Id,false});Globe->SetPlacementMode(ECLGlobePlacementMode::Move);}return FReply::Handled();})]
-                    +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Edit source")))
-                        .IsEnabled_Lambda([this,Id]{return RecipeAsset()->LandformSources.Contains(Id);})
-                        .OnClicked_Lambda([this,Id]{if(auto* Source=RecipeAsset()->LandformSources.Find(Id))CLOpenTerrainDesigner(Source->Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();})]
-                    +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Refresh source")))
-                        .IsEnabled_Lambda([this,Id]{return RecipeAsset()->LandformSources.Contains(Id);})
-                        .OnClicked_Lambda([this,Id]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));FString Error;if(!RecipeAsset()->RefreshLandformSource(Id,Error))Status=Error;return FReply::Handled();})]
-                    +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Remove")))
-                        .OnClicked_Lambda([this,Id]
-                        {
-                            const FScopedTransaction Tx(NSLOCTEXT("CL","RemoveRegion","Remove terrain region"));
-                            RecipeAsset()->Modify();RecipeAsset()->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});RecipeAsset()->LandformSources.Remove(Id);
-                            RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();return FReply::Handled();
-                        })]]]];
-        }
-    }
     TSharedRef<SWidget> RadialGuidesMenu()
     {
         FMenuBuilder Menu(true, nullptr);
@@ -925,17 +923,17 @@ public:
         if(auto* A=Cast<UCLPlanetRecipeAsset>(Tools.CreateAssetWithDialog(TEXT("DA_NewPlanet"),TEXT("/Game/LandformDesigner/Planets"),UCLPlanetRecipeAsset::StaticClass(),NewObject<UCLPlanetRecipeFactory>())))
             GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(A);
     }
-    bool CommitTectonicPreset(FCLTectonicPreset Preset)
+    bool CommitTectonicLayer(FCLTectonicPreset Preset)
     {
-        auto* A=RecipeAsset();auto Candidate=A->Recipe;Candidate.SchemaVersion=FMath::Max(14,Candidate.SchemaVersion);Candidate.Tectonics=Preset;
+        InspectorError.Reset();auto* A=RecipeAsset();auto Candidate=LayeredRecipe();Candidate.Tectonics=Preset;
         if(Preset.AlgorithmVersion==3&&!Candidate.SurfaceStack.IsActive())Candidate.SurfaceStack=FCLSurfaceStack::MakeDefault();
-        FString Error;if(!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;return false;}
-        TUniquePtr<FScopedTransaction> Tx;if(!TectonicDragTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change tectonic preset")));A->Modify();A->Recipe=MoveTemp(Candidate);A->MarkPackageDirty();A->PostEditChange();return true;
+        FString Error;if(!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;InspectorError=Error;return false;}
+        TUniquePtr<FScopedTransaction> Tx;if(!TectonicDragTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change tectonic layer")));A->Modify();A->Recipe=MoveTemp(Candidate);A->MarkPackageDirty();A->PostEditChange();return true;
     }
     void BeginTectonicDrag()
     {
         if(bTectonicDragging)return;
-        PendingTectonicActivity=AppliedTectonicActivity=RecipeAsset()->Recipe.Tectonics.Activity;LastTectonicApply=0;bTectonicDragging=true;
+        PendingTectonicActivity=AppliedTectonicActivity=LayeredRecipe().Tectonics.Activity;LastTectonicApply=0;bTectonicDragging=true;
         TectonicDragTransaction=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change tectonic activity")));RecipeAsset()->Modify();
         if(Globe)Globe->SetDraftMode(true);if(Preview)Preview->SetDraftMode(true);
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
@@ -947,7 +945,7 @@ public:
         if(FMath::IsNearlyEqual(PendingTectonicActivity,AppliedTectonicActivity,1.e-7))return;
         const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastTectonicApply<.12)return;
         auto P=RecipeAsset()->Recipe.Tectonics;P.Activity=PendingTectonicActivity;
-        if(CommitTectonicPreset(P))AppliedTectonicActivity=PendingTectonicActivity;LastTectonicApply=Now;
+        if(CommitTectonicLayer(P))AppliedTectonicActivity=PendingTectonicActivity;LastTectonicApply=Now;
     }
     void EndTectonicDrag()
     {
@@ -955,23 +953,46 @@ public:
         FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicTicker.Reset();TectonicDragTransaction.Reset();
         if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
     }
-    FText TectonicCaption() const
+    const FCLPlanetRecipe& LayeredRecipe() const {return InspectorRecipe;}
+    bool CommitContinents(FCLContinentalLayer Layer)
     {
-        auto P=RecipeAsset()->Recipe.Tectonics;if(!P.bEnabled)return FText::FromString(TEXT("Enable this preset to add tectonic structure"));if(bTectonicDragging)P.Activity=PendingTectonicActivity;
-        FCLTectonicControls C;FString Error;if(!FCLTectonicControls::Resolve(P,C,Error))return FText::FromString(Error);
-        return FText::FromString(FString::Printf(TEXT("%s · %.0f%% activity · %d%s plates"),P.Activity<.2?TEXT("Quiet"):P.Activity<.75?TEXT("Active"):TEXT("Intense"),P.Activity*100,C.LowerPlateCount,C.UpperPlateCount!=C.LowerPlateCount&&C.PlateTransition>1.e-5?*FString::Printf(TEXT("–%d"),C.UpperPlateCount):TEXT("")));
+        InspectorError.Reset();auto* A=RecipeAsset();auto R=LayeredRecipe();R.Continents=Layer;FString Error;
+        if(!FCLPlanetCompiler::Compile(R,Error)){Status=Error;InspectorError=Error;return false;}
+        TUniquePtr<FScopedTransaction> Tx;if(!TectonicDragTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change continental layer")));
+        A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();return true;
     }
-    TSharedRef<SWidget> TectonicPresetMenu()
+    void BeginContinentalDrag()
     {
-        FMenuBuilder Menu(true,nullptr);
-        for(int32 Version:{2,3})Menu.AddMenuEntry(FText::FromString(Version==3?TEXT("Continental rocky world"):TEXT("Tectonic rocky world")),FText::GetEmpty(),FSlateIcon(),
-            FUIAction(FExecuteAction::CreateLambda([this,Version]{auto P=RecipeAsset()->Recipe.Tectonics;P.AlgorithmVersion=Version;P.bEnabled=true;if(Version==3){P.bOverridePlateCount=false;P.PlateCount=2;}CommitTectonicPreset(P);}),FCanExecuteAction(),FIsActionChecked::CreateLambda([this,Version]{return RecipeAsset()->Recipe.Tectonics.AlgorithmVersion==Version;})),NAME_None,EUserInterfaceActionType::RadioButton);
-        return Menu.MakeWidget();
+        if(bContinentalDragging)return;bContinentalDragging=true;
+        PendingContinentalStrength=AppliedContinentalStrength=LayeredRecipe().Continents.Strength;LastTectonicApply=0;
+        TectonicDragTransaction=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change continental strength")));RecipeAsset()->Modify();
+        if(Globe)Globe->SetDraftMode(true);if(Preview)Preview->SetDraftMode(true);
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        TectonicTicker=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak](float){if(auto E=Weak.Pin();E&&E->bContinentalDragging){E->PumpContinentalChanges(false);return true;}return false;}));
+    }
+    void PumpContinentalChanges(bool Force)
+    {
+        if(FMath::IsNearlyEqual(PendingContinentalStrength,AppliedContinentalStrength,1.e-7))return;
+        const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastTectonicApply<.12)return;
+        auto L=LayeredRecipe().Continents;L.Strength=PendingContinentalStrength;
+        if(CommitContinents(L))AppliedContinentalStrength=PendingContinentalStrength;LastTectonicApply=Now;
+    }
+    void EndContinentalDrag()
+    {
+        if(!bContinentalDragging)return;PumpContinentalChanges(true);bContinentalDragging=false;
+        FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicTicker.Reset();TectonicDragTransaction.Reset();
+        if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
+    }
+    void VaryLayer(bool Continental)
+    {
+        auto R=LayeredRecipe();int32 NewSeed;const int32 Old=Continental?R.Continents.Seed:R.Tectonics.Seed;
+        do{NewSeed=int32(FGuid::NewGuid().A);}while(NewSeed==Old);
+        if(Continental){R.Continents.Seed=NewSeed;CommitContinents(R.Continents);}else{R.Tectonics.Seed=NewSeed;CommitTectonicLayer(R.Tectonics);}
     }
     TSharedRef<SWidget> BuildTectonicAdvanced()
     {
         TectonicDraft=MakeShared<FStructOnScope>(FCLTectonicPreset::StaticStruct());
-        *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=RecipeAsset()->Recipe.Tectonics;
+        *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=LayeredRecipe().Tectonics;
         FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.bUpdatesFromSelection=false;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
         FStructureDetailsViewArgs StructArgs;
         TectonicDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,StructArgs,TSharedPtr<FStructOnScope>(),FText::GetEmpty());
@@ -982,19 +1003,16 @@ public:
             if(!TectonicDraft||(Event.ChangeType&EPropertyChangeType::Interactive))return;
             // Keep property gestures in a draft so validation and one-step Undo own the commit.
             const auto Preset=*reinterpret_cast<const FCLTectonicPreset*>(TectonicDraft->GetStructMemory());
-            if(!CommitTectonicPreset(Preset))*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=RecipeAsset()->Recipe.Tectonics;
+            if(!CommitTectonicLayer(Preset))*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=LayeredRecipe().Tectonics;
         });
         TectonicDetails->SetStructureData(TectonicDraft);
-        return SAssignNew(TectonicAdvanced,SExpandableArea).InitiallyCollapsed(true)
-            .HeaderContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Advanced")))]
-            .BodyContent()[SNew(SBox).Padding(FMargin(0,6,0,0)).IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Tectonics.bEnabled&&!bTectonicDragging;})[TectonicDetails->GetWidget().ToSharedRef()]];
+        return SNew(SBox).IsEnabled_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled&&!bTectonicDragging;})[TectonicDetails->GetWidget().ToSharedRef()];
     }
     void EditStructure()
     {
         FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(UCLPlanetRecipeAsset::StaticClass(),TEXT("Recipe"))));
         Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLPlanetRecipe::StaticStruct(),TEXT("BaseStructure"))));
-        GetTabManager()->TryInvokeTab(DetailsTabId);
-        DetailsView->ScrollPropertyIntoView(Path,true);
+        InspectorPage=1;if(PlanetInspectors.IsValidIndex(1))PlanetInspectors[1]->ScrollPropertyIntoView(Path,true);
     }
     void AddFeature(bool Basin,bool Canyon=false)
     {
@@ -1021,11 +1039,13 @@ public:
     void Refresh()
     {
         auto* Asset = RecipeAsset();
+        InspectorRecipe=Asset->Recipe;InspectorRecipe.SeparateGeologyLayers();
         if(TectonicDraft)
         {
-            auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory());const bool VersionChanged=Draft.AlgorithmVersion!=Asset->Recipe.Tectonics.AlgorithmVersion;Draft=Asset->Recipe.Tectonics;
+            auto& Draft=*reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory());const auto Accepted=LayeredRecipe().Tectonics;const bool VersionChanged=Draft.AlgorithmVersion!=Accepted.AlgorithmVersion;Draft=Accepted;
             if(VersionChanged&&TectonicDetails)TectonicDetails->SetStructureData(TectonicDraft);
         }
+        if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=LayeredRecipe().Continents;
         if (TerrainEditing) TerrainSource.Reset(TerrainEditing->Asset);
         else if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
         else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
@@ -1057,7 +1077,6 @@ public:
             }
         }
         else { if (Preview) Preview->CancelPendingBuild(); if(Globe)Globe->Cancel(); Status = TEXT("Preview out of date: ") + Status; }
-        RefreshRegionControls();
         RefreshAllUI(EditingAsset, false);
     }
     TSharedRef<SWidget> BuildViewport()
@@ -1079,36 +1098,11 @@ public:
                     [SNew(STextBlock).AutoWrapText(true).ColorAndOpacity(FLinearColor(1, .65, .3))
                         .Text_Lambda([this] { return FText::FromString(Status + TEXT("\nThe displayed terrain does not reflect the current layer settings.")); })]];
     }
-    TSharedRef<SWidget> ViewAreaControls()
-    {
-        return SNew(SVerticalBox).Visibility_Lambda([this]{return bGlobe?EVisibility::Collapsed:EVisibility::Visible;})
-            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(this,&FCLRecipeToolkit::AreaCaption)]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,4)[SNew(SHorizontalBox)
-                +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("100 m")))]
-                +SHorizontalBox::Slot().FillWidth(1).Padding(8,0)[SNew(SSlider)
-                    .ToolTipText(FText::FromString(TEXT("Terrain area fitted into the fixed cutaway. Release to resample.")))
-                    .Value_Lambda([this]{return float((PendingAreaWidth-100)/900);})
-                    .OnMouseCaptureBegin_Lambda([this]{bAreaDragging=true;})
-                    .OnMouseCaptureEnd_Lambda([this]{bAreaDragging=false;ApplyPreviewArea();})
-                    .OnControllerCaptureBegin_Lambda([this]{bAreaDragging=true;})
-                    .OnControllerCaptureEnd_Lambda([this]{bAreaDragging=false;ApplyPreviewArea();})
-                    .OnValueChanged_Lambda([this](float Value){PendingAreaWidth=FMath::Clamp(FMath::RoundToDouble((100+900*Value)/10)*10,100.,1000.);if(!bAreaDragging)ApplyPreviewArea();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(TEXT("1 km")))]]
-            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Visibility_Lambda([this]{return bAreaDragging?EVisibility::Visible:EVisibility::Collapsed;})
-                .Text_Lambda([this]{return FText::FromString(FString::Printf(TEXT("Release to view %.0f m × %.0f m"),PendingAreaWidth,PendingAreaWidth));})];
-    }
-    FText NavigationHint() const
-    {
-        FString Hint = RadialGuidesSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
-            bGlobe && Globe ? Globe->PlacementHint() : TEXT("Left drag: orbit | Middle drag: pan | Right drag / wheel: zoom");
-        if ((Preview && Preview->IsUpdating()) || (Globe && Globe->IsUpdating())) Hint = TEXT("Updating terrain preview… | ") + Hint;
-        return FText::FromString(Hint);
-    }
     void WalkHere()
     {
         if(!Globe||Globe->WalkLocation().IsNearlyZero()||!FCLPlanetInspection::Launch.IsBound())return;
         FCLPlanetInspectionRequest Request;FString Error;
-        if(!RecipeAsset()->ExportJsonString(Request.RecipeJson,Error)){WalkStatus=Error;return;}
+        if(!RecipeAsset()->ExportJsonString(Request.RecipeJson,Error)){WalkStatus=Error;InspectorError=Error;return;}
         Request.Direction=Globe->WalkLocation();WalkRequestId=Request.Id;
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
         Request.OnReturned=[Weak](FGuid Id,FVector Direction,FString Result)
@@ -1118,110 +1112,188 @@ public:
                 Editor->WalkStatus=MoveTemp(Result);if(Editor->Globe&&!Direction.IsNearlyZero())Editor->Globe->SetWalkLocation(Direction);
             }
         };
-        WalkStatus=TEXT("Opening walking preview…");
-        if(!FCLPlanetInspection::Launch.Execute(MoveTemp(Request),Error))WalkStatus=Error;
+        InspectorError.Reset();WalkStatus=TEXT("Opening walking preview…");
+        if(!FCLPlanetInspection::Launch.Execute(MoveTemp(Request),Error)){WalkStatus=Error;InspectorError=Error;}
+    }
+    static TSharedRef<STextBlock> InspectorLabel(const TCHAR* Text)
+    {return SNew(STextBlock).Text(FText::FromString(Text)).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"));}
+    static FDetailWidgetRow& InspectorRow(IDetailCategoryBuilder& Category,const TCHAR* Label,const TSharedRef<SWidget>& Widget,bool Advanced=false)
+    {return Category.AddCustomRow(FText::FromString(Label),Advanced).NameContent()[InspectorLabel(Label)].ValueContent().MinDesiredWidth(220).MaxDesiredWidth(900)[Widget];}
+    TSharedRef<SWidget> VariationButton(bool Continental)
+    {
+        return SNew(SButton).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3)
+            .ToolTipText(FText::FromString(TEXT("New variation")))
+            .OnClicked_Lambda([this,Continental]{VaryLayer(Continental);return FReply::Handled();})
+            [SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))];
+    }
+    TSharedRef<SWidget> BuildContinentalAdvanced()
+    {
+        ContinentalDraft=MakeShared<FStructOnScope>(FCLContinentalLayer::StaticStruct());
+        *reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=LayeredRecipe().Continents;
+        FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.bUpdatesFromSelection=false;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
+        ContinentalDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,FStructureDetailsViewArgs(),nullptr,FText::GetEmpty());
+        ContinentalDetails->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
+        {const FName N=P.Property.GetFName();return N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,bEnabled)&&N!=GET_MEMBER_NAME_CHECKED(FCLContinentalLayer,Strength);}));
+        ContinentalDetails->GetOnFinishedChangingPropertiesDelegate().AddSPLambda(this,[this](const FPropertyChangedEvent& E)
+        {
+            if(E.ChangeType&EPropertyChangeType::Interactive)return;
+            if(!CommitContinents(*reinterpret_cast<const FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())))
+                *reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=LayeredRecipe().Continents;
+        });
+        ContinentalDetails->SetStructureData(ContinentalDraft);
+        return SNew(SBox).IsEnabled_Lambda([this]{return LayeredRecipe().Continents.bEnabled&&!bContinentalDragging;})[ContinentalDetails->GetWidget().ToSharedRef()];
+    }
+    void BuildPlanetInspector(IDetailLayoutBuilder& B,int32 Page)
+    {
+        const auto Recipe=B.GetProperty(GET_MEMBER_NAME_CHECKED(UCLPlanetRecipeAsset,Recipe));
+        auto Property=[&](const TCHAR* Name){return Recipe->GetChildHandle(FName(Name));};
+        auto Add=[&](IDetailCategoryBuilder& C,const TCHAR* Name,bool Advanced=false){C.AddProperty(Property(Name),EPropertyLocation::Type(Advanced?EPropertyLocation::Advanced:EPropertyLocation::Default));};
+        if(Page==0)
+        {
+            auto& C=B.EditCategory(TEXT("Body"),FText::FromString(TEXT("Planet")));C.SetSortOrder(0);
+            Add(C,TEXT("Name"));Add(C,TEXT("RadiusMeters"));
+            InspectorRow(C,TEXT("Radial Guides"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::RadialGuidesMenu)
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.RadialGuides.Name);})]);
+            Add(C,TEXT("BaseSurfaceNormalized"),true);Add(C,TEXT("Seed"),true);
+            C.AddProperty(B.GetProperty(GET_MEMBER_NAME_CHECKED(UCLPlanetRecipeAsset,RadialGuideLibrary)),EPropertyLocation::Advanced);
+            InspectorRow(C,TEXT("Guide set"),SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(SInlineEditableTextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"))
+                    .Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.RadialGuides.Name);})
+                    .OnTextCommitted_Lambda([this](const FText& Text,ETextCommit::Type Type)
+                    {
+                        if(Type==ETextCommit::OnCleared||Text.IsEmpty())return;
+                        const FString Name=Text.ToString().TrimStartAndEnd();if(Name.IsEmpty()||RadialGuidesSession->Library->Library.Sets.ContainsByPredicate([&](const auto& S){return S.Id!=RecipeAsset()->Recipe.RadialGuides.Id&&S.Name.Equals(Name,ESearchCase::IgnoreCase);}))return;
+                        RadialGuidesSession->Begin(FText::FromString(TEXT("Rename radial guides")));RecipeAsset()->Recipe.RadialGuides.Name=Name;RadialGuidesSession->Changed();RadialGuidesSession->End();
+                    })]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Duplicate"))).OnClicked_Lambda([this]{RadialGuidesSession->NewSet();return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Remove"))).OnClicked_Lambda([this]{RadialGuidesSession->RemoveSet();return FReply::Handled();})],true);
+            C.SetShowAdvanced(false);
+        }
+        else if(Page==1)
+        {
+            auto& C=B.EditCategory(TEXT("ContinentalLayer"),FText::FromString(TEXT("Continents")));C.SetSortOrder(0);
+            C.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return LayeredRecipe().Continents.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Continents;L.bEnabled=V==ECheckBoxState::Checked;CommitContinents(L);}));
+            InspectorRow(C,TEXT("Strength"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Continents.bEnabled;})
+                +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(0,0,8,0)[SAssignNew(ContinentalSlider,SSlider)
+                    .Value_Lambda([this]{return float(bContinentalDragging?PendingContinentalStrength:LayeredRecipe().Continents.Strength);})
+                    .OnMouseCaptureBegin_Lambda([this]{BeginContinentalDrag();}).OnMouseCaptureEnd_Lambda([this]{EndContinentalDrag();})
+                    .OnControllerCaptureBegin_Lambda([this]{BeginContinentalDrag();}).OnControllerCaptureEnd_Lambda([this]{EndContinentalDrag();})
+                    .OnValueChanged_Lambda([this](float V){PendingContinentalStrength=V;if(bContinentalDragging)PumpContinentalChanges(false);else{auto L=LayeredRecipe().Continents;L.Strength=V;CommitContinents(L);}})]
+                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::AsPercent(bContinentalDragging?PendingContinentalStrength:LayeredRecipe().Continents.Strength);})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(6,0)[VariationButton(true)]);
+            C.AddCustomRow(FText::FromString(TEXT("Continental settings")),true).WholeRowContent()[BuildContinentalAdvanced()];C.SetShowAdvanced(false);
+            auto& T=B.EditCategory(TEXT("TectonicLayer"),FText::FromString(TEXT("Tectonics")));T.SetSortOrder(1);TectonicAdvanced=&T;
+            T.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Tectonics;L.bEnabled=V==ECheckBoxState::Checked;CommitTectonicLayer(L);}));
+            InspectorRow(T,TEXT("Activity"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled;})
+                +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(0,0,8,0)[SAssignNew(TectonicSlider,SSlider)
+                    .Value_Lambda([this]{return float(bTectonicDragging?PendingTectonicActivity:LayeredRecipe().Tectonics.Activity);})
+                    .OnMouseCaptureBegin_Lambda([this]{BeginTectonicDrag();}).OnMouseCaptureEnd_Lambda([this]{EndTectonicDrag();})
+                    .OnControllerCaptureBegin_Lambda([this]{BeginTectonicDrag();}).OnControllerCaptureEnd_Lambda([this]{EndTectonicDrag();})
+                    .OnValueChanged_Lambda([this](float V){PendingTectonicActivity=V;if(bTectonicDragging)PumpTectonicChanges(false);else{auto L=LayeredRecipe().Tectonics;L.Activity=V;CommitTectonicLayer(L);}})]
+                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::AsPercent(bTectonicDragging?PendingTectonicActivity:LayeredRecipe().Tectonics.Activity);})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(6,0)[VariationButton(false)]);
+            InspectorRow(T,TEXT("Plate model"),SNew(SComboButton).OnGetMenuContent_Lambda([this]
+            {
+                FMenuBuilder Menu(true,nullptr);for(int32 Version:{2,3})Menu.AddMenuEntry(FText::FromString(Version==2?TEXT("Moving plates"):TEXT("Controlled boundary")),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Version]{auto L=LayeredRecipe().Tectonics;L.AlgorithmVersion=Version;if(Version==3){L.bOverridePlateCount=false;L.PlateCount=2;}CommitTectonicLayer(L);})));return Menu.MakeWidget();
+            }).ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(LayeredRecipe().Tectonics.AlgorithmVersion==3?TEXT("Controlled boundary"):TEXT("Moving plates"));})],true);
+            T.AddCustomRow(FText::FromString(TEXT("Tectonic settings")),true).WholeRowContent()[BuildTectonicAdvanced()];T.SetShowAdvanced(false);
+
+        }
+        else if(Page==2)
+        {
+            auto& S=B.EditCategory(TEXT("EditorialStructure"),FText::FromString(TEXT("Structure")));S.SetSortOrder(0);
+            InspectorRow(S,TEXT("Add"),SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})]);
+            Add(S,TEXT("BaseStructure"),true);S.SetShowAdvanced(false);
+            auto& C=B.EditCategory(TEXT("TerrainComposition"),FText::FromString(TEXT("Landforms")));C.SetSortOrder(1);
+            InspectorRow(C,TEXT("Base terrain"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::TerrainMenu)
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{const FString& Name=RecipeAsset()->Recipe.TerrainTypeName;return FText::FromString(Name.IsEmpty()?TEXT("None"):Name);})]);
+            InspectorRow(C,TEXT("Base source"),SNew(SButton).Text(FText::FromString(TEXT("Edit"))).IsEnabled_Lambda([this]{return TerrainSource.IsValid();})
+                .OnClicked_Lambda([this]{if(TerrainSource)CLOpenTerrainDesigner(TerrainSource.Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();}));
+            InspectorRow(C,TEXT("Add Landform"),SNew(SComboButton).OnGetMenuContent_Lambda([this]{return TerrainSourceMenu(FGuid(),true);})
+                .ButtonContent()[InspectorLabel(TEXT("Landform"))]);
+            InspectorRow(C,TEXT("Selection"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::GlobeSelectionMenu)
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(Globe?Globe->SelectionName():TEXT("None"));})]);
+            auto Modes=SNew(SHorizontalBox);
+            for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
+                Modes->AddSlot().AutoWidth()[SNew(SButton).Text(FText::FromString(Mode==ECLGlobePlacementMode::Move?TEXT("Move"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate"):TEXT("Scale")))
+                    .OnClicked_Lambda([this,Mode]{if(Globe)Globe->SetPlacementMode(Mode);return FReply::Handled();})];
+            InspectorRow(C,TEXT("Transform"),Modes);
+            InspectorRow(C,TEXT("Source"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return Globe&&!Globe->Selection().bStructure&&RecipeAsset()->LandformSources.Contains(Globe->Selection().Id);})
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Edit"))).OnClicked_Lambda([this]{if(auto* Source=RecipeAsset()->LandformSources.Find(Globe->Selection().Id))CLOpenTerrainDesigner(Source->Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);return FReply::Handled();})]);
+            InspectorRow(C,TEXT("Landform"),SNew(SButton).Text(FText::FromString(TEXT("Remove")))
+                .IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
+                .OnClicked_Lambda([this]{const auto Id=Globe->Selection().Id;const FScopedTransaction Tx(FText::FromString(TEXT("Remove Landform")));auto* A=RecipeAsset();A->Modify();A->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});A->LandformSources.Remove(Id);Globe->Select({});A->MarkPackageDirty();A->PostEditChange();return FReply::Handled();}));
+            InspectorRow(C,TEXT("Structure"),SNew(SComboButton).IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
+                .OnGetMenuContent_Lambda([this]{return StructureMenu(Globe->Selection().Id);})
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{if(Globe){const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Globe->Selection().Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}}return FText::FromString(TEXT("Planet frame"));})]);
+            Add(C,TEXT("TerrainRegions"),true);Add(C,TEXT("NoiseLayers"),true);C.SetShowAdvanced(false);
+            auto& G=B.EditCategory(TEXT("RegionalDistribution"),FText::FromString(TEXT("Distribution")));G.SetSortOrder(2);
+            const auto Settings=Property(TEXT("RegionGeneration"));G.AddProperty(Settings->GetChildHandle(TEXT("bEnabled")));
+            InspectorRow(G,TEXT("Palette"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::PaletteMenu).ButtonContent()[InspectorLabel(TEXT("Landforms"))]);
+            G.AddProperty(Settings->GetChildHandle(TEXT("ReliefStrength")));
+            for(const TCHAR* Name:{TEXT("RegionCount"),TEXT("Seed"),TEXT("StructureGuidance"),TEXT("BlendFraction"),TEXT("Overrides")})G.AddProperty(Settings->GetChildHandle(FName(Name)),EPropertyLocation::Advanced);
+            InspectorRow(G,TEXT("Region"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::RegionMenu)
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return GenerationPanel->SelectionText();})],true);
+            InspectorRow(G,TEXT("Assignment"),SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::OverrideMenu).ButtonContent()[InspectorLabel(TEXT("Landform"))]]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Clear"))).OnClicked_Lambda([this]{GenerationPanel->ClearOverrides();return FReply::Handled();})],true);G.SetShowAdvanced(false);
+        }
+        else if(Page==3)
+        {auto& C=B.EditCategory(TEXT("GroundMaterials"),FText::FromString(TEXT("Surface")));Add(C,TEXT("SurfaceStack"));}
+        else
+        {
+            auto& C=B.EditCategory(TEXT("Presentation"),FText::FromString(TEXT("View")));C.SetSortOrder(0);
+            InspectorRow(C,TEXT("View"),SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(SButton).Text_Lambda([this]{return FText::FromString(bGlobe?TEXT("Globe"):TEXT("Cross-section"));})
+                    .OnClicked_Lambda([this]{bGlobe=!bGlobe;Refresh();return FReply::Handled();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Frame"))).OnClicked_Lambda([this]{if(Globe&&bGlobe)Globe->Frame();return FReply::Handled();})]);
+            InspectorRow(C,TEXT("Radial Guides"),SNew(SCheckBox).IsChecked_Lambda([this]{return Preview&&Preview->Client->bGuides?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Preview){Preview->Client->bGuides=V==ECheckBoxState::Checked;Preview->Client->Invalidate();if(Globe)Globe->SetGuides(RecipeAsset()->Recipe.RadialGuides,Preview->Client->bGuides);}}));
+            InspectorRow(C,TEXT("Regions"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsInspectingRegions()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetRegionInspection(V==ECheckBoxState::Checked);}));
+            InspectorRow(C,TEXT("Section area"),SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).Value_Lambda([this]{return float((PendingAreaWidth-100)/900);})
+                    .OnMouseCaptureBegin_Lambda([this]{bAreaDragging=true;}).OnMouseCaptureEnd_Lambda([this]{bAreaDragging=false;ApplyPreviewArea();})
+                    .OnValueChanged_Lambda([this](float V){PendingAreaWidth=FMath::RoundToDouble((100+900*V)/10)*10;if(!bAreaDragging)ApplyPreviewArea();})]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text(this,&FCLRecipeToolkit::AreaCaption)]);
+            auto& S=B.EditCategory(TEXT("Walking"),FText::FromString(TEXT("Surface inspection")));S.SetSortOrder(1);
+            InspectorRow(S,TEXT("Pick location"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsWalkPicking()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(!bGlobe){bGlobe=true;Refresh();}if(Globe)Globe->SetWalkPicking(V==ECheckBoxState::Checked);}));
+            InspectorRow(S,TEXT("Walk"),SNew(SButton).Text(FText::FromString(TEXT("Walk here")))
+                .IsEnabled_Lambda([this]{return bGlobe&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
+                .OnClicked_Lambda([this]{WalkHere();return FReply::Handled();}));
+        }
     }
     TSharedRef<SDockTab> SpawnPlanet(const FSpawnTabArgs&)
     {
-        auto Controls = SNew(SVerticalBox);
-        auto AddSection = [&](const TCHAR* Name, const TSharedRef<SWidget>& Content, bool Collapsed = false)
+        GenerationPanel=SNew(SCLRegionGenerationPanel).Asset(RecipeAsset()).MenusOnly(true)
+            .OnSelectRegion(FOnCLGeneratedRegionSelection::CreateLambda([this](FGuid Id){if(Globe)Globe->SelectGeneratedRegion(Id);}));
+        const auto Tabs=SNew(SHorizontalBox);SAssignNew(InspectorPages,SWidgetSwitcher).WidgetIndex_Lambda([this]{return InspectorPage;});
+        const TCHAR* Names[]={TEXT("Planet"),TEXT("Geology"),TEXT("Landforms"),TEXT("Surface"),TEXT("Preview")};
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        for(int32 Page=0;Page<5;++Page)
         {
-            Controls->AddSlot().AutoHeight().Padding(0,0,0,8)[SNew(SExpandableArea).InitiallyCollapsed(Collapsed)
-                .HeaderContent()[SNew(STextBlock).Text(FText::FromString(Name))]
-                .BodyContent()[SNew(SBox).Padding(FMargin(4,8))[Content]]];
-        };
-        Controls->AddSlot().AutoHeight().Padding(0,0,0,8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(Status);})];
-        AddSection(TEXT("Planet"), SNew(SVerticalBox)
-            +SVerticalBox::Slot().AutoHeight()[SNew(SEditableTextBox).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.Name);})
-                .HintText(FText::FromString(TEXT("Planet name"))).OnTextCommitted_Lambda([this](const FText& T,ETextCommit::Type)
-                {const FString Name=T.ToString().TrimStartAndEnd();if(Name.IsEmpty()||Name==RecipeAsset()->Recipe.Name)return;FScopedTransaction Tx(FText::FromString(TEXT("Rename planet")));auto* A=RecipeAsset();A->Modify();A->Recipe.Name=Name;A->MarkPackageDirty();A->PostEditChange();})]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,6,0,0)[SNew(SButton).Text(FText::FromString(TEXT("New planet…"))).OnClicked_Lambda([this]{CreatePlanet();return FReply::Handled();})]);
-        AddSection(TEXT("Base planet preset"),SNew(SVerticalBox)
-            +SVerticalBox::Slot().AutoHeight()[SNew(SHorizontalBox)
-                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,8,0)[SNew(SCheckBox)
-                .IsChecked_Lambda([this]{return RecipeAsset()->Recipe.Tectonics.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto P=RecipeAsset()->Recipe.Tectonics;P.bEnabled=V==ECheckBoxState::Checked;if(P.bEnabled&&P.AlgorithmVersion<3)P.AlgorithmVersion=2;CommitTectonicPreset(P);})
-                [SNew(STextBlock).Text(FText::FromString(TEXT("Enabled")))]]
-                +SHorizontalBox::Slot().FillWidth(1)[SNew(SComboButton).IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface;})
-                    .OnGetMenuContent(this,&FCLRecipeToolkit::TectonicPresetMenu)
-                    .ButtonContent()[SNew(STextBlock).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.Tectonics.AlgorithmVersion==3?TEXT("Continental rocky world"):TEXT("Tectonic rocky world"));})]]]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(STextBlock).Text(this,&FCLRecipeToolkit::TectonicCaption)]
-            +SVerticalBox::Slot().AutoHeight()[SAssignNew(TectonicSlider,SSlider)
-                .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Tectonics.bEnabled;})
-                .Value_Lambda([this]{return float(bTectonicDragging?PendingTectonicActivity:RecipeAsset()->Recipe.Tectonics.Activity);})
-                .OnMouseCaptureBegin_Lambda([this]{BeginTectonicDrag();})
-                .OnControllerCaptureBegin_Lambda([this]{BeginTectonicDrag();})
-                .OnMouseCaptureEnd_Lambda([this]{EndTectonicDrag();})
-                .OnControllerCaptureEnd_Lambda([this]{EndTectonicDrag();})
-                .OnValueChanged_Lambda([this](float V){PendingTectonicActivity=FMath::Clamp(double(V),0.,1.);if(bTectonicDragging)PumpTectonicChanges(false);else{auto P=RecipeAsset()->Recipe.Tectonics;P.Activity=PendingTectonicActivity;CommitTectonicPreset(P);}})]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,5)[SNew(STextBlock).AutoWrapText(true)
-                .Text_Lambda([this]{return FText::FromString(bTectonicDragging?TEXT("Live draft preview · refining as you drag"):TEXT("Quiet crust → active plates → pronounced tectonic relief"));})]
-            +SVerticalBox::Slot().AutoHeight()[BuildTectonicAdvanced()]);
-        AddSection(TEXT("View"), SNew(SVerticalBox)
-            +SVerticalBox::Slot().AutoHeight()[SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
-                +SWrapBox::Slot()[SNew(SButton).Text_Lambda([this]{return FText::FromString(bGlobe?TEXT("Cross-section"):TEXT("Globe"));}).OnClicked_Lambda([this]{bGlobe=!bGlobe;Refresh();return FReply::Handled();})]
-                +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Frame planet"))).IsEnabled_Lambda([this]{return bGlobe;}).OnClicked_Lambda([this]{if(Globe)Globe->Frame();return FReply::Handled();})]]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(SCheckBox).IsChecked_Lambda([this]{return !Preview||Preview->Client->bGuides?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Preview){Preview->Client->bGuides=V==ECheckBoxState::Checked;Preview->Client->Invalidate();if(Globe)Globe->SetGuides(RecipeAsset()->Recipe.RadialGuides,Preview->Client->bGuides);}})
-                [SNew(STextBlock).Text(FText::FromString(TEXT("Show Radial Guides")))]]
-            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;}).Text(FText::FromString(TEXT("10° grid · Gold equator · Red north · Blue south")))]
-            +SVerticalBox::Slot().AutoHeight()[ViewAreaControls()]
-            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Visibility_Lambda([this]{return bGlobe?EVisibility::Collapsed:EVisibility::Visible;}).Text(this,&FCLRecipeToolkit::NavigationHint)]);
-        AddSection(TEXT("Surface inspection"), SNew(SVerticalBox)
-            +SVerticalBox::Slot().AutoHeight()[SNew(SCheckBox)
-                .IsChecked_Lambda([this]{return Globe&&Globe->IsWalkPicking()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(!bGlobe){bGlobe=true;Refresh();}if(Globe)Globe->SetWalkPicking(V==ECheckBoxState::Checked);})
-                [SNew(STextBlock).Text(FText::FromString(TEXT("Choose walking location")))]]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(SButton).Text(FText::FromString(TEXT("Walk here")))
-                .IsEnabled_Lambda([this]{return bGlobe&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
-                .OnClicked_Lambda([this]{WalkHere();return FReply::Handled();})]
-            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(FCLPlanetInspection::Launch.IsBound()?WalkStatus:TEXT("A walking host must be registered by the project."));})]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(TEXT("WASD / mouse / Space · Tab globe · Esc returns here with your last location marked. The walking preview uses a snapshot of this planet.")))]);
-        AddSection(TEXT("Generated regions"), SAssignNew(GenerationPanel,SCLRegionGenerationPanel).Asset(RecipeAsset())
-            .Inspecting_Lambda([this]{return Globe&&Globe->IsInspectingRegions();})
-            .OnInspection(FOnCLRegionInspection::CreateLambda([this](bool Inspect){if(Globe)Globe->SetRegionInspection(Inspect);}))
-            .OnSelectRegion(FOnCLGeneratedRegionSelection::CreateLambda([this](FGuid Id){if(Globe)Globe->SelectGeneratedRegion(Id);})), !RecipeAsset()->Recipe.RegionGeneration.bEnabled);
-        auto Placement = SNew(SVerticalBox)
-            +SVerticalBox::Slot().AutoHeight()[SNew(SComboButton).OnGetMenuContent_Lambda([this]{return GlobeSelectionMenu();})
-                .ButtonContent()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(TEXT("Selection: ")+(Globe?Globe->SelectionName():TEXT("None")));})]];
-        auto Modes = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4));
-        for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
-            Modes->AddSlot()[SNew(SButton).Text(FText::FromString(Mode==ECLGlobePlacementMode::Move?TEXT("Move (W)"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate (E)"):TEXT("Scale (R)")))
-                .ForegroundColor_Lambda([this,Mode]{return Globe&&Globe->PlacementMode()==Mode?FSlateColor(FLinearColor(.15,.8,1)):FSlateColor::UseForeground();})
-                .OnClicked_Lambda([this,Mode]{if(Globe)Globe->SetPlacementMode(Mode);return FReply::Handled();})];
-        Placement->AddSlot().AutoHeight().Padding(0,6)[Modes];
-        Placement->AddSlot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text(this,&FCLRecipeToolkit::NavigationHint)];
-        AddSection(TEXT("Placement"), SNew(SBox).Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;})[Placement]);
-        AddSection(TEXT("Editorial Landforms"), SAssignNew(RegionControls,SVerticalBox));
-        AddSection(TEXT("Base structure"), SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
-            .IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface;})
-            +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Add uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]
-            +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Add basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
-            +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Add canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})]
-            +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Edit structure"))).OnClicked_Lambda([this]{EditStructure();return FReply::Handled();})], true);
-        AddSection(TEXT("Base terrain"), SNew(SVerticalBox)
-            +SVerticalBox::Slot().AutoHeight()[SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::TerrainMenu)
-                .ButtonContent()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{const auto& N=RecipeAsset()->Recipe.TerrainTypeName;return FText::FromString(N.IsEmpty()?TEXT("Neutral sphere"):N);})]]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,6,0,0)[SNew(SButton).Text(FText::FromString(TEXT("Edit source"))).IsEnabled_Lambda([this]{return TerrainSource.IsValid();})
-                .OnClicked_Lambda([this]{if(TerrainSource)CLOpenTerrainDesigner(TerrainSource.Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();})], true);
-        AddSection(TEXT("Radial Guides"), SNew(SVerticalBox)
-            +SVerticalBox::Slot().AutoHeight()[SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::RadialGuidesMenu)
-                .ToolTipText(FText::FromString(TEXT("Choose the shared guide set referenced by this planet")))
-                .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Choose guide set")))]]
-            +SVerticalBox::Slot().AutoHeight().Padding(0,6)[SNew(SInlineEditableTextBlock)
-                .Text_Lambda([this]{return FText::FromString(RadialGuidesSession->Asset->Recipe.RadialGuides.Name);})
-                .OnVerifyTextChanged_Lambda([this](const FText& Text,FText& Error)
-                {const FString N=Text.ToString().TrimStartAndEnd();if(N.IsEmpty()||RadialGuidesSession->Library->Library.Sets.ContainsByPredicate([&](const auto& S){return S.Id!=RecipeAsset()->Recipe.RadialGuides.Id&&S.Name.Equals(N,ESearchCase::IgnoreCase);})){Error=FText::FromString(TEXT("Use a unique, nonempty Radial Guides name"));return false;}return true;})
-                .OnTextCommitted_Lambda([this](const FText& Text,ETextCommit::Type Type)
-                {if(Type==ETextCommit::OnCleared||Text.ToString().TrimStartAndEnd().IsEmpty())return;RadialGuidesSession->Begin(NSLOCTEXT("CL","RenameRadial Guides","Rename Radial Guides"));RecipeAsset()->Recipe.RadialGuides.Name=Text.ToString().TrimStartAndEnd();RadialGuidesSession->Changed();RadialGuidesSession->End();})]
-            +SVerticalBox::Slot().AutoHeight()[SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
-                +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Duplicate guide set"))).OnClicked_Lambda([this]{RadialGuidesSession->NewSet();return FReply::Handled();})]
-                +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Remove guide set")))
-                    .ToolTipText(FText::FromString(TEXT("Remove from the shared catalog; other referencing planets will need a replacement set")))
-                    .OnClicked_Lambda([this]{RadialGuidesSession->RemoveSet();return FReply::Handled();})]], true);
-        RefreshRegionControls();
-        return SNew(SDockTab).Label(FText::FromString(TEXT("Planet")))[SNew(SScrollBox)+SScrollBox::Slot().Padding(12)[Controls]];
+            Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
+                .IsChecked_Lambda([this,Page]{return InspectorPage==Page?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this,Page](ECheckBoxState V){if(V==ECheckBoxState::Checked)InspectorPage=Page;})[InspectorLabel(Names[Page])]];
+            FDetailsViewArgs Args;Args.bUpdatesFromSelection=false;Args.bHideSelectionTip=true;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;Args.ViewIdentifier=FName(*FString::Printf(TEXT("CLPlanetInspector%d"),Page));
+            const auto View=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateDetailView(Args);
+            View->RegisterInstancedCustomPropertyLayout(UCLPlanetRecipeAsset::StaticClass(),FOnGetDetailCustomizationInstance::CreateLambda([Weak,Page]
+            {return MakeShared<FCLPlanetDetailsLayout>([Weak,Page](IDetailLayoutBuilder& B){if(auto E=Weak.Pin())E->BuildPlanetInspector(B,Page);});}));
+            View->SetObject(RecipeAsset());PlanetInspectors.Add(View);InspectorPages->AddSlot()[View];
+        }
+        return SNew(SDockTab).Label(FText::FromString(TEXT("Planet")))[SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight().Padding(4)[Tabs]
+            +SVerticalBox::Slot().FillHeight(1)[InspectorPages.ToSharedRef()]
+            +SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).AutoWrapText(true).ColorAndOpacity(FLinearColor(1,.35,.2))
+                .Visibility_Lambda([this]{return bPreviewInvalid||!InspectorError.IsEmpty()?EVisibility::Visible:EVisibility::Collapsed;})
+                .Text_Lambda([this]{return FText::FromString(bPreviewInvalid?Status:InspectorError);})]];
     }
     TSharedRef<SDockTab> SpawnSection(const FSpawnTabArgs&)
     {
@@ -1311,7 +1383,6 @@ public:
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
                     return FText::FromString(Legend);
                 })]]];
-        RefreshRegionControls();
         return Tab;
     }
 };
@@ -1741,7 +1812,7 @@ bool FCLTectonicAdvancedTest::RunTest(const FString&)
     TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));Asset->Recipe=FCLPlanetCompiler::TectonicBase();
     const auto Original=Asset->Recipe;const auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset.Get(),EToolkitMode::Standalone,nullptr);
     Editor->Globe->Cancel();const uint64 Builds=Editor->Globe->PublishedBuilds();
-    TestFalse(TEXT("Advanced starts collapsed below the knob"),Editor->TectonicAdvanced->IsExpanded());Editor->TectonicAdvanced->SetExpanded(true);
+    TestNotNull(TEXT("Native Advanced category is available"),Editor->TectonicAdvanced);Editor->TectonicAdvanced->SetShowAdvanced(true);
     TestTrue(TEXT("Revealing Advanced keeps the Planet tab foreground"),Editor->GetTabManager()->FindExistingLiveTab(FCLRecipeToolkit::PlanetTab)->IsForeground());
     TestTrue(TEXT("Revealing controls preserves the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
     TestTrue(TEXT("The one-knob control remains in the same editor"),Editor->TectonicSlider.IsValid());
@@ -1755,8 +1826,32 @@ bool FCLTectonicAdvancedTest::RunTest(const FString&)
     GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the advanced edit"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
     TestFalse(TEXT("Inline draft follows Undo"),Draft.bOverridePlateCount);GEditor->RedoTransaction();TestEqual(TEXT("Redo restores the pin"),Asset->Recipe.Tectonics.PlateCount,4);
     Draft.PlateCount=99;Editor->TectonicDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Finished);TestEqual(TEXT("Invalid advanced edits preserve the accepted recipe"),Asset->Recipe.Tectonics.PlateCount,4);TestEqual(TEXT("Invalid draft returns to the accepted value"),Draft.PlateCount,4);
-    Editor->TectonicAdvanced->SetExpanded(false);TestEqual(TEXT("Reveal alone publishes no geometry"),Editor->Globe->PublishedBuilds(),Builds);
+    Editor->TectonicAdvanced->SetShowAdvanced(false);TestEqual(TEXT("Reveal alone publishes no geometry"),Editor->Globe->PublishedBuilds(),Builds);
     Asset->GetOutermost()->SetDirtyFlag(false);TestTrue(TEXT("Inline editor retires"),Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetInspectorTest,"Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlanetInspectorTest::RunTest(const FString&)
+{
+    const auto Package=CreatePackage(*(TEXT("/Temp/CLInspector_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));Asset->Recipe=FCLPlanetCompiler::ContinentalBase();
+    const auto Original=Asset->Recipe;const auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset.Get(),EToolkitMode::Standalone,nullptr);
+    TestTrue(TEXT("Opening the new inspector preserves the saved recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
+    TestEqual(TEXT("Workflow has five native Details views"),Editor->PlanetInspectors.Num(),5);
+    TestTrue(TEXT("Both layer controls coexist in Geology"),Editor->ContinentalSlider.IsValid()&&Editor->TectonicSlider.IsValid()&&Editor->InspectorPage==1);
+    Editor->VaryLayer(true);const auto CSeed=Asset->Recipe.Continents.Seed;
+    TestTrue(TEXT("Continental variation converts and preserves both layers"),Asset->Recipe.SchemaVersion==15&&Asset->Recipe.Continents.bEnabled&&Asset->Recipe.Tectonics.bEnabled&&CSeed!=0);
+    TestEqual(TEXT("Continental variation preserves tectonic seed"),Asset->Recipe.Tectonics.Seed,Original.Tectonics.Seed);
+    TestEqual(TEXT("Variation preserves the knob setting"),Asset->Recipe.Tectonics.Activity,Original.Tectonics.Activity);
+    const auto AfterContinental=Asset->Recipe;Editor->VaryLayer(false);
+    TestTrue(TEXT("Tectonic variation changes its own seed"),Asset->Recipe.Tectonics.Seed!=AfterContinental.Tectonics.Seed);
+    TestEqual(TEXT("Tectonic variation preserves the continental seed"),Asset->Recipe.Continents.Seed,CSeed);
+    GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores one variation"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&AfterContinental,&Asset->Recipe,0));
+    GEditor->UndoTransaction();TestTrue(TEXT("Undo restores the exact pinned recipe before conversion"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
+    GEditor->RedoTransaction();TestTrue(TEXT("Redo restores the same deterministic variation"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&AfterContinental,&Asset->Recipe,0));
+    auto Invalid=Asset->Recipe.Continents;Invalid.Strength=2;
+    TestFalse(TEXT("Invalid layer data is refused"),Editor->CommitContinents(Invalid));
+    TestTrue(TEXT("Invalid edits preserve the accepted recipe and expose an error"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&AfterContinental,&Asset->Recipe,0)&&!Editor->InspectorError.IsEmpty());
+    Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;
 }
 struct FCLAutomationSlateInputScope
 {
@@ -1767,18 +1862,18 @@ struct FCLAutomationSlateInputScope
 };
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLTectonicLiveKnobTest,"Catalyst.Landform.Tectonics.LiveKnobAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 void FCLTectonicLiveKnobTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands) const
-{for(const TCHAR* Name:{TEXT("Tectonic"),TEXT("Continental")}){Names.Add(Name);Commands.Add(Name);}}
+{for(const TCHAR* Name:{TEXT("Tectonic"),TEXT("Continental"),TEXT("ContinentalLayer")}){Names.Add(Name);Commands.Add(Name);}}
 bool FCLTectonicLiveKnobTest::RunTest(const FString& Parameters)
 {
     auto* Package=CreatePackage(*(TEXT("/Temp/CLLiveTectonics_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     auto Owned=MakeShared<TStrongObjectPtr<UCLPlanetRecipeAsset>>(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));auto* Asset=Owned->Get();
     FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples")/(Parameters==TEXT("Continental")?TEXT("ContinentalBase.json"):TEXT("TectonicBase.json"))))||!Asset->ImportRecipeJson(Json,Error)){AddError(TEXT("Cannot load owned slider recipe: ")+Error);return false;}
-    Asset->Recipe.Tectonics.Activity=.55;
+    if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples")/(Parameters!=TEXT("Tectonic")?TEXT("ContinentalBase.json"):TEXT("TectonicBase.json"))))||!Asset->ImportRecipeJson(Json,Error)){AddError(TEXT("Cannot load owned slider recipe: ")+Error);return false;}
+    const bool Crust=Parameters==TEXT("ContinentalLayer");if(Crust){Asset->Recipe.SeparateGeologyLayers();Asset->Recipe.Continents.Strength=.55;}Asset->Recipe.Tectonics.Activity=.55;
     auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset,EToolkitMode::Standalone,nullptr);Editor->GetTabManager()->TryInvokeTab(FName(TEXT("CLPlanetControls")));
-    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned]
+    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Crust]
     {
-        auto& App=FSlateApplication::Get();App.ReleaseAllPointerCapture();FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(Editor->TectonicSlider.ToSharedRef(),Actual,EVisibility::All);
+        auto& App=FSlateApplication::Get();App.ReleaseAllPointerCapture();FWidgetPath Actual;App.GeneratePathToWidgetUnchecked((Crust?Editor->ContinentalSlider:Editor->TectonicSlider).ToSharedRef(),Actual,EVisibility::All);
         if(Actual.Widgets.Num()==0){AddError(TEXT("Live slider has no routed path"));Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return;}
         const auto Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const auto Path=MakeShared<FWidgetPath>(MakeArrayView(Arranged));
         const FVector2D Start=Geometry.LocalToAbsolute(FVector2D(Geometry.GetLocalSize().X*.2,Geometry.GetLocalSize().Y*.5));
@@ -1788,21 +1883,21 @@ bool FCLTectonicLiveKnobTest::RunTest(const FString& Parameters)
         const auto User=App.FindOrCreateVirtualUser(37);const auto InputScope=MakeShared<FCLAutomationSlateInputScope>();
         const uint64 Before=Editor->Globe->PublishedBuilds();
         App.RoutePointerDownEvent(*Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,Start,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState()));
-        TestTrue(TEXT("Routed automation obtains slider capture"),Editor->TectonicSlider->HasMouseCaptureByUser(User->GetUserIndex(),FSlateApplication::CursorPointerIndex));
+        TestTrue(TEXT("Routed automation obtains slider capture"),(Crust?Editor->ContinentalSlider:Editor->TectonicSlider)->HasMouseCaptureByUser(User->GetUserIndex(),FSlateApplication::CursorPointerIndex));
         App.RoutePointerMoveEvent(*Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,Mid,Start,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
-        TestTrue(TEXT("Real slider drag enters live draft mode"),Editor->bTectonicDragging&&Editor->Globe->IsDraftMode());
-        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,Mid,End,Before,User,InputScope]
+        TestTrue(TEXT("Real slider drag enters live draft mode"),(Crust?Editor->bContinentalDragging:Editor->bTectonicDragging)&&Editor->Globe->IsDraftMode());
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,Mid,End,Before,User,InputScope,Crust]
         {
-            TestTrue(TEXT("Queued middle value is applied while the button is held"),Owned->Get()->Recipe.Tectonics.Activity>.5);
+            TestTrue(TEXT("Queued middle value is applied while the button is held"),(Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity)>.5);
             FSlateApplication::Get().RoutePointerMoveEvent(*Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,End,Mid,TSet<FKey>{EKeys::LeftMouseButton},EKeys::Invalid,0,FModifierKeysState()),false);
-            ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,End,Before,User,InputScope]
+            ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Path,End,Before,User,InputScope,Crust]
             {
-                TestTrue(TEXT("Newest value is applied before mouse release"),Owned->Get()->Recipe.Tectonics.Activity>.75);
-                TestTrue(TEXT("A generated draft mesh is published during the drag"),Editor->bTectonicDragging&&Editor->Globe->PublishedBuilds()>Before&&Editor->Globe->HasDraftMesh());
+                TestTrue(TEXT("Newest value is applied before mouse release"),(Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity)>.75);
+                TestTrue(TEXT("A generated draft mesh is published during the drag"),(Crust?Editor->bContinentalDragging:Editor->bTectonicDragging)&&Editor->Globe->PublishedBuilds()>Before&&Editor->Globe->HasDraftMesh());
                 FSlateApplication::Get().RoutePointerUpEvent(*Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,End,End,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));
-                const double Final=Owned->Get()->Recipe.Tectonics.Activity;TestFalse(TEXT("Release ends draft mode"),Editor->Globe->IsDraftMode());
-                GEditor->UndoTransaction();TestTrue(TEXT("One undo restores the entire drag"),FMath::IsNearlyEqual(Owned->Get()->Recipe.Tectonics.Activity,.55,1.e-6));
-                GEditor->RedoTransaction();TestTrue(TEXT("One redo restores the final activity"),FMath::IsNearlyEqual(Owned->Get()->Recipe.Tectonics.Activity,Final,1.e-6));
+                const double Final=(Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity);TestFalse(TEXT("Release ends draft mode"),Editor->Globe->IsDraftMode());
+                GEditor->UndoTransaction();TestTrue(TEXT("One undo restores the entire drag"),FMath::IsNearlyEqual((Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity),.55,1.e-6));
+                GEditor->RedoTransaction();TestTrue(TEXT("One redo restores the final activity"),FMath::IsNearlyEqual((Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity),Final,1.e-6));
                 FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLWaitForGlobeRefinement>(Editor->Globe,[this,Editor,Owned,User,InputScope]
                 {
                     TestTrue(TEXT("A full quality mesh replaces the draft after release"),!Editor->Globe->IsUpdating()&&!Editor->Globe->HasDraftMesh());

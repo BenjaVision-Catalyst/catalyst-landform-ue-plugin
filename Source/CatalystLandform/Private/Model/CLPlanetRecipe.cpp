@@ -269,9 +269,10 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
 }
 void FCLCompiledPlanetRecipe::ApplyBaseStructure(TConstArrayView<FVector> Directions,TArray<double>& Heights) const
 {
-    if(BaseStructure.IsEmpty()&&!Tectonics)return;
+    if(BaseStructure.IsEmpty()&&!Tectonics&&!Continents)return;
     TArray<double> Delta;Delta.Init(0,Directions.Num());
     if(Tectonics)for(int32 I=0;I<Directions.Num();++I)Delta[I]=Tectonics->SampleDeltaMeters(Directions[I]);
+    if(Continents)for(int32 I=0;I<Directions.Num();++I)Delta[I]+=Continents->SampleDeltaMeters(Directions[I]);
     for(const auto& F:BaseStructure)
     {
         if(F.ReliefMeters==0)continue;
@@ -412,7 +413,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 14) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 15) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     const bool HasSurfaces=Recipe.SurfaceStack.IsActive()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.SurfaceStack.IsActive();})||Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.SurfaceStack.IsActive();});
     if(HasSurfaces&&(Recipe.SchemaVersion<13||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||!Recipe.SurfaceStack.IsActive()))return Fail(TEXT("Surface rules require schema 13 spherical terrain and a planet default surface"));
     if(!Recipe.SurfaceStack.Validate(Error))return nullptr;
@@ -498,12 +499,19 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         Plan->Surfaces=FCLCompiledSurfaceLibrary::Resolve(Error);if(!Plan->Surfaces)return nullptr;
         if(!FCLCompiledSurfaceStack::Compile(Recipe.SurfaceStack,*Plan->Surfaces,Plan->Guides,Recipe.RadiusMeters,Recipe.Seed,Plan->SurfaceStack,Error))return nullptr;
     }
+    if(Recipe.Continents.bEnabled)
+    {
+        if(Recipe.SchemaVersion<15||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Fail(TEXT("Continental layer requires schema 15 spherical coordinates"));
+        const auto* L=Guides.Find(Recipe.Continents.LowerGuide);const auto* U=Guides.Find(Recipe.Continents.UpperGuide);
+        if(!L||!U)return Fail(TEXT("Continental layer requires both named radial guides"));
+        Plan->Continents=FCLCompiledContinents::Compile(Recipe.Continents,Recipe.Seed,*U-*L,Error);if(!Plan->Continents)return nullptr;
+    }
     if(Recipe.Tectonics.bEnabled)
     {
         if(Recipe.SchemaVersion<14||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Fail(TEXT("Tectonic preset requires schema 14 spherical coordinates"));
         const auto* L=Guides.Find(Recipe.Tectonics.LowerGuide);const auto* U=Guides.Find(Recipe.Tectonics.UpperGuide);
         if(!L||!U)return Fail(TEXT("Tectonic preset requires both named radial guides"));
-        Plan->Tectonics=FCLCompiledTectonics::Compile(Recipe.Tectonics,Recipe.Seed,*U-*L,Error);if(!Plan->Tectonics)return nullptr;
+        Plan->Tectonics=FCLCompiledTectonics::Compile(Recipe.Tectonics,int32(uint32(Recipe.Seed)^(Recipe.SchemaVersion>=15?uint32(Recipe.Tectonics.Seed):0U)),*U-*L,Error,Recipe.SchemaVersion>=15,Plan->Continents);if(!Plan->Tectonics)return nullptr;
     }
     Plan->SurfacePatch=SurfacePatch;
     if(Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface)
@@ -636,7 +644,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         else if(Region.bPlacedLandform || Region.bSphericalMask || !Region.Mask.Validate(Error)){if(Error.IsEmpty())Error=TEXT("Local regions need local masks");return nullptr;}
         if(!Region.bEnabled)continue;
         if(!Region.TerrainTypeId.IsValid() || Region.TerrainTypeName.IsEmpty())return Fail(TEXT("Terrain region requires an applied source snapshot: ")+Region.Name);
-        auto Child=Recipe;Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;Child.SurfaceStack=Region.SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;
+        auto Child=Recipe;Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;Child.SurfaceStack=Region.SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;
         Child.Seed=int32(uint32(Recipe.Seed)+uint32(Region.SeedOffset));Child.TerrainTypeId=Region.TerrainTypeId;
         Child.TerrainTypeName=Region.TerrainTypeName;Child.NoiseLayers=Region.NoiseLayers;
         const auto Field=Compile(Child,Error,StampLibrary,Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch?&Plan->EvaluationRegion:nullptr,Region.bPlacedLandform?FCLSphericalPatches::WholeSphere:SurfacePatch);
@@ -654,6 +662,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     Plan->MinimumHeightMeters = FMath::Min(Plan->MinimumHeightMeters, 0.0);
     Plan->MaximumHeightMeters = FMath::Min(Plan->MaximumHeightMeters, 0.0);
     if(Plan->Tectonics){Plan->MinimumHeightMeters-=Plan->Tectonics->MaximumDeltaMeters;Plan->MaximumHeightMeters+=Plan->Tectonics->MaximumDeltaMeters;}
+    if(Plan->Continents){Plan->MinimumHeightMeters-=Plan->Continents->MaximumDeltaMeters;Plan->MaximumHeightMeters+=Plan->Continents->MaximumDeltaMeters;}
     for(const auto& F:Plan->BaseStructure){Plan->MinimumHeightMeters+=FMath::Min(0.,F.ReliefMeters);Plan->MaximumHeightMeters+=FMath::Max(0.,F.ReliefMeters);}
     Plan->MinimumHeightMeters=FMath::Clamp(Plan->MinimumHeightMeters,-Plan->RadiusMeters,0.);Plan->MaximumHeightMeters=FMath::Clamp(Plan->MaximumHeightMeters,-Plan->RadiusMeters,0.);
     return Plan;
@@ -774,8 +783,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..14 with algorithm 1, or schemaVersion 3..14 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..15 with algorithm 1, or schemaVersion 3..15 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)
@@ -861,6 +870,7 @@ void FCLPlanetRecipe::RenameGuideReferences(FName Old,FName New)
     };
     SurfaceStack.RenameGuide(Old,New);Layers(NoiseLayers);for(auto& R:TerrainRegions){Layers(R.NoiseLayers);R.SurfaceStack.RenameGuide(Old,New);}
     for(auto& P:RegionGeneration.Palette){P.SurfaceStack.RenameGuide(Old,New);Layers(P.NoiseLayers);if(P.Suitability.LowerElevationGuide==Old)P.Suitability.LowerElevationGuide=New;if(P.Suitability.UpperElevationGuide==Old)P.Suitability.UpperElevationGuide=New;}
+    if(Continents.LowerGuide==Old)Continents.LowerGuide=New;if(Continents.UpperGuide==Old)Continents.UpperGuide=New;
     if(Tectonics.LowerGuide==Old)Tectonics.LowerGuide=New;if(Tectonics.UpperGuide==Old)Tectonics.UpperGuide=New;
     for(auto& F:BaseStructure){if(F.Relief.Guide==Old)F.Relief.Guide=New;if(F.Relief.UpperGuide==Old)F.Relief.UpperGuide=New;}
 }
@@ -926,4 +936,22 @@ bool UCLPlanetRecipeAsset::RefreshLandformSource(FGuid Id,FString& Error)
 {
     auto* Source=LandformSources.Find(Id);if(!Source || !*Source){Error=TEXT("This imported snapshot has no authoring source link");return false;}
     return SetLandformSource(Id,*Source,Error);
+}
+
+void FCLPlanetRecipe::SeparateGeologyLayers()
+{
+    if(SchemaVersion>=15)return;
+    // A deliberate geology edit adopts separated semantics in one transaction.
+    // Pinned schema 14 continues to evaluate through its original combined field.
+    if(Tectonics.bEnabled)
+    {
+        Continents.bEnabled=true;Continents.LowerGuide=Tectonics.LowerGuide;Continents.UpperGuide=Tectonics.UpperGuide;
+        if(Tectonics.AlgorithmVersion==3)
+        {
+            Continents.bOverrideExtent=true;Continents.Extent=Tectonics.ContinentalExtent;
+            Continents.Strength=1;Continents.Orientation=Tectonics.FoundationOrientation;
+            Continents.bCoastalMargin=Tectonics.Setting==ECLContinentalSetting::Subduction;
+        }
+    }
+    SchemaVersion=15;
 }

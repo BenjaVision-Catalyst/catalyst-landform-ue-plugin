@@ -25,6 +25,7 @@ void SCLRegionGenerationPanel::SelectRegion(FGuid Id){Selected=Id;}
 void SCLRegionGenerationPanel::Construct(const FArguments& Args)
 {
     Asset.Reset(Args._Asset);Inspecting=Args._Inspecting;OnInspection=Args._OnInspection;OnSelectRegion=Args._OnSelectRegion;
+    if(Args._MenusOnly){ChildSlot[SNullWidget::NullWidget];return;}
     auto Controls=SNew(SVerticalBox)
         +SVerticalBox::Slot().AutoHeight()[SNew(SCheckBox).IsChecked_Lambda([this]{return Asset->Recipe.RegionGeneration.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
             .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto S=Asset->Recipe.RegionGeneration;S.bEnabled=V==ECheckBoxState::Checked;Commit(S,FText::FromString(TEXT("Enable structure-guided regions")));})
@@ -114,3 +115,7 @@ TSharedRef<SWidget> SCLRegionGenerationPanel::OverrideMenu()
     FMenuBuilder Menu(true,nullptr);auto Add=[&](FGuid Id,const FString& Name){Menu.AddMenuEntry(FText::FromString(Name),FText(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Id]{auto S=Asset->Recipe.RegionGeneration;S.Overrides.RemoveAll([&](const auto& O){return O.RegionId==Selected;});if(Id.IsValid()){FCLRegionAssignmentOverride O;O.RegionId=Selected;O.LandformId=Id;S.Overrides.Add(O);}Commit(S,FText::FromString(TEXT("Assign generated region")));})));};
     Add(FGuid(),TEXT("Automatic assignment"));if(Plan)for(const auto& P:Plan->Palette)Add(P.Id,P.Name);return Menu.MakeWidget();
 }
+FText SCLRegionGenerationPanel::SelectionText() const
+{const auto* C=Cell();return FText::FromString(C?FString::Printf(TEXT("Region %d — %s"),Plan->Cells.IndexOfByPredicate([&](const auto& V){return V.Id==Selected;})+1,*Plan->Palette[C->PaletteIndex].Name):TEXT("None"));}
+void SCLRegionGenerationPanel::ClearOverrides()
+{auto S=Asset->Recipe.RegionGeneration;S.Overrides.Reset();Commit(S,FText::FromString(TEXT("Clear region assignments")));}

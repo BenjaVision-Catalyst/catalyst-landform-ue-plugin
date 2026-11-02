@@ -252,7 +252,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     Out->Fields.SetNum(Out->Palette.Num());
     for(int32 P=0;P<Out->Palette.Num();++P)if(Out->Cells.ContainsByPredicate([&](const auto& C){return C.PaletteIndex==P;}))
     {
-        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
+        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
         Out->Fields[P]=FCLPlanetCompiler::Compile(Child,Error,Library);if(!Out->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+Error);
     }
     // A modest diagnostic contour atlas, independent of terrain mesh LOD. Shared

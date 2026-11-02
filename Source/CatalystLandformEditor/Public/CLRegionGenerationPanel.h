@@ -9,11 +9,16 @@ DECLARE_DELEGATE_OneParam(FOnCLGeneratedRegionSelection,FGuid);
 class CATALYSTLANDFORMEDITOR_API SCLRegionGenerationPanel : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS(SCLRegionGenerationPanel){} SLATE_ARGUMENT(UCLPlanetRecipeAsset*,Asset) SLATE_ATTRIBUTE(bool,Inspecting)
+    SLATE_BEGIN_ARGS(SCLRegionGenerationPanel):_MenusOnly(false){} SLATE_ARGUMENT(bool,MenusOnly) SLATE_ARGUMENT(UCLPlanetRecipeAsset*,Asset) SLATE_ATTRIBUTE(bool,Inspecting)
         SLATE_EVENT(FOnCLRegionInspection,OnInspection) SLATE_EVENT(FOnCLGeneratedRegionSelection,OnSelectRegion) SLATE_END_ARGS()
     void Construct(const FArguments& Args);
     void Refresh(TSharedPtr<const FCLCompiledRegionGeneration> Plan);
     void SelectRegion(FGuid Id);
+    TSharedRef<SWidget> PaletteMenu();
+    TSharedRef<SWidget> RegionMenu();
+    TSharedRef<SWidget> OverrideMenu();
+    FText SelectionText() const;
+    void ClearOverrides();
 private:
     TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;
     TSharedPtr<const FCLCompiledRegionGeneration> Plan;
@@ -24,8 +29,5 @@ private:
     FOnCLRegionInspection OnInspection;
     FOnCLGeneratedRegionSelection OnSelectRegion;
     bool Commit(FCLRegionGenerationSettings Settings,const FText& Description,TFunction<void()> EditLinks={});
-    TSharedRef<SWidget> PaletteMenu();
-    TSharedRef<SWidget> RegionMenu();
-    TSharedRef<SWidget> OverrideMenu();
     const FCLGeneratedRegionCell* Cell() const;
 };

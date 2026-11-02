@@ -54,11 +54,14 @@ double FCLCompiledTectonics::ContinentalDomain(const FVector& D) const
     return 1-Remaining;
 }
 
+double FCLCompiledTectonics::CrustBaseFraction(double C)
+{return -.42+.30*Ease(C/.28)+.34*Ease((C-.22)/.6);}
+
 bool FCLCompiledTectonics::SampleGeology(const FVector& Direction,FCLGeologicalSample& Out) const
 {
     if(AlgorithmVersion!=3||Direction.ContainsNaN()||!Direction.IsNormalized())return false;
     const FVector D=FoundationDirection(Direction),Local=FoundationFrame.UnrotateVector(D),N=FoundationFrame.GetAxisY();
-    const double C=ContinentalDomain(D),Signed=FMath::Asin(FMath::Clamp(Local.Y,-1.,1.));
+    const double C=bLayered?Continentalness(Direction):ContinentalDomain(D),Signed=FMath::Asin(FMath::Clamp(Local.Y,-1.,1.));
     const FVector Projected=FVector::VectorPlaneProject(D,N).GetSafeNormal();
     const FVector Relative=FVector::CrossProduct(Lower.Plates[0].AngularVelocity-Lower.Plates[1].AngularVelocity,Projected)*Controls.Motion;
     const double Con=-FVector::DotProduct(Relative,N),Shear=FVector::DotProduct(Relative,FVector::CrossProduct(N,Projected));
@@ -68,8 +71,9 @@ bool FCLCompiledTectonics::SampleGeology(const FVector& Direction,FCLGeologicalS
     {const double Q=FMath::Square((Signed-Offset)/(W*Scale));return Q>=9?0:FMath::Exp(-Q)*(1-Ease((Q-4)/5));};
     // Broad interiors, a shallow shelf transition and deep oceanic floor share one field.
     FCLGeologicalSample Result;Result.Continentalness=C;
-    Result.BaseDeltaMeters=SpanMeters*(-.42+.30*Ease(C/.28)+.34*Ease((C-.22)/.6));
-    const double CA=ContinentalDomain((Projected+N*.12).GetSafeNormal()),CB=ContinentalDomain((Projected-N*.12).GetSafeNormal());
+    Result.BaseDeltaMeters=bLayered?0:SpanMeters*CrustBaseFraction(C);
+    auto Crust=[&](FVector Q){return bLayered?Continentalness(Q):ContinentalDomain(Q);};
+    const double CA=Crust((Projected+N*.12).GetSafeNormal()),CB=Crust((Projected-N*.12).GetSafeNormal());
     const double Collision=Ease((CA-.3)/.4)*Ease((CB-.3)/.4),Side=CA>=CB?1:-1;
     const double Drive=1-FMath::Exp(-FMath::Abs(Con));double Deformation=0,Thickening=0;
     Result.Convergence=Con;Result.Shear=Shear;

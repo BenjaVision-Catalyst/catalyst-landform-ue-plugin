@@ -6,6 +6,7 @@
 #include "Model/CLStampDistribution.h"
 #include "Model/CLPlanetStructure.h"
 #include "Model/CLTectonics.h"
+#include "Model/CLContinents.h"
 #include "Model/CLLandformSuitability.h"
 #include "Model/CLSurfaceLayers.h"
 #include "Surface/CLSurfaceCompiler.h"
@@ -196,12 +197,15 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY() TArray<FCLHeightGuide> HeightGuides_DEPRECATED;
     void MigrateLegacyGuides();
     void RenameGuideReferences(FName Old, FName New);
+    /** Explicit edit-time conversion; loading a pinned legacy recipe never changes it. */
+    void SeparateGeologyLayers();
     /** Applied source identity; NoiseLayers remains the authoritative self-contained snapshot. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Terrain layers")) TArray<FCLNoiseLayer> NoiseLayers;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLTerrainRegion> TerrainRegions;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLTectonicPreset Tectonics;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLContinentalLayer Continents;
     /** Manual broad uplift/basin layout, separate from reusable Landform definitions. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRegionGenerationSettings RegionGeneration;
@@ -267,6 +271,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     void SampleSurfaceWeights(TConstArrayView<FVector> Directions,TArray<FCLSurfaceWeights>& Out) const;
     TArray<FCLCompiledPlanetFeature> BaseStructure;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
+    TSharedPtr<const FCLCompiledContinents> Continents;
     int32 GetDistributedStampCount() const;
     /** Diagnostic coverage of distributed stamp footprints and their fade weights. */
     void GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight) const;

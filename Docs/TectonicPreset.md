@@ -1,5 +1,11 @@
 # Tectonic base planet preset
 
+Historical schema 14 proof. The current [Planet layers inspector](PlanetLayers.md)
+replaces the exclusive planet-preset selector with independently enabled
+Continents and Tectonics layers. Preset means the mapping from a layer's knob to
+its advanced values. The controls and examples described below pin the earlier
+proof and its recorded results.
+
 The first tectonic preset adds present-day structural relief to the shared planet
 field. Planet Builder exposes it in the left **Base planet preset** section.
 Select **Tectonic rocky world** and enable it, then adjust **Tectonic activity** from Quiet to

@@ -1,4 +1,5 @@
 #include "Model/CLTectonics.h"
+#include "Model/CLContinents.h"
 namespace
 {
 double Smooth(double T){T=FMath::Clamp(T,0.,1.);return T*T*T*(T*(6*T-15)+10);}
@@ -24,13 +25,15 @@ bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls
 }
 double FCLCompiledTectonics::Continentalness(const FVector& D) const
 {
+    if(bLayered)return SharedCrust?SharedCrust->Continentalness(D.GetSafeNormal()):0;
     if(AlgorithmVersion==3)return ContinentalDomain(FoundationDirection(D.GetSafeNormal()));
     double Sum=0;for(const FVector& C:Continents)Sum+=2.7*FMath::Exp((FVector::DotProduct(D,C)-1)*5.);
     return 1-FMath::Exp(-Sum);
 }
-TSharedPtr<const FCLCompiledTectonics> FCLCompiledTectonics::Compile(const FCLTectonicPreset& P,int32 Seed,double Span,FString& Error)
+TSharedPtr<const FCLCompiledTectonics> FCLCompiledTectonics::Compile(const FCLTectonicPreset& P,int32 Seed,double Span,FString& Error,bool Layered,TSharedPtr<const FCLCompiledContinents> Crust)
 {
     auto Out=MakeShared<FCLCompiledTectonics>();if(!FCLTectonicControls::Resolve(P,Out->Controls,Error))return nullptr;
+    Out->bLayered=Layered;Out->SharedCrust=MoveTemp(Crust);
     if(!FMath::IsFinite(Span)||Span<=0){Error=TEXT("Tectonics requires an ordered, nonempty guide interval");return nullptr;}
     Out->AlgorithmVersion=P.AlgorithmVersion;Out->SpanMeters=Span;Out->MaximumDeltaMeters=Span*(.035+.46*Out->Controls.Relief);
     if(P.AlgorithmVersion==3){Out->MaximumDeltaMeters=Span*.8;Out->BuildContinentalFoundation(P,Seed);return Out;}
@@ -65,7 +68,16 @@ TSharedPtr<const FCLCompiledTectonics> FCLCompiledTectonics::Compile(const FCLTe
                 Edge.HalfCos=FVector::DotProduct(S,M);const double Half=FMath::Acos(FMath::Clamp(Edge.HalfCos,-1.,1.));Edge.CapCos=FMath::Cos(FMath::Min(PI,Half+Out->Controls.BeltWidth*(P.AlgorithmVersion==1?4:9)));
                 const FVector Relative=FVector::CrossProduct(Candidates[A].AngularVelocity-Candidates[B].AngularVelocity,M);
                 Edge.Convergence=-FVector::DotProduct(Relative,N);Edge.Shear=FMath::Abs(FVector::DotProduct(Relative,FVector::CrossProduct(N,M)));
-                Edge.ContinentalA=Out->Continentalness((M+N*.12).GetSafeNormal());Edge.ContinentalB=Out->Continentalness((M-N*.12).GetSafeNormal());State.Boundaries.Add(Edge);
+                Edge.ContinentalA=Out->Continentalness((M+N*.12).GetSafeNormal());Edge.ContinentalB=Out->Continentalness((M-N*.12).GetSafeNormal());if(Out->bLayered)
+                {
+                    const FVector Along=FVector::CrossProduct(N,M).GetSafeNormal();
+                    for(int32 K=0;K<=16;++K)
+                    {
+                        const double Angle=FMath::Lerp(-Half,Half,K/16.);const FVector Q=M*FMath::Cos(Angle)+Along*FMath::Sin(Angle);
+                        Edge.CrustSamples.Add(FVector2D(Out->Continentalness((Q+N*.12).GetSafeNormal()),Out->Continentalness((Q-N*.12).GetSafeNormal())));
+                    }
+                }
+                State.Boundaries.Add(Edge);
             };
             if(Count==2)
             {
@@ -155,8 +167,15 @@ double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
         const FVector Relative=FVector::CrossProduct(S.Plates[E.A].AngularVelocity-S.Plates[E.B].AngularVelocity,Projected);
         const double Con=-FVector::DotProduct(Relative,E.Normal)*Controls.Motion;
         const double Shear=FMath::Abs(FVector::DotProduct(Relative,AlongAxis))*Controls.Motion;
-        const double CA=Continentalness((Projected+E.Normal*.12).GetSafeNormal());
-        const double CB=Continentalness((Projected-E.Normal*.12).GetSafeNormal());
+        double CA,CB;
+        if(!E.CrustSamples.IsEmpty())
+        {
+            const double Half=FMath::Acos(FMath::Clamp(E.HalfCos,-1.,1.));
+            const double Angle=FMath::Atan2(FVector::DotProduct(Projected,FVector::CrossProduct(E.Normal,E.Mid)),FVector::DotProduct(Projected,E.Mid));
+            const double T=FMath::Clamp((Angle+Half)/FMath::Max(2*Half,1.e-9),0.,1.)*16;const int32 I=FMath::Min(15,FMath::FloorToInt(T));
+            const auto C=FMath::Lerp(E.CrustSamples[I],E.CrustSamples[I+1],T-I);CA=C.X;CB=C.Y;
+        }
+        else{CA=Continentalness((Projected+E.Normal*.12).GetSafeNormal());CB=Continentalness((Projected-E.Normal*.12).GetSafeNormal());}
         const double C=(CA+CB)*.5,Collision=Smooth((CA-.35)/.35)*Smooth((CB-.35)/.35);
         const double Side=FMath::Tanh((CA-CB)*8.);
         const double Drive=FMath::Max(0.,FMath::Abs(Con)-.08)*Segmentation;
@@ -174,8 +193,8 @@ double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
 double FCLCompiledTectonics::SampleDeltaMeters(const FVector& Direction) const
 {
     if(AlgorithmVersion==3){FCLGeologicalSample Sample;return SampleGeology(Direction.GetSafeNormal(),Sample)?Sample.TotalDeltaMeters:0;}
-    const FVector D=Direction.GetSafeNormal();const double C=Continentalness(D);
-    const double Crust=(C-.5)*(.12+Controls.CrustThickness*10);
+    const FVector D=Direction.GetSafeNormal();const double C=bLayered?0:Continentalness(D);
+    const double Crust=bLayered?0:(C-.5)*(.12+Controls.CrustThickness*10);
     const double LowDelta=AlgorithmVersion==1?SampleLegacyState(Lower,D):SampleState(Lower,D);
     const double HighDelta=Upper.Plates.IsEmpty()?LowDelta:(AlgorithmVersion==1?SampleLegacyState(Upper,D):SampleState(Upper,D));
     const double Raw=SpanMeters*(Crust+Controls.Relief*FMath::Lerp(LowDelta,HighDelta,Controls.PlateTransition));

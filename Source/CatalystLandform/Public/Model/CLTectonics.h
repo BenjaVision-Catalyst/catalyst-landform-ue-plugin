@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "CLTectonics.generated.h"
+class FCLCompiledContinents;
 
 UENUM(BlueprintType)
 enum class ECLContinentalSetting : uint8 { Collision, Subduction, Rift, Transform };
@@ -16,7 +17,7 @@ struct CATALYSTLANDFORM_API FCLGeologicalSample
 };
 
 /** Versioned artistic progression. Body-space geometry uses +Z north, +X prime meridian. */
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType,meta=(DisplayName="Tectonic layer"))
 struct CATALYSTLANDFORM_API FCLTectonicPreset
 {
     GENERATED_BODY()
@@ -25,6 +26,7 @@ struct CATALYSTLANDFORM_API FCLTectonicPreset
     // New presets explicitly select algorithm 2.
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Activity=.55;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName LowerGuide=TEXT("SurfaceMin");
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName UpperGuide=TEXT("SurfaceMax");
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion != 3",EditConditionHides)) bool bOverridePlateCount=false;
@@ -51,6 +53,7 @@ public:
     struct FPlate {FGuid Id;FVector Site,AngularVelocity;};
     struct FBoundary
     {
+        TArray<FVector2D> CrustSamples;
         FGuid Id;int32 A=0,B=0;
         FVector Start,End,Mid,Normal;
         double HalfCos=0,CapCos=0,Convergence=0,Shear=0,ContinentalA=0,ContinentalB=0;
@@ -64,8 +67,11 @@ public:
     double SampleDeltaMeters(const FVector& UnitDirection) const;
     /** Algorithm 3 only. Invalid inputs preserve Out. */
     bool SampleGeology(const FVector& UnitDirection,FCLGeologicalSample& Out) const;
-    static TSharedPtr<const FCLCompiledTectonics> Compile(const FCLTectonicPreset& Preset,int32 Seed,double SpanMeters,FString& Error);
+    static double CrustBaseFraction(double Continentalness);
+    static TSharedPtr<const FCLCompiledTectonics> Compile(const FCLTectonicPreset& Preset,int32 Seed,double SpanMeters,FString& Error,bool Layered=false,TSharedPtr<const FCLCompiledContinents> Crust=nullptr);
 private:
+    bool bLayered=false;
+    TSharedPtr<const FCLCompiledContinents> SharedCrust;
     int32 AlgorithmVersion=2;
     FQuat NoiseRotation=FQuat::Identity;
     FVector NoiseOffset=FVector::ZeroVector;
