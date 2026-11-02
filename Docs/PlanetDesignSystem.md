@@ -418,6 +418,9 @@ alone does not establish believable geology.
 
 ## Recipe to world architecture research — 3 November 2026
 
+The [implementation plan](#recipe-to-world-implementation-plan--3-november-2026)
+below turns this research into ordered, reviewable delivery slices.
+
 The product contract is: an accepted recipe and its referenced resources produce
 an ultra-realistic, reproducible world. The recipe must describe more than a
 radial height surface. Recommend a versioned, engine-independent scene program
@@ -747,3 +750,347 @@ any of the proposed runtime capabilities. The existing research graph contained
 those notes were inspected directly. Current public documentation was checked
 alongside the installed VPP 2.0p8 headers. Installed licensed source is not copied
 into this proposal.
+
+## Recipe to world implementation plan — 3 November 2026
+
+Status: implementation plan requested by the user; the capabilities below are
+planned, not qualified. Baseline: component `632a86a`, workspace `90d1615`, UE 5.7.4,
+VPP 2.0p8, Mac arm64. Keep the editor and existing assets untouched for this
+planning change. Record actual source/dependency revisions at each implementation
+checkpoint; these baseline hashes do not pin future builds automatically.
+
+### Delivery strategy and ownership
+
+Deliver a complete local volume scene first, then planetary precision and measured
+data, then the scaled runtime and live delivery. Each milestone must produce a
+usable recipe and observable result. Preserve the current height compiler behind
+one versioned provider while its callers move to the common scene. Do not build a
+second terrain renderer or migrate every asset in one change.
+
+| Owner | Responsibility in this implementation |
+| --- | --- |
+| Landform model/compiler | Terrain meaning, guide resolution, recipe validation, immutable scene, composition, resource requirements and query contracts |
+| Landform UE runtime adapter | Capability binding, VPP evaluation, resource residency, scene activation and native terrain readiness |
+| Foundation/editor adapters | Existing described models, transactions, validation and Details controls; Landform-specific layer authoring remains Landform-owned |
+| Connect | Delivery through its existing supported communication path; it does not define terrain semantics or imply accepted world state |
+| Backend Landform domain | Future recipe/resource acceptance and durable revisions; local JSON is a development input, not the backend protocol |
+| LandformLab | Bounded fixtures, packaged traversal, visual comparison, precision/performance evidence and preserved user assets |
+| Body/physics integration | Frame, gravity and velocity handover; terrain exposes geometry and readiness through a narrow boundary |
+
+Keep implementation in the existing runtime/editor/render/test modules initially.
+New scene model/query headers contain no VPP or editor types and no UObject
+references. UE Core value types may be used initially; engine-independent
+semantics do not require a speculative standalone SDK extraction. Native VPP
+handles and strong asset owners remain in the adapter. Reuse Foundation's
+described-model serialization rather than maintaining a second authored field
+list. Use existing Runtime/Connect services when live delivery is implemented;
+Landform does not acquire another transport or general-purpose scheduler.
+
+Landform Designer continues to own reusable local feature definitions, not planet
+identity, radius, global seed or guide-set ownership. Planet Builder owns their
+assembly and planet-global context. Preview contexts are transient resolved value
+snapshots. Keep the fixed-size flat cross-section, 500 m default area, guide UI,
+clean inspector and curated one-knob/inline Advanced workflow. Add volume controls
+only where the new operators need them. The shared curvature camera, canonical
+collision and inverse picking contracts remain the supported presentation path.
+
+### P0 — Freeze semantics and capture a preservation baseline
+
+Deliver the smallest contract needed by the first vertical slice:
+
+- Body/frame ID, double-precision metre positions, figure/datum definitions,
+  outer-sky radius and explicit placement/chart transforms.
+- Authored recipe identity, operator/preset versions, resolved parameters,
+  resource digests, required capabilities and immutable scene identity. Keep
+  content identity distinct from an activation epoch and transport sequence.
+- Batched XYZ field query with requested channels/footprint and per-sample
+  validity. Declare sign, units, valid region and conservative metric/gradient
+  bounds. Query channels include shape, geological/material identity and optional
+  gradient; exterior elevation is an optional capability, never a universal query.
+- Distinct known solid, known air, no contribution, unavailable data and invalid
+  query results. Multi-hit ray/contact queries distinguish a clear miss from
+  unready, outside-domain, budget and unresolved outcomes.
+- Operator support/read bounds, dependency halos, deterministic ordering,
+  attribute ownership and resource lifetime. Bounds include detached geometry
+  and smoothing support, rather than assuming the exterior relief is the extent.
+
+Preserve normalized Radial Guides, Core 0 and the outer sky boundary 1; no terrain
+may exceed that outer boundary. Existing recipes retain their exact final radial
+SurfaceMin/SurfaceMax fitting behavior. Do not silently reinterpret that rule for
+volumes. Before exposing a new generalized height policy, settle whether the
+limits include every cavity/detached boundary or the exterior surface envelope.
+The contract carries an explicit versioned height policy, so this decision does
+not become a hidden compiler assumption. A measured-data policy must preserve
+source elevations and use matching guides unless an explicit calibrated transform
+is requested. These are policy decisions to record, not permission to change
+existing recipes during migration.
+
+Capture representative mountain, plateau, mixed-region, stamp, continental and
+tectonic recipes plus sampled geometry/materials, placements and screenshots.
+Record source/asset hashes, current failures and platform limits. Preserve user
+edits separately; use new proof assets rather than overwriting working planets.
+
+Exit: documented contracts and reference fixtures are committed; no existing
+recipe changes on load, save or evaluation. Height-policy scope is recorded as a
+decision gate if it remains unresolved, and blocks adoption of the affected new
+recipe profile, not unrelated query/adapter work.
+
+### P1 — One shared volumetric scene, end to end
+
+Proposed internal names below express responsibilities; they are not a mandate
+to introduce one class for every row.
+
+| Boundary | Proposed implementation location |
+| --- | --- |
+| Immutable scene and query values | `Source/CatalystLandform/Public/Scene/CLScene.h` and `CLSceneQuery.h`, implementation under `Private/Scene` |
+| Compile and validate a scene candidate | `Scene/CLSceneCompiler`; call existing `FCLPlanetCompiler` for pinned radial providers |
+| Coordinate/reference-frame values | `Scene/CLBodyFrame`; one metre-to-native-centimetre conversion boundary |
+| Legacy radial and bounded solid providers | `Private/Scene`; retain existing noise, stamp and regional kernels |
+| Native VPP volume integration | Extend `CLPlanetStamp` and its runtime; all new-profile distances/materials come from the compiled scene |
+| Globe/cutaway integration | Existing `CLPlanetPreview`, `CLSectionGeometry`, `CLRecipeEditor` and inspection paths |
+| Physical/package proof | Existing LandformLab runtime recipe host, projection binding and native collision lifecycle |
+
+Implement a closed radial provider plus a bounded analytic solid provider and
+ordered union/subtraction/smooth composition. Use spheres/capsules or another
+small qualified set for the first cave and arch; a general node editor is not a
+prerequisite. Prove transformed metrics, nonuniform scaling, operation order,
+no-contribution identity and material attribution. Compile a spatial index so
+workers visit relevant bounded contributions, not the complete feature catalog.
+
+Introduce a versioned operator capability catalog with typed parameters, input/
+output channels, transforms, bounds, resource requirements and implementation
+identity. Track native heightmap/volume graphs, mesh/spline contributions,
+blending, painting/metadata and persistent edits in an explicit support matrix.
+Add adapters incrementally through the same contract; each feature is usable by
+server recipes only after its combination/order/material/cooked-runtime checks
+pass. Do not claim all VPP features are supported because arbitrary operator
+names can be serialized. Reusable cooked graph templates are resources; arbitrary
+runtime graph authoring needs its own packaged proof before becoming a dependency.
+
+Extend both native bulk and sparse query paths. Resolve/load assets on the owning
+thread and capture immutable native references before worker dispatch. Keep
+distance arithmetic in double until near-surface local values are converted to
+native float distances. Ensure native heightmap contributions execute once;
+the scene must not apply them and then allow the old adapter to apply them again.
+Do not create a duplicate actor or VPP world for each feature.
+
+Replace exterior-only material sampling for volume profiles with XYZ geological
+and contact attributes, followed by exposure/deposit rules using the actual 3D
+normal and gravity. Retain logical surface IDs independent of native blend slots.
+The proof must expose a different rock unit in a cave and show the same blend in
+all presentations, not merely render an untextured hole.
+
+The general scene preview uses native VPP surface extraction/rendering in a
+bounded preview world where feasible. Reuse the scene and materials, and clip
+the cutaway only for display; supply section-face geometry from that scene if
+the native clipping path needs it. Do not introduce an independent terrain
+mesher. Retain the radial mesh fast path only for scenes proven height-only;
+otherwise it cannot be authoritative for picking, sections or silhouettes.
+Inspect native preview-world lifecycle and collision cost before selecting its
+exact binding. Preserve flat section display and normalized display coordinates
+without flattening the underlying geometry.
+
+One new recipe combines existing mountains/plateaus, an arch, a connected cave
+with two vertically separated floors and a detached solid. A ray through the
+fixture must encounter multiple interfaces. Walking and picking must reach the
+lower cave floor rather than selecting the exterior height at that direction.
+Use conservative query bounds/bracketing or qualified stepping; never use a
+radial field as an exact SDF and interpret an exhausted search as a clear miss.
+
+Exit: automated analytic and bulk/sparse parity tests pass; Designer, globe and
+native walking show the same fixture with matched materials; native collision
+supports both cave floors and arch traversal. Existing recipe regressions and
+curvature/picking tests pass. Include one cooked Mac build here to expose
+editor-only dependencies early. Preserve the old profile until parity is shown.
+
+### P2 — Qualify planetary precision, frames and multiple bodies
+
+Run the same analytic geometry at 100 m, 1 km, Mars and Earth body scales, near
+poles/atlas seams and with different local origins. Source coverage does not
+require generating an entire Earth-resolution mesh: evaluate selected windows
+and a bounded native terrain neighborhood against independent double-precision
+oracles. Add an ellipsoid/datum conversion oracle before measured data adoption.
+
+Initial precision targets are acceptance targets, not reported results:
+
+- Analytic local field/zero-interface error no greater than 1 mm after canonical
+  transforms, and native float-distance error no greater than 1 mm inside a
+  declared near-surface band. Record that band's extent; far-field sign/validity
+  is tested separately and cannot require the same absolute float error.
+- Native mesh and collision contact within one configured voxel of the analytic
+  fixture, initially 25 cm in the existing host. Narrow openings and walls have
+  explicit minimum feature thickness; reduce voxel size for finer qualification.
+  Meshing error is reported separately from numerical evaluation error.
+- Rebase/reference-frame round trips preserve canonical position and normal to
+  the declared budget, with no visible material/noise phase jump. Retain the
+  existing projection/picking tolerances rather than replacing them with the
+  coarser mesh tolerance.
+
+Adapt body/frame movement explicitly; VPP instance world-space transforms do not
+follow a moved instanced component. Test terrain, material phase, invokers,
+native collision and picking through frame changes. Transfer between two 100 m
+bodies and verify local gravity, heading and velocity continuity using the
+body/physics boundary. A detached terrain solid remains static body-relative
+geometry; moving rigid formations require a separate physics instance contract.
+
+Exit: errors and actual contact results are recorded per size/frame/profile.
+Any missing native precision or world-size capability is a gate failure with a
+bounded adapter/local-frame remedy before large datasets or geology depend on it.
+
+### P3 — Resource residency and one real Mars dataset
+
+Define a typed resource manifest with body/CRS/datum, extent, units, source and
+content digests, tile/overview layout, masks, error bounds, interpolation and
+halo rules. Build the first provider from local staged tiles, then exercise the
+same provider with delayed/missing/corrupt delivery. Use one real regional Mars
+DEM and coarse global context; independently verify sample coordinates/elevations.
+Allow a procedural cave beneath the imported surface without rewriting the DEM.
+
+The resource owner maintains bounded caches and request queues. A job retains
+an immutable tile lease; eviction cannot invalidate it. Evaluation never blocks
+on I/O or accesses live UObjects. Required-but-missing data produces NotReady.
+Prefetch and residency depend on render/collision demand plus source halos;
+tile boundaries must agree in values, normals and material phase. Coarse fallback
+is allowed only under the declared geometric/collision error profile, never by
+substituting zero elevation or air. Cached derived output keys include scene,
+provider/operator version, source digests, scale and numeric/error profile.
+
+Exit: measured samples retain source values within the declared ingestion error;
+tile seams/poles/longitude wrap and NoData behave correctly. Cold/warm loads,
+cancellation, held leases, eviction, interrupted input and bounded memory/work
+are verified. Source uncertainty, interpolation and added procedural detail are
+reported separately. This qualifies the provider contract, not an unlimited
+planetary streaming service or a chosen VDB/COG codec as the permanent format.
+
+### P4 — Globe-to-ground LOD and performance
+
+Measure native VPP at the required extent before adding another representation.
+Keep VPP's supported Nanite/material/collision path and the owned projection
+lifecycle bridge. Instrument query/sample counts, source residency, chunk work,
+GPU/memory use and worst-case traversal. Requested sampling footprints must
+filter high-frequency detail consistently instead of executing every octave at
+all distances. Qualify aliasing, opening visibility and material transitions.
+
+If native whole-body LOD misses measured budgets, add a scene-derived distant
+representation through the render plan. It carries the same revision and error
+metadata and includes significant detached formations. Qualify the transition,
+including simultaneous globe and surface views; storage/chart boundaries must
+not leak into visible or collision seams. Never fall back to an exterior-only
+globe for a general 3D scene.
+
+Collision has independent residency and detail demand. A render-ready region is
+not walk-ready. Retain required collision ahead of movement; hold or limit entry
+until native readiness is confirmed. Verify ordinary traversals, rapid travel,
+LOD seams, multiple bodies/views and moving invokers. Keep the existing strict
+16.67 ms wall-frame p99 production gate open until the actual packaged workload
+passes; good game-thread timings alone do not close it. Record peak/steady
+memory, frame tails, input-to-first-preview and input-to-final-generation latency.
+
+Exit: publish the qualified size/detail/hardware/resource envelope and evidence.
+Only introduce distant proxies when the native measurement shows their need.
+
+### P5 — Live recipe revisions and edits through one activation path
+
+Introduce the candidate lifecycle with local inputs during P1; complete its
+streamed/backend integration here. State transitions are validating, resolving,
+compiling, preparing, ready and retiring, with failed/cancelled outcomes. The
+current scene remains active when a candidate fails. One owning world instance
+admits changes, increments generation epochs and rejects stale publications.
+Workers retain immutable plans/resources until their tasks finish. Retirement
+releases native worlds, callbacks, tile leases and pending work positively.
+
+Prove coherent native publication; a compiler pointer swap does not establish
+that all VPP render/collision chunks changed together. Use measured chunk/region
+readiness, staging or a bounded movement hold where native publication requires
+it. Preview drafts may update progressively while dragging; walking snapshots
+and published accepted scenes have explicit revision/readiness rules. Coalesce
+slider changes into bounded work without requiring users to release the knob.
+
+Define a portable delivery envelope containing scene/recipe identity, resource
+closure, operator capability versions and accepted revision. Local-file and
+Connect inputs enter the same candidate path. Connect owns transport; the
+Landform domain owns acceptance and terrain errors. Agree the backend owner and
+wire integration before implementing it; do not resurrect the old BVC experiment
+or mutate GT-managed source outside GT MCP. A package containing the installed
+operators and cooked materials must accept a newly delivered parameter/resource
+combination without rebuilding the game. Unsupported capabilities are rejected
+before activation. New shader/operator implementations remain content/code releases.
+
+Add ordered local edits with dependency-based dirty bounds; include source halos
+and any global normalization dependency. PCG that places stamps reads a named
+predecessor stage, and downstream dressing reads the final scene. Neither may
+query its own incomplete output. Local cave edits must not unexpectedly rescale
+the rest of the planet under a supposedly local height policy.
+
+Exit: packaged recipe replacement and resource delivery, cancellation, reconnect,
+duplicates, stale completion, invalid input, teardown and local excavation retain
+coherent geometry/material/collision state. Tests distinguish delivered,
+accepted, compiled, visible and walk-ready revisions. Backend round-trip evidence
+is recorded separately from the local packaged fixture.
+
+### P6 — Production terrain, presets and derived products
+
+Once P1/P2 protect the representation, improve continental/tectonic coherence and
+introduce drainage, erosion, deposits and 3D geological structure in bounded
+slices. Start from one realistic mountain/canyon portfolio with rock contacts,
+scree and soil. Expensive simulation output becomes a versioned accepted resource
+consumed through P3; it is not independently rerun by every client. Preserve
+editorial control for broad features and contextual PCG for smaller ones.
+
+Version each one-knob curve and its resolved settings. Curate at least five
+positions across its full range and several seeds per position, plus continental/
+tectonic combinations, mixed regions and volume features. Review shape/material
+quality from globe and ground; measure slopes, feature thickness, drainage and
+traversability where relevant. Defaults should be production-ready; extreme
+endpoints are intentional compositions, not uncontrolled parameter maxima.
+Advanced edits remain possible and visibly follow the knob's resolved data.
+
+Keep two derived-product boundaries in the P0 scene contract, then qualify them
+as separate delivery slices when their consumers are ready:
+
+- Sparse signed-distance export: declared band/grid transforms, error and
+  constant regions, with re-distancing where the source is only an implicit
+  sign field. Re-import a bounded cave/arch tile and compare geometry. No dense
+  full-resolution planet allocation and no codec lock-in.
+- Navigation: body/gravity/agent profile, multi-surface connectivity, revision
+  and rebuild bounds. Prove routes on both cave floors and across a sphere/patch
+  seam; export/import preserves those links. Ordinary character walking and a
+  conventional UE navmesh do not establish spherical navigation correctness.
+
+Exit: curated packaged examples meet the declared visual, collision, resource
+and performance profile; exports/navigation receive their own qualification.
+Ocean simulation, ecosystem and Architect implementations remain outside this
+Landform delivery. Their coordinate, scene, placement and revision interfaces
+remain explicit so later consumers do not force a terrain representation change.
+
+### Checks, migration and the first implementation change
+
+Each coherent component slice gets focused existing/new meaningful tests, a
+concise commit and component push before the workspace pointer is pushed.
+Preserve unrelated edits and user assets. Stage/build from maintained component
+sources with the editor safely closed when a C++ rebuild needs it; do not use
+plugin restaging as an incremental rebuild shortcut. Keep licensed engine/VPP
+overlays pinned and change them only for a demonstrated blocker.
+
+Run model/field/oracle tests in the existing component test owner; real VPP bulk/
+sparse checks in the adapter tests; editor ownership/preview checks in the editor;
+and native movement, projection, streaming and timing in LandformLab. A passing
+model test does not establish native contact, a screenshot does not establish
+material parity and an editor run does not establish cooked runtime support.
+Retain machine-readable reports with workload, hashes, actual errors, exclusions
+and open gates. Do not repeat the entire qualification portfolio for documentation
+or an unrelated low-impact change.
+
+The first implementation change is P0 plus the beginning of P1: capture the
+reference fixtures; add frame/query/scene values and the legacy radial provider;
+route one existing native VPP planet through it with unchanged output. Verify
+worker isolation, coordinates/units, bulk/sparse shape/material parity, old recipe
+loading and existing projection regressions. Then add the bounded volume
+operators and complete the cave/arch/detached-formation example. Do not mark P1
+complete until preview, picking, real collision and the cooked fixture all pass.
+
+The critical order is P0 → P1 → P2 → P3 → P4 → P5 → P6. Candidate cancellation,
+resource descriptors and revision identity start in P1; P3/P5 deepen those same
+contracts. Visual geology work may proceed on bounded examples after P1/P2,
+but production readiness waits for resource, activation and performance gates.
+No runtime capability is implemented or qualified by this planning change.
