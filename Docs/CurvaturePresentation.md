@@ -173,3 +173,30 @@ fast bound. Keep the original cooked Nanite control and the 60 fps gate intact.
 ## Render-only checkpoint — 2026-11-02
 
 The opt-in [Nanite render prototype](NaniteProjectionPrototype.md) now implements position/normal deformation, current/previous WPO and projected node/cluster bounds. A version-pinned host overlay avoids editing engine files; a small VPP extension protects earlier scene-wide culling. The host qualification record separates packaged image correctness, dynamic render cost and remaining gameplay integration. This supersedes the earlier statement that no render path uses the projection; the full gameplay adapter and distant vista charts remain future gates.
+
+
+## Local gameplay checkpoint — 2026-11-02
+
+The [host gameplay fixture](../../Projects/LandformLab/Docs/GameplayPresentation.md)
+now integrates the camera, existing rigid body visual and three nearby canonical
+collision markers with the native Nanite material path. Simulation stays
+canonical. The terrain adapter publishes its chart after physics and before the
+camera manager; the camera uses exact point projection and an orthonormal
+Jacobian frame. Its canonical shoulder rig is prepared before native streaming
+warmup, so fixed-pose checks retain their no-generation-change invariant.
+
+`FCLPresentationTransform` is the component's allocation-free CPU local-frame
+helper. Small rigid visuals use mapped position/orientation/axis scale, with
+exact projection of eight source-box corners to measure approximation error.
+The host admits this bounded fixture at 2 cm corner error, three props and 30 m;
+this is not a conservative deformation bound for arbitrary animated/large meshes.
+The helper preserves outputs on invalid inputs. Native materials/shaders and
+VPP customizations are unchanged by this gameplay slice.
+
+Packaged checks exercise walking, turning, jumping, landings and smooth
+curvature targets, audit canonical actor/capsule/collider/velocity state and
+verify detach restoration/destruction requests. Current/previous camera states
+are checked against the matching projection snapshots. The host checkpoint
+retains results, source/binary hashes and performance limits. Interaction rays,
+animation, effects, chart handover and repeated vistas remain subsequent gates;
+local presentation does not close the strict 60 fps or temporal-image gates.
