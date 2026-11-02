@@ -23,7 +23,7 @@ struct CATALYSTLANDFORM_API FCLTectonicPreset
     GENERATED_BODY()
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     // Keep the serialized default: assets that omit this property retain algorithm 1.
-    // Guided authoring explicitly adopts algorithm 4; old fixtures retain their version.
+    // Guided authoring explicitly adopts algorithm 5; old fixtures retain their version.
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Activity=.55;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;

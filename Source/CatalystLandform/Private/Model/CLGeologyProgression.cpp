@@ -12,18 +12,20 @@ double At(double Position,std::initializer_list<double> Values)
 }
 void FCLTectonicPreset::ApplyProgression(double Position)
 {
-    AlgorithmVersion=4;Activity=FMath::Clamp(Position,0.,1.);
-    PlateCount=FMath::RoundToInt(At(Activity,{2,4,7,9,12}));
-    Motion=At(Activity,{.12,.7,1.15,.95,1.85});
-    Relief=At(Activity,{.12,.4,.65,.82,1});
-    BeltWidthDegrees=At(Activity,{18,14,10,8,12});
-    CrustThickness=At(Activity,{.012,.02,.028,.045,.07});
-    BoundaryWarp=At(Activity,{.12,.27,.38,.3,.52});
-    Roughness=At(Activity,{.08,.2,.38,.58,.9});
-    CollisionStrength=At(Activity,{.18,.3,.65,.9,1.3});
-    RiftStrength=At(Activity,{.08,.75,.45,.3,.75});
-    TransformStrength=At(Activity,{.05,.35,.5,.35,.8});
-    InteriorRelief=At(Activity,{.15,.1,.08,.055,.035});
+    AlgorithmVersion=5;Activity=FMath::Clamp(Position,0.,1.);
+    // Keep broad interior structure present while narrow deformation develops.
+    // Final planet range fitting would otherwise amplify even young ridges to full height.
+    PlateCount=FMath::RoundToInt(At(Activity,{2,3,5,7,10}));
+    Motion=At(Activity,{.10,.24,.42,.36,1.40});
+    Relief=At(Activity,{.08,.12,.20,.36,.75});
+    BeltWidthDegrees=At(Activity,{18,15,12,9,10});
+    CrustThickness=At(Activity,{.012,.017,.023,.030,.050});
+    BoundaryWarp=At(Activity,{.10,.16,.24,.22,.36});
+    Roughness=At(Activity,{.06,.10,.17,.30,.65});
+    CollisionStrength=At(Activity,{.10,.16,.24,.40,.95});
+    RiftStrength=At(Activity,{.06,.24,.18,.16,.60});
+    TransformStrength=At(Activity,{.04,.12,.20,.24,.55});
+    InteriorRelief=At(Activity,{.16,.16,.15,.14,.14});
     bOverridePlateCount=bOverrideMotion=bOverrideRelief=false;
 }
 void FCLContinentalLayer::ApplyProgression(double Position)

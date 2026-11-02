@@ -91,3 +91,34 @@ bool FCLGuidedAdvancedTest::RunTest(const FString&)
     R.RadialGuides.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");})->NormalizedHeight=.9;
     TestFalse(TEXT("Reversed final surface guides are refused"),FCLPlanetCompiler::Compile(R,Error).IsValid());return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRidgeDevelopmentTest,"Catalyst.Landform.GuidedGeology.LateRidgeDevelopment",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRidgeDevelopmentTest::RunTest(const FString&)
+{
+    FString Error;const auto Directions=Probes(4096);
+    for(int32 Seed:{1729,817,529})for(bool Continents:{false,true})
+    {
+        TArray<double> Lifts;
+        for(double Position:{.25,.65,.9,1.})
+        {
+            auto R=Guided();R.Seed=Seed;R.Continents.bEnabled=Continents;R.Tectonics.ApplyProgression(Position);
+            const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
+            auto Quiet=R.Tectonics;Quiet.Motion=0;
+            const auto Background=FCLCompiledTectonics::Compile(Quiet,R.Seed,P->Tectonics->SpanMeters,Error,true,P->Continents,true);
+            if(!Background){AddError(Error);return false;}
+            double Lift=0;
+            for(const auto& D:Directions)
+            {
+                const double Raw=P->UnmappedSurface->SampleHeightMeters(D);
+                const double NoRidge=Raw-P->Tectonics->SampleDeltaMeters(D)+Background->SampleDeltaMeters(D);
+                Lift=FMath::Max(Lift,(P->SurfaceRange->Map(Raw)-P->SurfaceRange->Map(NoRidge))/(P->SurfaceRange->TargetMax-P->SurfaceRange->TargetMin));
+            }
+            Lifts.Add(Lift);
+        }
+        AddInfo(FString::Printf(TEXT("Seed %d continents %d, maximum ridge share at 25/65/90/100: %.4f %.4f %.4f %.4f"),Seed,Continents,Lifts[0],Lifts[1],Lifts[2],Lifts[3]));
+        TestTrue(TEXT("Young ridges retain broad landscape structure"),Lifts[0]<.15);
+        TestTrue(TEXT("Ridges at 65 percent remain well below the extreme"),Lifts[1]<Lifts[3]*.45);
+        TestTrue(TEXT("Late settings develop stronger ridges"),Lifts[2]>Lifts[1]&&Lifts[3]>.15);
+    }
+    return true;
+}

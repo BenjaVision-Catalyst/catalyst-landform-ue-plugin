@@ -13,22 +13,27 @@ Intermediate settings interpolate the curves smoothly; plate count is discrete.
 
 | Resolved setting | 0% | 25% | 50% | 75% | 100% |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Plate count | 2 | 4 | 7 | 9 | 12 |
-| Motion | .12 | .70 | 1.15 | .95 | 1.85 |
-| Relief contribution | .12 | .40 | .65 | .82 | 1 |
-| Belt width (degrees) | 18 | 14 | 10 | 8 | 12 |
-| Crust thickness ratio | .012 | .020 | .028 | .045 | .070 |
-| Boundary warp | .12 | .27 | .38 | .30 | .52 |
-| Roughness | .08 | .20 | .38 | .58 | .90 |
-| Collision strength | .18 | .30 | .65 | .90 | 1.30 |
-| Rift strength | .08 | .75 | .45 | .30 | .75 |
-| Transform strength | .05 | .35 | .50 | .35 | .80 |
-| Interior relief | .15 | .10 | .08 | .055 | .035 |
+| Plate count | 2 | 3 | 5 | 7 | 10 |
+| Motion | .10 | .24 | .42 | .36 | 1.40 |
+| Relief contribution | .08 | .12 | .20 | .36 | .75 |
+| Belt width (degrees) | 18 | 15 | 12 | 9 | 10 |
+| Crust thickness ratio | .012 | .017 | .023 | .030 | .050 |
+| Boundary warp | .10 | .16 | .24 | .22 | .36 |
+| Roughness | .06 | .10 | .17 | .30 | .65 |
+| Collision strength | .10 | .16 | .24 | .40 | .95 |
+| Rift strength | .06 | .24 | .18 | .16 | .60 |
+| Transform strength | .04 | .12 | .20 | .24 | .55 |
+| Interior relief | .16 | .16 | .15 | .14 | .14 |
 
 Motion and belt width reverse direction along this path. Each field participates
 in the compiled geometry: topology, deformation, broad collision shoulders,
 boundary shape, surface texture, boundary-type balance or quiet interior relief.
-Quiet retains structure. Extreme introduces more fragmented, sharper terrain.
+Algorithm 5 retains broad interior structure throughout the range, while young
+boundary deformation stays small. It also reserves more unsaturated range for
+that background. This prevents final height fitting from promoting small young
+ridges to full-height walls. The last quarter develops pronounced, rougher belts;
+100% is an authored usable extreme, with further exaggeration available in
+Advanced. Quiet retains structure. Extreme introduces more fragmented, sharper terrain.
 The chosen guide heights determine its absolute vertical extent at every setting.
 
 Continental character grows then fragments domains, rather than expanding a
@@ -54,7 +59,7 @@ not depend on editor widgets to reconstruct a planet.
 The old Moving plates and Controlled boundary options were implementation
 experiments. Controlled boundary isolates a two-plate test configuration; it is
 not a second observed category of planet. Current authoring uses the planet-wide
-plate network (algorithm 4). Old controlled-boundary recipes and their tests keep
+plate network (algorithm 5). Old controlled-boundary recipes and their tests keep
 their original algorithms, without a model selector in the current inspector.
 
 Convergent, divergent and transform boundaries coexist within a plate network;
@@ -102,10 +107,27 @@ surface guides also reports an error.
 Schemas 14–16 and earlier algorithms retain their previous generation. Opening
 an old asset does not mutate it. The current inspector projects a guided draft;
 the next explicit geology edit adopts schema 17 in one Undo transaction.
+Algorithm 4 recipes keep their previous resolved geometry; the next explicit
+knob gesture applies the new algorithm 5 progression in one Undo transaction.
+Variation alone does not change a saved recipe's algorithm.
 Legacy override flags remain serialized for older recipes, with no editor or
 Blueprint exposure. They are ignored by the current resolved-value algorithms.
 
 [GuidedGeology.json](../Examples/GuidedGeology.json) is the current portable
 example. Existing LayeredGeology, ContinentalBase and TectonicBase examples remain
-pinned historical fixtures. Landform assets remain terrain-type configurations;
+pinned historical fixtures. GuidedGeologyV1 pins the former algorithm 4 example. Landform assets remain terrain-type configurations;
 this final planet range is not saved into them.
+
+## Radial Guide measurements
+
+The shared annotation overlay shows every guide's radial distance from Core in
+metres, with Core at 0 and Sky boundary at the planet's outer radius. Only the
+name is editable in place; measurements are derived display values. They update
+as guides move or the preview radius changes, in both Designer and Planet Builder.
+
+A right-hand bracket measures SurfaceMin to SurfaceMax. When OceanHeight is
+strictly inside that range it also marks the two ocean intervals, preserving the
+total above the bracket. Callout leaders locate exact render heights; bracket
+endpoints use those aligned label rows so short projected intervals stay readable.
+Missing or reversed surface guides omit the bracket; an absent/outside ocean
+omits only its subdivision. These annotations never change recipe data.

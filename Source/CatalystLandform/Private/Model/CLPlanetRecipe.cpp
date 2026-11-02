@@ -538,7 +538,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
     }
     if(Recipe.Tectonics.bEnabled)
     {
-        if(Recipe.Tectonics.AlgorithmVersion==4&&Recipe.SchemaVersion<17)return Fail(TEXT("Guided tectonics requires recipe schema 17"));
+        if(Recipe.Tectonics.AlgorithmVersion>=4&&Recipe.SchemaVersion<17)return Fail(TEXT("Guided tectonics requires recipe schema 17"));
         if(Recipe.SchemaVersion<14||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Fail(TEXT("Tectonic preset requires schema 14 spherical coordinates"));
         const auto* L=Guides.Find(Recipe.Tectonics.LowerGuide);const auto* U=Guides.Find(Recipe.Tectonics.UpperGuide);
         if(!L||!U)return Fail(TEXT("Tectonic preset requires both named radial guides"));

@@ -33,6 +33,7 @@
 #include "Layout/WidgetPath.h"
 #include "InputKeyEventArgs.h"
 #include "CLRadialGuideEditing.h"
+#include "CLRadialGuideMeasurements.h"
 #include "CLPlanet.h"
 #include "Engine/Selection.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -66,6 +67,8 @@
 #include "Widgets/Layout/SExpandableArea.h"
 #include "Widgets/Layout/SWrapBox.h"
 #include "Misc/AutomationTest.h"
+#include "ImageUtils.h"
+#include "Misc/FileHelper.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/SLeafWidget.h"
@@ -307,6 +310,10 @@ public:
                             Session->Begin(NSLOCTEXT("CL", "RenameRadialGuide", "Rename Radial Guide"));
                             FCLRadialGuideEditing::Rename(Session->Asset->Recipe, Index, Text.ToString(), Error); Session->Changed(); Session->End();
                         })]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(7,0)
+                        [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular",9))
+                            .Text_Lambda([this]{return FCLRadialGuideMeasurements::Height(Session->Asset->Recipe,Index);})
+                            .ColorAndOpacity_Lambda([this]{return GuideTint(Index,Session->Selected);})]
                 ]];
         else ChildSlot[SNew(SBorder).Padding(0).BorderImage(FAppStyle::GetBrush("NoBorder"))];
     }
@@ -397,6 +404,13 @@ public:
     const TArray<FCLGuideIndicator>& Indicators()const{return IsGlobe()?Globe->Indicators():Client->Indicators;}
     double NormalizedAtScreenY(double Y)const{return IsGlobe()?Globe->NormalizedAtScreenY(Y):Client->NormalizedAtScreenY(Y);}
     int32 Rows = -1;
+    TArray<TSharedPtr<SCLRadialGuideHandle>> LabelHandles;
+    double LabelWidth() const
+    {
+        double Width=150;
+        for(const auto& Handle:LabelHandles)Width=FMath::Max(Width,FMath::Min(300.,double(Handle->GetDesiredSize().X)));
+        return Width;
+    }
     void Construct(const FArguments& Args)
     {
         Client = Args._Client; Session = Args._Session;Globe=Args._Globe;UseGlobe=Args._UseGlobe; ForceVolatile(true);
@@ -432,6 +446,8 @@ public:
         }
         if (Found == INDEX_NONE) return FVector2D(-1000, -1000);
         const double Overflow = FMath::Max(0.0, Ys.Last() - Size.Y + GuideLabelHeight + 2);
+        const bool bDimensions=!FCLRadialGuideMeasurements::SurfaceSpans(Session->Asset->Recipe).IsEmpty();
+        X=FMath::Min(X,FMath::Max(8.,Size.X-LabelWidth()-(bDimensions?105:12)));
         return FVector2D(X, Ys[Found] - Overflow);
     }
     virtual void Tick(const FGeometry& Geometry, double Time, float Delta) override
@@ -439,23 +455,24 @@ public:
         SCompoundWidget::Tick(Geometry, Time, Delta);
         const int32 Count = Session->Asset->Recipe.RadialGuides.Guides.Num();
         if (Count == Rows) return;
-        Rows = Count; Canvas->ClearChildren();
+        Rows = Count; Canvas->ClearChildren();LabelHandles.Reset();
         for (int32 I = 0; I < Count; ++I)
         {
             Canvas->AddSlot().Position_Lambda([this, I] { return TickStart(I) + FVector2D(-4, -9); }).Size(FVector2D(GuideTickWidth + 8, 18))
                 [SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).HeightAtScreenY([this](double Y){return NormalizedAtScreenY(Y);}).Index(I)];
             const auto LabelHandle = SNew(SCLRadialGuideHandle).Session(Session).Client(Client).Overlay(SharedThis(this)).HeightAtScreenY([this](double Y){return NormalizedAtScreenY(Y);}).Index(I).Label(true);
+            LabelHandles.Add(LabelHandle);
             Canvas->AddSlot().Position_Lambda([this, I] { return Label(I); })
                 .Size_Lambda([LabelHandle] { return FVector2D(FMath::Min(300.0, double(LabelHandle->GetDesiredSize().X)), GuideLabelHeight); })[LabelHandle];
         }
-        Canvas->AddSlot().Position_Lambda([this] { return Label(-3); }).Size(FVector2D(150, GuideLabelHeight))
+        Canvas->AddSlot().Position_Lambda([this] { return Label(-3); }).Size(FVector2D(200, GuideLabelHeight))
             [SNew(SBox).VAlign(VAlign_Center).Visibility(EVisibility::HitTestInvisible)
                 [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9))
-                    .Text(FText::FromString(TEXT("Sky boundary"))).ColorAndOpacity(GuideLabelColor)]];
-        Canvas->AddSlot().Position_Lambda([this] { return Label(-2); }).Size(FVector2D(80, GuideLabelHeight))
+                    .Text_Lambda([this]{return FText::Format(NSLOCTEXT("CL","SkyHeight","Sky boundary  {0}"),FCLRadialGuideMeasurements::Height(Session->Asset->Recipe,-3));}).ColorAndOpacity(GuideLabelColor)]];
+        Canvas->AddSlot().Position_Lambda([this] { return Label(-2); }).Size(FVector2D(110, GuideLabelHeight))
             [SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                    [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).Text(FText::FromString(TEXT("Core"))).ColorAndOpacity(GuideLabelColor)]
+                    [SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 9)).Text(FText::FromString(TEXT("Core  0 m"))).ColorAndOpacity(GuideLabelColor)]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6, 0)
                     [SNew(SBox).WidthOverride(16).HeightOverride(16).VAlign(VAlign_Center)
                         .Visibility_Lambda([this] { return Session->bReadOnly ? EVisibility::Collapsed : EVisibility::Visible; })
@@ -492,6 +509,29 @@ public:
             const double LabelCentreY = L.Y + GuideLabelHeight * .5;
             TArray<FVector2D> Leader{A + FVector2D(GuideTickWidth, 0), FVector2D(L.X - 8, LabelCentreY), FVector2D(L.X - 3, LabelCentreY)};
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Leader, ESlateDrawEffect::None, Color, true, 1);
+        }
+        const auto Spans=FCLRadialGuideMeasurements::SurfaceSpans(Session->Asset->Recipe);
+        if(!Spans.IsEmpty()&&Indicator(Spans[0].Low)&&Indicator(Spans[0].High))
+        {
+            // Dimensions use the aligned callout rows. Their leaders still locate the
+            // exact heights on the render; a short projected interval remains readable.
+            const auto& Total=Spans[0];
+            const double X=Label(Total.High).X+LabelWidth()+12;
+            const auto Y=[&](int32 Index){return Label(Index).Y+GuideLabelHeight*.5;};
+            const bool Selected=Session->Selected==Total.Low||Session->Selected==Total.High||
+                (Spans.Num()==3&&Session->Selected==Spans[1].High);
+            FLinearColor Color=GuideLabelColor;if(Selected)Color.A=1;Color*=Style.GetColorAndOpacityTint();
+            const auto Line=[&](TArray<FVector2D> Points){FSlateDrawElement::MakeLines(Elements,Layer,Geometry.ToPaintGeometry(),Points,ESlateDrawEffect::None,Color,true,1);};
+            Line({FVector2D(X,Y(Total.Low)),FVector2D(X,Y(Total.High))});
+            TArray<int32> Ends{Total.Low,Total.High};if(Spans.Num()==3)Ends.Add(Spans[1].High);
+            for(int32 Index:Ends)Line({FVector2D(X-5,Y(Index)),FVector2D(X+5,Y(Index))});
+            for(const auto& Span:Spans)
+            {
+                const bool bSplitTotal=Span.bTotal&&Spans.Num()==3;
+                const FText Text=bSplitTotal?FText::Format(NSLOCTEXT("CL","TotalRadialSpan","Total {0}"),FCLRadialGuideMeasurements::Meters(Span.Meters)):FCLRadialGuideMeasurements::Meters(Span.Meters);
+                const double TextY=bSplitTotal?Y(Total.High)-22:(Y(Span.Low)+Y(Span.High))*.5-7;
+                FSlateDrawElement::MakeText(Elements,Layer,Geometry.ToPaintGeometry(FVector2D(95,20),FSlateLayoutTransform(FVector2D(X+9,TextY))),Text,FCoreStyle::GetDefaultFontStyle("Regular",9),ESlateDrawEffect::None,Color);
+            }
         }
         return SCompoundWidget::OnPaint(Args, Geometry, Clip, Elements, Layer + 1, Style, Enabled);
     }
@@ -1039,7 +1079,7 @@ public:
     }
     FCLTectonicPreset ResolvedTectonicDraft() const
     {
-        auto P=LayeredRecipe().Tectonics;if(P.AlgorithmVersion==4)return P;FCLTectonicControls C;FString Error;
+        auto P=LayeredRecipe().Tectonics;if(P.AlgorithmVersion>=4)return P;FCLTectonicControls C;FString Error;
         if(FCLTectonicControls::Resolve(P,C,Error,true))
         {if(!P.bOverrideMotion)P.Motion=C.Motion;if(!P.bOverrideRelief)P.Relief=C.Relief;if(!P.bOverridePlateCount)P.PlateCount=C.LowerPlateCount;}
         return P;
@@ -1934,5 +1974,73 @@ bool FCLTectonicLiveKnobTest::RunTest(const FString& Parameters)
         },.4f));
     },3.f));return true;
 }
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGuideMeasurementsTest,"Catalyst.Landform.PlanetBuilder.RadialGuideMeasurements",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGuideMeasurementsTest::RunTest(const FString&)
+{
+    auto R=FCLPlanetCompiler::ContinentalBase();R.RadiusMeters=1000;
+    auto& G=R.RadialGuides.Guides;
+    const int32 Low=G.IndexOfByPredicate([](const auto& V){return V.Name==TEXT("SurfaceMin");});
+    const int32 High=G.IndexOfByPredicate([](const auto& V){return V.Name==TEXT("SurfaceMax");});
+    const int32 Sea=G.IndexOfByPredicate([](const auto& V){return V.Name==TEXT("OceanHeight");});
+    G[Low].NormalizedHeight=.3;G[High].NormalizedHeight=.6;G[Sea].NormalizedHeight=.4;
+    const auto Before=R;
+    auto Spans=FCLRadialGuideMeasurements::SurfaceSpans(R);
+    TestEqual(TEXT("Surface range and both ocean intervals"),Spans.Num(),3);
+    TestTrue(TEXT("Measured full surface range in metres"),FMath::IsNearlyEqual(Spans[0].Meters,300.));
+    TestTrue(TEXT("Measured below ocean"),FMath::IsNearlyEqual(Spans[1].Meters,100.));
+    TestTrue(TEXT("Measured above ocean"),FMath::IsNearlyEqual(Spans[2].Meters,200.));
+    TestEqual(TEXT("Heights are from Core, not reference surface"),FCLRadialGuideMeasurements::Height(R,Low).ToString(),TEXT("300 m"));
+    TestEqual(TEXT("Core height"),FCLRadialGuideMeasurements::Height(R,-2).ToString(),TEXT("0 m"));
+    TestEqual(TEXT("Sky is the outer radius"),FCLRadialGuideMeasurements::Height(R,-3).ToString(),FCLRadialGuideMeasurements::Meters(1000).ToString());
+    TestTrue(TEXT("Reading measurements does not change the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&R,0));
+    R.RadiusMeters=2000;Spans=FCLRadialGuideMeasurements::SurfaceSpans(R);
+    TestTrue(TEXT("Resizing proportionally updates dimensions"),FMath::IsNearlyEqual(Spans[0].Meters,600.));
+    G[Sea].NormalizedHeight=.6;TestEqual(TEXT("Ocean at endpoint does not create an empty dimension"),FCLRadialGuideMeasurements::SurfaceSpans(R).Num(),1);
+    G[Sea].NormalizedHeight=.9;TestEqual(TEXT("Ocean outside range is omitted"),FCLRadialGuideMeasurements::SurfaceSpans(R).Num(),1);
+    G.RemoveAt(Sea);TestEqual(TEXT("Missing ocean retains full surface dimension"),FCLRadialGuideMeasurements::SurfaceSpans(R).Num(),1);
+    G.Reset();TestTrue(TEXT("Missing surface guides do not invent dimensions"),FCLRadialGuideMeasurements::SurfaceSpans(R).IsEmpty());
+    const auto Session=MakeShared<FCLRadialGuideSession>();Session->Asset=NewObject<UCLPlanetRecipeAsset>();Session->Asset->Recipe=Before;
+    const auto Handle=SNew(SCLRadialGuideHandle).Session(Session).Index(Low).Label(true);
+    TestEqual(TEXT("Editable guide name excludes the display measurement"),Handle->Name->GetText().ToString(),TEXT("SurfaceMin"));
+    Session->Asset->Recipe.RadialGuides.Guides[Low].NormalizedHeight=.35;
+    TestEqual(TEXT("Dragging a guide updates its live metre value"),FCLRadialGuideMeasurements::Height(Session->Asset->Recipe,Low).ToString(),TEXT("350 m"));
+    return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGuideMeasurementsRenderTest,"Catalyst.Landform.PlanetBuilder.RadialGuideMeasurementsRendered",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGuideMeasurementsRenderTest::RunTest(const FString&)
+{
+    const auto Session=MakeShared<FCLRadialGuideSession>();Session->Asset=NewObject<UCLPlanetRecipeAsset>();Session->Asset->Recipe=FCLPlanetCompiler::ContinentalBase();
+    auto& R=Session->Asset->Recipe;R.UseGuidedGeology();R.Continents.ApplyProgression(.65);R.Tectonics.ApplyProgression(.65);
+    const auto Section=SNew(SCLSectionViewport);const auto Globe=SNew(SCLPlanetPreview);
+    const auto Annotations=SNew(SCLHeightAnnotations).Client(Section->Client).Session(Session).Globe(Globe).UseGlobe(true);
+    const auto Content=SNew(SOverlay)+SOverlay::Slot()[Globe]+SOverlay::Slot()[Annotations];
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Radial measurements"))).ClientSize(FVector2D(1000,750))[Content];
+    FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
+    FString Error;const auto Plan=FCLPlanetCompiler::Compile(R,Error);if(!Plan){AddError(Error);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}
+    Globe->SetGuides(R.RadialGuides,true);Globe->Rebuild(Plan);
+    ADD_LATENT_AUTOMATION_COMMAND(FCLWaitForGlobeRefinement(Globe,[this,Session,Section,Globe,Annotations,Content,Window]
+    {
+        TestFalse(TEXT("Annotated globe finishes refinement"),Globe->IsUpdating());
+        Window->SlatePrepass();TArray<FColor> Pixels;FIntVector Size;
+        TestTrue(TEXT("Annotated globe screenshot renders"),FSlateApplication::Get().TakeScreenshot(Content,Pixels,Size));
+        const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/guide-measurement-frames");IFileManager::Get().MakeDirectory(*Folder,true);
+        if(!Pixels.IsEmpty())
+        {
+            TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/TEXT("globe-guides.png")));
+        }
+        for(const auto& Span:FCLRadialGuideMeasurements::SurfaceSpans(Session->Asset->Recipe))
+        {
+            TestTrue(TEXT("Dimension callouts stay within the viewport"),Annotations->Label(Span.High).X+Annotations->LabelWidth()+105<=Annotations->GetCachedGeometry().GetLocalSize().X+1);
+        }
+        FSlateApplication::Get().RequestDestroyWindow(Window);
+    }));
+    return true;
 }
 #endif
