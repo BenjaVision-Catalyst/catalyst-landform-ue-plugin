@@ -776,3 +776,9 @@ The [body coordinate proof](Docs/BodyCoordinates.md) reuses UE's bundled PROJ fo
 explicit-body ellipsoid-normal conversions, with independent 70-digit reference
 values. It preserves spherical recipe semantics and records the scientific
 datum/provider gates before measured terrain ingestion.
+
+
+The [native two-body proof](Docs/TwoBodyTransfer.md) uses separate VPP layers and
+retained worlds, native character movement and one attached moving invoker. It
+qualifies airborne gravity-owner handover and native A/B/A walking at natural
+curvature, with explicit remaining body-rotation/frame and scientific-data gates.

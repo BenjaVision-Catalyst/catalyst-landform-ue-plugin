@@ -107,7 +107,7 @@ void ACLPlanet::RebuildTerrain()
     }
     else RecipeStatus = TEXT("No recipe: spherical base with authored stamps");
     Stamp.Radius = FMath::IsFinite(RadiusMeters) ? FMath::Max(10.0, RadiusMeters) * 100 : 10000;
-    Stamp.Layer = UVoxelVolumeLayer::Default();
+    Stamp.Layer = TerrainLayer ? TerrainLayer.Get() : UVoxelVolumeLayer::Default();
     Stamp.Behavior = RecipeAsset && RecipeAsset->Recipe.SurfaceStack.IsActive() ? EVoxelStampBehavior::AffectAll : EVoxelStampBehavior::AffectShape;
     Stamp.Smoothness = 0;
     Stamp.BoundsExtension = .05;

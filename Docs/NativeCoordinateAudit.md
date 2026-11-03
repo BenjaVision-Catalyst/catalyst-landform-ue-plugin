@@ -432,3 +432,22 @@ local-frame checks. [The qualification record](../conformance/body-coordinates-m
 records the executed budgets and regressions. Geoid/areoid and real scientific
 datum transforms remain resource/provider gates; existing spherical recipes
 are not reinterpreted as ellipsoids.
+
+
+## Two static native bodies — 4 November 2026
+
+The [two-body proof](TwoBodyTransfer.md) uses VPP's separate native volume layers
+and stacks, two retained native worlds and one attached moving collision invoker.
+The shared-default-layer control demonstrates that actor ownership alone does
+not isolate stamps. `ACLPlanet.TerrainLayer` exposes the native feature; null
+preserves the existing default. No custom filtering or streaming is added.
+
+The airborne owner-pointer control leaves native gravity stale before the next
+owner tick. The host now publishes the target centre/scale and calls the existing
+radial adapter update immediately. Native UE flying/falling/walking, floor/base
+handling and VPP collider ownership remain authoritative. Independent falling
+acceleration, world-pose/velocity, transported heading, material bindings/phase
+and native picking are recorded through A/B/A. The profile stays natural-curvature
+and static-body; rotations, live frame changes and production selection policy
+remain separate. [The qualification record](../conformance/two-body-transfer-mac-arm64.json)
+contains the executed matrix, controls and regressions.

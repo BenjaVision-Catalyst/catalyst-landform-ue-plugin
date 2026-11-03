@@ -1527,3 +1527,21 @@ integration and the remaining figure/presentation profiles. Two-body transfer
 is the next bounded architectural proof. P3's first measured Mars dataset must
 retain its actual datum, latitude convention, units and uncertainty; ellipsoid
 height cannot silently substitute for an areoid elevation.
+
+
+## Two-body handover checkpoint — 4 November 2026
+
+The [native two-body proof](TwoBodyTransfer.md) qualifies a bounded A/B/A journey
+between two static 100 m bodies. It reuses native volume layers/stacks for body
+isolation and native VPP generation, LOD and one attached collision invoker.
+The adapter's hard-coded global layer is now an explicit native choice. The
+host publishes the selected gravity centre/scale before the next movement step
+and reuses its existing native gravity/heading update. No streaming or physics
+integrator is added. The [record](../conformance/two-body-transfer-mac-arm64.json)
+separates world-pose/velocity continuity, transported heading and actual native
+falling/contact from fixture flight/selection policy.
+
+Full P2 remains open. Next, audit and qualify body rotation/frame changes with
+native VPP/UE features, including instance transforms, materials and collision.
+Scientific height/datum providers remain a separate gate before the first Mars
+resource ingestion; natural-curvature static-body transfer does not close it.

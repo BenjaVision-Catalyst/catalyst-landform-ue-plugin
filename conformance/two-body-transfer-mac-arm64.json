@@ -1,0 +1,3180 @@
+{
+  "schemaVersion": 1,
+  "profile": "two-static-bodies-native-v1",
+  "qualifiedDate": "2026-11-04",
+  "timezone": "Australia/Sydney",
+  "baseline": {
+    "component": "12feb9643db52c58e03eb802418e2cd1785db49c",
+    "workspace": "f13d2625e6946bdd1c44bd8e0422d1166e782962"
+  },
+  "platform": {
+    "engine": "UE 5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "architecture": "macOS arm64",
+    "configuration": "Development",
+    "renderer": "native VPP Nanite / Metal SM6",
+    "cook": "Code-only rebuild/repackage with guarded --skip-cook; unchanged fingerprint-qualified prior full shader/material cook"
+  },
+  "ownership": {
+    "terrain": "VPP is sole generator/presenter; native layers, stamps, LOD, materials and collision",
+    "bodyIsolation": "Existing VPP volume layer/stack; adapter now exposes TerrainLayer rather than hard-coding default",
+    "movement": "UE character flying/falling/walking, native custom gravity and floor/base behavior; VPP character base mapping",
+    "specialization": "Existing radial-centre/heading adapter; explicit host airborne source publication uses its existing update",
+    "selection": "Fixture controller selects target at midpoint; no production gravity/body/demand manager",
+    "noNewEngineOrVppPatch": true,
+    "noMaterialOrShaderAssetChanges": true
+  },
+  "matrix": {
+    "cases": 4,
+    "frameRates": [
+      30,
+      120
+    ],
+    "initialTranslationsCm": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        50000,
+        -30000,
+        10000
+      ]
+    ],
+    "bodies": {
+      "count": 2,
+      "solidRadiusMeters": 100,
+      "outerEnvelopeMeters": 200,
+      "separationMeters": 300,
+      "sourceVoxelCm": 25,
+      "gravityScale": [
+        0.15,
+        0.3
+      ],
+      "surfaceIds": [
+        "Soil",
+        "Rock"
+      ],
+      "motion": "static, unrotated"
+    },
+    "route": "Native walk A, fly/8-frame fall/land B, walk B, fly/8-frame fall/land A, walk A",
+    "naturalCurvature": 1,
+    "noTeleportDuringJourney": true,
+    "totals": {
+      "nativeGroundFrames": 1753,
+      "flightFrames": 10852,
+      "fallingGravityFrames": 64,
+      "nativeMeshSamples": 1725875,
+      "nativeSurfaceChecks": 193176,
+      "nativePicks": 1753,
+      "gpuQueries": 240
+    },
+    "maxima": {
+      "maxFallingVelocityErrorCmPerSec": 1.1368683772161603e-13,
+      "maxFrameStepCm": 104.74438644175612,
+      "maxGroundErrorCm": 0.034193731102277525,
+      "maxNearMeshFieldErrorCm": 0.016402721810663934,
+      "maxPickErrorCm": 0.00011900572060643649,
+      "maxBodyFrameRoundTripErrorCm": 0,
+      "maxHandoverPositionJumpCm": 0,
+      "maxHandoverVelocityJumpCmPerSec": 0,
+      "maxHandoverHeadingError": 1.1643315895955917e-10,
+      "maxGPUPositionErrorCm": 0.0004106642499212014,
+      "maxTextureMacroPhaseErrorCm": 0.0004125489198258947,
+      "maxMeshesPerBody": 347,
+      "maxPendingNativeTasks": 87,
+      "peakResidentMiB": 1020.828125
+    },
+    "minGravityDot": 0.9999999923911399,
+    "resultsSha256": "0d56c0c562b3b1a4d3c41d5bc808679744b863d4779f25f01b7a4b4e0965950b",
+    "casesDetail": [
+      {
+        "case": "origin-30fps",
+        "passed": true,
+        "error": null,
+        "exitCode": 0,
+        "report": {
+          "profile": "two-static-bodies-native-v1",
+          "message": "Two-body native travel and airborne handover completed",
+          "editorBuild": false,
+          "legacyBindingControl": false,
+          "sharedLayerControl": false,
+          "offsetCm": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "finalStage": 7,
+          "activeBody": 0,
+          "maxBodyFrameRoundTripErrorCm": 0,
+          "visits": 3,
+          "nativeGroundFrames": 192,
+          "bodyAGroundFrames": 128,
+          "bodyBGroundFrames": 64,
+          "flightFrames": 1091,
+          "fallingGravityFrames": 16,
+          "maxFallingVelocityErrorCmPerSec": 1.0658141036401503e-13,
+          "travelMeters": 786.9034454632249,
+          "maxFrameStepCm": 92.64313303663964,
+          "minGravityDot": 0.9999999951486737,
+          "maxGroundErrorCm": 0.031323343710027984,
+          "maxNearMeshFieldErrorCm": 0.016402721810663934,
+          "nativeMeshSamples": 421104,
+          "nativeSurfaceChecks": 47132,
+          "nativePicks": 192,
+          "maxPickErrorCm": 0.00010968098637645434,
+          "maxMeshesPerBody": 347,
+          "maxPendingNativeTasks": 73,
+          "peakResidentMiB": 958.6875,
+          "maxHandoverPositionJumpCm": 0,
+          "maxHandoverVelocityJumpCmPerSec": 0,
+          "maxHandoverHeadingError": 1.1589970158882697e-10,
+          "handoffs": [
+            {
+              "from": 0,
+              "to": 1,
+              "worldCm": {
+                "x": 15023.393227670105,
+                "y": -84.59715296175061,
+                "z": 12632.619533533145
+              },
+              "sourceBodyLocalCm": {
+                "x": 15023.393227670105,
+                "y": -84.59715296175061,
+                "z": 12632.619533533145
+              },
+              "targetBodyLocalCm": {
+                "x": -14976.606772329895,
+                "y": -84.59715296175061,
+                "z": 12632.619533533145
+              },
+              "velocityCmPerSec": {
+                "x": 2399.867648343225,
+                "y": 13.554322691634933,
+                "z": -21.249724045205614
+              },
+              "gravityDot": 1,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 4.629989631440353e-16,
+              "speedCmPerSec": 2400.000000000014
+            },
+            {
+              "from": 1,
+              "to": 0,
+              "worldCm": {
+                "x": 14922.883928195251,
+                "y": -89.64825077206834,
+                "z": 12630.835827163866
+              },
+              "sourceBodyLocalCm": {
+                "x": -15077.116071804749,
+                "y": -89.64825077206834,
+                "z": 12630.835827163866
+              },
+              "targetBodyLocalCm": {
+                "x": 14922.883928195251,
+                "y": -89.64825077206834,
+                "z": 12630.835827163866
+              },
+              "velocityCmPerSec": {
+                "x": -2399.864482913729,
+                "y": 14.415442962168795,
+                "z": -21.039454681661756
+              },
+              "gravityDot": 1.0000000000000002,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 1.1589970158882697e-10,
+              "speedCmPerSec": 2399.9999999999745
+            }
+          ],
+          "fallingProbes": [
+            {
+              "body": 1,
+              "dt": 0.033333417028188705,
+              "oldWorldCm": {
+                "x": 15023.393227670105,
+                "y": -84.59715296175061,
+                "z": 12632.619533533145
+              },
+              "expectedGravityDirection": {
+                "x": 0.7643822656320983,
+                "y": 0.004317704566190484,
+                "z": -0.6447488731393173
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 7.460698725481052e-14,
+              "gravity": {
+                "x": 0.7643822656320983,
+                "y": 0.004317704566190484,
+                "z": -0.6447488731393173
+              },
+              "beforeVelocity": {
+                "x": 2399.867648343225,
+                "y": 13.554322691634933,
+                "z": -21.249724045205614
+              },
+              "afterVelocity": {
+                "x": 2407.3586133550293,
+                "y": 13.59663630262628,
+                "z": -27.568278866846974
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.033333584666252136,
+              "oldWorldCm": {
+                "x": 15103.51386653513,
+                "y": -84.14463584231513,
+                "z": 12631.805898108369
+              },
+              "expectedGravityDirection": {
+                "x": 0.7626949185797686,
+                "y": 0.004308176143534029,
+                "z": -0.646744076734311
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.0658141036401503e-13,
+              "gravity": {
+                "x": 0.7626949185797688,
+                "y": 0.00430817614353403,
+                "z": -0.6467440767343111
+              },
+              "beforeVelocity": {
+                "x": 2407.3586133550293,
+                "y": 13.59663630262628,
+                "z": -27.568278866846974
+              },
+              "afterVelocity": {
+                "x": 2414.833079914071,
+                "y": 13.63885674717214,
+                "z": -33.90641860797761
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333349898457527,
+              "oldWorldCm": {
+                "x": 15183.884334077371,
+                "y": -83.69070753556383,
+                "z": 12630.781312091814
+              },
+              "expectedGravityDirection": {
+                "x": 0.7609915795177492,
+                "y": 0.004298557405631643,
+                "z": -0.6487475150683136
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 7.105427357601002e-14,
+              "gravity": {
+                "x": 0.7609915795177492,
+                "y": 0.004298557405631643,
+                "z": -0.6487475150683136
+              },
+              "beforeVelocity": {
+                "x": 2414.833079914071,
+                "y": 13.63885674717214,
+                "z": -33.90641860797761
+              },
+              "afterVelocity": {
+                "x": 2422.2908344547495,
+                "y": 13.680982819093373,
+                "z": -40.26417585060164
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333358094096184,
+              "oldWorldCm": {
+                "x": 15264.50346662131,
+                "y": -83.2353746133434,
+                "z": 12629.545129374279
+              },
+              "expectedGravityDirection": {
+                "x": 0.7592720359404357,
+                "y": 0.004288847152302062,
+                "z": -0.6507592344553936
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.0658141036401503e-13,
+              "gravity": {
+                "x": 0.7592720359404357,
+                "y": 0.004288847152302062,
+                "z": -0.6507592344553936
+              },
+              "beforeVelocity": {
+                "x": 2422.2908344547495,
+                "y": 13.680982819093373,
+                "z": -40.26417585060164
+              },
+              "afterVelocity": {
+                "x": 2429.731755679421,
+                "y": 13.723013833399607,
+                "z": -46.64166372135192
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333346173167229,
+              "oldWorldCm": {
+                "x": 15345.371110489117,
+                "y": -82.77863794308253,
+                "z": 12628.096687955473
+              },
+              "expectedGravityDirection": {
+                "x": 0.7575360498837741,
+                "y": 0.004279044039596611,
+                "z": -0.6527793064341082
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 4.263256414560601e-14,
+              "gravity": {
+                "x": 0.7575360498837741,
+                "y": 0.004279044039596611,
+                "z": -0.6527793064341082
+              },
+              "beforeVelocity": {
+                "x": 2429.731755679421,
+                "y": 13.723013833399607,
+                "z": -46.64166372135192
+              },
+              "afterVelocity": {
+                "x": 2437.155637564595,
+                "y": 13.764948626517764,
+                "z": -53.03892556624514
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.033333417028188705,
+              "oldWorldCm": {
+                "x": 15426.486212826647,
+                "y": -82.32050347071288,
+                "z": 12626.435338401268
+              },
+              "expectedGravityDirection": {
+                "x": 0.7557833985299443,
+                "y": 0.004269146809093513,
+                "z": -0.6548077801095906
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 4.263256414560601e-14,
+              "gravity": {
+                "x": 0.7557833985299443,
+                "y": 0.004269146809093513,
+                "z": -0.6548077801095906
+              },
+              "beforeVelocity": {
+                "x": 2437.155637564595,
+                "y": 13.764948626517764,
+                "z": -53.03892556624514
+              },
+              "afterVelocity": {
+                "x": 2444.5623334672123,
+                "y": 13.806786370294734,
+                "z": -59.45605792370757
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 15507.84838329785,
+                "y": -81.86097340029315,
+                "z": 12624.560417302144
+              },
+              "expectedGravityDirection": {
+                "x": 0.7540138406807733,
+                "y": 0.004259154098573233,
+                "z": -0.6568447211237934
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 8.526512829121202e-14,
+              "gravity": {
+                "x": 0.7540138406807735,
+                "y": 0.004259154098573234,
+                "z": -0.6568447211237936
+              },
+              "beforeVelocity": {
+                "x": 2444.5623334672123,
+                "y": 13.806786370294734,
+                "z": -59.45605792370757
+              },
+              "afterVelocity": {
+                "x": 2451.951696743414,
+                "y": 13.848526236575259,
+                "z": -65.89316026662581
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333349898457527,
+              "oldWorldCm": {
+                "x": 15589.457255699694,
+                "y": -81.40004979957591,
+                "z": 12622.471255851804
+              },
+              "expectedGravityDirection": {
+                "x": 0.7522271302235529,
+                "y": 0.0042490645180597135,
+                "z": -0.6588901957127299
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 8.526512829121202e-14,
+              "gravity": {
+                "x": 0.7522271302235529,
+                "y": 0.0042490645180597135,
+                "z": -0.6588901957127299
+              },
+              "beforeVelocity": {
+                "x": 2451.951696743414,
+                "y": 13.848526236575259,
+                "z": -65.89316026662581
+              },
+              "afterVelocity": {
+                "x": 2459.323559254168,
+                "y": 13.890167275787912,
+                "z": -72.35031627352838
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333337604999542,
+              "oldWorldCm": {
+                "x": 14922.883928195251,
+                "y": -89.64825077206834,
+                "z": 12630.835827163866
+              },
+              "expectedGravityDirection": {
+                "x": -0.7632829094862862,
+                "y": 0.00458537223829603,
+                "z": -0.6460481208451785
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 4.618527782440651e-14,
+              "gravity": {
+                "x": -0.7632829094862862,
+                "y": 0.00458537223829603,
+                "z": -0.6460481208451785
+              },
+              "beforeVelocity": {
+                "x": -2399.864482913729,
+                "y": 14.415442962168795,
+                "z": -21.039454681661756
+              },
+              "afterVelocity": {
+                "x": -2403.6045739631318,
+                "y": 14.4379113149296,
+                "z": -24.205094530564917
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.033333417028188705,
+              "oldWorldCm": {
+                "x": 14842.826007986554,
+                "y": -89.16736091785721,
+                "z": 12630.081750377314
+              },
+              "expectedGravityDirection": {
+                "x": -0.7615848674684199,
+                "y": 0.0045751740747075505,
+                "z": -0.6480490393676203
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 1.0302869668521453e-13,
+              "gravity": {
+                "x": -0.7615848674684199,
+                "y": 0.0045751740747075505,
+                "z": -0.6480490393676203
+              },
+              "beforeVelocity": {
+                "x": -2403.6045739631318,
+                "y": 14.4379113149296,
+                "z": -24.205094530564917
+              },
+              "afterVelocity": {
+                "x": -2407.3363491836153,
+                "y": 14.460329724184692,
+                "z": -27.38054279650684
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 14762.643457941938,
+                "y": -88.68572235788825,
+                "z": 12629.22198759647
+              },
+              "expectedGravityDirection": {
+                "x": -0.7598707630106939,
+                "y": 0.0045648794342444884,
+                "z": -0.6500581400131045
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 7.460698725481052e-14,
+              "gravity": {
+                "x": -0.7598707630106939,
+                "y": 0.0045648794342444884,
+                "z": -0.6500581400131045
+              },
+              "beforeVelocity": {
+                "x": -2407.3363491836153,
+                "y": 14.460329724184692,
+                "z": -27.38054279650684
+              },
+              "afterVelocity": {
+                "x": -2411.059729848472,
+                "y": 14.482697717072753,
+                "z": -30.565839596146454
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.033333417028188705,
+              "oldWorldCm": {
+                "x": 14682.336556262673,
+                "y": -88.20333676299289,
+                "z": 12628.256210944415
+              },
+              "expectedGravityDirection": {
+                "x": -0.7581403993220575,
+                "y": 0.004554487134849805,
+                "z": -0.6520754492869131
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 9.237055564881302e-14,
+              "gravity": {
+                "x": -0.7581403993220577,
+                "y": 0.004554487134849806,
+                "z": -0.6520754492869132
+              },
+              "beforeVelocity": {
+                "x": -2411.059729848472,
+                "y": 14.482697717072753,
+                "z": -30.565839596146454
+              },
+              "afterVelocity": {
+                "x": -2414.7746271326605,
+                "y": 14.505014760068027,
+                "z": -33.761017320230216
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333349898457527,
+              "oldWorldCm": {
+                "x": 14601.905781697567,
+                "y": -87.72020700864601,
+                "z": 12627.184093970562
+              },
+              "expectedGravityDirection": {
+                "x": -0.7563935812087006,
+                "y": 0.0045439960040561615,
+                "z": -0.654100987926629
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 4.973799150320701e-14,
+              "gravity": {
+                "x": -0.7563935812087006,
+                "y": 0.0045439960040561615,
+                "z": -0.654100987926629
+              },
+              "beforeVelocity": {
+                "x": -2414.7746271326605,
+                "y": 14.505014760068027,
+                "z": -33.761017320230216
+              },
+              "afterVelocity": {
+                "x": -2418.480974099321,
+                "y": 14.527280451137534,
+                "z": -36.966128088908874
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333349898457527,
+              "oldWorldCm": {
+                "x": 14521.351121359638,
+                "y": -87.23633301717472,
+                "z": 12626.005302355723
+              },
+              "expectedGravityDirection": {
+                "x": -0.7546300999965457,
+                "y": 0.004533404788432575,
+                "z": -0.6561347883020895
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 5.684341886080802e-14,
+              "gravity": {
+                "x": -0.7546300999965457,
+                "y": 0.004533404788432575,
+                "z": -0.6561347883020895
+              },
+              "beforeVelocity": {
+                "x": -2418.480974099321,
+                "y": 14.527280451137534,
+                "z": -36.966128088908874
+              },
+              "afterVelocity": {
+                "x": -2422.1786799651,
+                "y": 14.54949424499258,
+                "z": -40.18120452895181
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333337604999542,
+              "oldWorldCm": {
+                "x": 14440.673059527922,
+                "y": -86.75171769727062,
+                "z": 12624.719507088983
+              },
+              "expectedGravityDirection": {
+                "x": -0.752849754969707,
+                "y": 0.0045227122823405606,
+                "z": -0.6581768694778504
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 5.684341886080802e-14,
+              "gravity": {
+                "x": -0.7528497549697072,
+                "y": 0.004522712282340561,
+                "z": -0.6581768694778505
+              },
+              "beforeVelocity": {
+                "x": -2422.1786799651,
+                "y": 14.54949424499258,
+                "z": -40.18120452895181
+              },
+              "afterVelocity": {
+                "x": -2425.8676484918583,
+                "y": 14.571655563575739,
+                "z": -43.406275322315814
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 14359.872183840795,
+                "y": -86.266364578482,
+                "z": 12623.326380639506
+              },
+              "expectedGravityDirection": {
+                "x": -0.7510523449735701,
+                "y": 0.004511917277503543,
+                "z": -0.6602272470234642
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 6.394884621840902e-14,
+              "gravity": {
+                "x": -0.7510523449735701,
+                "y": 0.004511917277503543,
+                "z": -0.6602272470234642
+              },
+              "beforeVelocity": {
+                "x": -2425.8676484918583,
+                "y": 14.571655563575739,
+                "z": -43.406275322315814
+              },
+              "afterVelocity": {
+                "x": -2429.547818746719,
+                "y": 14.593764040925135,
+                "z": -46.64140093267478
+              },
+              "falling": true
+            }
+          ],
+          "landings": [
+            {
+              "body": 0,
+              "nativeGroundFrames": 64,
+              "travelCm": 829.3412786507646
+            },
+            {
+              "body": 1,
+              "nativeGroundFrames": 128,
+              "travelCm": 839.788054674629
+            },
+            {
+              "body": 0,
+              "nativeGroundFrames": 192,
+              "travelCm": 841.5339957721555
+            }
+          ],
+          "materialSnapshots": 3,
+          "gpuQueries": 60,
+          "maxGPUPositionErrorCm": 0.0004106642499212014,
+          "maxTextureMacroPhaseErrorCm": 0.0004125489198258947,
+          "nativeBodies": [
+            {
+              "readyEvents": 8444,
+              "retireEvents": 8814,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482445.VoxelVolumeLayer_2147482444"
+            },
+            {
+              "readyEvents": 6870,
+              "retireEvents": 7255,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482441.VoxelVolumeLayer_2147482440"
+            }
+          ],
+          "cleanupVerified": true,
+          "passed": true
+        },
+        "reportSha256": "cb11ca83750a7b9b107ca6f68e5fb1d88e1c2950080faddd76aeeb9aa1105775",
+        "screenshots": {
+          "visit-2.png": "1c75438ae38779b2c38228b6621931097d9248b07a445c715ea4410f2790694c",
+          "visit-0.png": "80a03e8dfc75e670d2e6f5059d75f765537495a7aab63d51a132274cd7dbce42",
+          "visit-1.png": "917a9d0a1a4049b9ea1c3d1dae53a44af6cbadb0f846697e2d06d081e234b482"
+        }
+      },
+      {
+        "case": "origin-120fps",
+        "passed": true,
+        "error": null,
+        "exitCode": 0,
+        "report": {
+          "profile": "two-static-bodies-native-v1",
+          "message": "Two-body native travel and airborne handover completed",
+          "editorBuild": false,
+          "legacyBindingControl": false,
+          "sharedLayerControl": false,
+          "offsetCm": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "finalStage": 7,
+          "activeBody": 0,
+          "maxBodyFrameRoundTripErrorCm": 0,
+          "visits": 3,
+          "nativeGroundFrames": 684,
+          "bodyAGroundFrames": 455,
+          "bodyBGroundFrames": 229,
+          "flightFrames": 4332,
+          "fallingGravityFrames": 16,
+          "maxFallingVelocityErrorCmPerSec": 1.0658141036401503e-13,
+          "travelMeters": 787.681738609583,
+          "maxFrameStepCm": 104.74438644175612,
+          "minGravityDot": 0.9999999923911399,
+          "maxGroundErrorCm": 0.0314852550636715,
+          "maxNearMeshFieldErrorCm": 0.016358628668967867,
+          "nativeMeshSamples": 441546,
+          "nativeSurfaceChecks": 49423,
+          "nativePicks": 684,
+          "maxPickErrorCm": 0.00011900572060643649,
+          "maxMeshesPerBody": 344,
+          "maxPendingNativeTasks": 66,
+          "peakResidentMiB": 1020.828125,
+          "maxHandoverPositionJumpCm": 0,
+          "maxHandoverVelocityJumpCmPerSec": 0,
+          "maxHandoverHeadingError": 1.1643315895955917e-10,
+          "handoffs": [
+            {
+              "from": 0,
+              "to": 1,
+              "worldCm": {
+                "x": 15010.25102663768,
+                "y": -108.1676238063213,
+                "z": 12628.484702724743
+              },
+              "sourceBodyLocalCm": {
+                "x": 15010.25102663768,
+                "y": -108.1676238063213,
+                "z": 12628.484702724743
+              },
+              "targetBodyLocalCm": {
+                "x": -14989.74897336232,
+                "y": -108.1676238063213,
+                "z": 12628.484702724743
+              },
+              "velocityCmPerSec": {
+                "x": 2399.8493815082047,
+                "y": 17.316106030434394,
+                "z": -20.56935940572636
+              },
+              "gravityDot": 1,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 1.1643315895955917e-10,
+              "speedCmPerSec": 2399.999999999944
+            },
+            {
+              "from": 1,
+              "to": 0,
+              "worldCm": {
+                "x": 14985.90134717576,
+                "y": -81.36030263351026,
+                "z": 12627.267224485628
+              },
+              "sourceBodyLocalCm": {
+                "x": -15014.09865282424,
+                "y": -81.36030263351026,
+                "z": 12627.267224485628
+              },
+              "targetBodyLocalCm": {
+                "x": 14985.90134717576,
+                "y": -81.36030263351026,
+                "z": 12627.267224485628
+              },
+              "velocityCmPerSec": {
+                "x": -2399.8781076891482,
+                "y": 13.028011654209251,
+                "z": -20.37987112831993
+              },
+              "gravityDot": 1,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 1.1642341100027019e-10,
+              "speedCmPerSec": 2400.0000000001073
+            }
+          ],
+          "fallingProbes": [
+            {
+              "body": 1,
+              "dt": 0.008333414793014526,
+              "oldWorldCm": {
+                "x": 15010.25102663768,
+                "y": -108.1676238063213,
+                "z": 12628.484702724743
+              },
+              "expectedGravityDirection": {
+                "x": 0.7647603169185812,
+                "y": 0.005518591832955617,
+                "z": -0.6442912406751875
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.4210854715202004e-14,
+              "gravity": {
+                "x": 0.7647603169185814,
+                "y": 0.0055185918329556174,
+                "z": -0.6442912406751876
+              },
+              "beforeVelocity": {
+                "x": 2399.8493815082047,
+                "y": 17.316106030434394,
+                "z": -20.56935940572636
+              },
+              "afterVelocity": {
+                "x": 2401.723062600012,
+                "y": 17.3296267125907,
+                "z": -22.147888375605717
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.00833900272846222,
+              "oldWorldCm": {
+                "x": 15030.25777405541,
+                "y": -108.02326517544353,
+                "z": 12628.306712452455
+              },
+              "expectedGravityDirection": {
+                "x": 0.7643405861131732,
+                "y": 0.005515563633083688,
+                "z": -0.6447891492402614
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 9.947598300641403e-14,
+              "gravity": {
+                "x": 0.7643405861131735,
+                "y": 0.005515563633083689,
+                "z": -0.6447891492402615
+              },
+              "beforeVelocity": {
+                "x": 2401.723062600012,
+                "y": 17.3296267125907,
+                "z": -22.147888375605717
+              },
+              "afterVelocity": {
+                "x": 2403.596971040535,
+                "y": 17.343149036845176,
+                "z": -23.728696527196245
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 15050.29356249124,
+                "y": -107.87869698965457,
+                "z": 12628.115429969117
+              },
+              "expectedGravityDirection": {
+                "x": 0.7639195863688496,
+                "y": 0.005512526277812343,
+                "z": -0.6452879028899288
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.0658141036401503e-14,
+              "gravity": {
+                "x": 0.7639195863688498,
+                "y": 0.005512526277812344,
+                "z": -0.6452879028899289
+              },
+              "beforeVelocity": {
+                "x": 2403.596971040535,
+                "y": 17.343149036845176,
+                "z": -23.728696527196245
+              },
+              "afterVelocity": {
+                "x": 2405.4685831189718,
+                "y": 17.356654791833463,
+                "z": -25.309659569207604
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333500474691391,
+              "oldWorldCm": {
+                "x": 15070.331432972636,
+                "y": -107.7341137713519,
+                "z": 12627.91110249281
+              },
+              "expectedGravityDirection": {
+                "x": 0.7634978805350845,
+                "y": 0.00550948382788718,
+                "z": -0.6457868317071698
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.0658141036401503e-13,
+              "gravity": {
+                "x": 0.7634978805350843,
+                "y": 0.005509483827887179,
+                "z": -0.6457868317071697
+              },
+              "beforeVelocity": {
+                "x": 2405.4685831189718,
+                "y": 17.356654791833463,
+                "z": -25.309659569207604
+              },
+              "afterVelocity": {
+                "x": 2407.339190444232,
+                "y": 17.370153297945393,
+                "z": -26.891869040570356
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333414793014526,
+              "oldWorldCm": {
+                "x": 15090.38520090543,
+                "y": -107.58941583550155,
+                "z": 12627.693591761084
+              },
+              "expectedGravityDirection": {
+                "x": 0.7630751748738954,
+                "y": 0.005506434164096667,
+                "z": -0.6462862807409502
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 2.842170943040401e-14,
+              "gravity": {
+                "x": 0.7630751748738954,
+                "y": 0.005506434164096667,
+                "z": -0.6462862807409502
+              },
+              "beforeVelocity": {
+                "x": 2407.339190444232,
+                "y": 17.370153297945393,
+                "z": -26.891869040570356
+              },
+              "afterVelocity": {
+                "x": 2409.208742897672,
+                "y": 17.383644193521828,
+                "z": -28.475285906390326
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333418518304825,
+              "oldWorldCm": {
+                "x": 15110.454346804918,
+                "y": -107.44460693043715,
+                "z": 12627.462893027043
+              },
+              "expectedGravityDirection": {
+                "x": 0.7626514766734548,
+                "y": 0.005503377339019949,
+                "z": -0.6467862382315067
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 2.842170943040401e-14,
+              "gravity": {
+                "x": 0.7626514766734548,
+                "y": 0.005503377339019949,
+                "z": -0.6467862382315067
+              },
+              "beforeVelocity": {
+                "x": 2409.208742897672,
+                "y": 17.383644193521828,
+                "z": -28.475285906390326
+              },
+              "afterVelocity": {
+                "x": 2411.0772581156566,
+                "y": 17.39712760583111,
+                "z": -30.05992838841892
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333582431077957,
+              "oldWorldCm": {
+                "x": 15130.539077117102,
+                "y": -107.29968556654032,
+                "z": 12627.218993807654
+              },
+              "expectedGravityDirection": {
+                "x": 0.7622267779124922,
+                "y": 0.005500313294784242,
+                "z": -0.6472867104975967
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.7763568394002505e-14,
+              "gravity": {
+                "x": 0.7622267779124922,
+                "y": 0.005500313294784242,
+                "z": -0.6472867104975967
+              },
+              "beforeVelocity": {
+                "x": 2411.0772581156566,
+                "y": 17.39712760583111,
+                "z": -30.05992838841892
+              },
+              "afterVelocity": {
+                "x": 2412.94476954302,
+                "y": 17.41060377621733,
+                "z": -31.645828233010004
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333377540111542,
+              "oldWorldCm": {
+                "x": 15150.639769725518,
+                "y": -107.15464901718475,
+                "z": 12626.961878803015
+              },
+              "expectedGravityDirection": {
+                "x": 0.7618010668917067,
+                "y": 0.005497241946981093,
+                "z": -0.6477877081371902
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 2.1316282072803006e-14,
+              "gravity": {
+                "x": 0.7618010668917069,
+                "y": 0.005497241946981094,
+                "z": -0.6477877081371903
+              },
+              "beforeVelocity": {
+                "x": 2412.94476954302,
+                "y": 17.41060377621733,
+                "z": -31.645828233010004
+              },
+              "afterVelocity": {
+                "x": 2414.8111920578754,
+                "y": 17.424072090433945,
+                "z": -33.232916537108714
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333414793014526,
+              "oldWorldCm": {
+                "x": 14985.90134717576,
+                "y": -81.36030263351026,
+                "z": 12627.267224485628
+              },
+              "expectedGravityDirection": {
+                "x": -0.764714475932252,
+                "y": 0.0041517289983895225,
+                "z": -0.6443559058827545
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 8.881784197001252e-14,
+              "gravity": {
+                "x": -0.764714475932252,
+                "y": 0.0041517289983895225,
+                "z": -0.6443559058827545
+              },
+              "beforeVelocity": {
+                "x": -2399.8781076891482,
+                "y": 13.028011654209251,
+                "z": -20.37987112831993
+              },
+              "afterVelocity": {
+                "x": -2400.8148920792946,
+                "y": 13.033097571947462,
+                "z": -21.169214828913315
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333414793014526,
+              "oldWorldCm": {
+                "x": 14965.898264145266,
+                "y": -81.25171361693644,
+                "z": 12627.094101601851
+              },
+              "expectedGravityDirection": {
+                "x": -0.7642945327850311,
+                "y": 0.004149449595392279,
+                "z": -0.6448539751160461
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 5.684341886080802e-14,
+              "gravity": {
+                "x": -0.7642945327850313,
+                "y": 0.00414944959539228,
+                "z": -0.6448539751160463
+              },
+              "beforeVelocity": {
+                "x": -2400.8148920792946,
+                "y": 13.033097571947462,
+                "z": -21.169214828913315
+              },
+              "afterVelocity": {
+                "x": -2401.751162034057,
+                "y": 13.038180697389704,
+                "z": -21.9591686702815
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333418518304825,
+              "oldWorldCm": {
+                "x": 14945.887376645376,
+                "y": -81.1430822289352,
+                "z": 12626.914398247325
+              },
+              "expectedGravityDirection": {
+                "x": -0.7638736030780405,
+                "y": 0.004147164837059453,
+                "z": -0.6453525544571639
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 4.263256414560601e-14,
+              "gravity": {
+                "x": -0.7638736030780403,
+                "y": 0.004147164837059452,
+                "z": -0.6453525544571638
+              },
+              "beforeVelocity": {
+                "x": -2401.751162034057,
+                "y": 13.038180697389704,
+                "z": -21.9591686702815
+              },
+              "afterVelocity": {
+                "x": -2402.6869167631985,
+                "y": 13.043261026246691,
+                "z": -22.749733630719394
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 14925.868680017427,
+                "y": -81.03440844421328,
+                "z": 12626.728109250142
+              },
+              "expectedGravityDirection": {
+                "x": -0.7634516836193181,
+                "y": 0.004144874706063533,
+                "z": -0.6458516445690138
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 5.3290705182007514e-14,
+              "gravity": {
+                "x": -0.7634516836193181,
+                "y": 0.004144874706063533,
+                "z": -0.6458516445690138
+              },
+              "beforeVelocity": {
+                "x": -2402.6869167631985,
+                "y": 13.043261026246691,
+                "z": -22.749733630719394
+              },
+              "afterVelocity": {
+                "x": -2403.622149618764,
+                "y": 13.048338522426851,
+                "z": -23.540905738636713
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333459496498108,
+              "oldWorldCm": {
+                "x": 14905.842294957565,
+                "y": -80.92569291798043,
+                "z": 12626.535230649146
+              },
+              "expectedGravityDirection": {
+                "x": -0.7630287738546542,
+                "y": 0.004142579199394426,
+                "z": -0.6463512429843696
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 7.460698725481052e-14,
+              "gravity": {
+                "x": -0.7630287738546544,
+                "y": 0.004142579199394427,
+                "z": -0.6463512429843697
+              },
+              "beforeVelocity": {
+                "x": -2403.622149618764,
+                "y": 13.048338522426851,
+                "z": -23.540905738636713
+              },
+              "afterVelocity": {
+                "x": -2404.5568740178564,
+                "y": 13.053413258774322,
+                "z": -24.33269799851309
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 14885.807912384871,
+                "y": -80.81693397235229,
+                "z": 12626.335754280299
+              },
+              "expectedGravityDirection": {
+                "x": -0.7626048641359484,
+                "y": 0.0041402782646814094,
+                "z": -0.6468513579579799
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 4.973799150320701e-14,
+              "gravity": {
+                "x": -0.7626048641359486,
+                "y": 0.00414027826468141,
+                "z": -0.64685135795798
+              },
+              "beforeVelocity": {
+                "x": -2404.5568740178564,
+                "y": 13.053413258774322,
+                "z": -24.33269799851309
+              },
+              "afterVelocity": {
+                "x": -2405.491069514516,
+                "y": 13.058485124286436,
+                "z": -25.125094761280963
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 14865.765948594537,
+                "y": -80.70813386723195,
+                "z": 12626.129679142738
+              },
+              "expectedGravityDirection": {
+                "x": -0.7621799601459281,
+                "y": 0.0041379719327677734,
+                "z": -0.6473519796372256
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 2.842170943040401e-14,
+              "gravity": {
+                "x": -0.7621799601459281,
+                "y": 0.0041379719327677734,
+                "z": -0.6473519796372256
+              },
+              "beforeVelocity": {
+                "x": -2405.491069514516,
+                "y": 13.058485124286436,
+                "z": -25.125094761280963
+              },
+              "afterVelocity": {
+                "x": -2406.424744501259,
+                "y": 13.063554164528233,
+                "z": -25.918104788584923
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333418518304825,
+              "oldWorldCm": {
+                "x": 14845.716201972715,
+                "y": -80.59929150813238,
+                "z": 12625.916998111461
+              },
+              "expectedGravityDirection": {
+                "x": -0.7617540544865543,
+                "y": 0.004135660163495855,
+                "z": -0.6478531135900388
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 4.618527782440651e-14,
+              "gravity": {
+                "x": -0.7617540544865543,
+                "y": 0.004135660163495855,
+                "z": -0.6478531135900388
+              },
+              "beforeVelocity": {
+                "x": -2406.424744501259,
+                "y": 13.063554164528233,
+                "z": -25.918104788584923
+              },
+              "afterVelocity": {
+                "x": -2407.3579027568344,
+                "y": 13.06862040001604,
+                "z": -26.71173296527307
+              },
+              "falling": true
+            }
+          ],
+          "landings": [
+            {
+              "body": 0,
+              "nativeGroundFrames": 228,
+              "travelCm": 784.9273727554339
+            },
+            {
+              "body": 1,
+              "nativeGroundFrames": 457,
+              "travelCm": 800.7589387093046
+            },
+            {
+              "body": 0,
+              "nativeGroundFrames": 684,
+              "travelCm": 800.5936688391737
+            }
+          ],
+          "materialSnapshots": 3,
+          "gpuQueries": 60,
+          "maxGPUPositionErrorCm": 0.0004106642499212014,
+          "maxTextureMacroPhaseErrorCm": 0.0004125489198258947,
+          "nativeBodies": [
+            {
+              "readyEvents": 8927,
+              "retireEvents": 9299,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482445.VoxelVolumeLayer_2147482444"
+            },
+            {
+              "readyEvents": 7454,
+              "retireEvents": 7858,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482441.VoxelVolumeLayer_2147482440"
+            }
+          ],
+          "cleanupVerified": true,
+          "passed": true
+        },
+        "reportSha256": "4ea53d36bea4c0d6218398e9092a4112b757f3328adade2dcb7a92b32873d3ad",
+        "screenshots": {
+          "visit-2.png": "390d5e52da8da1c5575eb6f363b8d9fbc554086a2fab6b7d076de727211cfd57",
+          "visit-0.png": "4af8efa57f09876fdd05a3fd5f196df13bbc70de21d61ed650302d164a32b1c2",
+          "visit-1.png": "e9f60dd746a148a4a3bb19cc4f12750d54dc53e21c20ecc4494cf46a3f1e1eaf"
+        }
+      },
+      {
+        "case": "translated-30fps",
+        "passed": true,
+        "error": null,
+        "exitCode": 0,
+        "report": {
+          "profile": "two-static-bodies-native-v1",
+          "message": "Two-body native travel and airborne handover completed",
+          "editorBuild": false,
+          "legacyBindingControl": false,
+          "sharedLayerControl": false,
+          "offsetCm": {
+            "x": 50000,
+            "y": -30000,
+            "z": 10000
+          },
+          "finalStage": 7,
+          "activeBody": 0,
+          "maxBodyFrameRoundTripErrorCm": 0,
+          "visits": 3,
+          "nativeGroundFrames": 192,
+          "bodyAGroundFrames": 128,
+          "bodyBGroundFrames": 64,
+          "flightFrames": 1091,
+          "fallingGravityFrames": 16,
+          "maxFallingVelocityErrorCmPerSec": 1.0658141036401503e-13,
+          "travelMeters": 784.2398107778068,
+          "maxFrameStepCm": 103.82629930972675,
+          "minGravityDot": 0.999999996262016,
+          "maxGroundErrorCm": 0.034193731102277525,
+          "maxNearMeshFieldErrorCm": 0.016278250855975784,
+          "nativeMeshSamples": 421237,
+          "nativeSurfaceChecks": 47148,
+          "nativePicks": 192,
+          "maxPickErrorCm": 0.00010245214452160946,
+          "maxMeshesPerBody": 347,
+          "maxPendingNativeTasks": 87,
+          "peakResidentMiB": 955.515625,
+          "maxHandoverPositionJumpCm": 0,
+          "maxHandoverVelocityJumpCmPerSec": 0,
+          "maxHandoverHeadingError": 7.443733859509439e-16,
+          "handoffs": [
+            {
+              "from": 0,
+              "to": 1,
+              "worldCm": {
+                "x": 65023.79828933018,
+                "y": -30084.576310421235,
+                "z": 22632.935988468398
+              },
+              "sourceBodyLocalCm": {
+                "x": 15023.798289330181,
+                "y": -84.57631042123467,
+                "z": 12632.935988468398
+              },
+              "targetBodyLocalCm": {
+                "x": -14976.201710669819,
+                "y": -84.57631042123467,
+                "z": 12632.935988468398
+              },
+              "velocityCmPerSec": {
+                "x": 2399.867210545507,
+                "y": 13.55135053987748,
+                "z": -21.301001071142085
+              },
+              "gravityDot": 1,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 6.168033687123731e-16,
+              "speedCmPerSec": 2399.9999999999086
+            },
+            {
+              "from": 1,
+              "to": 0,
+              "worldCm": {
+                "x": 64979.3827330469,
+                "y": -30097.76190491493,
+                "z": 22636.501940293576
+              },
+              "sourceBodyLocalCm": {
+                "x": -15020.6172669531,
+                "y": -97.76190491492889,
+                "z": 12636.501940293576
+              },
+              "targetBodyLocalCm": {
+                "x": 14979.3827330469,
+                "y": -97.76190491492889,
+                "z": 12636.501940293576
+              },
+              "velocityCmPerSec": {
+                "x": -2399.8492762906,
+                "y": 15.660710298219175,
+                "z": -21.86762995740043
+              },
+              "gravityDot": 1,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 7.443733859509439e-16,
+              "speedCmPerSec": 2399.9999999998986
+            }
+          ],
+          "fallingProbes": [
+            {
+              "body": 1,
+              "dt": 0.03333333507180214,
+              "oldWorldCm": {
+                "x": 65023.79828933018,
+                "y": -30084.576310421235,
+                "z": 22632.935988468398
+              },
+              "expectedGravityDirection": {
+                "x": 0.7643657143855961,
+                "y": 0.004316664077058134,
+                "z": -0.6447685019315406
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 3.552713678800501e-15,
+              "gravity": {
+                "x": 0.7643657143855963,
+                "y": 0.004316664077058135,
+                "z": -0.6447685019315407
+              },
+              "beforeVelocity": {
+                "x": 2399.867210545507,
+                "y": 13.55135053987748,
+                "z": -21.301001071142085
+              },
+              "afterVelocity": {
+                "x": 2407.3579949371606,
+                "y": 13.59365385003894,
+                "z": -27.6197327196187
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 65103.918713600164,
+                "y": -30084.12389365781,
+                "z": 22632.120642862694
+              },
+              "expectedGravityDirection": {
+                "x": 0.7626783023333511,
+                "y": 0.004307137371705028,
+                "z": -0.6467636784155233
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 0,
+              "gravity": {
+                "x": 0.7626783023333513,
+                "y": 0.004307137371705029,
+                "z": -0.6467636784155234
+              },
+              "beforeVelocity": {
+                "x": 2407.3579949371606,
+                "y": 13.59365385003894,
+                "z": -27.6197327196187
+              },
+              "afterVelocity": {
+                "x": 2414.8322702551436,
+                "y": 13.63586395415493,
+                "z": -33.958040474486694
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.033339668065309525,
+              "oldWorldCm": {
+                "x": 65184.28885195195,
+                "y": -30083.67006666368,
+                "z": 22631.09434280425
+              },
+              "expectedGravityDirection": {
+                "x": 0.7609749001893397,
+                "y": 0.004297520381707561,
+                "z": -0.6487670865575667
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 9.237055564881302e-14,
+              "gravity": {
+                "x": 0.7609749001893399,
+                "y": 0.004297520381707562,
+                "z": -0.6487670865575668
+              },
+              "beforeVelocity": {
+                "x": 2414.8322702551436,
+                "y": 13.63586395415493,
+                "z": -33.958040474486694
+              },
+              "afterVelocity": {
+                "x": 2422.291241525177,
+                "y": 13.67798765764576,
+                "z": -40.31716619383978
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 65264.92289808878,
+                "y": -30083.214749290517,
+                "z": 22629.856187436348
+              },
+              "expectedGravityDirection": {
+                "x": 0.7592549668620929,
+                "y": 0.004287810052029781,
+                "z": -0.650779156073856
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 4.263256414560601e-14,
+              "gravity": {
+                "x": 0.7592549668620929,
+                "y": 0.004287810052029781,
+                "z": -0.650779156073856
+              },
+              "beforeVelocity": {
+                "x": 2422.291241525177,
+                "y": 13.67798765764576,
+                "z": -40.31716619383978
+              },
+              "afterVelocity": {
+                "x": 2429.7319680300634,
+                "y": 13.72000835332051,
+                "z": -46.69482577694222
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333341330289841,
+              "oldWorldCm": {
+                "x": 65345.79025403963,
+                "y": -30082.758114315773,
+                "z": 22628.40598214614
+              },
+              "expectedGravityDirection": {
+                "x": 0.7575189137231796,
+                "y": 0.0042780087050101594,
+                "z": -0.6527991988300643
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 3.552713678800501e-14,
+              "gravity": {
+                "x": 0.7575189137231796,
+                "y": 0.0042780087050101594,
+                "z": -0.6527991988300643
+              },
+              "beforeVelocity": {
+                "x": 2429.7319680300634,
+                "y": 13.72000835332051,
+                "z": -46.69482577694222
+              },
+              "afterVelocity": {
+                "x": 2437.1556711946173,
+                "y": 13.761932939210096,
+                "z": -53.09227327347288
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 65426.905242628156,
+                "y": -30082.300080862038,
+                "z": 22626.74285983867
+              },
+              "expectedGravityDirection": {
+                "x": 0.7557661909609062,
+                "y": 0.0042681132363744006,
+                "z": -0.6548276474079607
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.0658141036401503e-13,
+              "gravity": {
+                "x": 0.7557661909609062,
+                "y": 0.0042681132363744006,
+                "z": -0.6548276474079607
+              },
+              "beforeVelocity": {
+                "x": 2437.1556711946173,
+                "y": 13.761932939210096,
+                "z": -53.09227327347288
+              },
+              "afterVelocity": {
+                "x": 2444.5622075677948,
+                "y": 13.80376060536946,
+                "z": -59.50960822004259
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333354368805885,
+              "oldWorldCm": {
+                "x": 65508.26751158352,
+                "y": -30081.840650917944,
+                "z": 22624.866154794567
+              },
+              "expectedGravityDirection": {
+                "x": 0.7539965564644062,
+                "y": 0.004258122279048373,
+                "z": -0.6568645684115366
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 5.684341886080802e-14,
+              "gravity": {
+                "x": 0.7539965564644062,
+                "y": 0.004258122279048373,
+                "z": -0.6568645684115366
+              },
+              "beforeVelocity": {
+                "x": 2444.5622075677948,
+                "y": 13.80376060536946,
+                "z": -59.50960822004259
+              },
+              "afterVelocity": {
+                "x": 2451.951420451527,
+                "y": 13.84549046704468,
+                "z": -65.946921613798
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.03333349898457527,
+              "oldWorldCm": {
+                "x": 65589.8765870529,
+                "y": -30081.37982715866,
+                "z": 22622.775199435484
+              },
+              "expectedGravityDirection": {
+                "x": 0.7522097663845703,
+                "y": 0.004248034456140241,
+                "z": -0.6589100253896049
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 5.684341886080802e-14,
+              "gravity": {
+                "x": 0.7522097663845703,
+                "y": 0.004248034456140241,
+                "z": -0.6589100253896049
+              },
+              "beforeVelocity": {
+                "x": 2451.951420451527,
+                "y": 13.84549046704468,
+                "z": -65.946921613798
+              },
+              "afterVelocity": {
+                "x": 2459.323112795814,
+                "y": 13.887121411600356,
+                "z": -72.4042719524997
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.033333417028188705,
+              "oldWorldCm": {
+                "x": 64979.3827330469,
+                "y": -30097.76190491493,
+                "z": 22636.501940293576
+              },
+              "expectedGravityDirection": {
+                "x": -0.7643411278958732,
+                "y": 0.004988419482938643,
+                "z": -0.6447928007336363
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 6.039613253960852e-14,
+              "gravity": {
+                "x": -0.7643411278958732,
+                "y": 0.004988419482938643,
+                "z": -0.6447928007336363
+              },
+              "beforeVelocity": {
+                "x": -2399.8492762906,
+                "y": 15.660710298219175,
+                "z": -21.86762995740043
+              },
+              "afterVelocity": {
+                "x": -2403.5945572210885,
+                "y": 15.685153615058816,
+                "z": -25.027122613973695
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.033333417028188705,
+              "oldWorldCm": {
+                "x": 64899.32513480994,
+                "y": -30097.239472537964,
+                "z": 22635.720359121628
+              },
+              "expectedGravityDirection": {
+                "x": -0.7626544947445254,
+                "y": 0.004977414757155765,
+                "z": -0.6467869409537487
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 7.105427357601002e-15,
+              "gravity": {
+                "x": -0.7626544947445254,
+                "y": 0.004977414757155765,
+                "z": -0.6467869409537487
+              },
+              "beforeVelocity": {
+                "x": -2403.5945572210885,
+                "y": 15.685153615058816,
+                "z": -25.027122613973695
+              },
+              "afterVelocity": {
+                "x": -2407.3315736283844,
+                "y": 15.709543008606728,
+                "z": -28.19638658215976
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 64819.14283130423,
+                "y": -30096.71622628045,
+                "z": 22634.833298407757
+              },
+              "expectedGravityDirection": {
+                "x": -0.7609519246016729,
+                "y": 0.004966306038487725,
+                "z": -0.648789260275894
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 8.526512829121202e-14,
+              "gravity": {
+                "x": -0.7609519246016732,
+                "y": 0.004966306038487726,
+                "z": -0.6487892602758941
+              },
+              "beforeVelocity": {
+                "x": -2407.3315736283844,
+                "y": 15.709543008606728,
+                "z": -28.19638658215976
+              },
+              "afterVelocity": {
+                "x": -2411.0602520048515,
+                "y": 15.7338779992125,
+                "z": -31.375465847832203
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333337604999542,
+              "oldWorldCm": {
+                "x": 64738.836000515206,
+                "y": -30096.19216730358,
+                "z": 22633.84043048709
+              },
+              "expectedGravityDirection": {
+                "x": -0.7592332200289296,
+                "y": 0.004955092038537187,
+                "z": -0.650799788466002
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 2.842170943040401e-14,
+              "gravity": {
+                "x": -0.7592332200289296,
+                "y": 0.004955092038537187,
+                "z": -0.650799788466002
+              },
+              "beforeVelocity": {
+                "x": -2411.0602520048515,
+                "y": 15.7338779992125,
+                "z": -31.375465847832203
+              },
+              "afterVelocity": {
+                "x": -2414.780499550484,
+                "y": 15.758157981316087,
+                "z": -34.564388897914796
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333345800638199,
+              "oldWorldCm": {
+                "x": 64658.405218250715,
+                "y": -30095.66729936462,
+                "z": 22632.741431499628
+              },
+              "expectedGravityDirection": {
+                "x": -0.7574981893755818,
+                "y": 0.004943771506665988,
+                "z": -0.6528185446324309
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 0,
+              "gravity": {
+                "x": -0.7574981893755818,
+                "y": 0.004943771506665988,
+                "z": -0.6528185446324309
+              },
+              "beforeVelocity": {
+                "x": -2414.780499550484,
+                "y": 15.758157981316087,
+                "z": -34.564388897914796
+              },
+              "afterVelocity": {
+                "x": -2418.4922545610466,
+                "y": 15.782382552302945,
+                "z": -37.7632117307788
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.033333417028188705,
+              "oldWorldCm": {
+                "x": 64577.85037105943,
+                "y": -30095.141621722934,
+                "z": 22631.535966980497
+              },
+              "expectedGravityDirection": {
+                "x": -0.7557466233504218,
+                "y": 0.004932343077134033,
+                "z": -0.6548455644548609
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 7.815970093361102e-14,
+              "gravity": {
+                "x": -0.7557466233504218,
+                "y": 0.004932343077134033,
+                "z": -0.6548455644548609
+              },
+              "beforeVelocity": {
+                "x": -2418.4922545610466,
+                "y": 15.782382552302945,
+                "z": -37.7632117307788
+              },
+              "afterVelocity": {
+                "x": -2422.195422313523,
+                "y": 15.806551094064227,
+                "z": -40.97196305326665
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333349898457527,
+              "oldWorldCm": {
+                "x": 64497.17204054119,
+                "y": -30094.61513817358,
+                "z": 22630.223710772563
+              },
+              "expectedGravityDirection": {
+                "x": -0.7539783248475721,
+                "y": 0.004920805463702992,
+                "z": -0.656880865403794
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 8.526512829121202e-14,
+              "gravity": {
+                "x": -0.7539783248475723,
+                "y": 0.004920805463702993,
+                "z": -0.6568808654037941
+              },
+              "beforeVelocity": {
+                "x": -2422.195422313523,
+                "y": 15.806551094064227,
+                "z": -40.97196305326665
+              },
+              "afterVelocity": {
+                "x": -2425.889934465201,
+                "y": 15.83066316066159,
+                "z": -44.19069528927543
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.03333349898457527,
+              "oldWorldCm": {
+                "x": 64416.37021638253,
+                "y": -30094.087848648964,
+                "z": 22628.80432607987
+              },
+              "expectedGravityDirection": {
+                "x": -0.75219308096612,
+                "y": 0.004909157277073364,
+                "z": -0.6589244790729246
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 4.973799150320701e-14,
+              "gravity": {
+                "x": -0.75219308096612,
+                "y": 0.004909157277073364,
+                "z": -0.6589244790729246
+              },
+              "beforeVelocity": {
+                "x": -2425.889934465201,
+                "y": 15.83066316066159,
+                "z": -44.19069528927543
+              },
+              "afterVelocity": {
+                "x": -2429.5756988783874,
+                "y": 15.854718150860826,
+                "z": -47.41944128202658
+              },
+              "falling": true
+            }
+          ],
+          "landings": [
+            {
+              "body": 0,
+              "nativeGroundFrames": 64,
+              "travelCm": 829.3485904982376
+            },
+            {
+              "body": 1,
+              "nativeGroundFrames": 128,
+              "travelCm": 833.6880275376132
+            },
+            {
+              "body": 0,
+              "nativeGroundFrames": 192,
+              "travelCm": 831.6235796487724
+            }
+          ],
+          "materialSnapshots": 3,
+          "gpuQueries": 60,
+          "maxGPUPositionErrorCm": 0.0004106642499212014,
+          "maxTextureMacroPhaseErrorCm": 0.0004125489198258947,
+          "nativeBodies": [
+            {
+              "readyEvents": 8200,
+              "retireEvents": 8559,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482445.VoxelVolumeLayer_2147482444"
+            },
+            {
+              "readyEvents": 6867,
+              "retireEvents": 7249,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482441.VoxelVolumeLayer_2147482440"
+            }
+          ],
+          "cleanupVerified": true,
+          "passed": true
+        },
+        "reportSha256": "ead1952092c12ffe7add6a637b2cd6ebf9225cdddb53ee6450df35841cd5c57c",
+        "screenshots": {
+          "visit-2.png": "077be3b4bf36ce9ae26332aa44821614bd45e4862a45e4b8bed834d830e40634",
+          "visit-0.png": "3cf69b1a98ddc5ae2ede36ba995e32ee812233e43530abeb3fe5aa5102503fd7",
+          "visit-1.png": "c1e501a60939f682a799c7b27776a989b7682b685d0c428257c4a105a245c9ad"
+        }
+      },
+      {
+        "case": "translated-120fps",
+        "passed": true,
+        "error": null,
+        "exitCode": 0,
+        "report": {
+          "profile": "two-static-bodies-native-v1",
+          "message": "Two-body native travel and airborne handover completed",
+          "editorBuild": false,
+          "legacyBindingControl": false,
+          "sharedLayerControl": false,
+          "offsetCm": {
+            "x": 50000,
+            "y": -30000,
+            "z": 10000
+          },
+          "finalStage": 7,
+          "activeBody": 0,
+          "maxBodyFrameRoundTripErrorCm": 0,
+          "visits": 3,
+          "nativeGroundFrames": 685,
+          "bodyAGroundFrames": 454,
+          "bodyBGroundFrames": 231,
+          "flightFrames": 4338,
+          "fallingGravityFrames": 16,
+          "maxFallingVelocityErrorCmPerSec": 1.1368683772161603e-13,
+          "travelMeters": 785.3002236029986,
+          "maxFrameStepCm": 104.2910213743471,
+          "minGravityDot": 0.9999999929055411,
+          "maxGroundErrorCm": 0.032974274190564756,
+          "maxNearMeshFieldErrorCm": 0.016278250855975784,
+          "nativeMeshSamples": 441988,
+          "nativeSurfaceChecks": 49473,
+          "nativePicks": 685,
+          "maxPickErrorCm": 9.260775981411405e-05,
+          "maxMeshesPerBody": 344,
+          "maxPendingNativeTasks": 58,
+          "peakResidentMiB": 1012.765625,
+          "maxHandoverPositionJumpCm": 0,
+          "maxHandoverVelocityJumpCmPerSec": 0,
+          "maxHandoverHeadingError": 1.1638493205670664e-10,
+          "handoffs": [
+            {
+              "from": 0,
+              "to": 1,
+              "worldCm": {
+                "x": 65005.69866984033,
+                "y": -30108.1417835541,
+                "z": 22628.05769968148
+              },
+              "sourceBodyLocalCm": {
+                "x": 15005.698669840327,
+                "y": -108.14178355409967,
+                "z": 12628.057699681482
+              },
+              "targetBodyLocalCm": {
+                "x": -14994.301330159673,
+                "y": -108.14178355409967,
+                "z": 12628.057699681482
+              },
+              "velocityCmPerSec": {
+                "x": 2399.85008734661,
+                "y": 17.3067124013292,
+                "z": -20.494779027287688
+              },
+              "gravityDot": 1,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 3.141765728302859e-16,
+              "speedCmPerSec": 2399.999999999802
+            },
+            {
+              "from": 1,
+              "to": 0,
+              "worldCm": {
+                "x": 64981.683583587605,
+                "y": -30080.200802802134,
+                "z": 22627.72857779209
+              },
+              "sourceBodyLocalCm": {
+                "x": -15018.316416412395,
+                "y": -80.2008028021337,
+                "z": 12627.728577792092
+              },
+              "targetBodyLocalCm": {
+                "x": 14981.683583587605,
+                "y": -80.2008028021337,
+                "z": 12627.728577792092
+              },
+              "velocityCmPerSec": {
+                "x": -2399.8784114817563,
+                "y": 12.845956546245754,
+                "z": -20.459508861311974
+              },
+              "gravityDot": 1,
+              "positionJumpCm": 0,
+              "velocityJumpCmPerSec": 0,
+              "headingError": 1.1638493205670664e-10,
+              "speedCmPerSec": 2399.9999999997153
+            }
+          ],
+          "fallingProbes": [
+            {
+              "body": 1,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 65005.69866984033,
+                "y": -30108.1417835541,
+                "z": 22628.05769968148
+              },
+              "expectedGravityDirection": {
+                "x": 0.7648674477927344,
+                "y": 0.005516371064279372,
+                "z": -0.6441640761151696
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 7.105427357601002e-15,
+              "gravity": {
+                "x": 0.7648674477927344,
+                "y": 0.005516371064279372,
+                "z": -0.6441640761151696
+              },
+              "beforeVelocity": {
+                "x": 2399.85008734661,
+                "y": 17.3067124013292,
+                "z": -20.494779027287688
+              },
+              "afterVelocity": {
+                "x": 2401.724021696816,
+                "y": 17.32022757609009,
+                "z": -22.0729886803256
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333377540111542,
+              "oldWorldCm": {
+                "x": 65025.70532581544,
+                "y": -30107.99750393665,
+                "z": 22627.8803331211
+              },
+              "expectedGravityDirection": {
+                "x": 0.7644479390549329,
+                "y": 0.00551334611103782,
+                "z": -0.6446618892794312
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 2.1316282072803006e-14,
+              "gravity": {
+                "x": 0.7644479390549329,
+                "y": 0.00551334611103782,
+                "z": -0.6446618892794312
+              },
+              "beforeVelocity": {
+                "x": 2401.724021696816,
+                "y": 17.32022757609009,
+                "z": -22.0729886803256
+              },
+              "afterVelocity": {
+                "x": 2403.596929082872,
+                "y": 17.33373534571795,
+                "z": -23.652418687597184
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333414793014526,
+              "oldWorldCm": {
+                "x": 65045.72760265757,
+                "y": -30107.853111658507,
+                "z": 22627.68980957971
+              },
+              "expectedGravityDirection": {
+                "x": 0.7640274441893841,
+                "y": 0.005510314046637643,
+                "z": -0.6451602134079139
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 3.552713678800501e-14,
+              "gravity": {
+                "x": 0.7640274441893841,
+                "y": 0.005510314046637643,
+                "z": -0.6451602134079139
+              },
+              "beforeVelocity": {
+                "x": 2403.596929082872,
+                "y": 17.33373534571795,
+                "z": -23.652418687597184
+              },
+              "afterVelocity": {
+                "x": 2405.468814618941,
+                "y": 17.347235747099532,
+                "z": -25.233076661482926
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333377540111542,
+              "oldWorldCm": {
+                "x": 65065.76557246214,
+                "y": -30107.708606199736,
+                "z": 22627.48611802466
+              },
+              "expectedGravityDirection": {
+                "x": 0.7636059580534673,
+                "y": 0.005507274833994474,
+                "z": -0.6456590514731048
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 5.684341886080802e-14,
+              "gravity": {
+                "x": 0.7636059580534673,
+                "y": 0.005507274833994474,
+                "z": -0.6456590514731048
+              },
+              "beforeVelocity": {
+                "x": 2405.468814618941,
+                "y": 17.347235747099532,
+                "z": -25.233076661482926
+              },
+              "afterVelocity": {
+                "x": 2407.3396591406004,
+                "y": 17.36072864201973,
+                "z": -26.814949729088998
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.00833333283662796,
+              "oldWorldCm": {
+                "x": 65085.81904748219,
+                "y": -30107.563988914284,
+                "z": 22627.269250097594
+              },
+              "expectedGravityDirection": {
+                "x": 0.763183480957113,
+                "y": 0.005504228475340911,
+                "z": -0.6461583999787324
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 3.552713678800501e-15,
+              "gravity": {
+                "x": 0.763183480957113,
+                "y": 0.005504228475340911,
+                "z": -0.6461583999787324
+              },
+              "beforeVelocity": {
+                "x": 2407.3396591406004,
+                "y": 17.36072864201973,
+                "z": -26.814949729088998
+              },
+              "afterVelocity": {
+                "x": 2409.2094585574964,
+                "y": 17.374214000980526,
+                "z": -28.398037714677486
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 65105.888000943065,
+                "y": -30107.419259995233,
+                "z": 22627.039195996957
+              },
+              "expectedGravityDirection": {
+                "x": 0.7627600098193968,
+                "y": 0.005501174948459112,
+                "z": -0.646658259434224
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 2.842170943040401e-14,
+              "gravity": {
+                "x": 0.7627600098193968,
+                "y": 0.005501174948459112,
+                "z": -0.646658259434224
+              },
+              "beforeVelocity": {
+                "x": 2409.2094585574964,
+                "y": 17.374214000980526,
+                "z": -28.398037714677486
+              },
+              "afterVelocity": {
+                "x": 2411.078229659586,
+                "y": 17.3876919450768,
+                "z": -29.982358146531727
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 65125.97263054351,
+                "y": -30107.274418016852,
+                "z": 22626.79594316587
+              },
+              "expectedGravityDirection": {
+                "x": 0.7623355367986407,
+                "y": 0.005498114196802566,
+                "z": -0.6471586359419205
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.0302869668521453e-13,
+              "gravity": {
+                "x": 0.7623355367986407,
+                "y": 0.005498114196802566,
+                "z": -0.6471586359419205
+              },
+              "beforeVelocity": {
+                "x": 2411.078229659586,
+                "y": 17.3876919450768,
+                "z": -29.982358146531727
+              },
+              "afterVelocity": {
+                "x": 2412.9459607977233,
+                "y": 17.401162390295088,
+                "z": -31.567904506785013
+              },
+              "falling": true
+            },
+            {
+              "body": 1,
+              "dt": 0.008333418518304825,
+              "oldWorldCm": {
+                "x": 65146.07282897892,
+                "y": -30107.129463752968,
+                "z": 22626.539482492324
+              },
+              "expectedGravityDirection": {
+                "x": 0.7619100604713764,
+                "y": 0.0054950462101046645,
+                "z": -0.6476595280080827
+              },
+              "expectedGravityScale": 0.30000001192092896,
+              "actualGravityScale": 0.30000001192092896,
+              "velocityErrorCmPerSec": 1.4210854715202004e-14,
+              "gravity": {
+                "x": 0.7619100604713764,
+                "y": 0.0054950462101046645,
+                "z": -0.6476595280080827
+              },
+              "beforeVelocity": {
+                "x": 2412.9459607977233,
+                "y": 17.401162390295088,
+                "z": -31.567904506785013
+              },
+              "afterVelocity": {
+                "x": 2414.8126595274443,
+                "y": 17.414625391129878,
+                "z": -33.15468657063718
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333336561918259,
+              "oldWorldCm": {
+                "x": 64981.683583587605,
+                "y": -30080.200802802134,
+                "z": 22627.72857779209
+              },
+              "expectedGravityDirection": {
+                "x": -0.7646136723600693,
+                "y": 0.004093173508479645,
+                "z": -0.6444758940182931
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 1.1368683772161603e-13,
+              "gravity": {
+                "x": -0.7646136723600693,
+                "y": 0.004093173508479645,
+                "z": -0.6444758940182931
+              },
+              "beforeVelocity": {
+                "x": -2399.8784114817563,
+                "y": 12.845956546245754,
+                "z": -20.459508861311974
+              },
+              "afterVelocity": {
+                "x": -2400.815063593285,
+                "y": 12.85097068573627,
+                "z": -21.248992137353806
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 64961.6806863584,
+                "y": -30080.093732230518,
+                "z": 22627.554792303934
+              },
+              "expectedGravityDirection": {
+                "x": -0.7641935291551037,
+                "y": 0.00409092488868916,
+                "z": -0.6449740415947164
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 5.3290705182007514e-14,
+              "gravity": {
+                "x": -0.7641935291551037,
+                "y": 0.00409092488868916,
+                "z": -0.6449740415947164
+              },
+              "beforeVelocity": {
+                "x": -2400.815063593285,
+                "y": 12.85097068573627,
+                "z": -21.248992137353806
+              },
+              "afterVelocity": {
+                "x": -2401.7512052140464,
+                "y": 12.855982093069104,
+                "z": -22.039089176405085
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333414793014526,
+              "oldWorldCm": {
+                "x": 64941.66989636419,
+                "y": -30079.986619406944,
+                "z": 22627.374424422276
+              },
+              "expectedGravityDirection": {
+                "x": -0.7637723970200947,
+                "y": 0.00408867097571477,
+                "z": -0.6454727014520685
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 7.105427357601002e-14,
+              "gravity": {
+                "x": -0.7637723970200947,
+                "y": 0.00408867097571477,
+                "z": -0.6454727014520685
+              },
+              "beforeVelocity": {
+                "x": -2401.7512052140464,
+                "y": 12.855982093069104,
+                "z": -22.039089176405085
+              },
+              "afterVelocity": {
+                "x": -2402.6868355462443,
+                "y": 12.860990763974444,
+                "z": -22.829800964943868
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333377540111542,
+              "oldWorldCm": {
+                "x": 64921.651208843694,
+                "y": -30079.879464305923,
+                "z": 22627.18746888585
+              },
+              "expectedGravityDirection": {
+                "x": -0.7633502727483835,
+                "y": 0.004086411752392518,
+                "z": -0.6459718742592112
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 2.4868995751603507e-14,
+              "gravity": {
+                "x": -0.7633502727483837,
+                "y": 0.004086411752392519,
+                "z": -0.6459718742592113
+              },
+              "beforeVelocity": {
+                "x": -2402.6868355462443,
+                "y": 12.860990763974444,
+                "z": -22.829800964943868
+              },
+              "afterVelocity": {
+                "x": -2403.6219445909137,
+                "y": 12.865996644926248,
+                "z": -23.621120708692676
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 64901.62481602408,
+                "y": -30079.7722679564,
+                "z": 22626.993922352154
+              },
+              "expectedGravityDirection": {
+                "x": -0.762927157287217,
+                "y": 0.00408414722379034,
+                "z": -0.6464715557664548
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 6.039613253960852e-14,
+              "gravity": {
+                "x": -0.762927157287217,
+                "y": 0.00408414722379034,
+                "z": -0.6464715557664548
+              },
+              "beforeVelocity": {
+                "x": -2403.6219445909137,
+                "y": 12.865996644926248,
+                "z": -23.621120708692676
+              },
+              "afterVelocity": {
+                "x": -2404.556534898601,
+                "y": 12.870999749579248,
+                "z": -24.4130522115157
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333373814821243,
+              "oldWorldCm": {
+                "x": 64881.590641705094,
+                "y": -30079.665029950487,
+                "z": 22626.79377899274
+              },
+              "expectedGravityDirection": {
+                "x": -0.7625030459163893,
+                "y": 0.004081877364643522,
+                "z": -0.6469717484136448
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 9.592326932761353e-14,
+              "gravity": {
+                "x": -0.7625030459163895,
+                "y": 0.004081877364643523,
+                "z": -0.6469717484136449
+              },
+              "beforeVelocity": {
+                "x": -2404.556534898601,
+                "y": 12.870999749579248,
+                "z": -24.4130522115157
+              },
+              "afterVelocity": {
+                "x": -2405.4906056673353,
+                "y": 12.876000073641285,
+                "z": -25.205596453308036
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333418518304825,
+              "oldWorldCm": {
+                "x": 64861.54868126047,
+                "y": -30079.55775026342,
+                "z": 22626.587033618984
+              },
+              "expectedGravityDirection": {
+                "x": -0.7620779354113516,
+                "y": 0.00407960215769221,
+                "z": -0.6474724528544878
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 5.3290705182007514e-14,
+              "gravity": {
+                "x": -0.7620779354113516,
+                "y": 0.00407960215769221,
+                "z": -0.6474724528544878
+              },
+              "beforeVelocity": {
+                "x": -2405.4906056673353,
+                "y": 12.876000073641285,
+                "z": -25.205596453308036
+              },
+              "afterVelocity": {
+                "x": -2406.4241606810997,
+                "y": 12.880997637370013,
+                "z": -25.998758315828436
+              },
+              "falling": true
+            },
+            {
+              "body": 0,
+              "dt": 0.008333500474691391,
+              "oldWorldCm": {
+                "x": 64841.49883144927,
+                "y": -30079.450428342567,
+                "z": 22626.37367995986
+              },
+              "expectedGravityDirection": {
+                "x": -0.7616518204374968,
+                "y": 0.004077321574383447,
+                "z": -0.6479736722066926
+              },
+              "expectedGravityScale": 0.15000000596046448,
+              "actualGravityScale": 0.15000000596046448,
+              "velocityErrorCmPerSec": 8.171241461241152e-14,
+              "gravity": {
+                "x": -0.7616518204374968,
+                "y": 0.004077321574383447,
+                "z": -0.6479736722066926
+              },
+              "beforeVelocity": {
+                "x": -2406.4241606810997,
+                "y": 12.880997637370013,
+                "z": -25.998758315828436
+              },
+              "afterVelocity": {
+                "x": -2407.357202874753,
+                "y": 12.885992456477526,
+                "z": -26.792541984851887
+              },
+              "falling": true
+            }
+          ],
+          "landings": [
+            {
+              "body": 0,
+              "nativeGroundFrames": 229,
+              "travelCm": 782.3293167111295
+            },
+            {
+              "body": 1,
+              "nativeGroundFrames": 460,
+              "travelCm": 797.4635180731563
+            },
+            {
+              "body": 0,
+              "nativeGroundFrames": 685,
+              "travelCm": 798.4621542502166
+            }
+          ],
+          "materialSnapshots": 3,
+          "gpuQueries": 60,
+          "maxGPUPositionErrorCm": 0.0004106642499212014,
+          "maxTextureMacroPhaseErrorCm": 0.0004125489198258947,
+          "nativeBodies": [
+            {
+              "readyEvents": 8826,
+              "retireEvents": 9195,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482445.VoxelVolumeLayer_2147482444"
+            },
+            {
+              "readyEvents": 7470,
+              "retireEvents": 7874,
+              "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482441.VoxelVolumeLayer_2147482440"
+            }
+          ],
+          "cleanupVerified": true,
+          "passed": true
+        },
+        "reportSha256": "fb87a82ebd6ffda76b3b6725bb706934385319c29e56d2264bb0dc9ad48264ed",
+        "screenshots": {
+          "visit-2.png": "28655ec51fd41172cfc3c02665ce8369d7c6a56806e946baa8963626cd8d0140",
+          "visit-0.png": "ed734cc883247c3c32e665859aea46e31fffcec0266af3269871355d1b110291",
+          "visit-1.png": "e8c18a6970543570fb8b2137b2080527910a8cd96a1e6fd0460a60926c43737d"
+        }
+      }
+    ]
+  },
+  "controls": {
+    "shared-layer": {
+      "nativePassed": false,
+      "expectedFailureVerified": true,
+      "report": {
+        "profile": "two-static-bodies-native-v1",
+        "message": "Native world rendered another body's surface layer",
+        "editorBuild": false,
+        "legacyBindingControl": false,
+        "sharedLayerControl": true,
+        "offsetCm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "finalStage": 6,
+        "activeBody": 0,
+        "maxBodyFrameRoundTripErrorCm": 0,
+        "visits": 0,
+        "nativeGroundFrames": 0,
+        "bodyAGroundFrames": 0,
+        "bodyBGroundFrames": 0,
+        "flightFrames": 0,
+        "fallingGravityFrames": 0,
+        "maxFallingVelocityErrorCmPerSec": 0,
+        "travelMeters": 0.020416952645791752,
+        "maxFrameStepCm": 0.3879213938380417,
+        "minGravityDot": 1,
+        "maxGroundErrorCm": 0,
+        "maxNearMeshFieldErrorCm": 0,
+        "nativeMeshSamples": 0,
+        "nativeSurfaceChecks": 1,
+        "nativePicks": 0,
+        "maxPickErrorCm": 0,
+        "maxMeshesPerBody": 0,
+        "maxPendingNativeTasks": 189,
+        "peakResidentMiB": 942.609375,
+        "maxHandoverPositionJumpCm": 0,
+        "maxHandoverVelocityJumpCmPerSec": 0,
+        "maxHandoverHeadingError": 0,
+        "handoffs": [],
+        "fallingProbes": [],
+        "landings": [],
+        "materialSnapshots": 0,
+        "gpuQueries": 0,
+        "maxGPUPositionErrorCm": 0,
+        "maxTextureMacroPhaseErrorCm": 0,
+        "nativeBodies": [
+          {
+            "readyEvents": 227,
+            "retireEvents": 227,
+            "layer": "default"
+          },
+          {
+            "readyEvents": 287,
+            "retireEvents": 287,
+            "layer": "default"
+          }
+        ],
+        "cleanupVerified": true,
+        "passed": false
+      },
+      "reportSha256": "600b79f2d4a58e49ed132eaf6bd4549f5b1160a687c59a9c9628d3b680324a5e"
+    },
+    "legacy-binding": {
+      "nativePassed": false,
+      "expectedFailureVerified": true,
+      "report": {
+        "profile": "two-static-bodies-native-v1",
+        "message": "Airborne owner selection left stale gravity/heading or changed world position/velocity",
+        "editorBuild": false,
+        "legacyBindingControl": true,
+        "sharedLayerControl": false,
+        "offsetCm": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "finalStage": 3,
+        "activeBody": 0,
+        "maxBodyFrameRoundTripErrorCm": 0,
+        "visits": 1,
+        "nativeGroundFrames": 121,
+        "bodyAGroundFrames": 121,
+        "bodyBGroundFrames": 0,
+        "flightFrames": 557,
+        "fallingGravityFrames": 0,
+        "maxFallingVelocityErrorCmPerSec": 0,
+        "travelMeters": 196.59460407378128,
+        "maxFrameStepCm": 80.304362117749,
+        "minGravityDot": 0.9999999957759771,
+        "maxGroundErrorCm": 0.031340358280431246,
+        "maxNearMeshFieldErrorCm": 0.015983894902092288,
+        "nativeMeshSamples": 114780,
+        "nativeSurfaceChecks": 12849,
+        "nativePicks": 121,
+        "maxPickErrorCm": 6.782052545440697e-05,
+        "maxMeshesPerBody": 344,
+        "maxPendingNativeTasks": 55,
+        "peakResidentMiB": 920.8125,
+        "maxHandoverPositionJumpCm": 0,
+        "maxHandoverVelocityJumpCmPerSec": 0,
+        "maxHandoverHeadingError": 1.5423292624771687,
+        "handoffs": [
+          {
+            "from": 0,
+            "to": 1,
+            "worldCm": {
+              "x": 15002.30117499683,
+              "y": 149.18655532793156,
+              "z": 12382.165589421516
+            },
+            "sourceBodyLocalCm": {
+              "x": 15002.30117499683,
+              "y": 149.18655532793156,
+              "z": 12382.165589421516
+            },
+            "targetBodyLocalCm": {
+              "x": -14997.69882500317,
+              "y": 149.18655532793156,
+              "z": 12382.165589421516
+            },
+            "velocityCmPerSec": {
+              "x": 2399.807234405195,
+              "y": -23.869686070111975,
+              "z": 18.854065439488604
+            },
+            "gravityDot": -0.1894054562043752,
+            "positionJumpCm": 0,
+            "velocityJumpCmPerSec": 0,
+            "headingError": 1.5423292624771687,
+            "speedCmPerSec": 2400.00000000004
+          }
+        ],
+        "fallingProbes": [],
+        "landings": [
+          {
+            "body": 0,
+            "nativeGroundFrames": 121,
+            "travelCm": 786.6915200341721
+          }
+        ],
+        "materialSnapshots": 1,
+        "gpuQueries": 20,
+        "maxGPUPositionErrorCm": 0,
+        "maxTextureMacroPhaseErrorCm": 0,
+        "nativeBodies": [
+          {
+            "readyEvents": 5040,
+            "retireEvents": 5333,
+            "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482445.VoxelVolumeLayer_2147482444"
+          },
+          {
+            "readyEvents": 557,
+            "retireEvents": 557,
+            "layer": "/Game/ScaleProof/ScaleLab.ScaleLab:PersistentLevel.CLProofPlanet_2147482441.VoxelVolumeLayer_2147482440"
+          }
+        ],
+        "cleanupVerified": true,
+        "passed": false
+      },
+      "reportSha256": "0755faf13a61981004a9c8c72b66dc132c48e485e3cfb75778c8e81bd4c15bdc"
+    }
+  },
+  "editor": {
+    "passed": 60,
+    "failed": 0,
+    "automationWarnings": 0,
+    "reportSha256": "494f35cbcbf8f90c84361a34c1c729ae9a7b1bdbc489084d6301c00a8dc393ab"
+  },
+  "regressions": {
+    "geometricDatum": {
+      "samples": 630,
+      "frames": 1890,
+      "passed": true,
+      "reportSha256": "f7562143905e09b43a971efe1997f090f82a3c758e516a255d0c5cdfddca98a6"
+    },
+    "liveOriginPresentation": {
+      "cases": 1,
+      "site": "earth-pole",
+      "curvature": 0.5,
+      "fps": 60,
+      "passed": true,
+      "reportSha256": "b5698796ff848a3ad6c2e1dfad937947df216ec6d2167e57c041d0c00efeec14"
+    },
+    "legacyVolumetric": {
+      "walks": 12,
+      "passed": true,
+      "reportSha256": "278f9f34e0a44149c5822a1303bd00c94d0e814b07768902c78297c3e30150e4"
+    }
+  },
+  "sourceSha256": {
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanet.h": "9ace86b3d25705679396e1862da7a21b5bd08b102b4430c1807b23af22924239",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanet.cpp": "a9d1b5b74eaaf3ed0f867eb29257e6dab9da71182618cd095994be46f6c1d9ee",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLBodyLayerTests.cpp": "c81a25bad632e59f5de5c2ba05dc2fe217eb9e4def33d923cad0a2e8d3f51173",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLPlanetProof.h": "9edbd46e475f17928360a58b028b175359b1d19d42611c8a530bebfbe06fca55",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLPlanetProof.cpp": "a234843f434eabab4012b92a561472e1a540d2ea49eacabca996f5a8f123fbb9",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLTwoBodyProof.h": "01d5536bd31e33c07f1eef4a94d0597be086dfee2b85e1b2220392db7bcb7bda",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLTwoBodyProof.cpp": "aa0c10751d4f373d781a6a740df053da90782e38c4a2ba6993d3c39bd39e96db",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLBodyTransferTests.cpp": "3fb49f3c3191427e741a2453ee482973d7c158b226ea3710570164168db34d67",
+    "Landform/Projects/LandformLab/scripts/qualify-two-body.py": "bf161e645ad0014911673d86feee9d07186cbb7b1d94cf35a9089ff020ec9d31"
+  },
+  "nativeAuditSha256": {
+    "vpp": {
+      "Plugins/Voxel/Source/Voxel/Public/VoxelLayerStack.h": "fef34bc78d9fc3552b180a489043ec4b99960d6e30006a50a0f73e356b840b3d",
+      "Plugins/Voxel/Source/Voxel/Private/VoxelLayerStack.cpp": "e46624359c2b836547741b809d41456be8271d973aa05f7f3b323d91af2c14bc",
+      "Plugins/Voxel/Source/Voxel/Public/VoxelVolumeStamp.h": "14d51b1e95bb612e334950ebc7980239938f6ae3e05756c97cb949cd216d2ce3",
+      "Plugins/Voxel/Source/Voxel/Public/VoxelWorld.h": "0ba1507e66185b2b5719934827a6fba69dc4044f3b54701b119cf773a6a12306",
+      "Plugins/Voxel/Source/Voxel/Private/Collision/VoxelCollisionInvoker.cpp": "bce1ccb7844d0bf966d72324b534c9d9e47c7197dc49a6ccdaee891b464cb054",
+      "Plugins/Voxel/Source/Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp": "1eb55af30bdcceb0ef9c8d054b4cf86c52400f47c6a6d0caae6e673f90e4977b",
+      "Plugins/Voxel/Source/Voxel/Public/VoxelCharacter.h": "c188997451e91bcaae48b9b5fad4e9c8d45f8b3ec63825aa0eda15f105852ca3"
+    },
+    "ue": {
+      "Engine/Source/Runtime/Engine/Private/Components/CharacterMovementComponent.cpp": "7b6642427da6ebffe38a4d42045f1767ccc9dda7d31a6d40d35eaf3baeaa1f3f",
+      "Engine/Source/Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h": "eef8262406a82c6e59c820f1291a8d3a9fee654cbd175f3cf85e1aea2e1eb6d1"
+    }
+  },
+  "binarySha256": "a48033c654955de223ebd80b51e01117ea63cbc304d5d1d87d14517125e3ac18",
+  "materialWitness": {
+    "queriesPerCase": 60,
+    "visitsPerCase": 3,
+    "coordinatePath": "Existing scale-lab world-minus-actor position; all native primitive custom values zero; zero quaternion rotation is equivalent to identity for the existing shader function",
+    "tileSource": "Accepted native compiled surface library for each body",
+    "checks": "Existing GPU texture/macro phase function on fixed body-local probes; native surface/material validity and foreign-geometry checks; actual visit screenshots",
+    "limits": "Does not read raw pixel UVs or GPU velocity buffers, and does not certify temporal reconstruction or arbitrary materials"
+  },
+  "preservation": {
+    "protectedExistingFiles": 145,
+    "changedProtectedFiles": [],
+    "manifestSha256": "33b6beb26da8443a2cf42f4db775ec02b3e7a659097dfd53d01d36dc74d37892",
+    "unchangedCanonicalContentSourceArtShaders": 117,
+    "canonicalHashes": {
+      "Content/Designer/M_Section.uasset": "552096555819d99a4d9bb0a50174634736b955c96559a32ef6c0a1861235d332",
+      "Content/Stamps/DA_StampLibrary.uasset": "d8f6f26f4db22493a51a48e199035fe166454b30ff7e64bb47f0e951db54ab3b",
+      "Content/Stamps/Heightmaps/HM_Butte.uasset": "653f647458d0d42c75a495a8f23354269236e6899f418ba3a75e6aa88243ac63",
+      "Content/Stamps/Heightmaps/HM_Crater.uasset": "1b2c2aa4cd001378df5dcac48619c55da6a10ea1618e59b303e50f12e1fe97cf",
+      "Content/Stamps/Heightmaps/HM_DoubleCrater.uasset": "ff2f7c8eb03a74a2707d42e0dc9393c9826f3c3a0e4100a9b181508eabee8f5f",
+      "Content/Stamps/Heightmaps/HM_Massif.uasset": "492639316742c9d032abdf3be002c27d58aeead8bed5ded14cfc956400f423d4",
+      "Content/Stamps/Heightmaps/HM_Mesa.uasset": "bd462cd7e3a7ffe6f2e51ce10a9fc2be1cd59a5010675b8c6a909727623d1813",
+      "Content/Stamps/Heightmaps/HM_Ridge.uasset": "cd9f80e85a68c397cd1b6c1bff44572b0df5e7520a04fae63f3734a169c725c6",
+      "Content/Stamps/MotionForgeCanyonV1/Heightmaps/HM_MFC_RiverCanyonDepth.uasset": "1837c178602998ed3afeb4bb0e504165bb1c8099c1a2cf456bae8434db571155",
+      "Content/Stamps/MotionForgeCanyonV1/Textures/T_MFC_RiverCanyonDepth.uasset": "baffc455d4ea5eeccf8af15beb04cd3eaf2480fb566588a8ae3d3b63807fbdeb",
+      "Content/Stamps/MotionForgeCanyonV2/Heightmaps/HM_MFC_RiverCanyonRampDepth.uasset": "6fef7f81a1cf75273fb06f277ac126c207fbc29e9b5370a5ff7f7db8d1164e6a",
+      "Content/Stamps/MotionForgeCanyonV2/Textures/T_MFC_RiverCanyonRampDepth.uasset": "e40b871a0d955ac51e9b5d1f3f3c334e66da766e90b56a80bc4a587df10dba5f",
+      "Content/Stamps/MotionForgeStructuresV1/Heightmaps/HM_MFS_CurvedRange.uasset": "5238eb2e167a9b4a5d1fbb2ea137d8d8e654f931253fe14fefe7742e55ad133a",
+      "Content/Stamps/MotionForgeStructuresV1/Heightmaps/HM_MFS_EastRidge.uasset": "33fa8edff64c51cd82fd162f7e4418f7f288cee63f5eddd1c014b85312586d77",
+      "Content/Stamps/MotionForgeStructuresV1/Heightmaps/HM_MFS_GrandSpine.uasset": "7f515819a222fc00578fc2dee602141481779dd4d7c985586c07cf141e465fa0",
+      "Content/Stamps/MotionForgeStructuresV1/Heightmaps/HM_MFS_RockyMassif.uasset": "559b9097b5a5680eb034450ca0bc079a4c12a5264988b00de3d47106e2d2edb9",
+      "Content/Stamps/MotionForgeStructuresV1/Heightmaps/HM_MFS_WestRidge.uasset": "70048ddff50a16697cc74395e303533b8937b9f50ba7c81ea41f2938a84ccf4c",
+      "Content/Stamps/MotionForgeStructuresV1/Textures/T_MFS_CurvedRange.uasset": "66b1d8e72d8b5b8b1cf36be887f7e4a560575b8b20a7a14a3eafafcb813127e0",
+      "Content/Stamps/MotionForgeStructuresV1/Textures/T_MFS_EastRidge.uasset": "a33824c787d02d8e3e8ed41acbf2b188dea2200c2ecdb4726c08185cb407a254",
+      "Content/Stamps/MotionForgeStructuresV1/Textures/T_MFS_GrandSpine.uasset": "e468751559d98fb02c6608bbd241233de07ae28fc59fa37fbbb72bb66ed00bad",
+      "Content/Stamps/MotionForgeStructuresV1/Textures/T_MFS_RockyMassif.uasset": "37de22c2987f352f4003dfcc9ba3024bd7587208c51555dee367101a96673034",
+      "Content/Stamps/MotionForgeStructuresV1/Textures/T_MFS_WestRidge.uasset": "35f2b3de57ba6f81c696ccebf081c38549ba62b5117a72e1d8b9a5b5c8427245",
+      "Content/Stamps/MotionForgeV1/Heightmaps/HM_MFP_GrandMountain.uasset": "68a775ab45b46d8a1bd0ec896a55d1feccba3270ad32e9c79e04ebb15cc49a26",
+      "Content/Stamps/MotionForgeV1/Heightmaps/HM_MFP_MountainRange.uasset": "a95cf6a659e2ad19ea0813ac0ec2fda3e0007351193dfaf98394085684479dc4",
+      "Content/Stamps/MotionForgeV1/Heightmaps/HM_MFP_RockyPeaks.uasset": "a5cf5a45667efd19f43463b882953413b973c43616238f10903e4c317cdcf94f",
+      "Content/Stamps/MotionForgeV1/Heightmaps/HM_MFP_TerrainRidge.uasset": "6f137ed1721b32d27ec316d5fdef5ebf92f4ab189b6196d1908f13fa9dd2c0ff",
+      "Content/Stamps/MotionForgeV1/Textures/T_MFP_GrandMountain.uasset": "399c2d8ef3e2b65fe360b2bf99754b5965ce2a24c0ae766e273acadf19c725c3",
+      "Content/Stamps/MotionForgeV1/Textures/T_MFP_MountainRange.uasset": "19c7eb14455a45fbb2c661363af9f0b93e64c4833827c6d3453eaf46e4d26805",
+      "Content/Stamps/MotionForgeV1/Textures/T_MFP_RockyPeaks.uasset": "66712a221c979a179eda156313fe3f35f95b1ad9618150ef08574b5e637ba798",
+      "Content/Stamps/MotionForgeV1/Textures/T_MFP_TerrainRidge.uasset": "22962481ae9f437c80263fef64ee4a53aa04023c14ed3b9d198049df945a2387",
+      "Content/Stamps/Textures/T_Butte.uasset": "a2734f5ff15e736e28a6ba1c841bcbd609d09d6077e7bb0e424819894c33f709",
+      "Content/Stamps/Textures/T_Crater.uasset": "3def10cf51743749332ca39255f7d58d9f081d7ab0f84493acbd565cfb3cbd04",
+      "Content/Stamps/Textures/T_DoubleCrater.uasset": "7fd5cb1a65606c9857e805cd6134e8304fc2ce605aecff47ff370191f3f4869c",
+      "Content/Stamps/Textures/T_Massif.uasset": "f96986be5bc435d8600ae00f3264ab16913aa2092a22ac007cc09e5b5d65abed",
+      "Content/Stamps/Textures/T_Mesa.uasset": "f6ad13cbfaaf102d5834f64f555550440e7c938f1966ceb2b9e9a88724785e10",
+      "Content/Stamps/Textures/T_Ridge.uasset": "45bbf779f5efd1cf63639300c2d806520960b2349a4e0e0befb7cf49fc6db15a",
+      "Content/Surfaces/DA_SurfaceLibrary.uasset": "56746d04063e36f5882d3d12bd70d92f6215ff7a48e38592fb74c27e69cb7cce",
+      "Content/Surfaces/MD_PreviewMappingHigh.uasset": "104bc9aea93b9a064a1ac9e09e10f6930eaef65b06d9576f184269818e835a61",
+      "Content/Surfaces/MD_PreviewMappingLow.uasset": "3a12c6525a69f62905480bc269d42fcb5efe2a0c97913abc438f8c61e4e9901c",
+      "Content/Surfaces/MI_Rock.uasset": "5c5922c9c1d42464dcd9ce628153b9d8b847bd0cda8c1efd5241ef34c62b2b1c",
+      "Content/Surfaces/MI_Scree.uasset": "6a1835c31a3ef9107b36640ee26f497a496f0473bf4b6d8e179a22e629a2c200",
+      "Content/Surfaces/MI_Soil.uasset": "33341551554279e1eaed64c3207bc4739ff8bd78b8084faf1deaf3a966e9fca4",
+      "Content/Surfaces/MM_LandformSurfaces.uasset": "c3087a68978d8fda00f8531f58c811e38d5a66bf928aa5fec17976262fd60c70",
+      "Content/Surfaces/M_GlobeGrid.uasset": "eb6c45b72fa4aceb497f763d880478b4ef420cd741da091b50686ee051ea92ec",
+      "Content/Surfaces/M_Surface.uasset": "fc6b92808f868a47e9df57d41913719208729388cae40b6d613d26d58571d77c",
+      "Content/Surfaces/M_SurfacePreview.uasset": "7a083f39b4f4f7fb7ff0348bd00f4a76266d4775e61723b61340d5497a582a1a",
+      "Content/Surfaces/ST_Rock.uasset": "03d74d4e1e00b90dd8cc3025aeb427d0e2923bbf373d2e41608f787e33b794f5",
+      "Content/Surfaces/ST_Scree.uasset": "f009e9fb39b01dfe61f3561ea3ca4fd60edc3a9c81d9705913ae3b7dd42990b4",
+      "Content/Surfaces/ST_Soil.uasset": "dc11e4867570f455632eeb56482e54d3997d76bf5074a845b959243ab5603f7c",
+      "Content/Surfaces/Textures/T_Rock_Diffuse.uasset": "69b80347d5503fef398e5b3feb1e3b3c469d09a585dc1e3c5583e014291f02f9",
+      "Content/Surfaces/Textures/T_Rock_Rough.uasset": "4142465524c71a2647ec92f81340ddee1db512e78f3c37551fd36b36396c946f",
+      "Content/Surfaces/Textures/T_Rock_nor_dx.uasset": "6ba758598fb825eb16ac93ee075ce57a2e5dd7c4c498f4b3a250e8ffbb15177d",
+      "Content/Surfaces/Textures/T_Scree_Diffuse.uasset": "a05f8247cc2cdaea3ea9322ac8297d07b94d35e9b7223ff285057805b7624709",
+      "Content/Surfaces/Textures/T_Scree_Rough.uasset": "394d5a1b3f51c1a3d8a4ed270c0ae5ba8cfc016fecc1a8697b935386a2f86afa",
+      "Content/Surfaces/Textures/T_Scree_nor_dx.uasset": "f1a439495d35a0ec587132e1d1dedd5f8258f59fde6f2327769c274fe7a0360a",
+      "Content/Surfaces/Textures/T_Soil_Diffuse.uasset": "bbec554ae22068e3b858ad851fc8c2d874af5fa7e2f6c2cf2dca21976041c475",
+      "Content/Surfaces/Textures/T_Soil_Rough.uasset": "11ec28bdde40f29c613d376e4d9c80af50189f89a1740ad8d67c46f4aa989ab3",
+      "Content/Surfaces/Textures/T_Soil_nor_dx.uasset": "2500d4792b667069f38377f640800e3b5054eaf7dfb655015a2030c72de13aee",
+      "Content/TerrainTypes/DA_Hills.uasset": "c2edf27c0d7040491b71e867eae2d1f965ba4319aea87fcbf5ad7fd1555c8aa5",
+      "Content/TerrainTypes/DA_MFP_GrandMountain.uasset": "0e204e8469e97f301039c60eefb81884ad72f6a3b81c3829976ede6d39a85fd5",
+      "Content/TerrainTypes/DA_MFP_MountainRange.uasset": "e7854725815b41a8f900618d0cf3f72d63a6381dde6db3a4766cafd35a6573c7",
+      "Content/TerrainTypes/DA_MFP_RockyPeaks.uasset": "b8caecf14e98b7932b5170658af66aadb25dc547b7c7a8bc21ee411eb8a19364",
+      "Content/TerrainTypes/DA_MFP_TerrainRidge.uasset": "b2eea262c22413e0f48e9a75aa9ed88a6922f3d98c0509129439d20b746b919a",
+      "Content/TerrainTypes/DA_MFS_CurvedRange.uasset": "1079246a0b89e6548398c6313c24f0eeb2f3091c0244ceadc2325a027283c4c3",
+      "Content/TerrainTypes/DA_MFS_EastRidge.uasset": "e46c1805e1646d40f66ad9f26fa7ad53d44482e1dbd8b4ae61a7db032b34030c",
+      "Content/TerrainTypes/DA_MFS_GrandSpine.uasset": "4df3eb3b146ca5ea62d1ce285855f69f3f60817f458b32fc41787886f2d3db61",
+      "Content/TerrainTypes/DA_MFS_RockyMassif.uasset": "712b4d5ff13f28918d55061b581faae4ced8e98ac2134d07220000fd95b0ffd6",
+      "Content/TerrainTypes/DA_MFS_WestRidge.uasset": "e76e3c1ba9baae4f82d874123900f857c18befbbeb4f807e42104bcf7d6240a8",
+      "Content/TerrainTypes/DA_MotionForgeMountains.uasset": "db7d1d770ede4aeccc1660d6cb9850396a0eb4c0eedddf64bd0d5a1bd428ef97",
+      "Content/TerrainTypes/DA_MountainRidges.uasset": "56c6bd49b82b0e08adb1ddcf722273f0f0323a46093581041af198748c80bc86",
+      "Content/TerrainTypes/DA_MountainRidgesLocal.uasset": "c2bb185b24068e99d4677fda1f55ccb7c4c9f495575ddc50514d67f5bef0a14f",
+      "Content/TerrainTypes/DA_MountainRidgesSpherical.uasset": "0540cecd4528f8f4f9b76c1cdbacbd85356e1f43aa8e263bb78d38f0ae5c1bac",
+      "Content/TerrainTypes/DA_MountainRidgesStamped.uasset": "27ffe23a81e745700bc6229a6b290eacbae10fcebbd17db5880014baf129b610",
+      "Content/TerrainTypes/DA_MountainStructures.uasset": "a05b99e2d2fcf21ae84ea6b9e35392bcff28d08d4dc738f4cc68e89fa55976b5",
+      "Content/TerrainTypes/DA_Plains.uasset": "5df21ea0355feae268af1dd2c1925b927d3b1af12588d1092b70e5e1452bc1e5",
+      "Content/TerrainTypes/DA_Plateaus.uasset": "43bfeb5b278f1f1f686bc980d9b481836ac55540a81da32771d8388928325196",
+      "Content/TerrainTypes/DA_PlateausLocal.uasset": "0cad64d3118e4fefb0ac977bfa87997a976c45f864ef0e258b506140f43da4d3",
+      "Content/TerrainTypes/DA_PlateausSpherical.uasset": "43a8d5cd0371d5d86abe636bf3f315c8787f057b1cef01c7df156a8f8ad83fa5",
+      "Shaders/Private/CLAnchoredParity.usf": "f2bac0f9658576a2e6dc9ecf2b9024dc7ae8ccebf3cdd40c3fa1ea2ce4058674",
+      "Shaders/Private/CLNaniteProjection.ush": "81e41ce6bd96ce8c1000eb141a6849a335a879972dac5a6bb0b858f5ad2cb9bb",
+      "Shaders/Private/CLPreviewCoordinates.usf": "baad774722c910b4096dad6a0acdd940ca9544fc963b49878c32a5902c5fdd04",
+      "Shaders/Private/CLProjectionParity.usf": "23c02876a1951d176aee2f15ae6350e405e8d8bbf7e1b373efe80e8e655a7fbe",
+      "Shaders/Public/CLAnchoredScene.ush": "573fd98b0505e0b2d67a86112269e07b4f39c838d824f8521e6cb04cee16c51e",
+      "Shaders/Public/CLPreviewCoordinates.ush": "225d4a0951aa030f45319f1fa5b5587fd6d7afa86d56ca0da6843ac4ae73318d",
+      "Shaders/Public/CLProjection.ush": "09720a90b5434bdae15de2e38b5998360d5792aae636aea3481cc6e7059b925b",
+      "Shaders/Public/CLProjectionPosition.ush": "031e298dd2709100ee643ecb2d5d91b4c0323587086a69d4fc5ce410d24c2c5e",
+      "SourceArt/Stamps/LibraryV1/Butte.png": "60c330a5ad1d4e9c77a9a17db4b19bd24ed382f8e148a37411734948e6e29dea",
+      "SourceArt/Stamps/LibraryV1/Crater.png": "b2b4018ea5a3fbf537c60736de7fc35baec73ab707098048f309a997e769784c",
+      "SourceArt/Stamps/LibraryV1/DoubleCrater.png": "a48be6bc192163ae713186c2d20cc99e0e153b8664e4b3d9c3ce018102a5ded0",
+      "SourceArt/Stamps/LibraryV1/Massif.png": "17f67bfdb7a7e8f427d0ac0bd3b34eb1f9a87c61dec3e6d3c53773e6535fcedd",
+      "SourceArt/Stamps/LibraryV1/Mesa.png": "9ab5824c16a2e92b8b14904c9e2792ee7630d995722a75e86dde6a0f8f5fc90d",
+      "SourceArt/Stamps/LibraryV1/Ridge.png": "420efcfa278ea14e0affbac2721d2eb83708f7dd47adfdacf9b197e1f3442560",
+      "SourceArt/Stamps/LibraryV1/sources.json": "1d6148595bf36d5876de26c99b2caaeeacd4113a3c6ee629aff11a9aee17ae8b",
+      "SourceArt/Stamps/MotionForgeCanyonV1/MFC_RiverCanyonDepth.png": "f0c87bb3738525023775a5c5a03b6c6b9b3914efe38640649d2dc008e952afbc",
+      "SourceArt/Stamps/MotionForgeCanyonV1/MFC_RiverMask.png": "202f08700a9a85681fe553a29680638aa4deb71297c931bbedfa15b77569f747",
+      "SourceArt/Stamps/MotionForgeCanyonV1/README.md": "66b67fcaa4aa8178b7e40b826a3ddb68525ad898ff8e87097339b9b4e31cf64f",
+      "SourceArt/Stamps/MotionForgeCanyonV1/sources.json": "4f367e76ad8f9a31af6c331868afb6e7fc0119cb0c60e090b7e9a60d06c18237",
+      "SourceArt/Stamps/MotionForgeCanyonV2/MFC_RiverCanyonRampDepth.png": "951f1a22b29909ad189933ea0bd701953a6d4946a2e526be9e2b75f6c5b461b5",
+      "SourceArt/Stamps/MotionForgeCanyonV2/MFC_RiverMask.png": "1edff7e41a72c91d1060071768c05110ffc93418da368f0f3ee00913b9a5640e",
+      "SourceArt/Stamps/MotionForgeCanyonV2/README.md": "3c828a602816410f22c750646fe5643c58a59390511380f4bc35bf19ed1f823e",
+      "SourceArt/Stamps/MotionForgeCanyonV2/sources.json": "0980d4d04b743bafdb1cfbb73cb32e53383149755db2a98e119feb5e6ef2c478",
+      "SourceArt/Stamps/MotionForgeStructuresV1/MFS_CurvedRange.png": "b66c6c2644dad4f2aace0cac8abf726c04e7e697c7385c35670c716219c73730",
+      "SourceArt/Stamps/MotionForgeStructuresV1/MFS_EastRidge.png": "7c801cadfa1eb15c1504796dde0a67caaacefc6f899c1cfec783ef150c14d575",
+      "SourceArt/Stamps/MotionForgeStructuresV1/MFS_GrandSpine.png": "35dedf3ec1d91bcb1538dd4a73db9673aa91a09b5824345644a098d05e611098",
+      "SourceArt/Stamps/MotionForgeStructuresV1/MFS_RockyMassif.png": "8f1e97969b12cfa4765993ed92e8ca05b55c66ea7a3dc6622a161ba08f50556d",
+      "SourceArt/Stamps/MotionForgeStructuresV1/MFS_WestRidge.png": "3cdc55475080ea6357ee33bc21d5eb99b9cab90f980fea4c94008431ceb9be21",
+      "SourceArt/Stamps/MotionForgeStructuresV1/sources.json": "a05471762c47feef96a731e677441eb860e75336a32e79f9f4fc998bfd48bb51",
+      "SourceArt/Stamps/MotionForgeV1/MFP_GrandMountain.png": "d4a34d2531bfebbcd910eebdddf51e64c77dace7e0423d8c99559a0d05061e13",
+      "SourceArt/Stamps/MotionForgeV1/MFP_MountainRange.png": "e7e222f71865c4375b77ffdccc8047d85bb609188843221a3304fa8c90b11fac",
+      "SourceArt/Stamps/MotionForgeV1/MFP_RockyPeaks.png": "ed5a68a6618bdcbc8d8f239683837638afb08b54fa1425df5f238aeb7eae3137",
+      "SourceArt/Stamps/MotionForgeV1/MFP_TerrainRidge.png": "1959786ac1c2360fe00a93e2e841e10cca0bb89c749a08c457843e62cc805f34",
+      "SourceArt/Stamps/MotionForgeV1/sources.json": "a672d7ecc02832a465bc3f5189310e0743ba67e8945b656b89f2aba8c8bb1333",
+      "SourceArt/Surfaces/Appearance.hlsl": "aa95941bb30c8b2d4770295a2191b350e9cf64fd025d2a8030e404ee250b7168",
+      "SourceArt/Surfaces/PolyHaven/.gitignore": "88d1099650ee449edf68179321b1fbfb215d89a5170e36a4d6371141027bc9dd",
+      "SourceArt/Surfaces/PolyHaven/README.md": "8ab3d59a9f6b43a5929f0675fc155322a2e00819952df4fa3733d40d2dbef6a6",
+      "SourceArt/Surfaces/PolyHaven/sources.json": "1c20539c7fd54d3cc4cc6dd7eecf71a6034bfee4ec4d0c426a573aec8fea6a25",
+      "SourceArt/Surfaces/TexturedAppearance.hlsl": "39afda73b5b227d9e2fd76b8729f112e9ef588077353fc7c2f91be96e34778a2"
+    },
+    "previousVppEngineAuditUnchanged": {
+      "vpp": {
+        "Source/Voxel/Private/VoxelStampComponentBase.cpp": "db1e80ff15bcbdbb27ca16a3c35e806f07f7038343d6cdf0f6e223c20348bd50",
+        "Source/Voxel/Private/VoxelConfig.cpp": "341f20629302f0ae10ab7a62691aa6765062c29e721a487b4ffc5fdadbf22182",
+        "Source/Voxel/Private/VoxelRuntime.cpp": "7ff21ac79b3609a28869585f65a9922bcb60a54ef6a9fafd698ab5a030f145e1",
+        "Source/Voxel/Private/Render/VoxelRenderSubsystem.cpp": "f0b201370d08d106b3b9f9b62cd9e5aed12acf67420f24c7ae0be7c45cc6134a",
+        "Source/Voxel/Private/Nanite/VoxelNaniteComponent.cpp": "fadfb05b75be5ff48a6abd928cf874e3738c8718a2897daec5b92c2e2c427cea",
+        "Source/Voxel/Private/Nanite/VoxelNaniteMaterialRenderer.cpp": "273e92a3e68a291672f803b0f98ec2b1190f45398dd84104c3c0f83377f8ebb3",
+        "Source/Voxel/Private/Nanite/VoxelNaniteMaterialRendererImpl.cpp": "f82395a396207b479a5008af65df07c69fcba792f1df1cc416d87849c5f81faa",
+        "Source/Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp": "1eb55af30bdcceb0ef9c8d054b4cf86c52400f47c6a6d0caae6e673f90e4977b"
+      },
+      "engine": {
+        "Source/Runtime/Engine/Private/World.cpp": "9ae5786c23449957b317284bb9404ed6c39d7eb0b3555a07562159e465fc4393",
+        "Source/Runtime/Engine/Private/LevelTick.cpp": "b009abfd6fc628791418bff0c7a5c685840e2c33180e4f7345c909ba24740db7",
+        "Source/Runtime/Engine/Private/Components/SceneCaptureComponent.cpp": "c1244d9f3bf24e453595aae7c80f76e238041105189ebfea2d9fe7f62aeffe6c",
+        "Source/Runtime/Engine/Private/PrimitiveSceneProxy.cpp": "7c85816f60436d54989bd0c32bf4066f616d66305527c942ce740aeb21fdbc1a",
+        "Source/Runtime/Renderer/Private/RendererScene.cpp": "b7f4540380aa53beab9ebae0b6a921a268fe7ebc6d37c3ff0ededf21f7c0f3ee",
+        "Source/Runtime/Renderer/Private/GPUScene.cpp": "5b6facaf67491805314c71d4ceb269e8341f9209cd9a14ff80f2eb7fbf72b4ec",
+        "Source/Runtime/Core/Public/Misc/CoreDelegates.h": "4543eaa379c2e2aaf46f9b689009cd8869d81ad8b402052dd15de808d3e74b2d",
+        "Build/Build.version": "f4acff8af146d5d02f7618a4e988724d70f3b720c70e68d090bb90a240ae51f6"
+      }
+    }
+  },
+  "evidenceRoot": "/opt/git/BenjaVisionPro/catalyst-workspace/Landform/Projects/LandformLab/Saved/Verification/TwoBody",
+  "replay": {
+    "matrix": "python3 scripts/qualify-two-body.py --archive \"$PWD/Saved/Packages/TwoBodyTransfer\" --output \"$PWD/Saved/Verification/TwoBody/repeat\"",
+    "controls": "Add --control shared-layer or --control legacy-binding --fps 60 --offset origin; expect native passed=false with verified failure and cleanup",
+    "editor": "Catalyst.Landform.NativeGeneration.BodyLayerRouting+LandformLab.Gravity.AirborneBodyBinding"
+  },
+  "exclusions": [
+    "production body-selection/physics lifecycle manager or streaming implementation",
+    "body rotation/motion/angular velocity or live UE origin shifts in this matrix",
+    "inverse-square/N-body gravity, blended gravity or inertial camera policy",
+    "world-forward/camera quaternion continuity across abrupt up change (heading uses minimal transport)",
+    "grounded or antipodal source changes, moving terrain-body physics",
+    "replication, multiple views, full-scene curvature or arbitrary spatial separation",
+    "real scientific datum/height provider, resources or measured DEM ingestion",
+    "GPU temporal/velocity/pixel-UV or arbitrary material certification",
+    "production frame time, lifecycle memory/leak or all prior matrix requalification"
+  ]
+}

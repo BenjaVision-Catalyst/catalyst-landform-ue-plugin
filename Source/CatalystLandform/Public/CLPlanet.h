@@ -7,6 +7,7 @@
 #include "CLPlanet.generated.h"
 
 class UVoxelStampComponent;
+class UVoxelVolumeLayer;
 class UArrowComponent;
 class UTexture2D;
 class USplineComponent;
@@ -39,6 +40,11 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet|Recipe")
     TObjectPtr<UCLPlanetRecipeAsset> RecipeAsset;
+
+    /** Native stamp layer. Null retains VPP default-layer compatibility.
+     * The VoxelWorld LayerStack must include this layer; use separate stacks/layers for separate bodies. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet|Recipe")
+    TObjectPtr<UVoxelVolumeLayer> TerrainLayer;
     /** Native coverage is an activation choice; the portable recipe stays canonical. */
     UPROPERTY(Transient) FCLSceneWindow SamplingWindow;
     FVector BodyCenterWorld() const {return GetActorTransform().TransformPosition(SamplingWindow.bEnabled?SamplingWindow.Frame().BodyToNativeCentimeters(FVector::ZeroVector):FVector::ZeroVector);}
