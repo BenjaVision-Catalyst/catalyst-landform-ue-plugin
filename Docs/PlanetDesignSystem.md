@@ -6,6 +6,13 @@ adds no geology implementation and changes no saved planets. The [3 November
 recipe-to-world research](#recipe-to-world-architecture-research--3-november-2026)
 extends the proposal to general volumes, measured data and planetary precision.
 
+The [3 November native coordinate audit](NativeCoordinateAudit.md) corrects the
+interpretation of the scale harness: reuse VPP generation, LOD and moving
+collision invokers. Fixed coverage and destroy/recreate pauses are test choices;
+no custom moving-window or terrain streaming manager has been justified. The
+audit records native capabilities, demonstrated adapter limits and unqualified
+origin-shift paths before further implementation.
+
 Build planets from a shared geological history and structure, refine them through
 landscape processes, then use reusable Landforms to express the resulting terrain.
 The recommended approach combines bounded tectonic construction, explicit rock
@@ -1355,9 +1362,10 @@ features at source LODs recorded in that profile. The window's admission cap of
 Perlin inputs retain their versioned float-frequency limit; the continuity
 witness uses radius/64 wavelength and three octaves. Arbitrarily fine global
 noise needs a separately versioned, precision-aware provider. Full P2 still
-requires ellipsoid/datum conversion, two-body transfer and continuous streaming
-and collision handoff. P1's general operator/LOD and production budget gates
-also remain open. Resolve the datum/provider gates before adopting real Mars
+requires ellipsoid/datum conversion, two-body transfer and qualification of
+native moving demand, origin handling and collision readiness. This does not
+establish a need for a custom streaming manager. P1's general operator/LOD and
+production budget gates also remain open. Resolve the datum/provider gates before adopting real Mars
 resources; this fixture does not silently certify them.
 
 Primary workflow references: [VPP collision and invokers](https://docs.voxelplugin.com/knowledgebase/blueprints/collision-navmesh-and-invokers)

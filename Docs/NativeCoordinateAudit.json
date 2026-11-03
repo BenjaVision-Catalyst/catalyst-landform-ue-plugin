@@ -1,0 +1,68 @@
+{
+  "date": "2026-11-03",
+  "auditType": "source-inspection-only",
+  "componentBaseline": "77a9105d41895a5c268a0c6ac1c624f21b64b4f7",
+  "workspaceBaseline": "d54ac08",
+  "engine": "UE 5.7.4 CL 51494982",
+  "vpp": "2.0p8",
+  "newNativeExecution": false,
+  "roots": {
+    "installedVpp": "Landform/Projects/LandformLab/Plugins/Voxel/Source (workspace-relative, local licensed dependency)",
+    "installedEngine": "installed UE_5.7/Engine (local dependency)",
+    "component": "catalyst-landform-ue-plugin root",
+    "workspace": "catalyst-workspace root"
+  },
+  "sha256": {
+    "installedVpp": {
+      "Voxel/Public/VoxelStampQuery.h": "39e809d5ccc12243697a81303a461ca6e2bcc2a01d252992fe7dde902864d7a5",
+      "Voxel/Public/VoxelStampUtilities.h": "aea583327fc1354b26bd9a70b2a584cd0cfed00a1968fc3c50451ecc6396b812",
+      "Voxel/Public/VoxelStampTransform.h": "d47c91680043aacbce5070b4cd49f1a5dbb11e3512691db147f2a1a037a8865c",
+      "Voxel/Private/VoxelStampTransform.cpp": "f2e419e2263f1fd143261164a262ff22d178f7edc432e7aabcbceb31a8ec726c",
+      "Voxel/Public/VoxelMesh.h": "fb94a255e1aab433bc6a973392d5f18a27d192dcfb955aa8ad8811d41a599706",
+      "Voxel/Private/VoxelMesher.cpp": "2ab6a6f76e5f1acb4a35d0f2e4ccc50bf31a1e7ee4be69a737024e6acebc8f3f",
+      "Voxel/Private/VoxelConfig.cpp": "341f20629302f0ae10ab7a62691aa6765062c29e721a487b4ffc5fdadbf22182",
+      "Voxel/Private/VoxelRuntime.cpp": "7ff21ac79b3609a28869585f65a9922bcb60a54ef6a9fafd698ab5a030f145e1",
+      "Voxel/Public/VoxelLODQuality.h": "bf7dc118436d791de4d9e4199f73ec099585b67af7e0ed73736e7a6b2e343db4",
+      "Voxel/Private/Render/VoxelRenderTree.cpp": "6d6ef6278d9a66b8437f9a88725fa4f7fb4d35b6be9a8a9f347a78ffc2c27bae",
+      "Voxel/Private/Render/VoxelRenderSubsystem.cpp": "f0b201370d08d106b3b9f9b62cd9e5aed12acf67420f24c7ae0be7c45cc6134a",
+      "Voxel/Private/Render/VoxelScreenSizeHelper.cpp": "83a398f574dd40b3d21ae6ef7841b85c5aa34060e2bf4b58bd0bde648cc4da55",
+      "Voxel/Private/Render/VoxelScreenSizeHelper.h": "d665c85f682a43458005c3d456ddf6ed80925e546a2b0f8adcba38e8344967da",
+      "Voxel/Private/Render/VoxelRenderComponentCreator.cpp": "1b6d6ecb299f6ad62984c35d19f6dc4aae706ebd4556e5bf53770b7fa1f3f4d7",
+      "Voxel/Private/Collision/VoxelCollisionInvoker.cpp": "bce1ccb7844d0bf966d72324b534c9d9e47c7197dc49a6ccdaee891b464cb054",
+      "Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp": "7ed0a37b337519c84e5c245a4e7b299a9fd34f85aa450baebdd86e26a6095596",
+      "Voxel/Private/VoxelStampComponentBase.cpp": "c855f7a1bc2544891f92527639fe18d68ec9139f729a5884dfbf6b57b572dd22",
+      "Voxel/Private/VoxelInstancedStampComponent.cpp": "9f6b0db26dd202b1c65a3113c93862ab7a4877d352a68183264290cd8bf78eaa",
+      "VoxelCore/Private/VoxelMinimal/Utilities/VoxelGameUtilities.cpp": "ddcde730c764314076dad57db5defe833f2360406137ced7a09a167b4916e8db"
+    },
+    "installedEngine": {
+      "Build/Build.version": "f4acff8af146d5d02f7618a4e988724d70f3b720c70e68d090bb90a240ae51f6",
+      "Source/Runtime/Engine/Private/World.cpp": "9ae5786c23449957b317284bb9404ed6c39d7eb0b3555a07562159e465fc4393",
+      "Source/Runtime/Engine/Private/Actor.cpp": "947619da2721cb7c481001dc99a7315b9023cdc78e96dd4029c6d41db0b68654",
+      "Source/Runtime/Engine/Private/Components/SceneComponent.cpp": "40c2617ba9d1db3ea6bd4e5fcf268b8eeeaf7239f9f0a17166bf025804810782"
+    },
+    "component": {
+      "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "cd20fbb1c923764c97aefd19235963d0701d58118d186566b3e9389d301bbbcc",
+      "Source/CatalystLandform/Private/CLPlanet.cpp": "2f81e91b07c436b970eba87ff4a3b48e26495cebca59046755d384e47feb63a1",
+      "Source/CatalystLandform/Public/CLPlanet.h": "771835751273d8567b7867518665d4f504d8c1158654336b6b3408df375e8cbc",
+      "Source/CatalystLandform/Private/Scene/CLScene.cpp": "4c16ca9eabfc9d9c97fbf4dba530a2b2644c8ec73db9230e52d0972b54137e02",
+      "Source/CatalystLandform/Public/Scene/CLSceneWindow.h": "209dd237e83cd1b1ae6e7fc5152586f55c362cacb7501c20469e02e1467ca037",
+      "Source/CatalystLandform/Private/Scene/CLSceneWindow.cpp": "1cba2e5d2e0a6a729237955da14c5c6d6a1d4b1f7eea6183355f410346a4c2fc",
+      "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "df898f3d7fb7463f4d2191f7fcc955feaf074fb9e4f0ef73b592e103fbec693b",
+      "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "fa58a161e5a2a2e33d45bcd42b5b7623d5a9082f158de9bf00c3de168151c5a9"
+    },
+    "workspace": {
+      "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleLab.cpp": "6f46638f0e50abb5044d2e36acd28cba99c311fb2aefe3ebe9467e59b2989e90",
+      "Landform/Projects/LandformLab/Source/LandformLab/Private/CLPlanetProof.cpp": "50cbacadbf62c70a204c0078e746921e72500d83364dedc38514428dc8b74de8",
+      "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNaniteProjectionPrototype.cpp": "5071edf680eb49f3842cef6954134e00cfe8c2f0ae15e1d8eba52aa2d4957cde",
+      "Landform/Projects/LandformLab/Source/LandformLab/Private/CLGameplayPresentation.cpp": "609910d63e7369567d1f46c7eda155ea5264864a7f769d163f21ada9010cff62",
+      "Landform/Projects/LandformLab/Docs/ScaleLab-mac-arm64.json": "11e92e6b5a44f07c0fdd5b53303105bd49f5f266647f9957fa7541e17c860ec8"
+    }
+  },
+  "arithmeticWitnessOnly": {
+    "absoluteRadiusCentimetersFloatUlp": {
+      "Mars": 32.0,
+      "Earth": 64.0
+    },
+    "note": "IEEE float spacing, not observed native mesh or collision error"
+  }
+}

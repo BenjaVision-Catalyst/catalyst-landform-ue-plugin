@@ -6,6 +6,12 @@ data, and radial character movement alongside explicit Foundation/Connect/VPP
 dependencies. The first local recipe compiler and Designer section preview are
 implemented; backend delivery and the full Designer remain future work.
 
+The [native coordinate audit](Docs/NativeCoordinateAudit.md) records VPP/UE
+generation, LOD, invoker and origin-handling capabilities against the spherical
+field and presentation adapter. It keeps the Scale Lab's fixed window and
+replacement pause scoped to the harness; production streaming choices await
+demonstrated gaps.
+
 The [shared scene foundation](Docs/PlanetDesignSystem.md#shared-scene-foundation-checkpoint--3-november-2026)
 adds immutable body-space XYZ queries around the existing radial compiler and
 routes recipe-only spherical VPP terrain through them. This preserves current
