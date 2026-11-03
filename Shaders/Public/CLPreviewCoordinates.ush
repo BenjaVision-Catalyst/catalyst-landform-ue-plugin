@@ -1,0 +1,33 @@
+#ifndef CL_PREVIEW_COORDINATES
+#define CL_PREVIEW_COORDINATES
+#include "/Plugin/CatalystLandform/Public/CLAnchoredScene.ush"
+FDFVector3 CLPreviewBodyPosition(FDFVector3 Display, float4 ConfigHigh, float4 ConfigLow)
+{
+    FDFScalar XYScale=MakeDFScalar(ConfigHigh.x,ConfigLow.x);
+    FDFScalar ZScale=MakeDFScalar(ConfigHigh.y,ConfigLow.y);
+    FDFVector3 Scale=MakeDFVector(XYScale,XYScale,ZScale);
+    // The Metal witness rejects the default FMA product at planetary scales.
+    // Reuse UE's explicit split product, as the existing phase adapter does.
+    FDFVector3 Product=DFTwoProductNoFMA(Display.High,Scale.High);
+    FDFVector3 P=DFAdd(Product,INVARIANT_ADD(INVARIANT_MUL(Display.High,Scale.Low),INVARIANT_MUL(Display.Low,Scale.High)));
+    if(ConfigHigh.w<1.5)return P;
+    FDFVector2 XY=DFSwizzle(P,0,1);
+    FDFScalar Arc=DFLength(XY), Reference=MakeDFScalar(ConfigHigh.z,ConfigLow.z);
+    FDFScalar Angle=DFDivide(Arc,Reference);
+    // Native DF range reduction retains small-angle sag and large chart wraps.
+    FDFScalar Period=MakeDFScalar(6.2831854820251465,-1.7484556025237907e-7);
+    FDFScalar Turns=DFFloor(DFDivide(Angle,Period));
+    float A=DFDemote(DFSubtract(Angle,DFMultiply(Turns,Period)));
+    float FullA=DFDemote(Angle);
+    float Sinc=abs(FullA)>1.e-12?sin(A)/FullA:1.;
+    FDFScalar Radius=DFGetComponent(P,2);
+    FDFVector2 BodyXY=DFMultiply(DFMultiply(XY,DFDivide(Radius,Reference)),Sinc);
+    float HalfSin=sin(A*.5);
+    FDFScalar BodyZ=DFSubtract(Radius,DFMultiply(Radius,2.*HalfSin*HalfSin));
+    return MakeDFVector(BodyXY,BodyZ);
+}
+float3 CLPreviewTexturePhase(FDFVector3 Position,float TileCm)
+{
+    return CLCanonicalPhase(Position,max(TileCm,1.));
+}
+#endif

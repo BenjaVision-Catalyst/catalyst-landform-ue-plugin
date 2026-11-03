@@ -5,6 +5,8 @@
 #include "CLPlanetStamp.h"
 #include "CLPlanetShape.h"
 #include "VoxelQuery.h"
+#include "VoxelLinearColorMetadata.h"
+#include "VoxelPinValue.h"
 #include "VoxelLayers.h"
 #include "Surface/VoxelSurfaceTypeTable.h"
 #include "Misc/AutomationTest.h"
@@ -167,5 +169,29 @@ bool FCLVolumeSectionTest::RunTest(const FString&)
     TestTrue(TEXT("Flat section uses the existing spherical chart convention"),RoundTrip<1.e-10);
     TestTrue(TEXT("Native box intersection retains solid/air signs and planar cuts"),Signs&&Faces>0&&Worst<.01);
     AddInfo(FString::Printf(TEXT("%d native section points: field error %.9g cm, chart error %.9g m"),Flat.Num(),Worst,RoundTrip));return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNativeMetadataOverridesTest,"Catalyst.Landform.NativeMaterials.StampMetadataOverrides",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLNativeMetadataOverridesTest::RunTest(const FString&)
+{
+    auto* Metadata=LoadObject<UVoxelLinearColorMetadata>(nullptr,TEXT("/CatalystLandform/Surfaces/MD_PreviewMappingHigh.MD_PreviewMappingHigh"));
+    if(!TestNotNull(TEXT("Native coordinate metadata asset loads"),Metadata))return false;
+    const FLinearColor Value(6371.123f,-.0125f,286695008.f,2);
+    for(auto Behavior:{EVoxelStampBehavior::AffectAll,EVoxelStampBehavior::AffectMetadata,EVoxelStampBehavior::AffectShape})
+    {
+        FCLPlanetStamp Stamp;Stamp.Behavior=Behavior;auto& O=Stamp.MetadataOverrides.Overrides.AddDefaulted_GetRef();O.Metadata=Metadata;O.Value=FVoxelPinValue::Make(Value);
+        const auto Native=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr,FVoxelStampRef::New(Stamp),nullptr));if(!Native){AddError(TEXT("Native stamp initialization failed"));return false;}
+        FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.NativeMetadata"));const auto Surfaces=FVoxelSurfaceTypeTable::Get();const FVoxelQuery Query(0,FVoxelLayers::Empty(),*Surfaces,Dependencies);
+        FVoxelDoubleVectorBuffer Positions;Positions.Allocate(3);for(int32 I=0;I<3;++I)Positions.Set(I,FVector(0,I,10000));
+        auto Values=MakeShared<FVoxelLinearColorBuffer>();Values->Allocate(3);for(int32 I=0;I<3;++I)Values->Set(I,FLinearColor::Transparent);
+        TVoxelMap<FVoxelMetadataRef,TSharedRef<FVoxelBuffer>> Buffers;Buffers.Add_EnsureNew(FVoxelMetadataRef(Metadata),Values);
+        TVoxelArray<float> Distances;Distances.SetNum(3);for(float& D:Distances)D=MAX_flt;
+        TVoxelArray<FVoxelSurfaceTypeBlend> Types;Types.SetNum(3);
+        const auto Sparse=FVoxelVolumeSparseQuery::Create(Query,Distances.View(),Types.View(),FVoxelMetadataMap(Buffers),Positions,false,{FVoxelMetadataRef(Metadata)});
+        Native->Apply(Sparse,FVoxelVolumeTransform());
+        for(int32 I=0;I<3;++I)TestTrue(TEXT("Native metadata behavior flag controls inherited overrides"),(*Values)[I].Equals(Behavior==EVoxelStampBehavior::AffectShape?FLinearColor::Transparent:Value,1.e-6f));
+        if(Behavior==EVoxelStampBehavior::AffectMetadata)for(float D:Distances)TestEqual(TEXT("Metadata-only application does not write geometry"),D,MAX_flt);
+    }
+    return true;
 }
 #endif

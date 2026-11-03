@@ -716,9 +716,9 @@ mesh components, materials, LOD and collision for every recipe profile. UI edits
 coalesce into native stamp updates on the same world/runtime. Independent radial
 triangulation and Dynamic Mesh upload remain automation oracles only. Native
 collision traces support cave-floor and detached-solid selection. Normalized UI
-material coordinates still need a dedicated physical texture-phase witness;
+material coordinates now use native VPP metadata with a qualified physical texture-phase adapter;
 [the reconciliation record](Docs/NativeCoordinateAudit.md#native-generation-and-preview-reconciliation--3-november-2026)
-lists that gap, native kernel replacements, retained specializations and results.
+lists native kernel replacements, retained specializations, remaining material limits and results.
 
 `Examples/TerrainSurfaces.json` and the three `*Surfaces.json` source examples
 provide an independent regional planet. Reproduction, authoring, appearance

@@ -18,7 +18,10 @@ makes VPP's ownership explicit: it is the sole voxel generation and presentation
 platform. Generic solid kernels, blending, lookup and both product previews now
 use native VPP features. Catalyst retains documented planetary/geological
 specializations and version compatibility, with proven gaps listed separately.
-Native overview material coordinates still need a dedicated physical-phase witness.
+The [normalized preview material proof](NativeCoordinateAudit.md#normalized-preview-material-coordinates--3-november-2026)
+now qualifies the installed scanned materials through native VPP metadata and a
+bounded spherical coordinate adapter; arbitrary materials and cut-face styling
+retain explicit limits.
 
 Build planets from a shared geological history and structure, refine them through
 landscape processes, then use reusable Landforms to express the resulting terrain.

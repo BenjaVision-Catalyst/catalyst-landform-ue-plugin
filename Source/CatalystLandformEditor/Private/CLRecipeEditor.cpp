@@ -59,6 +59,7 @@
 #include "EditorViewportClient.h"
 #include "ProceduralMeshComponent.h"
 #include "Materials/Material.h"
+#include "ShaderCompiler.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Input/SCheckBox.h"
@@ -1969,12 +1970,55 @@ bool FCLNativeLocalPreviewTest::RunTest(const FString&)
             if(Phase==0){Owner=P.WorldIdentity();Runtime=P.RuntimeIdentity();Section->Rebuild(Latest);Section->Rebuild(First);Section->Rebuild(Latest);FVector PendingHit;Test->TestFalse(TEXT("Queued input cannot pick retained collision with a new recipe"),P.PickSection(FVector(0,0,90000),FVector(0,0,-1),PendingHit));++Phase;Start=FPlatformTime::Seconds();return false;}
             Test->TestEqual(TEXT("Local section reuses native world"),P.WorldIdentity(),Owner);Test->TestTrue(TEXT("Local section reuses native runtime"),P.RuntimeIdentity()==Runtime);
             Test->TestTrue(TEXT("Local section publishes latest input"),P.PublishedPlan()==Latest);
+            FString MaterialError;Test->TestTrue(TEXT("Updated native section mapping matches its input"),P.CheckMaterialCoordinates(MaterialError));Test->AddInfo(MaterialError);
             FVector Hit;const bool Picked=P.PickSection(FVector(0,0,90000),FVector(0,0,-1),Hit);
             Test->TestTrue(TEXT("Native local collision follows changed physical height"),Picked&&FMath::Abs(Hit.Z-600)<.5);
             Test->AddInfo(FString::Printf(TEXT("Local section native contact: %d %s"),Picked,*Hit.ToString()));return Close();
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FWait>(this,Section,Window,First,Latest));return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPreviewMaterialRenderedTest,"Catalyst.Landform.NativeMaterials.RenderedPreviewCoordinates",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPreviewMaterialRenderedTest::RunTest(const FString&)
+{
+    auto R=FCLPlanetCompiler::BasePlanet();R.SchemaVersion=17;R.RadiusMeters=10000;R.SurfaceStack=FCLSurfaceStack::MakeDefault();R.SurfaceStack.Layers.Reset();
+    FString Error;const auto Plan=FCLPlanetCompiler::Compile(R,Error);if(!Plan){AddError(Error);return false;}
+    const auto Globe=SNew(SCLPlanetPreview);const auto Section=SNew(SCLSectionViewport);
+    const auto Content=SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[Globe]+SHorizontalBox::Slot().FillWidth(1)[Section];
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native canonical material coordinates"))).ClientSize(FVector2D(1200,600))[Content];
+    FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();Globe->Rebuild(Plan);Section->Rebuild(Plan);
+    class FWait final:public IAutomationLatentCommand
+    {
+    public:
+        FAutomationTestBase* Test;TSharedRef<SCLPlanetPreview> Globe;TSharedRef<SCLSectionViewport> Section;TSharedRef<SWindow> Window;TSharedRef<SWidget> Content;
+        TArray<TArray<FColor>> Frames;int32 Phase=0;double Start=FPlatformTime::Seconds(),Stable=0;uint32 Owner=0;const void* Runtime=nullptr;
+        FWait(FAutomationTestBase* T,TSharedRef<SCLPlanetPreview> G,TSharedRef<SCLSectionViewport> S,TSharedRef<SWindow> W,TSharedRef<SWidget> C):Test(T),Globe(G),Section(S),Window(W),Content(C){}
+        bool Update()override
+        {
+            Globe->Pump();Section->PumpBuild();auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+            const double Now=FPlatformTime::Seconds();if(Now-Start>90){Test->AddError(Globe->NativePreviewStatus());return Close();}
+            if(Globe->IsUpdating()||Section->IsUpdating()){Stable=0;return false;}
+            if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){GShaderCompilingManager->FinishAllCompilation();Stable=0;return false;}
+            if(Stable==0){Stable=Now;return false;}if(Now-Stable<1)return false;
+            FString E;Test->TestTrue(TEXT("Displayed globe has state-owned native coordinate metadata"),Globe->NativePreview->CheckMaterialCoordinates(E));Test->AddInfo(E);
+            Test->TestTrue(TEXT("Other preview retains its own native section mapping"),Section->NativePreview->CheckMaterialCoordinates(E));Test->AddInfo(E);
+            Test->TestTrue(TEXT("Both viewports retain native presentation"),Globe->NativePreview->UsesNativePresentation()&&Section->NativePreview->UsesNativePresentation());
+            if(Phase==0){Owner=Globe->NativePreview->WorldIdentity();Runtime=Globe->NativePreview->RuntimeIdentity();}
+            else {Test->TestEqual(TEXT("Coordinate changes retain the native world"),Globe->NativePreview->WorldIdentity(),Owner);Test->TestTrue(TEXT("Coordinate changes retain native runtime"),Globe->NativePreview->RuntimeIdentity()==Runtime);}
+            TArray<FColor> Pixels;FIntVector Size;Window->SlatePrepass();if(!FSlateApplication::Get().TakeScreenshot(Content,Pixels,Size)||Size.X<=0||Size.Y<=0||Pixels.Num()!=Size.X*Size.Y){Test->AddError(TEXT("Native coordinate frame did not render"));return Close();}Frames.Add(Pixels);
+            const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/PreviewMaterials/rendered");IFileManager::Get().MakeDirectory(*Folder,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("phase-%d.png"),Phase)));
+            if(Phase<2){Globe->NativePreview->SetMaterialCoordinatesEnabledForTesting(Phase==1);++Phase;Start=Now;Stable=0;return false;}
+            if(Frames[0].Num()!=Frames[1].Num()||Frames[0].Num()!=Frames[2].Num()){Test->AddError(TEXT("Frame dimensions changed"));return Close();}
+            double Changed=0,Repeated=0;int32 Count=0;
+            for(int32 I=0;I<Frames[0].Num();++I)if(I%Size.X<Size.X/2&&Frames[0][I].R+Frames[0][I].G+Frames[0][I].B>300&&Frames[1][I].R+Frames[1][I].G+Frames[1][I].B>300)
+            {const auto A=Frames[0][I],B=Frames[1][I],C=Frames[2][I];Changed+=FMath::Abs(int(A.R)-B.R)+FMath::Abs(int(A.G)-B.G)+FMath::Abs(int(A.B)-B.B);Repeated+=FMath::Abs(int(A.R)-C.R)+FMath::Abs(int(A.G)-C.G)+FMath::Abs(int(A.B)-C.B);++Count;}
+            Changed/=FMath::Max(1,Count)*3;Repeated/=FMath::Max(1,Count)*3;
+            Test->AddInfo(FString::Printf(TEXT("Native material coordinate control: %d surface pixels, on/off %.6f/255, repeated-on %.6f/255"),Count,Changed,Repeated));
+            Test->TestTrue(TEXT("Canonical scale changes visible native material sampling beyond frame noise"),Count>1000&&Changed>Repeated+.2);return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FWait>(this,Globe,Section,Window,Content));return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNativePreviewTest,"Catalyst.Landform.Volumes.NativePreview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -2000,6 +2044,8 @@ bool FCLNativePreviewTest::RunTest(const FString&)
             if(FPlatformTime::Seconds()-StableAt<1){Section->Client->Invalidate();Globe->Invalidate();return false;}
             Test->TestFalse(TEXT("Native globe completes publication"),Globe->IsUpdating());Test->TestFalse(TEXT("Native flat cutaway completes publication"),Section->IsUpdating());
             Test->TestTrue(TEXT("Native globe publishes geometry"),Globe->PublishedBuilds()>0);
+            FString MaterialError;Test->TestTrue(TEXT("Globe native meshes carry canonical material mapping"),Globe->NativePreview->CheckMaterialCoordinates(MaterialError));Test->AddInfo(MaterialError);
+            Test->TestTrue(TEXT("Section native meshes carry canonical material mapping"),Section->NativePreview->CheckMaterialCoordinates(MaterialError));Test->AddInfo(MaterialError);
             Test->AddInfo(Globe->NativePreviewStatus());
             Test->TestTrue(TEXT("Native cutaway publishes its VPP triangles"),Section->AppliedBuilds>0&&Section->NativePreview&&Section->NativePreview->Published().Triangles.Num()>0);
             if(Section->NativePreview)

@@ -232,7 +232,7 @@ The ocean sphere is a stock UE mesh used as a non-colliding guide overlay.
 | Curvature presentation and canonical picking | The existing projection changes apparent curvature while collision stays canonical. Prior GPU, bounds, phase, history and inverse-pick proofs document why the application adapter exists. VPP still produces and presents the voxels. Ordinary native LOD and invokers remain the owners of terrain demand. See the persistent-world checkpoint and its explicit exclusions. |
 | Application navigation and footing | Body-frame transforms, radial-up selection, globe/section navigation and the bounded XYZ spawn-footing locator interpret the planetary model. Character movement remains UE movement and contact remains native VPP collision. The locator is not a replacement physics solver or a certified general ray-miss test; thin-feature/transfer exclusions remain. |
 | Origin compatibility and gravity | The retained VPP 2.0p8/UE 5.7.4 transform/collider repairs and Catalyst gravity-cache repair have bounded native reproducers. The cooked follow-up isolated both the stale Catalyst gravity centre and VPP layer snapshots using an out-of-date query frame. The latter needs synchronous `QueryToWorld` refresh before native snapshot publication; neither defect requires replacement generation or moving invokers. See `conformance/origin-contact-mac-arm64.json`. |
-| Normalized preview physical material coordinates | The native default surface material consumes world/display coordinates. A normalized stamp changes displayed scale; the section chart also changes XYZ. The retired renderer supplied separate canonical XYZ UVs. Thus native geometry/material ownership alone does **not** establish physical-metre texture phase parity in these overview views. This is an adapter coordinate gap identified in the actual material wiring, not a missing native mesher or a justification for restoring copied meshes. Native material parameters/attributes need a separate bounded witness before claiming that ideal or the former neutral cut-face styling. Existing reference-mesh appearance tests do not close it. |
+| Normalized preview physical material coordinates | Resolved for the installed scanned materials by native full-float metadata and the bounded planetary coordinate adapter below. VPP owns metadata storage, demand, publication and material lookup. Arbitrary materials must consume the same contract; former neutral cut-face styling remains unqualified. |
 | Filtered fields, fine planetary noise and external resources | The earlier audit's point-query, float noise-input and server-resource/datum limits remain open. This reconciliation does not qualify erosion, scientific datums, production frame-time tails, resource residency or a server transport contract. |
 
 The native shape library is stateless for the invoked function. Its class default
@@ -256,3 +256,85 @@ editor-only publication and explicit-fixture guards were checked afterward;
 no runtime source changed. The source/runner/artifact hashes, measured errors
 and exclusions are retained in the linked reconciliation record. All 151
 protected local files retain their original hashes.
+
+
+## Normalized preview material coordinates — 3 November 2026
+
+The installed VPP material system supplies the required transport. This change
+uses it directly. The initial failure was partly ours: `FCLPlanetStampRuntime`
+inherited native `MetadataOverrides`, but its sparse `Apply` ignored them. It now
+uses `CreateRuntime`, `ShouldCompute` and `FVoxelStampUtilities::ApplyMetadatas`,
+including native blend alphas and affect-shape/surface/metadata behavior. No VPP
+or UE patch was needed for this change.
+
+### Native audit and selected path
+
+| Capability inspected | Finding and use |
+| --- | --- |
+| VPP Surface Type / MegaMaterial | Retain the installed native compositor and material bindings. Existing rock, scree and soil artwork remains in its authored UE master material; no surface renderer or compositor is added. |
+| `UVoxelLinearColorMetadata` and `UMaterialExpressionGetVoxelMetadata` | Native `FourBytes` packing carries full-float values to the material. Two constant vector metadata values per stamp carry high/low inverse scale, reference radius and mapping mode. Native material expressions read them with interpolation disabled. No custom vertex stream, metadata buffer or texture upload is implemented. |
+| Native stamp metadata overrides | Supply mapping values with the accepted stamp input. Native meshes retain their own published values. Old mesh publication, simultaneous viewports and native state retirement need no global material parameter or per-frame MID mutation. The native renderer prunes metadata for meshes whose materials do not use it; untextured default/core faces correctly have no payload. |
+| Native transforms and UE world position | `FVoxelVolumeTransform::Create` supplies the actual float stamp scale used by VPP, rather than assuming UE's double transform and VPP's transform are identical. UE `Parameters.AbsoluteWorldPosition` supplies its native DoubleFloat position. The preview world is unscaled; only the native stamp is normalized. |
+| UE material transforms / default coordinates | Mesh-local coordinates refer to native chunk geometry, not the accepted recipe's stamp or nonlinear spherical section chart. Default world/display coordinates therefore cannot supply physical metres after normalization. VPP's metadata makes that domain mapping possible without replacing its presentation. |
+| UE DoubleFloat | Reuse its arithmetic and the already-qualified `CLCanonicalPhase` helper. The first GPU witness using default `DFMultiply` failed by 31.32788 cm at Earth scale on Metal. UE's explicit `DFTwoProductNoFMA` plus native `DFAdd` cross terms fixes that measured scale-product failure. No new arbitrary-precision library is introduced. |
+
+### Justified specialization and bounds
+
+`CLPreviewCoordinates.ush` reverses the preview's native normalization and, for
+the section, evaluates the same spherical chart as the existing CPU adapter.
+The nonlinear chart and accepted reference radius are Catalyst planetary
+semantics; native affine material transforms do not encode them. A stable
+half-sine expression retains small-angle radial sag. Scanned triplanar sampling
+uses the existing physical tile widths (2, 2.5 and 2.7 m), compensated phase and
+unwrapped derivatives with UE `SampleGrad`, avoiding wrap-boundary mip/normal
+seams. The geographic grid receives the mapped body position too.
+
+The two metadata vectors describe an identity-rotation, zero-origin preview
+stamp with equal X/Y scales. This is the current private globe/section world
+invariant, not a general material mapping for arbitrary actor/world transforms.
+Mode zero retains ordinary runtime sampling. The shared native `M_Surface` graph
+still demands its two full-float vector metadata channels in ordinary VPP worlds;
+VPP owns their default values and packing. Additional memory/frame cost has not
+been qualified. Existing procedural grain
+and macro-noise keep their pinned float semantics; this change does not migrate
+appearance versions or claim planetary precision for every procedural channel.
+Third-party material graphs must consume the same native metadata/mapping
+contract to obtain this behavior; it is not inferred for arbitrary materials.
+
+The GPU witness compares 120 points with an independent CPU double transform and
+section chart: four radii (100, 1,000, 3,389,500 and 6,371,000.12345 m), both
+mapping domains, three section widths and core/axis/edge probes. Maximum coordinate
+error is 0.022493085 cm; maximum physical tile-phase error is 0.022500754 cm.
+Both meet the unchanged 0.1 cm numerical budget. These are coordinate errors,
+not claims of millimetre terrain meshes at planetary overview scale. The native
+preview still uses 50 cm display voxels and its separately measured mesh limits.
+
+Native mesh inspections check mapping values on textured meshes at 100 m, 1 km
+and Earth radii, plus concurrent globe/section worlds. A rendered on/off/on
+control changes only the globe's mapping mode through native stamp publication,
+checks that the section retains its own payload, and verifies visible sampling
+changes beyond repeated-frame noise while preserving native world/runtime owners.
+The numeric witness tests the exact coordinate function used by the material;
+the rendered control verifies that the actual graph consumes it. Neither test
+restores the former neutral cut-face styling or qualifies every transition face,
+third-party material, datum, GPU backend or production performance envelope.
+
+Reproduction, fingerprints and final regression/cooked results are retained in
+[`conformance/preview-material-coordinates-mac-arm64.json`](../conformance/preview-material-coordinates-mac-arm64.json).
+The host's `scripts/update-preview-material-coordinates.py` updates only the product
+master graph and two metadata assets; full surface-library generation
+calls the same function. It does not rebake catalogs or replace scans. The
+retired reference-only `M_GlobeGrid` asset retains its original bytes; the product
+geographic overlay is already part of `M_Surface`.
+
+
+Final qualification passes 46 editor checks without automation warnings, the
+120-point GPU witness, repeatable targeted material updates, a fresh Development
+build/full cook/package, the ordinary native-material walking control, 12 legacy
+volumetric walks, 12 separate live-origin contact repeats and 32 bounded scale
+cases. All cooked checks use one executable fingerprint. The volumetric walks
+retain 4,320/4,320 native grounded frames; scale retains 31,998 native grounded
+frames and 384 projected picks. The 226 unrelated protected files retain their
+original hashes, including all catalogs, scans, source recipes/config and the
+local generated material cache. Only the product master material is an intended
+change among the 227 existing protected files; two metadata assets are new.

@@ -57,6 +57,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
 {
     check(IsInGameThread());
     NativeShapes=GetDefault<UVoxelShapeFunctionLibrary>();
+    RuntimeMetadata=Stamp.MetadataOverrides.CreateRuntime();
     if (!FMath::IsFinite(Stamp.Radius) || Stamp.Radius < 1000) return false;
     if(Stamp.Window.bEnabled)
     {
@@ -247,10 +248,12 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeBulkQuery& Query, const FVox
 void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FVoxelVolumeTransform& Transform) const
 {
     const bool Surfaces=AffectSurfaceType()&&Query.bQuerySurfaceTypes&&RecipePlan&&RecipePlan->Surfaces;
-    if(!AffectShape()&&!Surfaces)return;
+    const bool Metadata=AffectMetadata()&&Query.MetadatasToQuery.Num()>0&&RuntimeMetadata->ShouldCompute(Query);
+    if(!AffectShape()&&!Surfaces&&!Metadata)return;
     const auto Positions=FVoxelStampUtilities::ComputePositions(Query,Transform);FVoxelFloatBuffer Alphas;
-    FVoxelStampUtilities::ApplyDistances(*this,Query,Transform,SampleDistances(Query.Query,Positions),AffectShape(),Surfaces?&Alphas:nullptr);
+    FVoxelStampUtilities::ApplyDistances(*this,Query,Transform,SampleDistances(Query.Query,Positions),AffectShape(),(Surfaces||Metadata)?&Alphas:nullptr);
     if(Surfaces)FVoxelStampUtilities::ApplySurfaceTypes(Query,SampleSurfaceTypes(Query.Query,Positions),Alphas);
+    if(Metadata)FVoxelStampUtilities::ApplyMetadatas(Query,*RuntimeMetadata,{},Alphas);
 }
 
 FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const

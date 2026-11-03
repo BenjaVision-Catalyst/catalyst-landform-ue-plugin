@@ -91,6 +91,7 @@ protected:
 private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLNativePreviewTest;
+    friend class FCLPreviewMaterialRenderedTest;
     friend class FCLNativePreviewRadiiTest;
     friend class FCLTectonicRenderedPortfolioTest;
     friend class FCLGlobePublicationTest;

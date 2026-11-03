@@ -1,0 +1,23 @@
+#include "/Engine/Public/Platform.ush"
+#include "/Plugin/CatalystLandform/Public/CLPreviewCoordinates.ush"
+struct FCLPreviewCoordinatesQuery {float4 WorldHigh,WorldLow,ConfigHigh,ConfigLow,ExpectedHigh,ExpectedLow,Phase200,Phase250,Phase270;};
+struct FCLPreviewCoordinatesResult {float4 Errors;};
+StructuredBuffer<FCLPreviewCoordinatesQuery> Inputs;
+RWStructuredBuffer<FCLPreviewCoordinatesResult> Outputs;
+uint NumQueries;
+[numthreads(64,1,1)]
+void MainCS(uint3 Id:SV_DispatchThreadID)
+{
+    if(Id.x>=NumQueries)return;
+    FCLPreviewCoordinatesQuery Q=Inputs[Id.x];FCLPreviewCoordinatesResult R;
+    FDFVector3 P=CLPreviewBodyPosition(MakeDFVector3(Q.WorldHigh.xyz,Q.WorldLow.xyz),Q.ConfigHigh,Q.ConfigLow);
+    float3 Error=abs(DFSubtractDemote(P,MakeDFVector3(Q.ExpectedHigh.xyz,Q.ExpectedLow.xyz)));
+    float Worst=max(Error.x,max(Error.y,Error.z)),PhaseError=0;
+    float3 Expected[3]={Q.Phase200.xyz,Q.Phase250.xyz,Q.Phase270.xyz};float Tiles[3]={200,250,270};
+    for(uint I=0;I<3;I++)
+    {
+        float3 Delta=abs(CLPreviewTexturePhase(P,Tiles[I])-Expected[I]);Delta=min(Delta,1.-Delta)*Tiles[I];
+        PhaseError=max(PhaseError,max(Delta.x,max(Delta.y,Delta.z)));
+    }
+    R.Errors=float4(Worst,PhaseError,1,0);Outputs[Id.x]=R;
+}

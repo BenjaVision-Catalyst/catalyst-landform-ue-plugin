@@ -1104,7 +1104,7 @@ bool FCLNativePreviewRadiiTest::RunTest(const FString&)
 {
     TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> Plans;FString Error;
     for(double Radius:{100.,1000.,6371000.})
-    {auto R=FCLPlanetCompiler::BasePlanet();R.RadiusMeters=Radius;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}Plans.Add(P);}
+    {auto R=FCLPlanetCompiler::BasePlanet();R.SchemaVersion=17;R.RadiusMeters=Radius;R.SurfaceStack=FCLSurfaceStack::MakeDefault();R.SurfaceStack.Layers.Reset();const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}Plans.Add(P);}
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).ClientSize(FVector2D(640,480))[W];
     FSlateApplication::Get().AddWindow(Window,false);Window->SlatePrepass();W->Rebuild(Plans[0]);
     auto Phase=MakeShared<int32>(0);auto Owner=MakeShared<uint32>(0);auto Runtime=MakeShared<const void*>(nullptr);auto Started=MakeShared<double>(FPlatformTime::Seconds());
@@ -1115,6 +1115,7 @@ bool FCLNativePreviewRadiiTest::RunTest(const FString&)
         if(W->IsUpdating())return false;
         const auto& Preview=*W->NativePreview;TestTrue(TEXT("VPP presents the accepted radius"),Preview.UsesNativePresentation()&&Preview.PublishedPlan()==Plans[*Phase]);
         TestTrue(TEXT("No custom terrain presenter"),!W->Mesh);
+        FString MaterialError;TestTrue(TEXT("Native globe mapping follows each radius edit"),Preview.CheckMaterialCoordinates(MaterialError));AddInfo(MaterialError);
         if(*Phase==0){*Owner=Preview.WorldIdentity();*Runtime=Preview.RuntimeIdentity();}
         else {TestEqual(TEXT("Radius edit retains native world"),Preview.WorldIdentity(),*Owner);TestTrue(TEXT("Radius edit retains native runtime"),Preview.RuntimeIdentity()==*Runtime);}
         double Worst=0;for(const auto& P:Preview.Published().Vertices)Worst=FMath::Max(Worst,FMath::Abs(P.Length()-45000.));

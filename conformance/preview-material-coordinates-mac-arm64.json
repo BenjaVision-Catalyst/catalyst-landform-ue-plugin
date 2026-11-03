@@ -1,0 +1,295 @@
+{
+  "date": "2026-11-03",
+  "profile": "native-preview-material-coordinates-v1",
+  "platform": "UE 5.7.4 CL 51494982 / VPP 2.0p8 / macOS arm64 / Metal SM6 / Development",
+  "componentParent": "9f88377e52bbb571e778d64f0a437652b8fe9f5f",
+  "workspaceParent": "185d7faaf97bf695c13621a6f267d27dbdff9ea2",
+  "ownership": "VPP is the sole voxel generation and presentation platform. Reuse native layers, stamp metadata overrides, material lookup/packing/demand, published mesh ownership, compositor, LOD and collision. No renderer, metadata uploader, streaming manager or new vendor patch is added.",
+  "gap": "The custom stamp ignored inherited native metadata overrides; default display-world material coordinates also do not reverse normalized stamp scale or Catalyst spherical section coordinates.",
+  "specialization": "Two native full-float constant metadata vectors encode the actual native inverse scale, section reference radius and mode. UE DoubleFloat reverses normalization, the Catalyst section chart maps to body space, and existing compensated physical phase drives UE SampleGrad with unwrapped derivatives. Mode zero retains the ordinary runtime shader path.",
+  "editor": {
+    "passed": 46,
+    "failed": 0,
+    "warnings": 0,
+    "report": "Saved/Verification/PreviewMaterials/editor-qualified-final/index.json",
+    "reportSha256": "eb6c9f77a980a70f13ac8faa361b4a58ed3c809bcf54f784a2564bfd01554d3d",
+    "tests": [
+      "Catalyst.Landform.Composition.EditorCommitAndSourceOwnership",
+      "Catalyst.Landform.Composition.IndependentFieldsAndSnapshots",
+      "Catalyst.Landform.Composition.MasksAndValidation",
+      "Catalyst.Landform.Composition.PreviewNativeSphereParity",
+      "Catalyst.Landform.Designer.FixedDisplayFrame",
+      "Catalyst.Landform.Gravity.LiveOriginFrame",
+      "Catalyst.Landform.LocalTerrain.DesignerNativeSphereParity",
+      "Catalyst.Landform.LocalTerrain.GuidesAndDimensions",
+      "Catalyst.Landform.LocalTerrain.LayerControls",
+      "Catalyst.Landform.LocalTerrain.WindowAndHalo",
+      "Catalyst.Landform.NativeGeneration.DesignerSphereParity",
+      "Catalyst.Landform.NativeGeneration.KernelAndVersioning",
+      "Catalyst.Landform.NativeGeneration.NativeLocalSection",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii",
+      "Catalyst.Landform.NativeMaterials.PreviewCoordinateGPU",
+      "Catalyst.Landform.NativeMaterials.RenderedPreviewCoordinates",
+      "Catalyst.Landform.NativeMaterials.StampMetadataOverrides",
+      "Catalyst.Landform.PlanetBuilder.WalkingLocationPicking",
+      "Catalyst.Landform.PlanetLayers.VariationPublication",
+      "Catalyst.Landform.Presentation.LocalFrames",
+      "Catalyst.Landform.RuntimeRecipe.AtomicApplication",
+      "Catalyst.Landform.RuntimeRecipe.NativeLayerFrameAtOrigin",
+      "Catalyst.Landform.RuntimeRecipe.NativeReferenceBudgets",
+      "Catalyst.Landform.RuntimeRecipe.RetainedClientResources",
+      "Catalyst.Landform.Scale.CanonicalAndNativeWindows",
+      "Catalyst.Landform.Scale.NoiseFrameContinuity",
+      "Catalyst.Landform.Scene.NativeBulkSparseParity",
+      "Catalyst.Landform.Scene.PreMigrationPreservation",
+      "Catalyst.Landform.Scene.QueryAndFrameContract",
+      "Catalyst.Landform.StampDistribution.DesignerSphereParity",
+      "Catalyst.Landform.StampDistribution.DeterministicPCG",
+      "Catalyst.Landform.StampDistribution.VersioningAndSnapshots",
+      "Catalyst.Landform.Surfaces.LargeRadiusPreviewPrecision",
+      "Catalyst.Landform.Surfaces.LargeRadiusSectionPrecision",
+      "Catalyst.Landform.Surfaces.LegacySourceInheritance",
+      "Catalyst.Landform.Surfaces.NativePreviewAndBoundaries",
+      "Catalyst.Landform.Surfaces.PortablePayload",
+      "Catalyst.Landform.Surfaces.RenderedGlobe",
+      "Catalyst.Landform.Surfaces.RuleContract",
+      "Catalyst.Landform.Surfaces.ScannedBindingsAndDefaults",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials",
+      "Catalyst.Landform.Volumes.NativePreview",
+      "Catalyst.Landform.Volumes.NativeSectionDomain"
+    ]
+  },
+  "gpu": {
+    "probes": 120,
+    "radiiMeters": [
+      100,
+      1000,
+      3389500,
+      6371000.12345
+    ],
+    "domains": [
+      "globe",
+      "spherical section"
+    ],
+    "sectionWidthsMeters": [
+      100,
+      500,
+      1000
+    ],
+    "probesPerConfiguration": 5,
+    "tileWidthsCm": [
+      200,
+      250,
+      270
+    ],
+    "numericalBudgetCm": 0.1,
+    "maxPositionErrorCm": 0.0224930848926,
+    "maxTilePhaseErrorCm": 0.0225007534027,
+    "reference": "CPU double native-transform inverse and existing SectionToBodyMeters; high/low result comparison on real GPU.",
+    "defaultDFMultiplyFailureCm": 31.3278827667,
+    "defaultProductFailureLogSha256": "73a6648393cd246dd0ec3e8116d2d6d4cdfa5e5071ff8f9e8f0ac3311c484e51",
+    "correction": "UE DFTwoProductNoFMA plus native DFAdd cross terms, matching the existing compensated phase precedent."
+  },
+  "nativePublication": {
+    "previewRadiiMeters": [
+      100,
+      1000,
+      6371000
+    ],
+    "nativeMappingValuesPerRadius": 55554,
+    "concurrentRenderedGlobeValues": 55554,
+    "concurrentRenderedSectionValues": 81914,
+    "volumetricGlobeValues": 166414,
+    "volumetricSectionValues": 153106,
+    "stateChecks": "Native metadata buffers equal each accepted stamp input through radius edits and on/off/on updates. Section values remain unchanged when globe changes. Native world/runtime owners and original visible mesh components are retained. Untextured/default core faces use native metadata demand pruning."
+  },
+  "renderedControl": {
+    "surfacePixels": 99141,
+    "onOffMeanRgb255": 2.50215,
+    "repeatedOnMeanRgb255": 0.720472,
+    "acceptance": "More than 1000 foreground pixels; on/off mean RGB difference exceeds repeated-on by 0.2/255. Foreground requires RGB sum >300 in both on and off; compare globe half only.",
+    "shaderReadiness": "Wait for native publication and UE shader compilation, then one stable second; native mesh readiness alone may show UE fallback material.",
+    "initialColdShaderFailureLogSha256": "7e18efba64bde8e9b837bf9f384e73f0d11c8d8500650505d7c8834f71487ad9",
+    "frames": {
+      "phase-0.png": "3b26060af9cc3a657224d16a3e935109b46dd10ee808a5d37a251c7051c251c7",
+      "phase-1.png": "40b1682b4daecc4e68b3db27d8e46063390b8f37eb60f684b7ff35ea9c52c391",
+      "phase-2.png": "980567ad3ac80ffeec764310d16471bbe997a334a156e1cc19f626e4b5cb7ff5"
+    }
+  },
+  "updater": {
+    "idempotence": {
+      "metadata": [
+        "/CatalystLandform/Surfaces/MD_PreviewMappingHigh.MD_PreviewMappingHigh",
+        "/CatalystLandform/Surfaces/MD_PreviewMappingLow.MD_PreviewMappingLow"
+      ],
+      "materialNodes": {
+        "M_Surface": [
+          "/CatalystLandform/Surfaces/M_Surface.M_Surface:MaterialExpressionGetVoxelMetadata_2",
+          "/CatalystLandform/Surfaces/M_Surface.M_Surface:MaterialExpressionGetVoxelMetadata_3"
+        ]
+      }
+    },
+    "artifactSha256": "b32ddbc9cbf3c24b3aacdf48211a07490d8c0c36463fa154760fd753d9021372",
+    "scope": "The product master material and two metadata assets. Repeated calls retain exactly two connected native metadata nodes. The retired reference grid material is unchanged. Full catalog/instance/texture regeneration was not run."
+  },
+  "cooked": {
+    "fullBuildCookPackage": true,
+    "executableSha256": "f90bd6dfb4a79f4b275bfaacd409573686c5cec448dd203edc3e5080ffc08ceb",
+    "ordinaryRaster": {
+      "passed": true,
+      "referenceMatched": true,
+      "nativeFieldErrorCm": 1.7053025658242404e-11,
+      "nativeSurfaceWeightError": 2.95110046864e-05,
+      "groundFrames": 5791,
+      "voxelFloorFrames": 5791,
+      "artifactsSha256": {
+        "report.json": "7fe28d4e0338363e24a10dfcd3166f014f1a9def7ddf94dcf69bcd2bb1036a47",
+        "run.json": "1be411c749e4669b5a4cbd39e3a078d1639e0b15c726d38bb23da673d6f87e4b"
+      }
+    },
+    "volume": {
+      "passed": true,
+      "volumeReferencePoints": 297,
+      "maxSceneFieldReferenceErrorMeters": 3.206702606561862e-06,
+      "maxSceneSurfaceWeightReferenceError": 2.5313899470136292e-05,
+      "volumeNativeFieldErrorCm": 0.0001983642578125,
+      "volumeNativeSurfaceWeightError": 1.920454440096364e-05,
+      "walks": 12,
+      "nativeFloorFrames": 4320,
+      "groundFrames": 4320,
+      "maxFloorFieldErrorCm": 0.154876708984375,
+      "artifactsSha256": {
+        "report.json": "065fe72f3e7555beb1c7964e9b49b45b9c5dd19b9feb7c69355d9d303506b3ab",
+        "run.json": "505bdda7c59ae5b5745eb373506c202522bf45db8f27a2ce4997d996db553b77"
+      }
+    },
+    "scale": {
+      "cases": 32,
+      "groundedNativeFrames": 31998,
+      "projectedPicks": 384,
+      "artifactsSha256": {
+        "native.json": "71b30159143f9106a9a09931aa4ae1df6be548457d14a6628d93b18aba6d6a06",
+        "evidence.json": "b800ec300deb6f81491549d681723c09b4b265c7ecec80e473938d3a36f23b65",
+        "frame-coverage.json": "d523c37af7293e2d27a2a227ecf7a9f5d44166b7f8efc52eae0dcc3eaee99f88"
+      },
+      "worst": {
+        "maxFieldErrorCm": 1.5741348266601562,
+        "maxWallFaceErrorCm": 1.0423634044798291e-05,
+        "maxMeshFieldErrorCm": 16.666674613952637,
+        "maxMeshFeatureErrorCm": 1.592882879286758,
+        "maxProjectedPickErrorCm": 0.03660293687249584
+      }
+    },
+    "origin": {
+      "cases": 12,
+      "passed": 12,
+      "postShiftPhysicsFrames": 384,
+      "lostFloorFrames": 0,
+      "minGravityDot": 0.9999999951867012,
+      "artifactsSha256": {
+        "evidence.json": "c0a9780a80a64d8d64f8fab748cdd4b7128f00beb0248c31d120f5efe538f81c",
+        "results.json": "4f24d126e66996fe87d59536702793d6d96d8bdb15d35ba588188cd942d2fe8c"
+      }
+    },
+    "materialAssetsSha256": {
+      "M_Surface.uasset": "e0421cf7039a7f922fd0e4765ea42a0877e0d064b3a1abcebb3552a5c3584db1",
+      "M_Surface.uexp": "867879892922e35dd696e727bb54eb173b3beb89cc9d4385056f9223a245ca1e",
+      "MD_PreviewMappingHigh.uasset": "04b79618f158646bdd9aad7f550b22285b46eeb566ca915a26e4592775393889",
+      "MD_PreviewMappingHigh.uexp": "4d9834910c2db2a329e8be18c52b4154fe2928bc654e9fd49f2c21d0cd560e28",
+      "MD_PreviewMappingLow.uasset": "5fb2a32c148daf579a475f69c07587ab71a53b848f72195f23b318990808dd07",
+      "MD_PreviewMappingLow.uexp": "4d9834910c2db2a329e8be18c52b4154fe2928bc654e9fd49f2c21d0cd560e28"
+    }
+  },
+  "preservation": {
+    "protectedFiles": 227,
+    "unrelatedFilesVerifiedUnchanged": 226,
+    "intentionalOwnedMaterialChanges": {
+      "Landform/catalyst-landform-ue-plugin/Content/Surfaces/M_Surface.uasset": {
+        "before": "00ae4c79d3dd51372f8a88a10ce9441239b5a54ad1c4b5ba2a9b32f09bbd5cfd",
+        "after": "fc6b92808f868a47e9df57d41913719208729388cae40b6d613d26d58571d77c"
+      }
+    },
+    "manifestSha256": "8af075b63620d09b4a12e9abb05b9391f6b6787ae868b8a4b2cf446ab34795aa",
+    "originalLocalMegaMaterialCache": "Restored byte-for-byte after editor/cook; no catalog or texture adoption."
+  },
+  "sourceSha256": {
+    "Landform/catalyst-landform-ue-plugin/Content/Surfaces/MD_PreviewMappingHigh.uasset": "104bc9aea93b9a064a1ac9e09e10f6930eaef65b06d9576f184269818e835a61",
+    "Landform/catalyst-landform-ue-plugin/Content/Surfaces/MD_PreviewMappingLow.uasset": "3a12c6525a69f62905480bc269d42fcb5efe2a0c97913abc438f8c61e4e9901c",
+    "Landform/catalyst-landform-ue-plugin/Content/Surfaces/M_Surface.uasset": "fc6b92808f868a47e9df57d41913719208729388cae40b6d613d26d58571d77c",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLPreviewCoordinates.usf": "baad774722c910b4096dad6a0acdd940ca9544fc963b49878c32a5902c5fdd04",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Public/CLAnchoredScene.ush": "573fd98b0505e0b2d67a86112269e07b4f39c838d824f8521e6cb04cee16c51e",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Public/CLPreviewCoordinates.ush": "225d4a0951aa030f45319f1fa5b5587fd6d7afa86d56ca0da6843ac4ae73318d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanetStamp.cpp": "ed34f725dadea24e40ea0466aeabbe3f1a5b4409847d0bbd37f209c8ae04ea7b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanetStamp.h": "05138a977c1a576699855fd938e4ff893815650dcf40daa43a450cba02f9f4d0",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "dc1cccf41c0cde7ff2a5e94dcc5b585a726f5dba895564353dea1cd8eb1a0900",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "f51576a86b46baf5d06a5208eac0db94ab00a52d3f2994b9f91cb2a34063b82e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLNativePreview.h": "71f6a302ceb42fd23f95eb9a7c26287ead2807d082a8610a1295d6ee78546459",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "1b681c056f0963cc4d68670644c3f4798c17e4371a7c9e6b0b70c9702763f196",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "a812696f3eab2d9c3c80bb5fb6e7c4033bb1476655f40ddcc63166798e8380c2",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "6ffffa5c445a7307e3c2c2b81720311accb3424f96e6330e68960626944c93cd",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Private/CLPreviewCoordinatesGPU.cpp": "5c727c2673bae148c4ad1f5b3f1bb55d8ef43ea7547474aaec4866335340193f",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Public/CLPreviewCoordinatesGPU.h": "174d816b1244b16eafaeb376c0c5a015aa1a6b988b70eea9d62b28c6f18df5b0",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLVolumeTests.cpp": "1a769a7d2578c32df8ef1d4695a6ff26fdbfafe469800f2602d4920fc4da618e",
+    "Landform/catalyst-landform-ue-plugin/SourceArt/Surfaces/Appearance.hlsl": "aa95941bb30c8b2d4770295a2191b350e9cf64fd025d2a8030e404ee250b7168",
+    "Landform/catalyst-landform-ue-plugin/SourceArt/Surfaces/TexturedAppearance.hlsl": "39afda73b5b227d9e2fd76b8729f112e9ef588077353fc7c2f91be96e34778a2"
+  },
+  "hostScriptSha256": {
+    "create-surface-library.py": "1e1e7ca0cd32178bc7c054a448cbbb3b526e1acdb33e4555f5e982c5a0ebc1a2",
+    "update-preview-material-coordinates.py": "b2f974f30f3a179f1e2dc1dd0a22e57e6fc1245da079e40e13ca1de2dbf68c44",
+    "package-runtime-recipe.py": "da1a61844a08ff4848dd9db0515e16b9cb74b1e076c57293a154f791eb774379",
+    "verify-packaged-runtime-recipe.py": "01f92fb764b08622ef446ce06829f7657f411a0c28c4376e98a5e0d3d2d014d8",
+    "qualify-scale-lab.py": "fc6c25ed27e2f864d6bc87ee763a2e851f51dbeae1a15daee123390bf42f508f",
+    "reproduce-origin-contact.py": "b130d40927d68edd34e2f12c903e1cdaa5f1f95e2e6dcd2fe2841e5fd93ceb59"
+  },
+  "installedNativeSha256": {
+    "Source/Voxel/Public/VoxelLinearColorMetadata.h": "8f6364ad22dbd4706022ab7694d5bab03d6f009a611f2fe262f55f5b841ab6e6",
+    "Source/Voxel/Private/VoxelLinearColorMetadata.cpp": "28ab4693fc8b70fc5b3ad790a8b4b50063fe540194cac30fc71059c0862d690d",
+    "Source/Voxel/Public/VoxelMetadataOverrides.h": "9be75114ea5b1e9788784b8293b1e6fe0c0427ddcee30a0aef36d0f4a48371a5",
+    "Source/Voxel/Private/VoxelMetadataOverrides.cpp": "0a866d687aa1943cf41ca87bc35c608a740070e28b1aa5106453e09fe4d4f8b5",
+    "Source/Voxel/Public/VoxelStampUtilities.h": "aea583327fc1354b26bd9a70b2a584cd0cfed00a1968fc3c50451ecc6396b812",
+    "Source/Voxel/Private/VoxelStampUtilities.cpp": "aa0236193aa917555cb042acce58084573312988dc1b00f5be3d19ed7a38f526",
+    "Source/Voxel/Public/VoxelStampTransform.h": "d47c91680043aacbce5070b4cd49f1a5dbb11e3512691db147f2a1a037a8865c",
+    "Source/Voxel/Private/VoxelStampTransform.cpp": "f2e419e2263f1fd143261164a262ff22d178f7edc432e7aabcbceb31a8ec726c",
+    "Source/Voxel/Public/MegaMaterial/MaterialExpressionGetVoxelMetadata.h": "f93e86241089307d587780820f8c01092ebfce8f0a1b8e311cd5a97c76513622",
+    "Source/Voxel/Private/MegaMaterial/MaterialExpressionGetVoxelMetadata.cpp": "cbc604983ce6b164083269c7304b3c45f8856b871ff1de3ec49b51dfc1e9be1d",
+    "Source/Voxel/Private/MegaMaterial/VoxelMegaMaterialProxy.cpp": "8e58c4f18a478ae9517274ef6e262e85cf9dd5ba64ceabf93b92c9585ddbfe12",
+    "Source/Voxel/Private/MegaMaterial/VoxelMegaMaterialGeneratedData.cpp": "24fd5b2746e30e9640e07a44f06cb2a6c43392f15b8dbd3e73b0b670a38eefe8",
+    "Shaders/VoxelVertexFactory.ush": "6ff2442a75095d0d73851a27b2cdc9f9191800ed4bea12790d19a606ee9487de"
+  },
+  "engineSha256": {
+    "Build/Build.version": "f4acff8af146d5d02f7618a4e988724d70f3b720c70e68d090bb90a240ae51f6",
+    "Shaders/Private/DoubleFloat.ush": "ab828d4972ac5413b23f8c30c63db8de264904ce7c4d468e836f1b3961aa7ed7",
+    "Shaders/Private/DoubleFloatOperations.ush": "dfd33bee31663c0b4a5eae5325026dc7a0fc73a82e4023fd5e990abadf7e6def",
+    "Shaders/Private/DoubleFloatVectorDefinition.ush": "6b2e1be618ef729928903a533b976f2395beaf851b41316e50899ad67f58aeb2"
+  },
+  "exclusions": [
+    "Arbitrary third-party materials must consume the native mapping contract.",
+    "Current preview invariant: identity rotation, zero origin, equal native X/Y stamp scales; not arbitrary runtime transforms.",
+    "Coordinate precision is distinct from the 50 cm display-voxel overview mesh; no new geometry-precision claim.",
+    "Existing procedural noise retains pinned float semantics; no phase qualification for every procedural channel.",
+    "Neutral cut-face styling, every native transition face, arbitrary charts/radii and other GPU backends remain unqualified.",
+    "Shared M_Surface demands two full-float vector metadata channels even in ordinary mode-zero VPP worlds; additional memory/frame cost is unqualified.",
+    "No datum/ellipsoid/scientific resource or production performance qualification.",
+    "Persistent long journeys were not rerun for this preview material change; prior bounded proof remains in native-reconciliation-mac-arm64.json."
+  ],
+  "qualifiedInputsSha256": {
+    "Content/RuntimeRecipes/Base/planet.json": "b44262966dc9f08813a25674103126ca61697e89d7094db99e72940d863854a9",
+    "Content/RuntimeRecipes/Base/reference.json": "bc691de6ba067696d4f6503a80bd6bbf66a654a8992a393720dddac73f5a6599",
+    "Saved/Verification/volumetric/runtime-input/planet.json": "d0ae5d3ea84127525c8610242e4424321b06134720c2cdc5e8e7743404655463",
+    "Saved/Verification/volumetric/runtime-input/reference.json": "fb4627577e030395e802a729b5fbc83dfbd92e1991bdb91863184a6afdb912c2"
+  },
+  "reproduce": {
+    "cwd": "Landform/Projects/LandformLab",
+    "targetedMaterialUpdate": "Run scripts/update-preview-material-coordinates.py through UE editor Python against staged plugin assets; adopt only M_Surface, MD_PreviewMappingHigh and MD_PreviewMappingLow.",
+    "editor": "UE editor with -CLNaniteProjectionShaders; Automation RunTests Catalyst.Landform.NativeMaterials plus the regression test names listed above; TestExit=Automation Test Queue Empty.",
+    "package": "python3 scripts/package-runtime-recipe.py --scale-lab --archive Saved/Packages/PreviewMaterials",
+    "ordinary": "python3 scripts/verify-packaged-runtime-recipe.py --package Saved/Packages/PreviewMaterials --scenario Base --renderer raster --output Saved/Verification/PreviewMaterials/ordinary",
+    "volume": "python3 scripts/verify-packaged-runtime-recipe.py --package Saved/Packages/PreviewMaterials --input-directory Saved/Verification/volumetric/runtime-input --inspection --inspection-cycle --volume-proof --output Saved/Verification/PreviewMaterials/volume",
+    "origin": "python3 scripts/reproduce-origin-contact.py --archive Saved/Packages/PreviewMaterials --output Saved/Verification/PreviewMaterials/origin",
+    "scale": "python3 scripts/qualify-scale-lab.py --archive Saved/Packages/PreviewMaterials --output Saved/Verification/PreviewMaterials/scale",
+    "freshOutput": "Use fresh output directories for a repeat. Reports and before-task manifest are retained in Saved/Verification/PreviewMaterials."
+  }
+}
