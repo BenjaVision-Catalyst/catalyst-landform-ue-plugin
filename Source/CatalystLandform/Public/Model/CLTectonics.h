@@ -23,7 +23,7 @@ struct CATALYSTLANDFORM_API FCLTectonicPreset
     GENERATED_BODY()
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     // Keep the serialized default: assets that omit this property retain algorithm 1.
-    // Guided authoring explicitly adopts algorithm 5; old fixtures retain their version.
+    // Guided authoring explicitly adopts algorithm 6; old fixtures retain their version.
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Activity=.55;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
@@ -31,6 +31,7 @@ struct CATALYSTLANDFORM_API FCLTectonicPreset
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName UpperGuide=TEXT("SurfaceMax");
     UPROPERTY() bool bOverridePlateCount=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="12")) int32 PlateCount=7;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1",DisplayName="Next plate blend",EditCondition="AlgorithmVersion >= 6",EditConditionHides)) double PlateTransition=0;
     UPROPERTY() bool bOverrideMotion=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="2")) double Motion=1;
     UPROPERTY() bool bOverrideRelief=false;
@@ -43,6 +44,10 @@ struct CATALYSTLANDFORM_API FCLTectonicPreset
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="2")) double RiftStrength=.45;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="2")) double TransformStrength=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double InteriorRelief=.08;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.5",ClampMax="8",DisplayName="Regional frequency",EditCondition="AlgorithmVersion >= 6",EditConditionHides)) double InteriorFrequency=1.8;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="2",EditCondition="AlgorithmVersion >= 6",EditConditionHides)) double FoldStrength=0;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="2",EditCondition="AlgorithmVersion >= 6",EditConditionHides)) double ArcStrength=1;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="2",EditCondition="AlgorithmVersion >= 6",EditConditionHides)) double TrenchStrength=1;
     /** Replaces the resolved shape settings; seed, enabled state and guides are retained. */
     void ApplyProgression(double Position);
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 3",EditConditionHides)) ECLContinentalSetting Setting=ECLContinentalSetting::Collision;
@@ -55,6 +60,7 @@ struct CATALYSTLANDFORM_API FCLTectonicControls
     int32 LowerPlateCount=1,UpperPlateCount=1;
     double PlateTransition=0,Motion=0,CrustThickness=0,BeltWidth=0,Relief=0;
     double BoundaryWarp=.38,Roughness=1,CollisionStrength=1,RiftStrength=1,TransformStrength=1,InteriorRelief=0;
+    double InteriorFrequency=1.8,FoldStrength=0,ArcStrength=1,TrenchStrength=1;
     static bool Resolve(const FCLTectonicPreset& Preset,FCLTectonicControls& Out,FString& Error,bool Layered=false);
 };
 /** Immutable kinematic construction, not a mantle/history simulation. All lengths are metre offsets. */
@@ -76,6 +82,8 @@ public:
     double SpanMeters=0,MaximumDeltaMeters=0;
     double Continentalness(const FVector& UnitDirection) const;
     double SampleDeltaMeters(const FVector& UnitDirection) const;
+    /** Effective shape contribution, independent of the authored enabled checkbox. */
+    bool HasEffect() const;
     /** Algorithm 3 only. Invalid inputs preserve Out. */
     bool SampleGeology(const FVector& UnitDirection,FCLGeologicalSample& Out) const;
     static double CrustBaseFraction(double Continentalness);

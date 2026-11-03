@@ -1,0 +1,1684 @@
+{
+  "formatVersion": 1,
+  "source": "Eight resolved v5 control states captured with the pre-v6 binary",
+  "binarySHA256": {
+    "UnrealEditor-CatalystLandformTests.dylib": "07573861096f5bc44e373d020336f882816592ebf70c34e78a08da53198969ac",
+    "UnrealEditor-CatalystLandform.dylib": "bf7636ed39cb167913c1e32136adbe7be158da245ac8dc32546b5b923fb7cb58",
+    "UnrealEditor-CatalystLandformEditor.dylib": "27f1352ce7efea17849af46faff181092e76eab5f40d8b517a6f615ca051315a",
+    "UnrealEditor-CatalystLandformRender.dylib": "dcefac7564b33a85b8dc471004e526240d009e31168029b8b90b79b87f849034"
+  },
+  "cases": [
+    {
+      "position": 0,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 0,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 2,
+          "bOverrideMotion": false,
+          "motion": 0.1,
+          "bOverrideRelief": false,
+          "relief": 0.08,
+          "beltWidthDegrees": 18,
+          "crustThickness": 0.012,
+          "boundaryWarp": 0.1,
+          "roughness": 0.06,
+          "collisionStrength": 0.1,
+          "riftStrength": 0.06,
+          "transformStrength": 0.04,
+          "interiorRelief": 0.16,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    },
+    {
+      "position": 0.15,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 0.15,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 3,
+          "bOverrideMotion": false,
+          "motion": 0.19072,
+          "bOverrideRelief": false,
+          "relief": 0.10592,
+          "beltWidthDegrees": 16.056,
+          "crustThickness": 0.01524,
+          "boundaryWarp": 0.13888,
+          "roughness": 0.08592,
+          "collisionStrength": 0.13888,
+          "riftStrength": 0.17664,
+          "transformStrength": 0.09183999999999999,
+          "interiorRelief": 0.16,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    },
+    {
+      "position": 0.3,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 0.3,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 3,
+          "bOverrideMotion": false,
+          "motion": 0.25872,
+          "bOverrideRelief": false,
+          "relief": 0.12832,
+          "beltWidthDegrees": 14.688,
+          "crustThickness": 0.017624,
+          "boundaryWarp": 0.16832,
+          "roughness": 0.10728,
+          "collisionStrength": 0.16832,
+          "riftStrength": 0.23376,
+          "transformStrength": 0.12832,
+          "interiorRelief": 0.15896,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    },
+    {
+      "position": 0.45,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 0.45,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 5,
+          "bOverrideMotion": false,
+          "motion": 0.40127999999999997,
+          "bOverrideRelief": false,
+          "relief": 0.19168000000000002,
+          "beltWidthDegrees": 12.312,
+          "crustThickness": 0.022376,
+          "boundaryWarp": 0.23168,
+          "roughness": 0.16272000000000003,
+          "collisionStrength": 0.23168,
+          "riftStrength": 0.18624,
+          "transformStrength": 0.19168000000000002,
+          "interiorRelief": 0.15104,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    },
+    {
+      "position": 0.6,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 0.6,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 6,
+          "bOverrideMotion": false,
+          "motion": 0.39888,
+          "bOverrideRelief": false,
+          "relief": 0.25632,
+          "beltWidthDegrees": 10.944,
+          "crustThickness": 0.025463999999999997,
+          "boundaryWarp": 0.23296,
+          "roughness": 0.21575999999999998,
+          "collisionStrength": 0.29632,
+          "riftStrength": 0.17296,
+          "transformStrength": 0.21408,
+          "interiorRelief": 0.14648,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    },
+    {
+      "position": 0.75,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 0.75,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 7,
+          "bOverrideMotion": false,
+          "motion": 0.36,
+          "bOverrideRelief": false,
+          "relief": 0.36,
+          "beltWidthDegrees": 9,
+          "crustThickness": 0.03,
+          "boundaryWarp": 0.22,
+          "roughness": 0.3,
+          "collisionStrength": 0.4,
+          "riftStrength": 0.16,
+          "transformStrength": 0.24,
+          "interiorRelief": 0.14,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    },
+    {
+      "position": 0.9,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 0.9,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 9,
+          "bOverrideMotion": false,
+          "motion": 1.0339200000000002,
+          "bOverrideRelief": false,
+          "relief": 0.61272,
+          "beltWidthDegrees": 9.648,
+          "crustThickness": 0.042960000000000005,
+          "boundaryWarp": 0.31072,
+          "roughness": 0.5268,
+          "collisionStrength": 0.7564000000000001,
+          "riftStrength": 0.44512000000000007,
+          "transformStrength": 0.44088000000000005,
+          "interiorRelief": 0.14,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    },
+    {
+      "position": 1,
+      "recipe": {
+        "schemaVersion": 17,
+        "algorithmVersion": 2,
+        "name": "Continental rocky world",
+        "radiusMeters": 1000,
+        "baseSurfaceNormalized": 0.45,
+        "seed": 1729,
+        "coordinates": "SphericalSurface",
+        "terrainPatch": {
+          "anchor": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "tangentX": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+          },
+          "halfWidthMeters": 750,
+          "transitionMeters": 100
+        },
+        "radialGuides": {
+          "id": "434C464E000000000000000000000001",
+          "name": "Continental rocky world",
+          "guides": [
+            {
+              "name": "SurfaceMin",
+              "normalizedHeight": 0.6837457774785507,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "SurfaceMax",
+              "normalizedHeight": 0.7934276940217209,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "OceanHeight",
+              "normalizedHeight": 0.7488113211906008,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            },
+            {
+              "name": "AtmosphereMax",
+              "normalizedHeight": 0.9,
+              "color": {
+                "r": 0.699999988079071,
+                "g": 0.699999988079071,
+                "b": 0.699999988079071,
+                "a": 1
+              }
+            }
+          ]
+        },
+        "terrainTypeId": "00000000000000000000000000000000",
+        "terrainTypeName": "",
+        "noiseLayers": [],
+        "terrainRegions": [],
+        "tectonics": {
+          "bEnabled": true,
+          "algorithmVersion": 5,
+          "activity": 1,
+          "seed": -164894091,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "bOverridePlateCount": false,
+          "plateCount": 10,
+          "bOverrideMotion": false,
+          "motion": 1.4,
+          "bOverrideRelief": false,
+          "relief": 0.75,
+          "beltWidthDegrees": 10,
+          "crustThickness": 0.05,
+          "boundaryWarp": 0.36,
+          "roughness": 0.65,
+          "collisionStrength": 0.95,
+          "riftStrength": 0.6,
+          "transformStrength": 0.55,
+          "interiorRelief": 0.14,
+          "setting": "Collision",
+          "foundationOrientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "motionDirection": 1,
+          "continentalExtent": 1
+        },
+        "continents": {
+          "algorithmVersion": 2,
+          "bEnabled": false,
+          "strength": 0,
+          "seed": 0,
+          "lowerGuide": "SurfaceMin",
+          "upperGuide": "SurfaceMax",
+          "orientation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "bOverrideExtent": false,
+          "extent": 0.7,
+          "bOverrideRelief": false,
+          "relief": 0.25,
+          "bCoastalMargin": false,
+          "domainCount": 1,
+          "coastWarp": 0.06,
+          "interiorRoughness": 0.01,
+          "coastSharpness": 0.8
+        },
+        "baseStructure": [],
+        "regionGeneration": {
+          "bEnabled": false,
+          "algorithmVersion": 1,
+          "regionCount": 24,
+          "seed": 73,
+          "structureGuidance": 0.8,
+          "blendFraction": 0.55,
+          "reliefStrength": 1,
+          "palette": [],
+          "overrides": []
+        },
+        "surfaceStack": {
+          "algorithmVersion": 1,
+          "defaultSurfaceId": "Rock",
+          "defaultSurfaceRevision": 2,
+          "layers": [
+            {
+              "name": "Scree on slopes",
+              "bEnabled": true,
+              "surfaceId": "Scree",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 18,
+                "y": 46
+              },
+              "slopeFeatherDegrees": 7,
+              "bUseHeightRange": false,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "None",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.005,
+              "strength": 1,
+              "noiseAmount": 0.25,
+              "noiseWavelengthMeters": 55,
+              "noiseSeed": 31
+            },
+            {
+              "name": "Soil on gentle ground",
+              "bEnabled": true,
+              "surfaceId": "Soil",
+              "surfaceRevision": 2,
+              "slopeDegrees": {
+                "x": 0,
+                "y": 14
+              },
+              "slopeFeatherDegrees": 5,
+              "bUseHeightRange": true,
+              "lowerHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMin",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": -50
+              },
+              "upperHeight": {
+                "mode": "Height",
+                "guide": "SurfaceMax",
+                "upperGuide": "None",
+                "fraction": 0,
+                "offsetMeters": 0
+              },
+              "heightFeatherRadiusFraction": 0.015,
+              "strength": 1,
+              "noiseAmount": 0.15,
+              "noiseWavelengthMeters": 85,
+              "noiseSeed": 31
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

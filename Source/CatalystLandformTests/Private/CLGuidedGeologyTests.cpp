@@ -25,10 +25,11 @@ bool FCLGuidedProgressionTest::RunTest(const FString&)
 {
     FCLTectonicPreset P;P.bEnabled=true;P.Seed=817;P.LowerGuide=TEXT("CustomLow");P.UpperGuide=TEXT("CustomHigh");
     P.ApplyProgression(.5);const auto Middle=P;P.ApplyProgression(.75);const auto Collision=P;P.ApplyProgression(1);const auto Extreme=P;
-    TestTrue(TEXT("Guided motion falls in collision then rises at the extreme"),Middle.Motion>Collision.Motion&&Extreme.Motion>Middle.Motion);
-    TestTrue(TEXT("Belt width narrows then broadens"),Middle.BeltWidthDegrees>Collision.BeltWidthDegrees&&Extreme.BeltWidthDegrees>Collision.BeltWidthDegrees);
+    P.ApplyProgression(.28);const auto Rifting=P;
+    TestTrue(TEXT("Motion and rifting peak early then give way to collision before the extreme"),Rifting.Motion>Middle.Motion&&Rifting.RiftStrength>Collision.RiftStrength&&Extreme.Motion>Middle.Motion);
+    TestTrue(TEXT("Broad belts develop into narrower mature orogens"),Middle.BeltWidthDegrees>Collision.BeltWidthDegrees&&Collision.BeltWidthDegrees>Extreme.BeltWidthDegrees);
     TestTrue(TEXT("Guided states retain enabled state, seed and guide references"),P.bEnabled&&P.Seed==817&&P.LowerGuide==TEXT("CustomLow")&&P.UpperGuide==TEXT("CustomHigh"));
-    P.ApplyProgression(0);TestTrue(TEXT("Quiet is a configured landscape, not a disabled layer"),P.Motion>0&&P.InteriorRelief>0&&P.PlateCount>=2);
+    P.ApplyProgression(0);TestTrue(TEXT("Zero contributes no tectonic deformation while retaining the enabled layer"),P.bEnabled&&P.Motion==0&&P.Relief==0&&P.InteriorRelief==0&&P.FoldStrength==0&&P.ArcStrength==0&&P.TrenchStrength==0);
     TestTrue(TEXT("Extreme changes topology, crust, boundary shape and texture"),Extreme.PlateCount>P.PlateCount&&Extreme.CrustThickness>P.CrustThickness&&Extreme.BoundaryWarp>P.BoundaryWarp&&Extreme.Roughness>P.Roughness&&Extreme.CollisionStrength>P.CollisionStrength&&Extreme.RiftStrength>P.RiftStrength);
     auto R=Guided();R.Continents.ApplyProgression(.5);const auto Broad=R.Continents;R.Continents.ApplyProgression(1);
     TestTrue(TEXT("Continental character fragments large domains rather than just increasing amplitude"),R.Continents.DomainCount>Broad.DomainCount&&R.Continents.Extent<Broad.Extent&&R.Continents.CoastWarp>Broad.CoastWarp);
@@ -103,7 +104,9 @@ bool FCLRidgeDevelopmentTest::RunTest(const FString&)
         {
             auto R=Guided();R.Seed=Seed;R.Continents.bEnabled=Continents;R.Tectonics.ApplyProgression(Position);
             const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
-            auto Quiet=R.Tectonics;Quiet.Motion=0;
+            // Isolate fine orogenic structure. Removing all motion also removes
+            // the intentionally early rifts, faults and broad stress flexure.
+            auto Quiet=R.Tectonics;Quiet.FoldStrength=0;Quiet.Roughness=0;
             const auto Background=FCLCompiledTectonics::Compile(Quiet,R.Seed,P->Tectonics->SpanMeters,Error,true,P->Continents,true);
             if(!Background){AddError(Error);return false;}
             double Lift=0;
@@ -115,7 +118,7 @@ bool FCLRidgeDevelopmentTest::RunTest(const FString&)
             }
             Lifts.Add(Lift);
         }
-        AddInfo(FString::Printf(TEXT("Seed %d continents %d, maximum ridge share at 25/65/90/100: %.4f %.4f %.4f %.4f"),Seed,Continents,Lifts[0],Lifts[1],Lifts[2],Lifts[3]));
+        AddInfo(FString::Printf(TEXT("Seed %d continents %d, fine orogenic share at 25/65/90/100: %.4f %.4f %.4f %.4f"),Seed,Continents,Lifts[0],Lifts[1],Lifts[2],Lifts[3]));
         TestTrue(TEXT("Young ridges retain broad landscape structure"),Lifts[0]<.15);
         TestTrue(TEXT("Ridges at 65 percent remain well below the extreme"),Lifts[1]<Lifts[3]*.45);
         TestTrue(TEXT("Late settings develop stronger ridges"),Lifts[2]>Lifts[1]&&Lifts[3]>.15);

@@ -416,7 +416,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 {
     const auto Raw=CompileUnmapped(Recipe,Error,Library,LocalRegion,SurfacePatch);if(!Raw)return nullptr;
     if(Recipe.SchemaVersion<17||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Raw;
-    const bool HasShape=Recipe.Continents.bEnabled||Recipe.Tectonics.bEnabled||!Recipe.NoiseLayers.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||Recipe.RegionGeneration.bEnabled;
+    const bool TectonicShape=Raw->Tectonics&&Raw->Tectonics->HasEffect();
+    const bool HasShape=Recipe.Continents.bEnabled||TectonicShape||!Recipe.NoiseLayers.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||Recipe.RegionGeneration.bEnabled;
     if(!HasShape)return Raw; // A newly created, empty planet is a perfect sphere.
     const auto* Low=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
     const auto* High=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});

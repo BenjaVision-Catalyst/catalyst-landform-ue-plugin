@@ -1,0 +1,276 @@
+{
+  "date": "2026-11-03",
+  "platform": "UE 5.7.4 / VPP 2.0p8 / macOS arm64 / Metal SM6",
+  "component_parent": "4757609c98212fa8ede47a6a3cbe4d024c1d7880",
+  "workspace_parent": "11652acba32569fafa0048ac74ebbd88e2adc9d0",
+  "scope": "Tectonic algorithm 6 independently timed authoring curves and field evaluation; pinned algorithms 1..5 and continental algorithm 2 retained; shared inspection landing-surface chart fix",
+  "source_sha256": {
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "5769e4c398d30d1a5ff3b69b2eae9ab45e7f85ddd6e19dee9220583fdccc8ef1",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "b430c44d7243055cae2ecca30381f251499c96486986995de721f739ad230545",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "a23bda81e76b0efb76aacc9e8c68a427e71fa93dc32171a92a3cf51d11a2bd87",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLGuidedGeologyTests.cpp": "51d7713056ccea9cf78eceef8392218296cf8694a261f225318f10a2ee27d7b3",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLTectonicTests.cpp": "bbe5841748cca8f71dd0b0ad069d860237f959fb3a39f9619055203d7eb8b6be",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLTectonics.cpp": "f9d04c871bafc6e63df1c57020444a1cfd7803c2b548942538c57b0d08d93a4e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLGeologyProgression.cpp": "b4187b0d4d722dc5bd5cfe183c03d565c119a49a669c5a9364cc02aa89118337",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "7c3cb8e4107404c9329c57d3a8cb4993841e8eb8db65fea59dea14a9eb50a690",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLTectonics.h": "672cc6b388e428101616a0f994d1b7e4424ba23d828fdf35fe057c4fc4aaf737",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLProjectedInspection.cpp": "f62a7e13f3614c6a2315b3d4a7d996457763ca5e33f5caf11f8138afd3741a0b",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLInspectionEditorTests.cpp": "c312469b5df45d2993df5040e39a75bb3c76389263b0249d1d202a62bebc86fb",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLTectonicCharacterTests.cpp": "2f494794fcb82f1a8ed92acda5ea68177ed67d21b554f50c5761055571041e69",
+    "Landform/catalyst-landform-ue-plugin/Examples/TectonicCharacter.json": "19a48a8fb8462fef4fdcdbfa201a627b326ec41caaf4f6d2e81554e4ef25adda",
+    "Landform/Projects/LandformLab/scripts/create-tectonic-character-review.py": "9f557a2ffa7ab85777c6ebc165119652fee9e0b91282cc1237e0acdff24cb43b",
+    "Landform/Projects/LandformLab/scripts/show-tectonic-character-review.py": "dde075c200317dcfbfddb90f26a02f95fcf31631add4ce28442a9a818bf33d92",
+    "Landform/Projects/LandformLab/scripts/capture-tectonic-character-baseline.py": "33e7d52b7e62f7faa5e37e1537fbcc2f0c8a398bbf192db99fe0b804f5ffa5db",
+    "Landform/Projects/LandformLab/scripts/verify-packaged-runtime-recipe.py": "d8647fb02333d17be7bc6538db60fbf8e87ba80cc5ecb0273a490d97ffe62f0e"
+  },
+  "editor_regression": {
+    "path": "Saved/Verification/tectonic-character-final-suite/index.json",
+    "sha256": "e698d9ed127ad85fc5ae0eb43911a3cd4f7dc18184764ae283e74b79c7e86c2f",
+    "counts": {
+      "succeeded": 128,
+      "succeededWithWarnings": 1,
+      "failed": 0,
+      "notRun": 0
+    }
+  },
+  "inspection_editor_regression": {
+    "path": "Saved/Verification/tectonic-character-inspection-editor/index.json",
+    "sha256": "496184f9370d1af14d97dfbe7154f616953f4cfe353ced4e90148f68e1795f06",
+    "counts": {
+      "succeeded": 6,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0
+    }
+  },
+  "events": [
+    {
+      "test": "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment",
+      "message": "Seed 1729 continents 0, fine orogenic share at 25/65/90/100: 0.0000 0.0517 0.2126 0.2745"
+    },
+    {
+      "test": "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment",
+      "message": "Seed 1729 continents 1, fine orogenic share at 25/65/90/100: 0.0000 0.0404 0.1338 0.1918"
+    },
+    {
+      "test": "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment",
+      "message": "Seed 817 continents 0, fine orogenic share at 25/65/90/100: 0.0001 0.0466 0.1475 0.1843"
+    },
+    {
+      "test": "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment",
+      "message": "Seed 817 continents 1, fine orogenic share at 25/65/90/100: 0.0000 0.0596 0.1514 0.2157"
+    },
+    {
+      "test": "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment",
+      "message": "Seed 529 continents 0, fine orogenic share at 25/65/90/100: 0.0000 0.0573 0.1391 0.1889"
+    },
+    {
+      "test": "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment",
+      "message": "Seed 529 continents 1, fine orogenic share at 25/65/90/100: 0.0000 0.0476 0.1678 0.2450"
+    },
+    {
+      "test": "Catalyst.Landform.Scene.PreMigrationPreservation",
+      "message": "Six pre-migration cases / 462 samples: height 2.3203483579e-10 m, material 1.02454711381e-11, scene interface 2.84217094304e-13 m"
+    },
+    {
+      "test": "Catalyst.Landform.TectonicCharacter.DensePathContinuity",
+      "message": "1001 slider positions / 3 seeds / 2 crust contexts / 768768 raw samples; largest 0.1% step 0.00465225 of span at seed 817 crust 0 step 793 direction 19"
+    },
+    {
+      "test": "Catalyst.Landform.TectonicCharacter.FinalSurfacePortfolio",
+      "message": "48 final terrain cases, 3 seeds with/without continents: smallest consecutive shape change 0.011291 of guide span"
+    }
+  ],
+  "portfolio": {
+    "path": "conformance/tectonic-character-portfolio.csv",
+    "sha256": "27cf2c824e3c85c8a36889d581b353fab9f9450be5e31e6801e08028743d5f27",
+    "cases": 48,
+    "seeds": [
+      1729,
+      817,
+      529
+    ],
+    "continents": [
+      false,
+      true
+    ],
+    "settings": [
+      0,
+      0.15,
+      0.3,
+      0.45,
+      0.6,
+      0.75,
+      0.9,
+      1
+    ],
+    "directions_per_case": 2048,
+    "minimum_consecutive_final_rms_span": 0.01129073
+  },
+  "dense_raw_sweep": {
+    "settings": 1001,
+    "seeds": 3,
+    "contexts": 2,
+    "directions": 128,
+    "samples": 768768,
+    "maximum_step_span": 0.00465225,
+    "step_size": 0.001,
+    "limit_span": 0.025,
+    "scope": "Raw tectonic field; not final-range continuity at a sole-layer zero boundary"
+  },
+  "rendered_review": {
+    "path": "Saved/Verification/tectonic-character/frames-final",
+    "color_frames": 64,
+    "neutral_frames": 1,
+    "angles": 2,
+    "contexts": [
+      "captured v5 saved planet with continents disabled",
+      "v6 same saved context",
+      "v6 with continents enabled at .55",
+      "v6 saved context with layer seed +817"
+    ],
+    "resolution": {
+      "principal_late": 384,
+      "other": 128
+    },
+    "frame_sha256": {
+      "v5-0-0.png": "a59a8014a502b7f5e753fb5621ff958a096d846a49c4bbc5e968da8b07183ac8",
+      "v5-0-1.png": "5732983379c1305a84b57c7df3c9f1602916921cdfaff3ed86913b2ad6334fae",
+      "v5-1-0.png": "b42c0f314165d56d0c87f027b2e672aeb72ffa9cac137d71210b5376297538af",
+      "v5-1-1.png": "2eef7a10c3fccbe0f6fe4478878a7023727c9265e176407a5aa02fb370a2fa6b",
+      "v5-2-0.png": "a1ae3842e99bd8d63080e46d0fef99f89476f2ed4fe40bab38a776ca26e49002",
+      "v5-2-1.png": "8ab6c710df4f444666a573fd5e19d429d449a809c121fafda35ee161da34d3ea",
+      "v5-3-0.png": "f9baccbbf7d11ca1c55cdbcd3ac90a43917ea2823f762915b3c5a9dd0e0fab52",
+      "v5-3-1.png": "c47dc26d166303ed23256bca907efe53fe9e9786362ddde2ed6238ba98949f51",
+      "v5-4-0.png": "6ff757f30ec1b6369e973ced20d93df5909aebfead092fefffe26188f5fac49b",
+      "v5-4-1.png": "78a0769c3507eebdbc688bc4db7552f982e6ebb1d69f963fccf863f88c21d025",
+      "v5-5-0.png": "4b2f4c3d3ceeda4f924618768a2345f79813fd5ba88d4dcf430eb6c29773ae72",
+      "v5-5-1.png": "acfb9258d3a035a95184ceb1f29154ca0881a0157d3becc6e88151cff299011a",
+      "v5-6-0.png": "7aa0c20dcc93fe75eb0bf7cc18aca2909642707c91a1e3a614f30213986fd386",
+      "v5-6-1.png": "699fce08eaac63fad8b8b990ef4b2874393cf33af72ffdfa4a85e7c7138dba46",
+      "v5-7-0.png": "31eb4344701e4d215a1e8af94cb3024111427dac4d34a7b58ae4b595d590203e",
+      "v5-7-1.png": "9f507e69bd7da304efc9895bfa39f5fe66729b4eafbfedb8d7546dee3be519d3",
+      "v6-0-0.png": "5e99b51b4eef31eafbd3855263da29c0907cc7e5a2fdec946490793e1b433ac0",
+      "v6-0-1.png": "a771ada9a00ba5af4b760f0c85a4eb95bc1de903f6c91cec21bd381bec289b50",
+      "v6-1-0.png": "4e472dc3ac7113e44a96c103f89293192323a0682d2295c899ee275dbb5272b4",
+      "v6-1-1.png": "483791241eec2bc3e77d25fa570b2908e4f2c1a0a84c155d39ef53a878af1af4",
+      "v6-100-neutral.png": "27bb7dac2b7392bab32557f11fd7d2f6eb1bb85e2c735127b1230e23a4e953f4",
+      "v6-2-0.png": "0ce7aea449c1536bae2adba946d13138d3beec0020418b862d67bd48f53cd110",
+      "v6-2-1.png": "e5c227e1d266cf4aa8488e9daa538cbe412ef6cc447ebe8caaa2cba51d9103e6",
+      "v6-3-0.png": "e93b17663ebbaca120fd3e165fd4f70814527d9493dfa1a3cb92e6d3005c1362",
+      "v6-3-1.png": "b3e0c6722c28d3589c6dd3687c62b3eb0272e08d9c153ab1734888fe77f8f77e",
+      "v6-4-0.png": "abb93b517a88b8745f23a267268a9f9c20251bd16dc066d40bf62893b3fce825",
+      "v6-4-1.png": "914ed2b0e0bab52566b493bc5490546402d235114b62a50bfd38d35a588e174a",
+      "v6-5-0.png": "5eb72010e6a40301f45846db41d4af91e748ffe13b603b49ebe7a8745ea56e2a",
+      "v6-5-1.png": "09494d4216678d8fb1ddf543dc1d68e0355aecffb7f84073becd742d5a8a9127",
+      "v6-6-0.png": "b8d2e34e2450d597fabcd8e55bac9f59688e1ff684dfbcccc322ccef88f9190b",
+      "v6-6-1.png": "f54195dc66f0ce74dbfed75d5ce2384fa848d2b9b13069ef5d83b904922ddb6f",
+      "v6-7-0.png": "9f3a9dd1e03f76da01820eb29f6124db51195687332cd45d02b5b2cb91583694",
+      "v6-7-1.png": "ab215f39b5c1fedbd4f43d1b6ab66d198c57fabb7f268dc5aaeedd36343609ff",
+      "v6-continents-0-0.png": "fdb79c3a771bb2588a3fff13629c0264736d4c0f33a5196d536829130aef8cff",
+      "v6-continents-0-1.png": "d87090279f22eca534dbe6a37f9fbf55801de07254a9af5e7b96e87c9bc0c75c",
+      "v6-continents-1-0.png": "d098af7ab835732e756956368ea52a7cd21dd2a15ca6e5b39d78c591aa37b56f",
+      "v6-continents-1-1.png": "893205fac42e4f64a537d7ae5cc9882219775770f2ea0091083553d3cc6683b4",
+      "v6-continents-2-0.png": "4cd665cb64278fac5152156b76dcf184815cc665eec1e138728e95f9f8e2d710",
+      "v6-continents-2-1.png": "a1f7844ce3700132c14081023b27e3bb20ac4db16b85fab61a4d495f3501816c",
+      "v6-continents-3-0.png": "ad4b276a5b7247fd5cf71889a4958f01135593de8ece5ad11687ed795ac19e50",
+      "v6-continents-3-1.png": "ce8663a7e8ca71f650810012af0878836e1a79c0ce2d37880ec69e1c499e0e60",
+      "v6-continents-4-0.png": "9427511aee641e047bcaa5815d6d0dc73481c7eec29522f872ba3fe72e846318",
+      "v6-continents-4-1.png": "27062565ea5fadc44dc5dcda0868e9bcf3e05b79d372792cd362130bd08344f5",
+      "v6-continents-5-0.png": "68cdf2ffc81e83dd85f4d5f7a03f34bfb40dd50b85621b5d7f5af3dc7314155d",
+      "v6-continents-5-1.png": "b4d633044cefae76e8420119a3dfd454a6c99945d0f314848f0fdd6dd30d7c07",
+      "v6-continents-6-0.png": "19247e341742ce06f286dc9e09b830ce20ab5536204085e309caf5dd07d5d9e4",
+      "v6-continents-6-1.png": "1b625a30840807e0083efd3945f13fe4cb2d580b733aa5367cc640b307a4dac8",
+      "v6-continents-7-0.png": "05d08ca658f50772423e7cdbbc3606d24d92f61308576834d17010c1e755bc91",
+      "v6-continents-7-1.png": "b7ef9165e1db87216be128f6151ddec6ca403fbfb04197894c5bb1e24f7b54f9",
+      "v6-variation-0-0.png": "2b218cbdc00fe81f1317239bc0b8c3ee96b55bb50e9cf0a65b17965236d0837f",
+      "v6-variation-0-1.png": "42d6c3773922517d9e06435217915e7ee63c35829afc7b0336e3f6b63ccc62ff",
+      "v6-variation-1-0.png": "cae6b3e424518606b568824b7844a2813d150f7a1d71e7777db9d8695125bd28",
+      "v6-variation-1-1.png": "d432e726bf6566e72528f03b60566b01889adf5624576fc1663e1f103b4299b3",
+      "v6-variation-2-0.png": "c911fac4271696c32c2ec9b76aec86fca2734aa3f8af0767c31901141f368964",
+      "v6-variation-2-1.png": "bb9accc48b250f617d0df3eab3a5c0a897e4ab65e9cb81591758b752a3d95ce8",
+      "v6-variation-3-0.png": "828c9476f9b2268b3ecf6205fa8e6c864d4d0a9b99008c91858ff5272ddb98aa",
+      "v6-variation-3-1.png": "0ec0694feebc1592328d99d0e25661711dd6213d778514bec53a20d4b1b79437",
+      "v6-variation-4-0.png": "e47eefc8b036cc800356f84f1f282774cd70abbe1e5e671a0075707d5933b9ec",
+      "v6-variation-4-1.png": "cf215f07c7950a1dc09b869f0aa7f0a52db7714fcd2ec74d6dd361ae24fa0e45",
+      "v6-variation-5-0.png": "304d260ee10286c334dd4b7bddb0f968875c9281fedd75f11460deb8bf693fa5",
+      "v6-variation-5-1.png": "8df13bc9f18f98e1c688404926bda58c4f80ef51b948cfe09e4fbccb6d78b798",
+      "v6-variation-6-0.png": "7123f67e9bc9301c9245922a37f57f011428aa5e7212b691d226b48702a0da90",
+      "v6-variation-6-1.png": "4246b1b484e613b3298ce9db97163b861ddbcb98aa67bda274087be00d78e099",
+      "v6-variation-7-0.png": "a70e0c138751972a9123b5559cd5eac1da5bd52a159f19101cf37b826d61502c",
+      "v6-variation-7-1.png": "65d8f12c20054f43664ec7185c0e75136c9ef6202db74e34bb935aec85b3b049"
+    },
+    "gallery_path": "Docs/media/TectonicCharacter.jpg",
+    "gallery_sha256": "01d392baafb25112b45070b9580edb4de1a5c79f195fcef7b018c45c5535c7a0",
+    "differences_sha256": "317838d27f546bc18b476d00dff2b505355c3e33abdc0b3c220bee530dff83cd",
+    "limits": "Fixed-camera geometric/visual review, not aesthetic certification for every seed or Advanced configuration"
+  },
+  "baseline": {
+    "path": "conformance/tectonic-character-v5-reference.json",
+    "sha256": "fee33419fa37daa971cb7e98c114d4054ccd6f96296e6e95464943d2bb79e31a",
+    "capture": "Eight resolved v5 states captured before the new C++ build; captured module hashes are in the file"
+  },
+  "warning": "One existing Recipes.VPPAndLiveEdits check logs the disabled Mesh Modeling material dependency; not a VPP blocker",
+  "protected_files": {
+    "path": "Saved/Verification/tectonic-character-before/protected-files.json",
+    "count": 205,
+    "sha256": "bace48619ca8b49848d5cb1b05231e9e814debd3dd1d03fa41935c5fb185c512",
+    "changed": []
+  },
+  "limitations": [
+    "Sole zero tectonic layer is a constant sphere; nonconstant final fitting uses both exact guide extrema and cannot be amplitude-continuous from that sphere",
+    "Artistic kinematic tectonics, not erosion or geological history simulation",
+    "Shared scene still has the existing radial provider; arbitrary volume topology is a separate milestone",
+    "No new 60 fps or planetary-scale precision certification"
+  ],
+  "packaged_inspection": {
+    "path": "Saved/Verification/tectonic-character-packaged-surface-chart",
+    "report_sha256": "9aaca72041d51f77a071987d937e2295b874576a374efcdd8335f1e33648d05c",
+    "run_sha256": "c836dec2ed5de78b0cb081cf3feb9bd52a15f4c7696a3196803c139bd3773ee6",
+    "binary_sha256": "f3baf0f3032567301050cc66cdc2617712009472def87c87a29dfdede03952ec",
+    "passed": true,
+    "profile_position": 0.45,
+    "locations": 12,
+    "curvatures": [
+      0,
+      0.5,
+      1
+    ],
+    "frames": 4074,
+    "ground_frames": 4074,
+    "native_floor_frames": 4074,
+    "maximum_floor_field_error_cm": 0.01280800174572505,
+    "shared_scene": true,
+    "scene_contract_version": 1,
+    "native_materials_preserved": true,
+    "presentation": {
+      "valid": true,
+      "frames": 348,
+      "cameraFrames": 346,
+      "propBudget": 3,
+      "maxVisibleProps": 0,
+      "maxRigidCornerErrorCm": 0.03162425850277863,
+      "maxPropFootErrorCm": 0,
+      "maxCameraInverseErrorCm": 3.2741809263825417e-11,
+      "maxCameraHistoryErrorCm": 0,
+      "maxBodyDisplacementCm": 3.6246221917089964e-08,
+      "maxPropDisplacementCm": 0,
+      "previousFrameRetained": true,
+      "cleanupVerified": true,
+      "scope": "Post-physics local camera, rigid no-collision body/marker visuals; canonical simulation and prop colliders unchanged; 30 m prop range, 2 cm visual error limit",
+      "cpuP99Ms": 0.01125037670135498,
+      "cpuMaxMs": 0.012122094631195068
+    },
+    "scope": "Functional walking, local gravity and shared projection camera; shader/material cook unchanged and hash-checked; not performance qualification"
+  },
+  "retained_failure": {
+    "path": "Saved/Verification/tectonic-character-packaged",
+    "report_sha256": "ca6deba0d329c12b2e4ec439fc75b26297272fa51e5d2ce3c95a17613c074d14",
+    "provenance_sha256": "98722098580ffe8027aefe352b26692f732e5e3f0f6edbcc1875925d9c3245fc",
+    "cause": "Raw base-sphere chart altitude excluded final surface; shared inspection now chooses a landing-surface reference through the existing presentation option"
+  },
+  "owned_review_assets": {
+    "Content/LandformDesigner/TectonicCharacter/DA_CharacterGuides.uasset": "6804fbc2f409251f8379c635b54486e8217b20621be23e57c4dd621d190ec7ee",
+    "Content/LandformDesigner/TectonicCharacter/DA_TectonicCharacter.uasset": "47a3ff32cd2396edae27f637de86afbeb2c9a275026e35f8ea06552a4bf4e75a"
+  }
+}

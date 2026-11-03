@@ -5,6 +5,8 @@
 #include "CLSurfacePreview.h"
 #if WITH_DEV_AUTOMATION_TESTS
 #include "ShaderCompiler.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 #endif
 
 
@@ -1132,6 +1134,96 @@ bool FCLPreviewPrecisionTest::RunTest(const FString&)
                 FSlateApplication::Get().RequestDestroyWindow(Window);
             }
         },.15f));
+    }
+    return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicRenderedPortfolioTest,"Catalyst.Landform.TectonicCharacter.RenderedPortfolio",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLTectonicRenderedPortfolioTest::RunTest(const FString&)
+{
+    FString Json,Error;TSharedPtr<FJsonObject> Reference;
+    const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
+    if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("conformance/tectonic-character-v5-reference.json")))||
+        !FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json),Reference))
+    {AddError(TEXT("Missing pre-change tectonic character reference"));return false;}
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic character portfolio"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-character/frames-final");IFileManager::Get().MakeDirectory(*Folder,true);
+    auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();
+    for(int32 Group=0;Group<4;++Group)for(const auto& Value:Reference->GetArrayField(TEXT("cases")))
+    {
+        const auto Case=Value->AsObject();FString Input;
+        FJsonSerializer::Serialize(Case->GetObjectField(TEXT("recipe")).ToSharedRef(),TJsonWriterFactory<>::Create(&Input));
+        TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
+        if(!Source->ImportRecipeJson(Input,Error)){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+        auto R=Source->Recipe;
+        if(Group>0)R.Tectonics.ApplyProgression(Case->GetNumberField(TEXT("position")));
+        if(Group==2){R.Continents.bEnabled=true;R.Continents.ApplyProgression(.55);}
+        if(Group==3)R.Tectonics.Seed+=817;
+        if(Group==1&&FMath::IsNearlyEqual(Case->GetNumberField(TEXT("position")),.45))
+        {
+            R.Name=TEXT("Tectonic character");R.RadialGuides.Id=FGuid(0x434C5443,0,0,1);R.RadialGuides.Name=TEXT("Character review guides");Source->Recipe=R;FString Review;
+            if(!Source->ExportJsonString(Review,Error)){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+            FFileHelper::SaveStringToFile(Review,*(FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-character/review.json")));
+        }
+        const auto P=FCLPlanetCompiler::Compile(R,Error);
+        if(!P||!P->Surfaces){AddError(Error);App.RequestDestroyWindow(Window);return false;}
+        const int32 Resolution=Group==1&&Case->GetNumberField(TEXT("position"))>=.75?384:128;
+        Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,Resolution));
+    }
+    auto Previous=MakeShared<TArray<FColor>>();auto Differences=MakeShared<FString>(TEXT("group,step,angle,mean_pixel_difference\n"));
+    for(int32 I=0;I<Plans->Num();++I)for(int32 Angle=0;Angle<2;++Angle)
+    {
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([W,Plans,Buffers,I,Angle]
+        {
+            const auto& P=(*Plans)[I];const auto& B=(*Buffers)[I];W->Client->Plan=P;
+            auto* Material=CastChecked<UMaterialInstanceDynamic>(CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*P->Surfaces,true));
+            Material->SetVectorParameterValue(TEXT("CLGrid"),FLinearColor(0,10,0,0));W->Mesh->SetMaterial(0,Material);
+            CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
+            W->SetGuides({},false);W->SetOceanVisible(false);
+            const FVector Eye=(Angle==0?FVector(1,-1,.65):FVector(-1,.4,.35)).GetSafeNormal()*220000;
+            W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());
+        },.025f));
+        ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Folder,Plans,I,Angle,Previous,Differences]
+        {
+            if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            TestEqual(TEXT("Portfolio frame renders fully"),Pixels.Num(),800*600);
+            const int32 Group=I/8,Step=I%8;
+            if(Angle==0)
+            {
+                double Difference=0;
+                if(Step>0&&Previous->Num()==Pixels.Num())for(int32 K=0;K<Pixels.Num();++K)
+                    Difference+=FMath::Abs(int32(Pixels[K].R)-(*Previous)[K].R)+FMath::Abs(int32(Pixels[K].G)-(*Previous)[K].G)+FMath::Abs(int32(Pixels[K].B)-(*Previous)[K].B);
+                Difference/=800*600*3;
+                *Differences+=FString::Printf(TEXT("%d,%d,%d,%.6f\n"),Group,Step,Angle,Difference);
+                if(Group>0&&Step>0)TestTrue(TEXT("Every reviewed new-profile interval visibly changes the rendered planet"),Difference>.2);
+                *Previous=Pixels;
+            }
+            const TCHAR* Names[]={TEXT("v5"),TEXT("v6"),TEXT("v6-continents"),TEXT("v6-variation")};
+            TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);
+            FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("%s-%d-%d.png"),Names[Group],Step,Angle)));
+            if(Group==1&&Step==7&&Angle==0)
+            {
+                auto* Original=W->Mesh->GetMaterial(0);
+                auto* Clay=LoadObject<UMaterialInterface>(nullptr,TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+                if(TestNotNull(TEXT("Neutral material is available for geometric review"),Clay))
+                {
+                    W->Mesh->SetMaterial(0,Clay);TArray<FColor> Neutral;
+                    for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Neutral);}
+                    FImageUtils::CompressImageArray(800,600,Neutral,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/TEXT("v6-100-neutral.png")));
+                    W->Mesh->SetMaterial(0,Original);
+                }
+            }
+            if(I==Plans->Num()-1&&Angle==1)
+            {
+                FFileHelper::SaveStringToFile(*Differences,*(Folder/TEXT("differences.csv")));
+                FSlateApplication::Get().RequestDestroyWindow(Window);
+            }
+        },.10f));
     }
     return true;
 }

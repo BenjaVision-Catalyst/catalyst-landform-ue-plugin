@@ -7,9 +7,9 @@ FVector Unit(FRandomStream& R){const double Z=R.FRandRange(-1.f,1.f),A=R.FRandRa
 }
 bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls& O,FString& Error,bool Layered)
 {
-    if((P.AlgorithmVersion<1||P.AlgorithmVersion>5)||!FMath::IsFinite(P.Activity)||P.Activity<0||P.Activity>1||P.LowerGuide.IsNone()||P.UpperGuide.IsNone()||
+    if((P.AlgorithmVersion<1||P.AlgorithmVersion>6)||!FMath::IsFinite(P.Activity)||P.Activity<0||P.Activity>1||P.LowerGuide.IsNone()||P.UpperGuide.IsNone()||
         P.PlateCount<1||P.PlateCount>12||!FMath::IsFinite(P.Motion)||P.Motion<0||P.Motion>2||!FMath::IsFinite(P.Relief)||P.Relief<0||P.Relief>1)
-    {Error=TEXT("Tectonic preset requires algorithm 1..5, activity 0..1 and valid advanced controls");return false;}
+    {Error=TEXT("Tectonic layer requires algorithm 1..6, activity 0..1 and valid advanced controls");return false;}
     if(P.AlgorithmVersion==3&&(uint8(P.Setting)>uint8(ECLContinentalSetting::Transform)||P.FoundationOrientation.ContainsNaN()||!FMath::IsFinite(P.MotionDirection)||FMath::Abs(P.MotionDirection)>1||!FMath::IsFinite(P.ContinentalExtent)||P.ContinentalExtent<.6||P.ContinentalExtent>1.4||(P.bOverridePlateCount&&P.PlateCount!=2)))
     {Error=TEXT("Continental foundation requires finite orientation, extent 0.6..1.4, signed motion -1..1 and its two controlled plates");return false;}
     if(P.AlgorithmVersion>=4)
@@ -20,6 +20,14 @@ bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls
         O.LowerPlateCount=O.UpperPlateCount=P.PlateCount;O.PlateTransition=0;
         O.Motion=P.Motion;O.Relief=P.Relief;O.BeltWidth=FMath::DegreesToRadians(P.BeltWidthDegrees);O.CrustThickness=P.CrustThickness;
         O.BoundaryWarp=P.BoundaryWarp;O.Roughness=P.Roughness;O.CollisionStrength=P.CollisionStrength;O.RiftStrength=P.RiftStrength;O.TransformStrength=P.TransformStrength;O.InteriorRelief=P.InteriorRelief;
+        if(P.AlgorithmVersion>=6)
+        {
+            if(!In(P.PlateTransition,0,1)||!In(P.InteriorFrequency,.5,8)||!In(P.FoldStrength,0,2)||!In(P.ArcStrength,0,2)||!In(P.TrenchStrength,0,2))
+            {Error=TEXT("Invalid tectonic character channel settings");return false;}
+            O.UpperPlateCount=P.PlateTransition>0?FMath::Min(12,P.PlateCount+1):P.PlateCount;
+            O.PlateTransition=P.PlateTransition;O.InteriorFrequency=P.InteriorFrequency;
+            O.FoldStrength=P.FoldStrength;O.ArcStrength=P.ArcStrength;O.TrenchStrength=P.TrenchStrength;
+        }
         return true;
     }
     const double A=P.Activity,Count=1+11*A;
@@ -41,7 +49,7 @@ bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls
 }
 double FCLCompiledTectonics::Continentalness(const FVector& D) const
 {
-    if(bLayered)return SharedCrust?SharedCrust->Continentalness(D.GetSafeNormal()):0;
+    if(bLayered)return SharedCrust?SharedCrust->Continentalness(D.GetSafeNormal()):(AlgorithmVersion>=6?.75:0);
     if(AlgorithmVersion==3)return ContinentalDomain(FoundationDirection(D.GetSafeNormal()));
     double Sum=0;for(const FVector& C:Continents)Sum+=2.7*FMath::Exp((FVector::DotProduct(D,C)-1)*5.);
     return 1-FMath::Exp(-Sum);
@@ -51,7 +59,8 @@ TSharedPtr<const FCLCompiledTectonics> FCLCompiledTectonics::Compile(const FCLTe
     auto Out=MakeShared<FCLCompiledTectonics>();if(!FCLTectonicControls::Resolve(P,Out->Controls,Error,Calibrated))return nullptr;
     Out->bLayered=Layered;Out->bCalibrated=Calibrated;Out->SharedCrust=MoveTemp(Crust);
     if(!FMath::IsFinite(Span)||Span<=0){Error=TEXT("Tectonics requires an ordered, nonempty guide interval");return nullptr;}
-    Out->AlgorithmVersion=P.AlgorithmVersion;Out->SpanMeters=Span;Out->MaximumDeltaMeters=Span*((P.AlgorithmVersion>=5?.20:.035)+.46*Out->Controls.Relief);
+    Out->AlgorithmVersion=P.AlgorithmVersion;Out->SpanMeters=Span;
+    Out->MaximumDeltaMeters=P.AlgorithmVersion>=6?Span*(Out->Controls.InteriorRelief+.7*Out->Controls.Relief*Out->Controls.Motion):Span*((P.AlgorithmVersion>=5?.20:.035)+.46*Out->Controls.Relief);
     if(P.AlgorithmVersion==3){Out->MaximumDeltaMeters=Span*.8;Out->BuildContinentalFoundation(P,Seed);return Out;}
     FRandomStream R(int32(uint32(Seed)^0x43544c31U));const FQuat Rotation(Unit(R),R.FRandRange(0.f,2*PI));
     // Independent crust domains: no plate is labelled wholly continental/oceanic.
@@ -156,7 +165,10 @@ double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
         const FVector Q=P*Frequency;
         return FVector(Noise(Q),Noise(Q+FVector(19.3,7.1,3.7)),Noise(Q+FVector(3.1,23.7,11.9)));
     };
-    const FVector Warped=(D+NoiseRotation.UnrotateVector(VectorNoise(2.8)*Controls.BoundaryWarp+VectorNoise(7.3)*(AlgorithmVersion>=4?Controls.BoundaryWarp*.21:.08))).GetSafeNormal();
+    // Keep the curated warp small relative to its wavelengths. Large derivative
+    // warps fold the coordinate map and turn one belt into spurious closed loops.
+    const double Warp=Controls.BoundaryWarp*(AlgorithmVersion>=6?.25:1.);
+    const FVector Warped=(D+NoiseRotation.UnrotateVector(VectorNoise(2.8)*Warp+VectorNoise(7.3)*(AlgorithmVersion>=6?Warp*.10:AlgorithmVersion>=4?Controls.BoundaryWarp*.21:.08))).GetSafeNormal();
     const double Broad=Noise(P*5.7),Detail=Noise(P*17.3),Fine=Noise(P*37.1);
     const double Width=Controls.BeltWidth*(1.05+.55*Broad);
     // A nonperiodic envelope leaves broad saddles and uneven massifs, rather than
@@ -194,7 +206,28 @@ double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
         else{CA=Continentalness((Projected+E.Normal*.12).GetSafeNormal());CB=Continentalness((Projected-E.Normal*.12).GetSafeNormal());}
         const double C=(CA+CB)*.5,Collision=Smooth((CA-.35)/.35)*Smooth((CB-.35)/.35);
         const double Side=FMath::Tanh((CA-CB)*8.);
-        const double Drive=FMath::Max(0.,FMath::Abs(Con)-.08)*Segmentation;
+        const double Drive=FMath::Max(0.,FMath::Abs(Con)-(AlgorithmVersion>=6?0.:.08))*Segmentation;
+        if(AlgorithmVersion>=6)
+        {
+            // Parallel, gently meandering spines stay tied to the compression
+            // belt. Ridging a global noise zero-contour produced etched glyphs.
+            const double FoldSpines=Belt(Width*(-.40+.18*Broad),.22)*.16+Belt(Width*(.30+.16*Broad),.30)*.20;
+            const double Folds=Controls.FoldStrength*FoldSpines*(.85+.30*Broad+.18*Detail)*Texture;
+            double Feature=0;
+            if(Con>0)
+            {
+                const double Massif=Belt(Width*Detail*.5,.8)*.22*Texture+Belt(0,1.2+Controls.CrustThickness*24)*.16+Folds;
+                const double Margin=Controls.ArcStrength*Belt(Side*Width*.9,.55)*(.21+.13*C)*Texture-
+                    Controls.TrenchStrength*Belt(-Side*Width*.8,.40)*.20+Folds*.60;
+                Feature+=Drive*(Collision*Controls.CollisionStrength*Massif+(1-Collision)*Margin);
+            }
+            else Feature+=Drive*Controls.RiftStrength*(Belt(-Width*.95,.5)*.10+Belt(Width*.95,.5)*.10+Belt(Width*Detail*.25,.55)*(.10-.45*C));
+            Feature+=Controls.TransformStrength*Shear*.075*FMath::Tanh(Signed/(Width*.22))*Belt(0,1.5);
+            // Broad flexure follows the same warped stress network. Noise is a
+            // secondary variation, rather than an unrelated dominant foundation.
+            H+=Controls.Relief*Feature+Controls.InteriorRelief*Con*.5*Belt(0,1.8);
+            continue;
+        }
         if(Con>0)
         {
             const double Massif=Belt(Width*Detail*.5,.8)*.32*Texture+Belt(0,AlgorithmVersion>=4?1.+Controls.CrustThickness*28:1.7)*.16;
@@ -208,12 +241,24 @@ double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
 }
 double FCLCompiledTectonics::SampleDeltaMeters(const FVector& Direction) const
 {
+    if(AlgorithmVersion>=6&&!HasEffect())return 0;
     if(AlgorithmVersion==3){FCLGeologicalSample Sample;return SampleGeology(Direction.GetSafeNormal(),Sample)?Sample.TotalDeltaMeters:0;}
     const FVector D=Direction.GetSafeNormal();const double C=bLayered?0:Continentalness(D);
-    const double Crust=bLayered?0:(C-.5)*(.12+Controls.CrustThickness*10);
+    const double Crust=bLayered||AlgorithmVersion>=6?0:(C-.5)*(.12+Controls.CrustThickness*10);
     const double LowDelta=AlgorithmVersion==1?SampleLegacyState(Lower,D):SampleState(Lower,D);
     const double HighDelta=Upper.Plates.IsEmpty()?LowDelta:(AlgorithmVersion==1?SampleLegacyState(Upper,D):SampleState(Upper,D));
-    const double Interior=AlgorithmVersion>=4?Controls.InteriorRelief*FMath::PerlinNoise3D(NoiseRotation.RotateVector(D)*1.8+NoiseOffset):0;
-    const double Raw=SpanMeters*(Crust+Interior+Controls.Relief*FMath::Lerp(LowDelta,HighDelta,Controls.PlateTransition));
+    const double Interior=AlgorithmVersion>=4?Controls.InteriorRelief*(AlgorithmVersion>=6?.25:1.)*FMath::PerlinNoise3D(NoiseRotation.RotateVector(D)*Controls.InteriorFrequency+NoiseOffset):0;
+    const double Boundary=FMath::Lerp(LowDelta,HighDelta,Controls.PlateTransition);
+    const double Raw=SpanMeters*(Crust+Interior+(AlgorithmVersion>=6?Boundary:Controls.Relief*Boundary));
     return MaximumDeltaMeters*FMath::Tanh(Raw/MaximumDeltaMeters);
+}
+
+bool FCLCompiledTectonics::HasEffect() const
+{
+    if(AlgorithmVersion<6)return true;
+    // Avoid normalizing sub-micrometre roundoff into a full planet relief range.
+    if(MaximumDeltaMeters<=1.e-6)return false;
+    const bool Boundaries=!Lower.Boundaries.IsEmpty()||(!Upper.Boundaries.IsEmpty()&&Controls.PlateTransition>0);
+    return Controls.InteriorRelief>0||(Boundaries&&Controls.Motion>0&&Controls.Relief>0&&
+        (Controls.CollisionStrength>0||Controls.RiftStrength>0||Controls.TransformStrength>0||Controls.FoldStrength>0||Controls.ArcStrength>0||Controls.TrenchStrength>0));
 }

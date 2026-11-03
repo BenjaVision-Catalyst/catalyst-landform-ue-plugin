@@ -79,6 +79,7 @@ protected:
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
 #if WITH_DEV_AUTOMATION_TESTS
+    friend class FCLTectonicRenderedPortfolioTest;
     friend class FCLGlobePublicationTest;
     friend class FCLGeologyRenderedTest;
     friend class FCLGlobeOceanTest;

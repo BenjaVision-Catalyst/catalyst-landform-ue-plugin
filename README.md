@@ -743,6 +743,10 @@ assembly, with a bounded implementation and qualification sequence.
 
 ## Tectonic base preset
 
+Current authoring uses [guided tectonic character](Docs/GuidedGeology.md),
+algorithm 6, with independently timed feature curves. The earlier preset below
+remains a pinned historical fixture.
+
 The first [tectonic preset](Docs/TectonicPreset.md) adds a single activity slider
 to Planet Builder, coordinating seeded plates, crust contrast, motion and curved
 structural relief. Advanced overrides edit the same portable schema 14 recipe.
