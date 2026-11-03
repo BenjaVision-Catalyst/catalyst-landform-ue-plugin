@@ -66,7 +66,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
     if (Stamp.bUseRecipe)
     {
         FString Error;
-        RecipePlan = FCLPlanetCompiler::Compile(Stamp.Recipe, Error);
+        RecipePlan = Stamp.CompiledRecipe ? Stamp.CompiledRecipe : FCLPlanetCompiler::Compile(Stamp.Recipe, Error);
         if (!RecipePlan) return false;
         Extent += FMath::Max(FMath::Abs(RecipePlan->MinimumHeightMeters), FMath::Abs(RecipePlan->MaximumHeightMeters)) * 100;
     }

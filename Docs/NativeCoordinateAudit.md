@@ -12,6 +12,11 @@ There is no demonstrated requirement for a custom moving-window or terrain
 streaming manager. The goal remains a server recipe producing an ultra-realistic
 world, including general volumes, materials and reliable ground interaction.
 
+Execution follow-up: the [persistent native world checkpoint](PlanetDesignSystem.md#persistent-native-world-checkpoint)
+and [qualification](../conformance/persistent-world-mac-arm64.json) record the
+subsequent native runs and the narrowly scoped origin repairs. The findings
+below remain the original source audit against its named baseline.
+
 ## Evidence and its limits
 
 The [scale qualification](../../Projects/LandformLab/Docs/ScaleLab-mac-arm64.json)

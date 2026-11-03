@@ -102,6 +102,7 @@ void ACLPlanet::RebuildTerrain()
         RadiusMeters = Plan->RadiusMeters;
         Stamp.bUseRecipe = true;
         Stamp.Recipe = RecipeAsset->Recipe;
+        Stamp.CompiledRecipe = Plan;
         RecipeStatus = TEXT("Compiled recipe: ") + RecipeAsset->Recipe.Name;
     }
     else RecipeStatus = TEXT("No recipe: spherical base with authored stamps");

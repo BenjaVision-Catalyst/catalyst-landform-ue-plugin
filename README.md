@@ -6,6 +6,13 @@ data, and radial character movement alongside explicit Foundation/Connect/VPP
 dependencies. The first local recipe compiler and Designer section preview are
 implemented; backend delivery and the full Designer remain future work.
 
+The [persistent-world native proof](Docs/PlanetDesignSystem.md#persistent-native-world-checkpoint)
+reuses native VPP generation, LOD and moving collision invokers, with full-scene
+and fixed-coverage journeys plus separate live UE origin translations. Its
+[qualification](conformance/persistent-world-mac-arm64.json) records the guarded
+origin compatibility repairs and the measured envelope. Ten stable-frame
+journeys pass; a cooked bounded-origin contact failure remains an explicit gate.
+
 The [native coordinate audit](Docs/NativeCoordinateAudit.md) records VPP/UE
 generation, LOD, invoker and origin-handling capabilities against the spherical
 field and presentation adapter. It keeps the Scale Lab's fixed window and

@@ -1,5 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "CLPlanet.h"
+#include "VoxelStampComponent.h"
+#include "VoxelStampRuntime.h"
 #include "Surface/CLSurfaceLibrary.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
 #include "Model/CLRegionGeneration.h"
@@ -36,4 +38,29 @@ bool FCLRuntimeRecipeApplyTest::RunTest(const FString&)
     }
     Planet->DestroyRuntime();Planet->Destroy();World->DestroyWorld(false);GEngine->DestroyWorldContext(World);return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRuntimeRecipeSnapshotTest,"Catalyst.Landform.RuntimeRecipe.RetainedClientResources",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRuntimeRecipeSnapshotTest::RunTest(const FString&)
+{
+    FString Json,Error;
+    FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainSurfaces.json")));
+    const auto Values=UWorld::InitializationValues().AllowAudioPlayback(false).CreatePhysicsScene(true).CreateNavigation(false).CreateAISystem(false).ShouldSimulatePhysics(false);
+    UWorld* World=UWorld::CreateWorld(EWorldType::Game,false,TEXT("CLRetainedResourceTest"),nullptr,true,ERHIFeatureLevel::Num,&Values);
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    auto* Planet=World->SpawnActor<ACLPlanet>();Planet->bCreateRuntimeOnBeginPlay=false;
+    if(TestTrue(TEXT("A recipe accepts its client resources"),Planet->ApplyRecipeJson(Json,Error)))
+    {
+        const auto Accepted=Planet->GetSamplingRuntime()->RecipePlan;
+        auto* Defaults=GetMutableDefault<UCLSurfaceSettings>();
+        TGuardValue<TSoftObjectPtr<UCLSurfaceLibraryAsset>> OtherContext(Defaults->SurfaceLibrary,{});
+        Planet->SetActorLocation(FVector(1300,-700,200));Planet->TerrainStamp->UpdateStamp();
+        const auto Ref=Planet->TerrainStamp->GetStamp();
+        const auto RefCopy=Ref.MakeCopy();
+        const auto Fresh=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(World,RefCopy,Planet->TerrainStamp));
+        TestTrue(TEXT("Native refresh copies the accepted plan without resolving changed global defaults"),Fresh&&Fresh->RecipePlan==Accepted);
+        if(Fresh)TestTrue(TEXT("Native surface identities stay bound to the accepted library"),Fresh->RecipePlan->Surfaces==Accepted->Surfaces);
+    }
+    else AddError(Error);
+    Planet->DestroyRuntime();Planet->Destroy();World->DestroyWorld(false);GEngine->DestroyWorldContext(World);return true;
+}
+
 #endif

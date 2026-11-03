@@ -1,0 +1,201 @@
+{
+  "date": "2026-11-03",
+  "profile": "persistent-native-world-v1",
+  "platform": "UE 5.7.4 CL 51494982 / VPP 2.0p8 / macOS arm64 / Metal SM6 / Development",
+  "component_parent": "6d789d3f981556997e32599e41651b85136af655",
+  "workspace_parent": "cdb995e",
+  "scope": "One native world/character/runtime per outward-return journey; full-scene and fixed-coverage comparison; native moving collision invokers; curvature journeys; separate live origin shifts on ordinary stamps.",
+  "limits": {
+    "sourceVoxelCm": 25,
+    "invokerRadiusCm": 1200,
+    "boundedHalfExtentMeters": [
+      128,
+      80,
+      32
+    ],
+    "nativeQuality": [
+      1,
+      2
+    ],
+    "contactAndNearRouteMeshCm": 25,
+    "projectedPickCm": 0.5,
+    "originPoseCm": 0.1,
+    "nativeMeshes": 2048,
+    "pendingTasks": 50000,
+    "residentMiB": 16384,
+    "caseSeconds": 240
+  },
+  "exclusions": [
+    "production frame-time qualification",
+    "scientific datums",
+    "server resource residency",
+    "body-frame rotation",
+    "multi-body transfer",
+    "instanced-stamp origin shifts",
+    "projected-presentation origin shifts",
+    "texture-phase continuity through live origin shifts",
+    "thin-feature preservation at coarse native LODs",
+    "southern-pole persistent travel"
+  ],
+  "packaged": {
+    "cases": 10,
+    "passed": 10,
+    "liveOriginDiagnostics": 2,
+    "liveOriginPassed": 1,
+    "liveOriginFailed": 1,
+    "nativeFloorFrames": 41149,
+    "walkingFrames": 41149,
+    "lostFloorFrames": 0,
+    "travelMeters": 3397.348795775907,
+    "projectedPicks": 220,
+    "renderedPhaseViews": 18,
+    "sourceLODs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "worst": {
+      "maxCollisionFieldErrorCm": 0.0033184256466256556,
+      "maxAnalyticSphereContactCm": 0.0033184256494678266,
+      "maxNearRouteMeshFieldErrorCm": 0.025146724894398176,
+      "maxProjectedPickErrorCm": 8.630639464217179e-05,
+      "maxOriginPoseErrorCm": 0,
+      "maxOriginVelocityErrorCmPerSec": 0,
+      "maxPickWorldQueries": 1,
+      "maxNativeMeshes": 1722,
+      "maxColliders": 28,
+      "maxPendingNativeTasks": 727,
+      "peakResidentMiB": 1235.875,
+      "wallFrameP99Ms": 14.412790298461914,
+      "wallFrameMaxMs": 160.9901636838913
+    },
+    "allOwnerIdentitiesStable": true,
+    "allNativeSurfaceBindingsValid": true,
+    "nativeSurfaceBindingChecks": 381718,
+    "allInvokersAttached": true,
+    "allCleanupVerified": true,
+    "executableSha256": "c4582985d49247a566e4b31f9c848db98d40a2c7f92dc3c7247475905ad64bf0",
+    "resultsSha256": "c397c3fca4b9543e9292cd072ed2c470a2822427b4be98a26e27c74d19472214",
+    "evidenceSha256": "51dc9d7f54ef4b879709de97eff077f2062c4b48c3400a01c8f93c24e27d9957"
+  },
+  "originPatch": {
+    "Source/Voxel/Public/VoxelStampComponentBase.h": {
+      "original_sha256": "102128da22753e5981fcc9ab13c50718ab1bf21dc11c57d26d69678ee515a232",
+      "patched_sha256": "12ec28a8847713414f5d2981fe19af406407d637c1aa49d9dce56712c6a78d3e"
+    },
+    "Source/Voxel/Private/VoxelStampComponentBase.cpp": {
+      "original_sha256": "c855f7a1bc2544891f92527639fe18d68ec9139f729a5884dfbf6b57b572dd22",
+      "patched_sha256": "db1e80ff15bcbdbb27ca16a3c35e806f07f7038343d6cdf0f6e223c20348bd50"
+    },
+    "Source/Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp": {
+      "original_sha256": "7ed0a37b337519c84e5c245a4e7b299a9fd34f85aa450baebdd86e26a6095596",
+      "patched_sha256": "1eb55af30bdcceb0ef9c8d054b4cf86c52400f47c6a6d0caae6e673f90e4977b"
+    }
+  },
+  "shaderOverlayManifestSha256": "2233b8739995aebd08052d2e7d57cef966d2a22d00166ca7b099ac379e8186a0",
+  "focusedEditorChecks": {
+    "passed": 23,
+    "warnings": 0,
+    "failed": 0,
+    "reportSha256": "96fb7ad13dbedade5b60163503b3bce71aa8016d0534ac90e625388d3b61befd",
+    "logSha256": "d4e28749477318b3cab34b87ac1646214b77dff63d7f6626ddb27667ef4ef288"
+  },
+  "pythonPatchChecks": {
+    "origin": 5,
+    "existingBounds": 6,
+    "existingMaterialHooks": 4,
+    "passed": 15,
+    "logsSha256": {
+      "origin-patch-tests.log": "a2e97b7515932007aa3d038fcfa41fdd107cb2467ff84d182512ff3c7e24f045",
+      "bounds-tests.log": "8f2c3cf5d3bf9284b6f5a737141442af9cd5313f865e0a157807be3354be9b86",
+      "material-hook-tests.log": "27a0690ad6d898741f15f5ec03bad81f73ea792f775a6b0e86c3a21d693900a0"
+    }
+  },
+  "openGates": [
+    "Cooked bounded live-origin contact loss; native origin support is not production-qualified",
+    "Projected/instanced origin handling and texture-phase continuity remain unqualified"
+  ],
+  "preservation": {
+    "files": 146,
+    "unchanged": true,
+    "manifestSha256": "aac4436df6d6fae87403ccc922ad6b309a50f1a3a6e163389334098101c3d2ac",
+    "scope": "All pre-existing host Content/Config files plus workspace AGENTS.md and README.md"
+  },
+  "rawEvidenceDirectory": "Landform/Projects/LandformLab/Saved/Verification/persistent-world-2026-11-03",
+  "visualReview": {
+    "status": "selected views reviewed; rendered terrain and bound materials present",
+    "files": [
+      "packaged/native-full-earth-pole/screens/phase-0.png",
+      "packaged/presentation-earth-seam/screens/phase-2.png",
+      "packaged/origin-full-km/screens/phase-1.png"
+    ]
+  },
+  "retainedDevelopmentFailures": [
+    {
+      "name": "unmodified-moving-origin",
+      "resolutionStatus": "Specific repairs retained; final cooked origin gate remains open",
+      "rawReportSha256": "5d2fbfc5b33000679f447a104ea05625397b5824c796fa6851f0b1c3b1dd4d53",
+      "rawLogSha256": "58a7e4173c89de1cf12e273a7c5b83ef6c099426d8c26af15444d50df3452d42",
+      "message": "Persistent native walker lost contact or exceeded the contact budget"
+    },
+    {
+      "name": "ordinary-stamp-only-origin",
+      "resolutionStatus": "Specific repairs retained; final cooked origin gate remains open",
+      "rawReportSha256": "58a8f66ed64c8820511af0ac1db8fe54c6c2fc228e36b9eacc54f23f0484922a",
+      "rawLogSha256": "f3183d8e1fa111ab4c3b2c4eafe012c70c062efa549a08f5d718084e5b348411",
+      "message": "Persistent native walker lost contact or exceeded the contact budget"
+    },
+    {
+      "name": "presentation-local-restoration",
+      "resolutionStatus": "Closed by exact local restoration in this profile",
+      "rawReportSha256": "104770659780fd1ea7f2caca4e03854203edb876b09cd6aac9507607bad0abd4",
+      "rawLogSha256": "a0ae9cbc89ed224c16db94371d8eb970ad3632ae5aa6d0cbd69869fd720b9226",
+      "message": "Persistent native journey passed"
+    },
+    {
+      "name": "origin-material-fallback",
+      "resolutionStatus": "Closed by retained accepted resources and native surface-identity checks",
+      "rawReportSha256": "0b2873349d52ff7ac94fd61498cbd84011ecb4aaac9bf77bd98d84f47b56593b",
+      "rawLogSha256": "00cc4f71c33c26ee7cfdd2b30f0e891132c350b2ddf1d084a6b5ef20a82cfc41",
+      "message": "Checkerboard fallback after origin shift; earlier pixel coverage did not verify material identity"
+    }
+  ],
+  "originDiagnosticOutcomes": [
+    {
+      "case": "origin-window-km",
+      "passed": false,
+      "error": "Persistent native walker lost contact or exceeded the contact budget",
+      "rawReportSha256": "e1aafdb2552cd9de8e771c9c2ff937c8e5efb45781de9929380330610b6cdc40"
+    },
+    {
+      "case": "origin-full-km",
+      "passed": true,
+      "error": null,
+      "rawReportSha256": "5882ad51ab563fe51346b1430b417a4c1aad81cf1c442872d22b6087b148eec7"
+    }
+  ],
+  "originRepeatPassed": false,
+  "hostRecord": "Landform/Projects/LandformLab/Docs/PersistentWorld-mac-arm64.json",
+  "hostRecordSha256": "4f7115209fb1a0798427edc3ce711a6519eddf2fb554832c39abb174142f4dc0",
+  "regressions": {
+    "scaleCases": 32,
+    "legacyVolumetricWalks": 12
+  }
+}

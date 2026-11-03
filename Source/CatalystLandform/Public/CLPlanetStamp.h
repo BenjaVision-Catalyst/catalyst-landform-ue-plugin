@@ -44,6 +44,9 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     UPROPERTY() bool bUseRecipe = false;
     UPROPERTY() bool bPlanarSources = false;
     UPROPERTY() FCLPlanetRecipe Recipe;
+    /** Activation-only immutable plan for Recipe, retained through native transform refreshes.
+     * Serialized/standalone stamps without this snapshot compile in their loading context. */
+    TSharedPtr<const FCLCompiledPlanetRecipe> CompiledRecipe;
     UPROPERTY() TArray<FCLSphericalHeightmapPlacement> Placements;
     UPROPERTY() FCLSceneWindow Window;
     /** Transient native flat-section sampling domain, never part of the planet recipe. */

@@ -1399,3 +1399,67 @@ walks: arch, both cave floors and detached formation at natural/half/flat
 curvature. This retains the original unwindowed `9137` path alongside the new
 windowed proof; exact contacts and executable hashes are in the qualification
 records.
+
+
+## Persistent native world checkpoint
+
+3 November 2026. The [native coordinate audit](NativeCoordinateAudit.md) is now
+followed by a persistent-world native proof. The host retains one planet,
+character, attached VPP collision invoker, immutable sampling owner and native
+world runtime for each complete outward/return journey. It uses native
+camera-driven LOD, mesh lifecycle notifications, collision readiness and reuse.
+There is no custom moving-window or replacement terrain streaming manager.
+
+The comparison uses a fixed native box with half extents (128,80,32) m and the
+existing full-scene field path. Travel crosses the old ±32 m Scale Lab extent
+and returns from +48 m to -48 m. Source voxels remain 25 cm; native quality 1..2
+exercises actual coarse/fine source LODs. Curvature presentation traverses the
+route at natural/half/flat settings with near/medium/far cameras and 8/12/16 m/s
+movement. The walking route lies on the sphere away from the fixture's thin
+features, so it does not certify those features at coarse LODs.
+
+Separate live-origin cases call UE's actual origin translation while walking
+at 8 m/s. The unmodified dependency lost contact: registered ordinary stamps
+retained their old world transform. Refreshing those stamps alone still failed;
+the native collision-invoker view also retained its captured transform across
+states. The version-pinned host compatibility patch refreshes ordinary stamp
+registration after an offset and lets the native subsystem construct a new view
+when its world transform changes. The character, invoker component and VPP
+runtime survive the translation; movement has no added replacement barrier.
+Engine source is unchanged. Licensed VPP changes stay local and are reproduced
+by the guarded patch script.
+
+Visual review then found a checkerboard fallback after an otherwise grounded
+origin journey. Native stamp reinitialization had recompiled against the current
+global client library instead of the accepted activation resources. Planet
+stamps now retain the already compiled immutable recipe plan across native
+transform refreshes; serialized standalone stamps still compile in their loading
+context. A copied-stamp regression changes global resources before refresh and
+requires the accepted plan/library identities to survive. The native journey
+also rejects mesh surface types outside that accepted resource snapshot.
+
+The longer Earth antimeridian presentation journey also exposed a strict cleanup
+failure in the host's relative visual restoration. The restorer now records the
+ordinary setter's local round-trip error and restores retained local properties
+on its owned no-collision visuals/camera when necessary. It retains the existing
+strict verification rather than relaxing the geometry or picking budgets.
+
+The [qualification record](../conformance/persistent-world-mac-arm64.json) and
+[host replay guide](../../Projects/LandformLab/Docs/PersistentWorld.md) own exact
+results, hashes, corrected failures, native cleanup and resource limits. Prior
+scale and volumetric records remain historical evidence for their own profiles.
+
+The ten stable-frame journeys pass. Separate live-origin diagnostics retain a
+cooked bounded contact loss immediately after translation, despite preserved
+canonical pose and resource bindings. Successful editor/full-scene observations
+do not close that gate. The compatibility repairs are necessary but insufficient
+for production origin qualification; the runner keeps the failure explicit.
+The next origin action is a bounded native state/readiness reproducer, without
+a relaxed contact limit or an assumed streaming manager.
+
+This advances the native movement slice of P2/P4 within the measured
+synthetic envelope. Instanced-stamp origin handling, projected presentation and
+texture-phase continuity through live origin changes, body-frame rotation,
+multiple views/bodies, scientific datums, precision-aware fine global noise,
+filtered field sampling, server resource residency and production performance
+remain open. Retain native VPP ownership while those boundaries acquire evidence.
