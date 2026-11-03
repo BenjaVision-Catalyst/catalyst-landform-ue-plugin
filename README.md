@@ -8,10 +8,11 @@ implemented; backend delivery and the full Designer remain future work.
 
 The [persistent-world native proof](Docs/PlanetDesignSystem.md#persistent-native-world-checkpoint)
 reuses native VPP generation, LOD and moving collision invokers, with full-scene
-and fixed-coverage journeys plus separate live UE origin translations. Its
-[qualification](conformance/persistent-world-mac-arm64.json) records the guarded
-origin compatibility repairs and the measured envelope. Ten stable-frame
-journeys pass; a cooked bounded-origin contact failure remains an explicit gate.
+and fixed-coverage journeys plus separate live UE origin translations. The original
+[qualification](conformance/persistent-world-mac-arm64.json) retains its cooked
+contact failure. The [bounded follow-up](conformance/origin-contact-mac-arm64.json)
+identifies and repairs gravity-cache and native layer-query frame ordering,
+with strict contact repeats and guarded dependency patches.
 
 The [native coordinate audit](Docs/NativeCoordinateAudit.md) records VPP/UE
 generation, LOD, invoker and origin-handling capabilities against the spherical

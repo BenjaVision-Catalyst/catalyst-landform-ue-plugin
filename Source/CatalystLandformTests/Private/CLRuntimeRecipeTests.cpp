@@ -2,6 +2,9 @@
 #include "CLPlanet.h"
 #include "VoxelStampComponent.h"
 #include "VoxelStampRuntime.h"
+#include "VoxelLayers.h"
+#include "VoxelQuery.h"
+#include "Surface/VoxelSurfaceTypeTable.h"
 #include "Surface/CLSurfaceLibrary.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
 #include "Model/CLRegionGeneration.h"
@@ -58,6 +61,41 @@ bool FCLRuntimeRecipeSnapshotTest::RunTest(const FString&)
         const auto Fresh=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(World,RefCopy,Planet->TerrainStamp));
         TestTrue(TEXT("Native refresh copies the accepted plan without resolving changed global defaults"),Fresh&&Fresh->RecipePlan==Accepted);
         if(Fresh)TestTrue(TEXT("Native surface identities stay bound to the accepted library"),Fresh->RecipePlan->Surfaces==Accepted->Surfaces);
+    }
+    else AddError(Error);
+    Planet->DestroyRuntime();Planet->Destroy();World->DestroyWorld(false);GEngine->DestroyWorldContext(World);return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNativeLayerOriginTest,"Catalyst.Landform.RuntimeRecipe.NativeLayerFrameAtOrigin",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLNativeLayerOriginTest::RunTest(const FString&)
+{
+    FString Json,Error;
+    FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainSurfaces.json")));
+    const auto Values=UWorld::InitializationValues().AllowAudioPlayback(false).CreatePhysicsScene(true).CreateNavigation(false).CreateAISystem(false).ShouldSimulatePhysics(false);
+    UWorld* World=UWorld::CreateWorld(EWorldType::Game,false,TEXT("CLNativeLayerOriginTest"),nullptr,true,ERHIFeatureLevel::Num,&Values);
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    auto* Planet=World->SpawnActor<ACLPlanet>();Planet->bCreateRuntimeOnBeginPlay=false;
+    Planet->SamplingWindow.bEnabled=true;Planet->SamplingWindow.AnchorMeters=FVector(1000,0,0);
+    if(TestTrue(TEXT("A bounded native recipe applies"),Planet->ApplyRecipeJson(Json,Error)))
+    {
+        const auto Plan=Planet->GetSamplingRuntime()->RecipePlan;
+        Planet->SamplingWindow.AnchorMeters=FVector::XAxisVector*(Plan->RadiusMeters+Plan->SampleHeightMeters(FVector::XAxisVector));
+        Planet->RebuildTerrain();Planet->RegisterAllComponents();Planet->TerrainStamp->UpdateStamp();
+        TestTrue(TEXT("Native stamp is registered"),Planet->TerrainStamp->IsRegistered()&&Planet->TerrainStamp->GetStamp().IsRegistered());
+        const auto Sample=[&]()
+        {
+            const auto Layers=FVoxelLayers::Get(World,*Planet);
+            const FVoxelQuery Query(0,*Layers,*FVoxelSurfaceTypeTable::Get(),FVoxelDependencyCollector::Null);
+            const auto Values=Query.SampleVolumeLayer(FVoxelStackLayer(Planet->LayerStack,nullptr),FVector::ZeroVector);
+            return Values[0];
+        };
+        const double Before=Sample();
+        TestTrue(TEXT("Native layer samples the registered stamp"),FMath::IsFinite(Before)&&FMath::Abs(Before)<100000);
+        TestTrue(TEXT("Native world accepts a live origin shift"),World->SetNewWorldOrigin(FIntVector(50000,-30000,10000)));
+        // Query immediately, before any VPP subsystem tick can refresh its actor frame.
+        const double After=Sample();
+        TestTrue(TEXT("Native query uses the translated actor frame immediately"),FMath::IsNearlyEqual(Before,After,.001));
+        AddInfo(FString::Printf(TEXT("Native field before/after origin: %.12g / %.12g cm"),Before,After));
     }
     else AddError(Error);
     Planet->DestroyRuntime();Planet->Destroy();World->DestroyWorld(false);GEngine->DestroyWorldContext(World);return true;

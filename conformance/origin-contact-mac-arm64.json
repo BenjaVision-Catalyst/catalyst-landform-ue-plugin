@@ -1,0 +1,388 @@
+{
+  "date": "2026-11-03",
+  "profile": "cooked-origin-contact-v1",
+  "platform": "UE 5.7.4 CL 51494982 / VPP 2.0p8 / macOS arm64 / Metal SM6 / Development",
+  "workspaceParent": "077816542b4ee22c23eb0bfdc81bb39f1fc2d8e8",
+  "componentParent": "1d45d8fde30456e0cb81da185d856e27219b5959",
+  "scope": "Cooked ordinary-stamp translation at 1 km body radius while the same native world, character, runtime and attached collision invoker remain alive. Stable-frame journeys also cover Mars/Earth radii. Native generation, LOD and collision ownership are retained.",
+  "fixes": [
+    {
+      "owner": "UCLRadialGravityMovement::ApplyWorldOffset",
+      "gap": "Cached world-space gravity centre refreshed after movement because stock movement ticks before its owner.",
+      "repair": "Translate PlanetCenter synchronously on a native world-origin offset."
+    },
+    {
+      "owner": "FVoxelLayerTracker::UpdateLayers",
+      "gap": "GetLayers could publish translated stamps with an actor query frame last refreshed in the subsystem tick. Native runtime requests can precede that tick.",
+      "repair": "Synchronize QueryToWorld and its timestamp before flushing stamps or accepting a cached snapshot; subsystem ticks use the same path."
+    }
+  ],
+  "executableSha256": "0efe576c3254e87d62765734ece87e4085c328cad186cde7bcc3913c29b6f078",
+  "before": {
+    "shortGravityCases": 3,
+    "failedGravityCases": 3,
+    "minimumGravityDot": 0.8387810212909621,
+    "firstBadStep": [
+      {
+        "point": "before-shift",
+        "frame": 80,
+        "renderedIndex": 32,
+        "pendingIndex": 33,
+        "gravityDot": 1,
+        "cachedGravityCenterCm": {
+          "x": 0,
+          "y": 0,
+          "z": -100000
+        },
+        "bodyCenterCm": {
+          "x": 0,
+          "y": 0,
+          "z": -100000
+        },
+        "grounded": true,
+        "newestHasCollision": true,
+        "freshNativeTraceHit": true,
+        "velocityCmPerSec": {
+          "x": 799.9741070485879,
+          "y": -0.5001964952591128,
+          "z": 6.416997372442047
+        },
+        "nearbyNativeBodies": 16
+      },
+      {
+        "point": "after-shift",
+        "frame": 80,
+        "renderedIndex": 32,
+        "pendingIndex": 33,
+        "gravityDot": 1,
+        "cachedGravityCenterCm": {
+          "x": 0,
+          "y": 0,
+          "z": -100000
+        },
+        "bodyCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "grounded": true,
+        "newestHasCollision": false,
+        "freshNativeTraceHit": true,
+        "velocityCmPerSec": {
+          "x": 799.9741070485879,
+          "y": -0.5001964952591128,
+          "z": 6.416997372442047
+        },
+        "nearbyNativeBodies": 16
+      },
+      {
+        "point": "post-physics",
+        "frame": 81,
+        "renderedIndex": 33,
+        "pendingIndex": 34,
+        "gravityDot": 0.8387810212909621,
+        "cachedGravityCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "bodyCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "grounded": true,
+        "newestHasCollision": true,
+        "freshNativeTraceHit": true,
+        "velocityCmPerSec": {
+          "x": 622.2493834604418,
+          "y": 96.04341959385606,
+          "z": 321.47494064490684
+        },
+        "nearbyNativeBodies": 16
+      }
+    ],
+    "gravityOnlyRepair": {
+      "cases": 12,
+      "contactFailures": 3,
+      "runnerAccepted": 7,
+      "note": "Two further rejections required newest-state readiness on every frame despite continuous physical contact; final acceptance checks every physical frame and readiness at settlement."
+    },
+    "colliderCacheOnlyExperiment": {
+      "cases": 12,
+      "contactFailures": 2,
+      "note": "Transform-based collider cache invalidation was insufficient and was removed from the final implementation."
+    },
+    "contactFailureTrace": [
+      {
+        "point": "post-physics",
+        "frame": 82,
+        "renderedIndex": 33,
+        "pendingIndex": 34,
+        "gravityDot": 1,
+        "cachedGravityCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "bodyCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "grounded": true,
+        "newestHasCollision": true,
+        "freshNativeTraceHit": true,
+        "velocityCmPerSec": {
+          "x": 799.9757912845716,
+          "y": -0.4950797048663785,
+          "z": 6.203890288065
+        },
+        "nearbyNativeBodies": 16
+      },
+      {
+        "point": "post-physics",
+        "frame": 83,
+        "renderedIndex": 34,
+        "pendingIndex": 35,
+        "gravityDot": 1.0000000000000002,
+        "cachedGravityCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "bodyCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "grounded": false,
+        "newestHasCollision": true,
+        "freshNativeTraceHit": false,
+        "velocityCmPerSec": {
+          "x": 799.9766119107356,
+          "y": -0.4925218962779673,
+          "z": 6.097361560701599
+        },
+        "nearbyNativeBodies": 0
+      },
+      {
+        "point": "post-physics",
+        "frame": 84,
+        "renderedIndex": 34,
+        "pendingIndex": 35,
+        "gravityDot": 1,
+        "cachedGravityCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "bodyCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "grounded": false,
+        "newestHasCollision": true,
+        "freshNativeTraceHit": false,
+        "velocityCmPerSec": {
+          "x": 800.0991376264493,
+          "y": -0.1004700614621089,
+          "z": -10.230925524044508
+        },
+        "nearbyNativeBodies": 0
+      },
+      {
+        "point": "post-physics",
+        "frame": 85,
+        "renderedIndex": 34,
+        "pendingIndex": 35,
+        "gravityDot": 1,
+        "cachedGravityCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "bodyCenterCm": {
+          "x": -50000,
+          "y": 30000,
+          "z": -110000
+        },
+        "grounded": false,
+        "newestHasCollision": true,
+        "freshNativeTraceHit": false,
+        "velocityCmPerSec": {
+          "x": 800.2173257392928,
+          "y": 0.29158258290721295,
+          "z": -26.55916817351978
+        },
+        "nearbyNativeBodies": 0
+      }
+    ],
+    "nativeLayerRegression": {
+      "beforeFieldCm": 0,
+      "afterField": "NaN",
+      "subsystemTickBetweenSamples": false,
+      "reportSha256": "c2a8fa79ed1f0ebadb1eaf2c0392a0f8e200ab546645c90257d76a1e97b7b68a"
+    },
+    "evidenceSha256": {
+      "before-60fps/results.json": "37b91f656b104bc5444e282cb9b987322f4c784c3541260785f913d7a2df946a",
+      "before-30-120fps/results.json": "7d91cbd6bf1fc95a12bfa0ac2341a41e40c827ffdcd99478fb5dd71847ab5eca",
+      "quick/results.json": "1cceba2fbfb3a3d0a57c5126a95b48eb9f4b199df331523a35061d3c74443a91",
+      "native-fixed/results.json": "6bc6f9f2be0ee6e4bbfd6ca2643856f1a5c494e703aa28527e97edca57ba3918"
+    }
+  },
+  "focused": {
+    "succeeded": 25,
+    "failed": 0,
+    "warnings": 0,
+    "reportSha256": "096b9b438a2bac74ec4d2db0b6c773a5888896225a92fd2b2457ab966def709d",
+    "nativeLayerRegression": {
+      "beforeFieldCm": 0,
+      "afterFieldCm": 0,
+      "toleranceCm": 0.001,
+      "subsystemTickBetweenSamples": false
+    },
+    "newTests": [
+      "Catalyst.Landform.Gravity.LiveOriginFrame",
+      "Catalyst.Landform.RuntimeRecipe.NativeLayerFrameAtOrigin"
+    ]
+  },
+  "boundedCooked": {
+    "cases": 12,
+    "passed": 12,
+    "frameCaps": [
+      30,
+      60,
+      120
+    ],
+    "repeatsPerSceneAndCap": 2,
+    "scenePaths": [
+      "bounded",
+      "full"
+    ],
+    "ownerIdentitiesStable": true,
+    "nativeSurfaceBindingsValid": true,
+    "cleanupVerified": true,
+    "postShiftPhysicsFrames": 384,
+    "nativeFloorFrames": 949,
+    "lostFloorFrames": 0,
+    "minimumGravityDot": 0.9999999951011247,
+    "maxNativeBodyOriginErrorCm": 0.0,
+    "transientNewestNotReadyFrames": 2,
+    "limits": {
+      "caseSeconds": 90,
+      "gravityDot": 0.9999,
+      "lostFloorFrames": 0,
+      "contactCm": 25
+    }
+  },
+  "persistentJourneys": {
+    "cases": 12,
+    "passed": 12,
+    "stableFrameCases": 10,
+    "separateLiveOriginCases": 2,
+    "ownerIdentitiesStable": true,
+    "nativeSurfaceBindingsValid": true,
+    "cleanupVerified": true,
+    "nativeFloorFrames": 51705,
+    "lostFloorFrames": 0,
+    "travelMeters": 4152.484394146874,
+    "projectedPicks": 220,
+    "limits": {
+      "sourceVoxelCm": 25,
+      "invokerRadiusCm": 1200,
+      "boundedHalfExtentMeters": [
+        128,
+        80,
+        32
+      ],
+      "nativeQuality": [
+        1,
+        2
+      ],
+      "contactAndNearRouteMeshCm": 25,
+      "projectedPickCm": 0.5,
+      "originPoseCm": 0.1,
+      "nativeMeshes": 2048,
+      "pendingTasks": 50000,
+      "residentMiB": 16384,
+      "caseSeconds": 240
+    }
+  },
+  "originPatch": {
+    "Source/Voxel/Private/VoxelLayerTracker.cpp": {
+      "original_sha256": "8f10d0d7642c6a4476d44f1f029bbff763caf509dfeaa985661d26770edc73ae",
+      "patched_sha256": "b81535cc16b3b089ad3aa9fa1bcc6d2a94c61c80c127df2b2eaa19f4e494594a"
+    },
+    "Source/Voxel/Public/VoxelStampComponentBase.h": {
+      "original_sha256": "102128da22753e5981fcc9ab13c50718ab1bf21dc11c57d26d69678ee515a232",
+      "patched_sha256": "12ec28a8847713414f5d2981fe19af406407d637c1aa49d9dce56712c6a78d3e"
+    },
+    "Source/Voxel/Private/VoxelStampComponentBase.cpp": {
+      "original_sha256": "c855f7a1bc2544891f92527639fe18d68ec9139f729a5884dfbf6b57b572dd22",
+      "patched_sha256": "db1e80ff15bcbdbb27ca16a3c35e806f07f7038343d6cdf0f6e223c20348bd50"
+    },
+    "Source/Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp": {
+      "original_sha256": "7ed0a37b337519c84e5c245a4e7b299a9fd34f85aa450baebdd86e26a6095596",
+      "patched_sha256": "1eb55af30bdcceb0ef9c8d054b4cf86c52400f47c6a6d0caae6e673f90e4977b"
+    }
+  },
+  "patchSafetyChecks": {
+    "origin": 6,
+    "bounds": 6,
+    "materialHooks": 4,
+    "failed": 0
+  },
+  "preservedLocalFiles": {
+    "checked": 146,
+    "changed": 0,
+    "manifest": "protected-inputs.json",
+    "manifestSha256": "aac4436df6d6fae87403ccc922ad6b309a50f1a3a6e163389334098101c3d2ac"
+  },
+  "evidenceRoot": "Saved/Verification/OriginContact20261103",
+  "retainedEvidenceSha256": {
+    "final/evidence.json": "44592e7b9c7bb1bdadc06f90dc87a13c35c94273980e0a7d76ce06fb61ef90bb",
+    "final/results.json": "11c0cb2ade5f5b20e243a20bfd3afd44b435a637539b732bbdefea8b03b89215",
+    "journeys/evidence.json": "c2c16684fab05a59db3ac20951a6d38c02545bfc9f05c8dc31b045cb95bdf834",
+    "journeys/results.json": "4efc4b533720473533e387b9964b1736e7b08eeeacd8c4ce2248fffc11601616",
+    "focused.log": "2acf6d9e82f1551a054ef0591d181600a704cd5a0dc8c631cac5b78545112694",
+    "layer-before-surface.log": "c5d21d7d34d4e432e29b8bf77b5bd516f528a7815ee610f953ec386ec261afbc",
+    "package-final.log": "5e88ca101e7d0d62ca24220877e321b4e1a4180559ba0028ca5e20ba0053d8cd",
+    "editor-layer-fixed.log": "6e99004bad9bab4d8fba552f08ef288300937815ce0ee93a2ad9b8035f7ed9ab",
+    "final-origin-patch-tests.log": "99c0da505c93ece9d768e9c59ac20dffb1dd211308116203a59c4e68b4e729eb",
+    "final-bounds-tests.log": "5364bc59c974600f54aeb8e9a535c025995eb09740598b8b3426f0ac87bb813e",
+    "final-material-tests.log": "66d6e314674f6e6ea71cf48674237688347597b068c9457453dcd6ce6dfe124b"
+  },
+  "visualReview": {
+    "status": "Selected retained views reviewed; terrain and native material appearance remain present, including after both origin journeys.",
+    "files": [
+      "journeys/presentation-km/screens/phase-2.png",
+      "journeys/origin-window-km/screens/phase-1.png",
+      "journeys/origin-full-km/screens/phase-1.png"
+    ]
+  },
+  "exclusions": [
+    "production frame-time qualification",
+    "scientific datums",
+    "server resource residency",
+    "body-frame rotation",
+    "multi-body transfer",
+    "instanced-stamp origin shifts",
+    "projected-presentation origin shifts",
+    "texture-phase continuity through live origin shifts",
+    "thin-feature preservation at coarse native LODs",
+    "southern-pole persistent travel",
+    "Mars/Earth-radius live origin shifts",
+    "long-running repeated origin shifts"
+  ],
+  "interpretation": "Closes the demonstrated ordinary-stamp translation/contact failure inside this envelope. No custom moving-window manager, replacement streamer or extra movement barrier. Server resource residency, geological realism and production wall-frame budgets remain open.",
+  "componentSourceSha256": {
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLRadialGravityMovement.h": "25de584006ae1093d22dd2952323f4d513fe56a19ef2bb31b67935ecb114ca1a",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "cfddd8f94f9ffcfecd8c244adf685eb4dc625f9341ea0b7b0eb868ddc8b85213",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRadialGravityTests.cpp": "9bb7058d9ab4ccd37ca597fcbd1771fb0c866dd39c800237ec15e2ea1005355c",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRuntimeRecipeTests.cpp": "3993d923a5862692b090dbb5d09fdb85d2f8eb448e03a857be306ae27f80a9a4"
+  },
+  "hostRecord": "../../Projects/LandformLab/Docs/OriginContact-mac-arm64.json",
+  "hostRecordSha256": "740c1812d87785b73e4142314a4038b8e48266995a53a996489127e61149ab92"
+}

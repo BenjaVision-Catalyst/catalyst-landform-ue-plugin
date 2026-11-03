@@ -19,3 +19,11 @@ void UCLRadialGravityMovement::TickComponent(float DeltaTime, ELevelTick TickTyp
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
     UpdateLocalGravity();
 }
+
+void UCLRadialGravityMovement::ApplyWorldOffset(const FVector& InOffset, bool bWorldShift)
+{
+    Super::ApplyWorldOffset(InOffset, bWorldShift);
+    // Movement ticks before its owner. Translate this world-space cache now,
+    // before the first movement step can use the previous origin's centre.
+    if (bWorldShift) PlanetCenter += InOffset;
+}

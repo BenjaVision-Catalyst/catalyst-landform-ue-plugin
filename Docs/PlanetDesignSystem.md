@@ -1449,13 +1449,28 @@ The [qualification record](../conformance/persistent-world-mac-arm64.json) and
 results, hashes, corrected failures, native cleanup and resource limits. Prior
 scale and volumetric records remain historical evidence for their own profiles.
 
-The ten stable-frame journeys pass. Separate live-origin diagnostics retain a
-cooked bounded contact loss immediately after translation, despite preserved
-canonical pose and resource bindings. Successful editor/full-scene observations
-do not close that gate. The compatibility repairs are necessary but insufficient
-for production origin qualification; the runner keeps the failure explicit.
-The next origin action is a bounded native state/readiness reproducer, without
-a relaxed contact limit or an assumed streaming manager.
+The original ten stable-frame journeys pass; their record retains the cooked
+bounded origin contact failure. The [bounded follow-up](../conformance/origin-contact-mac-arm64.json)
+now isolates two frame-ordering defects. Landform's cached gravity centre was
+refreshed after movement's first post-origin tick. VPP's layer tracker refreshed
+its actor-to-query transform only in a subsystem tick, although the native world
+runtime could request layers first. A registered native surface sample changed
+from 0 cm to NaN immediately after translation, before that subsystem tick.
+
+The movement component now translates its cache in UE's world-offset callback.
+The version-pinned native repair synchronizes the layer tracker frame in
+`UpdateLayers` before flushing stamps or reusing a snapshot; subsystem ticks use
+the same path. The deterministic sample remains 0 cm across the shift. Twenty-five
+focused checks and twelve cooked 30/60/120 fps contact repeats pass. The contact
+trace distinguishes newest-state readiness from actual rendered collision and
+requires every observed physics frame to retain native contact and valid bodies.
+A transform-only collider-cache reset was insufficient and was removed.
+
+This closes the demonstrated ordinary-stamp translation failure within the
+recorded envelope, using native VPP generation, LOD and moving collision invokers.
+No custom streaming manager, replacement runtime or added movement barrier is
+introduced. The follow-up record also owns the longer journey results and exact
+source, dependency and native executable hashes.
 
 This advances the native movement slice of P2/P4 within the measured
 synthetic envelope. Instanced-stamp origin handling, projected presentation and
