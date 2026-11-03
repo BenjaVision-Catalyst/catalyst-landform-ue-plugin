@@ -1,0 +1,1137 @@
+{
+  "date": "2026-11-03",
+  "profile": "cooked-origin-presentation-v1",
+  "platform": "UE 5.7.4 CL 51494982 / VPP 2.0p8 / macOS arm64 / Metal SM6 / Development",
+  "componentParent": "f8d0a5fbc56ab79209aac3aeffccf63c4f40a284",
+  "workspaceParent": "904ef68c8c1d1dd863da321087ed11bc0ca1cdae",
+  "ownership": "VPP remains the sole voxel generator/presenter and owns native LOD, meshes/material composition, moving collision invokers and lifecycle. UE owns origin scheduling, world/render/physics translation and transform publication. Adapter callbacks translate retained domain/presentation caches. No new VPP/engine patch, streaming manager, copied mesh renderer or material slot override is added.",
+  "fixes": [
+    "Use world-scoped UE post-origin callbacks to translate cached native mesh transforms while retaining strict lifecycle/identity checks.",
+    "Translate retained current/previous charts, camera/visual history and hit positions; preserve local/scalar/directional/physics meanings.",
+    "Republish retained native VPP component transforms through UE MarkRenderTransformDirty after verified origin translation; fixes the measured reverse-shift frustum failure with culling enabled."
+  ],
+  "nativeFeaturesReused": [
+    "UWorld::RequestNewWorldOrigin, applied by native world tick through SetNewWorldOrigin",
+    "FCoreDelegates::PreWorldOriginOffset/PostWorldOriginOffset; scoped listener retirement",
+    "UPrimitiveComponent::MarkRenderTransformDirty and native rendering/instance culling",
+    "VPP retained original UVoxelNaniteComponent, runtime/state/LOD/material/collision and attached moving invoker",
+    "Native deferred USceneCaptureComponent2D and real GPU readback using existing anchored shader/CPU oracle"
+  ],
+  "cooked": {
+    "executableSha256": "f5c2a0c812d80350b9475c6db2922d44256243f1de4bbf7099e2fb1060f5632c",
+    "codeRebuiltAndPackaged": true,
+    "cookReuse": "Unchanged assets/shaders reused through the package script's fingerprint-guarded --skip-cook path. All 229 protected inputs retain their initial hashes; no material/shader asset regeneration occurred.",
+    "cookManifestSha256": "fe5670bcef4e9bcfb17cd38647a799537eff5fd776f0c5c7ef5ef50385b9e56d",
+    "matrixEvidenceSha256": "3408bbff31fd1483ab1625f31f7659b0ece81e628fb7e12095c2b16f6e3b3752",
+    "matrixResultsSha256": "486e099aa2dc4c09e412f392113cd4b5e377a7a5e153f1658c3cfb48afbca0bd"
+  },
+  "editor": {
+    "passed": 55,
+    "failed": 0,
+    "warnings": 0,
+    "reportSha256": "79fc7d961e4201bb19a07f2d7453f64da2b35328ff859ab0c0865546be577555",
+    "tests": [
+      "Catalyst.Landform.Composition.EditorCommitAndSourceOwnership",
+      "Catalyst.Landform.Composition.IndependentFieldsAndSnapshots",
+      "Catalyst.Landform.Composition.MasksAndValidation",
+      "Catalyst.Landform.Composition.PreviewNativeSphereParity",
+      "Catalyst.Landform.Designer.FixedDisplayFrame",
+      "Catalyst.Landform.Gravity.LiveOriginFrame",
+      "Catalyst.Landform.LocalTerrain.DesignerNativeSphereParity",
+      "Catalyst.Landform.LocalTerrain.GuidesAndDimensions",
+      "Catalyst.Landform.LocalTerrain.LayerControls",
+      "Catalyst.Landform.LocalTerrain.WindowAndHalo",
+      "Catalyst.Landform.NativeGeneration.DesignerSphereParity",
+      "Catalyst.Landform.NativeGeneration.KernelAndVersioning",
+      "Catalyst.Landform.NativeGeneration.NativeLocalSection",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii",
+      "Catalyst.Landform.NativeMaterials.PreviewCoordinateGPU",
+      "Catalyst.Landform.NativeMaterials.RenderedPreviewCoordinates",
+      "Catalyst.Landform.NativeMaterials.StampMetadataOverrides",
+      "Catalyst.Landform.PlanetBuilder.WalkingLocationPicking",
+      "Catalyst.Landform.PlanetLayers.VariationPublication",
+      "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+      "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+      "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "Catalyst.Landform.Presentation.Endpoints",
+      "Catalyst.Landform.Presentation.GPUParity",
+      "Catalyst.Landform.Presentation.InverseRayBounds",
+      "Catalyst.Landform.Presentation.LocalFrames",
+      "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "Catalyst.Landform.RuntimeRecipe.AtomicApplication",
+      "Catalyst.Landform.RuntimeRecipe.NativeLayerFrameAtOrigin",
+      "Catalyst.Landform.RuntimeRecipe.NativeReferenceBudgets",
+      "Catalyst.Landform.RuntimeRecipe.RetainedClientResources",
+      "Catalyst.Landform.Scale.CanonicalAndNativeWindows",
+      "Catalyst.Landform.Scale.NoiseFrameContinuity",
+      "Catalyst.Landform.Scene.NativeBulkSparseParity",
+      "Catalyst.Landform.Scene.PreMigrationPreservation",
+      "Catalyst.Landform.Scene.QueryAndFrameContract",
+      "Catalyst.Landform.StampDistribution.DesignerSphereParity",
+      "Catalyst.Landform.StampDistribution.DeterministicPCG",
+      "Catalyst.Landform.StampDistribution.VersioningAndSnapshots",
+      "Catalyst.Landform.Surfaces.LargeRadiusPreviewPrecision",
+      "Catalyst.Landform.Surfaces.LargeRadiusSectionPrecision",
+      "Catalyst.Landform.Surfaces.LegacySourceInheritance",
+      "Catalyst.Landform.Surfaces.NativePreviewAndBoundaries",
+      "Catalyst.Landform.Surfaces.PortablePayload",
+      "Catalyst.Landform.Surfaces.RenderedGlobe",
+      "Catalyst.Landform.Surfaces.RuleContract",
+      "Catalyst.Landform.Surfaces.ScannedBindingsAndDefaults",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials",
+      "Catalyst.Landform.Volumes.NativePreview",
+      "Catalyst.Landform.Volumes.NativeSectionDomain",
+      "LandformLab.Presentation.LiveOriginHistory",
+      "LandformLab.Scale.AnchoredGPU"
+    ]
+  },
+  "matrix": {
+    "cases": 18,
+    "passed": 18,
+    "radiiAndSites": {
+      "km-equator": [
+        1000,
+        0
+      ],
+      "earth-pole": [
+        6371000,
+        1
+      ],
+      "earth-antimeridian": [
+        6371000,
+        3
+      ]
+    },
+    "curvatures": [
+      1,
+      0.5,
+      0
+    ],
+    "fpsCaps": [
+      30,
+      120
+    ],
+    "originRequestCm": [
+      50000,
+      -30000,
+      10000
+    ],
+    "returnRequestCm": [
+      0,
+      0,
+      0
+    ],
+    "nativeCullingFrustumAndHZB": true,
+    "runtimeSamplingActorInvokerIdentitiesStable": true,
+    "nativeMaterialsPreserved": true,
+    "nativeFloorFrames": 6186,
+    "lostFloorFrames": 0,
+    "postOriginPhysicsFrames": 1152,
+    "projectedPicks": 6186,
+    "gpuQueries": 2160,
+    "renderedPairs": 36,
+    "retainedImages": 180,
+    "maxGpuPositionErrorCm": 0.0008908683217709729,
+    "maxGpuTextureMacroPhaseErrorCm": 0.0005969180789655582,
+    "maxGpuNormalError": 5.551115123125783e-15,
+    "maxRetainedFrameOriginErrorCm": 0,
+    "maxCameraHistoryErrorCm": 1.1920957382344078e-07,
+    "maxCameraInverseErrorCm": 2.9071361495951545e-07,
+    "maxPickErrorCm": 0.0001364860035172175,
+    "maxContactFieldErrorCm": 0.0032290361559716985,
+    "maxPixelErrorAboveRepeat255": 0.04001314600279353,
+    "maxChangedFractionAboveRepeat": 0.0005908811364211897,
+    "casesDetail": [
+      {
+        "case": "km-equator-natural-30fps-1",
+        "frames": 230,
+        "nativeFloorFrames": 230,
+        "lostFloorFrames": 0,
+        "picks": 230,
+        "maxPickErrorCm": 0.00012057373199508638,
+        "gpuPositionErrorCm": 3.057712442754051e-05,
+        "gpuTextureMacroPhaseErrorCm": 0.00025558471605791055,
+        "maxPixelDifferenceAboveRepeat255": 0.014318142835702492,
+        "originTransformPublications": 255,
+        "reportSha256": "5a667a59447308c3b6c204339a013ac679cbdac9668477c5402d1f02e7b947e6",
+        "logSha256": "1780dcf6970229ea0fdb98c8b7690696374b2c6d71ea3ea2729b4eb39377147d",
+        "imagesSha256": {
+          "forward-after.png": "e017e4bb77b2118bf53e67c3b00f8977ff2738a54d6d4e7cc6a1106494ccb639",
+          "forward-before.png": "a3af29f8af20f55d98b5d1dd0b342e673007b7e9b493600300cc09f887f25f79",
+          "forward-repeat.png": "28bc925dc7b53b298654eb74daf1e38e7e208293bc6a637eb9a9726adfbd2109",
+          "gameplay-after-return.png": "53ff1dcae1f1fab7b8c5cb3098a934cdf249a021d7b30e3e2af681c7e0c55fe9",
+          "gameplay-forward.png": "ba10362d14e02ea6db07a643334a22f4bad71e72f2b9bfe91c28eb1b6aa4fae0",
+          "gameplay-return.png": "07e462b8c76d98917382dce2f5128e2dd1e326ca7ea954c2c92598c0cb6ec926",
+          "return-after.png": "2e31c0b810a25dc02359ecb68ddd3d2afa58a579084ec5615a806f01a000e822",
+          "return-before.png": "f5e1f11f221ea3297b52b0e6a122b0a93a9abfe453926c37c745759cffced206",
+          "return-repeat.png": "07791e11ab12aba6a1168828c10168d773d020d73155a321d1b8816a5e7f74b2",
+          "settled-after-return.png": "e9b0be7d7d6ff3a0fe31997001e60b5ed78a319e9d22a2c90889f7b52a661c31"
+        }
+      },
+      {
+        "case": "km-equator-natural-120fps-1",
+        "frames": 299,
+        "nativeFloorFrames": 299,
+        "lostFloorFrames": 0,
+        "picks": 299,
+        "maxPickErrorCm": 0.00012208478402620155,
+        "gpuPositionErrorCm": 6.10351564773767e-05,
+        "gpuTextureMacroPhaseErrorCm": 0.00025558471605791055,
+        "maxPixelDifferenceAboveRepeat255": 0.020231984489705136,
+        "originTransformPublications": 298,
+        "reportSha256": "cd8c55291541512c877b872604d3f36838771360ea7e63879038676d5d9fa7e8",
+        "logSha256": "6e5deccd25b41969f093cb9e55f6c2949c9b3e1fe29739331a5efa218f27ee81",
+        "imagesSha256": {
+          "forward-after.png": "9e0595e99ccb62ec0848bbfb59ad989e764d69d4a22ebb81cf0c6143d509a49a",
+          "forward-before.png": "11136b4473e983edd8a514c8c2befde0b6d50fbe6fa3374e49d55f45454806a5",
+          "forward-repeat.png": "433978784ef0049106484d0af85fe47e74833ab3f5ec2b637b235f689562e9af",
+          "gameplay-after-return.png": "90df6ffdfe12c1e562e28f5fef2d2c586968ae65477ff54c1d9649bb8ef011dd",
+          "gameplay-forward.png": "94f8014f748c46ce6798b6dc5ddae40af167bc776f4ba5b9241bf92300f580fa",
+          "gameplay-return.png": "3cbb866c514c0530e94f5395f732c49530bb20a67866493d47940cff2ef736dc",
+          "return-after.png": "1d33c532648cb531e4b49b2d268142adb0b67042603a5067331a8d9615ce4d3b",
+          "return-before.png": "f22a45f3dfb0d86fd3e5e305532884ca0f3e8b1455275425e35f9f23091c7351",
+          "return-repeat.png": "47759b12c7f1101eba358b686c67b7534174629e34f7b72b10355af6c5b1846b",
+          "settled-after-return.png": "a8881db86cd31a6fa1cbe7eea8e8fa44799188ac3de46807f6478f6a8549b116"
+        }
+      },
+      {
+        "case": "km-equator-half-30fps-1",
+        "frames": 230,
+        "nativeFloorFrames": 230,
+        "lostFloorFrames": 0,
+        "picks": 230,
+        "maxPickErrorCm": 8.739155382907999e-05,
+        "gpuPositionErrorCm": 0.0008908683217709729,
+        "gpuTextureMacroPhaseErrorCm": 0.00025558471605791055,
+        "maxPixelDifferenceAboveRepeat255": 0.0177320541884673,
+        "originTransformPublications": 255,
+        "reportSha256": "c07dff0b6870664f689b53372fb2115fa186a64be103373d71f4c49dd137e40f",
+        "logSha256": "2c94281cf943b03496c63cb539b429896400f14d40068e41b581d8c4c1a09edc",
+        "imagesSha256": {
+          "forward-after.png": "212afa0ff486627b4749e9b5a0b8fac9cb9eba674994ca4587b5ce2ccc6c05b1",
+          "forward-before.png": "2eaf1d754a1debbf208e11bed647dcb2015ccfe78e88bf0c350acb21e45e5f7b",
+          "forward-repeat.png": "2c77e599673ebc20245eba6dda84ebe0c78c33ddfafa61a557ced0db1c9b6fbc",
+          "gameplay-after-return.png": "76b165fc1b43641e91f5867fff19686076669b96934deb25985bf0e1c40b12bb",
+          "gameplay-forward.png": "9d88d08bcf9105e695c9e702c8ea5ecdd135c35c0161859b4d6ae1017b7e347a",
+          "gameplay-return.png": "efee83affce94958b161432b5973811c48f2603673dc80cd009439252eb76e33",
+          "return-after.png": "aced28994dd483877646584bdf2238bc1d601bf02336e84293c75b43c2ca2497",
+          "return-before.png": "e97bbb34ef59876f6350d38b13636cab9d6171e66e1b9874afa258eea67a2e8c",
+          "return-repeat.png": "8f528e1555b183c7dc24409665fb7c73e3ae0725d5954f3b9600717d1e809faa",
+          "settled-after-return.png": "f163b6c75deb3f4554f14e83a9e56a6b5e7701800dc219972025e0adf5c62862"
+        }
+      },
+      {
+        "case": "km-equator-half-120fps-1",
+        "frames": 303,
+        "nativeFloorFrames": 303,
+        "lostFloorFrames": 0,
+        "picks": 303,
+        "maxPickErrorCm": 0.00012206640470325116,
+        "gpuPositionErrorCm": 0.0008524697960885622,
+        "gpuTextureMacroPhaseErrorCm": 0.00025558471605791055,
+        "maxPixelDifferenceAboveRepeat255": 0.024262083320258976,
+        "originTransformPublications": 298,
+        "reportSha256": "2e4d5aeb2ca9bcc91382ce0fc9a022085d4a8decd72029d4b520ed76b82bfc96",
+        "logSha256": "3bec0a0e4d6ea86299804ffcbfe062360ff090119244f01b5568e635fce3ec30",
+        "imagesSha256": {
+          "forward-after.png": "c522dd6190ef9006d5677ef5515336754e6e4c56325981f4deac6d0c3f57217a",
+          "forward-before.png": "373eac042cb809ba7758ee2393015fc72b8754cb27d6638f0c728d16a628c09a",
+          "forward-repeat.png": "12127ee493562ba6ad84ac31dbed3c0b6fbe7eec6fd0486eaf36686809814eb4",
+          "gameplay-after-return.png": "7089e23082fd8aa3460c0723e9b0a217e8a9484c87b93938e9cf7f533c289a9b",
+          "gameplay-forward.png": "2bc2cb53905fc83c4342c9867c4e5d51398987d3583fb6029fc03f104dfc54f2",
+          "gameplay-return.png": "5cf3711fdf9714d7a542fce95dff0c96560377e91c0b025b8d3082c661c42296",
+          "return-after.png": "9f0d7df47afe227fa3e3385d220264372342d1253df999960adcc8fec5bd0186",
+          "return-before.png": "5cfed8fe346b5c60fb38d5587ae030debb7a52727b1afeab42c6f2fc53d71cbc",
+          "return-repeat.png": "049755e39ffc8b814ac82635572c337298a3f95b0c2a55a5b5c50aa0069a4065",
+          "settled-after-return.png": "861edf6b9dac7b08b04c890d4533dc712da2859e518c619ddea70da82a415ef2"
+        }
+      },
+      {
+        "case": "km-equator-flat-30fps-1",
+        "frames": 229,
+        "nativeFloorFrames": 229,
+        "lostFloorFrames": 0,
+        "picks": 229,
+        "maxPickErrorCm": 8.845034906400056e-05,
+        "gpuPositionErrorCm": 0.0008354834100236764,
+        "gpuTextureMacroPhaseErrorCm": 0.00025558471605791055,
+        "maxPixelDifferenceAboveRepeat255": 0.02776484519370838,
+        "originTransformPublications": 255,
+        "reportSha256": "d0b4f39b78f8f57d12c6472cfcec831331fa4fe767f5f011d1d09d6f7810e6c5",
+        "logSha256": "5bc9c405c4741e7eb2df26abfde0e5bfb2a659054d5090f470d2e3c3a1d4b88a",
+        "imagesSha256": {
+          "forward-after.png": "684d31bf6465f9367b621cb2a18e680299282b4ed32886082ae58f160c6b4c95",
+          "forward-before.png": "0eb3d77826d1a2b5f12d7efae5222b451f00f56e791b303d0e48a4037303a46a",
+          "forward-repeat.png": "3fe788194931d6a5937ff249f57ed0bd48f9ebfebcad55d6815d734cf9d9cc51",
+          "gameplay-after-return.png": "ada48274bea4e7f71c13539956893c74ef54e3316b7ebdf7df25f392a5c1eab1",
+          "gameplay-forward.png": "31af208363fc601ef3c641c5eeb45b398a0933fd50c0eb01f1376f9c720eab40",
+          "gameplay-return.png": "22a22c300336760ee7f09348bc375f81b3681ae690c760da3e797217ba426af4",
+          "return-after.png": "38df6b321732347bcf316d13fb8f4e9efada809b4971df7ac03b8cea0aec1152",
+          "return-before.png": "f7370527b643c8681672df805a4179c76707454adf07344c6b6cc9b5265167f8",
+          "return-repeat.png": "704674e2ffa392a20dd1fe7409e62385900f7fc942fa5cdcb01cee741016f268",
+          "settled-after-return.png": "ae27ea3543dadbad1ad78bb9a8088605a8de97aa72cabda74d6e3da6a83edbe7"
+        }
+      },
+      {
+        "case": "km-equator-flat-120fps-1",
+        "frames": 299,
+        "nativeFloorFrames": 299,
+        "lostFloorFrames": 0,
+        "picks": 299,
+        "maxPickErrorCm": 8.775873276466994e-05,
+        "gpuPositionErrorCm": 0.0005205422583688059,
+        "gpuTextureMacroPhaseErrorCm": 0.00025558471605791055,
+        "maxPixelDifferenceAboveRepeat255": 0.04001314600279353,
+        "originTransformPublications": 284,
+        "reportSha256": "3b53085d43ba0c45b3e9bb073d8d5ec2cdbf13a9b386d5f67e908cf3f4499de7",
+        "logSha256": "d1fc07a0f2c056bc69da85c3d5660a8986be93cdd3db4bb4e3e106fa8681b1f8",
+        "imagesSha256": {
+          "forward-after.png": "e5a0ec8f6f050fb42a8ff3a031667436ca208363d20e71a1d8780e51888bd155",
+          "forward-before.png": "9f475b5c3090fb9b1df8a87bb25773ad2fc5a6927d2017d0b2cba94269f0408d",
+          "forward-repeat.png": "643cfdf1315ee2997a62daa6dd8d5e61cf6c2294c483cd43c16b6417b8c6464d",
+          "gameplay-after-return.png": "be3a05b3d1cc02a2dc53eb26368ace41949a7868d7aef85fb7dd6c504bbf79e1",
+          "gameplay-forward.png": "32afc63bafcff26fcfa2956669d7ba9258a000e6d80df3095ab921373ac77271",
+          "gameplay-return.png": "8611a14a060c6de7085e0957020634391c78e7227f0d7450ec7dfb6ce4338964",
+          "return-after.png": "268453bde8ba6390bf5b3fdbd86ebf192d6b49a41b64cad4cdacb64f4e407bcb",
+          "return-before.png": "21f3c0c599ff49a3e3cc8c74531a4a4b6622f2ca967b7542a8b0c8c654b25798",
+          "return-repeat.png": "3a449804dbca2dbd667d78a25e33da3d1a3215341dabbfeba3cfd649a82b0e0a",
+          "settled-after-return.png": "6906b0e5b4224c79f0931a22821598c982aefc73cc73988d4f7e6068f9d6ab21"
+        }
+      },
+      {
+        "case": "earth-pole-natural-30fps-1",
+        "frames": 589,
+        "nativeFloorFrames": 589,
+        "lostFloorFrames": 0,
+        "picks": 589,
+        "maxPickErrorCm": 0.00010597083655813656,
+        "gpuPositionErrorCm": 6.103534494030538e-05,
+        "gpuTextureMacroPhaseErrorCm": 0.0005969180789655582,
+        "maxPixelDifferenceAboveRepeat255": 0.012034250122964883,
+        "originTransformPublications": 251,
+        "reportSha256": "587d6fafe56248e07bc931ee1b70a5660a849ba98b6649ce8c77a1f28fd944a8",
+        "logSha256": "6a5615e4c1861fc193247a9f29617225bd626f52a6f8058ec9346dee9cb29dba",
+        "imagesSha256": {
+          "forward-after.png": "4e73c357dc788e48f3ac89a4888d19593fccc8a6c8f7564e5de4342e84b3c497",
+          "forward-before.png": "9f5e099e695a6c423789b5f3469d1cc9f45c8be775e0bdac9633defb8152b229",
+          "forward-repeat.png": "9e09b31092777c2aac008e3272a910d89e3b86c6c8fe2817e2a34af053d43223",
+          "gameplay-after-return.png": "21992b3e7537bdc34e6160736b4c2724f83d067abffb2bec2b8bb85600f002d1",
+          "gameplay-forward.png": "f612631c9a743c3ed100834bb7142b420fdf40cfe25b9388a7bdddbb21a04749",
+          "gameplay-return.png": "7d83eeded6fb02618f4e5fce0cbdb34f27763b6804d902f53bbffcfd6a911be9",
+          "return-after.png": "be3fb7dcfb0de9cce0cc13c8583425a82ab3f0a5e5d475c19c1f6016cfd59e6f",
+          "return-before.png": "2191f6082f8ce0cb3a32c801052cbfe9eafb34faf61359da6043f1a8c906e2bb",
+          "return-repeat.png": "d6cee8e930f6c1f5f5736e92784855c32a42060648dcbeb06453f685057bc3c7",
+          "settled-after-return.png": "a669aebd2b20449d21ea940a700b84e58e9d4b7b7a0c90a643292baa14cbe891"
+        }
+      },
+      {
+        "case": "earth-pole-natural-120fps-1",
+        "frames": 292,
+        "nativeFloorFrames": 292,
+        "lostFloorFrames": 0,
+        "picks": 292,
+        "maxPickErrorCm": 9.947704475621722e-05,
+        "gpuPositionErrorCm": 6.103530943215132e-05,
+        "gpuTextureMacroPhaseErrorCm": 0.0005969180789655582,
+        "maxPixelDifferenceAboveRepeat255": 0.015388188081623282,
+        "originTransformPublications": 290,
+        "reportSha256": "226332ff0c09ca522b80ab3e93de31179ae730f57031bf1df611612f083668ba",
+        "logSha256": "060d2c690c1044f7c0baa3169bc530bc06e34f469076aaadcd48567d696d16dd",
+        "imagesSha256": {
+          "forward-after.png": "6876aa15683403a1f6cd692e1f1de47eb3f37c6570851aebde333f8a436486fe",
+          "forward-before.png": "d2c88a2c6120772cf364d58514c7b772e795842b4cfa40c57b039da883e45874",
+          "forward-repeat.png": "eea5e7cb8dfb28944b08066e744ee8ff48abc26ef11e3325fae398343c1c023d",
+          "gameplay-after-return.png": "e2310c452088d7217e0ab1b5226a0bb09a010948683eaa960bfa269f58de5db6",
+          "gameplay-forward.png": "8eb5093c5346e95ee99f8b13133d7e1d37a88eb0574c3f3da11d77e6ae829bca",
+          "gameplay-return.png": "d84ed3c1457be6ed0415cb3226469842a99364e0408e4e99bad3f6058ff6ccc9",
+          "return-after.png": "6a66be5f0c65bb32e70bba3d0ce8db41bc81138e656391ecb5f46d94d6df40fc",
+          "return-before.png": "56f7662dcf80e2f63899fde3b7e799c43a05f2150d5877db40bfa7335e019cce",
+          "return-repeat.png": "d55cd483513180c44b5433b34b1943b6c0be82c9fe3e82616e2967f70c5a7b46",
+          "settled-after-return.png": "6cab3ee5b48ab4b26c9e534572b767dbe580aa231edc49afa450660fc74fb6cc"
+        }
+      },
+      {
+        "case": "earth-pole-half-30fps-1",
+        "frames": 589,
+        "nativeFloorFrames": 589,
+        "lostFloorFrames": 0,
+        "picks": 589,
+        "maxPickErrorCm": 8.88009060420743e-05,
+        "gpuPositionErrorCm": 0.0006926401980499869,
+        "gpuTextureMacroPhaseErrorCm": 0.0005969180789655582,
+        "maxPixelDifferenceAboveRepeat255": 0.013216278593412213,
+        "originTransformPublications": 251,
+        "reportSha256": "98cb76341a8484cbad88203f3b094c8e4caec2649d56acd0e1914f1c4cac762d",
+        "logSha256": "de9d66d825dbffd69b7c6a34a0c106523074978adf43faa9f763da4bd7997f3b",
+        "imagesSha256": {
+          "forward-after.png": "e05d2fc94d1d2b330d50cb203a826828d6abb6009d59ec84ee97c9ce8be60d17",
+          "forward-before.png": "808a740e1bb4ee0dc286262719ad65da61ea015f608b265acbd402a96acf47ad",
+          "forward-repeat.png": "04a700931c5f6b7f2005da99b2ab5d5644c6651c2a0ebf8d86d5b20f97490b68",
+          "gameplay-after-return.png": "8be6c561917fd0dc9788cc4d643ba47efb9a0d3bb1324a2d6aebf983d1b2af5b",
+          "gameplay-forward.png": "7284f6aaaf06316b57c4ec98c4783c528acd2ed576423ed2b98509476bcf455d",
+          "gameplay-return.png": "581aab2b8d0f50c738fe5b60b6a14013a8b73a1872abee9c11bd2027cafe5750",
+          "return-after.png": "82c311039b537ce7fe092125e1d5309d1755f1f201cacf24e74955d8be02c03d",
+          "return-before.png": "960144be64746ad9badaa03cd8a3a075f3d806a8037415546ba4aa27795d39ba",
+          "return-repeat.png": "2cb6fa4939d3210b96fee8dfe74113493082ae5d61509fca7c2511c4015a03f5",
+          "settled-after-return.png": "cebf1ac1d36a7babea55422304ebf4a9f1c23dd9f4cc42d1679b1bd56c4f6074"
+        }
+      },
+      {
+        "case": "earth-pole-half-120fps-1",
+        "frames": 297,
+        "nativeFloorFrames": 297,
+        "lostFloorFrames": 0,
+        "picks": 297,
+        "maxPickErrorCm": 8.476360380889184e-05,
+        "gpuPositionErrorCm": 0.0006862627450818093,
+        "gpuTextureMacroPhaseErrorCm": 0.0005969180789655582,
+        "maxPixelDifferenceAboveRepeat255": 0.011886729681598466,
+        "originTransformPublications": 296,
+        "reportSha256": "656e298f3a21648f0e9a47dc6fe106bc577573a9314a5fdf0332255f8e302137",
+        "logSha256": "10a51f641f02a49a5f3d5a83b4710034311cccd9bf3e5fd2be132ee8aa3d5487",
+        "imagesSha256": {
+          "forward-after.png": "92f9416867cf25ed1f699921ee0e300d02138b3f579967939212faf096308e6e",
+          "forward-before.png": "6532e14a0778a440c4c8a515082d898b7a8ff5b1507d123c8841c31196256c74",
+          "forward-repeat.png": "5ab26da6631b8085f88425ab308b7279d37eb0d82a4bbb104cc3829b13a497a1",
+          "gameplay-after-return.png": "a9e9307af46fe4ca9562157132b825c8e07d0b94580a06fd8c810df33b66ec23",
+          "gameplay-forward.png": "5749d6efd1008ed12670e8e3a4d525b10927fd8b8b61a04870b312b71cf35def",
+          "gameplay-return.png": "882b57e3f283a18abe718e4f2a9dbd63cdd71333a5616a58a08304cbeeda7c1f",
+          "return-after.png": "0f1781c35f17c156709232cae5cfdc76c1f71b4098261e8caf134227383401c3",
+          "return-before.png": "6e476bfda9b117e54a7187f16500c01143d4d3a497c30cc91a995e3de3e1ca80",
+          "return-repeat.png": "f061ee572ad11c1949534d6d345ee721ec77020b18976fe688d76fe3a2d53477",
+          "settled-after-return.png": "6442794b20833bc1e372b981078541c5202522119f1eaca634bd874fcefbf558"
+        }
+      },
+      {
+        "case": "earth-pole-flat-30fps-1",
+        "frames": 236,
+        "nativeFloorFrames": 236,
+        "lostFloorFrames": 0,
+        "picks": 236,
+        "maxPickErrorCm": 7.163011866858711e-05,
+        "gpuPositionErrorCm": 0.0006376354553618048,
+        "gpuTextureMacroPhaseErrorCm": 0.0005969180789655582,
+        "maxPixelDifferenceAboveRepeat255": 0.01172634866708677,
+        "originTransformPublications": 254,
+        "reportSha256": "8e6ba786b62b289841450d5a9863182135c97a5f058f53f3a1ce6fdd3adcf754",
+        "logSha256": "ab03c9a822596fbc8983abf95caa0afe9e2b33a625133b092b551c2470eafe35",
+        "imagesSha256": {
+          "forward-after.png": "45ac13afdbae19ec10c4b458ead7a66cce5d91d883069e00c62209ca2f8b8781",
+          "forward-before.png": "63456311c0e2623b33f57651e6b0fa99fdb0d8e7bbc4b838dfc29f9fb9fc634d",
+          "forward-repeat.png": "e6e44b99561f274c92c20907a36af8ab129bd15fc00796e8213c684a6e44ca09",
+          "gameplay-after-return.png": "b53cac1e8589f4c9d1a4ef3cb3079fad90a399c39e75ebec7ef4afbcf2a57153",
+          "gameplay-forward.png": "9352395c6ee50c324c9dd323cf4bf41e0fa99c2d6edd7d0cf5c51120ea3cedf8",
+          "gameplay-return.png": "8bbf0c23e0d0cc7ef92e8d517555e8719f869b5c2ed5db815b6a5afe0efddfb8",
+          "return-after.png": "9e4d4c5ebc91f09b776e578a12bf4f123aba58fb13379cb9930dec319ed337d3",
+          "return-before.png": "d657b0cb832debff203b3f0562a5c4d170356cefffaf0502297a5e306766fbc2",
+          "return-repeat.png": "075a2026a5a066aba2b91c0a971e3920ffa6b90cabb11c04a62cdd1671068f2c",
+          "settled-after-return.png": "71bc8a711e5ccfee3f57f1e93f361fd7f41c060a2ae277a37bda0a34a38f9bd9"
+        }
+      },
+      {
+        "case": "earth-pole-flat-120fps-1",
+        "frames": 296,
+        "nativeFloorFrames": 296,
+        "lostFloorFrames": 0,
+        "picks": 296,
+        "maxPickErrorCm": 6.857565102793413e-05,
+        "gpuPositionErrorCm": 0.00078806978323585,
+        "gpuTextureMacroPhaseErrorCm": 0.0005969180789655582,
+        "maxPixelDifferenceAboveRepeat255": 0.01175370067398843,
+        "originTransformPublications": 296,
+        "reportSha256": "7c9bfb40ca81065b6b238ecabc63839d4ab955477df1d0aef7540f50a19bcf99",
+        "logSha256": "9c405101a9965fc81f4810a13b76bd3da76b53bbce4d0b92bcd57ce04173867e",
+        "imagesSha256": {
+          "forward-after.png": "d3dfa4544d9336954df44821e7d872ed914cdc4c733aaceb06e294bd44310004",
+          "forward-before.png": "27eebf6312207b2bcc281a4f784da1dd3770b57e5b956d39b8e9e6e433a371c1",
+          "forward-repeat.png": "2f3fac46f95dba81be6cfca2778576f705e2ad1cf12a37c3299e3865f47b0f06",
+          "gameplay-after-return.png": "d613849e70440ac3f409886e124fbbc397a9ad96f3670f39bcd7f197930d6bb2",
+          "gameplay-forward.png": "567199a79026bbfab3e43c2a03bdb9335c8c5f0e310e276ecd9dd6d2053a715f",
+          "gameplay-return.png": "3a306a41321b92ed9309c990c9a08e2d0f8bddff4b5da816d23902ce0d4ecf65",
+          "return-after.png": "41bd8743fb539f4c779f89c3a0a9752645e804ad37424eeec4ff336eacf1c65d",
+          "return-before.png": "faa53930250d8d0a329db0c8a8755b0399f3c13c8300a94a3d58140dd2234088",
+          "return-repeat.png": "03b8ce1e36e4c5d313889cb9289174b7eda1af2e867c10b9d6502e27d7e89a7d",
+          "settled-after-return.png": "0d01fe478c3e2ed22b91b0b951aa8b8d50a4afd4fe1c47174d360da8b78f257d"
+        }
+      },
+      {
+        "case": "earth-seam-natural-30fps-1",
+        "frames": 588,
+        "nativeFloorFrames": 588,
+        "lostFloorFrames": 0,
+        "picks": 588,
+        "maxPickErrorCm": 0.00010631612622125604,
+        "gpuPositionErrorCm": 6.103519862501243e-05,
+        "gpuTextureMacroPhaseErrorCm": 0.000493567388559768,
+        "maxPixelDifferenceAboveRepeat255": 0.013701649963541401,
+        "originTransformPublications": 257,
+        "reportSha256": "bb8f0d21af9d25ab5e271caf4332de0a31c5959f1ff191cd8ca218315ec7c498",
+        "logSha256": "93b870eb4cd086ff42e3ce5a8f63521cdd7cf69516d4d6d02e944797629afa38",
+        "imagesSha256": {
+          "forward-after.png": "231b786dffead9e8324da01a1743aeabec7858aca1dac4df4090e662a187315c",
+          "forward-before.png": "8d9ca6fa7d353adc001e50a50e0145ad1e620f1f0f6c839e094432afc1972d91",
+          "forward-repeat.png": "287c1c3c314b78091fd2a98bf9e4aa452e87c39bec74fb2bf0b4e9653fd4142e",
+          "gameplay-after-return.png": "b8283c5ef46160c2f50c36b09a74a96830bed90b3306a226d55172655327c7d0",
+          "gameplay-forward.png": "521953ac1c18177666abb7c00f40bceb61942164316919e2e07306c26b6017b9",
+          "gameplay-return.png": "12f480967b917cad815a5dc3b22e58f52f19f74aac76f54c371393204ba52066",
+          "return-after.png": "ccd4c9103c1f3a76dba1b23a3c81424cbb265c3346e2fed14e8d138e2c7cc6e8",
+          "return-before.png": "50e55bbabf16ed6c9e0ddf28e0e33eb93f48d9df8e10a12c9e0fb771f5f8c786",
+          "return-repeat.png": "50e55bbabf16ed6c9e0ddf28e0e33eb93f48d9df8e10a12c9e0fb771f5f8c786",
+          "settled-after-return.png": "5df02320f9d99d9c7ac9089c0119bbaa5c598369cd8c5327295b0b4252d63032"
+        }
+      },
+      {
+        "case": "earth-seam-natural-120fps-1",
+        "frames": 298,
+        "nativeFloorFrames": 298,
+        "lostFloorFrames": 0,
+        "picks": 298,
+        "maxPickErrorCm": 0.0001364860035172175,
+        "gpuPositionErrorCm": 6.103520988375812e-05,
+        "gpuTextureMacroPhaseErrorCm": 0.000493567388559768,
+        "maxPixelDifferenceAboveRepeat255": 0.013929705792195764,
+        "originTransformPublications": 296,
+        "reportSha256": "b71cacdfc4dfae34324fcf7ba897eb9819815108fe5f9f567517051189554647",
+        "logSha256": "b6521b4ef7a9ff88b2c5e952620118bb2cdfab36a251cd9ec2318a3e2d1d6dad",
+        "imagesSha256": {
+          "forward-after.png": "257fd64c29beb959b8d9e2cac2092c0242d143a6f378e17b7cd514fc9b2f02bd",
+          "forward-before.png": "9aef1d10cf938f22c60484bb102f54576b4590bb59757b11b72461a4da9d7024",
+          "forward-repeat.png": "9aef1d10cf938f22c60484bb102f54576b4590bb59757b11b72461a4da9d7024",
+          "gameplay-after-return.png": "1cbb99fcd61ede368434cf722acf37fb2e1f8cd9ce272aa19997768c8610fb29",
+          "gameplay-forward.png": "b57796f88d252cead57a877fcc6b80a50a8fb01ddf566d99cb80bad369f965a9",
+          "gameplay-return.png": "db80094c5348f2f4431b4e0c9722ef348cc07f97293df945ef3f0d9948dba4b3",
+          "return-after.png": "520b5cac7533f6e828b110c8927c8f38b2ce553006b4d47c5a738a3eea7473a7",
+          "return-before.png": "890f49bdbed46cb55fb48ccd6806737e8adee22ee439c9e22de1a855fdcaa7c3",
+          "return-repeat.png": "f57d066ea104f5758bc2ab6c320c3ec6d382fd4fa585ffd7eb425be548d26938",
+          "settled-after-return.png": "bde0c298e91d1b679bed12b27f11f7d5dc91e67f8af9e7c8671fcf9f6c63b307"
+        }
+      },
+      {
+        "case": "earth-seam-half-30fps-1",
+        "frames": 589,
+        "nativeFloorFrames": 589,
+        "lostFloorFrames": 0,
+        "picks": 589,
+        "maxPickErrorCm": 0.0001083808089107093,
+        "gpuPositionErrorCm": 0.0006883899442347158,
+        "gpuTextureMacroPhaseErrorCm": 0.000493567388559768,
+        "maxPixelDifferenceAboveRepeat255": 0.011394127230724879,
+        "originTransformPublications": 251,
+        "reportSha256": "e0d6a80feb4ad3a72afdd302775ce965d6095f9f3dcd217c92f2d8c7556ad51e",
+        "logSha256": "caa026535b6e4e95c2623e22c19e1ce693bd4afb901087e5c7c2048109c9bb37",
+        "imagesSha256": {
+          "forward-after.png": "11bdae1bd62a2d3fb8f3e0e119fb3faa09aefbfbd7da0fcd4cd26e2c60db21a3",
+          "forward-before.png": "fcc9413f140c807c9e30d7983520d743c557e7a2e52ff3e9cbf72dfc53cb6f83",
+          "forward-repeat.png": "5f090fa552e1726bc9a8b4165360631bd8d021b6da2f8841e4e0b4050a288405",
+          "gameplay-after-return.png": "54beb9bb2dab89a50ee360e4fd5f08e4049b13f13ec8cd9633ca2b6530bc78a3",
+          "gameplay-forward.png": "d319fdd07f8dbd795f33a0cd3888a50d6f9cff569c4d05f14031a100b5d49e19",
+          "gameplay-return.png": "c1a23a71f9b7d1c988abe0aec699ebf8243cb4b6fe12fa2c93e22a473e4d01f3",
+          "return-after.png": "7013fe1e2c70fbb16f9e052198780e76e66fc8b9b66ce85a2ebd81b8c6a7a5d9",
+          "return-before.png": "3a3fdffeda64ada13d69de4361a800a1eac7ba782219e897ecdc5f8c87cde26f",
+          "return-repeat.png": "25a8fd5486bbd4bed19f04c077f8b5370200853111ef6b1263b3a8691c2236e3",
+          "settled-after-return.png": "930987fc53cf8790eb3d1e73eb01d6989b6fd6a5713bd46bcebbe130f3f2e8e9"
+        }
+      },
+      {
+        "case": "earth-seam-half-120fps-1",
+        "frames": 294,
+        "nativeFloorFrames": 294,
+        "lostFloorFrames": 0,
+        "picks": 294,
+        "maxPickErrorCm": 8.515079298383557e-05,
+        "gpuPositionErrorCm": 0.0006844508890898168,
+        "gpuTextureMacroPhaseErrorCm": 0.000493567388559768,
+        "maxPixelDifferenceAboveRepeat255": 0.01695481238570046,
+        "originTransformPublications": 290,
+        "reportSha256": "0f9354775554d8fde782ad98a1d9260ca9d056330b89e30f31697643064774a3",
+        "logSha256": "0b0a19272b920c08552f17634a64143e14da3a5f18ab4bd13725ab16479ecb5f",
+        "imagesSha256": {
+          "forward-after.png": "dce258a36bb44d8cfd56375f418570cf24ca15da45d520abb7416a04ed10d1f7",
+          "forward-before.png": "0516ef4e8972c9943bde0fe8d1675bd62519d1fbc0c1a7864c860a0e73e6c0f6",
+          "forward-repeat.png": "cd6e3f9697211cce0a73dd2d13c200751d7a4b4959406db9bd79e4cb7dc47e88",
+          "gameplay-after-return.png": "558efc117c77edfb1765412e8b9f84f611b839b750f8dfea41d54d049d2217e5",
+          "gameplay-forward.png": "25453f1486146333a14e34b3be2a1b22c10d2ac96605c122bb1b97e7f6f1b952",
+          "gameplay-return.png": "41588cf934404a15c2eef88a4fa914cb343a84cb40c84409e4ef3c6fcf6215b1",
+          "return-after.png": "522eb70fe82b28aab1d25aa18abb2ebd7fe1821fe5b7ae56ec784311746321f7",
+          "return-before.png": "42550c8a053eabbb7c2db96052d7b76912299b3508f76aae25e0dac69a2973fd",
+          "return-repeat.png": "79dacd822532811ee1fd69f0769f64dc8f435572dd6a710ecc81e8fdf575ff2a",
+          "settled-after-return.png": "02030c5ff26ed8b3170ee197579e914b3555d140c02c96594db9f1a2cf5c3dde"
+        }
+      },
+      {
+        "case": "earth-seam-flat-30fps-1",
+        "frames": 231,
+        "nativeFloorFrames": 231,
+        "lostFloorFrames": 0,
+        "picks": 231,
+        "maxPickErrorCm": 6.590949396965131e-05,
+        "gpuPositionErrorCm": 0.0005083607439189492,
+        "gpuTextureMacroPhaseErrorCm": 0.000493567388559768,
+        "maxPixelDifferenceAboveRepeat255": 0.011379689523876609,
+        "originTransformPublications": 251,
+        "reportSha256": "2c4967410a0aa1a5b15613480c72538a4c128cd1118d3efe4919972b589a3a0a",
+        "logSha256": "b7136d99b2fcfa805e7246aa73816dd4a5598df6c72b4aa0b6ba9a2ac67bbd8e",
+        "imagesSha256": {
+          "forward-after.png": "ea5ba18408608447476dfa6c91f65336daa04049b4dd061c4361823750935bf6",
+          "forward-before.png": "09b90988145831a93dffd51572c839ab9446d43f126602bcb6a8f31c24695c2d",
+          "forward-repeat.png": "b16500685dae319a2f6fd2310689cd6816def148e81dff1f99ef21000e235e2e",
+          "gameplay-after-return.png": "302203b0d1a4411a62e6bc0e30ed90834d8dc76b4184500bd2507573ad88bc4d",
+          "gameplay-forward.png": "384e69a4c39344a4cc56bc8cc30e27ed7a504c3790c8a73246732a844f04b92a",
+          "gameplay-return.png": "5e717934fba0c7623451f5158741e11469eda94ce947c820b67b91d4ad095990",
+          "return-after.png": "facacba3fdfe3d679ab188d7b78389ac2332e995aacfea1edbd56f015a1a971c",
+          "return-before.png": "951d5066aec0e7c59c0495b1269c15bcd92d2b338c441cbbab1f7be51e646552",
+          "return-repeat.png": "e56b6d667c944092587dc75e6919ac0bd6bbea5cef741ab45d03fcee16a65f11",
+          "settled-after-return.png": "a424570158d3e8ac86a56c7dee6b044ec9a2d644aa54f01ab7e1566146615f3c"
+        }
+      },
+      {
+        "case": "earth-seam-flat-120fps-1",
+        "frames": 297,
+        "nativeFloorFrames": 297,
+        "lostFloorFrames": 0,
+        "picks": 297,
+        "maxPickErrorCm": 7.067746764740232e-05,
+        "gpuPositionErrorCm": 0.0005809316552276409,
+        "gpuTextureMacroPhaseErrorCm": 0.000493567388559768,
+        "maxPixelDifferenceAboveRepeat255": 0.014328964857838668,
+        "originTransformPublications": 293,
+        "reportSha256": "23247ad899ba3ec2a48d2b225edd61b923b2e0f1e2c0cd09ca508ee1e4de8049",
+        "logSha256": "7776550538e9ae83e796093bb17a9a5b564f347b44e1dd20df20189101b76ac5",
+        "imagesSha256": {
+          "forward-after.png": "2fe8eddeb6f5c920990fac210ccd55484fc649b638c05dd72be03615f050483d",
+          "forward-before.png": "544d80ad07cfad9736b55a4b0632d1f6bc94552d3e9bffa618ecdea2740e05cb",
+          "forward-repeat.png": "eaa5a8a111d51abcbee2f25eb27d31d738e640b7a577b9c373752b5c4f3677f3",
+          "gameplay-after-return.png": "b47c0979004f371e9e42796620608f5da01f11404a8449611adb9501f79d0990",
+          "gameplay-forward.png": "dfa20602cb6d622b6cf36e55aa9c81118acff3ab82d17425e8c501926cfa1a4b",
+          "gameplay-return.png": "db1e5761d1b649a87e78f2fa806393406687afbb4734566ee4a1a13e6b46b5d8",
+          "return-after.png": "8bce032a62576a378a579aa116bd6d8ffebb54f0e733134969664d20ace194d9",
+          "return-before.png": "921190b591f33170ce30bf184c515ad52528c2d54314bc54dd87ca90755e1473",
+          "return-repeat.png": "f32d84e36a11fc90c93e754c0afd3e7949825cbadadb96bedb3ce61460c64899",
+          "settled-after-return.png": "9ae55c915c29c46e4966042ac86814efb8ba84d797c660264ffe2f3e9e7166f2"
+        }
+      }
+    ]
+  },
+  "regression": {
+    "originContact": {
+      "cases": 12,
+      "passed": 12,
+      "lostFloorFrames": 0,
+      "evidenceSha256": "9d5dec2f37473bd08adec2ad6814753a0eb5a25aa4e5cbb623c7a25722962736"
+    },
+    "volumetric": {
+      "walks": 12,
+      "referencePoints": 297,
+      "nativeFloorFrames": 4330,
+      "maxOriginalFieldErrorMeters": 3.206702606561862e-06,
+      "maxOriginalSurfaceWeightError": 2.5313899470136292e-05,
+      "reportSha256": "fb64cf01b5fa594ce86d924b1a1e148e0e141aa02d7c956bf3b2a2b64433b300",
+      "runSha256": "d3a24d464ed6c6a39ade3af1adab2882b2210623ea0fd4dc501ee548dcca936c"
+    },
+    "persistent": {
+      "cases": 4,
+      "passed": 4,
+      "casesDetail": [
+        {
+          "case": "native-window-km",
+          "nativeFloorFrames": 2824,
+          "lostFloorFrames": 0,
+          "ownerIdentitiesStable": true,
+          "reportSha256": "77c10a86f30c3bd0b4c50eacceccf5028fc4b18c20bf2a80ff2407b059b66196",
+          "logSha256": "ee9e70b4ddb0081c13be4e0384d927b689e0ede33e87160d5cc732541ce5e54d"
+        },
+        {
+          "case": "presentation-km",
+          "nativeFloorFrames": 6502,
+          "lostFloorFrames": 0,
+          "ownerIdentitiesStable": true,
+          "reportSha256": "6ea997a09d164ec2238b494ea2101230fa8f43f57a2b614352ae42014a044cc7",
+          "logSha256": "aa5e43ff79047b9322c4cedee267400db4eea82a6c648ba7945ef8f7cb91d30d"
+        },
+        {
+          "case": "presentation-earth-pole",
+          "nativeFloorFrames": 5963,
+          "lostFloorFrames": 0,
+          "ownerIdentitiesStable": true,
+          "reportSha256": "7a1a1149c3a5f6ceb5d7be22183e2f9d3678d22bf5a534362bdb64e8f20f081a",
+          "logSha256": "16576aa9d68616ccc430258e5d1b2f4cf7c10db3d654d0e9b7b326a4aab0f4cb"
+        },
+        {
+          "case": "presentation-earth-seam",
+          "nativeFloorFrames": 6252,
+          "lostFloorFrames": 0,
+          "ownerIdentitiesStable": true,
+          "reportSha256": "84b4c37c8d80da0d265c5b2165a1fef56fb8d538b6eca8df6ba95576f0582b89",
+          "logSha256": "ab8ac7c61fbf4269a3dd14954f5d9a83ebcaa3b75d5473ae99c2a8fcbaadd223"
+        }
+      ],
+      "evidenceSha256": "d32c87aa117c5f2e87fa51b18783a2e11eab4b7a87012790953165a50672de5e"
+    }
+  },
+  "controls": {
+    "first": {
+      "passed": false,
+      "message": "Native Nanite generation changed outside the presentation lifecycle contract",
+      "reportSha256": "bd73860310f51a29443904a0c32c1ef3469e9199773695294fa612bed654fec1",
+      "logSha256": "d16a91c80b816c592d38e6789441f4dfd08bddb6d2bbcd826225adc739b82d37",
+      "run": {
+        "command": [
+          "/opt/git/BenjaVisionPro/catalyst-workspace/Landform/Projects/LandformLab/Saved/Packages/OriginPresentation/Mac/LandformLab.app/Contents/MacOS/LandformLab",
+          "/Game/ScaleProof/ScaleLab?game=/Script/LandformLab.CLPersistentWorldGameMode",
+          "-game",
+          "-unattended",
+          "-nop4",
+          "-nosplash",
+          "-nosound",
+          "-windowed",
+          "-ResX=1280",
+          "-ResY=800",
+          "-CLNaniteProjectionShaders",
+          "-CLOriginPresentationRepro",
+          "-CLPersistentCurvature=.5",
+          "-ExecCmds=t.MaxFPS 60",
+          "-CLReport=/Users/jupiter/Library/Containers/com.YourCompany.LandformLab/Data/Library/Caches/CLOriginPresentation/06ab19bd0cf84d239aa2d6660997ce88/native.json",
+          "-abslog=/Users/jupiter/Library/Containers/com.YourCompany.LandformLab/Data/Library/Caches/CLOriginPresentation/06ab19bd0cf84d239aa2d6660997ce88/native.log"
+        ],
+        "exitCode": 0,
+        "executableSha256": "6cc1f9a3a42b8f44bf5930e8af4b79205920cd6885f90c0cd4989a6e01f95c98"
+      },
+      "sourceSha256": {
+        "Source/LandformLab/Private/CLPersistentWorldProof.cpp": "392f30581b5403283ea00d6449b9f52871686abc0edf5aa71fc005f61e06a88b",
+        "Source/LandformLab/Private/CLNaniteProjectionPrototype.cpp": "5071edf680eb49f3842cef6954134e00cfe8c2f0ae15e1d8eba52aa2d4957cde",
+        "Source/LandformLab/Private/CLGameplayPresentation.cpp": "1ebc36054ea4eee3162ad9fbef9e4976f88b8e2a15e1c83901936a91c7511ee0"
+      }
+    },
+    "cache-frame": {
+      "passed": false,
+      "message": "Retained gameplay frame/camera did not follow the native UE origin offset",
+      "reportSha256": "7d805cc64c0458c34d07c6e6d69c08ff40acc4a93e3748d3c101d48935d2f455",
+      "logSha256": "cd76269a8c88bbc04260d8b6cf0501fb9285e663804eab61ad33e8cc2b1f7624",
+      "run": {
+        "command": [
+          "/opt/git/BenjaVisionPro/catalyst-workspace/Landform/Projects/LandformLab/Saved/Packages/OriginPresentation/Mac/LandformLab.app/Contents/MacOS/LandformLab",
+          "/Game/ScaleProof/ScaleLab?game=/Script/LandformLab.CLPersistentWorldGameMode",
+          "-game",
+          "-unattended",
+          "-nop4",
+          "-nosplash",
+          "-nosound",
+          "-windowed",
+          "-ResX=1280",
+          "-ResY=800",
+          "-CLNaniteProjectionShaders",
+          "-CLOriginPresentationRepro",
+          "-CLPersistentCurvature=.5",
+          "-ExecCmds=t.MaxFPS 60",
+          "-CLReport=/Users/jupiter/Library/Containers/com.YourCompany.LandformLab/Data/Library/Caches/CLOriginPresentation/1625a3af96eb41b4aa97c24ba5f41add/native.json",
+          "-abslog=/Users/jupiter/Library/Containers/com.YourCompany.LandformLab/Data/Library/Caches/CLOriginPresentation/1625a3af96eb41b4aa97c24ba5f41add/native.log"
+        ],
+        "exitCode": 0,
+        "executableSha256": "44f2a2ca5bf61592f753546381edad754f253087f36ebef50dce11029229de19"
+      },
+      "sourceSha256": {
+        "Source/LandformLab/Private/CLPersistentWorldProof.cpp": "521f00870033f7392d0afd1a988ae48ff0b56fd87356e343ac93e335de0e4c4e",
+        "Source/LandformLab/Private/CLNaniteProjectionPrototype.cpp": "9d8b6dcb8f798e830b0d85c87ec7db4464035c5cd56fc56b5fa4a963e8e51aa5",
+        "Source/LandformLab/Private/CLGameplayPresentation.cpp": "0cb19192f57e7085156f8bdba14af0fa96b552243eac4aea742f0fb8066d4bb4"
+      },
+      "maxRetainedFrameErrorCm": 59160.79783099616
+    },
+    "trial": {
+      "passed": false,
+      "message": "Native origin image: 251827 pixels, 4356 colors, mean 78.6093 vs repeat 0, changed 0.906968 vs repeat 0",
+      "reportSha256": "b278edc80acb4c3c71eb58baf4d2abdf7bfdbaa972df217ad71977616257b38b",
+      "logSha256": "82a9b72458c3e7debf75aa31b3ad576d765a2aa7e57720e33094cc24c7d2a1aa",
+      "resultsSha256": "91731271cc87042accafd8df3f853f8cd665a6299c81d5ac6c1c556f0f973b40",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 251592,
+          "distinctColors": 4840,
+          "meanRgbDifference255": 0.02155738921216361,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.0007114693630958059,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 251827,
+          "distinctColors": 4356,
+          "meanRgbDifference255": 78.60933895094648,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.9069678787421523,
+          "repeatChangedFraction": 0
+        }
+      ]
+    },
+    "trial-natural": {
+      "passed": false,
+      "message": "Native origin image: 244565 pixels, 4641 colors, mean 82.2697 vs repeat 0, changed 0.937698 vs repeat 0",
+      "reportSha256": "0ee18e0fd53bab7a498b84f85b7834f1cb2a84c649caa8c4d146b2e356351aa3",
+      "logSha256": "1ebc25e93f783b2461af81901dc18992dab5f40e0af570c44f255060fe19556c",
+      "resultsSha256": "409df8ea3f5c981c68a9ee7ff404685739bf7b23a171c6e04c5de09b0a094c25",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 245424,
+          "distinctColors": 5071,
+          "meanRgbDifference255": 0.022032618380163852,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.0007049025360192972,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 244565,
+          "distinctColors": 4641,
+          "meanRgbDifference255": 82.269715617525,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.9376975446200396,
+          "repeatChangedFraction": 0
+        }
+      ]
+    },
+    "trial-observe": {
+      "passed": false,
+      "message": "Native origin image: 244554 pixels, 4672 colors, mean 82.4698 vs repeat 0, changed 0.939396 vs repeat 0",
+      "reportSha256": "0a3baf7b0cdc4087794e4697debb55a73dc2f5aa8ff552488f82e0882e85060f",
+      "logSha256": "22a47337c482ef31749c738479c9bf8ab627349685671fc83b0b3b6737f98494",
+      "resultsSha256": "e02609c8350487bebf8ebe87766c6c725eaa9204f22b1382d666c66bbc291bfa",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 245423,
+          "distinctColors": 5046,
+          "meanRgbDifference255": 0.022759344750356188,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.0007130546036842513,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 244554,
+          "distinctColors": 4672,
+          "meanRgbDifference255": 82.46981716376206,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.939395798065049,
+          "repeatChangedFraction": 0
+        }
+      ]
+    },
+    "trial-deferred": {
+      "passed": false,
+      "message": "Native origin image: 248619 pixels, 4393 colors, mean 84.6647 vs repeat 0, changed 0.97398 vs repeat 0",
+      "reportSha256": "626295e0cb517f3cc3e4e63dc249af304c42e255efffd0d874f70370e8570055",
+      "logSha256": "51b9835453c66a317c745de2c14108dbc6e4e623a049447a800d721b986daef7",
+      "resultsSha256": "0fbced4436e07f8fd50d1e46b8f5da70ed8db04e0843c69fd5142607d0624945",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 248777,
+          "distinctColors": 4894,
+          "meanRgbDifference255": 0.017962539409457735,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.0004703007110785965,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 248619,
+          "distinctColors": 4393,
+          "meanRgbDifference255": 84.66473734241282,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.9739802669948797,
+          "repeatChangedFraction": 0
+        }
+      ],
+      "interpretation": "Deferred capture and native scheduling alone do not repair the measured frustum publication failure; actual first gameplay frame also has missing terrain."
+    },
+    "trial-request": {
+      "passed": false,
+      "message": "Retained gameplay frame/camera did not follow the native UE origin offset",
+      "reportSha256": "216be6d087870efcc42f8d91b9a7b2f8c005ec777741090181ec1ec4d5ded22d",
+      "logSha256": "a9e9814488f73a068dd916a808293722ceca4e6d2f4bfd7c71371357243371c7",
+      "resultsSha256": "975593d9d824c8388d6b9b4eb4650efcfee1b687c4a948766f7f7d61a7924893",
+      "renderedPairs": [],
+      "interpretation": "Harness observation ran within unordered post-origin broadcast before adapter listeners; corrected by observing after dispatch, before next publication. Not a production cache regression."
+    },
+    "trial-request2": {
+      "passed": false,
+      "message": "Native origin image: 248328 pixels, 4298 colors, mean 56.2215 vs repeat 0, changed 0.62076 vs repeat 0",
+      "reportSha256": "5fc19b64664401ebe0b1e3866cc4f9da5c1764858cc670a7356609f911775241",
+      "logSha256": "5e3f08f14c465e1dd4741a112bb44df0b13f2445c0e428cb45f43951e09e220b",
+      "resultsSha256": "27693bb71dc86d47cc1942ec82e7844f152584f6c16f4932808fb7272b15171c",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 248775,
+          "distinctColors": 4862,
+          "meanRgbDifference255": 0.018353934277962013,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.00047834388503667974,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 248328,
+          "distinctColors": 4298,
+          "meanRgbDifference255": 56.22151750910086,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.6207596404755001,
+          "repeatChangedFraction": 0
+        }
+      ]
+    },
+    "triangles-control": {
+      "passed": false,
+      "message": "Native origin image: 243199 pixels, 18764 colors, mean 81.4316 vs repeat 0, changed 0.836459 vs repeat 0",
+      "reportSha256": "dc65e66eb1f7e736450c23c1f556c9d4c010542af1da55f88d655d8c883e3555",
+      "logSha256": "bb682e310b5edecea6193be22cc58d4584611723941cd9db606f0dc897aa9158",
+      "resultsSha256": "332e8320c2f748139357a48ac0aae5936ff92084d472143dee60047a1f785ca7",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 243702,
+          "distinctColors": 18597,
+          "meanRgbDifference255": 0,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 243199,
+          "distinctColors": 18764,
+          "meanRgbDifference255": 81.43163006426836,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.8364590314927282,
+          "repeatChangedFraction": 0
+        }
+      ]
+    },
+    "culling-control": {
+      "passed": true,
+      "message": "Cooked live-origin native presentation reproduction completed",
+      "reportSha256": "233e33f5eb12fed315045b379b4831d7e418da560905d60874c757812c6f803d",
+      "logSha256": "2fbce9a7ad8dc17a241cc02cf3dc67340ae0ba7931a0683c05c3e119060edbc0",
+      "resultsSha256": "6631d46bf946305c16d27f95e5ed677e9ba1dadc04e3aef37849751f8b82be5b",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 248777,
+          "distinctColors": 4891,
+          "meanRgbDifference255": 0.017052755412812814,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.00047432037527584943,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 248345,
+          "distinctColors": 4363,
+          "meanRgbDifference255": 0.01095653224345165,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.00017314622802955566,
+          "repeatChangedFraction": 0
+        }
+      ]
+    },
+    "hzb-control": {
+      "passed": false,
+      "message": "Native origin image: 248327 pixels, 4288 colors, mean 83.2221 vs repeat 1.34232e-06, changed 0.931014 vs repeat 0",
+      "reportSha256": "ba0121887d31dac88c7012e36d8b941b838467abaa495ce41f1b1644d901c3ed",
+      "logSha256": "047bb5d5b4f62c54ccb2c35ab995973c21819fef15537d4479e4b4d94d4653ee",
+      "resultsSha256": "f49d4ff3d092e3b9b16083385cc27f573afaf02e38ba12961e5768f7234ba831",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 248775,
+          "distinctColors": 4859,
+          "meanRgbDifference255": 0.017978762603423442,
+          "repeatMeanRgbDifference255": 4.019696512913275e-06,
+          "changedFraction": 0.00047834388503667974,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 248327,
+          "distinctColors": 4288,
+          "meanRgbDifference255": 83.2221049932817,
+          "repeatMeanRgbDifference255": 1.3423161127599226e-06,
+          "changedFraction": 0.9310143480169293,
+          "repeatChangedFraction": 0
+        }
+      ],
+      "interpretation": "HZB-off alone still fails before transform publication repair."
+    },
+    "frustum-control": {
+      "passed": true,
+      "message": "Cooked live-origin native presentation reproduction completed",
+      "reportSha256": "a3b15b225f8bc9b5f97bf645942bec464641007e60fdcfaeb4f50be8a977bd46",
+      "logSha256": "26ba209cac11c94001828d422d213d1a72f8deb74f773ced04675ff0995e10b0",
+      "resultsSha256": "7ab986077175e91c9dfa46f78b3dcc80637459745ef6d94a4b8633865405578d",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 248777,
+          "distinctColors": 4900,
+          "meanRgbDifference255": 0.017883486013578427,
+          "repeatMeanRgbDifference255": 6.699440328754935e-06,
+          "changedFraction": 0.0004823597036703554,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 248342,
+          "distinctColors": 4330,
+          "meanRgbDifference255": 0.009864085280245254,
+          "repeatMeanRgbDifference255": 9.395645252648901e-06,
+          "changedFraction": 0.00019730855030562693,
+          "repeatChangedFraction": 0
+        }
+      ],
+      "interpretation": "Frustum-off alone passes before transform publication repair; diagnostic only."
+    },
+    "transform-publication": {
+      "passed": true,
+      "message": "Cooked live-origin native presentation reproduction completed",
+      "reportSha256": "e237c76f7cc577384c52819cc41137ba72dde81e1b3cd4fd1a7fea4c531fd443",
+      "logSha256": "115c1cc9049e7bbd572b9da9615b02de79a9cdcf633aa7890e8c263ba71a9603",
+      "resultsSha256": "f731d8d60de333853dc432e0cb65cd8355ec8a29f5e9446a9f03e6969256241a",
+      "renderedPairs": [
+        {
+          "shift": "forward",
+          "foregroundPixels": 248779,
+          "distinctColors": 4893,
+          "meanRgbDifference255": 0.01762474592576812,
+          "repeatMeanRgbDifference255": 2.679754588074824e-06,
+          "changedFraction": 0.0004662772983250194,
+          "repeatChangedFraction": 0
+        },
+        {
+          "shift": "return",
+          "foregroundPixels": 248335,
+          "distinctColors": 4300,
+          "meanRgbDifference255": 0.01042409111348246,
+          "repeatMeanRgbDifference255": 0,
+          "changedFraction": 0.0002134213864336481,
+          "repeatChangedFraction": 0
+        }
+      ]
+    }
+  },
+  "installedNativeSha256": {
+    "vpp": {
+      "Source/Voxel/Private/VoxelStampComponentBase.cpp": "db1e80ff15bcbdbb27ca16a3c35e806f07f7038343d6cdf0f6e223c20348bd50",
+      "Source/Voxel/Private/VoxelConfig.cpp": "341f20629302f0ae10ab7a62691aa6765062c29e721a487b4ffc5fdadbf22182",
+      "Source/Voxel/Private/VoxelRuntime.cpp": "7ff21ac79b3609a28869585f65a9922bcb60a54ef6a9fafd698ab5a030f145e1",
+      "Source/Voxel/Private/Render/VoxelRenderSubsystem.cpp": "f0b201370d08d106b3b9f9b62cd9e5aed12acf67420f24c7ae0be7c45cc6134a",
+      "Source/Voxel/Private/Nanite/VoxelNaniteComponent.cpp": "fadfb05b75be5ff48a6abd928cf874e3738c8718a2897daec5b92c2e2c427cea",
+      "Source/Voxel/Private/Nanite/VoxelNaniteMaterialRenderer.cpp": "273e92a3e68a291672f803b0f98ec2b1190f45398dd84104c3c0f83377f8ebb3",
+      "Source/Voxel/Private/Nanite/VoxelNaniteMaterialRendererImpl.cpp": "f82395a396207b479a5008af65df07c69fcba792f1df1cc416d87849c5f81faa",
+      "Source/Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp": "1eb55af30bdcceb0ef9c8d054b4cf86c52400f47c6a6d0caae6e673f90e4977b"
+    },
+    "engine": {
+      "Source/Runtime/Engine/Private/World.cpp": "9ae5786c23449957b317284bb9404ed6c39d7eb0b3555a07562159e465fc4393",
+      "Source/Runtime/Engine/Private/LevelTick.cpp": "b009abfd6fc628791418bff0c7a5c685840e2c33180e4f7345c909ba24740db7",
+      "Source/Runtime/Engine/Private/Components/SceneCaptureComponent.cpp": "c1244d9f3bf24e453595aae7c80f76e238041105189ebfea2d9fe7f62aeffe6c",
+      "Source/Runtime/Engine/Private/PrimitiveSceneProxy.cpp": "7c85816f60436d54989bd0c32bf4066f616d66305527c942ce740aeb21fdbc1a",
+      "Source/Runtime/Renderer/Private/RendererScene.cpp": "b7f4540380aa53beab9ebae0b6a921a268fe7ebc6d37c3ff0ededf21f7c0f3ee",
+      "Source/Runtime/Renderer/Private/GPUScene.cpp": "5b6facaf67491805314c71d4ceb269e8341f9209cd9a14ff80f2eb7fbf72b4ec",
+      "Source/Runtime/Core/Public/Misc/CoreDelegates.h": "4543eaa379c2e2aaf46f9b689009cd8869d81ad8b402052dd15de808d3e74b2d",
+      "Build/Build.version": "f4acff8af146d5d02f7618a4e988724d70f3b720c70e68d090bb90a240ae51f6"
+    }
+  },
+  "sourceSha256": {
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLGameplayPresentation.cpp": "9df7187e107ff75eb49e30254f7452557268fcadfb5361ab1440d5ef99a8f81d",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLGameplayPresentation.h": "60e0b4adb4e06f7c6c4dc79116db85ea0b11cf367e68b5f88e6378a3039dbbbd",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNaniteProjectionPrototype.cpp": "c8597ed92a6eb03f091edd09d768bf537bb9bf292f2b76232aeaf572ed72d39d",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNaniteProjectionPrototype.h": "5b1b6a8877f76b6049d4d719ebe253a3315d8fc30ee40386a865616f99a30ff9",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLPersistentWorldProof.cpp": "edcbffaf019ae2550fdadadf95989078f5a352be3b86a22e7f8955cfb4216d27",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLOriginPresentationChecks.cpp": "879963fea8778ccd9d94446194b29f8d6b8f2f29b021a289c8c91bf802301434",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLOriginPresentationChecks.h": "2e70b13891d54686c07a260fecc7ce2db902736b0d7383f4b25976ae538914e5",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLGameplayOriginTests.cpp": "1e57c3dfe71234a32dd9ad7a07056f52ae99bf5613dcf37ebd0293c7b6d57cb6",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleChecks.cpp": "b6c0be5f378d2b649b6aa628d9e4ea48012e98e12ad5274a3f13f0abcbadfb96",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleChecks.h": "01fa8c0503a72ff51b58d2a687708bb28fafaf73580336b3d6675e50cdb08883",
+    "Landform/Projects/LandformLab/scripts/reproduce-origin-presentation.py": "f14307650cc7bcd9433e73484b2c2c63979d88e280fddc27e416051e551a1f58",
+    "Landform/Projects/LandformLab/scripts/reproduce-origin-contact.py": "b130d40927d68edd34e2f12c903e1cdaa5f1f95e2e6dcd2fe2841e5fd93ceb59",
+    "Landform/Projects/LandformLab/scripts/qualify-persistent-world.py": "83b9173633b5b6403e44917c8109e359cfc32eaf5490e996ada90627ff0d545b",
+    "Landform/Projects/LandformLab/scripts/verify-packaged-runtime-recipe.py": "01f92fb764b08622ef446ce06829f7657f411a0c28c4376e98a5e0d3d2d014d8",
+    "Landform/Projects/LandformLab/scripts/package-runtime-recipe.py": "da1a61844a08ff4848dd9db0515e16b9cb74b1e076c57293a154f791eb774379",
+    "Landform/Projects/LandformLab/scripts/check-scale-frames.swift": "04e618d3a3c09e6eafb6b112d42c6e54840098a16063671d3ff3b1ff9b535049",
+    "Landform/Projects/LandformLab/scripts/create-scale-lab.py": "20187a074b0dacc3bd7faec332e96550c2fef7f8a290b984a6460a9a03349c2f",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Public/CLAnchoredScene.ush": "573fd98b0505e0b2d67a86112269e07b4f39c838d824f8521e6cb04cee16c51e",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLAnchoredParity.usf": "f2bac0f9658576a2e6dc9ecf2b9024dc7ae8ccebf3cdd40c3fa1ea2ce4058674",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLNaniteProjection.ush": "81e41ce6bd96ce8c1000eb141a6849a335a879972dac5a6bb0b858f5ad2cb9bb",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Public/CLAnchoredGPU.h": "b781a109401b5e213352193344fcae9397d2109c399271446e58022a45d89358",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Private/CLAnchoredGPU.cpp": "1e799c41ffd7d7d29b990f5cbf167ff9c44bb63ea57b1e60d4a4f791434d8b39",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "d4902ad4ad1dfbdef7db78db7d6e9ae74aee1e2ee30c81f3f82464a375c64bd7",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLProjectionTrace.cpp": "31d9946b5d6594edb59f7b599acb2b55b772631253f8a6727b07b3438aefeba1",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "cfddd8f94f9ffcfecd8c244adf685eb4dc625f9341ea0b7b0eb868ddc8b85213",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanetStamp.cpp": "ed34f725dadea24e40ea0466aeabbe3f1a5b4409847d0bbd37f209c8ae04ea7b"
+  },
+  "fixtureAssetSha256": {
+    "Content/ScaleProof/DA_FrameSurfaces.uasset": "3dba8c7f7e8bdc69db05931970b93a40df2046081c21a97ae9c0d89ff1884464",
+    "Content/ScaleProof/MF_FrameProjection.uasset": "15b59c4dc632112cd44182ddf7f121fe06763b24438015234cd0ef66b628adaa",
+    "Content/ScaleProof/MI_FrameRock.uasset": "872145606bd6012bca526359cf9b88377f7d219bc72b7af14c2413870a89bb35",
+    "Content/ScaleProof/MI_FrameScree.uasset": "205f2bbffc31c40d70f32ca500a4f9c44ca2069e47ae4a1df1bb6feafedac883",
+    "Content/ScaleProof/MI_FrameSoil.uasset": "dfea85225b3ec35b981c4faaa1ae390824d24d5e21dc0f7bd1a47cb5621de70e",
+    "Content/ScaleProof/MM_Frame.uasset": "673e88b31bf3bd172d8e812a180f3151ad59e9e195bcbb452d51b572a434d0a7",
+    "Content/ScaleProof/M_FrameSurface.uasset": "fc981ac7acc2c44bb32ca879c5c5fc921c0cfc6856705bb150f4e8cf685929cd",
+    "Content/ScaleProof/ST_FrameRock.uasset": "8e4ebf457f664dc08b73044107a89451f8e8abe315575e6dc6a75146f3381a2e",
+    "Content/ScaleProof/ST_FrameScree.uasset": "26a6689bf4fb1d1b98df35180974c42e1ed090984aff09bf21f4931e57355a6a",
+    "Content/ScaleProof/ST_FrameSoil.uasset": "3c666c4280db7458eb00a12806e10d72a861bd1cbaa1b0eb4c77c939fe060823",
+    "Content/ScaleProof/ScaleLab.umap": "8e8df76c93f6443a129310804f14c0842ecce440f607bf9aa5f006c4422f2a6b"
+  },
+  "preservation": {
+    "protectedFiles": 229,
+    "verifiedUnchanged": 229,
+    "manifestSha256": "d36083dc4f9892e26d23735b5c8e1621d20dfaaa926ab72316d604d920abc900",
+    "generatedEditorCache": "Restored byte-for-byte after editor checks. No user source/asset/config edit was adopted."
+  },
+  "limits": {
+    "sourceVoxelCm": 25,
+    "fixedNativeHalfExtentsMeters": [
+      128,
+      80,
+      32
+    ],
+    "nativeQuality": [
+      1,
+      2
+    ],
+    "invokerRadiusCm": 1200,
+    "numericalPhaseCm": 0.1,
+    "contactAndMeshCm": 25,
+    "projectedPickCm": 0.5,
+    "rigidVisualApproximationCm": 2,
+    "captureSizePixels": [
+      640,
+      400
+    ],
+    "pairMinimumForegroundPixels": 10000,
+    "pairMinimumColors": 128,
+    "pairMeanRgb255AboveRepeat": 0.5,
+    "pairChangedFractionAboveRepeat": 0.01,
+    "caseSeconds": 90
+  },
+  "exclusions": [
+    "Fixed coverage is a harness input, not a production moving-window/streaming requirement.",
+    "Framed identity-rotation/unit-scale native world within tested translation envelope; no full-scene projected world or arbitrary origin ranges.",
+    "No instanced-stamp shift, body rotation/multiple body or multiple-view demand qualification.",
+    "Retained CPU camera/chart history and current/previous shared shader deformation are checked; native GPU velocity buffers and every temporal reconstruction effect are not certified.",
+    "Native scene captures hide walker and disable AA/motion blur; actual first gameplay frames and settled views are also retained. Readback/capture stalls exclude performance certification.",
+    "No scientific datum, fine global noise/provider or server resource residency qualification.",
+    "Focused checks and named regressions only. The previously retained locally edited regional-route failure is not rerun or claimed resolved."
+  ],
+  "reproduce": {
+    "cwd": "Landform/Projects/LandformLab",
+    "package": "python3 scripts/package-runtime-recipe.py --scale-lab --archive \"$PWD/Saved/Packages/OriginPresentation\"",
+    "matrix": "python3 scripts/reproduce-origin-presentation.py --archive \"$PWD/Saved/Packages/OriginPresentation\" --output \"$PWD/Saved/Verification/OriginPresentation/repeat\"",
+    "editor": "LandformLabEditor Mac Development; run test names listed in editor.tests with -CLNaniteProjectionShaders.",
+    "controls": "--site km-equator --curvature natural --fps 60; use --reference/--disable-frustum/--disable-hzb/--triangles only for diagnostic classification, never normal qualification.",
+    "artifacts": "Saved/Verification/OriginPresentation contains raw reports, logs, images, frame-coverage checks and before-task manifest. Use fresh output paths for repeat."
+  }
+}

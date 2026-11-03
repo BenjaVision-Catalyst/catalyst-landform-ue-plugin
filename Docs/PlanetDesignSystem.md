@@ -23,6 +23,11 @@ now qualifies the installed scanned materials through native VPP metadata and a
 bounded spherical coordinate adapter; arbitrary materials and cut-face styling
 retain explicit limits.
 
+The [cooked live-origin presentation proof](NativeCoordinateAudit.md#cooked-live-origin-presentation--3-november-2026)
+combines native movement with projected material, picking and retained camera
+history through native-requested origin shifts. Its bounded profile and remaining
+limits are explicit; this does not complete all of P2/P4.
+
 Build planets from a shared geological history and structure, refine them through
 landscape processes, then use reusable Landforms to express the resulting terrain.
 The recommended approach combines bounded tectonic construction, explicit rock
@@ -1486,3 +1491,23 @@ texture-phase continuity through live origin changes, body-frame rotation,
 multiple views/bodies, scientific datums, precision-aware fine global noise,
 filtered field sampling, server resource residency and production performance
 remain open. Retain native VPP ownership while those boundaries acquire evidence.
+
+
+## Cooked live-origin presentation checkpoint
+
+3 November 2026. The [native audit follow-up](NativeCoordinateAudit.md#cooked-live-origin-presentation--3-november-2026)
+combines projected native materials, picking, retained camera history and native
+contact through UE-requested origin changes and return. The adapter now follows
+native origin callbacks for its world-space caches and republishes retained VPP
+component transforms through UE's native API. No generation, LOD, material
+compositor, collision invoker or streamer is replaced. The profile uses the
+existing fixed test coverage, 1 km/Earth sites and natural/half/flat curvature;
+its exact results are in
+[`conformance/origin-presentation-mac-arm64.json`](../conformance/origin-presentation-mac-arm64.json).
+
+The proof checks retained camera/chart history and the shader's previous/current
+deformation, with AA-disabled paired colour captures. It does not read native GPU
+velocity buffers or certify every temporal reconstruction effect. Full-scene
+projected rendering, instanced-stamp origin behavior, body rotations/multiple
+bodies, scientific datums, precision-aware fine noise, resource delivery and
+production performance remain separate gates. P2/P4 remain bounded milestones.

@@ -338,3 +338,80 @@ frames and 384 projected picks. The 226 unrelated protected files retain their
 original hashes, including all catalogs, scans, source recipes/config and the
 local generated material cache. Only the product master material is an intended
 change among the 227 existing protected files; two metadata assets are new.
+
+
+## Cooked live-origin presentation — 3 November 2026
+
+This proof combines the previously separate native contact and presentation
+profiles. VPP remains the sole voxel generator/presenter and owns adaptive LOD,
+mesh/material generations and the attached moving collision invoker. No terrain
+mesh, material slot, collision owner or streaming algorithm is substituted.
+
+### Native audit and demonstrated corrections
+
+| Native capability / observation | Owning action and limit |
+| --- | --- |
+| UE `UWorld::RequestNewWorldOrigin` | Reuse its native world-tick scheduling. `LevelTick.cpp` applies the request through `SetNewWorldOrigin` at tick start. The existing synchronous post-physics contact reproducer remains a separate control. No application origin scheduler or movement hold is added. |
+| UE pre/post origin delegates and scene/physics translation | Native UE translates actors, components, rendering and physics. Scoped post-origin listeners update only this adapter's retained world values. Listener order is unspecified; the proof observes adapter caches after the broadcast, before the next chart publication. Other worlds are ignored and retirement removes the listeners. |
+| Native VPP mesh/material lifecycle | The first cooked half-curvature shift kept native collision and owners intact but failed the adapter's transform-equality assertion. A translated retained mesh is not a new mesh generation. Update its cached transform by the native offset and retain the existing strict generation/material checks. |
+| Retained gameplay chart/camera state | The bounded replay measured a 59,160.797831 cm old/new-frame mismatch. Translate current/previous chart centres, camera/visual history and retained hit positions through the UE callback. Directions, local transforms, scalar metrics and canonical physics values retain their meanings. No render/physics component is moved by this callback. |
+| Native primitive transform publication | CPU transforms and GPU coordinate/phase witnesses passed, but a reverse shift culled most terrain in both the material view and Nanite triangle visualization. HZB-off alone still failed; frustum-off alone passed. Scheduling and deferred capture alone were insufficient. Calling UE `MarkRenderTransformDirty` on the retained native components after the verified offset fixes the measured culling publication gap with frustum and HZB enabled. This uses native invalidation; it does not implement culling or regenerate terrain. No new VPP/engine patch is introduced. |
+| Native GPU arithmetic and capture APIs | Reuse the existing `FCLAnchoredGPUReadback`/`FCLScaleGPUOracle`, reading actual 32-float packets from visible VPP components. Use native deferred scene captures at a fixed canonical camera, with frame-separated repeat controls, plus actual gameplay frames. Scene captures hide the walker and disable AA/motion blur for terrain comparison. They are diagnostic views, not another terrain presenter. |
+
+The culling result is qualified for this pinned adapter/VPP/UE combination. The
+controls and native-publication repair identify the failing boundary; this record
+does not claim a general defect in all UE origin handling. No engine or licensed
+VPP source is newly modified. Source fingerprints, retained failed reports,
+control outcomes, runner inputs and final results are in
+[`conformance/origin-presentation-mac-arm64.json`](../conformance/origin-presentation-mac-arm64.json).
+
+### Bounded acceptance
+
+The fixed native coverage has half extents (128,80,32) m, 25 cm source voxels,
+native quality 1..2 and a 12 m attached collision invoker. The coverage is a test
+input; it never follows the player and establishes no production streaming
+requirement. Test a 1 km equator control and Earth near-pole/antimeridian sites at
+natural/half/flat curvature, with 30/120 fps caps. Each case requests a live
+(500,-300,100) m origin change and return to zero while moving above 5 m/s.
+
+Capture canonical pose/velocity at native pre/post origin callbacks and check
+retained chart/camera state after callback dispatch completes. Observe 32 physics
+frames after each direction, requiring uninterrupted native ground contact,
+fresh traces and valid physics bodies. Keep the 1 mm numerical/phase, 25 cm
+native contact/mesh and 0.5 cm projected-pick budgets separate.
+
+Four published native-packet snapshots per case supply 120 real GPU probes of
+current/previous deformation, normals and physical 2/2.5/2.7 m texture/macro
+phase. New native mesh generations correctly seed previous deformation from
+current input. Rendered pairs compare the same canonical camera pose before and
+after each shift; ordinary frame-to-frame repeat noise is recorded separately.
+Require at least 10,000 foreground pixels and 128 colours, mean RGB change no
+more than repeat +0.5/255, and changed-pixel fraction no more than repeat +0.01.
+Retain the first gameplay frame after each shift and settled gameplay/capture
+views as well. Native culling stays enabled in qualification; disabled-culling
+and triangle views are explicitly diagnostic controls.
+
+This is a framed synthetic proof, not full-scene projected rendering, arbitrary
+origin ranges, instanced stamps, body rotation, multiple views/bodies, scientific
+datums, resource delivery or performance certification. Readback/capture stalls
+are diagnostic overhead and do not establish production frame-time behavior.
+The proof does not read native GPU velocity buffers or certify every temporal
+reconstruction effect.
+
+
+Final qualification passes all 18 culling-enabled cooked cases: 6,186/6,186
+native grounded frames, 1,152 specifically traced post-origin physics frames,
+6,186 projected picks, 2,160 GPU probes and 36 rendered pairs. Retained frame
+translation error is zero; maximum camera-history error is 0.000000119210 cm.
+Maximum GPU position error is 0.000890869 cm and texture/macro-phase error is
+0.000596919 cm, below the unchanged 0.1 cm numerical budget. Maximum rendered
+mean RGB excess above repeat is 0.040014/255, below the unchanged 0.5/255 gate.
+
+All 55 focused editor checks pass without automation warnings. The same cooked
+executable passes 12 separate collision-only origin repeats, 12 volumetric walks
+against the original 297-point reference, and four representative persistent
+journeys (native kilometre control plus kilometre/Earth-pole/Earth-antimeridian
+presentation). The package rebuild reuses the unchanged, fingerprint-qualified
+cook; no shader or material assets changed. All 229 protected local inputs retain
+their original hashes. This is the named bounded qualification, not an all-suite
+or production performance certificate.

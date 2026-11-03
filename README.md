@@ -720,6 +720,12 @@ material coordinates now use native VPP metadata with a qualified physical textu
 [the reconciliation record](Docs/NativeCoordinateAudit.md#native-generation-and-preview-reconciliation--3-november-2026)
 lists native kernel replacements, retained specializations, remaining material limits and results.
 
+The [cooked live-origin presentation proof](Docs/NativeCoordinateAudit.md#cooked-live-origin-presentation--3-november-2026)
+combines native-requested origin changes, projected native materials, camera
+history, inverse picking and collision. It corrects retained adapter caches and
+uses UE transform publication for the measured frustum-culling gap; VPP retains
+mesh/material/runtime/invoker ownership. Qualification and exclusions are explicit.
+
 `Examples/TerrainSurfaces.json` and the three `*Surfaces.json` source examples
 provide an independent regional planet. Reproduction, authoring, appearance
 baking and qualification limits are in the host's
