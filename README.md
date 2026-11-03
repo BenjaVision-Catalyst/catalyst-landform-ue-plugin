@@ -770,3 +770,9 @@ remains a pinned historical fixture.
 The first [tectonic preset](Docs/TectonicPreset.md) adds a single activity slider
 to Planet Builder, coordinating seeded plates, crust contrast, motion and curved
 structural relief. Advanced overrides edit the same portable schema 14 recipe.
+
+
+The [body coordinate proof](Docs/BodyCoordinates.md) reuses UE's bundled PROJ for
+explicit-body ellipsoid-normal conversions, with independent 70-digit reference
+values. It preserves spherical recipe semantics and records the scientific
+datum/provider gates before measured terrain ingestion.

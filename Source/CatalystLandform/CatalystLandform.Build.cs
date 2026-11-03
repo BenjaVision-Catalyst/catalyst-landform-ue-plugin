@@ -6,7 +6,7 @@ public class CatalystLandform : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "VoxelCore", "VoxelGraph", "Voxel", "CatalystFoundation", "DeveloperSettings" });
-        PrivateDependencyModuleNames.AddRange(new[] { "Json", "JsonUtilities", "CatalystConnect", "PCG", "CatalystLandformRender" });
+        PrivateDependencyModuleNames.AddRange(new[] { "Json", "JsonUtilities", "CatalystConnect", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });
         FPSemantics = FPSemanticsMode.Precise;
     }
 }

@@ -1511,3 +1511,19 @@ velocity buffers or certify every temporal reconstruction effect. Full-scene
 projected rendering, instanced-stamp origin behavior, body rotations/multiple
 bodies, scientific datums, precision-aware fine noise, resource delivery and
 production performance remain separate gates. P2/P4 remain bounded milestones.
+
+
+## Geometric datum checkpoint — 4 November 2026
+
+The [native body coordinate proof](BodyCoordinates.md) adds the bounded P2
+ellipsoid conversion oracle using UE's bundled PROJ and ellipsoid-normal code.
+Custom-body selection is justified by the native GeoReferencing actor's fixed
+WGS84 geocentric target. It does not change VPP ownership or existing spherical
+recipe semantics. The [qualification record](../conformance/body-coordinates-mac-arm64.json)
+separates geometric height conversion from real geoid/areoid/provider adoption.
+
+P2 remains open for two-body transfer, rotations, scientific CRS/height-provider
+integration and the remaining figure/presentation profiles. Two-body transfer
+is the next bounded architectural proof. P3's first measured Mars dataset must
+retain its actual datum, latitude convention, units and uncertainty; ellipsoid
+height cannot silently substitute for an areoid elevation.

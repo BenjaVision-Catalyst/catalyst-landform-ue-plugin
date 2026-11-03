@@ -415,3 +415,20 @@ presentation). The package rebuild reuses the unchanged, fingerprint-qualified
 cook; no shader or material assets changed. All 229 protected local inputs retain
 their original hashes. This is the named bounded qualification, not an all-suite
 or production performance certificate.
+
+
+## Geometric body coordinates — 4 November 2026
+
+The [body coordinate proof](BodyCoordinates.md) audits UE GeoReferencing and
+reuses its bundled PROJ and ellipsoid-normal functions. The native actor's
+fixed WGS84 geocentric target is reproduced as a custom-Mars limitation. A small
+owner-thread boundary selects native PROJ's explicit-body operation and adds
+mandatory identity, units, height semantics and refusal rules. It adds no
+coordinate solver, terrain generator, preview, renderer or streaming manager.
+
+The independent 70-digit oracle covers six geometric figures, poles/seams and
+630 near-surface reference points in editor and cooked execution, with 1,890
+local-frame checks. [The qualification record](../conformance/body-coordinates-mac-arm64.json)
+records the executed budgets and regressions. Geoid/areoid and real scientific
+datum transforms remain resource/provider gates; existing spherical recipes
+are not reinterpreted as ellipsoids.
