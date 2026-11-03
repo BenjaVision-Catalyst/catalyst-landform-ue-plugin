@@ -6,6 +6,9 @@
 #include "Surface/VoxelSurfaceTypeBlendBuilder.h"
 #include "Scene/CLBodyFrame.h"
 #include "Scene/CLScene.h"
+#include "Shape/VoxelCubeShape.h"
+#include "Shape/VoxelShapeFunctionLibrary.h"
+#include "VoxelBlendModeUtilities.h"
 
 bool FCLSphericalHeightmapPlacement::ToChart(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
@@ -53,6 +56,7 @@ double FCLPlanetStampRuntime::FSource::WeightNormalized(double Radius, const FVe
 bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
 {
     check(IsInGameThread());
+    NativeShapes=GetDefault<UVoxelShapeFunctionLibrary>();
     if (!FMath::IsFinite(Stamp.Radius) || Stamp.Radius < 1000) return false;
     if(Stamp.Window.bEnabled)
     {
@@ -173,6 +177,33 @@ void FCLPlanetStampRuntime::ApplySources(const FVoxelQuery& Query, const FVoxelD
 
 FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Positions) const
 {
+    if(Stamp.bSectionPreview)
+    {
+        FVoxelFloatBuffer Distances;Distances.Allocate(Positions.Num());
+        TArray<FVector3d> Body;TArray<FVector> Local;Body.Reserve(Positions.Num());Local.Reserve(Positions.Num());
+        FVoxelDoubleVectorBuffer ClipPositions;ClipPositions.Allocate(Positions.Num());
+        for(int32 I=0;I<Positions.Num();++I)
+        {
+            const FVector P=Positions[I]*.01;Body.Add(SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters));Local.Add(FVector(P.X,P.Y,0));
+            ClipPositions.Set(I,Positions[I]-FVector(0,0,Extent*.5));
+        }
+        if(Scene)
+        {
+            TArray<FCLSceneShapeSample> S;FString Error;checkf(Scene->SampleShape({Body},S,Error),TEXT("Section scene query failed: %s"),*Error);
+            for(int32 I=0;I<Positions.Num();++I)Distances.Set(I,S[I].FieldMeters*100);
+        }
+        else
+        {
+            TArray<double> H;
+            if(RecipePlan&&RecipePlan->Coordinates==ECLTerrainCoordinates::LocalPatch)RecipePlan->SampleLocalHeightsMeters(Local,H);
+            else {TArray<FVector> D;for(const auto& P:Body)D.Add(P);RecipePlan->SampleHeightsMeters(D,H);}
+            for(int32 I=0;I<Positions.Num();++I)Distances.Set(I,Positions[I].Z-Stamp.Radius-H[I]*100);
+        }
+        FVoxelCubeShape Clip;Clip.Size=FVector(Stamp.SectionWidthMeters*100,Stamp.SectionWidthMeters*100,Extent);
+        FVoxelFloatBuffer Box;Box.Allocate(Positions.Num());Clip.Sample(Box.View(),ClipPositions);
+        for(int32 I=0;I<Positions.Num();++I)Distances.Set(I,FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),Distances[I],Box[I],EVoxelVolumeBlendMode::Intersect,true,0,nullptr));
+        return Distances;
+    }
     if (Scene)
     {
         FVoxelFloatBuffer Distances;
@@ -186,7 +217,7 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Quer
             for (int32 I = 0; I < Count; ++I)
             {
                 const FVector P=Frame.NativeToBodyMeters(Positions[Start+I]);
-                BodyPositions.Add(Stamp.bSectionPreview?SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters):P);
+                BodyPositions.Add(P);
             }
             TArray<FCLSceneShapeSample> Samples;
             FString Error;
@@ -195,21 +226,15 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Quer
             for (int32 I = 0; I < Count; ++I)
             {
                 check(Samples[I].State == ECLSceneSampleState::Known);
-                if(Stamp.bSectionPreview)
-                {
-                    const FVector P=Frame.NativeToBodyMeters(Positions[Start+I]);
-                    const double Clip=FMath::Max(FMath::Max(FMath::Abs(P.X),FMath::Abs(P.Y))-Stamp.SectionWidthMeters*.5,-P.Z);
-                    Samples[I].FieldMeters=FMath::Max(Samples[I].FieldMeters,Clip);
-                }
                 Distances.Set(Start + I, Samples[I].FieldMeters * 100.);
             }
         }
         return Distances;
     }
-    FVoxelFloatBuffer Distances = SampleHeights(Query, Positions);
-    for (int32 I = 0; I < Positions.Num(); ++I)
-        Distances.Set(I, Positions[I].Size() - Stamp.Radius - Distances[I]);
-    return Distances;
+    const auto Heights=SampleHeights(Query,Positions);
+    FVoxelDoubleBuffer Radii;Radii.Allocate(Positions.Num());
+    for(int32 I=0;I<Positions.Num();++I)Radii.Set(I,Stamp.Radius+double(Heights[I]));
+    return NativeShapes->MakeSphere(Positions,Radii);
 }
 
 void FCLPlanetStampRuntime::Apply(const FVoxelVolumeBulkQuery& Query, const FVoxelVolumeTransform& Transform) const

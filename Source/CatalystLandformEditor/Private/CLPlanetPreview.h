@@ -14,7 +14,10 @@ DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementT
 DECLARE_DELEGATE_OneParam(FOnCLGlobeRegionSelected,FGuid);
 class FCLGlobeClient;
 class FPreviewScene;
-class FCLVolumePreview;
+class UStaticMeshComponent;
+class FCLNativePreview;
+// Independent reference tessellation exists only in automation fixtures.
+#if WITH_DEV_AUTOMATION_TESTS
 struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 {
     TArray<FVector> Vertices,Normals,SourceDirections;
@@ -32,7 +35,8 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
     static constexpr int32 SampleVertexBatch=4096;
     static FCLGlobeBuffers Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution=PreviewResolution,const TAtomic<bool>* Stop=nullptr);
 };
-/** Coalesced worker-built globe. Shared field; separate navigation from the cutaway. */
+#endif
+/** Native VPP globe with application navigation and authoring overlays. */
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport
 {
 public:
@@ -58,10 +62,13 @@ public:
     FVector WalkLocation() const;
     void SetWalkPoint(FVector BodyMeters);
     TOptional<FVector> WalkPoint()const{return WalkSurfacePoint;}
-    void SetDraftMode(bool Enabled){if(bDraft!=Enabled){++Epoch;if(Stop)Stop->Store(true);}bDraft=Enabled;}
+    void SetDraftMode(bool Enabled){bDraft=Enabled;}
     uint64 PublishedBuilds() const{return AppliedBuilds;}
     bool IsDraftMode() const{return bDraft;}
     bool HasDraftMesh() const{return bLastPublishedDraft;}
+#if WITH_DEV_AUTOMATION_TESTS
+    void CreateReferenceMeshForTesting();
+#endif
     void SetOceanVisible(bool Visible);
     bool IsOceanVisible() const{return bOceanVisible;}
     void Frame();
@@ -71,7 +78,7 @@ public:
     const TArray<FCLGuideIndicator>& Indicators() const;
     const TArray<TArray<FVector2D>>& Rings() const;
     bool IsUpdating() const;
-    FString VolumePreviewStatus()const;
+    FString NativePreviewStatus()const;
 protected:
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
     virtual void Tick(const FGeometry&,double,float) override;
@@ -83,7 +90,8 @@ protected:
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
 #if WITH_DEV_AUTOMATION_TESTS
-    friend class FCLVolumePreviewTest;
+    friend class FCLNativePreviewTest;
+    friend class FCLNativePreviewRadiiTest;
     friend class FCLTectonicRenderedPortfolioTest;
     friend class FCLGlobePublicationTest;
     friend class FCLGeologyRenderedTest;
@@ -102,7 +110,7 @@ private:
     void Pump();
     void UpdateOcean();
     bool bOceanVisible=false;
-    TStrongObjectPtr<UProceduralMeshComponent> Ocean;
+    TStrongObjectPtr<UStaticMeshComponent> Ocean;
     void CancelPlacementDrag();
     FVector2D PointerPosition(const FGeometry& Geometry,const FPointerEvent& Event) const;
     FOnCLGlobePlacementCommitted OnPlacementCommitted;
@@ -117,18 +125,14 @@ private:
     bool bOrbitDrag=false,bPlacementMoved=false,bWalkPicking=false;
     FVector ClickWalkLocation=FVector::ZeroVector;
     TOptional<FVector> ClickWalkPoint,WalkSurfacePoint;
-    TSharedPtr<const FCLCompiledPlanetRecipe> BuildingPlan;
     TUniquePtr<FPreviewScene> Scene;
-    TUniquePtr<FCLVolumePreview> VolumePreview;
+    TUniquePtr<FCLNativePreview> NativePreview;
     TSharedPtr<FCLGlobeClient> Client;
-    TStrongObjectPtr<UDynamicMeshComponent> Mesh;
-    TSharedPtr<const FCLCompiledPlanetRecipe> Pending;
-    TFuture<FCLGlobeBuffers> Task;
-    TSharedPtr<TAtomic<bool>,ESPMode::ThreadSafe> Stop;
-    uint64 Revision=0,TaskRevision=0;
-    bool bPreviewFirst=false;
-    bool Framed=false,bDraft=false,bTaskDraft=false,bLastPublishedDraft=false;
-    uint64 AppliedBuilds=0,Epoch=0,TaskEpoch=0;
+#if WITH_DEV_AUTOMATION_TESTS
+    TStrongObjectPtr<UDynamicMeshComponent> Mesh; // Explicit test oracle only.
+#endif
+    bool Framed=false,bDraft=false,bLastPublishedDraft=false;
+    uint64 AppliedBuilds=0;
     FVector2D Previous;
     FKey Button;
 };

@@ -1,6 +1,7 @@
 #include "CLPreviewMesh.h"
 #include "DynamicMesh/DynamicMeshAttributeSet.h"
 
+#if WITH_DEV_AUTOMATION_TESTS
 void CLSetPreviewMesh(UDynamicMeshComponent& Component,const TArray<FVector>& Vertices,const TArray<int32>& Triangles,
     const TArray<FVector>& Normals,const TArray<FVector2D>& UV0,const TArray<FVector2D>& UV1,
     const TArray<FVector2D>& UV2,const TArray<FVector2D>& UV3,const TArray<FLinearColor>& Colors,const TArray<FProcMeshTangent>& Tangents,bool AllowTopologySplit)
@@ -50,6 +51,8 @@ void CLSetPreviewMesh(UDynamicMeshComponent& Component,const TArray<FVector>& Ve
     Component.SetTangentsType(EDynamicMeshComponentTangentsMode::ExternallyProvided);
     Component.SetMesh(MoveTemp(Mesh));
 }
+
+#endif
 
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"

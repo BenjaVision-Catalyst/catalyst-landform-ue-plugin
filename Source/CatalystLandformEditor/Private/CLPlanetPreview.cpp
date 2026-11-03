@@ -1,4 +1,6 @@
 #include "CLPlanetPreview.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "CLPreviewMesh.h"
 #include "DynamicMesh/DynamicMeshAttributeSet.h"
 #include "Math/Float16.h"
@@ -12,7 +14,7 @@
 
 #include "Model/CLSphericalPatches.h"
 #include "PreviewScene.h"
-#include "CLVolumePreview.h"
+#include "CLNativePreview.h"
 #include "EditorViewportClient.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Materials/Material.h"
@@ -29,6 +31,7 @@
 #include "AssetEditorModeManager.h"
 #include "SceneView.h"
 
+#if WITH_DEV_AUTOMATION_TESTS
 FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution,const TAtomic<bool>* Stop)
 {
     auto Aborted=[] {FCLGlobeBuffers Result;Result.bCancelled=true;return Result;};
@@ -85,6 +88,8 @@ FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32
     }
     return B;
 }
+#endif
+
 namespace
 {
 const FEditorModeID GlobePlacementModeId(TEXT("CLGlobeSurfacePlacement"));
@@ -128,7 +133,10 @@ public:
     FCLPlanetNavigation Navigation;
     FCLGlobeScene* StudioScene=nullptr;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
-    FCLVolumePreview* VolumePreview=nullptr;
+    FCLNativePreview* NativePreview=nullptr;
+#if WITH_DEV_AUTOMATION_TESTS
+    bool bReferenceFixture=false;
+#endif
     mutable TOptional<FVector> LastPickPoint;
     TArray<FCLGlobePlacementTarget> Targets;
     FCLGlobeSelection Selected;
@@ -208,8 +216,12 @@ public:
         LastPickPoint.Reset();
         if(!Plan||!bHasProjection)return false;FVector O,V;const FVector2D Pixel=FVector2D(ViewRect.Min)+Normalized*FVector2D(ViewRect.Size());
         FSceneView::DeprojectScreenToWorld(Pixel,ViewRect,ViewProjection.Inverse(),O,V);V.Normalize();
-        if(Plan->Volumes)
-        {FVector P;LastPickPoint.Reset();if(!VolumePreview||!VolumePreview->PickGlobe(O,V,P))return false;LastPickPoint=P;Direction=P.GetSafeNormal();return true;}
+        if(NativePreview)
+        {FVector P;LastPickPoint.Reset();if(!NativePreview||!NativePreview->PickGlobe(O,V,P))return false;LastPickPoint=P;Direction=P.GetSafeNormal();return true;}
+#if WITH_DEV_AUTOMATION_TESTS
+        // Development editors also compile automation; require the explicit
+        // fixture opt-in, not merely the build flag. Product picking stays native.
+        if(!bReferenceFixture)return false;
         const double Radius=(Plan->RadiusMeters+Plan->MaximumHeightMeters)/Plan->RadiusMeters*100000+200;
         const double B=FVector::DotProduct(O,V),C=O.SizeSquared()-Radius*Radius,Disc=B*B-C;if(Disc<0)return false;
         const double Lo=FMath::Max(0.,-B-FMath::Sqrt(Disc)),Hi=-B+FMath::Sqrt(Disc);if(Hi<=Lo)return false;
@@ -221,6 +233,9 @@ public:
         double A=FMath::Lerp(Lo,Hi,double(Hit-1)/Steps),Z=FMath::Lerp(Lo,Hi,double(Hit)/Steps);
         for(int32 I=0;I<14;++I){const double M=(A+Z)*.5;const FVector P=O+V*M;const double F=P.Size()-(Plan->RadiusMeters+Plan->SampleHeightMeters(P))/Plan->RadiusMeters*100000;if(F>0)A=M;else Z=M;}
         Direction=(O+V*((A+Z)*.5)).GetSafeNormal();return true;
+#else
+        return false;
+#endif
     }
     FCLGlobeSelection PickTarget(FVector2D Normalized) const
     {
@@ -338,12 +353,8 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
 {
     OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;
     Scene=MakeUnique<FCLGlobeScene>();
-    Mesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
-    Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
-    Ocean.Reset(NewObject<UProceduralMeshComponent>(GetTransientPackage()));
-    FCLCompiledPlanetRecipe UnitSphere;UnitSphere.RadiusMeters=1;UnitSphere.BaseHeightMeters=0;UnitSphere.Coordinates=ECLTerrainCoordinates::Sphere;
-    auto Sphere=FCLGlobeBuffers::Build(UnitSphere,96);for(auto& V:Sphere.Vertices)V=V.GetSafeNormal()*50.;
-    Ocean->CreateMeshSection_LinearColor(0,Sphere.Vertices,Sphere.Triangles,Sphere.Normals,Sphere.UV,Sphere.Colors,Sphere.Tangents,false);
+    Ocean.Reset(NewObject<UStaticMeshComponent>(GetTransientPackage()));
+    Ocean->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
     Ocean->SetCollisionEnabled(ECollisionEnabled::NoCollision);Ocean->SetCastShadow(false);Ocean->SetVisibility(false);Ocean->bSelectable=false;
     auto* Glass=NewObject<UMaterial>(Ocean.Get(),NAME_None,RF_Transient);
     Glass->TwoSided=true;Glass->BlendMode=BLEND_Translucent;Glass->TranslucencyLightingMode=TLM_SurfacePerPixelLighting;
@@ -356,21 +367,44 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
     Glass->PostEditChange();Ocean->SetMaterial(0,Glass);Scene->AddComponent(Ocean.Get(),FTransform::Identity);
     SEditorViewport::Construct(SEditorViewport::FArguments());
 }
-SCLPlanetPreview::~SCLPlanetPreview(){VolumePreview.Reset();if(Stop)Stop->Store(true);if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());}
+SCLPlanetPreview::~SCLPlanetPreview()
+{
+    NativePreview.Reset();if(Client)Client->Viewport=nullptr;
+#if WITH_DEV_AUTOMATION_TESTS
+    if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());
+#endif
+    if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());
+}
+#if WITH_DEV_AUTOMATION_TESTS
+void SCLPlanetPreview::CreateReferenceMeshForTesting()
+{
+    Client->bReferenceFixture=true;
+    if(Mesh)return;Mesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));Scene->AddComponent(Mesh.Get(),FTransform::Identity);
+    Mesh->SetMaterial(0,LoadObject<UMaterial>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
+}
+#endif
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
 void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
 {
-    if(Plan&&Plan->Volumes)
+    if(!Plan){Cancel();return;}
+    SetWalkLocation(FVector::ZeroVector);Client->Plan=Plan;
+    if(!NativePreview)NativePreview=MakeUnique<FCLNativePreview>();FString Error;
+    if(!NativePreview->Start(*Scene->GetWorld(),Plan,false,500,Error,bDraft))UE_LOG(LogTemp,Error,TEXT("Native globe: %s"),*Error);
+    Client->NativePreview=NativePreview.Get();
+    Client->RegionBoundaries=Plan->GeneratedRegions?Plan->GeneratedRegions->Boundaries:TArray<FCLGeneratedRegionBoundary>();
+    Client->RegionCentres.Reset();
+    if(Plan->GeneratedRegions)
     {
-        Cancel();SetWalkLocation(FVector::ZeroVector);Client->Plan=Plan;if(!VolumePreview)VolumePreview=MakeUnique<FCLVolumePreview>();FString Error;
-        if(!VolumePreview->Start(*Scene->GetWorld(),Plan,false,500,Error))UE_LOG(LogTemp,Error,TEXT("Volume globe: %s"),*Error);
-        Client->VolumePreview=VolumePreview.Get();if(!Framed){Framed=true;Frame();}Client->Apply();return;
+        auto Place=[&](const FVector& D){return D*((Plan->RadiusMeters+Plan->SampleHeightMeters(D))/Plan->RadiusMeters*100000+100);};
+        for(auto& E:Client->RegionBoundaries){E.A=Place(E.A);E.B=Place(E.B);}
+        for(const auto& Cell:Plan->GeneratedRegions->Cells)Client->RegionCentres.Add(Place(Cell.Centre));
     }
-    VolumePreview.Reset();Client->VolumePreview=nullptr;++Revision;bPreviewFirst=!bDraft;Pending=MoveTemp(Plan);if(Stop&&!(bDraft&&bTaskDraft&&TaskEpoch==Epoch))Stop->Store(true);Pump();
+    Client->UpdatePlacementOverlay();
+    if(!Framed){Framed=true;Frame();}Client->Apply();
 }
-void SCLPlanetPreview::Cancel(){++Revision;++Epoch;Pending.Reset();if(Stop)Stop->Store(true);VolumePreview.Reset();if(Client)Client->VolumePreview=nullptr;}
-FString SCLPlanetPreview::VolumePreviewStatus()const{return VolumePreview?VolumePreview->Status():TEXT("Radial preview");}
-bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid()||(VolumePreview&&VolumePreview->IsUpdating());}
+void SCLPlanetPreview::Cancel(){NativePreview.Reset();if(Client)Client->NativePreview=nullptr;}
+FString SCLPlanetPreview::NativePreviewStatus()const{return NativePreview?NativePreview->Status():TEXT("No native preview");}
+bool SCLPlanetPreview::IsUpdating()const{return NativePreview&&NativePreview->IsUpdating();}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
     if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
@@ -399,24 +433,9 @@ const TArray<FCLGuideIndicator>& SCLPlanetPreview::Indicators()const{return Clie
 const TArray<TArray<FVector2D>>& SCLPlanetPreview::Rings()const{return Client->Rings;}
 void SCLPlanetPreview::Pump()
 {
-    if(Task.IsValid()&&Task.IsReady())
-    {
-        auto B=Task.Consume(); // Move the completed buffers; do not copy a dense mesh on the UI thread.
-        if(!B.bCancelled&&(TaskRevision==Revision||(bDraft&&bTaskDraft&&TaskEpoch==Epoch&&Pending.IsValid())))
-        {
-            ++AppliedBuilds;bLastPublishedDraft=bTaskDraft;
-            Client->Plan=BuildingPlan;Client->RegionBoundaries=MoveTemp(B.RegionBoundaries);Client->RegionCentres=MoveTemp(B.RegionCentres);Client->UpdatePlacementOverlay();
-            Mesh->SetMaterial(0,B.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*B.Surfaces,true):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Surfaces/M_GlobeGrid.M_GlobeGrid")));
-            CLSetPreviewMesh(*Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
-            if(!Framed){Framed=true;Frame();}else Client->Apply();
-            // Publish a quick variation before refining the same immutable plan.
-            if(bTaskDraft&&!bDraft&&TaskRevision==Revision&&!Pending)Pending=BuildingPlan;
-        }
-        BuildingPlan.Reset();Stop.Reset();
-    }
-    if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;bTaskDraft=bDraft||bPreviewFirst;bPreviewFirst=false;TaskEpoch=Epoch;const int32 Resolution=bTaskDraft?64:FCLGlobeBuffers::PreviewResolution;Stop=MakeShared<TAtomic<bool>,ESPMode::ThreadSafe>(false);auto Cancellation=Stop;Task=Async(EAsyncExecution::ThreadPool,[P,Resolution,Cancellation]{return FCLGlobeBuffers::Build(*P,Resolution,Cancellation.Get());});}
+    if(NativePreview&&NativePreview->Poll(true)){++AppliedBuilds;bLastPublishedDraft=NativePreview->IsDraft();Client->Invalidate();}
 }
-void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();if(VolumePreview&&VolumePreview->Poll(*Mesh.Get(),true)){++AppliedBuilds;Client->Invalidate();}Scene->UpdateCaptureContents();}
+void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
 {return G.AbsoluteToLocal(E.GetScreenSpacePosition())/FVector2D(FMath::Max(1.,G.GetLocalSize().X),FMath::Max(1.,G.GetLocalSize().Y));}
 void SCLPlanetPreview::SetAuthoringRecipe(const FCLPlanetRecipe& R)
@@ -726,7 +745,7 @@ bool FCLGlobePlacementPointerTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeLightingTest,"Catalyst.Landform.PlanetBuilder.StablePreviewLighting",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLGlobeLightingTest::RunTest(const FString&)
 {
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Globe exposure orbit proof"))).ClientSize(FVector2D(640,480))[W];App.AddWindow(Window,false);Window->SlatePrepass();const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,640,480,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Globe exposure orbit proof"))).ClientSize(FVector2D(640,480))[W];App.AddWindow(Window,false);Window->SlatePrepass();const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,640,480,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto Recipe=FCLPlanetCompiler::BasePlanet();FString Error;const auto Plan=FCLPlanetCompiler::Compile(Recipe,Error);if(!Plan){AddError(Error);App.RequestDestroyWindow(Window);return false;}
     const auto B=FCLGlobeBuffers::Build(*Plan,48);W->Client->Plan=Plan;CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents);
     TestTrue(TEXT("Fixed studio exposure is stable during orbit"),W->Client->ExposureSettings.bFixed&&W->Client->ExposureSettings.FixedEV100==-2);
@@ -791,7 +810,7 @@ bool FCLSurfaceGlobeTest::RunTest(const FString&)
     const auto B=FCLGlobeBuffers::Build(*Plan,48);TArray<FCLSurfaceWeights> Weights;Plan->SampleSurfaceWeights(B.SourceDirections,Weights);double Worst=0;
     for(int32 I=0;I<Weights.Num();++I){const auto W=CLPackSurfaceWeights(Weights[I]);Worst=FMath::Max(Worst,double(FMath::Abs(W.R-B.Colors[I].R)+FMath::Abs(W.G-B.Colors[I].G)+FMath::Abs(W.B-B.Colors[I].B)+FMath::Abs(W.A-B.Colors[I].A)));}
     TestTrue(TEXT("Globe packs the same final-field surface weights"),Worst<.00001);
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Terrain surface appearance proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Terrain surface appearance proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();W->Client->Plan=Plan;
     W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*Plan->Surfaces,true));CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);W->SetGuides(Asset->Recipe.RadialGuides,false);
     if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
@@ -847,7 +866,7 @@ bool FCLSurfaceGlobeTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeWalkPickingTest,"Catalyst.Landform.PlanetBuilder.WalkingLocationPicking",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLGlobeWalkPickingTest::RunTest(const FString&)
 {
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Walking location picking"))).ClientSize(FVector2D(640,480))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Walking location picking"))).ClientSize(FVector2D(640,480))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,640,480,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto R=FCLPlanetCompiler::BasePlanet();R.RadiusMeters=1000;R.BaseSurfaceNormalized=.5;R.NoiseLayers.Reset();FString Error;const auto Plan=FCLPlanetCompiler::Compile(R,Error);
     if(!Plan){AddError(Error);App.RequestDestroyWindow(Window);return false;}
@@ -879,7 +898,7 @@ bool FCLTectonicGlobeTest::RunTest(const FString&)
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
     if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/TectonicBase.json")))||!A->ImportRecipeJson(Json,ImportError))
     {AddError(TEXT("Cannot load the owned tectonic comparison: ")+ImportError);return false;}
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic activity progression"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic activity progression"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
     const double Started=FPlatformTime::Seconds();
@@ -928,7 +947,7 @@ bool FCLContinentalGlobeTest::RunTest(const FString&)
 {
     FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
     if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/ContinentalBase.json")))||!Source->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Continental foundation settings"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Continental foundation settings"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
     const double Started=FPlatformTime::Seconds();
@@ -959,7 +978,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeOceanTest,"Catalyst.Landform.PlanetBuil
 bool FCLGlobeOceanTest::RunTest(const FString&)
 {
     auto R=FCLPlanetCompiler::ContinentalBase();const auto Original=R;
-    const auto W=SNew(SCLPlanetPreview);W->SetGuides(R.RadialGuides,true);
+    const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();W->SetGuides(R.RadialGuides,true);
     TestFalse(TEXT("Ocean starts hidden"),W->IsOceanVisible()||W->Ocean->IsVisible());
     W->SetOceanVisible(true);const auto* G=R.RadialGuides.Guides.FindByPredicate([](const auto& V){return V.Name==TEXT("OceanHeight");});
     if(!TestNotNull(TEXT("Fixture has OceanHeight"),G))return false;
@@ -979,7 +998,7 @@ bool FCLGlobeOceanTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGeologyRenderedTest,"Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLGeologyRenderedTest::RunTest(const FString&)
 {
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Calibrated geology"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     FString Json,Error;TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
@@ -1058,8 +1077,8 @@ bool FCLGlobePublicationTest::RunTest(const FString&)
     FString Error;const auto Initial=FCLPlanetCompiler::Compile(R,Error);R.Continents.Seed=817;const auto Changed=FCLPlanetCompiler::Compile(R,Error);
     if(!Initial||!Changed){AddError(Error);return false;}
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).ClientSize(FVector2D(640,480))[W];FSlateApplication::Get().AddWindow(Window,false);Window->SlatePrepass();W->Rebuild(Initial);
-    auto Phase=MakeShared<int32>(0);auto Before=MakeShared<uint64>(0);auto Started=MakeShared<double>(FPlatformTime::Seconds());
-    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,Initial,Changed,Phase,Before,Started]
+    auto Owner=MakeShared<uint32>(0);auto Runtime=MakeShared<const void*>(nullptr);auto Phase=MakeShared<int32>(0);auto Before=MakeShared<uint64>(0);auto Started=MakeShared<double>(FPlatformTime::Seconds());
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,Initial,Changed,Phase,Before,Started,Owner,Runtime]
     {
         W->Pump();
         auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
@@ -1067,30 +1086,51 @@ bool FCLGlobePublicationTest::RunTest(const FString&)
         if(*Phase==0)
         {
             if(W->IsUpdating())return false;
-            TestTrue(TEXT("Initial plan is displayed"),W->Client->Plan==Initial);*Before=W->PublishedBuilds();W->Rebuild(Changed);*Started=FPlatformTime::Seconds();*Phase=1;return false;
+            TestTrue(TEXT("Initial plan is displayed"),W->Client->Plan==Initial);*Owner=W->NativePreview->WorldIdentity();*Runtime=W->NativePreview->RuntimeIdentity();*Before=W->PublishedBuilds();W->Rebuild(Changed);W->Rebuild(Initial);W->Rebuild(Changed);*Started=FPlatformTime::Seconds();*Phase=1;return false;
         }
         if(W->IsUpdating())return false;
-        TestTrue(TEXT("Variation publishes a draft and a refined mesh"),W->PublishedBuilds()==*Before+2);
+        TestTrue(TEXT("Latest coalesced variation publishes through VPP"),W->PublishedBuilds()>*Before);
         TestTrue(TEXT("Newest variation owns the displayed plan"),W->Client->Plan==Changed);
         TestFalse(TEXT("Variation finishes at full quality"),W->HasDraftMesh());
-        const auto* Section=W->Mesh->GetMesh();double Worst=0,Delta=0;
-        for(int32 I=0;Section&&I<Section->VertexCount();I+=1024)
-        {
-            const FVector V(Section->GetVertex(I)),D=V.GetSafeNormal();
-            const double Expected=(Changed->RadiusMeters+Changed->SampleHeightMeters(D))/Changed->RadiusMeters*100000;
-            Worst=FMath::Max(Worst,FMath::Abs(V.Size()-Expected));Delta+=FMath::Abs(Changed->SampleHeightMeters(D)-Initial->SampleHeightMeters(D));
-        }
-        TestTrue(TEXT("Published vertices belong to the new compiled variation"),Section&&Worst<.02&&Delta>1);
-        AddInfo(FString::Printf(TEXT("Variation publication: worst display residual %.6f cm"),Worst));return Close();
+        TestTrue(TEXT("Native VPP renders the accepted variation"),W->NativePreview&&W->NativePreview->PublishedPlan()==Changed&&W->NativePreview->UsesNativePresentation());
+        TestTrue(TEXT("No application terrain mesh is constructed"),!W->Mesh);
+        TestEqual(TEXT("Recipe changes retain the native world"),W->NativePreview->WorldIdentity(),*Owner);
+        TestTrue(TEXT("Recipe changes retain the native runtime"),W->NativePreview->RuntimeIdentity()==*Runtime);
+        AddInfo(W->NativePreview->Status());return Close();
     }));return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNativePreviewRadiiTest,"Catalyst.Landform.NativeGeneration.NativePreviewRadii",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLNativePreviewRadiiTest::RunTest(const FString&)
+{
+    TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> Plans;FString Error;
+    for(double Radius:{100.,1000.,6371000.})
+    {auto R=FCLPlanetCompiler::BasePlanet();R.RadiusMeters=Radius;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}Plans.Add(P);}
+    const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).ClientSize(FVector2D(640,480))[W];
+    FSlateApplication::Get().AddWindow(Window,false);Window->SlatePrepass();W->Rebuild(Plans[0]);
+    auto Phase=MakeShared<int32>(0);auto Owner=MakeShared<uint32>(0);auto Runtime=MakeShared<const void*>(nullptr);auto Started=MakeShared<double>(FPlatformTime::Seconds());
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,Plans,Phase,Owner,Runtime,Started]
+    {
+        W->Pump();auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+        if(FPlatformTime::Seconds()-*Started>30){AddError(W->NativePreviewStatus());return Close();}
+        if(W->IsUpdating())return false;
+        const auto& Preview=*W->NativePreview;TestTrue(TEXT("VPP presents the accepted radius"),Preview.UsesNativePresentation()&&Preview.PublishedPlan()==Plans[*Phase]);
+        TestTrue(TEXT("No custom terrain presenter"),!W->Mesh);
+        if(*Phase==0){*Owner=Preview.WorldIdentity();*Runtime=Preview.RuntimeIdentity();}
+        else {TestEqual(TEXT("Radius edit retains native world"),Preview.WorldIdentity(),*Owner);TestTrue(TEXT("Radius edit retains native runtime"),Preview.RuntimeIdentity()==*Runtime);}
+        double Worst=0;for(const auto& P:Preview.Published().Vertices)Worst=FMath::Max(Worst,FMath::Abs(P.Length()-45000.));
+        AddInfo(FString::Printf(TEXT("Radius %.0f m: %d native vertices, normalized sphere residual %.6f cm"),Plans[*Phase]->RadiusMeters,Preview.Published().Vertices.Num(),Worst));
+        TestTrue(TEXT("Native normalized sphere stays within one 50 cm preview voxel"),Preview.Published().Vertices.Num()>0&&Worst<=50);
+        if(++*Phase==Plans.Num())return Close();W->Rebuild(Plans[*Phase]);*Started=FPlatformTime::Seconds();return false;
+    }));return true;
+}
+
 #endif
 
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPreviewPrecisionTest,"Catalyst.Landform.Surfaces.LargeRadiusPreviewPrecision",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLPreviewPrecisionTest::RunTest(const FString&)
 {
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Preview coordinate precision"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/preview-precision");IFileManager::Get().MakeDirectory(*Folder,true);
@@ -1165,7 +1205,7 @@ bool FCLTectonicRenderedPortfolioTest::RunTest(const FString&)
     if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("conformance/tectonic-character-v5-reference.json")))||
         !FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json),Reference))
     {AddError(TEXT("Missing pre-change tectonic character reference"));return false;}
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);
+    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic character portfolio"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-character/frames-final");IFileManager::Get().MakeDirectory(*Folder,true);

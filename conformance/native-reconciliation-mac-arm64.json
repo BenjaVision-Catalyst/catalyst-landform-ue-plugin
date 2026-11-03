@@ -1,0 +1,504 @@
+{
+  "date": "2026-11-03",
+  "profile": "native-vpp-reconciliation-v1",
+  "platform": "UE 5.7.4 CL 51494982 / VPP 2.0p8 / macOS arm64 / Metal SM6 / Development",
+  "componentParent": "ab41fe2cd3a350ef635899078c8319a2448960c8",
+  "workspaceParent": "274be6520c3d31ef81932c11b55dc390daa0b447",
+  "ownership": "VPP is the sole voxel generation and presentation platform. Catalyst planetary/geological semantics are lowered into native stamps, layers and kernels; native LOD and moving collision invokers own terrain demand.",
+  "changes": [
+    "Native sphere/cube/radial figure kernels, native blend/alpha and AABB tree replace generic application implementations.",
+    "One native world/runtime per active preview; original visible mesh components and native collision; no radial product tessellation or copied-mesh renderer.",
+    "Full accepted recipe is supplied to native stamp hashing; coalesced updates retain native owners.",
+    "Native float field slope probe is 5 cm; original frozen volumetric reference remains in use with per-channel numerical budgets."
+  ],
+  "editor": {
+    "passed": 35,
+    "failed": 0,
+    "warnings": 0,
+    "tests": [
+      "Catalyst.Landform.Composition.EditorCommitAndSourceOwnership",
+      "Catalyst.Landform.Composition.IndependentFieldsAndSnapshots",
+      "Catalyst.Landform.Composition.MasksAndValidation",
+      "Catalyst.Landform.Composition.PreviewNativeSphereParity",
+      "Catalyst.Landform.Designer.FixedDisplayFrame",
+      "Catalyst.Landform.Gravity.LiveOriginFrame",
+      "Catalyst.Landform.LocalTerrain.DesignerNativeSphereParity",
+      "Catalyst.Landform.LocalTerrain.GuidesAndDimensions",
+      "Catalyst.Landform.LocalTerrain.LayerControls",
+      "Catalyst.Landform.LocalTerrain.WindowAndHalo",
+      "Catalyst.Landform.NativeGeneration.DesignerSphereParity",
+      "Catalyst.Landform.NativeGeneration.KernelAndVersioning",
+      "Catalyst.Landform.NativeGeneration.NativeLocalSection",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii",
+      "Catalyst.Landform.PlanetBuilder.WalkingLocationPicking",
+      "Catalyst.Landform.PlanetLayers.VariationPublication",
+      "Catalyst.Landform.Presentation.LocalFrames",
+      "Catalyst.Landform.RuntimeRecipe.AtomicApplication",
+      "Catalyst.Landform.RuntimeRecipe.NativeLayerFrameAtOrigin",
+      "Catalyst.Landform.RuntimeRecipe.NativeReferenceBudgets",
+      "Catalyst.Landform.RuntimeRecipe.RetainedClientResources",
+      "Catalyst.Landform.Scale.CanonicalAndNativeWindows",
+      "Catalyst.Landform.Scale.NoiseFrameContinuity",
+      "Catalyst.Landform.Scene.NativeBulkSparseParity",
+      "Catalyst.Landform.Scene.PreMigrationPreservation",
+      "Catalyst.Landform.Scene.QueryAndFrameContract",
+      "Catalyst.Landform.StampDistribution.DesignerSphereParity",
+      "Catalyst.Landform.StampDistribution.DeterministicPCG",
+      "Catalyst.Landform.StampDistribution.VersioningAndSnapshots",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials",
+      "Catalyst.Landform.Volumes.NativePreview",
+      "Catalyst.Landform.Volumes.NativeSectionDomain"
+    ],
+    "previewRadiiMeters": [
+      100,
+      1000,
+      6371000
+    ],
+    "previewVoxelDisplayCm": 50,
+    "maxNormalizedSphereResidualCm": 20.138865,
+    "previewScope": "Normalized overview geometry and native ownership/picking; physical material phase remains unqualified."
+  },
+  "dependencyChecks": [
+    {
+      "suite": "origin-patch",
+      "passed": 6,
+      "logSha256": "a53dbdbaa47ba6de5debd4d63cd72abd90b541266706b82d87e27d129a9a57f6"
+    },
+    {
+      "suite": "projection-bounds",
+      "passed": 6,
+      "logSha256": "e38e28587d85ab5e7516728eefe6b95880a1a02618e747f0ad6c36992885091a"
+    },
+    {
+      "suite": "material-hooks",
+      "passed": 4,
+      "logSha256": "ce91d67dca5b2b19515fb6990ca225b786d69be74b18eee30e423131c82d0d3e"
+    },
+    {
+      "suite": "nanite-patch",
+      "passed": 4,
+      "logSha256": "f956005d0fffd32ac4a36ab5c68098cf29abcd859b0dd83722c4ea73d78658fd"
+    }
+  ],
+  "executableSha256": "d650678a37b420d975f0826787ce8e9c774e1ed9ad0be0883ee4fecda694765c",
+  "packagedScale": {
+    "cases": 32,
+    "nativeGroundedFrames": 31979,
+    "projectedPicks": 384,
+    "worst": {
+      "maxFieldErrorCm": 1.5741348266601562,
+      "maxWallFaceErrorCm": 1.0423634044798291e-05,
+      "maxMeshFieldErrorCm": 16.666674613952637,
+      "maxMeshFeatureErrorCm": 1.592882879286758,
+      "maxProjectedPickErrorCm": 0.03660293677576174
+    }
+  },
+  "packagedVolume": {
+    "volumeReferencePoints": 297,
+    "maxSceneFieldReferenceErrorMeters": 3.206702606561862e-06,
+    "maxSceneSurfaceWeightReferenceError": 2.5313899470136292e-05,
+    "sceneFieldReferenceLimitMeters": 0.001,
+    "sceneSurfaceWeightReferenceLimit": 0.0001,
+    "volumeNativeFieldErrorCm": 0.0001983642578125,
+    "volumeNativeSurfaceWeightError": 1.920454440096364e-05,
+    "groundFrames": 356,
+    "voxelFloorFrames": 356,
+    "maxFloorFieldErrorCm": 0.154876708984375,
+    "walks": 12,
+    "totalNativeFloorFrames": 4124,
+    "totalGroundFrames": 4124,
+    "maxLocationFloorFieldErrorCm": 0.154876708984375
+  },
+  "packagedOrigin": {
+    "cases": 12,
+    "passed": 12,
+    "postShiftPhysicsFrames": 384,
+    "lostFloorFrames": 0,
+    "minGravityDot": 0.9999999950101626
+  },
+  "packagedPersistent": {
+    "cases": 12,
+    "passed": 12,
+    "ordinaryTravelCases": 10,
+    "separateOriginCases": 2,
+    "ownerIdentitiesStable": true,
+    "nativeFloorFrames": 53613,
+    "lostFloorFrames": 0,
+    "travelMeters": 4152.121061415428,
+    "sourceLODs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "worst": {
+      "maxCollisionFieldErrorCm": 0.0033871587220346555,
+      "maxNearRouteMeshFieldErrorCm": 0.02514672523830086,
+      "maxPendingNativeTasks": 727,
+      "maxNativeMeshes": 1722,
+      "peakResidentMiB": 1262.453125
+    }
+  },
+  "initialFailure": {
+    "report": {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/volume/report.json",
+      "sha256": "12148e43836af9a8bd980eee78b7ed436e88cedc16e09faf0b394d19c9c11df1"
+    },
+    "message": "Former blanket 1 micrometre frozen-reference comparison rejected native float distances. No fixture was rewritten.",
+    "nativeTwoCmProbeComparison": {
+      "sceneFieldsMeters": {
+        "maximumError": 3.206702606561862e-06,
+        "worst": [
+          [
+            57
+          ],
+          4.788942945030792,
+          4.788946151733398
+        ],
+        "count": 297
+      },
+      "sceneSurfaceWeights": {
+        "maximumError": 0.00012116780881060545,
+        "worst": [
+          [
+            199,
+            1
+          ],
+          0.013450324684012119,
+          0.013329156875201514
+        ],
+        "count": 2376
+      },
+      "heightsMeters": {
+        "maximumError": 0.0,
+        "worst": [
+          [
+            1013
+          ],
+          -284.9869701076922,
+          -284.9869701076922
+        ],
+        "count": 1014
+      },
+      "surfaceWeights": {
+        "maximumError": 0,
+        "worst": [
+          [
+            1013,
+            7
+          ],
+          0,
+          0
+        ],
+        "count": 8112
+      },
+      "scenePointsMeters": {
+        "maximumError": 0,
+        "worst": [
+          [
+            296,
+            2
+          ],
+          604,
+          604
+        ],
+        "count": 891
+      }
+    },
+    "repair": "Use a 5 cm slope probe and correctly apply declared per-channel budgets. Independent metadata, coordinates and heights remain unchanged."
+  },
+  "retainedSpecializations": [
+    "Accepted planetary recipe identities, guides, geodesic charts, geological/process fields and client material catalog.",
+    "Capsule segment-coordinate mapping invokes the native sphere kernel; installed stock shapes have no capsule.",
+    "Pinned legacy UE noise/appearance profiles retain accepted outputs; algorithm 2/new base planets use VPP Perlin. This is compatibility, not missing native noise.",
+    "Curvature projection and version-pinned native origin repairs retain their existing bounded evidence.",
+    "Authored VPP Surface Type artwork and geographic overlays; no application material compositor in product previews."
+  ],
+  "openGaps": [
+    "Canonical physical-metre material phase in normalized native overview/section previews needs a native attribute/parameter witness.",
+    "Filtered field footprints, fine planetary noise precision, scientific datums and server resource/transport contracts remain open.",
+    "Production frame-time certification, thin-feature preservation at every LOD, projected/instanced origin shifts and multi-body transfer are not qualified."
+  ],
+  "protectedLocalFiles": {
+    "count": 151,
+    "allHashesUnchanged": true
+  },
+  "artifacts": [
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/published-checks/index.json",
+      "sha256": "8c0dff1bed7e085afaa7b57ad73d30a1dc215b72a961f3a949d43cf2a252eaec"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/scale-final/native.json",
+      "sha256": "93107ecf65f54bf905f703c85f62dcdf07de8e8bb0c80505e9f3b550d8a91170"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/scale-final/evidence.json",
+      "sha256": "352728efaeca3f2cd3e12dad0e4eee7657378ea2f9393b7fae83af59b6ff0a22"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/volume-final/report.json",
+      "sha256": "90801681bdb10687a184536ff79de47dadbd46b2f21a34594b162cf2d24f9d9c"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/volume-final/run.json",
+      "sha256": "a75d0d604507db04e9a03293e1022291371a53a8eb28623492ec9beaec5f013b"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/origin/results.json",
+      "sha256": "14e82ccaf05ce558271010b27d67bb7fcec492d0c8259b75d8b818ae7e3c836c"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/origin/evidence.json",
+      "sha256": "47490be1917fe43a0d7dc898e14d82dea682d520bd87ce692e5d8c21f7af4b75"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/persistent/results.json",
+      "sha256": "16f31e635fce871dce287c98a3426694ab86d3865b45f4fdd7acd2cab3d7c52d"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/NativeReconciliation/persistent/evidence.json",
+      "sha256": "37614d747e9407437cac14f97c04bf1492800bf2ba9b02605673c1d720885c26"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/volumetric/runtime-input/planet.json",
+      "sha256": "d0ae5d3ea84127525c8610242e4424321b06134720c2cdc5e8e7743404655463"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/volumetric/runtime-input/reference.json",
+      "sha256": "fb4627577e030395e802a729b5fbc83dfbd92e1991bdb91863184a6afdb912c2"
+    },
+    {
+      "path": "Landform/Projects/LandformLab/Saved/Verification/volumetric-preview/native-globe-section.png",
+      "sha256": "845058746e84a1a93c512a9d2798ee2f143d2237574b73ea9ba820a9329f2f7c"
+    }
+  ],
+  "nativeSourceSha256": {
+    "Plugins/Voxel/Voxel.uplugin": "c994ac77293bc5d0c8b7f6f73deff15a77d7a93091abc47f2350b892001dd142",
+    "Plugins/Voxel/Source/Voxel/Public/Shape/VoxelSphereShape.h": "dca2cf216856c37911a39846fbee1daa1242a9064060c345a9a3d13e463d1e47",
+    "Plugins/Voxel/Source/Voxel/Public/Shape/VoxelCubeShape.h": "5532e8f2addec7920ce7afed2083562e86fc67d260bb956a8e0838f220fb7d2b",
+    "Plugins/Voxel/Source/Voxel/Public/Shape/VoxelShapeFunctionLibrary.h": "30af44c898dc1c0954b21db41f939ff214d01423537be45566a91c4d623aeab4",
+    "Plugins/Voxel/Source/Voxel/Private/Shape/VoxelSphereShape.cpp": "50178aa7962d6774998547dcb92b85d2613d6adc9caad129e175b328bfaf789b",
+    "Plugins/Voxel/Source/Voxel/Private/Shape/VoxelCubeShape.cpp": "1a482d465296e20af08c10ee4ff78bfd615dd85e824ffe4ab4e3926f5618efa9",
+    "Plugins/Voxel/Source/Voxel/Private/Shape/VoxelShapeFunctionLibrary.cpp": "302285c3b90e68053cae3b0eceed95925f6f09d6297e353ec849943ac6910d09",
+    "Plugins/Voxel/Source/Voxel/Private/Shape/VoxelShapeFunctionLibraryImpl.ispc": "de359ddf08f3faeafbb134861ec6a07c4de19f9c2353e8fc12030787c3e5c123",
+    "Plugins/Voxel/Source/Voxel/Public/VoxelBlendModeUtilities.h": "8f60eec46cd95a75d8ff38476c782a061d56d4dcdee42047205e9ccf97d7b14f",
+    "Plugins/Voxel/Source/VoxelCore/Public/VoxelAABBTree.h": "b8d8b8a99559db7bead4ec9e2b658df789d8e460a78e7c7f39f128bd5616deb9",
+    "Plugins/Voxel/Source/VoxelCore/Private/VoxelAABBTree.cpp": "587ae6bf823e6e85868b317b668c7aa424931c20602425026027b00a9e73384f",
+    "Plugins/Voxel/Source/Voxel/Private/VoxelLayerTracker.cpp": "b81535cc16b3b089ad3aa9fa1bcc6d2a94c61c80c127df2b2eaa19f4e494594a",
+    "Plugins/Voxel/Source/Voxel/Private/VoxelStampComponent.cpp": "fef62183a2e2cda0abe10ca9f33090ffdaedf6f00ace90e2bd3c7a46e85d29a2",
+    "Plugins/Voxel/Source/Voxel/Private/VoxelStampComponentBase.cpp": "db1e80ff15bcbdbb27ca16a3c35e806f07f7038343d6cdf0f6e223c20348bd50",
+    "Plugins/Voxel/Source/Voxel/Private/VoxelWorld.cpp": "7aae91c3888d5560ab9dde4efa088f61076266e749ade1449221ded0f9a5628f",
+    "Plugins/Voxel/Source/Voxel/Private/VoxelRuntime.cpp": "7ff21ac79b3609a28869585f65a9922bcb60a54ef6a9fafd698ab5a030f145e1"
+  },
+  "sourceSha256": {
+    "Landform/Projects/LandformLab/Source/LandformLab/LandformLab.Build.cs": "20fee4f6e9cc6deb376802708a2ce500d04d2cc8e071026014d7933aa0fd89ab",
+    "Landform/Projects/LandformLab/Source/LandformLab/LandformLab.cpp": "4e4f813dcd3803031b79a0f37be2866ab1d02c39a0f1beae48effe23fd091e53",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLCompositionProof.cpp": "90137f5f0f20d069167e1389d857a984d2c779bd97f6696df27561668f88f8d5",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLGameplayPresentation.cpp": "1ebc36054ea4eee3162ad9fbef9e4976f88b8e2a15e1c83901936a91c7511ee0",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLGameplayPresentation.h": "637cf4d744517f03070c11d269cfb346ce877c13ebad846a0153136bb403a9c9",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLInspectionEditorTests.cpp": "dfcdff447708f1177824124f3274a976213206f42fae35d6b7aff504ac048b54",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNaniteProjectionPrototype.cpp": "5071edf680eb49f3842cef6954134e00cfe8c2f0ae15e1d8eba52aa2d4957cde",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNaniteProjectionPrototype.h": "5b1b6a8877f76b6049d4d719ebe253a3315d8fc30ee40386a865616f99a30ff9",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNativeGenerationProofTests.cpp": "641ef962378ed5daa2c6ee3f1c3cf621f6ab47b2b3f2005fdf4f427901908ffc",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNativeProjectionFixtureTests.cpp": "2c44a4b5d7cd303dde482086f7706e2c4278ee57f53353b4bb119e90d98557ca",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNativeStampTests.cpp": "ce0daaf0c5097be2daf0ffbe350592ac0a04f706b386e36cbed68b235a79df4f",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLPersistentWorldProof.cpp": "d5831484c9cf8b1dacfcff7e515271465c2295f5467062171083bf9f88061519",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLPlanetProof.cpp": "50cbacadbf62c70a204c0078e746921e72500d83364dedc38514428dc8b74de8",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLPlanetProofTests.cpp": "1bdadc08233efab3beaa4216924e5be07506a1870e0c0b5a06c3d35b97b85151",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLProjectedInspection.cpp": "c5c46fc7ac88942fea700bf96d8741f4591a9098a130b2e9f34b39ae3025ee26",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLRecipeProofTests.cpp": "09a30f6b23c3f9f2362dbd2ea465d71048783c4e82090735151ed8b330f10805",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLRuntimeRecipeProof.cpp": "05b1e20b39bb0d08b2a37e95b61a1034747ffa99e7447fbefef7762988bc7892",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleChecks.cpp": "b6c0be5f378d2b649b6aa628d9e4ea48012e98e12ad5274a3f13f0abcbadfb96",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleChecks.h": "01fa8c0503a72ff51b58d2a687708bb28fafaf73580336b3d6675e50cdb08883",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleLab.cpp": "6f46638f0e50abb5044d2e36acd28cba99c311fb2aefe3ebe9467e59b2989e90",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLSphericalPatchProof.cpp": "c39c1fff06b51b37d49cd965266d53923670282b14f0effd1572b36346d4d0c5",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLSphericalPatchProofTests.cpp": "7104fe5cad9d1b90a4bafeabf774fa2e627b04f5b69c744d98b587a34c11597a",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLSurfaceInspectionProof.cpp": "42c4e56ba10173e3c802c8af5b57fecbd215ab72c9cc0fc5c64c869a58821232",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLTerrainCompositionProofTests.cpp": "69929f07d11f894eb9481f95308552d78f7d56919ff2ee5ad660ce3a1788e310",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLVppRegistrationTests.cpp": "7b453a5e78e708fb9a5e758e80e7075fefe945c9016807c4d38093f0b83abea0",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLCompositionProof.h": "51e5d198db430fa68d3ae224f49f3c57e819e811872ae61ae8eaf20c82922909",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLInspectionHost.h": "400887185bb5443cbc5c8af035cc412fa37d9b2a484ed23f6decb2504376f691",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLPersistentWorldProof.h": "78406c16957e37e6136ed60e8b753d4b6244ee612923bbd253332605a663fadd",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLPlanetProof.h": "3fd7e2eaa786251aa3073cead280bed98b3fa7b7c6266a7dbee632e14265c4af",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLRuntimeRecipeProof.h": "f4c2c95633db5d1e997e54bbdbad2b8d6999b9ade9d83b4425dac407cbacc278",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLScaleLab.h": "70fa5afdff5bdea4781361b8c95b7cfc9f7a76ebff6624b0b59b544bb1c1fd96",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLSphericalPatchProof.h": "f54d9bb262a2ade06391cde4a36607883002a412e04bbf2443be9ee7cdf24793",
+    "Landform/Projects/LandformLab/Source/LandformLab.Target.cs": "9e3a3fe98b017c124f0e5eb262e21946870cf03a60bf59417604f50166fa9145",
+    "Landform/Projects/LandformLab/Source/LandformLabEditor.Target.cs": "067011f6ada236eb772ffaaec1cf76e6ece2bd97a1864261fd21c6f39348d1fc",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLAnchoredParity.usf": "f2bac0f9658576a2e6dc9ecf2b9024dc7ae8ccebf3cdd40c3fa1ea2ce4058674",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLNaniteProjection.ush": "81e41ce6bd96ce8c1000eb141a6849a335a879972dac5a6bb0b858f5ad2cb9bb",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLProjectionParity.usf": "23c02876a1951d176aee2f15ae6350e405e8d8bbf7e1b373efe80e8e655a7fbe",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Public/CLAnchoredScene.ush": "573fd98b0505e0b2d67a86112269e07b4f39c838d824f8521e6cb04cee16c51e",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Public/CLProjection.ush": "09720a90b5434bdae15de2e38b5998360d5792aae636aea3481cc6e7059b925b",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Public/CLProjectionPosition.ush": "031e298dd2709100ee643ecb2d5d91b4c0323587086a69d4fc5ce410d24c2c5e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/CatalystLandform.Build.cs": "7e01b7624f7a0314099718592c4d6f7e582a0181f36b3cea3d08fb8b5b7ca44d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLLandformModule.cpp": "08cffdd79f2e344cc80f5d7ea66a774cac6698e668766beea4fbddcf222a63dd",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanet.cpp": "0d77c1f043629cd7e3bdd8280b7c3da57bf4a1561cdec97ae32ddf3f1c81fc74",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanetShape.cpp": "a77c25b8ba704dc2729fce656e078b03c9b182df7721d4c5ab3896d6ec738813",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanetStamp.cpp": "ce7e93dfd6465ea778f503347c5a87aec19c122d8fff66c376128be06bd659bc",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "cfddd8f94f9ffcfecd8c244adf685eb4dc625f9341ea0b7b0eb868ddc8b85213",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLStampDistribution.cpp": "d6dd2b467f1f9d4173b255acc72678618dcffddc87e9ee4108185e103979bb8e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLStampDistribution.h": "58a1f22ca04a15c01ee14ae64d5fbe39a20a13e0eb7c173705b7b649f5a2a246",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLSurfaceInspection.cpp": "3a4a2db0831464a5e01192bed1e5f5399ea75ba7d1e518d1c95853486a30b536",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLContinentalFoundation.cpp": "cf99b911ca0a913a706fab2cbf5af947032459d1fd907b5e4acfe0c861944773",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLContinents.cpp": "c03c6c19276609ebda00382d6042cc50d3b9bf5c4688cac10223e846e791b532",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLGeologyProgression.cpp": "b4187b0d4d722dc5bd5cfe183c03d565c119a49a669c5a9364cc02aa89118337",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLModelJson.h": "52bb7889829d5a96bde347d338afb59d5ba44558953ba2b6b9adb136485483c5",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "003739482bf03b3f4b028a2891fa30821e7df56b756a3a6a2088f7220a5e5f07",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLPlanetStructure.cpp": "c135d7b22e1be78bf1314889e4c2fb3c90f12d675cbffa694d38905957456c9c",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLRadialGuides.cpp": "23e350390c8abcaf6e11d7e3fbeb3c587104df935d9e183a249cb482bceaa25d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLRegionGeneration.cpp": "29ee8450e97f76b66a58c46c56cc51012b05f44374f9eeb8c09f11c997646a24",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLSphericalPatches.cpp": "c8725c5dcfc1336f13fb72b22a12900b8dcd422e6a441e0320944384ed69929a",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLStampLibrary.cpp": "7db63197e6a04434a3b8dfe297fb76c1152da7c5fc0fd2cd778503ea63813c37",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLSurfaceRange.cpp": "b50450c190bfe3c881d422de64a75530faf8eec7a0ce852e04e4095b308b4612",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLTectonics.cpp": "f9d04c871bafc6e63df1c57020444a1cfd7803c2b548942538c57b0d08d93a4e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "c64a6d5837b1b8f2a1742f6654b4a3cae47e90328145970e36362f900f20e362",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/PCG/CLSphereStampPoints.cpp": "2325a704472be21cc18db8ede394e08cfb91fa8f38d97368a56c28d968012921",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/PCG/CLSphereStampPoints.h": "aee3fcbb4b79433a85665b6388770e295b4167f103dfc09e497aa3c0ff183f39",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "d4902ad4ad1dfbdef7db78db7d6e9ae74aee1e2ee30c81f3f82464a375c64bd7",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLPresentationTransform.cpp": "22ce22c14d956a59a59e038d52b2c86de7ac79e419803aad51772cb7d6838c15",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLProjectionChunk.cpp": "43395af89d9833bfbce6b02a0554b96e805487539e7e5ecda614c05152377ea5",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLProjectionGPUVerification.cpp": "dd836178f6b4842fd3e09847635beef251bacdc99f0c48509dbe1854d443db35",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLProjectionRay.cpp": "86f48fc44a4a70f4d98e7abfca31b87d8233ae083856f0a00d5270cace83c027",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Presentation/CLProjectionTrace.cpp": "31d9946b5d6594edb59f7b599acb2b55b772631253f8a6727b07b3438aefeba1",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLBodyFrame.cpp": "0516336d6cc44e88d4cb2eb0cf7c668fff808cda286ef1475ad68bacd5692361",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLScaleFixture.cpp": "fc2ecfe7b98b6ce7f009da7cf1dc43f054d9260ba4abc43e9ce37dffb2f237e2",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLScene.cpp": "4b5b83bb1a8fd5353624400346806444011fcb774bda42d9c346bb1e9bda18a8",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLSceneWindow.cpp": "1cba2e5d2e0a6a729237955da14c5c6d6a1d4b1f7eea6183355f410346a4c2fc",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLVolumes.cpp": "ae3e19d588f0545862c49cd5c00cfa234595d8bd6a56a11a97f2989f13b47ddc",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Surface/CLSurfaceCompiler.cpp": "6d6ba2d8110a9a1b222c231d3c529b88eb1ade3a5f7e3bea03d85258d2bfa929",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanet.h": "771835751273d8567b7867518665d4f504d8c1158654336b6b3408df375e8cbc",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanetShape.h": "cb62318f8284b4d7247b098c0ab6bbbf8b9eadfc0f0a5ba00f6d69a3c520e714",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanetStamp.h": "f8b58cf17303ba830b024bbe6e415667175a186550bf2c3fe1d3a2a9a80421a3",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLRadialGravityMovement.h": "25de584006ae1093d22dd2952323f4d513fe56a19ef2bb31b67935ecb114ca1a",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLSurfaceInspection.h": "79c8480c6ff3f8bedf7e3b1b33a2337b0018728007b1e7436d27c8e2fd0d13bb",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLContinents.h": "d82d1134c812e3d9c0c2ca114466cc832d3e1a4b8a9fe544ca9c7983f8457e95",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLHeightReference.h": "d0761a10d63f9ce1478384ec71df2f598aa65c2448218cb04b503c1415851718",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLLandformSuitability.h": "beff89f3d7c69eb80049f8b98d61ebf93dcd0693f20f1d83cf5cac3a9afe665d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "0ea845bb68dd2e20d119881a750cf47fbddc69296a7aab9284c2e87b01776d6f",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLPlanetStructure.h": "b864874cfb05718819c4978b10714725dafafb733caf234a9467c1b0265c5744",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLRadialGuides.h": "47f10c17e6bc8540ac7e2c4bc78f1970d900da39e3ff87c75ba2fdc1126af352",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLRegionGeneration.h": "773c78ab0d78fa3dac9b2658a7ff8cdcb17d3c8094534b8e20429789089340d8",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLSphericalPatches.h": "57c1dbf5d2fb43d85dfd1ff0937c66c92facb57be2541270894631c38f8ca9b3",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLStampDistribution.h": "78afc73ea074e14f10f70dd1d3d046b237b146e7329929a3352a3c528426949c",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLSurfaceLayers.h": "6212374d2328a381b88b2f8707f0398d795fd482c38d6b564a341086ff73ca29",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLSurfaceRange.h": "7dcacc76ec71711efa984e8d3500c93c868dfed7247faee760784a858843382b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLTectonics.h": "672cc6b388e428101616a0f994d1b7e4424ba23d828fdf35fe057c4fc4aaf737",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Model/CLTerrainType.h": "97f5721c3c2368f7e1a2d7e4542880488efb3fc69566e2a8644465ef941bc79a",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Presentation/CLPlanetProjection.h": "66f601f43b98f5a36dcb6cf420e0308c41aa5ec451bd710709e1b8b1932262ed",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Presentation/CLPresentationTransform.h": "ace6c6cd959f9b6feaa21d684f697a8686d6f52c68e6c4439af166169a4b3022",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Presentation/CLProjectionChunk.h": "cb347debf54b6454bd74c9d46d69de0926d0ee9d4da96c550da97e83e2d2114f",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Presentation/CLProjectionGPUVerification.h": "aa2fe90e22def7d5c542f3b3664e9ffb2a60fb89849834ea6b7cf6cab39428f2",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Presentation/CLProjectionRay.h": "eff1e1800c06ded510c78741594a56d9b85c67b64ce88cba588126b368d7a3b1",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Presentation/CLProjectionTrace.h": "497ab53bcfc4e9990b1c4a331de4efba4deb6cab9e3a0bbca79f771c2793bb40",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLBodyFrame.h": "e1abe58b3f9dac0c880c858b3c4dea2556a7b99648a166b31c3676ff72cd6469",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLScaleFixture.h": "078dc9cf0dbec83b0df29e4137415aa362daac3a7a91b80322ce3b56ffbec47e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLScene.h": "d5d05748cb5ebcd47966fb2fab9fcf65ad8e1a9299f0720e3cc64089e0e97410",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLSceneQuery.h": "dd37b7dbf05a762259d8d2c4ae8ba479ce492982f861f3c4a827c3d77b8bb569",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLSceneWindow.h": "209dd237e83cd1b1ae6e7fc5152586f55c362cacb7501c20469e02e1467ca037",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLVolumes.h": "ee111a3eb27110e5799681d03dddae36ed4e2be04d537786ec5fd73d8de48176",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Stamps/CLStampLibrary.h": "e0f4ee23604526bb0872b07a6d727f1125e8506a6693ec4af376d5308bcb858d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Surface/CLSurfaceCompiler.h": "f307a57f026eb58266a16488838ef7e65a743aceea65938c8082073641ca7e4f",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Surface/CLSurfaceLibrary.h": "4d5d62f632efff83bcb8d130928f5e83e5c51b5ba75fbcebb6636b442b4134ff",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/CatalystLandformEditor.Build.cs": "922c73c90b934981afeca9ea1051286a587febc07d356348a6d0326dff77aa52",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLGlobePlacement.cpp": "3a56266bf29d0ebfcbf4dc6eefb545ca52abb54367c0747ba76a5d6e11f1f0da",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "3206e4eca6bcb73491976259fc075d1478148c5891dc9aa380e56d7aa63eb150",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLNativePreview.h": "c03d16ad4f23eaeaf915f5a13a97004151c8e1453a8b035b2215a121585d0775",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLNoiseLayerStack.cpp": "020f2efc7fafe04acdc6a28bba7cc523893a2104e2257094614e8978e86bac54",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetInspection.cpp": "4edf08c0849674bfe6f4f8697dcc26fce660f786023e7e28f95e9ca3028a469d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetNavigation.cpp": "01d0656b40d35706c9233792197dfce0c5dc8c58673847b43487dbd196d9b9e6",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetNavigation.h": "c19eeeb5749659808194ee01bf9ab4cb53dafcb916ee967e8926988e4f9dbb8b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "14d7549b9ace30acd0759fbc6d50e3bda60580dbfe8d86b36e559f843f09ed77",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "21d44fbcb9c33a6cd5da05e26cc057a55edbd2dc5f9ed9f149576909ef61d369",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPreviewMesh.cpp": "980a1b43bb78b72fbbcfb18a11e5fa6adb08d3d5fc6dfbe2e83755f4140414e8",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLPreviewMesh.h": "515a0a78bd736005fa375cda42338b3d32327831b9b85565d0f75145cdffaf89",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLRadialGuideEditing.cpp": "2df1245cea7ce6e2f2d838d5d8bc4107ba6ef30544679154ea938fcdda0b18f8",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLRadialGuideMeasurements.cpp": "cf57b5b86d008dcfd4c997b31bced4974e1d302117ef5d4e507a2ff6a3204e56",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "de103c13505e0034c5a4da54fb626c527c8c0bab8f558c721c070d7c60ece515",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLRegionGenerationPanel.cpp": "6ede1a6facc231730e98fe4f50df7fee2e4a58676d7e425fa5564f3953dfa122",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLSectionGeometry.cpp": "aab61e40b234e67e9e0f428b52ba34c5c8889e460865c3b7da3f1c0d5781b2f8",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLSectionNavigation.cpp": "cec47b78d8971c0d2048f7baba93da1958ab04257df34a3b3dea84b0b073cdc2",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLSurfacePreview.cpp": "ade05f37e54e95bd28a9baea8d738893658d2d24f9b8cacc61b1d74a02fcc073",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "b0a48c3640dca84090d3302efa027ce42fe23799012d4dbd91b25084f0b7afd9",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Private/CLTerrainTypeEditor.cpp": "6b447a4f39c5e6f7d8b5356686fe1884d80a3564ec670909b0f425f1e8818c2f",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLGlobePlacement.h": "47b28b1e4b107da3acbecff78326d8fe4a7774bce0dfd1faad0e6d606439a672",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLNoiseLayerStack.h": "5c608c425c9da44e45dca1e2abc797a1febad904cc068cfe6b3b6a2c9a42facf",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLPlanetInspection.h": "7967cfcde535ab400f6d21f8d3188241bda7d8fd51a7f068ea03162788f02a95",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLRadialGuideEditing.h": "db31e9e21545a30e9a3a9d2906cc442771ee314d7b437a5b924412638469c6c0",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLRadialGuideMeasurements.h": "7d6143d7731474b26d1beb0b9170c04485ba511006f3758dcf23456e1c6227ef",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLRecipeAssetTools.h": "b0d15ded92ecb34cbe39dda2a1f0f6cf10f7a6fa15df96fefe24312f85cacf7c",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLRegionGenerationPanel.h": "99f9c0897dc6380e38ce191888bf08c116be832ca782c8967199eb0c6dce9bf4",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLSectionGeometry.h": "32995a5eeeccbde813a682382e03988c65e8223a5790c7d9c53c3714100f5ca6",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLSectionNavigation.h": "5d802f117e834b1366c5e95aa2a658949b287c3a321e8e365cc785cc5718258e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLSurfacePreview.h": "db76dfaf19ce3f3830aa544f9e3618e702c5752bc95b690ba3dcd1de83e25e4d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLTerrainDesigner.h": "5cb42eff309398369accf7b44c3ab0dffc2745dec71f1b3ea8a33e4ad3ab0564",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformEditor/Public/CLTerrainEditing.h": "5684e41ab1bb671ef3363baac9f71459a18c325e6c74efe4a0aa94937ce0d171",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/CatalystLandformRender.Build.cs": "a6d9f953b220b641ffc1d2be1db6d470a97a6a4ddb7188f2e78fb88daecc20f3",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Private/CLAnchoredGPU.cpp": "1e799c41ffd7d7d29b990f5cbf167ff9c44bb63ea57b1e60d4a4f791434d8b39",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Private/CLLandformRenderModule.cpp": "21805ec08649eea58ebce23182386e60b1ad85b1899e6503063c4da3b4896463",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Private/CLProjectionGPU.cpp": "39482812d9a4a4aed7e443ec7150631e879cae1ba6fe5268835cf2f641cc659e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Public/CLAnchoredGPU.h": "b781a109401b5e213352193344fcae9397d2109c399271446e58022a45d89358",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Public/CLNaniteProjection.h": "b9f57bea298831ac99345c8e32d6f49fb5deae958fe285130b53d48a3b79130b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Public/CLProjectionGPU.h": "d249da450dfd3c0d8e28fb5e6ead4e237ceb94202872c9a7a0e5d3a93882166b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/CatalystLandformTests.Build.cs": "41681ba5c56a17a2e08f1b552f49294149f60aa40a0271dd34ef9631ec4104da",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLContinentalTests.cpp": "89b0cb0ad688e078b93f57089014999805f5cdba40100459466ea1a8d252ca16",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLGlobePlacementNativeTests.cpp": "859ec7eedf9da3a74a01da498e7b8b5e793ffd00ad2410053a8b8e0f0f48ba5b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLGuidedGeologyTests.cpp": "51d7713056ccea9cf78eceef8392218296cf8694a261f225318f10a2ee27d7b3",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLLocalTerrainTests.cpp": "6752815be15c8c3374135b3136e97a644b39403a7b465fa76c5a1aab4937c75d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLNativeGenerationTests.cpp": "ad68d7776ec4ccba62964dc6ccf8f67132c1a4777f676d61b2fa6bc9f75dbd40",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLPlanetAssemblyTests.cpp": "93f393166de99bf6a65ebe36a8b331f051da8f433ed43b6055214b1a3dfabe84",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLPlanetLayerTests.cpp": "671b469685b97dad3e6ae211b6b6e110f63f8403ff44a07a5981f24aafa0944d",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLPlanetProjectionTests.cpp": "05775eb4b10cd1a9b757636b4f420ba10e10dca45405fda182a729f7f0303d07",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLPlanetStructureTests.cpp": "f5f5924aac7266e4eac11fb078442af8744599cee05630fdb413477ebd443650",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLPlateauTests.cpp": "8bec33cea7755e42727bc7bb2be5d6dc156ede00f5a446f6f9dc16312493f6fc",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLPresentationTransformTests.cpp": "03999a3d64f8deb769d7b7b43c9e132a4e3d2a3681d016953109f2533ddb6dcd",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLProjectionChunkTests.cpp": "afebb822defac0d0feaeea3980f8cf85791c145cd8bb2893029cacd478343b5b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLProjectionGPUParityTests.cpp": "969422e36d87bd8c1290801dcc9924b8ee66ae5c33f0feba29c0fb8d64492bb9",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLProjectionRayTests.cpp": "ce0dedf70a4638e38559b945d99a2da6802e22da643c868de96ce2e4ff23c38b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLProjectionTraceTests.cpp": "a7b7b940cfcf3f5ed9eb5fcd84d02f28c32894189ef8cc7228f72c396ca428f6",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRadialGravityTests.cpp": "9bb7058d9ab4ccd37ca597fcbd1771fb0c866dd39c800237ec15e2ea1005355c",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRadialGuideMigrationTests.cpp": "36443750efab36ffd57343fb360059017ba04db0513edea4498abd78e81235fe",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRadialGuideReferenceTests.cpp": "1d092da2ca828d36fa8c355289db83f05e0282843d489ac051c6c23f9b6329dd",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRadialGuideTests.cpp": "00c355b9702e6173f780ac91ca9a15691c9af0ba5aa57eb1a2b51c2e9f06a5d5",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRecipeTests.cpp": "9208e910a5d5b8ea786929e200261fbe143ca52a0197b24c5e38884e6270113e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRegionGenerationTests.cpp": "18f32f0b803647c88a43fd5a0d82f9d2335fa339bec3f8d1a0573a18654acf23",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRegionalCharacterTests.cpp": "f81fcd88f77d2f8132a02c48d8f7883a92b91dbb28eea33610e1668e02922cbe",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLRuntimeRecipeTests.cpp": "3993d923a5862692b090dbb5d09fdb85d2f8eb448e03a857be306ae27f80a9a4",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLScaleTests.cpp": "50b0f809f0aefbb80723dd02b98460bdc57150a090244cc27f9f2f73a5147673",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLSceneTests.cpp": "cf5ae3adcaded30c54d2f9be6694d43aaf11db67b1a90772efbfdc247ffaccc7",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLSectionTests.cpp": "567e0da42d1e2c0419c100ece747acd78f8c9178439a3fa4c6a9388d451e9601",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLSphericalPatchTests.cpp": "4ba179fffcf8a132995e93474906ff194ffd8bc9674ca56e94189c0891e9a08e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLStampDistributionTests.cpp": "d1e8acc0abe4d91c07784ab1f7209d62c9a0e0245ad22851bcf6550afcc23554",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLSurfaceInspectionTests.cpp": "fa624cf92d797308f7bd8fb63ee70e8e6263f94b2f8881e4c77aecb5c1978faf",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLSurfaceTests.cpp": "a94553a2aff6407f138b23f794a01e01903cb8adc70bc620411532a595e96e67",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLTectonicCharacterTests.cpp": "2f494794fcb82f1a8ed92acda5ea68177ed67d21b554f50c5761055571041e69",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLTectonicTests.cpp": "bbe5841748cca8f71dd0b0ad069d860237f959fb3a39f9619055203d7eb8b6be",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLTerrainCompositionTests.cpp": "edef1fc29a7bc94150efd410e4b7f324dec9d9bced3c676476a63dcc3d90d671",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLTerrainEditingTests.cpp": "3363ce54a28c5f4d5dc0da4ee98126cebd58e7840f75e9aae537a00d044ab938",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLTerrainTypeTests.cpp": "63d8e28c4bbbe393a2081a0114e060e25180dd21808cde5ed28abc5a651cc8b6",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLVolumeTests.cpp": "82a1d17f18e0fafd8f4d283b063556df81d0bf603c9b693eae10c3069b440713",
+    "Landform/catalyst-landform-ue-plugin/SourceArt/Surfaces/Appearance.hlsl": "aa95941bb30c8b2d4770295a2191b350e9cf64fd025d2a8030e404ee250b7168",
+    "Landform/catalyst-landform-ue-plugin/SourceArt/Surfaces/TexturedAppearance.hlsl": "3e85ceac2777682a02cf0cddcc87bad6c70559666bd9a3df7b381ef320498ebd"
+  },
+  "buildScope": "Cooked app excludes CatalystLandformEditor. Final editor-only publication/picker guards were built and checked after cooked journeys; runtime source is unchanged."
+}

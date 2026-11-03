@@ -503,7 +503,7 @@ terrain. Region children do not reapply them, and regional PCG identities and
 reference-sphere dimensions remain unchanged. This is the first structure primitive profile. Schema 11 below adds
 reusable Landform placement and structural region bindings.
 
-Planet Builder opens a worker-built globe with bounded orbit/zoom, editable name,
+Planet Builder opens a native VPP globe with bounded orbit/zoom, editable name,
 new neutral planets, Add uplift / Add basin and Details-based placement controls.
 The globe and cutaway share editable guide ticks/labels, with concentric radial
 section circles on the globe. Navigation includes bounded pan when cropped;
@@ -709,16 +709,16 @@ HLSL and client-only texture bindings keep recipe JSON free of artwork paths. Th
 Designer has a Surface layers tab with standard array editing controls. Legacy
 recipes retain their previous material path. Current limits are eight installed
 surfaces and sixteen overlays per stack, with bounded slope evaluation; this is
-a spherical-surface profile. Preview and native compositors differ, as documented.
+a spherical-surface profile. The product previews now use the native compositor too.
 
-Globe and cross-section terrain previews use UE Dynamic Mesh rendering with
-full-precision (32-bit) UV channels. Their canonical source positions remain in
-centimetres, preserving the existing shared material graph and physical texture
-scale without half-precision overflow above 655 m. All four attribute channels,
-material weights, explicit normals/tangents and neutral cut-wall masks are retained.
-The editor-only upload has no collision; native VPP remains the walking surface.
-Float32 still has magnitude-dependent rounding at planetary distances; this change
-removes half-precision overflow, not every future large-world precision concern.
+Globe and cross-section terrain previews now use VPP's native producer and visible
+mesh components, materials, LOD and collision for every recipe profile. UI edits
+coalesce into native stamp updates on the same world/runtime. Independent radial
+triangulation and Dynamic Mesh upload remain automation oracles only. Native
+collision traces support cave-floor and detached-solid selection. Normalized UI
+material coordinates still need a dedicated physical texture-phase witness;
+[the reconciliation record](Docs/NativeCoordinateAudit.md#native-generation-and-preview-reconciliation--3-november-2026)
+lists that gap, native kernel replacements, retained specializations and results.
 
 `Examples/TerrainSurfaces.json` and the three `*Surfaces.json` source examples
 provide an independent regional planet. Reproduction, authoring, appearance

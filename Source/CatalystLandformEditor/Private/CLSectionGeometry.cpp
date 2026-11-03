@@ -54,6 +54,7 @@ FVector FCLSectionGeometry::SurfacePoint(const FCLCompiledPlanetRecipe& Plan, do
     return RadialGuidePoint(FVector2D(X, Y) * (DisplaySize / Width), Source.Size() / (100 * Plan.RadiusMeters));
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
 FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan, double Heading, double WidthMeters)
 {
     FCLSectionGeometry G;
@@ -131,3 +132,5 @@ FCLSectionGeometry FCLSectionGeometry::Build(const FCLCompiledPlanetRecipe& Plan
     }
     return G;
 }
+
+#endif

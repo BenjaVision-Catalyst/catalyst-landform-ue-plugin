@@ -4,7 +4,7 @@
 `d54ac08`, UE 5.7.4 (changelist 51494982), installed VPP 2.0p8. The
 [source inventory](NativeCoordinateAudit.json) fingerprints the inspected native
 dependency and integration files. No runtime implementation changes or new native
-execution results are claimed here.
+execution results are claimed by that original audit. The reconciliation below records subsequent implementation and execution.
 
 Reuse VPP's generation, LOD and moving collision invokers. The Scale Lab's fixed
 coverage, quality floor, character replacement and pause are harness choices.
@@ -117,7 +117,7 @@ Keep the collision invoker in canonical space and instrument both view positions
 A demonstrated mismatch would call for a narrow demand-coordinate integration,
 not replacement of VPP's LOD algorithm. Multiple views/bodies need their own run.
 
-## Next bounded proof
+## Original next bounded proof
 
 Use one persistent, stationary native VPP world and the existing scene field;
 reuse the native character's attached collision invoker and
@@ -153,7 +153,7 @@ representation or replacement streamer requires a separate demonstrated need.
 Resource fetching/caching still needs its P3 contract when real server-delivered
 data is introduced. This audit does not choose its codec or transport.
 
-## Publication and resumption
+## Original audit publication and resumption
 
 This change updates the architectural checkpoint only. Validation checks the
 source fingerprints, qualification counts, float-spacing arithmetic, local
@@ -166,3 +166,93 @@ Next action: implement the persistent-native-world diagnostic above, starting
 with ordinary moving invokers and stable body coordinates. Its acceptance is
 retained native evidence that identifies whether any production coordinate gap
 exists; it is not permission to assume a streaming architecture in advance.
+
+
+## Native generation and preview reconciliation — 3 November 2026
+
+VPP is Landform's sole voxel generation and presentation platform. Its layers,
+stamps, meshing, materials, adaptive LOD, collision and moving invokers are the
+implementation foundation. Catalyst specializations express the server recipe's
+planetary/geological meaning inside that platform. A specialization needs a named
+requirement and evidence; native behavior must not be rebuilt for convenience.
+The goal remains a server recipe producing an ultra-realistic world.
+
+The review found real duplication. The earlier preview used an independent radial
+triangulation, or copied VPP triangles into a hidden-producer/visible-Dynamic-Mesh
+arrangement. Solid operations also implemented generic primitive distances, smooth
+CSG and a bounding tree. Native VPP supplies these capabilities; there was no
+established missing feature that justified those implementations. They have been
+replaced in this change. This corrects an ownership violation, not a new option
+about which terrain platform to use.
+
+| Reconciled behavior | Native implementation and application boundary |
+| --- | --- |
+| Radial base figure | `UVoxelShapeFunctionLibrary::MakeSphere` evaluates double positions and varying double effective radii, returning native float distances. Radius subtraction occurs before demotion. The immutable height profile supplies the radius input; it does not implement another sphere kernel. The older actor/source profile uses this native call too. |
+| Sphere and box solids | `FVoxelSphereShape::Sample` and `FVoxelCubeShape::Sample`. The recipe adapter supplies transforms/dimensions in body metres. |
+| Union, subtraction, material contribution | `FVoxelBlendModeUtilities::ComputeDistance`, including its native blend alpha. Application ordering remains explicit priority/accepted identity. Native distances are float; independent composition is checked within the existing 1 mm numerical budget, rather than requiring the former double formula bit pattern. |
+| Operation lookup | `FVoxelAABBTree`, including its conservative double-to-float bounds conversion. A positive exterior distance can still affect a continuous blend, so the adapter retains a conservative influence check; bounding-box membership alone is not a field-support test. |
+| Section clipping | Native cube distance and native intersection. Exterior corner distances now use VPP's Euclidean cube metric; solid/air signs and planar interfaces are checked independently. |
+| Globe and section terrain presentation | One persistent `AVoxelWorld` and native `UVoxelStampComponent` per viewport. The original visible `UVoxelMeshComponent` owns geometry, material bindings and collision. Supported native stamp transforms normalize the UI; the voxel world remains unscaled. No copied terrain mesh is drawn. |
+| Preview updates and selection | The UI coalesces the latest recipe, calls native `SetStamp`, and waits for `OnNextStateRendered` plus native readiness. Full accepted input is retained in the reflected stamp so VPP sees parameter changes. Native collision traces pick the displayed terrain, including multiple cave floors and detached geometry. Picking is withheld while an input is pending or native publication/readiness is incomplete, so an updated stamp transform cannot reinterpret retained old collision. No application chunk scheduler is introduced. |
+
+The first cooked legacy-reference run stopped at a former 1 micrometre default
+comparison. A separate native/editor export was compared with all 297 original
+frozen XYZ witnesses: maximum field change was 0.000003206703 m; heights,
+coordinates, identities and other metadata were unchanged. The old 2 cm slope
+probe amplified native float rounding into a 0.000121168 material-weight error.
+A 5 cm probe reduces that maximum to 0.0000253139, below the unchanged 0.0001
+weight budget. This is a measured precision adjustment to the existing slope
+adapter, not another shape kernel.
+
+The cooked reference checker now applies the declared 1 mm scene-field and
+0.0001 material-weight budgets to those channels, retaining stricter coordinate,
+identity and height checks. Its old root-path checks expected a leading slash
+that `FString` path joining omits. New tests reject out-of-budget errors and
+retain strict coordinate/revision checks. The original input and reference are
+kept; reports separately record frozen-field, frozen-weight and native adapter
+errors rather than hiding them in one mixed-unit maximum.
+
+`FCLGlobeBuffers::Build`, `FCLSectionGeometry::Build`, the Dynamic Mesh uploader
+and the old radial cursor oracle are now automation fixtures only. They remain
+independent reference/appearance tests, not product preview paths. Native tests
+separately verify visible native components, collision picking, recipe updates,
+persistent owner identities and normalized sphere geometry. Read-only native mesh
+inspection is bounded to one million vertices and never feeds a renderer. Its
+vertex inspection is not a qualification of every native transition displacement.
+The ocean sphere is a stock UE mesh used as a non-colliding guide overlay.
+
+### Remaining specializations, compatibility and demonstrated gaps
+
+| Retained code | Reason, evidence and limit |
+| --- | --- |
+| Recipe compiler and custom `FCLPlanetStamp` | Accepted IDs/revisions, normalized radial guides, geodesic placement, spherical charts, geological units and planetary process profiles are Catalyst domain semantics. The adapter lowers them into a native VPP volume layer and uses native kernels. It is still custom field-provider code; this change does not claim every recipe operation is a separately authored VPP graph or actor. The native heightmap sampler/blender and UE PCG placement pipeline were already used and remain in use. |
+| Capsule coordinates | Installed 2.0p8 exposes sphere/cube/plane shapes, but no capsule shape. The adapter maps a point to its nearest axial segment coordinate, then invokes the native sphere kernel. Only this missing coordinate specialization remains; no separate capsule distance formula is kept. |
+| Versioned noise compatibility | New base planets and algorithm 2 use VPP Perlin. Algorithm 1 and already-versioned continental, tectonic and material profiles retain their pinned UE Perlin semantics. `NativeGeneration.KernelAndVersioning` demonstrates that native and legacy noise differ, so replacing a kernel silently would change accepted worlds. This is a compatibility exception, **not** evidence that VPP lacks noise. New generic noise implementations are unjustified; changing these profiles requires an explicit version/migration and requalification. |
+| Authored VPP surface materials | Project HLSL defines profile-2 scanned triplanar artwork, procedural grain and the geographic grid through ordinary VPP Surface Type/UE material hooks. These are pinned appearance inputs, not a replacement VPP material compositor or evidence that native texturing is unavailable. The separate eight-surface preview material/uploader is retained only by automation reference fixtures. |
+| Curvature presentation and canonical picking | The existing projection changes apparent curvature while collision stays canonical. Prior GPU, bounds, phase, history and inverse-pick proofs document why the application adapter exists. VPP still produces and presents the voxels. Ordinary native LOD and invokers remain the owners of terrain demand. See the persistent-world checkpoint and its explicit exclusions. |
+| Application navigation and footing | Body-frame transforms, radial-up selection, globe/section navigation and the bounded XYZ spawn-footing locator interpret the planetary model. Character movement remains UE movement and contact remains native VPP collision. The locator is not a replacement physics solver or a certified general ray-miss test; thin-feature/transfer exclusions remain. |
+| Origin compatibility and gravity | The retained VPP 2.0p8/UE 5.7.4 transform/collider repairs and Catalyst gravity-cache repair have bounded native reproducers. The cooked follow-up isolated both the stale Catalyst gravity centre and VPP layer snapshots using an out-of-date query frame. The latter needs synchronous `QueryToWorld` refresh before native snapshot publication; neither defect requires replacement generation or moving invokers. See `conformance/origin-contact-mac-arm64.json`. |
+| Normalized preview physical material coordinates | The native default surface material consumes world/display coordinates. A normalized stamp changes displayed scale; the section chart also changes XYZ. The retired renderer supplied separate canonical XYZ UVs. Thus native geometry/material ownership alone does **not** establish physical-metre texture phase parity in these overview views. This is an adapter coordinate gap identified in the actual material wiring, not a missing native mesher or a justification for restoring copied meshes. Native material parameters/attributes need a separate bounded witness before claiming that ideal or the former neutral cut-face styling. Existing reference-mesh appearance tests do not close it. |
+| Filtered fields, fine planetary noise and external resources | The earlier audit's point-query, float noise-input and server-resource/datum limits remain open. This reconciliation does not qualify erosion, scientific datums, production frame-time tails, resource residency or a server transport contract. |
+
+The native shape library is stateless for the invoked function. Its class default
+object is bound at compilation/initialization on the game thread; workers call
+only the native buffer kernel, with no lookup or authoring/world UObject reads.
+The retained recipe snapshot supplies native hashing; the non-reflected compiled
+pointer alone is insufficient to describe changed native input.
+
+Reproduction and measured results are recorded in
+[`conformance/native-reconciliation-mac-arm64.json`](../conformance/native-reconciliation-mac-arm64.json).
+The bounded scale harness and the persistent travel/origin tests remain distinct.
+No custom streaming manager is added, and none is justified by this reconciliation.
+
+
+Final qualification passes 35 editor checks with no automation warnings, 20
+version-pinned dependency checks, 32 cooked scale cases, 12 volumetric walks
+against the unchanged original reference, 12 short live-origin contact repeats,
+and 12 persistent journeys (10 stable-frame/curvature journeys and two separate
+origin journeys). All cooked runs use one executable fingerprint. Final
+editor-only publication and explicit-fixture guards were checked afterward;
+no runtime source changed. The source/runner/artifact hashes, measured errors
+and exclusions are retained in the linked reconciliation record. All 151
+protected local files retain their original hashes.

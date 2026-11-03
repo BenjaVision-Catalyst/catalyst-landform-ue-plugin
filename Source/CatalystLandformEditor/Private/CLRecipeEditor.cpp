@@ -24,7 +24,7 @@
 #include "Async/Async.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanetPreview.h"
-#include "CLVolumePreview.h"
+#include "CLNativePreview.h"
 #include "CLPlanetInspection.h"
 #include "Containers/Ticker.h"
 #include "PropertyPath.h"
@@ -160,7 +160,7 @@ public:
     }
     virtual void Tick(float Delta) override
     {
-        if(Plan&&Plan->Volumes)FEditorViewportClient::Tick(Delta);SectionScene->UpdateCaptureContents();
+        if(Plan)FEditorViewportClient::Tick(Delta);SectionScene->UpdateCaptureContents();
         if (Viewport && Viewport->GetSizeXY().X > 0 && Viewport->GetSizeXY().Y > 0 && Viewport->GetSizeXY() != NavigationSize) ApplyNavigation();
     }
     // All camera gestures are object navigation. Never enter editor flight mode.
@@ -539,58 +539,16 @@ public:
     }
 };
 
-struct FCLSectionBuffers
-{
-    FCLSectionGeometry Geometry;
-    TArray<FVector> Normals;
-    TArray<FVector2D> UV;
-    TArray<FProcMeshTangent> Tangents;
-    static FCLSectionBuffers Build(const FCLCompiledPlanetRecipe& Plan, double Width,int32 Resolution=0)
-    {
-        FCLSectionBuffers B; B.Geometry = FCLSectionGeometry::Build(Plan, Resolution, Width);
-        B.Finish(); return B;
-    }
-    void Finish()
-    {
-        auto& B = *this;
-        B.UV.Init(FVector2D::ZeroVector, B.Geometry.Vertices.Num());
-        // Pure array math: no scene components or other UObject state on the worker.
-        // The generic helper searches every vertex for overlaps for every corner
-        // (quadratic at detailed preview sizes). Our topology already shares top
-        // vertices and splits cut faces: accumulate normals by index in one pass.
-        B.Normals.Init(FVector::ZeroVector, B.Geometry.Vertices.Num());
-        for (int32 I = 0; I < B.Geometry.Triangles.Num(); I += 3)
-        {
-            const int32 A = B.Geometry.Triangles[I], C = B.Geometry.Triangles[I + 1], D = B.Geometry.Triangles[I + 2];
-            const FVector Normal = FVector::CrossProduct(B.Geometry.Vertices[D] - B.Geometry.Vertices[A],
-                B.Geometry.Vertices[C] - B.Geometry.Vertices[A]).GetSafeNormal();
-            B.Normals[A] += Normal; B.Normals[C] += Normal; B.Normals[D] += Normal;
-        }
-        B.Tangents.Reserve(B.Normals.Num());
-        for (FVector& Normal : B.Normals)
-        {
-            Normal = Normal.GetSafeNormal();
-            const FVector Axis = FMath::Abs(Normal.X) < .9 ? FVector::XAxisVector : FVector::YAxisVector;
-            B.Tangents.Emplace((Axis - Normal * FVector::DotProduct(Axis, Normal)).GetSafeNormal(), false);
-        }
-    }
-};
 class SCLSectionViewport : public SEditorViewport
 {
 public:
     SLATE_BEGIN_ARGS(SCLSectionViewport) {} SLATE_END_ARGS()
     FCLSectionScene Scene;
-    TStrongObjectPtr<UDynamicMeshComponent> Mesh;
-    TUniquePtr<FCLVolumePreview> VolumePreview;
+    TUniquePtr<FCLNativePreview> NativePreview;
     TSharedPtr<FCLSectionClient> Client;
     bool bCameraFramed = false;
-    TFuture<FCLSectionBuffers> BuildTask;
-    TSharedPtr<const FCLCompiledPlanetRecipe> PendingPlan;
-    double PendingWidth = 500;
-    uint64 Revision = 0, TaskRevision = 0;
-    bool bDraft=false,bTaskDraft=false;
-    uint64 Epoch=0,TaskEpoch=0;
-    void SetDraftMode(bool Enabled){if(bDraft!=Enabled)++Epoch;bDraft=Enabled;}
+    bool bDraft=false;
+    void SetDraftMode(bool Enabled){bDraft=Enabled;}
     int32 StartedBuilds = 0, AppliedBuilds = 0;
     FKey NavigationButton;
     FVector2D PreviousMouse;
@@ -617,12 +575,12 @@ public:
     virtual FReply OnMouseButtonUp(const FGeometry& G, const FPointerEvent& E) override
     {
         if (!HasMouseCapture() || E.GetEffectingButton() != NavigationButton) return FReply::Unhandled();
-        if(NavigationButton==EKeys::LeftMouseButton&&PointerTravel<4&&bWalkPicking&&VolumePreview&&Client->bHasProjection)
+        if(NavigationButton==EKeys::LeftMouseButton&&PointerTravel<4&&bWalkPicking&&NativePreview&&Client->bHasProjection)
         {
             const FVector2D Local=G.AbsoluteToLocal(E.GetScreenSpacePosition()),Size=G.GetLocalSize();FVector O,D;
             const FVector2D Pixel=FVector2D(Client->ViewRect.Min)+Local/FVector2D(FMath::Max(1.,Size.X),FMath::Max(1.,Size.Y))*FVector2D(Client->ViewRect.Size());
             FSceneView::DeprojectScreenToWorld(Pixel,Client->ViewRect,Client->ViewProjection.Inverse(),O,D);FVector P;
-            if(VolumePreview->PickSection(O,D.GetSafeNormal(),P)&&OnWalkPoint)OnWalkPoint(P);
+            if(NativePreview->PickSection(O,D.GetSafeNormal(),P)&&OnWalkPoint)OnWalkPoint(P);
         }
         NavigationButton = FKey(); return FReply::Handled().ReleaseMouseCapture();
     }
@@ -632,75 +590,33 @@ public:
     virtual FReply OnKeyDown(const FGeometry&, const FKeyEvent&) override { return FReply::Unhandled(); }
     void Construct(const FArguments& Args)
     {
-        Mesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));
-        Scene.AddComponent(Mesh.Get(), FTransform::Identity);
-        Mesh->SetMaterial(0, LoadObject<UMaterial>(nullptr, TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
         SEditorViewport::Construct(SEditorViewport::FArguments());
     }
     virtual ~SCLSectionViewport()
     {
-        VolumePreview.Reset();
+        NativePreview.Reset();
         if (Client) Client->Viewport = nullptr;
-        if (Mesh) Scene.RemoveComponent(Mesh.Get());
     }
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
     { Client = MakeShared<FCLSectionClient>(&Scene, SharedThis(this)); return Client.ToSharedRef(); }
-    bool IsUpdating() const { return BuildTask.IsValid() || PendingPlan.IsValid() || (VolumePreview&&VolumePreview->IsUpdating()); }
-    void CancelPendingBuild()
-    { ++Revision;++Epoch; PendingPlan.Reset();VolumePreview.Reset(); }
+    bool IsUpdating() const{return NativePreview&&NativePreview->IsUpdating();}
+    void CancelPendingBuild(){NativePreview.Reset();}
     void PumpBuild()
     {
-        if (BuildTask.IsValid() && BuildTask.IsReady())
-        {
-            auto Buffers = BuildTask.Get(); BuildTask = TFuture<FCLSectionBuffers>();
-            if (TaskRevision == Revision||(bDraft&&bTaskDraft&&TaskEpoch==Epoch&&PendingPlan.IsValid())) ApplyBuffers(Buffers);
-        }
-        if (!BuildTask.IsValid() && PendingPlan)
-        {
-            const auto Plan = PendingPlan; const double Width = PendingWidth;
-            PendingPlan.Reset(); TaskRevision = Revision; ++StartedBuilds;
-            bTaskDraft=bDraft;TaskEpoch=Epoch;const int32 Resolution=bDraft?64:0;BuildTask = Async(EAsyncExecution::ThreadPool, [Plan, Width, Resolution] { return FCLSectionBuffers::Build(*Plan, Width, Resolution); });
-        }
+        if(NativePreview&&NativePreview->Poll(false)){++AppliedBuilds;if(!bCameraFramed){bCameraFramed=true;Client->ApplyNavigation();}Client->Invalidate();}
     }
-    virtual void Tick(const FGeometry& G, double T, float D) override
-    { SEditorViewport::Tick(G, T, D); PumpBuild();if(VolumePreview&&VolumePreview->Poll(*Mesh.Get(),false)){++AppliedBuilds;Client->ApplyNavigation();Client->Invalidate();} }
+    virtual void Tick(const FGeometry& G,double T,float D) override
+    {SEditorViewport::Tick(G,T,D);PumpBuild();}
     void RebuildAsync(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
     {
-        if (!Plan) { CancelPendingBuild(); return; }
-        if(Plan->Volumes)
-        {
-            CancelPendingBuild();Client->Plan=Plan;if(Client->AreaWidthMeters<=0)Client->AreaWidthMeters=500;
-            if(!VolumePreview)VolumePreview=MakeUnique<FCLVolumePreview>();FString Error;
-            if(!VolumePreview->Start(*Scene.GetWorld(),Plan,true,Client->AreaWidthMeters,Error))UE_LOG(LogTemp,Error,TEXT("Volume section: %s"),*Error);
-            if(!bCameraFramed){bCameraFramed=true;Client->ApplyNavigation();}return;
-        }
-        VolumePreview.Reset();
-        Client->Plan = Plan;
-        if (Client->AreaWidthMeters <= 0) Client->AreaWidthMeters = FCLSectionGeometry::DefaultWidth(*Plan);
-        ++Revision; PendingPlan = MoveTemp(Plan); PendingWidth = Client->AreaWidthMeters;
-        PumpBuild();
+        if(!Plan){CancelPendingBuild();return;}Client->Plan=Plan;
+        if(Client->AreaWidthMeters<=0)Client->AreaWidthMeters=FCLSectionGeometry::DefaultWidth(*Plan);
+        if(!NativePreview)NativePreview=MakeUnique<FCLNativePreview>();FString Error;
+        if(!NativePreview->Start(*Scene.GetWorld(),Plan,true,Client->AreaWidthMeters,Error,bDraft))UE_LOG(LogTemp,Error,TEXT("Native section: %s"),*Error);
+        ++StartedBuilds;if(!bCameraFramed){bCameraFramed=true;Client->ApplyNavigation();}
     }
-    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
-    {
-        if(Plan&&Plan->Volumes){RebuildAsync(MoveTemp(Plan));return;}VolumePreview.Reset();
-        CancelPendingBuild();
-        Client->Plan = Plan;
-        if (!Plan) return;
-        if (Client->AreaWidthMeters <= 0) Client->AreaWidthMeters = FCLSectionGeometry::DefaultWidth(*Plan);
-        ApplyBuffers(FCLSectionBuffers::Build(*Plan, Client->AreaWidthMeters));
-    }
-    void ApplyBuffers(const FCLSectionBuffers& B)
-    {
-        ++AppliedBuilds; const auto& G = B.Geometry;
-        Mesh->SetMaterial(0,G.Surfaces?CLMakeSurfacePreviewMaterial(Mesh.Get(),*G.Surfaces):LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Designer/M_Section.M_Section")));
-        CLSetPreviewMesh(*Mesh.Get(),G.Vertices,G.Triangles,B.Normals,G.Surfaces?G.SurfaceUV:B.UV,G.SurfaceUV1,G.SurfaceUV2,G.SurfaceUV3,G.Colors,B.Tangents);
-        if (!bCameraFramed)
-        {
-            bCameraFramed = true;
-            Client->ApplyNavigation();
-        }
-        Client->Invalidate();
-    }
+    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){RebuildAsync(MoveTemp(Plan));}
+
 };
 
 class FCLPlanetDetailsLayout : public IDetailCustomization
@@ -1625,54 +1541,6 @@ bool FCLDistanceInputUnitsTest::RunTest(const FString&)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDeferredTerrainPreviewTest, "Catalyst.Landform.Designer.DeferredTerrainPreview",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FCLDeferredTerrainPreviewTest::RunTest(const FString&)
-{
-    FString Error; auto Recipe = FCLPlanetCompiler::RollingPlains(); Recipe.RadiusMeters = 1000;
-    const auto First = FCLPlanetCompiler::Compile(Recipe, Error);
-    Recipe.NoiseLayers[0].Minimum.OffsetMeters = 30;
-    const auto Latest = FCLPlanetCompiler::Compile(Recipe, Error);
-    const TSharedRef<SCLSectionViewport> Preview = SNew(SCLSectionViewport);
-    Preview->Client->AreaWidthMeters = 100;
-    Preview->RebuildAsync(First);
-    for (int32 I = 0; I < 50; ++I) Preview->RebuildAsync(Latest);
-    TestEqual(TEXT("Only one worker starts while changes coalesce"), Preview->StartedBuilds, 1);
-    while (Preview->IsUpdating())
-    { if (Preview->BuildTask.IsValid()) Preview->BuildTask.Wait(); Preview->PumpBuild(); }
-    TestEqual(TEXT("Only the final pending snapshot starts a second worker"), Preview->StartedBuilds, 2);
-    TestEqual(TEXT("Obsolete geometry never reaches the scene"), Preview->AppliedBuilds, 1);
-    const auto Expected = FCLSectionGeometry::Build(*Latest, 0, 100);
-    TestTrue(TEXT("Displayed mesh matches latest settings"), Preview->Mesh->GetMesh()->GetVertex(0).Equals(Expected.Vertices[0], .01));
-    // Exercise the complete render-buffer path at the detailed grid cap, not
-    // just height sampling. This catches accidental generic overlap searches.
-    auto Dense = Expected;
-    constexpr int32 DenseSide = 513;
-    Dense.Vertices.Reset(); Dense.Triangles.Reset();
-    for (int32 Y = 0; Y < DenseSide; ++Y)
-        for (int32 X = 0; X < DenseSide; ++X) Dense.Vertices.Add(FVector(X, Y, .1 * X));
-    for (int32 Y = 0; Y < DenseSide - 1; ++Y)
-        for (int32 X = 0; X < DenseSide - 1; ++X)
-        {
-            const int32 A = Y * DenseSide + X;
-            Dense.Triangles.Append({A, A + DenseSide + 1, A + 1, A, A + DenseSide, A + DenseSide + 1});
-        }
-    FCLSectionBuffers DenseBuffers; DenseBuffers.Geometry = MoveTemp(Dense); DenseBuffers.Finish();
-    const FVector ExpectedNormal = FVector(-.1, 0, 1).GetSafeNormal();
-    bool bFramesValid = DenseBuffers.Normals.Num() == DenseSide * DenseSide;
-    for (int32 I = 0; I < DenseBuffers.Normals.Num(); ++I)
-        bFramesValid &= DenseBuffers.Normals[I].Equals(ExpectedNormal, 1.e-6)
-            && FMath::IsNearlyEqual(DenseBuffers.Tangents[I].TangentX.Size(), 1.0, 1.e-6)
-            && FMath::Abs(FVector::DotProduct(DenseBuffers.Normals[I], DenseBuffers.Tangents[I].TangentX)) < 1.e-6;
-    TestTrue(TEXT("Maximum-size preview produces outward unit normals and orthogonal unit tangents"), bFramesValid);
-    const auto Eye = Preview->Client->GetViewLocation();
-    Preview->RebuildAsync(First); Preview->CancelPendingBuild();
-    while (Preview->IsUpdating())
-    { if (Preview->BuildTask.IsValid()) Preview->BuildTask.Wait(); Preview->PumpBuild(); }
-    TestEqual(TEXT("Invalid settings can cancel pending geometry without replacing the valid scene"), Preview->AppliedBuilds, 1);
-    TestTrue(TEXT("Background completion does not reset camera framing"), Preview->Client->GetViewLocation().Equals(Eye));
-    return true;
-}
 
 namespace
 {
@@ -1781,7 +1649,7 @@ bool FCLFixedDesignerFrameTest::RunTest(const FString&)
     const FRotator Rotation = Preview->Client->GetViewRotation() + FRotator(2, 3, 0);
     Preview->Client->SetViewLocation(Eye); Preview->Client->SetViewRotation(Rotation);
     const FVector Target = Preview->Client->GetLookAtLocation();
-    const FBox InitialBounds = CLPreviewMeshBounds(*Preview->Mesh.Get());
+    const FBox InitialBounds = Preview->NativePreview->DisplayBounds();
     FVector PreviousCorner; bool bPrevious = false;
     for (double Width : {100.0, 500.0, 1000.0})
     {
@@ -1790,8 +1658,8 @@ bool FCLFixedDesignerFrameTest::RunTest(const FString&)
         TestTrue(TEXT("Coverage preserves the user's camera position"), Preview->Client->GetViewLocation().Equals(Eye, .001));
         TestTrue(TEXT("Coverage preserves the user's camera rotation"), Preview->Client->GetViewRotation().Equals(Rotation, .001));
         TestTrue(TEXT("Coverage preserves the orbit target"), Preview->Client->GetLookAtLocation().Equals(Target, .001));
-        const FBox Bounds = CLPreviewMeshBounds(*Preview->Mesh.Get());
-        TestTrue(TEXT("Coverage leaves the displayed block bounds unchanged"), Bounds.Min.Equals(InitialBounds.Min, .01) && Bounds.Max.Equals(InitialBounds.Max, .01));
+        const FBox Bounds = Preview->NativePreview->DisplayBounds();
+        TestTrue(TEXT("Coverage leaves the native stamp display domain unchanged"), Bounds.Min.Equals(InitialBounds.Min, .01) && Bounds.Max.Equals(InitialBounds.Max, .01));
         const FVector Corner = FCLSectionGeometry::SourceSurfacePoint(*Plan, Width / 2, Width / 2, 0);
         if (bPrevious) TestFalse(TEXT("Larger coverage samples different data at the same displayed corner"), Corner.Equals(PreviousCorner, .01));
         PreviousCorner = Corner; bPrevious = true;
@@ -1799,8 +1667,8 @@ bool FCLFixedDesignerFrameTest::RunTest(const FString&)
     Recipe.RadiusMeters = 100;
     Preview->Rebuild(FCLPlanetCompiler::Compile(Recipe, Error));
     TestTrue(TEXT("Resizing a planet preserves the display camera"), Preview->Client->GetViewLocation().Equals(Eye, .001));
-    const FBox ResizedBounds = CLPreviewMeshBounds(*Preview->Mesh.Get());
-    TestTrue(TEXT("Normalized display bounds are independent of planet radius"), ResizedBounds.Min.Equals(InitialBounds.Min, .01) && ResizedBounds.Max.Equals(InitialBounds.Max, .01));
+    const FBox ResizedBounds = Preview->NativePreview->DisplayBounds();
+    TestTrue(TEXT("Normalized native stamp bounds are independent of planet radius"), ResizedBounds.Min.Equals(InitialBounds.Min, .01) && ResizedBounds.Max.Equals(InitialBounds.Max, .01));
     const FVector BeforeKeys = Preview->Client->GetViewLocation();
     Preview->Client->InputKey(FInputKeyEventArgs::CreateSimulated(EKeys::W, IE_Pressed, 1));
     Preview->Client->InputAxis(FInputKeyEventArgs::CreateSimulated(EKeys::MouseX, IE_Axis, 200));
@@ -2078,8 +1946,39 @@ bool FCLGuideMeasurementsRenderTest::RunTest(const FString&)
 #endif
 
 #if WITH_DEV_AUTOMATION_TESTS
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLVolumePreviewTest,"Catalyst.Landform.Volumes.NativePreview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLVolumePreviewTest::RunTest(const FString&)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNativeLocalPreviewTest,"Catalyst.Landform.NativeGeneration.NativeLocalSection",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLNativeLocalPreviewTest::RunTest(const FString&)
+{
+    FString Error;auto R=FCLPlanetCompiler::BasePlanet();R.Coordinates=ECLTerrainCoordinates::LocalPatch;
+    const auto First=FCLPlanetCompiler::Compile(R,Error);R.BaseSurfaceNormalized=.6;const auto Latest=FCLPlanetCompiler::Compile(R,Error);
+    if(!First||!Latest){AddError(Error);return false;}
+    const auto Section=SNew(SCLSectionViewport);const auto Window=SNew(SWindow).ClientSize(FVector2D(640,480))[Section];
+    FSlateApplication::Get().AddWindow(Window,false);Window->SlatePrepass();Section->Rebuild(First);
+    class FWait final:public IAutomationLatentCommand
+    {
+    public:
+        FAutomationTestBase* Test;TSharedRef<SCLSectionViewport> Section;TSharedRef<SWindow> Window;TSharedPtr<const FCLCompiledPlanetRecipe> First,Latest;
+        int32 Phase=0;uint32 Owner=0;const void* Runtime=nullptr;double Start=FPlatformTime::Seconds();
+        FWait(FAutomationTestBase* T,TSharedRef<SCLSectionViewport> S,TSharedRef<SWindow> W,TSharedPtr<const FCLCompiledPlanetRecipe> A,TSharedPtr<const FCLCompiledPlanetRecipe> B):Test(T),Section(S),Window(W),First(A),Latest(B){}
+        bool Update()override
+        {
+            Section->PumpBuild();auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+            if(FPlatformTime::Seconds()-Start>30){Test->AddError(Section->NativePreview->Status());return Close();}
+            if(Section->IsUpdating())return false;
+            auto& P=*Section->NativePreview;Test->TestTrue(TEXT("Local section is rendered by VPP"),P.UsesNativePresentation());
+            if(Phase==0){Owner=P.WorldIdentity();Runtime=P.RuntimeIdentity();Section->Rebuild(Latest);Section->Rebuild(First);Section->Rebuild(Latest);FVector PendingHit;Test->TestFalse(TEXT("Queued input cannot pick retained collision with a new recipe"),P.PickSection(FVector(0,0,90000),FVector(0,0,-1),PendingHit));++Phase;Start=FPlatformTime::Seconds();return false;}
+            Test->TestEqual(TEXT("Local section reuses native world"),P.WorldIdentity(),Owner);Test->TestTrue(TEXT("Local section reuses native runtime"),P.RuntimeIdentity()==Runtime);
+            Test->TestTrue(TEXT("Local section publishes latest input"),P.PublishedPlan()==Latest);
+            FVector Hit;const bool Picked=P.PickSection(FVector(0,0,90000),FVector(0,0,-1),Hit);
+            Test->TestTrue(TEXT("Native local collision follows changed physical height"),Picked&&FMath::Abs(Hit.Z-600)<.5);
+            Test->AddInfo(FString::Printf(TEXT("Local section native contact: %d %s"),Picked,*Hit.ToString()));return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FWait>(this,Section,Window,First,Latest));return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNativePreviewTest,"Catalyst.Landform.Volumes.NativePreview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLNativePreviewTest::RunTest(const FString&)
 {
     FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
     TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>());
@@ -2101,30 +2000,30 @@ bool FCLVolumePreviewTest::RunTest(const FString&)
             if(FPlatformTime::Seconds()-StableAt<1){Section->Client->Invalidate();Globe->Invalidate();return false;}
             Test->TestFalse(TEXT("Native globe completes publication"),Globe->IsUpdating());Test->TestFalse(TEXT("Native flat cutaway completes publication"),Section->IsUpdating());
             Test->TestTrue(TEXT("Native globe publishes geometry"),Globe->PublishedBuilds()>0);
-            Test->AddInfo(Globe->VolumePreviewStatus());
-            Test->TestTrue(TEXT("Native cutaway publishes its VPP triangles"),Section->AppliedBuilds>0&&Section->VolumePreview&&Section->VolumePreview->Published().Triangles.Num()>0);
-            if(Section->VolumePreview)
+            Test->AddInfo(Globe->NativePreviewStatus());
+            Test->TestTrue(TEXT("Native cutaway publishes its VPP triangles"),Section->AppliedBuilds>0&&Section->NativePreview&&Section->NativePreview->Published().Triangles.Num()>0);
+            if(Section->NativePreview)
             {
-                const auto& B=Section->VolumePreview->Published();bool Underground=false,Floating=false;
+                const auto& B=Section->NativePreview->Published();bool Underground=false,Floating=false;
                 FBox SourceBox(ForceInit),DisplayBox(ForceInit);double MinR=MAX_dbl,MaxR=0;
                 for(const auto& P:B.SourcePoints){Underground|=P.Size()<64500;Floating|=P.Size()>80000;SourceBox+=P;MinR=FMath::Min(MinR,P.Size());MaxR=FMath::Max(MaxR,P.Size());}
                 for(const auto& P:B.Vertices)DisplayBox+=P;
                 Test->AddInfo(FString::Printf(TEXT("Source %s display %s radii %.3f..%.3f"),*SourceBox.ToString(),*DisplayBox.ToString(),MinR,MaxR));
                 Test->TestTrue(TEXT("Native cutaway includes cave-depth rock and detached formation above base max"),Underground&&Floating);
-                Test->AddInfo(FString::Printf(TEXT("Cutaway native triangles %d, original body positions %d; producer: %s"),B.Triangles.Num()/3,B.SourcePoints.Num(),*Section->VolumePreview->Status()));
+                Test->AddInfo(FString::Printf(TEXT("Cutaway native triangles %d, original body positions %d; producer: %s"),B.Triangles.Num()/3,B.SourcePoints.Num(),*Section->NativePreview->Status()));
                 const double Reference=FCLSectionGeometry::ReferenceSurfaceRadius(*Section->Client->Plan);
                 auto Display=[Reference](const FVector& P){const double A=FMath::Atan2(FVector2D(P.X,P.Y).Size(),P.Z);const FVector2D XY=FVector2D(P.X,P.Y).GetSafeNormal()*(A*Reference);return FVector(XY.X/500,XY.Y/500,P.Length()/1000)*100000.;};
                 for(double Z:{631.,604.})
                 {
                     FVector Pick;const FVector Start=Display(FVector(0,45,Z+2));
-                    const bool Hit=Section->VolumePreview->PickSection(Start,FVector(0,0,-1),Pick);
+                    const bool Hit=Section->NativePreview->PickSection(Start,FVector(0,0,-1),Pick);
                     Test->TestTrue(TEXT("Native cutaway selects each underground floor by XYZ"),Hit&&FMath::Abs(Pick.Z-Z)<.3);
                     Test->AddInfo(FString::Printf(TEXT("Cutaway floor %.0f: hit %d, %s"),Z,Hit,*Pick.ToString()));
 
                 }
             }
                 FVector FloatingPick;
-                const bool FloatingHit=Globe->VolumePreview&&Globe->VolumePreview->PickGlobe(FVector(8500,-2000,85000),FVector(0,0,-1),FloatingPick);
+                const bool FloatingHit=Globe->NativePreview&&Globe->NativePreview->PickGlobe(FVector(8500,-2000,85000),FVector(0,0,-1),FloatingPick);
                 Test->TestTrue(TEXT("Globe picking selects the detached solid above the radial base"),FloatingHit&&FloatingPick.Z>800&&FloatingPick.Z<830);
                 Test->AddInfo(FString::Printf(TEXT("Globe detached pick: hit %d, %s"),FloatingHit,*FloatingPick.ToString()));
             TArray<FColor> Pixels;FIntVector Size;

@@ -1,20 +1,56 @@
 #include "Scene/CLVolumes.h"
 #include "Surface/CLSurfaceCompiler.h"
+#include "Shape/VoxelSphereShape.h"
+#include "Shape/VoxelCubeShape.h"
+#include "VoxelBlendModeUtilities.h"
+#include "VoxelAABBTree.h"
+
+// Native buffers use metres here; the outer VPP stamp adapter owns cm conversion.
+class FCLNativeVolumeIndex
+{
+public:
+    TSharedPtr<const FVoxelAABBTree> Tree;
+};
+
+void FCLCompiledVolumes::FOperation::SampleFields(TConstArrayView<FVector3d> Positions,TArray<double>& Fields) const
+{
+    FVoxelDoubleVectorBuffer Local;Local.Allocate(Positions.Num());
+    for(int32 I=0;I<Positions.Num();++I)
+    {
+        FVector3d P=Transform.InverseTransformPosition(Positions[I]);
+        // VPP 2.0p8 has sphere/cube/plane shapes, but no capsule shape. Keep only
+        // the segment-coordinate specialisation; VPP evaluates the sphere field.
+        if(Source.Primitive==ECLSolidPrimitive::Capsule)P.Z-=FMath::Clamp(P.Z,-Source.HalfLengthMeters,Source.HalfLengthMeters);
+        Local.Set(I,P);
+    }
+    FVoxelFloatBuffer Native;Native.Allocate(Positions.Num());
+    if(Source.Primitive==ECLSolidPrimitive::Box)
+    {FVoxelCubeShape Shape;Shape.Size=Source.HalfExtentsMeters*2;Shape.Sample(Native.View(),Local);}
+    else
+    {FVoxelSphereShape Shape;Shape.Radius=Source.RadiusMeters;Shape.Sample(Native.View(),Local);}
+    Fields.SetNumUninitialized(Positions.Num());
+    for(int32 I=0;I<Positions.Num();++I)Fields[I]=double(Native[I])*MinimumScale;
+}
 
 double FCLCompiledVolumes::FOperation::Field(const FVector3d& Position) const
 {
-    const FVector3d P=Transform.InverseTransformPosition(Position);double D=0;
-    switch(Source.Primitive)
-    {
-    case ECLSolidPrimitive::Sphere:D=P.Length()-Source.RadiusMeters;break;
-    case ECLSolidPrimitive::Capsule:
-        D=(P-FVector3d(0,0,FMath::Clamp(P.Z,-Source.HalfLengthMeters,Source.HalfLengthMeters))).Length()-Source.RadiusMeters;break;
-    case ECLSolidPrimitive::Box:
-    {const FVector3d Q=P.GetAbs()-Source.HalfExtentsMeters;D=Q.ComponentMax(FVector3d::ZeroVector).Length()+FMath::Min(0.,Q.GetMax());break;}
-    }
-    // Conservative scalar under nonuniform transforms; correct zero set, not
-    // an assertion of Euclidean distance for the composed scene.
-    return D*MinimumScale;
+    TArray<double> Fields;SampleFields(MakeArrayView(&Position,1),Fields);return Fields[0];
+}
+
+namespace
+{
+double NativeBlend(const FCLCompiledVolumes::FOperation& O,double A,double B,float* Alpha)
+{
+    const auto Mode=O.Source.Composition==ECLSolidComposition::Subtract?EVoxelVolumeBlendMode::Subtractive:EVoxelVolumeBlendMode::Additive;
+    return FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),float(A),float(B),Mode,true,float(O.Source.SmoothnessMeters),Alpha);
+}
+bool CanSkip(const FCLCompiledVolumes::FOperation& O,const FVector3d& P,double A,bool InBounds)
+{
+    if(InBounds)return false;
+    const double Lower=FMath::Sqrt(O.Bounds.ComputeSquaredDistanceToPoint(P))*O.MinimumScale/O.Source.Scale.GetMax();
+    const double Threshold=(O.Source.Composition==ECLSolidComposition::Subtract?-A:A)+O.Source.SmoothnessMeters;
+    return Lower>=Threshold;
+}
 }
 
 TSharedPtr<const FCLCompiledVolumes> FCLCompiledVolumes::Compile(const FCLVolumeSettings& S,double Radius,
@@ -60,52 +96,44 @@ TSharedPtr<const FCLCompiledVolumes> FCLCompiledVolumes::Compile(const FCLVolume
         if(Material==INDEX_NONE)return Fail(TEXT("Geological unit surface is missing from the client library"));
         Out->Units.Add({U.RadiusInterval.X*Radius,U.RadiusInterval.Y*Radius,U.FeatherMeters,Material});
     }
-    if(!Out->Operations.IsEmpty()){TArray<int32> Items;for(int32 I=0;I<Out->Operations.Num();++I)Items.Add(I);Out->BuildIndex(MoveTemp(Items));}
+    if(!Out->Operations.IsEmpty())
+    {
+        FVoxelAABBTree::FElementArray Elements;Elements.Reserve(Out->Operations.Num());
+        for(int32 I=0;I<Out->Operations.Num();++I)Elements.Add(FVoxelBox(Out->Operations[I].Bounds),I);
+        auto Native=MakeShared<FCLNativeVolumeIndex>();Native->Tree=FVoxelAABBTree::Create(MoveTemp(Elements));Out->Index=Native;
+    }
     return Out;
 }
 
-int32 FCLCompiledVolumes::BuildIndex(TArray<int32> Items)
-{
-    FNode Node;Node.Bounds=FBox3d(ForceInit);for(int32 I:Items){Node.Bounds+=Operations[I].Bounds;Node.Mask|=uint64(1)<<I;}
-    const int32 N=Index.Add(Node);if(Items.Num()<=4)return N;
-    const FVector3d Size=Node.Bounds.GetSize();const int32 Axis=Size.X>Size.Y?(Size.X>Size.Z?0:2):(Size.Y>Size.Z?1:2);
-    Items.Sort([&](int32 A,int32 B){return Operations[A].Bounds.GetCenter()[Axis]<Operations[B].Bounds.GetCenter()[Axis];});
-    TArray<int32> Left,Right;for(int32 I=0;I<Items.Num();++I)(I<Items.Num()/2?Left:Right).Add(Items[I]);
-    const int32 L=BuildIndex(MoveTemp(Left)),R=BuildIndex(MoveTemp(Right));Index[N].Left=L;Index[N].Right=R;return N;
-}
+int32 FCLCompiledVolumes::IndexedOperationCount() const {return Index?Index->Tree->Num():0;}
 uint64 FCLCompiledVolumes::Candidates(const FVector3d& P) const
 {
-    if(Index.IsEmpty())return 0;uint64 Mask=0;TArray<int32,TInlineAllocator<16>> Stack;Stack.Add(0);
-    while(!Stack.IsEmpty())
-    {
-        const auto& N=Index[Stack.Pop(EAllowShrinking::No)];if(!N.Bounds.IsInsideOrOn(P))continue;
-        if(N.Left==INDEX_NONE)Mask|=N.Mask;else{Stack.Add(N.Left);Stack.Add(N.Right);}
-    }
+    if(!Index)return 0;uint64 Mask=0;
+    Index->Tree->Intersects(FVoxelFastBox(FVoxelBox(P,P)),[&](int32 I){Mask|=uint64(1)<<I;return false;});
     return Mask;
 }
 double FCLCompiledVolumes::Compose(const FVector3d& P,double A,FCLSurfaceWeights* Weights) const
 {
     const uint64 Mask=Candidates(P);
-    for(int32 I=0;I<Operations.Num();++I)
+    for(int32 OpIndex=0;OpIndex<Operations.Num();++OpIndex)
     {
-        const auto& O=Operations[I];
-        if(!(Mask&(uint64(1)<<I))||!O.Bounds.IsInsideOrOn(P))
-        {
-            // A primitive's positive field continues outside its zero-set box.
-            // Dropping it there corrupts native interpolation and can erase
-            // detached solids. Skip only when a conservative lower bound proves
-            // that neither the field nor the smooth blend can change.
-            const double Lower=FMath::Sqrt(O.Bounds.ComputeSquaredDistanceToPoint(P))*O.MinimumScale/O.Source.Scale.GetMax();
-            const double Threshold=(O.Source.Composition==ECLSolidComposition::Subtract?-A:A)+O.Source.SmoothnessMeters;
-            if(Lower>=Threshold)continue;
-        }
-        const double B=O.Field(P),K=O.Source.SmoothnessMeters;const bool Sub=O.Source.Composition==ECLSolidComposition::Subtract;
-        const double Compared=Sub?-B:B;const bool Wins=Sub?Compared>A:Compared<A;
-        const double Alpha=K>0?FMath::Clamp(.5+.5*(Sub?Compared-A:A-Compared)/K,0.,1.):double(Wins);
-        const double Blend=K>0?FMath::Square(FMath::Max(K-FMath::Abs(A-Compared),0.))/(4*K):0;
-        A=Sub?FMath::Max(A,Compared)+Blend:FMath::Min(A,Compared)-Blend;
+        const auto& O=Operations[OpIndex];if(CanSkip(O,P,A,(Mask&(uint64(1)<<OpIndex))!=0))continue;
+        float Alpha=0;A=NativeBlend(O,A,O.Field(P),&Alpha);
         if(Weights&&O.SurfaceIndex!=INDEX_NONE)
         {for(double& V:Weights->Values)V*=1-Alpha;Weights->Values[O.SurfaceIndex]+=Alpha;}
     }
     return A;
+}
+void FCLCompiledVolumes::ComposeBatch(TConstArrayView<FVector3d> Positions,TArrayView<double> Fields) const
+{
+    check(Positions.Num()==Fields.Num());
+    TArray<uint64> Masks;Masks.Reserve(Positions.Num());for(const auto& P:Positions)Masks.Add(Candidates(P));
+    for(int32 OpIndex=0;OpIndex<Operations.Num();++OpIndex)
+    {
+        const auto& O=Operations[OpIndex];TArray<FVector3d> Needed;TArray<int32> Indices;
+        for(int32 I=0;I<Positions.Num();++I)if(!CanSkip(O,Positions[I],Fields[I],(Masks[I]&(uint64(1)<<OpIndex))!=0)){Needed.Add(Positions[I]);Indices.Add(I);}
+        if(Needed.IsEmpty())continue;
+        TArray<double> Values;O.SampleFields(Needed,Values);
+        for(int32 I=0;I<Indices.Num();++I){const int32 J=Indices[I];Fields[J]=NativeBlend(O,Fields[J],Values[I],nullptr);}
+    }
 }

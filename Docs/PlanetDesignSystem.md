@@ -13,6 +13,13 @@ no custom moving-window or terrain streaming manager has been justified. The
 audit records native capabilities, demonstrated adapter limits and unqualified
 origin-shift paths before further implementation.
 
+The [native generation/preview reconciliation](NativeCoordinateAudit.md#native-generation-and-preview-reconciliation--3-november-2026)
+makes VPP's ownership explicit: it is the sole voxel generation and presentation
+platform. Generic solid kernels, blending, lookup and both product previews now
+use native VPP features. Catalyst retains documented planetary/geological
+specializations and version compatibility, with proven gaps listed separately.
+Native overview material coordinates still need a dedicated physical-phase witness.
+
 Build planets from a shared geological history and structure, refine them through
 landscape processes, then use reusable Landforms to express the resulting terrain.
 The recommended approach combines bounded tectonic construction, explicit rock
@@ -1235,28 +1242,26 @@ A full unpruned composition oracle checks that optimization in air as well as
 near surfaces. Fixed-spacing landing brackets are bounded footing searches,
 not certified ray misses or general thin-feature searches.
 
-Each volume viewport owns one native VPP world for the complete scene. VPP
-extracts the surface; Landform's adapter reads retained native cell meshes and
-uses VPP's own transition displacement. The existing full-precision Dynamic Mesh
-upload, material binding and navigation then display those triangles. The flat
-cutaway retains original XYZ coordinates for surface sampling and textures; its
-box clip is presentation only. VPP samples this preview in the flat chart
-and maps each query back to body XYZ, rather than flattening a coarsely meshed
-spherical wedge. This keeps the core and side cut faces planar. Height-only recipes keep their existing fast
-preview path. Rejected Dynamic Mesh connectivity splits vertex identities while
-preserving triangle positions and all attributes.
+Each globe/section viewport now owns one persistent native VPP producer and
+presenter for both height-only and volumetric recipes. Native visible mesh
+components own triangles, normals, transitions, materials and collision. The
+flat chart maps native queries back to body XYZ and clips with the native cube
+kernel. Native stamp transforms normalize the UI without scaling the voxel world.
+The previous Dynamic Mesh upload and independent radial preview are automation
+reference fixtures only; no production terrain is copied to another renderer.
 
-The adapter is qualified against VPP 2.0p8's retained raster mesh API, including a
-private render-proxy header. Vendor source is unchanged. Its transition-neighbor
-lookup uses the retained mesh chunk ancestry; empty neighbors do not supply
-surface vertices. Future VPP updates require requalification of this adapter.
-Native LOD remains significant: a feature smaller than the native sampling cells
-can disappear. The bounded preview uses quality 4 and a one-million-source-vertex
-publication budget, one worker, immutable snapshots and explicit retirement. This
-is not a guarantee that every thin cave remains visible at every globe distance.
+The read-only inspection API remains pinned to VPP 2.0p8, including a private
+render-proxy header. It is bounded to one million inspected vertices and does not
+publish a mesh. Future VPP updates require requalification. Native LOD remains
+significant: a feature smaller than its cells can disappear. Draft/full preview
+qualities are 1/4; these are UI settings, not a production detail guarantee.
+Canonical physical texture coordinates in normalized native overviews still need
+a bounded native-material witness; the former reference renderer's appearance
+results do not close that adapter gap. See the
+[native reconciliation](NativeCoordinateAudit.md#native-generation-and-preview-reconciliation--3-november-2026).
 
 Walking requests now carry an optional XYZ surface point alongside the existing
-direction. Native globe collision and barycentric cutaway picking preserve the
+direction. Native collision traces in both globe and cutaway preserve the
 selected interface. The host spawns at the resolved 3D footing, retains native
 collision, and uses the shared curved-to-flat camera. A floor below another floor
 therefore does not snap to the exterior radial terrain when walking or returning.

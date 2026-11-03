@@ -14,7 +14,7 @@ public:
     static constexpr int32 LegacyRadialProviderVersion = 1;
 
     /** Only compiled whole-body spherical plans are accepted, not local/face
-     * evaluation views. No UObject access here. */
+     * evaluation views. No authoring/world UObject state is read here; native shape kernels are stateless. */
     static TSharedPtr<const FCLScene> FromLegacyRadial(
         TSharedPtr<const FCLCompiledPlanetRecipe> Plan, FString& Error);
     static TSharedPtr<const FCLScene> FromPlanet(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,FString& Error);

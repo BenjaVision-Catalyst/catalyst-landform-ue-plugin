@@ -74,6 +74,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
         double WeightNormalized(double Radius, const FVector& UnitDirection, FVector2D& Chart) const;
     };
     TArray<FSource> Sources;
+    const class UVoxelShapeFunctionLibrary* NativeShapes=nullptr;
     double Extent = 10000;
     FCLBodyFrame SamplingFrame;
     TSharedPtr<const FCLCompiledPlanetRecipe> RecipePlan;

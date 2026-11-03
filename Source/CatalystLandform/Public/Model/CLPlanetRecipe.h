@@ -223,6 +223,8 @@ class UCLStampLibraryAsset;
 class FCLCompiledRegionGeneration;
 
 /** Worker-safe output. Opaque source owners retain lifetimes without reading live authoring state. */
+class FCLNativeFigureKernel;
+
 struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
 {
     struct FLayer
@@ -274,8 +276,10 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     TSharedPtr<const FCLCompiledRegionGeneration> GeneratedRegions;
     TSharedPtr<const FCLCompiledSurfaceLibrary> Surfaces;
     TSharedPtr<const FCLCompiledVolumes> Volumes;
-    /** Self-contained immutable input retained only for volume preview producers. */
-    TSharedPtr<const FCLPlanetRecipe> VolumeRecipe;
+    /** Accepted input values for native stamp hashing and authoring activation. */
+    TSharedPtr<const FCLPlanetRecipe> SourceRecipe;
+    TSharedPtr<const FCLNativeFigureKernel> NativeFigure;
+    void SampleRadialFields(TConstArrayView<FVector> Positions,TConstArrayView<double> Heights,TArray<double>& Fields) const;
     FCLCompiledSurfaceStack SurfaceStack;
     FCLSurfaceWeights SurfaceWeightsAt(const FVector& Direction,double HeightMeters,double SlopeDegrees) const;
     void SampleSurfaceWeights(TConstArrayView<FVector> Directions,TArray<FCLSurfaceWeights>& Out) const;

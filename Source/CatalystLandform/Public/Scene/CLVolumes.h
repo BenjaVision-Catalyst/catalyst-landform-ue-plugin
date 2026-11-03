@@ -4,6 +4,7 @@
 
 struct FCLCompiledSurfaceLibrary;
 struct FCLSurfaceWeights;
+class FCLNativeVolumeIndex;
 
 UENUM(BlueprintType)
 enum class ECLSolidPrimitive : uint8 { Sphere, Capsule, Box };
@@ -60,7 +61,7 @@ struct CATALYSTLANDFORM_API FCLVolumeSettings
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLGeologicalUnit> GeologicalUnits;
 };
 
-/** Worker-owned values and BVH. No live recipe, asset or UObject access. */
+/** Recipe values lowered to VPP shape/blend kernels and its conservative index. */
 class CATALYSTLANDFORM_API FCLCompiledVolumes final
 {
 public:
@@ -72,18 +73,19 @@ public:
         double MinimumScale=1;
         int32 SurfaceIndex=INDEX_NONE;
         double Field(const FVector3d& Position) const;
+        void SampleFields(TConstArrayView<FVector3d> Positions,TArray<double>& Fields) const;
     };
     struct FUnit {double Low=0,High=0,Feather=0;int32 SurfaceIndex=INDEX_NONE;};
-    struct FNode {FBox3d Bounds;int32 Left=INDEX_NONE,Right=INDEX_NONE;uint64 Mask=0;};
     static TSharedPtr<const FCLCompiledVolumes> Compile(const FCLVolumeSettings&,double OuterRadius,
         const FCLCompiledSurfaceLibrary* Surfaces,FString& Error);
     TArray<FOperation> Operations;
     TArray<FUnit> Units;
-    TArray<FNode> Index;
+    int32 IndexedOperationCount() const;
     /** Bounds contain the zero set plus smoothing and an air halo. Field pruning additionally requires a conservative distance bound. */
     uint64 Candidates(const FVector3d& Position) const;
     /** At most 64 operations, in authored order; no sorting by transient identity. */
     double Compose(const FVector3d& Position,double BaseField,FCLSurfaceWeights* Weights=nullptr) const;
+    void ComposeBatch(TConstArrayView<FVector3d> Positions,TArrayView<double> Fields) const;
 private:
-    int32 BuildIndex(TArray<int32> Items);
+    TSharedPtr<const FCLNativeVolumeIndex> Index;
 };

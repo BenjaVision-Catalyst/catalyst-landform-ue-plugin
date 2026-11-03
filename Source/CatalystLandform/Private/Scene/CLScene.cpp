@@ -68,16 +68,21 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
         }
         TArray<double> Heights;
         RadialPlan->SampleHeightsMeters(Positions, Heights);
+        TArray<double> Fields;RadialPlan->SampleRadialFields(Positions,Heights,Fields);
         for (int32 I = 0; I < Count; ++I)
         {
             const FVector3d& P = Query.PositionsMeters[Start + I];
             auto& Sample = Out[Start + I];
             if (!IsFinitePosition(P) || !FMath::IsFinite(Heights[I])) continue;
-            // Preserve the native adapter's outer-sky clipping. Cancel large
-            // values before any float conversion; the field is not an exact SDF.
-            Sample.FieldMeters = P.Size() - RadialPlan->RadiusMeters - FMath::Min(Heights[I], 0.);
-            if(RadialPlan->Volumes)Sample.FieldMeters=RadialPlan->Volumes->Compose(P,Sample.FieldMeters);
+            // VPP subtracts the effective double radius before float output.
+            // This radial-height field does not claim a Euclidean SDF metric.
+            Sample.FieldMeters = Fields[I];
             Sample.State = ECLSceneSampleState::Known;
+        }
+        if(RadialPlan->Volumes)
+        {
+            RadialPlan->Volumes->ComposeBatch(Positions,Fields);
+            for(int32 I=0;I<Count;++I)if(Out[Start+I].State==ECLSceneSampleState::Known)Out[Start+I].FieldMeters=Fields[I];
         }
     }
     return true;
@@ -93,7 +98,9 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
         for(int32 Start=0;Start<Out.Num();Start+=SampleBatchSize)
         {
             const int32 Count=FMath::Min(SampleBatchSize,Out.Num()-Start);TArray<FVector3d> Probes;
-            constexpr double E=.02;
+            // Native float fields need a 5 cm derivative baseline to avoid
+            // amplifying micrometre distance rounding into material-weight drift.
+            constexpr double E=.05;
             for(int32 I=0;I<Count;++I)
             {
                 const auto& P=Query.PositionsMeters[Start+I];
@@ -115,8 +122,9 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
                     const double Alpha=U.Feather>0?Ramp((Radius-U.Low)/U.Feather)*Ramp((U.High-Radius)/U.Feather):double(Radius>=U.Low&&Radius<=U.High);
                     for(double& V:W.Values)V*=1-Alpha;W.Values[U.SurfaceIndex]+=Alpha;
                 }
-                const double Base=Radius-RadialPlan->RadiusMeters-FMath::Min(RadialPlan->SampleHeightMeters(P),0.);
-                RadialPlan->Volumes->Compose(P,Base,&W);
+                const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Base;
+                RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Base);
+                RadialPlan->Volumes->Compose(P,Base[0],&W);
                 Sample.State=ECLSceneSampleState::Known;
                 for(int32 J=0;J<RadialPlan->Surfaces->Ids.Num();++J)if(W.Values[J]>0)
                     Sample.Weights.Add({RadialPlan->Surfaces->Ids[J],RadialPlan->Surfaces->Revisions[J],W.Values[J]});

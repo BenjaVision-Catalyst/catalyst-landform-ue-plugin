@@ -8,6 +8,7 @@
 #include "Model/CLSphericalPatches.h"
 #include "Nodes/VoxelNoiseNodes.h"
 #include "VoxelISPCNodeHelpers.h"
+#include "Shape/VoxelShapeFunctionLibrary.h"
 #include "JsonObjectConverter.h"
 #include "Validation/CFValidationTypes.h"
 #include "Dom/JsonObject.h"
@@ -26,6 +27,28 @@ public:
 private:
     const FVoxelNodeISPCPtr Function;
 };
+
+// The native graph's shape library is stateless: MakeSphere reads only its
+// double buffers and calls VPP's ISPC kernel. Bind its immortal CDO at compile
+// time; workers do no reflection, UObject lookup or authoring-state access.
+class FCLNativeFigureKernel
+{
+public:
+    explicit FCLNativeFigureKernel(const UVoxelShapeFunctionLibrary& In):Library(&In){}
+    void Sample(TConstArrayView<FVector> Positions,TConstArrayView<double> Heights,double Radius,TArray<double>& Fields)const
+    {
+        FVoxelDoubleVectorBuffer P;P.Allocate(Positions.Num());FVoxelDoubleBuffer R;R.Allocate(Positions.Num());
+        for(int32 I=0;I<Positions.Num();++I){P.Set(I,Positions[I]);R.Set(I,Radius+FMath::Min(Heights[I],0.));}
+        const auto Values=Library->MakeSphere(P,R);Fields.SetNumUninitialized(Positions.Num());
+        for(int32 I=0;I<Positions.Num();++I)Fields[I]=Values[I];
+    }
+private:
+    const UVoxelShapeFunctionLibrary* const Library;
+};
+void FCLCompiledPlanetRecipe::SampleRadialFields(TConstArrayView<FVector> Positions,TConstArrayView<double> Heights,TArray<double>& Fields)const
+{
+    check(NativeFigure&&Positions.Num()==Heights.Num());NativeFigure->Sample(Positions,Heights,RadiusMeters,Fields);
+}
 
 namespace
 {
@@ -414,21 +437,26 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
 
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* Library,const FBox2D* LocalRegion,int32 SurfacePatch)
 {
+    const auto RetainInput=[&](TSharedPtr<const FCLCompiledPlanetRecipe> Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
+    {
+        if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
+    };
+
     if(Recipe.Volumes.bEnabled||!Recipe.Volumes.Operations.IsEmpty()||!Recipe.Volumes.GeologicalUnits.IsEmpty())
     {
         if(Recipe.SchemaVersion!=18||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch))
         {Error=TEXT("Volume scenes require schema 18 and whole-body spherical coordinates");return nullptr;}
         auto BaseRecipe=Recipe;BaseRecipe.Volumes=FCLVolumeSettings();
         const auto Base=Compile(BaseRecipe,Error,Library,nullptr,SurfacePatch);if(!Base)return nullptr;
-        if(!Recipe.Volumes.bEnabled)return Base;
+        if(!Recipe.Volumes.bEnabled)return RetainInput(Base);
         const auto Volumes=FCLCompiledVolumes::Compile(Recipe.Volumes,Recipe.RadiusMeters,Base->Surfaces.Get(),Error);if(!Volumes)return nullptr;
-        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Base);Out->Volumes=Volumes;Out->VolumeRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);return Out;
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Base);Out->Volumes=Volumes;return RetainInput(Out);
     }
     const auto Raw=CompileUnmapped(Recipe,Error,Library,LocalRegion,SurfacePatch);if(!Raw)return nullptr;
-    if(Recipe.SchemaVersion<17||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Raw;
+    if(Recipe.SchemaVersion<17||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return RetainInput(Raw);
     const bool TectonicShape=Raw->Tectonics&&Raw->Tectonics->HasEffect();
     const bool HasShape=Recipe.Continents.bEnabled||TectonicShape||!Recipe.NoiseLayers.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||Recipe.RegionGeneration.bEnabled;
-    if(!HasShape)return Raw; // A newly created, empty planet is a perfect sphere.
+    if(!HasShape)return RetainInput(Raw); // A newly created, empty planet is a perfect sphere.
     const auto* Low=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
     const auto* High=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});
     if(!Low||!High){Error=TEXT("Planet surface generation requires SurfaceMin and SurfaceMax");return nullptr;}
@@ -443,7 +471,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         Out->MinimumHeightMeters=Range->TargetMin;Out->MaximumHeightMeters=Range->TargetMax;
         Out->SurfacePatches.Reset();for(const auto& Patch:Input->SurfacePatches)Out->SurfacePatches.Add(Wrap(Patch));return Out;
     };
-    return Wrap(Raw);
+    return RetainInput(Wrap(Raw));
 }
 
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary, const FBox2D* LocalRegion, int32 SurfacePatch)
