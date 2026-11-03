@@ -187,7 +187,6 @@ the separate existing recipe editor. The optional recipe's radius/seed are ignor
 This authoring path supports both generation versions; it does not execute
 arbitrary VPP graph assets. Stamp distribution runs its own bounded CPU PCG pipeline.
 
-
 ## Native Mountain ridges generation
 
 Terrain type schema 2 introduced explicit `algorithmVersion`, copied into the
@@ -226,7 +225,6 @@ enable/blend state and outer-sky clipping. The host adds a separate Chaos
 collision-triangle check; field equality alone is not collision verification.
 See the host's `Docs/NativeMountainGeneration.md` and
 `conformance/native-generation-mac-arm64.json` for retained results and limits.
-
 
 ## Plateaus and editable terracing
 
@@ -267,7 +265,6 @@ private to an immutable runtime adapter rather than exposed in the recipe header
 fine detail. The host's `Docs/Plateaus.md` and
 `conformance/plateaus-mac-arm64.json` record the authoring, field and actual
 VPP/Chaos collision qualification, including its resolution and sampling limits.
-
 
 ## PCG stamp distribution
 
@@ -618,7 +615,6 @@ light shafts disabled. This removes the view-dependent overexposure path from
 its intermittently redrawn working scene without changing gameplay settings. A
 camera-relative key/fill/rim rig keeps the visible side legible throughout orbiting.
 
-
 ## Structure-guided regional Landforms
 
 Planet recipe schema 12 adds an optional `RegionGeneration` stage. It partitions
@@ -665,7 +661,6 @@ packaged-build and planet-scale streaming qualification remain future work.
 The independent host proof and reproduction steps are documented in
 `Landform/Projects/LandformLab/Docs/GeneratedRegions.md`; measured results are in
 `conformance/generated-regions-mac-arm64.json`.
-
 
 ### Area-based regional suitability
 
@@ -771,14 +766,17 @@ The first [tectonic preset](Docs/TectonicPreset.md) adds a single activity slide
 to Planet Builder, coordinating seeded plates, crust contrast, motion and curved
 structural relief. Advanced overrides edit the same portable schema 14 recipe.
 
-
 The [body coordinate proof](Docs/BodyCoordinates.md) reuses UE's bundled PROJ for
 explicit-body ellipsoid-normal conversions, with independent 70-digit reference
 values. It preserves spherical recipe semantics and records the scientific
 datum/provider gates before measured terrain ingestion.
 
-
 The [native two-body proof](Docs/TwoBodyTransfer.md) uses separate VPP layers and
 retained worlds, native character movement and one attached moving invoker. It
 qualifies airborne gravity-owner handover and native A/B/A walking at natural
 curvature, with explicit remaining body-rotation/frame and scientific-data gates.
+
+The [body-fixed gameplay frame design](Docs/BodyFixedGameplayFrames.md) proposes
+stable local surface gameplay with separate celestial pose/kinematics. It records
+native/Ascent compatibility risks and a concrete first proof for review; it adds
+no runtime implementation or new compatibility qualification.

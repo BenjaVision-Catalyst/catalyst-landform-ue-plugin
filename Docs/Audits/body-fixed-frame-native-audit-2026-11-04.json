@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-04",
+  "timezone": "Australia/Sydney",
+  "status": "source-audit-and-proposed-proof-only",
+  "runtimeTestsExecuted": false,
+  "compatibilityQualified": false,
+  "codeOrAssetsChanged": false,
+  "baseline": {
+    "component": "3334c3ae3364810db21b1a8a5374e2919fbf6768",
+    "workspace": "b7f877b2dc3e046cd20fc406514280523a578520"
+  },
+  "versions": {
+    "UE": "5.7.4 CL51494982",
+    "VPP": "2.0p8",
+    "AscentCombatFramework": "4.2.3 / EngineVersion 5.7.0"
+  },
+  "sources": [
+    {
+      "scope": "component",
+      "path": "Source/CatalystLandform/Public/Scene/CLBodyFrame.h",
+      "sha256": "e1abe58b3f9dac0c880c858b3c4dea2556a7b99648a166b31c3676ff72cd6469",
+      "observation": "spatial frame has no epoch or kinematics",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "component",
+      "path": "Source/CatalystLandform/Private/Scene/CLBodyFrame.cpp",
+      "sha256": "0516336d6cc44e88d4cb2eb0cf7c668fff808cda286ef1475ad68bacd5692361",
+      "observation": "metre/native spatial transform",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "component",
+      "path": "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp",
+      "sha256": "cfddd8f94f9ffcfecd8c244adf685eb4dc625f9341ea0b7b0eb868ddc8b85213",
+      "observation": "existing radial gravity and heading update",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "host",
+      "path": "LandformLab.uproject",
+      "sha256": "d8c059ac939e13d9d615f9d49d0ca1346a1c38e39481889f22090d4e831a9d5c",
+      "observation": "Lab plugin inventory",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "workspace",
+      "path": "DevKit/CatalystDevKit/CatalystPlugins/CatalystPlugins.uproject",
+      "sha256": "e6c13a5e713eefdc521e36d5b2caa112bc2e5de39dbde3c13315e301f23c68aa",
+      "observation": "broader integration declarations",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "workspace",
+      "path": "DevKit/CatalystDevKit/CatalystPlugins/Source/CatalystPlugins/Variant_Combat/CombatCharacter.cpp",
+      "sha256": "827654b432ed9bb18d234fe3fa55cb3073da4dc7e80fa94f7f04187f3fe5d28c",
+      "observation": "yaw plane, world sweeps and world-up impulse source risks",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "workspace",
+      "path": "Physics/CatalystPhysics/README.md",
+      "sha256": "2720e013d283aff2fd4575775c7f2cf83fa635359bac64a5ff3d991a0dbfb706",
+      "observation": "GT/Bloc package scope, not UE implementation",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "vpp",
+      "path": "Source/Voxel/Private/VoxelConfig.cpp",
+      "sha256": "341f20629302f0ae10ab7a62691aa6765062c29e721a487b4ffc5fdadbf22182",
+      "observation": "ActorToWorld and LocalToWorld equality",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "vpp",
+      "path": "Source/Voxel/Private/VoxelStampComponentBase.cpp",
+      "sha256": "db1e80ff15bcbdbb27ca16a3c35e806f07f7038343d6cdf0f6e223c20348bd50",
+      "observation": "normal stamp transform publication",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "vpp",
+      "path": "Source/Voxel/Private/VoxelInstancedStampComponent.cpp",
+      "sha256": "9f6b0db26dd202b1c65a3113c93862ab7a4877d352a68183264290cd8bf78eaa",
+      "observation": "world-space refs and deprecated migration distinction",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Experimental/Chaos/Public/Chaos/Evolution/SimulationSpace.h",
+      "sha256": "d647de22c488b14e55dbb3d56107ce5dcdac4240f15dcd757478c3fd1c1a4283",
+      "observation": "native simulation-space terms",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Private/PhysicsEngine/ImmediatePhysics/ImmediatePhysicsChaos/ImmediatePhysicsSimulation_Chaos.cpp",
+      "sha256": "e749aace2e770ec2457afbc484f4aa59c296dee6c789cd6161e2f0e8dcde145b",
+      "observation": "inspected simulation-space consumer",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/AnimGraphRuntime/Private/BoneControllers/AnimNode_RigidBody.cpp",
+      "sha256": "a8a490b784974ab383e91e41c9d36e7c362681ba5755b3a19b1e1791a2b70075",
+      "observation": "animation-node consumer",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Private/PhysicsEngine/BodyInstance.cpp",
+      "sha256": "adf4585d1f87336dc7a6abf320a35822ee4eaca4d45dd7b4539476610ef455a8",
+      "observation": "ordinary world scene routing",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Classes/Engine/World.h",
+      "sha256": "e801901bd12dfcb1a3ea0b963c487ad1e81e6f4c1c06c8377ab485d82bbfa76b",
+      "observation": "world scene and integer origin API",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Private/GameplayStatics.cpp",
+      "sha256": "39194db5976bcb3562d1a6aed91c1b48122f94c11a44df6117bdbcfcfe6f9c62",
+      "observation": "native rebase delegates",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Private/Engine/ReplicatedState.cpp",
+      "sha256": "fcf53e975aea519e7c534dec6e782b611b794be53907901439cfd95ea9bbddbf",
+      "observation": "rebasing policy gate",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h",
+      "sha256": "af6c5e1277ed2bfd7a3537f56befd76a311b0d556cca9919257a42903166b04b",
+      "observation": "TransformUpdated observer",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Classes/Components/PrimitiveComponent.h",
+      "sha256": "dcd984a353cf6d7161cf1848789352b51f158ff3ee2f3a60ee1036beec8be78b",
+      "observation": "wake/sleep observer",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "ue",
+      "path": "Engine/Source/Runtime/Engine/Classes/PhysicsEngine/BodyInstance.h",
+      "sha256": "58944fd419cec683a3d97f613faa647dfeabd140289e3e3bd7ae96eb4bcb39fb",
+      "observation": "IsInstanceAwake observer",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "acf",
+      "path": "AscentCombatFramework.uplugin",
+      "sha256": "a70fa203522881aa3a79146ae80104725aa761a9b82fc5b2b70c1b49a360b5b0",
+      "observation": "installed 4.2.3 descriptor",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "acf",
+      "path": "Source/CharacterController/Public/Components/ACFCharacterMovementComponent.h",
+      "sha256": "e97063d35e0141ad722992d7cfd3f6816510f00d3be8b6a429962a761d98e5cb",
+      "observation": "movement inheritance",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "acf",
+      "path": "Source/CharacterController/Private/Components/ACFCharacterMovementComponent.cpp",
+      "sha256": "b647da4fbd0999b2841cb57ee87074a4bf3a30f3ce42d6bad645efa4abb88e10",
+      "observation": "climbing yaw-only and world-up source risks",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "acf",
+      "path": "Source/AscentCombatFramework/Private/Actors/ACFCharacter.cpp",
+      "sha256": "7226bcaa6fe38cab8ce2edaea645e6aab262fe81326286678e54f5ff2edcfebc",
+      "observation": "custom movement installation and cast",
+      "evidence": "read-only source or descriptor inspection; no new runtime conformance"
+    },
+    {
+      "scope": "workspace",
+      "path": "DevKit/CatalystDevKit/readme/tgc/TGC_-_Vertical_Slice_Brief_v0.2.md",
+      "sha256": "e4f757535b6cc2ae8a2b558cc043a4428bcdd48e550c68fa0f3044d79c05e425",
+      "observation": "TGC gameplay scope and integration context; does not identify a shipping UE configuration",
+      "evidence": "read-only brief inspection; no new runtime conformance"
+    },
+    {
+      "scope": "workspace",
+      "path": "DevKit/CatalystDevKit/readme/tgc/TGC_-_Systems_Context_Brief_v0.2.md",
+      "sha256": "0c406a6e9f941fb3d584d67ef36267dfa07ee6d6919b06ff59a216152dc55808",
+      "observation": "TGC gameplay scope and integration context; does not identify a shipping UE configuration",
+      "evidence": "read-only brief inspection; no new runtime conformance"
+    }
+  ],
+  "productionBlockingGates": [
+    "full multi-body topology: simultaneously stationary gameplay spaces for independently rotating bodies",
+    "native support/topology for ordinary actors, collision queries and third-party plugins",
+    "Ascent movement subclass, non-Z-up movement/climbing and actual asset configuration",
+    "real construction framework identity and configuration",
+    "authority/time/replication/rewind and cross-frame attacks",
+    "rotating-frame force profile and no double-applied effective gravity"
+  ],
+  "proofSequence": [
+    "P0 frame identity/time/pose/velocity oracles",
+    "P1 single fixed gameplay space with consumed celestial motion and idle invariance",
+    "P2 mandatory ThatGame:Catalyst ACF+VPP combined gameplay/construction/edit integration",
+    "P3 concurrent spaces and cross-frame authority",
+    "P4 physical/gameplay/performance qualification"
+  ],
+  "priorRuntimeEvidence": [
+    "conformance/two-body-transfer-mac-arm64.json",
+    "conformance/body-coordinates-mac-arm64.json",
+    "conformance/origin-presentation-mac-arm64.json"
+  ],
+  "notEstablished": [
+    "universal plugin compatibility",
+    "general actor simulation-space routing from Chaos ImmediatePhysics facilities",
+    "rotation equivalent to native integer world-origin translation",
+    "no-cost moving VPP root or parent-relative instanced stamps",
+    "physical correctness from an idle ephemeris-only proof"
+  ],
+  "references": [
+    "https://docs.voxelplugin.com/knowledgebase/working-with-stamps/instanced-stamps",
+    "https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/Chaos/FSimulationSpace"
+  ],
+  "requiredGameIntegration": {
+    "target": "ThatGame:Catalyst",
+    "source": "Explicit user requirement in this session",
+    "requiredTogether": [
+      "Ascent Combat Framework (ACF)",
+      "Voxel Plugin Pro (VPP)"
+    ],
+    "acceptance": "Combined runtime gameplay proof required; isolated LandformLab success is insufficient",
+    "preserve": "Configured ACF character/movement/combat lifecycle and native VPP generation/presentation/LOD/collision/editing",
+    "runtimeProjectPin": "Existing CatalystPlugins project is an inventory/integration candidate; shipping TGC project/configuration not yet verified",
+    "multiplayer": "Shared settlement combat/interaction/build/edit state; staged multi-world features do not make ACF+VPP optional"
+  },
+  "documentationValidation": {
+    "status": "passed",
+    "auditSourcePins": 26,
+    "preservedFileHashes": 145,
+    "priorRuntimeSourcePins": 9,
+    "newOrChangedRelativeLinks": 6,
+    "diffWhitespace": "passed",
+    "runtimeSourceAndAssetDiff": "none",
+    "runtimeTestsExecuted": false
+  }
+}

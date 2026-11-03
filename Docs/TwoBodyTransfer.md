@@ -147,9 +147,11 @@ generation/scene/scale/presentation suite.
 This closes the measured static-body airborne-handover slice, not all of P2/P4.
 There is no production body-selection manager or general body/physics lifecycle
 service here. Keep selection/gravity policy with the body/physics owner and
-terrain demand with VPP. The next bounded native audit/proof is body rotation
-and frame changes, including VPP instanced-stamp transform semantics, material
-coordinates, native collision and picking, before choosing any required adapter.
+terrain demand with VPP. The next rotation/frame work is refined by the
+[body-fixed gameplay contract](BodyFixedGameplayFrames.md): audit a stable local
+gameplay space with changing celestial pose before any physical-root rotation
+strategy. VPP instance/material/collision semantics and real gameplay plugins
+remain explicit gates.
 
 Rotating/moving bodies, angular/frame velocities, antipodal heading policy,
 collision between moving terrain bodies, grounded/in-contact source changes,

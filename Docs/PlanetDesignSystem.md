@@ -437,7 +437,6 @@ thresholds after establishing baseline cases, before tuning the generator. Keep
 expert visual review alongside metrics: a smooth seam or a plausible histogram
 alone does not establish believable geology.
 
-
 ## Recipe to world architecture research — 3 November 2026
 
 The [implementation plan](#recipe-to-world-implementation-plan--3-november-2026)
@@ -1413,7 +1412,6 @@ curvature. This retains the original unwindowed `9137` path alongside the new
 windowed proof; exact contacts and executable hashes are in the qualification
 records.
 
-
 ## Persistent native world checkpoint
 
 3 November 2026. The [native coordinate audit](NativeCoordinateAudit.md) is now
@@ -1492,7 +1490,6 @@ multiple views/bodies, scientific datums, precision-aware fine global noise,
 filtered field sampling, server resource residency and production performance
 remain open. Retain native VPP ownership while those boundaries acquire evidence.
 
-
 ## Cooked live-origin presentation checkpoint
 
 3 November 2026. The [native audit follow-up](NativeCoordinateAudit.md#cooked-live-origin-presentation--3-november-2026)
@@ -1512,7 +1509,6 @@ projected rendering, instanced-stamp origin behavior, body rotations/multiple
 bodies, scientific datums, precision-aware fine noise, resource delivery and
 production performance remain separate gates. P2/P4 remain bounded milestones.
 
-
 ## Geometric datum checkpoint — 4 November 2026
 
 The [native body coordinate proof](BodyCoordinates.md) adds the bounded P2
@@ -1527,7 +1523,6 @@ integration and the remaining figure/presentation profiles. Two-body transfer
 is the next bounded architectural proof. P3's first measured Mars dataset must
 retain its actual datum, latitude convention, units and uncertainty; ellipsoid
 height cannot silently substitute for an areoid elevation.
-
 
 ## Two-body handover checkpoint — 4 November 2026
 
@@ -1545,3 +1540,28 @@ Full P2 remains open. Next, audit and qualify body rotation/frame changes with
 native VPP/UE features, including instance transforms, materials and collision.
 Scientific height/datum providers remain a separate gate before the first Mars
 resource ingestion; natural-curvature static-body transfer does not close it.
+
+## Body-fixed gameplay design checkpoint — 4 November 2026
+
+The [body-fixed gameplay frame contract](BodyFixedGameplayFrames.md) refines the
+next rotation/frame proof following the user's gameplay direction. Keep active
+terrain/buildings/ordinary surface gameplay fixed in a local body frame while
+celestial pose/kinematics advance. Do not adopt per-tick rotation of every UE
+actor or the live VPP root as the default implementation. Native VPP remains
+the only generation/presentation/LOD/collision-demand platform.
+
+This checkpoint is a read-only native/plugin source audit and concrete proof
+proposal, not a new runtime qualification. It identifies actual Ascent movement
+class and world-up assumptions, narrow native Chaos simulation-space scope,
+missing epoch/kinematic semantics in the existing spatial frame, and unresolved
+concurrent-body/authority topology. The proposed first proof must demonstrate
+local idle invariance with consumed celestial motion; then actual plugin and
+cross-frame gameplay gates must pass before production adoption. Review this
+contract before implementing that proof. Existing static-body/origin/coordinate
+records retain their original scope.
+
+The user has confirmed ACF+VPP together as a required ThatGame:Catalyst
+acceptance gate. Isolated LandformLab fixtures cannot substitute for the
+combined game character/movement/combat, native terrain/editing and shared
+construction/multiplayer proof. Pin the actual TGC runtime/configuration before
+modifying it; preserve each framework's configured lifecycle.

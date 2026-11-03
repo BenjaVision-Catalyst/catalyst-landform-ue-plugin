@@ -167,7 +167,6 @@ with ordinary moving invokers and stable body coordinates. Its acceptance is
 retained native evidence that identifies whether any production coordinate gap
 exists; it is not permission to assume a streaming architecture in advance.
 
-
 ## Native generation and preview reconciliation — 3 November 2026
 
 VPP is Landform's sole voxel generation and presentation platform. Its layers,
@@ -246,7 +245,6 @@ Reproduction and measured results are recorded in
 The bounded scale harness and the persistent travel/origin tests remain distinct.
 No custom streaming manager is added, and none is justified by this reconciliation.
 
-
 Final qualification passes 35 editor checks with no automation warnings, 20
 version-pinned dependency checks, 32 cooked scale cases, 12 volumetric walks
 against the unchanged original reference, 12 short live-origin contact repeats,
@@ -256,7 +254,6 @@ editor-only publication and explicit-fixture guards were checked afterward;
 no runtime source changed. The source/runner/artifact hashes, measured errors
 and exclusions are retained in the linked reconciliation record. All 151
 protected local files retain their original hashes.
-
 
 ## Normalized preview material coordinates — 3 November 2026
 
@@ -327,7 +324,6 @@ calls the same function. It does not rebake catalogs or replace scans. The
 retired reference-only `M_GlobeGrid` asset retains its original bytes; the product
 geographic overlay is already part of `M_Surface`.
 
-
 Final qualification passes 46 editor checks without automation warnings, the
 120-point GPU witness, repeatable targeted material updates, a fresh Development
 build/full cook/package, the ordinary native-material walking control, 12 legacy
@@ -338,7 +334,6 @@ frames and 384 projected picks. The 226 unrelated protected files retain their
 original hashes, including all catalogs, scans, source recipes/config and the
 local generated material cache. Only the product master material is an intended
 change among the 227 existing protected files; two metadata assets are new.
-
 
 ## Cooked live-origin presentation — 3 November 2026
 
@@ -398,7 +393,6 @@ are diagnostic overhead and do not establish production frame-time behavior.
 The proof does not read native GPU velocity buffers or certify every temporal
 reconstruction effect.
 
-
 Final qualification passes all 18 culling-enabled cooked cases: 6,186/6,186
 native grounded frames, 1,152 specifically traced post-origin physics frames,
 6,186 projected picks, 2,160 GPU probes and 36 rendered pairs. Retained frame
@@ -416,7 +410,6 @@ cook; no shader or material assets changed. All 229 protected local inputs retai
 their original hashes. This is the named bounded qualification, not an all-suite
 or production performance certificate.
 
-
 ## Geometric body coordinates — 4 November 2026
 
 The [body coordinate proof](BodyCoordinates.md) audits UE GeoReferencing and
@@ -432,7 +425,6 @@ local-frame checks. [The qualification record](../conformance/body-coordinates-m
 records the executed budgets and regressions. Geoid/areoid and real scientific
 datum transforms remain resource/provider gates; existing spherical recipes
 are not reinterpreted as ellipsoids.
-
 
 ## Two static native bodies — 4 November 2026
 
@@ -451,3 +443,27 @@ and native picking are recorded through A/B/A. The profile stays natural-curvatu
 and static-body; rotations, live frame changes and production selection policy
 remain separate. [The qualification record](../conformance/two-body-transfer-mac-arm64.json)
 contains the executed matrix, controls and regressions.
+
+## Body-fixed gameplay direction — 4 November 2026
+
+The user's gameplay constraint is now explicit: celestial rotation must not
+continually move local buildings/terrain, wake resting physics or turn ordinary
+combat into moving-ground gameplay. The [frame contract and proof design](BodyFixedGameplayFrames.md)
+keeps the active local space fixed to its body and separates universe pose,
+kinematics, discrete frame transitions and curvature presentation. It is a
+source audit/proposal, with no new runtime or compatibility result.
+
+The installed Ascent 4.2.3 movement subclass and non-Z-up source risks are
+identified. Chaos ImmediatePhysics simulation-space support is not generalized
+to all world actors/plugins. Concurrent spaces, cross-frame combat and real
+physics/authority semantics are blocking production topology gates. The first
+proposed proof requires observable celestial motion while native terrain, static
+structures and sleeping props remain locally unchanged; an unused rotation
+variable cannot pass. [The audit inventory](Audits/body-fixed-frame-native-audit-2026-11-04.json)
+pins sources and labels all new proof work as unexecuted.
+
+ThatGame:Catalyst's ACF+VPP pairing is mandatory by explicit user instruction.
+The frame design now requires a combined gameplay acceptance gate, keeping
+ACF's movement/combat class and VPP's terrain/editing path intact. Source risks
+are not blanket incompatibility findings, and single-framework fixtures are
+not game compatibility qualification.
