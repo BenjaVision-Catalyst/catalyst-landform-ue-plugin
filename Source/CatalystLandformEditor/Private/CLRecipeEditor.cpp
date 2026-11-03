@@ -24,6 +24,7 @@
 #include "Async/Async.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanetPreview.h"
+#include "CLVolumePreview.h"
 #include "CLPlanetInspection.h"
 #include "Containers/Ticker.h"
 #include "PropertyPath.h"
@@ -157,9 +158,9 @@ public:
         SectionScene->AimLights(Camera.Rotation);
         Invalidate();
     }
-    virtual void Tick(float) override
+    virtual void Tick(float Delta) override
     {
-        SectionScene->UpdateCaptureContents();
+        if(Plan&&Plan->Volumes)FEditorViewportClient::Tick(Delta);SectionScene->UpdateCaptureContents();
         if (Viewport && Viewport->GetSizeXY().X > 0 && Viewport->GetSizeXY().Y > 0 && Viewport->GetSizeXY() != NavigationSize) ApplyNavigation();
     }
     // All camera gestures are object navigation. Never enter editor flight mode.
@@ -580,6 +581,7 @@ public:
     SLATE_BEGIN_ARGS(SCLSectionViewport) {} SLATE_END_ARGS()
     FCLSectionScene Scene;
     TStrongObjectPtr<UDynamicMeshComponent> Mesh;
+    TUniquePtr<FCLVolumePreview> VolumePreview;
     TSharedPtr<FCLSectionClient> Client;
     bool bCameraFramed = false;
     TFuture<FCLSectionBuffers> BuildTask;
@@ -592,25 +594,36 @@ public:
     int32 StartedBuilds = 0, AppliedBuilds = 0;
     FKey NavigationButton;
     FVector2D PreviousMouse;
+    bool bWalkPicking=false;
+    double PointerTravel=0;
+    TFunction<void(FVector)> OnWalkPoint;
     virtual FReply OnPreviewMouseButtonDown(const FGeometry&, const FPointerEvent& E) override
     {
         const FKey Button = E.GetEffectingButton();
         if (Button != EKeys::LeftMouseButton && Button != EKeys::MiddleMouseButton && Button != EKeys::RightMouseButton) return FReply::Unhandled();
-        NavigationButton = Button; PreviousMouse = E.GetScreenSpacePosition();
+        NavigationButton = Button; PreviousMouse = E.GetScreenSpacePosition();PointerTravel=0;
         return FReply::Handled().CaptureMouse(SharedThis(this)).SetUserFocus(SharedThis(this));
     }
     virtual FReply OnMouseMove(const FGeometry&, const FPointerEvent& E) override
     {
         if (!HasMouseCapture()) return FReply::Unhandled();
         const FVector2D Delta = E.GetScreenSpacePosition() - PreviousMouse; PreviousMouse = E.GetScreenSpacePosition();
+        PointerTravel+=Delta.Size();
         if (NavigationButton == EKeys::LeftMouseButton) Client->Navigation.Orbit(Delta);
         else if (NavigationButton == EKeys::MiddleMouseButton) Client->Navigation.PanBy(Delta);
         else if (NavigationButton == EKeys::RightMouseButton) Client->Navigation.Dolly(-Delta.Y * .05);
         Client->ApplyNavigation(); return FReply::Handled();
     }
-    virtual FReply OnMouseButtonUp(const FGeometry&, const FPointerEvent& E) override
+    virtual FReply OnMouseButtonUp(const FGeometry& G, const FPointerEvent& E) override
     {
         if (!HasMouseCapture() || E.GetEffectingButton() != NavigationButton) return FReply::Unhandled();
+        if(NavigationButton==EKeys::LeftMouseButton&&PointerTravel<4&&bWalkPicking&&VolumePreview&&Client->bHasProjection)
+        {
+            const FVector2D Local=G.AbsoluteToLocal(E.GetScreenSpacePosition()),Size=G.GetLocalSize();FVector O,D;
+            const FVector2D Pixel=FVector2D(Client->ViewRect.Min)+Local/FVector2D(FMath::Max(1.,Size.X),FMath::Max(1.,Size.Y))*FVector2D(Client->ViewRect.Size());
+            FSceneView::DeprojectScreenToWorld(Pixel,Client->ViewRect,Client->ViewProjection.Inverse(),O,D);FVector P;
+            if(VolumePreview->PickSection(O,D.GetSafeNormal(),P)&&OnWalkPoint)OnWalkPoint(P);
+        }
         NavigationButton = FKey(); return FReply::Handled().ReleaseMouseCapture();
     }
     virtual void OnMouseCaptureLost(const FCaptureLostEvent&) override { NavigationButton = FKey(); }
@@ -626,14 +639,15 @@ public:
     }
     virtual ~SCLSectionViewport()
     {
+        VolumePreview.Reset();
         if (Client) Client->Viewport = nullptr;
         if (Mesh) Scene.RemoveComponent(Mesh.Get());
     }
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
     { Client = MakeShared<FCLSectionClient>(&Scene, SharedThis(this)); return Client.ToSharedRef(); }
-    bool IsUpdating() const { return BuildTask.IsValid() || PendingPlan.IsValid(); }
+    bool IsUpdating() const { return BuildTask.IsValid() || PendingPlan.IsValid() || (VolumePreview&&VolumePreview->IsUpdating()); }
     void CancelPendingBuild()
-    { ++Revision;++Epoch; PendingPlan.Reset(); }
+    { ++Revision;++Epoch; PendingPlan.Reset();VolumePreview.Reset(); }
     void PumpBuild()
     {
         if (BuildTask.IsValid() && BuildTask.IsReady())
@@ -649,10 +663,18 @@ public:
         }
     }
     virtual void Tick(const FGeometry& G, double T, float D) override
-    { SEditorViewport::Tick(G, T, D); PumpBuild(); }
+    { SEditorViewport::Tick(G, T, D); PumpBuild();if(VolumePreview&&VolumePreview->Poll(*Mesh.Get(),false)){++AppliedBuilds;Client->ApplyNavigation();Client->Invalidate();} }
     void RebuildAsync(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
     {
         if (!Plan) { CancelPendingBuild(); return; }
+        if(Plan->Volumes)
+        {
+            CancelPendingBuild();Client->Plan=Plan;if(Client->AreaWidthMeters<=0)Client->AreaWidthMeters=500;
+            if(!VolumePreview)VolumePreview=MakeUnique<FCLVolumePreview>();FString Error;
+            if(!VolumePreview->Start(*Scene.GetWorld(),Plan,true,Client->AreaWidthMeters,Error))UE_LOG(LogTemp,Error,TEXT("Volume section: %s"),*Error);
+            if(!bCameraFramed){bCameraFramed=true;Client->ApplyNavigation();}return;
+        }
+        VolumePreview.Reset();
         Client->Plan = Plan;
         if (Client->AreaWidthMeters <= 0) Client->AreaWidthMeters = FCLSectionGeometry::DefaultWidth(*Plan);
         ++Revision; PendingPlan = MoveTemp(Plan); PendingWidth = Client->AreaWidthMeters;
@@ -660,6 +682,7 @@ public:
     }
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
     {
+        if(Plan&&Plan->Volumes){RebuildAsync(MoveTemp(Plan));return;}VolumePreview.Reset();
         CancelPendingBuild();
         Client->Plan = Plan;
         if (!Plan) return;
@@ -700,6 +723,8 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLTectonicLiveKnobTest;
     friend class FCLTectonicAdvancedTest;
 #endif
+
+
     TSharedPtr<SCLSectionViewport> Preview;
     FCLPlanetRecipe InspectorRecipe;
     FString InspectorError;
@@ -1141,7 +1166,7 @@ public:
                 .OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateSP(this,&FCLRecipeToolkit::CommitGlobePlacement))
                 .OnRegionSelected(FOnCLGlobeRegionSelected::CreateLambda([this](FGuid Id){if(GenerationPanel)GenerationPanel->SelectRegion(Id);}))
                 .Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
-        return SNew(SOverlay)
+        const auto Content=SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})]
                 + SOverlay::Slot()[GlobeWidget]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession).Globe(Globe).UseGlobe_Lambda([this]{return !TerrainEditing&&bGlobe;})
@@ -1151,13 +1176,16 @@ public:
                     .BorderBackgroundColor(FLinearColor(.12, .06, .025, .95))
                     [SNew(STextBlock).AutoWrapText(true).ColorAndOpacity(FLinearColor(1, .65, .3))
                         .Text_Lambda([this] { return FText::FromString(Status + TEXT("\nThe displayed terrain does not reflect the current layer settings.")); })]];
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        Preview->OnWalkPoint=[Weak](FVector P){if(auto E=Weak.Pin();E&&E->Globe)E->Globe->SetWalkPoint(P);};
+        return Content;
     }
     void WalkHere()
     {
         if(!Globe||Globe->WalkLocation().IsNearlyZero()||!FCLPlanetInspection::Launch.IsBound())return;
         FCLPlanetInspectionRequest Request;FString Error;
         if(!RecipeAsset()->ExportJsonString(Request.RecipeJson,Error)){WalkStatus=Error;InspectorError=Error;return;}
-        Request.Direction=Globe->WalkLocation();WalkRequestId=Request.Id;
+        Request.Direction=Globe->WalkLocation();Request.SurfacePointMeters=Globe->WalkPoint();WalkRequestId=Request.Id;
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
         Request.OnReturned=[Weak](FGuid Id,FVector Direction,FString Result)
         {
@@ -1166,6 +1194,7 @@ public:
                 Editor->WalkStatus=MoveTemp(Result);if(Editor->Globe&&!Direction.IsNearlyZero())Editor->Globe->SetWalkLocation(Direction);
             }
         };
+        Request.OnPositionReturned=[Weak](FGuid Id,FVector P){if(auto E=Weak.Pin();E&&E->WalkRequestId==Id&&E->Globe)E->Globe->SetWalkPoint(P);};
         InspectorError.Reset();WalkStatus=TEXT("Opening walking preview…");
         if(!FCLPlanetInspection::Launch.Execute(MoveTemp(Request),Error)){WalkStatus=Error;InspectorError=Error;}
     }
@@ -1293,6 +1322,8 @@ public:
             InspectorRow(G,TEXT("Assignment"),SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().FillWidth(1)[SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::OverrideMenu).ButtonContent()[InspectorLabel(TEXT("Landform"))]]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Clear"))).OnClicked_Lambda([this]{GenerationPanel->ClearOverrides();return FReply::Handled();})],true);G.SetShowAdvanced(false);
+            if(RecipeAsset()->Recipe.SchemaVersion>=18)
+            {auto& V=B.EditCategory(TEXT("SolidForms"),FText::FromString(TEXT("Solid forms")));V.SetSortOrder(3);Add(V,TEXT("Volumes"));}
         }
         else if(Page==3)
         {auto& C=B.EditCategory(TEXT("GroundMaterials"),FText::FromString(TEXT("Surface")));Add(C,TEXT("SurfaceStack"));}
@@ -1316,9 +1347,9 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text(this,&FCLRecipeToolkit::AreaCaption)]);
             auto& S=B.EditCategory(TEXT("Walking"),FText::FromString(TEXT("Surface inspection")));S.SetSortOrder(1);
             InspectorRow(S,TEXT("Pick location"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsWalkPicking()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(!bGlobe){bGlobe=true;Refresh();}if(Globe)Globe->SetWalkPicking(V==ECheckBoxState::Checked);}));
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(!bGlobe&&!RecipeAsset()->Recipe.Volumes.bEnabled){bGlobe=true;Refresh();}if(Globe)Globe->SetWalkPicking(V==ECheckBoxState::Checked);if(Preview)Preview->bWalkPicking=V==ECheckBoxState::Checked;}));
             InspectorRow(S,TEXT("Walk"),SNew(SButton).Text(FText::FromString(TEXT("Walk here")))
-                .IsEnabled_Lambda([this]{return bGlobe&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
+                .IsEnabled_Lambda([this]{return (bGlobe||RecipeAsset()->Recipe.Volumes.bEnabled)&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
                 .OnClicked_Lambda([this]{WalkHere();return FReply::Handled();}));
         }
     }
@@ -2043,5 +2074,68 @@ bool FCLGuideMeasurementsRenderTest::RunTest(const FString&)
         FSlateApplication::Get().RequestDestroyWindow(Window);
     }));
     return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLVolumePreviewTest,"Catalyst.Landform.Volumes.NativePreview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLVolumePreviewTest::RunTest(const FString&)
+{
+    FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>());
+    if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/VolumetricWorld.json")))||!Asset->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    const auto Plan=FCLPlanetCompiler::Compile(Asset->Recipe,Error);if(!Plan){AddError(Error);return false;}
+    const auto Section=SNew(SCLSectionViewport);const auto Globe=SNew(SCLPlanetPreview);
+    const auto Content=SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[Globe]+SHorizontalBox::Slot().FillWidth(1)[Section];
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native volumetric globe and cutaway"))).ClientSize(FVector2D(1600,700))[Content];
+    FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();Section->RebuildAsync(Plan);Globe->Rebuild(Plan);
+    class FWait final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedPtr<SCLSectionViewport> Section;TSharedPtr<SCLPlanetPreview> Globe;TSharedPtr<SWindow> Window;TSharedPtr<SWidget> Content;double Started=FPlatformTime::Seconds(),StableAt=0;
+    public:
+        FWait(FAutomationTestBase* T,TSharedPtr<SCLSectionViewport> S,TSharedPtr<SCLPlanetPreview> G,TSharedPtr<SWindow> W,TSharedPtr<SWidget> C):Test(T),Section(S),Globe(G),Window(W),Content(C){}
+        virtual bool Update()override
+        {
+            if((Section->IsUpdating()||Globe->IsUpdating())&&FPlatformTime::Seconds()-Started<120){StableAt=0;return false;}
+            if(!StableAt)StableAt=FPlatformTime::Seconds();
+            if(FPlatformTime::Seconds()-StableAt<1){Section->Client->Invalidate();Globe->Invalidate();return false;}
+            Test->TestFalse(TEXT("Native globe completes publication"),Globe->IsUpdating());Test->TestFalse(TEXT("Native flat cutaway completes publication"),Section->IsUpdating());
+            Test->TestTrue(TEXT("Native globe publishes geometry"),Globe->PublishedBuilds()>0);
+            Test->AddInfo(Globe->VolumePreviewStatus());
+            Test->TestTrue(TEXT("Native cutaway publishes its VPP triangles"),Section->AppliedBuilds>0&&Section->VolumePreview&&Section->VolumePreview->Published().Triangles.Num()>0);
+            if(Section->VolumePreview)
+            {
+                const auto& B=Section->VolumePreview->Published();bool Underground=false,Floating=false;
+                FBox SourceBox(ForceInit),DisplayBox(ForceInit);double MinR=MAX_dbl,MaxR=0;
+                for(const auto& P:B.SourcePoints){Underground|=P.Size()<64500;Floating|=P.Size()>80000;SourceBox+=P;MinR=FMath::Min(MinR,P.Size());MaxR=FMath::Max(MaxR,P.Size());}
+                for(const auto& P:B.Vertices)DisplayBox+=P;
+                Test->AddInfo(FString::Printf(TEXT("Source %s display %s radii %.3f..%.3f"),*SourceBox.ToString(),*DisplayBox.ToString(),MinR,MaxR));
+                Test->TestTrue(TEXT("Native cutaway includes cave-depth rock and detached formation above base max"),Underground&&Floating);
+                Test->AddInfo(FString::Printf(TEXT("Cutaway native triangles %d, original body positions %d; producer: %s"),B.Triangles.Num()/3,B.SourcePoints.Num(),*Section->VolumePreview->Status()));
+                const double Reference=FCLSectionGeometry::ReferenceSurfaceRadius(*Section->Client->Plan);
+                auto Display=[Reference](const FVector& P){const double A=FMath::Atan2(FVector2D(P.X,P.Y).Size(),P.Z);const FVector2D XY=FVector2D(P.X,P.Y).GetSafeNormal()*(A*Reference);return FVector(XY.X/500,XY.Y/500,P.Length()/1000)*100000.;};
+                for(double Z:{631.,604.})
+                {
+                    FVector Pick;const FVector Start=Display(FVector(0,45,Z+2));
+                    const bool Hit=Section->VolumePreview->PickSection(Start,FVector(0,0,-1),Pick);
+                    Test->TestTrue(TEXT("Native cutaway selects each underground floor by XYZ"),Hit&&FMath::Abs(Pick.Z-Z)<.3);
+                    Test->AddInfo(FString::Printf(TEXT("Cutaway floor %.0f: hit %d, %s"),Z,Hit,*Pick.ToString()));
+
+                }
+            }
+                FVector FloatingPick;
+                const bool FloatingHit=Globe->VolumePreview&&Globe->VolumePreview->PickGlobe(FVector(8500,-2000,85000),FVector(0,0,-1),FloatingPick);
+                Test->TestTrue(TEXT("Globe picking selects the detached solid above the radial base"),FloatingHit&&FloatingPick.Z>800&&FloatingPick.Z<830);
+                Test->AddInfo(FString::Printf(TEXT("Globe detached pick: hit %d, %s"),FloatingHit,*FloatingPick.ToString()));
+            TArray<FColor> Pixels;FIntVector Size;
+            if(Test->TestTrue(TEXT("Native preview pair renders"),FSlateApplication::Get().TakeScreenshot(Content.ToSharedRef(),Pixels,Size))&&!Pixels.IsEmpty())
+            {
+                const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/volumetric-preview");IFileManager::Get().MakeDirectory(*Folder,true);TArray64<uint8> PNG;
+                FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/TEXT("native-globe-section.png")));
+            }
+            FSlateApplication::Get().RequestDestroyWindow(Window.ToSharedRef());return true;
+        }
+    };
+    ADD_LATENT_AUTOMATION_COMMAND(FWait(this,Section,Globe,Window,Content));return true;
 }
 #endif

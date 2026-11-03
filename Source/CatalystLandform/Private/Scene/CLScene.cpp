@@ -11,7 +11,7 @@ bool ValidateQuery(const FCLSceneQuery& Query, FString& Error)
     Error.Reset();
     if (!FMath::IsFinite(Query.FootprintMeters) || Query.FootprintMeters != 0)
     {
-        Error = TEXT("Legacy radial scene supports point queries only; filtered footprints are not qualified");
+        Error = TEXT("Scene supports point queries only; filtered footprints are not qualified");
         return false;
     }
     return true;
@@ -27,6 +27,12 @@ FCLScene::FCLScene(TSharedPtr<const FCLCompiledPlanetRecipe> InPlan) : RadialPla
 
 TSharedPtr<const FCLScene> FCLScene::FromLegacyRadial(TSharedPtr<const FCLCompiledPlanetRecipe> Plan, FString& Error)
 {
+    if(Plan&&Plan->Volumes){Error=TEXT("A volume scene cannot use the radial-only provider");return nullptr;}
+    return FromPlanet(MoveTemp(Plan),Error);
+}
+
+TSharedPtr<const FCLScene> FCLScene::FromPlanet(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,FString& Error)
+{
     Error.Reset();
     if (!Plan || !FMath::IsFinite(Plan->RadiusMeters) || Plan->RadiusMeters <= 0 ||
         Plan->Coordinates == ECLTerrainCoordinates::LocalPatch || FCLSphericalPatches::IsFace(Plan->SurfacePatch))
@@ -38,6 +44,7 @@ TSharedPtr<const FCLScene> FCLScene::FromLegacyRadial(TSharedPtr<const FCLCompil
 }
 
 double FCLScene::OuterRadiusMeters() const { return RadialPlan->RadiusMeters; }
+bool FCLScene::IsHeightOnly() const { return !RadialPlan->Volumes; }
 
 FBox3d FCLScene::SolidBoundsMeters() const
 {
@@ -69,6 +76,7 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
             // Preserve the native adapter's outer-sky clipping. Cancel large
             // values before any float conversion; the field is not an exact SDF.
             Sample.FieldMeters = P.Size() - RadialPlan->RadiusMeters - FMath::Min(Heights[I], 0.);
+            if(RadialPlan->Volumes)Sample.FieldMeters=RadialPlan->Volumes->Compose(P,Sample.FieldMeters);
             Sample.State = ECLSceneSampleState::Known;
         }
     }
@@ -79,6 +87,43 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
 {
     Out.Reset();
     if (!ValidateQuery(Query, Error)) return false;
+    if(RadialPlan->Volumes)
+    {
+        Out.SetNum(Query.PositionsMeters.Num());
+        for(int32 Start=0;Start<Out.Num();Start+=SampleBatchSize)
+        {
+            const int32 Count=FMath::Min(SampleBatchSize,Out.Num()-Start);TArray<FVector3d> Probes;
+            constexpr double E=.02;
+            for(int32 I=0;I<Count;++I)
+            {
+                const auto& P=Query.PositionsMeters[Start+I];
+                for(const FVector3d Axis:{FVector3d(E,0,0),FVector3d(0,E,0),FVector3d(0,0,E)}){Probes.Add(P+Axis);Probes.Add(P-Axis);}
+            }
+            TArray<FCLSceneShapeSample> Shape;if(!SampleShape({Probes},Shape,Error)){Out.Reset();return false;}
+            for(int32 I=0;I<Count;++I)
+            {
+                const auto& P=Query.PositionsMeters[Start+I];auto& Sample=Out[Start+I];
+                if(!IsFinitePosition(P)){Sample.State=ECLSceneSampleState::InvalidQuery;continue;}
+                if(!RadialPlan->Surfaces||P.IsNearlyZero())continue;
+                const int32 K=I*6;const FVector3d N=FVector3d(Shape[K].FieldMeters-Shape[K+1].FieldMeters,Shape[K+2].FieldMeters-Shape[K+3].FieldMeters,Shape[K+4].FieldMeters-Shape[K+5].FieldMeters).GetSafeNormal();
+                const double Radius=P.Length(),Height=Radius-RadialPlan->RadiusMeters;
+                const double Slope=FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector3d::DotProduct(N,P/Radius),0.,1.)));
+                auto W=RadialPlan->SurfaceWeightsAt(P/Radius,Height,Slope);
+                for(const auto& U:RadialPlan->Volumes->Units)
+                {
+                    auto Ramp=[](double X){const double T=FMath::Clamp(X,0.,1.);return T*T*(3-2*T);};
+                    const double Alpha=U.Feather>0?Ramp((Radius-U.Low)/U.Feather)*Ramp((U.High-Radius)/U.Feather):double(Radius>=U.Low&&Radius<=U.High);
+                    for(double& V:W.Values)V*=1-Alpha;W.Values[U.SurfaceIndex]+=Alpha;
+                }
+                const double Base=Radius-RadialPlan->RadiusMeters-FMath::Min(RadialPlan->SampleHeightMeters(P),0.);
+                RadialPlan->Volumes->Compose(P,Base,&W);
+                Sample.State=ECLSceneSampleState::Known;
+                for(int32 J=0;J<RadialPlan->Surfaces->Ids.Num();++J)if(W.Values[J]>0)
+                    Sample.Weights.Add({RadialPlan->Surfaces->Ids[J],RadialPlan->Surfaces->Revisions[J],W.Values[J]});
+            }
+        }
+        return true;
+    }
     Out.SetNum(Query.PositionsMeters.Num());
     for (int32 Start = 0; Start < Out.Num(); Start += SampleBatchSize)
     {

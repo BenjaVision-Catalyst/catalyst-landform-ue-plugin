@@ -12,6 +12,7 @@
 
 #include "Model/CLSphericalPatches.h"
 #include "PreviewScene.h"
+#include "CLVolumePreview.h"
 #include "EditorViewportClient.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Materials/Material.h"
@@ -127,6 +128,8 @@ public:
     FCLPlanetNavigation Navigation;
     FCLGlobeScene* StudioScene=nullptr;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
+    FCLVolumePreview* VolumePreview=nullptr;
+    mutable TOptional<FVector> LastPickPoint;
     TArray<FCLGlobePlacementTarget> Targets;
     FCLGlobeSelection Selected;
     bool bInspectRegions=true;
@@ -202,8 +205,11 @@ public:
     {return bHasProjection&&FVector::DotProduct(GetViewLocation()-P,P)>0&&FSceneView::ProjectWorldToScreen(P,ViewRect,ViewProjection,Pixel);}
     bool CursorDirection(FVector2D Normalized,FVector& Direction) const
     {
+        LastPickPoint.Reset();
         if(!Plan||!bHasProjection)return false;FVector O,V;const FVector2D Pixel=FVector2D(ViewRect.Min)+Normalized*FVector2D(ViewRect.Size());
         FSceneView::DeprojectScreenToWorld(Pixel,ViewRect,ViewProjection.Inverse(),O,V);V.Normalize();
+        if(Plan->Volumes)
+        {FVector P;LastPickPoint.Reset();if(!VolumePreview||!VolumePreview->PickGlobe(O,V,P))return false;LastPickPoint=P;Direction=P.GetSafeNormal();return true;}
         const double Radius=(Plan->RadiusMeters+Plan->MaximumHeightMeters)/Plan->RadiusMeters*100000+200;
         const double B=FVector::DotProduct(O,V),C=O.SizeSquared()-Radius*Radius,Disc=B*B-C;if(Disc<0)return false;
         const double Lo=FMath::Max(0.,-B-FMath::Sqrt(Disc)),Hi=-B+FMath::Sqrt(Disc);if(Hi<=Lo)return false;
@@ -350,11 +356,21 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
     Glass->PostEditChange();Ocean->SetMaterial(0,Glass);Scene->AddComponent(Ocean.Get(),FTransform::Identity);
     SEditorViewport::Construct(SEditorViewport::FArguments());
 }
-SCLPlanetPreview::~SCLPlanetPreview(){if(Stop)Stop->Store(true);if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());}
+SCLPlanetPreview::~SCLPlanetPreview(){VolumePreview.Reset();if(Stop)Stop->Store(true);if(Client)Client->Viewport=nullptr;if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());}
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
-void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan){++Revision;bPreviewFirst=!bDraft;Pending=MoveTemp(Plan);if(Stop&&!(bDraft&&bTaskDraft&&TaskEpoch==Epoch))Stop->Store(true);Pump();}
-void SCLPlanetPreview::Cancel(){++Revision;++Epoch;Pending.Reset();if(Stop)Stop->Store(true);}
-bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid();}
+void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
+{
+    if(Plan&&Plan->Volumes)
+    {
+        Cancel();SetWalkLocation(FVector::ZeroVector);Client->Plan=Plan;if(!VolumePreview)VolumePreview=MakeUnique<FCLVolumePreview>();FString Error;
+        if(!VolumePreview->Start(*Scene->GetWorld(),Plan,false,500,Error))UE_LOG(LogTemp,Error,TEXT("Volume globe: %s"),*Error);
+        Client->VolumePreview=VolumePreview.Get();if(!Framed){Framed=true;Frame();}Client->Apply();return;
+    }
+    VolumePreview.Reset();Client->VolumePreview=nullptr;++Revision;bPreviewFirst=!bDraft;Pending=MoveTemp(Plan);if(Stop&&!(bDraft&&bTaskDraft&&TaskEpoch==Epoch))Stop->Store(true);Pump();
+}
+void SCLPlanetPreview::Cancel(){++Revision;++Epoch;Pending.Reset();if(Stop)Stop->Store(true);VolumePreview.Reset();if(Client)Client->VolumePreview=nullptr;}
+FString SCLPlanetPreview::VolumePreviewStatus()const{return VolumePreview?VolumePreview->Status():TEXT("Radial preview");}
+bool SCLPlanetPreview::IsUpdating()const{return Task.IsValid()||Pending.IsValid()||(VolumePreview&&VolumePreview->IsUpdating());}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
     if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
@@ -400,7 +416,7 @@ void SCLPlanetPreview::Pump()
     }
     if(!Task.IsValid()&&Pending){auto P=Pending;BuildingPlan=P;Pending.Reset();TaskRevision=Revision;bTaskDraft=bDraft||bPreviewFirst;bPreviewFirst=false;TaskEpoch=Epoch;const int32 Resolution=bTaskDraft?64:FCLGlobeBuffers::PreviewResolution;Stop=MakeShared<TAtomic<bool>,ESPMode::ThreadSafe>(false);auto Cancellation=Stop;Task=Async(EAsyncExecution::ThreadPool,[P,Resolution,Cancellation]{return FCLGlobeBuffers::Build(*P,Resolution,Cancellation.Get());});}
 }
-void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
+void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();if(VolumePreview&&VolumePreview->Poll(*Mesh.Get(),true)){++AppliedBuilds;Client->Invalidate();}Scene->UpdateCaptureContents();}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
 {return G.AbsoluteToLocal(E.GetScreenSpacePosition())/FVector2D(FMath::Max(1.,G.GetLocalSize().X),FMath::Max(1.,G.GetLocalSize().Y));}
 void SCLPlanetPreview::SetAuthoringRecipe(const FCLPlanetRecipe& R)
@@ -429,7 +445,8 @@ FString SCLPlanetPreview::PlacementHint() const
 }
 void SCLPlanetPreview::SetWalkPicking(bool Enabled){CancelPlacementDrag();bWalkPicking=Enabled;if(Enabled){Select({});SetRegionInspection(false);}Client->Invalidate();}
 bool SCLPlanetPreview::IsWalkPicking() const{return bWalkPicking;}
-void SCLPlanetPreview::SetWalkLocation(FVector D){Client->WalkDirection=D.GetSafeNormal();Client->Invalidate();}
+void SCLPlanetPreview::SetWalkLocation(FVector D){WalkSurfacePoint.Reset();Client->WalkDirection=D.GetSafeNormal();Client->Invalidate();}
+void SCLPlanetPreview::SetWalkPoint(FVector P){SetWalkLocation(P);WalkSurfacePoint=P;}
 FVector SCLPlanetPreview::WalkLocation() const{return Client->WalkDirection;}
 void SCLPlanetPreview::CancelPlacementDrag(){DragAxis=EAxisList::None;bPlacementMoved=false;if(Client){Client->Draft.Reset();Client->UpdatePlacementOverlay();Client->Invalidate();}}
 FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPointerEvent& E)
@@ -439,7 +456,7 @@ FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPoin
     Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;
     if(Key==EKeys::LeftMouseButton&&bWalkPicking)
     {
-        ClickWalkLocation=FVector::ZeroVector;Client->CursorDirection(PointerPosition(G,E),ClickWalkLocation);
+        ClickWalkLocation=FVector::ZeroVector;Client->CursorDirection(PointerPosition(G,E),ClickWalkLocation);ClickWalkPoint=Client->LastPickPoint;
     }
     else if(Key==EKeys::LeftMouseButton&&IsInspectingRegions())
     {
@@ -501,7 +518,7 @@ FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E
         const bool Resize=Client->Mode==ECLGlobePlacementMode::Resize;
         CancelPlacementDrag();if(Changed)OnPlacementCommitted.ExecuteIfBound(Target,Resize);
     }
-    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag){if(bWalkPicking)SetWalkLocation(ClickWalkLocation);else if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
+    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag){if(bWalkPicking){SetWalkLocation(ClickWalkLocation);WalkSurfacePoint=ClickWalkPoint;}else if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
     Button=FKey();return FReply::Handled().ReleaseMouseCapture();
 }
 void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();CancelPlacementDrag();}

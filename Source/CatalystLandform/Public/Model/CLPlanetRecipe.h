@@ -10,6 +10,7 @@
 #include "Model/CLLandformSuitability.h"
 #include "Model/CLSurfaceLayers.h"
 #include "Surface/CLSurfaceCompiler.h"
+#include "Scene/CLVolumes.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -211,6 +212,8 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRegionGenerationSettings RegionGeneration;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
+    /** Schema 18: body-space solid edits after base terrain height fitting. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLVolumeSettings Volumes;
 };
 
 class UCLTerrainTypeAsset;
@@ -270,6 +273,9 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     TArray<FRegion> Regions;
     TSharedPtr<const FCLCompiledRegionGeneration> GeneratedRegions;
     TSharedPtr<const FCLCompiledSurfaceLibrary> Surfaces;
+    TSharedPtr<const FCLCompiledVolumes> Volumes;
+    /** Self-contained immutable input retained only for volume preview producers. */
+    TSharedPtr<const FCLPlanetRecipe> VolumeRecipe;
     FCLCompiledSurfaceStack SurfaceStack;
     FCLSurfaceWeights SurfaceWeightsAt(const FVector& Direction,double HeightMeters,double SlopeDegrees) const;
     void SampleSurfaceWeights(TConstArrayView<FVector> Directions,TArray<FCLSurfaceWeights>& Out) const;

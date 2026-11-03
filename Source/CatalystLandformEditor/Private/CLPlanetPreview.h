@@ -14,6 +14,7 @@ DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementT
 DECLARE_DELEGATE_OneParam(FOnCLGlobeRegionSelected,FGuid);
 class FCLGlobeClient;
 class FPreviewScene;
+class FCLVolumePreview;
 struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 {
     TArray<FVector> Vertices,Normals,SourceDirections;
@@ -55,6 +56,8 @@ public:
     bool IsWalkPicking() const;
     void SetWalkLocation(FVector Direction);
     FVector WalkLocation() const;
+    void SetWalkPoint(FVector BodyMeters);
+    TOptional<FVector> WalkPoint()const{return WalkSurfacePoint;}
     void SetDraftMode(bool Enabled){if(bDraft!=Enabled){++Epoch;if(Stop)Stop->Store(true);}bDraft=Enabled;}
     uint64 PublishedBuilds() const{return AppliedBuilds;}
     bool IsDraftMode() const{return bDraft;}
@@ -68,6 +71,7 @@ public:
     const TArray<FCLGuideIndicator>& Indicators() const;
     const TArray<TArray<FVector2D>>& Rings() const;
     bool IsUpdating() const;
+    FString VolumePreviewStatus()const;
 protected:
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
     virtual void Tick(const FGeometry&,double,float) override;
@@ -79,6 +83,7 @@ protected:
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
 #if WITH_DEV_AUTOMATION_TESTS
+    friend class FCLVolumePreviewTest;
     friend class FCLTectonicRenderedPortfolioTest;
     friend class FCLGlobePublicationTest;
     friend class FCLGeologyRenderedTest;
@@ -111,8 +116,10 @@ private:
     FVector2D MouseDown;
     bool bOrbitDrag=false,bPlacementMoved=false,bWalkPicking=false;
     FVector ClickWalkLocation=FVector::ZeroVector;
+    TOptional<FVector> ClickWalkPoint,WalkSurfacePoint;
     TSharedPtr<const FCLCompiledPlanetRecipe> BuildingPlan;
     TUniquePtr<FPreviewScene> Scene;
+    TUniquePtr<FCLVolumePreview> VolumePreview;
     TSharedPtr<FCLGlobeClient> Client;
     TStrongObjectPtr<UDynamicMeshComponent> Mesh;
     TSharedPtr<const FCLCompiledPlanetRecipe> Pending;

@@ -6,7 +6,9 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetInspectionRequest
     FGuid Id=FGuid::NewGuid();
     FString RecipeJson;
     FVector Direction=FVector::ZeroVector;
+    TOptional<FVector> SurfacePointMeters;
     TFunction<void(FGuid,FVector,FString)> OnReturned;
+    TFunction<void(FGuid,FVector)> OnPositionReturned;
 };
 DECLARE_DELEGATE_RetVal_TwoParams(bool,FCLLaunchPlanetInspection,FCLPlanetInspectionRequest,FString&);
 /** One explicitly registered walking host per editor. No runtime dependency on editor UI. */

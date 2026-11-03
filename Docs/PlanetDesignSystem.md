@@ -1199,3 +1199,105 @@ including 3D geological attribution, general preview/picking and native collisio
 Keep exact final guide semantics for existing recipes; settle the explicit new
 volume height policy before adopting it. Do not mark P0 or P1 fully complete from
 the radial-provider bridge alone.
+
+## Bounded volumetric scenes checkpoint
+
+Schema 18 adds ordered analytic solid operations to the immutable XYZ scene. The
+user-approved height policy is **base terrain only**: SurfaceMin and SurfaceMax
+retain their exact fitting on the composed radial terrain, including its existing
+regional Landforms, before volume operations. Caves may extend below SurfaceMin;
+added formations may extend above SurfaceMax. Additions must fit inside the sky
+radius. Cutters may extend outside the sky, within a finite ten-radius domain.
+Existing schemas and disabled volume settings retain their previous behavior.
+
+The initial operator catalogue is closed and versioned: sphere, capsule and box;
+translation, rotation and positive nonuniform scale; ordered union/subtraction;
+polynomial smooth contacts; logical contact materials and radial geological
+units. Compilation admits at most 64 operations and 16 units. Unknown versions,
+invalid identities, missing materials and unsupported local/face domains are
+refused. This is a deterministic recipe representation, not an arbitrary VPP
+Blueprint/graph execution interface.
+
+Primitive dimensions and body positions are double-precision metres. The native
+adapter converts to centimetres and float field values at the VPP boundary. The
+field has a signed-implicit contract: nonuniform scaling and composed terrain do
+not claim exact Euclidean distance or a safe sphere-tracing step. BVH zero-set
+bounds include smoothing; skipping outside them additionally requires a
+conservative lower bound proving that the current ordered field cannot change.
+A full unpruned composition oracle checks that optimization in air as well as
+near surfaces. Fixed-spacing landing brackets are bounded footing searches,
+not certified ray misses or general thin-feature searches.
+
+Each volume viewport owns one native VPP world for the complete scene. VPP
+extracts the surface; Landform's adapter reads retained native cell meshes and
+uses VPP's own transition displacement. The existing full-precision Dynamic Mesh
+upload, material binding and navigation then display those triangles. The flat
+cutaway retains original XYZ coordinates for surface sampling and textures; its
+box clip is presentation only. VPP samples this preview in the flat chart
+and maps each query back to body XYZ, rather than flattening a coarsely meshed
+spherical wedge. This keeps the core and side cut faces planar. Height-only recipes keep their existing fast
+preview path. Rejected Dynamic Mesh connectivity splits vertex identities while
+preserving triangle positions and all attributes.
+
+The adapter is qualified against VPP 2.0p8's retained raster mesh API, including a
+private render-proxy header. Vendor source is unchanged. Its transition-neighbor
+lookup uses the retained mesh chunk ancestry; empty neighbors do not supply
+surface vertices. Future VPP updates require requalification of this adapter.
+Native LOD remains significant: a feature smaller than the native sampling cells
+can disappear. The bounded preview uses quality 4 and a one-million-source-vertex
+publication budget, one worker, immutable snapshots and explicit retirement. This
+is not a guarantee that every thin cave remains visible at every globe distance.
+
+Walking requests now carry an optional XYZ surface point alongside the existing
+direction. Native globe collision and barycentric cutaway picking preserve the
+selected interface. The host spawns at the resolved 3D footing, retains native
+collision, and uses the shared curved-to-flat camera. A floor below another floor
+therefore does not snap to the exterior radial terrain when walking or returning.
+
+The owned fixture is [VolumetricWorld.json](../Examples/VolumetricWorld.json): a
+ridged base, an arch with an opening, two connected cave levels and a detached
+formation. Its explicit metre coordinates are a topology and integration proof;
+it is not a finished geological art preset. Native extraction, collision,
+materials, floor selection, preservation and packaged results are recorded in
+[the qualification record](../conformance/volumetric-scenes-mac-arm64.json).
+
+P1 remains a bounded milestone. General operator extensions, transition/LOD
+stress qualification, capability-driven acceptance/resource identities and
+production budgets still need their own evidence. Planet-scale native precision,
+measured raster ingestion (including Mars), 3D tiled artifacts, arbitrary cave
+networks, navigation meshes and streaming are later gates from the design above.
+No height-only representation is substituted for their future volume providers.
+
+### Verified bounded results
+
+On UE 5.7.4 / VPP 2.0p8 / Mac arm64 Metal SM6, the broad run completed 141
+checks: 139 clean passes, one pass with the existing disabled Mesh Modeling
+material warning, and one routed-widget input failure. The later 13-check
+focused run passed completely, including that unchanged widget test, the final
+flat-domain implementation and its added independent coordinate oracle. There
+are 142 distinct checks across the two runs; this is not a claim that the broad
+run was entirely green on its first attempt.
+
+The packaged Mac Development app passed all 12 walking cases: arch passage,
+upper cave floor, lower cave floor and detached formation, each at curvature
+1, 0.5 and 0. All 4,323 sampled walking frames retained native grounded collision;
+maximum scene-field residual was 0.1551 cm. The two underground floors were
+about 632.6 m and 605.7 m from the core, below SurfaceMin at 650 m; the detached
+formation footing was about 828.8 m, above SurfaceMax at 750 m. These are
+functional checks, not a 60 fps performance qualification.
+
+The cutaway selects both native cave floors by XYZ (within 5.8 cm in this
+preview), and globe picking selects the detached solid. A separate 96-point
+native flat-domain oracle agrees with the full scene plus planar cuts after
+native float conversion; native bulk/sparse/material parity covers 297 points.
+The two old-binary preservation captures retain 1,001 selected samples and their
+complete stamp/resource data. All 207 protected pre-existing content/configuration
+files retain their original hashes. New proof assets have separate ownership.
+
+![Native VPP globe and flat cutaway](Images/VolumetricWorld.png)
+
+The final cooked run also compares 297 XYZ field/material witnesses against the
+editor export, with maximum native field rounding error 0.000234 cm and material
+weight difference 0.000020. It imports only the external JSON recipe and cooked
+client resources, has no authoring asset links, and preserves the accepted scene
+after five deliberately invalid replacements.

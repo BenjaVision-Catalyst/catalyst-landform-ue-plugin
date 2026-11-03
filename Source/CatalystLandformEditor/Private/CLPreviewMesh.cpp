@@ -3,7 +3,7 @@
 
 void CLSetPreviewMesh(UDynamicMeshComponent& Component,const TArray<FVector>& Vertices,const TArray<int32>& Triangles,
     const TArray<FVector>& Normals,const TArray<FVector2D>& UV0,const TArray<FVector2D>& UV1,
-    const TArray<FVector2D>& UV2,const TArray<FVector2D>& UV3,const TArray<FLinearColor>& Colors,const TArray<FProcMeshTangent>& Tangents)
+    const TArray<FVector2D>& UV2,const TArray<FVector2D>& UV3,const TArray<FLinearColor>& Colors,const TArray<FProcMeshTangent>& Tangents,bool AllowTopologySplit)
 {
     using namespace UE::Geometry;
     FDynamicMesh3 Mesh;Mesh.EnableAttributes();auto* A=Mesh.Attributes();
@@ -22,8 +22,25 @@ void CLSetPreviewMesh(UDynamicMeshComponent& Component,const TArray<FVector>& Ve
     }
     for(int32 I=0;I<Triangles.Num();I+=3)
     {
-        const FIndex3i Indices(Triangles[I],Triangles[I+1],Triangles[I+2]);
-        const int32 Triangle=Mesh.AppendTriangle(Indices);check(Triangle>=0);
+        FIndex3i Indices(Triangles[I],Triangles[I+1],Triangles[I+2]);
+        int32 Triangle=Mesh.AppendTriangle(Indices);
+        if(Triangle<0&&AllowTopologySplit)
+        {
+            // Native transition/cell topology need not be a Dynamic Mesh
+            // manifold. Duplicate only rejected triangle vertices; do not move,
+            // retessellate or discard geometry or source attributes.
+            FIndex3i Split;
+            for(int32 K=0;K<3;++K)
+            {
+                const int32 V=Indices[K];Split[K]=Mesh.AppendVertex(Mesh.GetVertex(V));
+                A->PrimaryNormals()->AppendElement(A->PrimaryNormals()->GetElement(V));
+                A->PrimaryTangents()->AppendElement(A->PrimaryTangents()->GetElement(V));A->PrimaryBiTangents()->AppendElement(A->PrimaryBiTangents()->GetElement(V));
+                A->PrimaryColors()->AppendElement(A->PrimaryColors()->GetElement(V));
+                for(int32 L=0;L<4;++L)A->GetUVLayer(L)->AppendElement(A->GetUVLayer(L)->GetElement(V));
+            }
+            Indices=Split;Triangle=Mesh.AppendTriangle(Indices);
+        }
+        check(Triangle>=0);
         A->PrimaryNormals()->SetTriangle(Triangle,Indices);A->PrimaryTangents()->SetTriangle(Triangle,Indices);A->PrimaryBiTangents()->SetTriangle(Triangle,Indices);
         A->PrimaryColors()->SetTriangle(Triangle,Indices);
         for(int32 L=0;L<4;++L)A->GetUVLayer(L)->SetTriangle(Triangle,Indices);

@@ -17,6 +17,8 @@ public:
      * evaluation views. No UObject access here. */
     static TSharedPtr<const FCLScene> FromLegacyRadial(
         TSharedPtr<const FCLCompiledPlanetRecipe> Plan, FString& Error);
+    static TSharedPtr<const FCLScene> FromPlanet(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,FString& Error);
+    bool IsHeightOnly() const;
 
     double OuterRadiusMeters() const;
     FBox3d SolidBoundsMeters() const;

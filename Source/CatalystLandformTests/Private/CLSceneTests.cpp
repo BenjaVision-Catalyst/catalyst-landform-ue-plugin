@@ -21,11 +21,11 @@
 
 namespace
 {
-TSharedPtr<FJsonObject> ReadPreservationReference()
+TSharedPtr<FJsonObject> ReadPreservationReference(const TCHAR* File=TEXT("scene-preservation-v1.json"))
 {
     FString Text;
     const auto Plugin = IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    if (!FFileHelper::LoadFileToString(Text, *(Plugin->GetBaseDir() / TEXT("conformance/scene-preservation-v1.json")))) return nullptr;
+    if (!FFileHelper::LoadFileToString(Text, *(Plugin->GetBaseDir() / TEXT("conformance") / File))) return nullptr;
     TSharedPtr<FJsonObject> Result;
     FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Result);
     return Result;
@@ -126,12 +126,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLScenePreservationTest, "Catalyst.Landform.Sc
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLScenePreservationTest::RunTest(const FString&)
 {
-    const auto Reference = ReadPreservationReference();
-    if (!TestTrue(TEXT("Pre-migration binary reference is present"), Reference.IsValid())) return false;
+    const auto Old=ReadPreservationReference(),Current=ReadPreservationReference(TEXT("volume-preservation-v1.json"));
+    if (!TestTrue(TEXT("Both independently captured binary references are present"), Old.IsValid()&&Current.IsValid())) return false;
     double HeightError = 0, MaterialError = 0, SceneResidual = 0;
     int32 Count = 0;
     FString Error;
-    for (const auto& Value : Reference->GetArrayField(TEXT("cases")))
+    for(const auto& Reference:{Old,Current})for (const auto& Value : Reference->GetArrayField(TEXT("cases")))
     {
         const auto Case = Value->AsObject();
         FCLPlanetRecipe Recipe;
@@ -194,7 +194,7 @@ bool FCLScenePreservationTest::RunTest(const FString&)
     TestTrue(TEXT("Pre-migration height samples remain unchanged within 0.01 mm"), HeightError < .00001);
     TestTrue(TEXT("Pre-migration and shared-scene materials match"), MaterialError < .00001);
     TestTrue(TEXT("Shared XYZ scene preserves the exterior within 0.1 mm"), SceneResidual < .0001);
-    AddInfo(FString::Printf(TEXT("Six pre-migration cases / %d samples: height %.12g m, material %.12g, scene interface %.12g m"), Count, HeightError, MaterialError, SceneResidual));
+    AddInfo(FString::Printf(TEXT("Two independent preservation captures / %d samples: height %.12g m, material %.12g, scene interface %.12g m"), Count, HeightError, MaterialError, SceneResidual));
     return true;
 }
 

@@ -54,6 +54,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
 {
     check(IsInGameThread());
     if (!FMath::IsFinite(Stamp.Radius) || Stamp.Radius < 1000) return false;
+    if(Stamp.bSectionPreview&&(!FMath::IsFinite(Stamp.SectionWidthMeters)||Stamp.SectionWidthMeters<1||!FMath::IsFinite(Stamp.SectionReferenceRadiusMeters)||Stamp.SectionReferenceRadiusMeters<=0))return false;
     Extent = Stamp.Radius;
     if (Stamp.bUseRecipe)
     {
@@ -97,14 +98,25 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
             FMath::IsNearlyEqual(Stamp.Radius, RecipePlan->RadiusMeters * 100., 1.e-6))
         {
             FString Error;
-            Scene = FCLScene::FromLegacyRadial(RecipePlan, Error);
+            Scene = FCLScene::FromPlanet(RecipePlan, Error);
             if (!Scene) return false;
         }
+        if(RecipePlan->Volumes&&!Scene)return false; // Never drop volume operations onto a radial fallback.
     }
     return true;
 }
 
-FVoxelBox FCLPlanetStampRuntime::GetLocalBounds() const { return FVoxelBox(-Extent, Extent); }
+FVector FCLPlanetStampRuntime::SectionToBodyMeters(const FVector& P,double Reference)
+{
+    const double Arc=FVector2D(P.X,P.Y).Size(),A=Arc/Reference;
+    const double S=Arc>1.e-10?FMath::Sin(A)/Arc:1./Reference;
+    return FVector(P.X*S,P.Y*S,FMath::Cos(A))*P.Z;
+}
+FVoxelBox FCLPlanetStampRuntime::GetLocalBounds() const
+{
+    if(Stamp.bSectionPreview){const double H=Stamp.SectionWidthMeters*50.;return FVoxelBox(FVector(-H,-H,0),FVector(H,H,Extent));}
+    return FVoxelBox(-Extent,Extent);
+}
 
 FVoxelFloatBuffer FCLPlanetStampRuntime::SampleHeights(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions) const
 {
@@ -163,7 +175,11 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Quer
             const int32 Count = FMath::Min(512, Positions.Num() - Start);
             TArray<FVector3d> BodyPositions;
             BodyPositions.Reserve(Count);
-            for (int32 I = 0; I < Count; ++I) BodyPositions.Add(Frame.NativeToBodyMeters(Positions[Start + I]));
+            for (int32 I = 0; I < Count; ++I)
+            {
+                const FVector P=Frame.NativeToBodyMeters(Positions[Start+I]);
+                BodyPositions.Add(Stamp.bSectionPreview?SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters):P);
+            }
             TArray<FCLSceneShapeSample> Samples;
             FString Error;
             const bool bSampled = Scene->SampleShape({BodyPositions}, Samples, Error);
@@ -171,6 +187,12 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Quer
             for (int32 I = 0; I < Count; ++I)
             {
                 check(Samples[I].State == ECLSceneSampleState::Known);
+                if(Stamp.bSectionPreview)
+                {
+                    const FVector P=Frame.NativeToBodyMeters(Positions[Start+I]);
+                    const double Clip=FMath::Max(FMath::Max(FMath::Abs(P.X),FMath::Abs(P.Y))-Stamp.SectionWidthMeters*.5,-P.Z);
+                    Samples[I].FieldMeters=FMath::Max(Samples[I].FieldMeters,Clip);
+                }
                 Distances.Set(Start + I, Samples[I].FieldMeters * 100.);
             }
         }
@@ -211,7 +233,11 @@ FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVo
             const int32 Count = FMath::Min(512, Positions.Num() - Start);
             TArray<FVector3d> BodyPositions;
             BodyPositions.Reserve(Count);
-            for (int32 I = 0; I < Count; ++I) BodyPositions.Add(Frame.NativeToBodyMeters(Positions[Start + I]));
+            for (int32 I = 0; I < Count; ++I)
+            {
+                const FVector P=Frame.NativeToBodyMeters(Positions[Start+I]);
+                BodyPositions.Add(Stamp.bSectionPreview?SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters):P);
+            }
             TArray<FCLSceneSurfaceSample> Samples;
             FString Error;
             const bool bSampled = Scene->SampleSurfaces({BodyPositions}, Samples, Error);

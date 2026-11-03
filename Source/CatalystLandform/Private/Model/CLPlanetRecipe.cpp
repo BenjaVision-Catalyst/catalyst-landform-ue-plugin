@@ -414,6 +414,16 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
 
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* Library,const FBox2D* LocalRegion,int32 SurfacePatch)
 {
+    if(Recipe.Volumes.bEnabled||!Recipe.Volumes.Operations.IsEmpty()||!Recipe.Volumes.GeologicalUnits.IsEmpty())
+    {
+        if(Recipe.SchemaVersion!=18||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch))
+        {Error=TEXT("Volume scenes require schema 18 and whole-body spherical coordinates");return nullptr;}
+        auto BaseRecipe=Recipe;BaseRecipe.Volumes=FCLVolumeSettings();
+        const auto Base=Compile(BaseRecipe,Error,Library,nullptr,SurfacePatch);if(!Base)return nullptr;
+        if(!Recipe.Volumes.bEnabled)return Base;
+        const auto Volumes=FCLCompiledVolumes::Compile(Recipe.Volumes,Recipe.RadiusMeters,Base->Surfaces.Get(),Error);if(!Volumes)return nullptr;
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Base);Out->Volumes=Volumes;Out->VolumeRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);return Out;
+    }
     const auto Raw=CompileUnmapped(Recipe,Error,Library,LocalRegion,SurfacePatch);if(!Raw)return nullptr;
     if(Recipe.SchemaVersion<17||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Raw;
     const bool TectonicShape=Raw->Tectonics&&Raw->Tectonics->HasEffect();
@@ -440,7 +450,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 17) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 18) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     const bool HasSurfaces=Recipe.SurfaceStack.IsActive()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.SurfaceStack.IsActive();})||Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.SurfaceStack.IsActive();});
     if(HasSurfaces&&(Recipe.SchemaVersion<13||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||!Recipe.SurfaceStack.IsActive()))return Fail(TEXT("Surface rules require schema 13 spherical terrain and a planet default surface"));
     if(!Recipe.SurfaceStack.Validate(Error))return nullptr;
@@ -816,8 +826,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..17 with algorithm 1, or schemaVersion 3..17 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17 && Schema != 18) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..18 with algorithm 1, or schemaVersion 3..18 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)
@@ -886,6 +896,9 @@ void UCLPlanetRecipeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
     {
         const int32 I=Event.GetArrayIndex(TEXT("BaseStructure"));
         if(Recipe.BaseStructure.IsValidIndex(I)){Recipe.BaseStructure[I].Id=FGuid::NewGuid();Recipe.SchemaVersion=FMath::Max(11,Recipe.SchemaVersion);}
+        const int32 Solid=Event.GetArrayIndex(TEXT("Operations"));
+        if(Recipe.Volumes.Operations.IsValidIndex(Solid))
+        {auto& V=Recipe.Volumes.Operations[Solid];V.Id=FGuid::NewGuid();if(V.Name.IsNone())V.Name=TEXT("Solid form");}
     }
     FString GuideError;SynchronizeRadialGuides(GuideError);BindGuideLibrary();
     Super::PostEditChangeProperty(Event);if(!(Event.ChangeType & EPropertyChangeType::Interactive))OnRecipeChanged.Broadcast();

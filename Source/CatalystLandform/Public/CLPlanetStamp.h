@@ -44,6 +44,10 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     UPROPERTY() bool bPlanarSources = false;
     UPROPERTY() FCLPlanetRecipe Recipe;
     UPROPERTY() TArray<FCLSphericalHeightmapPlacement> Placements;
+    /** Transient native flat-section sampling domain, never part of the planet recipe. */
+    UPROPERTY() bool bSectionPreview=false;
+    UPROPERTY() double SectionWidthMeters=500;
+    UPROPERTY() double SectionReferenceRadiusMeters=1;
 };
 
 USTRUCT()
@@ -76,6 +80,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     virtual void Apply(const FVoxelVolumeBulkQuery& Query, const FVoxelVolumeTransform& Transform) const override;
     virtual void Apply(const FVoxelVolumeSparseQuery& Query, const FVoxelVolumeTransform& Transform) const override;
 
+    static FVector SectionToBodyMeters(const FVector& SectionMeters,double ReferenceRadiusMeters);
     FVoxelSurfaceTypeBlendBuffer SampleSurfaceTypes(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const;
     void ApplySources(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions, FVoxelFloatBuffer& Heights) const;
     FVoxelFloatBuffer SampleHeights(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Directions) const;
