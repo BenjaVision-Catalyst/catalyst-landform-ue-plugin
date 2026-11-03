@@ -2,7 +2,8 @@
 
 4 November 2026. **Frame contract and staged proof design.** The initial source
 audit is retained separately; the [bounded P0/P1 idle fixture](BodyFixedIdleProof.md)
-is now qualified. No production frame authority or ACF compatibility is qualified.
+is now qualified. The subsequent [bounded actual ACF+VPP profile](TGCNativeGameplayQualification.md)
+is also qualified; production frame authority and complete TGC acceptance remain open.
 This supersedes interpreting the previous
 “body rotation proof” checkpoint as a plan to spin a live terrain root every tick.
 The user-approved target is ordinary stable surface gameplay while the body

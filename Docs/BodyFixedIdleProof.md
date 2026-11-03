@@ -137,3 +137,12 @@ material fingerprints matched the prior successful cook. Use a full cook when
 those inputs change. Add `--fps 60 --offset origin --pose advancing` for one case.
 Use `--control unused-pose`, `--control moving-root` or `--control missing-omega`
 for the bounded failure controls. Output paths must be new directories.
+
+## Subsequent actual ACF qualification
+
+The [bounded TGC native gameplay profile](TGCNativeGameplayQualification.md) now
+qualifies selected actual ACF movement, animation, GAS trace damage and native
+VPP editing alongside UE structure/stamp save-load. It includes separate cooked
+live-origin cases and source-pinned corrections for demonstrated ACF measurement
+gaps. It does not close complete TGC multiplayer, persistent-server, combat-asset
+or multi-body frame acceptance. The idle proof above retains its original scope.

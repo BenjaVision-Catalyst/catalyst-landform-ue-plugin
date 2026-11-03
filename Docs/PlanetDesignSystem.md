@@ -1582,3 +1582,31 @@ movement/combat/animation alongside VPP, including enabled non-Z-up paths, nativ
 editing, structures and shared interactions. That required gate is still open.
 Concurrent local-space topology, authority/time/rewind, frame transitions and
 rotating-frame dynamics remain distinct gates; full P2 is not closed.
+
+
+## Actual ACF + VPP gameplay checkpoint — 4 November 2026
+
+The user-selected isolated TGCGameplayProof host now runs actual native ACF with
+native VPP. The [bounded qualification](TGCNativeGameplayQualification.md) passed
+17 cooked cases (16-case matrix plus pilot), two final editor cases and an
+unmodified-native-source failure control. Native walking/base contact, GAS jump,
+gravity-aligned animation/ground/fall measurements, native swipe damage/team
+filtering, a live VPP edit, a real static structure and native UE/VPP save-load
+are exercised. Live origin shifts are separate cases; a retained native runtime
+and registered native Nanite meshes are mandatory.
+
+Five demonstrated ACF gravity/origin measurement gaps are corrected only in the
+isolated host's source-pinned local copy. Native VPP generation, layers, stamps,
+materials, LOD and collision invokers remain the only voxel platform. No streaming,
+physics, animation or generation replacement was added. Installed plugin sources
+and protected local edits remain unchanged. The native sample's incomplete data,
+material and optional-action configuration is documented, not hidden as game
+conformance. The final fixture uses a nonlethal native curve and retains native
+critical-damage calculation.
+
+Next, qualify real networked ACF players with authoritative shared damage, native
+stamp replication, shared structures and state after server restart. Complete
+combat/death assets, enhanced-curvature presentation, topology, frame transitions,
+authority/time/rewind and rotating-frame dynamics remain distinct required gates.
+This advances the required TGC acceptance gate; it does not close full P2 or
+certify the complete game.
