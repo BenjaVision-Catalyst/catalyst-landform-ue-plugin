@@ -778,5 +778,7 @@ curvature, with explicit remaining body-rotation/frame and scientific-data gates
 
 The [body-fixed gameplay frame design](Docs/BodyFixedGameplayFrames.md) proposes
 stable local surface gameplay with separate celestial pose/kinematics. It records
-native/Ascent compatibility risks and a concrete first proof for review; it adds
-no runtime implementation or new compatibility qualification.
+native/Ascent compatibility risks and staged proof gates. The
+[bounded idle fixture](Docs/BodyFixedIdleProof.md) now qualifies its first P0/P1
+slice using native VPP and UE physics; combined TGC ACF+VPP gameplay, rotating-frame
+dynamics and concurrent-body topology remain unqualified.

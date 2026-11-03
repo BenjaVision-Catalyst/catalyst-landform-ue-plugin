@@ -1,7 +1,9 @@
 # Body-fixed gameplay frames: contract and proof design
 
-4 November 2026. **Design/source audit for review; no runtime implementation or
-new compatibility qualification.** This supersedes interpreting the previous
+4 November 2026. **Frame contract and staged proof design.** The initial source
+audit is retained separately; the [bounded P0/P1 idle fixture](BodyFixedIdleProof.md)
+is now qualified. No production frame authority or ACF compatibility is qualified.
+This supersedes interpreting the previous
 “body rotation proof” checkpoint as a plan to spin a live terrain root every tick.
 The user-approved target is ordinary stable surface gameplay while the body
 has a physically meaningful position/orientation relative to the wider universe.
@@ -194,11 +196,12 @@ fixture.
 
 ## First bounded implementation proposal: fixed gameplay, advancing celestial pose
 
-The first implementation is **not started**. Proposed host: an opt-in cooked
-LandformLab fixture, retaining its existing maps/materials and native VPP path.
-Proposed code placement: diagnostic host values/observers initially; do not add a
-production ephemeris/scene manager to Landform. Reuse existing spatial frame math
-and UE types. Integration into the real body/physics owner is a separate decision.
+The first bounded implementation is an opt-in cooked LandformLab fixture,
+retaining its existing maps/materials and native VPP path. Its diagnostic host
+values/observers reuse existing spatial frame math and UE types. See the
+[executed scope and results](BodyFixedIdleProof.md); it adds no production
+ephemeris/scene manager to Landform. Integration into the real body/physics owner
+remains a separate decision.
 
 ### P0: non-vacuous frame math
 
@@ -290,6 +293,6 @@ performance envelope. Use native capabilities first and record any demonstrated
 adapter gap with its owner and removal condition.
 
 These are proof identifiers in this document, not replacements for the broader
-PlanetDesignSystem P0-P6 milestone names. Implementation should begin only after
-this concrete scope has been reviewed; this change set contains documentation
-and source audit data only.
+PlanetDesignSystem P0-P6 milestone names. The bounded P0/P1 scope was reviewed
+before implementation; its qualification is recorded separately. Subsequent gates
+remain unqualified and do not follow from the idle proof.

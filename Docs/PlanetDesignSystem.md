@@ -1565,3 +1565,20 @@ acceptance gate. Isolated LandformLab fixtures cannot substitute for the
 combined game character/movement/combat, native terrain/editing and shared
 construction/multiplayer proof. Pin the actual TGC runtime/configuration before
 modifying it; preserve each framework's configured lifecycle.
+
+
+## Body-fixed idle proof checkpoint — 4 November 2026
+
+The [bounded frame proof](BodyFixedIdleProof.md) passed 61 focused editor tests,
+eight cooked fixed/advancing-pose cases and three failure controls. Native VPP
+terrain/material/collision ownership remains intact; celestial samples do not
+move the local terrain/building or wake sleeping native bodies. Static transfer
+and live-origin presentation regressions passed on the same binary. New code
+is diagnostic host code only; this is neither a production frame manager nor a
+physical rotating-planet simulation.
+
+Next, pin ThatGame:Catalyst's intended ACF runtime/assets and qualify actual ACF
+movement/combat/animation alongside VPP, including enabled non-Z-up paths, native
+editing, structures and shared interactions. That required gate is still open.
+Concurrent local-space topology, authority/time/rewind, frame transitions and
+rotating-frame dynamics remain distinct gates; full P2 is not closed.

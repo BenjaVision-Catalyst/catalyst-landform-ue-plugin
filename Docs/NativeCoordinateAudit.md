@@ -467,3 +467,15 @@ The frame design now requires a combined gameplay acceptance gate, keeping
 ACF's movement/combat class and VPP's terrain/editing path intact. Source risks
 are not blanket incompatibility findings, and single-framework fixtures are
 not game compatibility qualification.
+
+
+## Bounded body-fixed idle qualification — 4 November 2026
+
+The [P0/P1 diagnostic fixture](BodyFixedIdleProof.md) now executes frame
+kinematics and matched fixed/advancing celestial-pose controls while native VPP
+and local sleeping physics remain stationary. Eight cooked cases and three
+negative controls passed; the same binary passed static transfer and separate
+live-origin presentation regressions. No VPP/engine implementation, production
+movement, shader or asset changed. [The record](../conformance/body-fixed-idle-mac-arm64.json)
+pins exact evidence. This does not close the mandatory TGC ACF+VPP gameplay gate,
+production authority/time, rotating-force or concurrent-body topology gates.
