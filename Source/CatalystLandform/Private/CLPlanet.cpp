@@ -14,6 +14,7 @@
 #include "VoxelLayers.h"
 #include "VoxelQuery.h"
 #include "VoxelStampComponent.h"
+#include "Scene/CLScene.h"
 
 bool UCLHeightmapLibrary::ConfigureTextureSource(UVoxelHeightmap* Heightmap, UTexture2D* Texture,
     float ScaleXY, float ScaleZ, float OffsetZ, bool bUseBicubic)
@@ -57,10 +58,19 @@ bool ACLPlanet::ApplyRecipeJson(const FString& Json, FString& Error)
     Error.Reset();
     if(!IsInGameThread()||!GetWorld()||GetWorld()->bIsTearingDown||IsTemplate()||bRebuilding)
     {Error=TEXT("Recipe application requires an available planet actor on the game thread");return false;}
+    if(SamplingWindow.bEnabled&&!SamplingWindow.Validate(Error))return false;
     // Import owns the strict parser and complete compiler preflight. Do not change
     // the live actor, its retained recipe, or its stamp on a rejected document.
     auto Candidate=TStrongObjectPtr<UCLPlanetRecipeAsset>(NewObject<UCLPlanetRecipeAsset>(this,NAME_None,RF_Transient));
     if(!Candidate->ImportRecipeJson(Json,Error))return false;
+    if(SamplingWindow.bEnabled)
+    {
+        const auto Plan=FCLPlanetCompiler::Compile(Candidate->Recipe,Error);
+        if(!Plan||!FCLScene::FromPlanet(Plan,Error))return false;
+        for(TActorIterator<ACLSphericalHeightmapStamp> It(GetWorld());It;++It)
+            if(It->Planet==this&&!It->IsActorBeingDestroyed())
+            {Error=TEXT("A native scene window requires recipe-owned geometry, without authored stamp actors");return false;}
+    }
     UVoxelMegaMaterial* Material=MegaMaterial;
     if(Candidate->Recipe.SurfaceStack.IsActive())
     {
@@ -83,6 +93,7 @@ void ACLPlanet::RebuildTerrain()
     }
 #endif
     FCLPlanetStamp Stamp;
+    Stamp.Window=SamplingWindow;
     if (RecipeAsset)
     {
         if(!RecipeAsset->SynchronizeRadialGuides(RecipeStatus)){RecipeStatus=TEXT("Keeping last valid terrain: ")+RecipeStatus;return;}

@@ -1,0 +1,48 @@
+#ifndef CL_ANCHORED_SCENE_USH
+#define CL_ANCHORED_SCENE_USH
+#include "/Engine/Private/DoubleFloat.ush"
+
+float3 CLRotate(float4 Q,float3 V) {return V+2*cross(Q.xyz,cross(Q.xyz,V)+Q.w*V);}
+FDFVector3 CLCanonicalPosition(float3 High,float3 Low,float4 BodyFromLocal,float3 LocalCm)
+{return DFAdd(MakeDFVector3(High,Low),CLRotate(BodyFromLocal,LocalCm));}
+FDFVector3 CLCanonicalScaled(FDFVector3 Position,float ScaleCm)
+{
+    // HLSL mad may be emitted as a non-fused Metal operation. The split product
+    // retains the division remainder without depending on fused multiply-add.
+    precise float3 High=Position.High/ScaleCm;
+    FDFVector3 Product=DFTwoProductNoFMA(High,(float3)ScaleCm);
+    precise float3 Remainder=INVARIANT_SUB(INVARIANT_SUB(Position.High,Product.High),Product.Low);
+    return DFAdd(DFPromote(High),INVARIANT_DIV(INVARIANT_ADD(Remainder,Position.Low),ScaleCm));
+}
+float3 CLCanonicalPhase(FDFVector3 Position,float ScaleCm)
+{return DFFracDemote(CLCanonicalScaled(Position,ScaleCm));}
+
+// The same spherical-to-flat map as CLPlanetProjection, evaluated about its
+// anchor surface instead of subtracting two planet-sized float positions.
+float3 CLAnchoredPosition(float Radius,float3 Anchor,float C,float3 Source)
+{
+    if(C==1)return Source;
+    float Z=dot(Source,Anchor);float3 T=Source-Anchor*Z;float S=length(T);
+    float RZ=Radius+Z;
+    float R=sqrt(RZ*RZ+S*S);
+    float H=Z+S*S/max(R+RZ,1.e-6);
+    float Theta=atan2(S,RZ),A=C*Theta;
+    float Sinc=abs(A)<.001?1-A*A/6:sin(A)/A;
+    float3 Along=S>1.e-6?T/S:float3(0,0,0);
+    float SH=abs(A)<.001?1-A*A/24:sin(.5*A)/(.5*A);
+    return Along*((Radius+C*H)*Theta*Sinc)+Anchor*(H*cos(A)-.5*C*Radius*Theta*Theta*SH*SH);
+}
+float3 CLAnchoredNormal(float Radius,float3 Anchor,float C,float3 Source,float3 N)
+{
+    if(C==1)return N;
+    float Z=dot(Source,Anchor);float3 T=Source-Anchor*Z;float S=length(T);
+    if(S<1.e-5)return N;
+    float RZ=Radius+Z,R=sqrt(RZ*RZ+S*S),H=Z+S*S/max(R+RZ,1.e-6);
+    float Theta=atan2(S,RZ),A=C*Theta;T/=S;
+    float3 Az=cross(Anchor,T),SR=Anchor*cos(Theta)+T*sin(Theta),SM=T*cos(Theta)-Anchor*sin(Theta);
+    float3 PR=Anchor*cos(A)+T*sin(A),PM=T*cos(A)-Anchor*sin(A);
+    float M=1+(C-1)*H/max(R,1.e-6);
+    float SC=abs(A)<.001?1-A*A/6:sin(A)/A,ST=abs(Theta)<.001?1-Theta*Theta/6:sin(Theta)/Theta;
+    return normalize(dot(N,SR)*PR+dot(N,SM)*PM/M+dot(N,Az)*Az/(M*SC/ST));
+}
+#endif

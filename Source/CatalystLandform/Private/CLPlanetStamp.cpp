@@ -54,6 +54,13 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
 {
     check(IsInGameThread());
     if (!FMath::IsFinite(Stamp.Radius) || Stamp.Radius < 1000) return false;
+    if(Stamp.Window.bEnabled)
+    {
+        FString Error;
+        if(!Stamp.Window.Validate(Error)||!Stamp.bUseRecipe||Stamp.bPlanarSources||!Stamp.Placements.IsEmpty()||Stamp.bSectionPreview)
+        return false;
+        SamplingFrame=Stamp.Window.Frame();
+    }
     if(Stamp.bSectionPreview&&(!FMath::IsFinite(Stamp.SectionWidthMeters)||Stamp.SectionWidthMeters<1||!FMath::IsFinite(Stamp.SectionReferenceRadiusMeters)||Stamp.SectionReferenceRadiusMeters<=0))return false;
     Extent = Stamp.Radius;
     if (Stamp.bUseRecipe)
@@ -101,7 +108,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
             Scene = FCLScene::FromPlanet(RecipePlan, Error);
             if (!Scene) return false;
         }
-        if(RecipePlan->Volumes&&!Scene)return false; // Never drop volume operations onto a radial fallback.
+        if((RecipePlan->Volumes||Stamp.Window.bEnabled)&&!Scene)return false; // No framed or volume fallback to a radial actor profile.
     }
     return true;
 }
@@ -114,6 +121,7 @@ FVector FCLPlanetStampRuntime::SectionToBodyMeters(const FVector& P,double Refer
 }
 FVoxelBox FCLPlanetStampRuntime::GetLocalBounds() const
 {
+    if(Stamp.Window.bEnabled)return FVoxelBox(Stamp.Window.BoundsCm());
     if(Stamp.bSectionPreview){const double H=Stamp.SectionWidthMeters*50.;return FVoxelBox(FVector(-H,-H,0),FVector(H,H,Extent));}
     return FVoxelBox(-Extent,Extent);
 }
@@ -169,7 +177,7 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Quer
     {
         FVoxelFloatBuffer Distances;
         Distances.Allocate(Positions.Num());
-        const FCLBodyFrame Frame;
+        const FCLBodyFrame& Frame=SamplingFrame;
         for (int32 Start = 0; Start < Positions.Num(); Start += 512)
         {
             const int32 Count = FMath::Min(512, Positions.Num() - Start);
@@ -226,7 +234,7 @@ FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVo
     if(!RecipePlan||!RecipePlan->Surfaces){for(int32 I=0;I<Positions.Num();++I)Out.Set(I,FVoxelSurfaceTypeBlend());return Out;}
     if (Scene)
     {
-        const FCLBodyFrame Frame;
+        const FCLBodyFrame& Frame=SamplingFrame;
         FVoxelSurfaceTypeBlendBuilder Builder;
         for (int32 Start = 0; Start < Positions.Num(); Start += 512)
         {

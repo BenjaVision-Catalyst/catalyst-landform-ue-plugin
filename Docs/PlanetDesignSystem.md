@@ -1301,3 +1301,93 @@ editor export, with maximum native field rounding error 0.000234 cm and material
 weight difference 0.000020. It imports only the external JSON recipe and cooked
 client resources, has no authoring asset links, and preserves the accepted scene
 after five deliberately invalid replacements.
+
+### Bounded native windows checkpoint
+
+The scale proof adds an opt-in `FCLSceneWindow`: transient native coverage of the
+canonical XYZ scene, rather than another planet recipe or surface projection.
+The portable recipe and solid operations stay in double-precision body metres.
+A rigid frame maps a bounded neighborhood to native centimetres near the origin;
+VPP evaluates that same field for its retained render mesh and collision. An
+inactive window retains the earlier adapter path. Windowed recipe admission
+refuses local/face-scoped plans and authored stamp actors before replacing the
+accepted input.
+
+The host owns activation. A window replacement stops movement, restores and
+retires the presentation binding, then creates the replacement native world and
+character from the retained canonical pose/heading/velocity. Physics remains
+held until the new collision is ready. This is an explicit activation barrier,
+not seamless moving-window streaming. `BodyCenterWorld()` supplies local gravity
+with the body centre rather than the terrain-window actor's anchor.
+
+The same `FCLGameplayPresentation` and `FCLPlanetProjection` continue to present
+the camera, player and native terrain. Packet `9140` supplies current/previous
+local projection origins plus high/low canonical body coordinates and rotation.
+It uses actual native instance bounds. Packet `9137` retains its earlier
+bounding-box layout. Both use the existing maintained VPP lifecycle extension
+and isolated, hash-checked UE shader overlay; no new engine/vendor source edit
+is introduced. Texture and macro phase use compensated division without a
+fused multiply-add dependency. The observed Metal phase error with the initial
+arithmetic was approximately 29 cm; its replacement is covered by GPU readback.
+
+The synthetic scale fixture retains a 1 m wall, arch, two 3 m-high cave voids
+with floors 6 m apart, and detached rock in a 64 × 64 × 48 m window. Source
+voxels are 25 cm. The bounded host uses fixed native quality 8; quality 4
+failed the strict 25 cm mesh-field budget on a sharp Mars near-pole corner.
+The quality change retains that budget rather than weakening it. The four reference *surface* radii are 100 m, 1 km, 3,389,500 m
+and 6,371,000 m; each fixture's outer sky radius is 100 m farther out. These are
+spherical numerical fixtures, not scientific Mars/Earth models or imported
+heightmaps. Sites cover the equator, both near-poles and the antimeridian.
+
+Qualification records distinguish numerical field/texture errors, native mesh
+and collision errors, projected picking, camera distances and actual grounded
+frames. See `conformance/native-windows-mac-arm64.json` and the host's
+`Docs/ScaleLab-mac-arm64.json`. The executable fixture, authoring and replay
+commands are described in the host README. Native triangles are read from VPP's
+retained, transition-displaced meshes; a substitute radial mesher cannot satisfy
+the feature probes. Rendered-frame coverage detects the observed all-terrain
+culling failure and supplements direct visual review; it is not a general
+silhouette or image-fidelity certificate.
+
+This closes only the measured native-window slice of P2 and the tested thin
+features at source LODs recorded in that profile. The window's admission cap of
+2,048 m half extent does not qualify every admitted extent. Existing global
+Perlin inputs retain their versioned float-frequency limit; the continuity
+witness uses radius/64 wavelength and three octaves. Arbitrarily fine global
+noise needs a separately versioned, precision-aware provider. Full P2 still
+requires ellipsoid/datum conversion, two-body transfer and continuous streaming
+and collision handoff. P1's general operator/LOD and production budget gates
+also remain open. Resolve the datum/provider gates before adopting real Mars
+resources; this fixture does not silently certify them.
+
+Primary workflow references: [VPP collision and invokers](https://docs.voxelplugin.com/knowledgebase/blueprints/collision-navmesh-and-invokers)
+explains the native collision ownership used here; [VPP instanced stamps](https://docs.voxelplugin.com/knowledgebase/working-with-stamps/instanced-stamps)
+documents their world-space transforms, which must not be mistaken for automatic
+frame rebasing. [UE Large World Coordinates](https://dev.epicgames.com/documentation/en-us/unreal-engine/large-world-coordinates-in-unreal-engine-5?application_version=5.7)
+describes the double/float boundary that this bounded adapter qualifies.
+
+The final Mac Development package passes all 32 size/site/frame cases, with
+31,211/31,211 grounded frames on native VPP collision and 384 projected picks.
+All 21 focused editor checks pass without warnings. Numerical field error is
+below 0.08 mm and GPU material-phase error below 0.007 mm. Maximum retained
+mesh-field error is 16.667 cm; the probed mesh interfaces differ by at most
+1.593 cm, and native collision field error is 1.575 cm. Reanchoring preserves a
+78.26 cm/s nonzero velocity within the recorded numerical budget. Camera rigs
+are measured at approximately 4.55 m, 28.14 m and 70.71 m. Twelve captured views
+pass coverage checks; the four wide views were visually reviewed with the arch,
+wall and detached formation present. Source meshes remain at LOD 0 under this
+bounded quality floor; general coarse-source transition guarantees remain open.
+
+The optional broad sweep was deliberately stopped after 151 successful tests
+and one failure, before the remaining long legacy scenarios. In a fresh process,
+`LandformLab.GeneratedRegions.Walk` again rejects the current locally edited
+regional fixture's 83.229-degree route against its 50-degree limit. The regional
+compiler and route finder are unchanged here, and all 210 protected content and
+configuration hashes remain unchanged. This is an explicit retained failure,
+not an all-green broad-suite claim.
+
+The same packaged executable also passes the existing 12 volumetric inspection
+walks: arch, both cave floors and detached formation at natural/half/flat
+curvature. This retains the original unwindowed `9137` path alongside the new
+windowed proof; exact contacts and executable hashes are in the qualification
+records.

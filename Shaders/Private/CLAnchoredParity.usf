@@ -1,0 +1,19 @@
+#include "/Engine/Public/Platform.ush"
+#include "/Plugin/CatalystLandform/Public/CLAnchoredScene.ush"
+struct FCLAnchoredQuery {float4 SourceCurvature,AnchorRadius,OriginHighScale,OriginLow,BodyFromLocal,Normal,ProjectionOrigin;};
+struct FCLAnchoredResult {float4 Position,Normal,Phase,MacroPhase;};
+StructuredBuffer<FCLAnchoredQuery> Inputs;
+RWStructuredBuffer<FCLAnchoredResult> Outputs;
+uint NumQueries;
+[numthreads(64,1,1)]
+void MainCS(uint3 Index:SV_DispatchThreadID)
+{
+    if(Index.x>=NumQueries)return;
+    FCLAnchoredQuery Q=Inputs[Index.x];FCLAnchoredResult R;
+    float3 A=normalize(Q.AnchorRadius.xyz);
+    R.Position=float4(CLAnchoredPosition(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Q.SourceCurvature.xyz-Q.ProjectionOrigin.xyz)+Q.ProjectionOrigin.xyz,1);
+    R.Normal=float4(CLAnchoredNormal(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Q.SourceCurvature.xyz-Q.ProjectionOrigin.xyz,normalize(Q.Normal.xyz)),1);
+    FDFVector3 P=CLCanonicalPosition(Q.OriginHighScale.xyz,Q.OriginLow.xyz,Q.BodyFromLocal,Q.SourceCurvature.xyz);
+    R.Phase=float4(CLCanonicalPhase(P,Q.OriginHighScale.w),1);
+    R.MacroPhase=float4(CLCanonicalPhase(P,Q.OriginHighScale.w*12),1);Outputs[Index.x]=R;
+}

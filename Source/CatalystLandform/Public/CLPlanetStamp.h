@@ -6,6 +6,7 @@
 #include "VoxelStampRef.h"
 #include "Surface/VoxelSurfaceTypeBlendBuffer.h"
 #include "Model/CLPlanetRecipe.h"
+#include "Scene/CLSceneWindow.h"
 #include "CLPlanetStamp.generated.h"
 
 class FCLScene;
@@ -32,7 +33,7 @@ struct CATALYSTLANDFORM_API FCLSphericalHeightmapPlacement
     FVector FromChart(double Radius, const FVector2D& Chart) const;
 };
 
-/** A radial volume assembled by evaluating native VPP heightmap stamp runtimes. */
+/** Canonical XYZ volume, with pinned radial/heightmap profiles for legacy inputs. */
 USTRUCT()
 struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
 {
@@ -44,6 +45,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     UPROPERTY() bool bPlanarSources = false;
     UPROPERTY() FCLPlanetRecipe Recipe;
     UPROPERTY() TArray<FCLSphericalHeightmapPlacement> Placements;
+    UPROPERTY() FCLSceneWindow Window;
     /** Transient native flat-section sampling domain, never part of the planet recipe. */
     UPROPERTY() bool bSectionPreview=false;
     UPROPERTY() double SectionWidthMeters=500;
@@ -70,6 +72,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     };
     TArray<FSource> Sources;
     double Extent = 10000;
+    FCLBodyFrame SamplingFrame;
     TSharedPtr<const FCLCompiledPlanetRecipe> RecipePlan;
     /** Shared XYZ scene for recipe-only spherical terrain with matching radii.
      * Actor/planar/custom-radius profiles retain their pinned legacy path. */

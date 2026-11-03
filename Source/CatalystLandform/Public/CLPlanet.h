@@ -39,6 +39,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet|Recipe")
     TObjectPtr<UCLPlanetRecipeAsset> RecipeAsset;
+    /** Native coverage is an activation choice; the portable recipe stays canonical. */
+    UPROPERTY(Transient) FCLSceneWindow SamplingWindow;
+    FVector BodyCenterWorld() const {return GetActorTransform().TransformPosition(SamplingWindow.bEnabled?SamplingWindow.Frame().BodyToNativeCentimeters(FVector::ZeroVector):FVector::ZeroVector);}
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient, Category="Planet|Recipe")
     FString RecipeStatus;
 

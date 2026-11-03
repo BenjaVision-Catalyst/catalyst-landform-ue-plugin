@@ -1,0 +1,168 @@
+{
+  "date": "2026-11-03",
+  "profile": "bounded-native-window-v1",
+  "platform": "UE 5.7.4 / VPP 2.0p8 / macOS arm64 / Metal SM6 / Development",
+  "component_parent": "5b9414e0e58d1c6a43198ede2437589fb66ebd59",
+  "workspace_parent": "53c8159a5ab9d69f4d0b4db0c69744dd1069dde7",
+  "corrected_blockers": [
+    "Metal texture phase required non-FMA compensated division",
+    "Framed culling packet must use actual instance bounds rather than legacy packet slots",
+    "Native quality 4 sharp-corner mesh-field error exceeded 25 cm at a Mars near-pole; fixed quality 8 keeps the same limit"
+  ],
+  "scope": "Synthetic spherical windows; arch walking plus native mesh/collision probes on the wall, arch, both cave floors and detached rock. Window replacement uses an explicit readiness barrier.",
+  "limits": {
+    "coverageMeters": [
+      64,
+      64,
+      48
+    ],
+    "sourceVoxelCm": 25,
+    "nativeQuality": 8,
+    "minimumWallMeters": 1,
+    "surfaceRadiiMeters": [
+      100,
+      1000,
+      3389500,
+      6371000
+    ],
+    "sites": [
+      "equator",
+      "north 89.999 degrees",
+      "south -89.999 degrees",
+      "antimeridian 179.999 degrees"
+    ],
+    "frames": "original and reanchored/rotated with native root translated to (650,-350,110) metres",
+    "numericalBudgetCm": 0.1,
+    "meshAndCollisionBudgetCm": 25,
+    "projectedPickBudgetCm": 0.5,
+    "cameraMinimumDistancesMeters": [
+      3,
+      20,
+      50
+    ]
+  },
+  "focused_editor_tests": {
+    "passed": 21,
+    "warnings": 0,
+    "failed": 0,
+    "report_sha256": "aadc2beb6418dd3f2ac8094f54d2123f1f3cfcddd991ee530c2bad994359f2a9",
+    "raw_log_sha256": "e792f099df7e2b62877d39b233b1e1637056797bdbde2f97a4c05ba8a8ed7523",
+    "analyticFieldSamples": 140400,
+    "analyticZeroInterfaces": 64,
+    "canonicalNoiseFrameSamples": 3072,
+    "gpuSamples": 2304,
+    "maxCanonicalFieldErrorMeters": 7.9339048e-05,
+    "maxNativeFieldErrorMeters": 7.9091964e-05,
+    "maxFrameRoundTripErrorMeters": 5.6954333e-14,
+    "maxNoiseFrameErrorMeters": 6.93290378e-08
+  },
+  "packaged": {
+    "cases": 32,
+    "groundedFrames": 31211,
+    "nativeFloorFrames": 31211,
+    "projectedPicks": 384,
+    "gpuPositionErrorCm": 0.00020764133377192495,
+    "gpuPhaseErrorCm": 0.0006117953045770008,
+    "worst": {
+      "maxFieldErrorCm": 1.5740967063914146,
+      "maxWallFaceErrorCm": 1.0423634044798291e-05,
+      "maxMeshFieldErrorCm": 16.66667461395277,
+      "maxMeshFeatureErrorCm": 1.592882879286758,
+      "maxReanchorPoseErrorCm": 4.493866839778178e-12,
+      "maxProjectedPickErrorCm": 0.03660449183958952,
+      "maxReanchorHeadingError": 6.283862319378386e-14,
+      "maxReanchorVelocityErrorCmPerSec": 8.286281022961677e-14
+    },
+    "minGravityDot": 0.9999999948839631,
+    "sourceLODs": [
+      0
+    ],
+    "rawReportSha256": "199cddeb16ee885983fe9a291bb6256b5680a1ab251931d888829a9919961854",
+    "rawLogSha256": "871554ab4792e1f952aaabb63722114c564a29645bc1819b738dbc574e4d43d7",
+    "executableSha256": "c8fb5f57412dc8c1d0e62ea7879afb63e1b96e81343588cbd965e13cdf3f5e2d",
+    "renderedFrames": 12
+  },
+  "preservation": {
+    "files": 210,
+    "unchanged": true,
+    "manifestSha256": "19d42e6e8d6c5f86d58e75fe79081015aca225b9e5a1facd902c3db906fa4211"
+  },
+  "legacy_failure": {
+    "test": "LandformLab.GeneratedRegions.Walk",
+    "isolated": true,
+    "reason": "Current locally edited regional fixture has 83.229 degree route slope, exceeding its 50 degree test limit. Region compiler and route finder are unchanged by this work.",
+    "reportSha256": "4ad069355134b75ae7c66c927a096c822639024d3f79cbf4194c0f2970b2f1d5",
+    "inputs": {
+      "Landform/Projects/LandformLab/Content/LandformDesigner/RegionGeneration/DA_RegionGuides.uasset": "7cf2f8b11ba92fdbf37c2cc7e51c533133af0f4feb3fb28659647b55c59c76eb",
+      "Landform/Projects/LandformLab/Content/LandformDesigner/RegionGeneration/DA_GeneratedRegions.uasset": "daab38fb3fc0726aca508708ea5db7e90847726633823632fe0ec566ff009e69"
+    }
+  },
+  "open_gates": [
+    "continuous streaming/collision handoff",
+    "multiple-body transfer",
+    "ellipsoid and datum conversion",
+    "arbitrarily fine global noise/provider precision",
+    "real Mars resources",
+    "general operator and feature LOD budgets",
+    "performance certification"
+  ],
+  "optional_broad_sweep": {
+    "completed": false,
+    "reason": "Stopped the optional broad sweep to finish focused compatibility and packaged scale qualification",
+    "counts": {
+      "Success": 151,
+      "Fail": 1
+    }
+  },
+  "source_sha256": {
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNaniteProjectionPrototype.cpp": "5071edf680eb49f3842cef6954134e00cfe8c2f0ae15e1d8eba52aa2d4957cde",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLNaniteProjectionPrototype.h": "5b1b6a8877f76b6049d4d719ebe253a3315d8fc30ee40386a865616f99a30ff9",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleChecks.cpp": "b6c0be5f378d2b649b6aa628d9e4ea48012e98e12ad5274a3f13f0abcbadfb96",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleChecks.h": "01fa8c0503a72ff51b58d2a687708bb28fafaf73580336b3d6675e50cdb08883",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLScaleLab.cpp": "6f46638f0e50abb5044d2e36acd28cba99c311fb2aefe3ebe9467e59b2989e90",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLScaleLab.h": "70fa5afdff5bdea4781361b8c95b7cfc9f7a76ebff6624b0b59b544bb1c1fd96",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLAnchoredParity.usf": "f2bac0f9658576a2e6dc9ecf2b9024dc7ae8ccebf3cdd40c3fa1ea2ce4058674",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Private/CLNaniteProjection.ush": "81e41ce6bd96ce8c1000eb141a6849a335a879972dac5a6bb0b858f5ad2cb9bb",
+    "Landform/catalyst-landform-ue-plugin/Shaders/Public/CLAnchoredScene.ush": "573fd98b0505e0b2d67a86112269e07b4f39c838d824f8521e6cb04cee16c51e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanetStamp.cpp": "cd20fbb1c923764c97aefd19235963d0701d58118d186566b3e9389d301bbbcc",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLBodyFrame.cpp": "0516336d6cc44e88d4cb2eb0cf7c668fff808cda286ef1475ad68bacd5692361",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLScaleFixture.cpp": "fc2ecfe7b98b6ce7f009da7cf1dc43f054d9260ba4abc43e9ce37dffb2f237e2",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLScene.cpp": "4c16ca9eabfc9d9c97fbf4dba530a2b2644c8ec73db9230e52d0972b54137e02",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLSceneWindow.cpp": "1cba2e5d2e0a6a729237955da14c5c6d6a1d4b1f7eea6183355f410346a4c2fc",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/Scene/CLVolumes.cpp": "3ad0a2de405da4da362ecc240afab13365b025217257af2f03a26acbbd9851d7",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanetStamp.h": "72ba3ec832eef46345d9fb827da9791a4acba0ae1aa3d1752ea413d7aa89d26a",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLBodyFrame.h": "e1abe58b3f9dac0c880c858b3c4dea2556a7b99648a166b31c3676ff72cd6469",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLScaleFixture.h": "078dc9cf0dbec83b0df29e4137415aa362daac3a7a91b80322ce3b56ffbec47e",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLScene.h": "a02e461605e022ac10791106847d264b04bda29b4ed4f305ca7490f602a78467",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLSceneQuery.h": "dd37b7dbf05a762259d8d2c4ae8ba479ce492982f861f3c4a827c3d77b8bb569",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLSceneWindow.h": "209dd237e83cd1b1ae6e7fc5152586f55c362cacb7501c20469e02e1467ca037",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/Scene/CLVolumes.h": "ed264940e4727a879ca5fce0d81f2bc217244af305a57f527285c0be8f5e250a",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Private/CLAnchoredGPU.cpp": "1e799c41ffd7d7d29b990f5cbf167ff9c44bb63ea57b1e60d4a4f791434d8b39",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Public/CLAnchoredGPU.h": "b781a109401b5e213352193344fcae9397d2109c399271446e58022a45d89358",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformRender/Public/CLNaniteProjection.h": "b9f57bea298831ac99345c8e32d6f49fb5deae958fe285130b53d48a3b79130b",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandformTests/Private/CLScaleTests.cpp": "50b0f809f0aefbb80723dd02b98460bdc57150a090244cc27f9f2f73a5147673",
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLPlanetProof.cpp": "50cbacadbf62c70a204c0078e746921e72500d83364dedc38514428dc8b74de8",
+    "Landform/Projects/LandformLab/Source/LandformLab/Public/CLPlanetProof.h": "3fd7e2eaa786251aa3073cead280bed98b3fa7b7c6266a7dbee632e14265c4af",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Private/CLPlanet.cpp": "2f81e91b07c436b970eba87ff4a3b48e26495cebca59046755d384e47feb63a1",
+    "Landform/catalyst-landform-ue-plugin/Source/CatalystLandform/Public/CLPlanet.h": "771835751273d8567b7867518665d4f504d8c1158654336b6b3408df375e8cbc"
+  },
+  "host_record": "Landform/Projects/LandformLab/Docs/ScaleLab-mac-arm64.json",
+  "corrections": {
+    "initial_quality": 4,
+    "final_quality": 8,
+    "quality_failure": "Sharp Mars near-pole corner exceeded the unchanged 25 cm mesh-field limit at source LOD 1; quality 8 retains LOD 0 in the qualified bounded window",
+    "rendered_views": "Twelve frames pass terrain-coverage checks; all four wide views visually retain the arch, wall and detached formation"
+  },
+  "legacy_volumetric_regression": {
+    "passed": true,
+    "walks": 12,
+    "groundedFrames": 4294,
+    "nativeFloorFrames": 4294,
+    "maxFloorFieldErrorCm": 0.1550296778958682,
+    "volumeNativeFieldErrorCm": 0.00023343064822256565,
+    "volumeNativeSurfaceWeightError": 1.920509271297055e-05,
+    "executableSha256": "c8fb5f57412dc8c1d0e62ea7879afb63e1b96e81343588cbd965e13cdf3f5e2d",
+    "reportSha256": "85b1ea60778c66b7fc131b3e3d5fef8db1b1dd31af158ecae41c6c1281855237",
+    "runSha256": "1a219c94fe7f8abc08a5069e7c78758d6798ae6b2c79cb42aa7fccaaba526304"
+  }
+}
