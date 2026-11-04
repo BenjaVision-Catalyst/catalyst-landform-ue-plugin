@@ -1,7 +1,7 @@
 {
   "date": "2026-11-04",
   "passed": true,
-  "scope": "Bounded schema-20 Rock Character, native VPP preview, cave subtraction, sculpt mining, explicit native painted fill and cold compressed sculpt reload. Multiplayer, weathering/erosion, ore distributions, full geological history, production persistence, recipe migration after excavation and arbitrary frames/scale are not qualified.",
+  "scope": "Bounded schema-20 Rock Character, native VPP preview, cave subtraction, sculpt mining, explicit native painted fill cold compressed sculpt reload and full interactive pitch input. Multiplayer, weathering/erosion, ore distributions, full geological history, production persistence, recipe migration after excavation and arbitrary frames/scale are not qualified.",
   "environment": {
     "engine": "UE 5.7.4 CL 51494982",
     "vpp": "2.0p8",
@@ -181,11 +181,19 @@
         "character": 1,
         "sha256": "558ce03dcf94772495c3104d57e34adc6183f6513030e65bdc61702f436d18e1"
       }
-    ]
+    ],
+    "interactiveHostCheck": {
+      "passed": true,
+      "source": "actual pawn LookUp axis delegate",
+      "minPitchDegrees": -84.99999993575682,
+      "maxPitchDegrees": 84.99999993575682,
+      "toleranceDegrees": 1e-05,
+      "logSHA256": "ed17e948d9c9eee91a3832e9e9c719cd45eb67a5771d1f25e7b63780eba30a10"
+    }
   },
   "cooked": {
     "passed": true,
-    "binarySHA256": "ed745352a938549db1a9bd39523d2e39d71b07ebbb7f518031d5ced5bd9eff92",
+    "binarySHA256": "1fe8439a43d2a45f71f98f7f83a74210bcfce48f43de8b328e9dec9456b7a80c",
     "cases": [
       {
         "processExitCode": 0,
@@ -196,24 +204,27 @@
           "message": "Native excavation, explicit backfill and compressed save passed",
           "editorBuild": false,
           "coldReader": false,
-          "processID": 53717,
-          "writerPID": 53717,
+          "interactiveInputCheck": false,
+          "minLookPitchDegrees": 0,
+          "maxLookPitchDegrees": 0,
+          "processID": 90476,
+          "writerPID": 90476,
           "nativeMeshes": 755,
           "nativeCaveContacts": 12,
           "nativeRockQueries": 3,
           "exposedNativeSurfaces": 3,
           "rejectedControls": 1,
-          "nativeFloorFrames": 782,
+          "nativeFloorFrames": 724,
           "comparedProbes": 0,
           "maxDistanceErrorCm": 0,
           "maxPropertyError": 0,
           "nativeOwnersRetained": true,
-          "nativeSaveBytes": 57060,
+          "nativeSaveBytes": 57208,
           "nativeSaveCompressed": true,
           "recipeSHA1": "5C5F8E4AA6656B20E81DA86140A27B8DE6502FAE",
-          "elapsedSeconds": 11.567338835448027
+          "elapsedSeconds": 11.042833793908358
         },
-        "logSHA256": "413d2a0875a0a5eb851ba89ee88ca681c175b003c20fd93c915bfa39d6d5788c"
+        "logSHA256": "28fa715b41539e1d6e14f03701854589ef3e53dd93e0d00477a07a68f67219c4"
       },
       {
         "processExitCode": 0,
@@ -224,24 +235,58 @@
           "message": "Separate-process native sculpt reload retained strata and backfill",
           "editorBuild": false,
           "coldReader": true,
-          "processID": 53724,
-          "writerPID": 53717,
+          "interactiveInputCheck": false,
+          "minLookPitchDegrees": 0,
+          "maxLookPitchDegrees": 0,
+          "processID": 90480,
+          "writerPID": 90476,
           "nativeMeshes": 755,
           "nativeCaveContacts": 12,
           "nativeRockQueries": 1,
           "exposedNativeSurfaces": 0,
           "rejectedControls": 1,
-          "nativeFloorFrames": 184,
+          "nativeFloorFrames": 185,
           "comparedProbes": 51,
           "maxDistanceErrorCm": 0,
           "maxPropertyError": 0,
           "nativeOwnersRetained": true,
-          "nativeSaveBytes": 57060,
+          "nativeSaveBytes": 57208,
           "nativeSaveCompressed": true,
           "recipeSHA1": "5C5F8E4AA6656B20E81DA86140A27B8DE6502FAE",
-          "elapsedSeconds": 5.657022126019001
+          "elapsedSeconds": 5.461649917066097
         },
-        "logSHA256": "44495e896abedc3923d9b5f7c8bf344bede82fd32e36823be78fd8828ac72fb4"
+        "logSHA256": "9725625dc5b20d5a856da85e4e44470757a25a0b9eb57fdf98e6cfdbf93ad048"
+      },
+      {
+        "processExitCode": 0,
+        "case": "interactive-input",
+        "expectedPass": true,
+        "metrics": {
+          "passed": true,
+          "message": "Interactive native mouse-look binding covers -85 to +85 degrees",
+          "editorBuild": false,
+          "coldReader": false,
+          "interactiveInputCheck": true,
+          "minLookPitchDegrees": -84.99999993575682,
+          "maxLookPitchDegrees": 84.99999993575682,
+          "processID": 90484,
+          "writerPID": 90484,
+          "nativeMeshes": 755,
+          "nativeCaveContacts": 0,
+          "nativeRockQueries": 0,
+          "exposedNativeSurfaces": 0,
+          "rejectedControls": 0,
+          "nativeFloorFrames": 97,
+          "comparedProbes": 0,
+          "maxDistanceErrorCm": 0,
+          "maxPropertyError": 0,
+          "nativeOwnersRetained": true,
+          "nativeSaveBytes": 0,
+          "nativeSaveCompressed": false,
+          "recipeSHA1": "5C5F8E4AA6656B20E81DA86140A27B8DE6502FAE",
+          "elapsedSeconds": 4.176276959478855
+        },
+        "logSHA256": "323129245b262807ea5f419daefacd281dc6ae5161257f94815a90e266bcfa8a"
       },
       {
         "processExitCode": 0,
@@ -252,7 +297,10 @@
           "message": "Save envelope, recipe digest, native sculpt or independent process check failed",
           "editorBuild": false,
           "coldReader": true,
-          "processID": 53727,
+          "interactiveInputCheck": false,
+          "minLookPitchDegrees": 0,
+          "maxLookPitchDegrees": 0,
+          "processID": 90487,
           "writerPID": 0,
           "nativeMeshes": 0,
           "nativeCaveContacts": 0,
@@ -267,12 +315,12 @@
           "nativeSaveBytes": 0,
           "nativeSaveCompressed": false,
           "recipeSHA1": "",
-          "elapsedSeconds": 0.00014112889766693115
+          "elapsedSeconds": 0.0001444593071937561
         },
-        "logSHA256": "3a509eca7647d2f839b7e19c7f2e734b89e5489059766f66242be2114d69a9e8"
+        "logSHA256": "0fbe878b7608616dc98400875e1f41d4bbb78e678bcdc85cf0454e004b92ef8c"
       }
     ],
-    "scope": "Bounded schema-20 geology and native VPP sphere mining, explicit painted fill, compressed sculpt SaveGame and separate-process reload. Native generation/LOD/moving collision, no custom terrain scheduler or sculpt serializer. Not production persistence or arbitrary recipe migration."
+    "scope": "Bounded schema-20 geology, native interactive mouse-look range and native VPP sphere mining, explicit painted fill, compressed sculpt SaveGame and separate-process reload. Native generation/LOD/moving collision, no custom terrain scheduler or sculpt serializer. Not production persistence or arbitrary recipe migration."
   },
   "bootstrap": {
     "freshCreation": "ROCK_REVIEW_CREATED: preserved 149 previous inputs",
@@ -479,7 +527,7 @@
       "Source/LandformLab/Private/CLPlanetProofTests.cpp": "1bdadc08233efab3beaa4216924e5be07506a1870e0c0b5a06c3d35b97b85151",
       "Source/LandformLab/Private/CLProjectedInspection.cpp": "c5c46fc7ac88942fea700bf96d8741f4591a9098a130b2e9f34b39ae3025ee26",
       "Source/LandformLab/Private/CLRecipeProofTests.cpp": "09a30f6b23c3f9f2362dbd2ea465d71048783c4e82090735151ed8b330f10805",
-      "Source/LandformLab/Private/CLRockProof.cpp": "0c80d5b9c9f98f51f30c8a7945e64c423e5c793807fd513c36f5c1ede193b5d5",
+      "Source/LandformLab/Private/CLRockProof.cpp": "c557030636f692d29a1a5148e69b1f0ec529c0fce49986a0ddcc495e27027479",
       "Source/LandformLab/Private/CLRuntimeRecipeProof.cpp": "05b1e20b39bb0d08b2a37e95b61a1034747ffa99e7447fbefef7762988bc7892",
       "Source/LandformLab/Private/CLScaleChecks.cpp": "b6c0be5f378d2b649b6aa628d9e4ea48012e98e12ad5274a3f13f0abcbadfb96",
       "Source/LandformLab/Private/CLScaleChecks.h": "01fa8c0503a72ff51b58d2a687708bb28fafaf73580336b3d6675e50cdb08883",
@@ -513,8 +561,13 @@
     "publishedNativeFrames": {
       "review-case-00.png": "5e976eb0957a3aab667043b5304cc11a788bbefe720121bb03f028dcd8fd8822",
       "review-case-23.png": "558ce03dcf94772495c3104d57e34adc6183f6513030e65bdc61702f436d18e1",
-      "rock-reader.png": "14629148baae9b5a6207b9aefd55e9475c7a263ef65922e61def8b6b6f75d14c",
-      "rock-writer.png": "0dea45d50203b2829914c8384dcc84e6cddbcc3a1cf82ba2f455f426b6cc6a69"
+      "rock-reader.png": "05014a8ceb4dd45a96975315151d4a2ca99aa02b595cc75433de59d9ef698457",
+      "rock-writer.png": "88ce1aaae33483521ff849affde195a4831bd0b33a8c858fe85b0bb887577a95"
+    },
+    "hostScripts": {
+      "create-rock-review.py": "b2adfa9a9578fb69a5075ba7ae40bbfa1cf27d579f25ab012d00bf7dc4c96098",
+      "package-rock-proof.py": "ff63748ef1644a9b0dd037baf3e9b6364ea4cfde89ad49e42e7ab46834bd5e19",
+      "qualify-rock.py": "9353812a802f4fcbf0b6481a5b6a8c00ca57e417e09c5beae716079c99d66b04"
     }
   },
   "preservation": {

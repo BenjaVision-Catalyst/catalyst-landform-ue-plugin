@@ -19,6 +19,7 @@ The installed VPP 2.0p8 source was inspected before implementation:
 | `FVoxelPaintVolumeModifier`, metadata overrides and native surface types | Explicit backfill material, resistance, erodibility and placed-material contribution |
 | `UVoxelQueryBlueprintLibrary::MultiQueryVoxelLayer` and native futures | Query current edited solid, material and properties, including native readiness |
 | `AVoxelVolumeSculptActor::GetSave/LoadFromSave`, `FVoxelVolumeSculptSave` | Native compressed distance/material/metadata serialization; UE SaveGame is only the qualification envelope |
+| `FVoxelNode_HeightSplitter` | Audited native graph strength splitter; it supplies no repeating bed identity or canonical geological recipe. This profile classifies beds once for semantic IDs/properties and emits weights into native VPP blending; it adds no generic graph splitter |
 | Native Perlin via the existing `FCLNativeNoiseKernel` | Shared structural variation; no replacement noise implementation |
 | Existing recipe volume operations | Authored cave subtraction lowered to native sphere/cube and native blends/index |
 
