@@ -54,7 +54,10 @@ bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRec
 bool FCLNativePreview::ApplyPending()
 {
     if(!Pending||AwaitingPublication||Native->IsProcessingNewState())return false;
-    Plan=MoveTemp(Pending);Section=PendingSection;Width=PendingWidth;AppliedDraft=PendingDraft;PublishedHash=0;
+    Plan=MoveTemp(Pending);
+    if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())Native->MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
+    else if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
+    Section=PendingSection;Width=PendingWidth;AppliedDraft=PendingDraft;PublishedHash=0;
     // Scale the stamp through VPP's supported transform, never the voxel world
     // or the produced mesh. Native LOD sees the same geometry the viewport sees.
     const FVector Scale=Section?FVector(1000./Width,1000./Width,1000./Plan->RadiusMeters):FVector(1000./Plan->RadiusMeters);

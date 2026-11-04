@@ -782,3 +782,10 @@ native/Ascent compatibility risks and staged proof gates. The
 [bounded idle fixture](Docs/BodyFixedIdleProof.md) now qualifies its first P0/P1
 slice using native VPP and UE physics; combined TGC ACF+VPP gameplay, rotating-frame
 dynamics and concurrent-body topology remain unqualified.
+
+
+The [Mars measured-terrain library](Docs/MarsLibrary.md) introduces a pinned
+schema 19 resource: global MOLA planetary radii, a HiRISE Jezero fine region,
+native VPP heightmaps/meshes/materials and an interactive native globe/walk host.
+Its audit separates scientific coordinate/resource binding from native voxel
+ownership and records source, accuracy, coverage and presentation limits.

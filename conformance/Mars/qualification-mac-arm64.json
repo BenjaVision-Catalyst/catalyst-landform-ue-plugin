@@ -1,0 +1,488 @@
+{
+  "date": "2026-11-04",
+  "profile": "mars-mola32-jezero1m-native-v1",
+  "platform": "UE 5.7.4 CL51494982 / VPP 2.0p8 / macOS arm64 / Apple M3 Max 128 GB / Metal SM6 / Development",
+  "componentParent": "04a38ad25434b1a0eb6cd02ab4b39103e2f14e2f",
+  "workspaceParent": "727aae4a156c5d16608ba23a2152fb6ce3e3a41b",
+  "resource": {
+    "id": "Mars-MOLA32-Jezero1m",
+    "revision": 1,
+    "digest": "26561beea996a106c80dd7f74ffcd732a7928c97"
+  },
+  "tests": {
+    "editor": 29,
+    "failed": 0,
+    "names": [
+      "Catalyst.Landform.Measured.Coverage",
+      "Catalyst.Landform.Measured.MarsLibrarySourceOracle",
+      "Catalyst.Landform.Measured.NativeSampling",
+      "Catalyst.Landform.Measured.Recipe",
+      "Catalyst.Landform.Measured.ResourceClosure",
+      "Catalyst.Landform.NativeGeneration.BodyLayerRouting",
+      "Catalyst.Landform.NativeGeneration.DesignerSphereParity",
+      "Catalyst.Landform.NativeGeneration.KernelAndVersioning",
+      "Catalyst.Landform.NativeGeneration.NativeLocalSection",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii",
+      "Catalyst.Landform.Recipes.HeightGuides",
+      "Catalyst.Landform.Recipes.OrderedLayers",
+      "Catalyst.Landform.Recipes.SerializationAndSnapshot",
+      "Catalyst.Landform.Recipes.VPPAndLiveEdits",
+      "Catalyst.Landform.RuntimeRecipe.AtomicApplication",
+      "Catalyst.Landform.RuntimeRecipe.NativeLayerFrameAtOrigin",
+      "Catalyst.Landform.RuntimeRecipe.NativeReferenceBudgets",
+      "Catalyst.Landform.RuntimeRecipe.RetainedClientResources",
+      "Catalyst.Landform.Scene.NativeBulkSparseParity",
+      "Catalyst.Landform.Scene.PreMigrationPreservation",
+      "Catalyst.Landform.Scene.QueryAndFrameContract",
+      "Catalyst.Landform.Surfaces.LargeRadiusPreviewPrecision",
+      "Catalyst.Landform.Surfaces.LargeRadiusSectionPrecision",
+      "Catalyst.Landform.Surfaces.LegacySourceInheritance",
+      "Catalyst.Landform.Surfaces.NativePreviewAndBoundaries",
+      "Catalyst.Landform.Surfaces.PortablePayload",
+      "Catalyst.Landform.Surfaces.RenderedGlobe",
+      "Catalyst.Landform.Surfaces.RuleContract",
+      "Catalyst.Landform.Surfaces.ScannedBindingsAndDefaults"
+    ],
+    "nativeGdalReplaysOriginalPreparedBytes": true
+  },
+  "preservation": {
+    "unchangedAuthoredInputs": 271,
+    "nativeGeneratedCache": "Ignored VPP MegaMaterialCache changed through native material generation; no authored input exemption."
+  },
+  "assets": {
+    "Content/Measured/DA_Mars.uasset": {
+      "sha256": "4d0cd5ba44ad03a7ec864c03b4e179f88c307b7f4e754355e0310533bfc62e4b",
+      "bytes": 7108
+    },
+    "Content/Measured/DA_MarsSurfaces.uasset": {
+      "sha256": "1f69955c962a5f6c0d45ac034101cc1db7cc3508853056fd5c8180801a3b569a",
+      "bytes": 6058
+    },
+    "Content/Measured/DA_MeasuredTerrain.uasset": {
+      "sha256": "29a82763d3aa824ee1ce91256d46a8d5d88f76f0d9971c4cf519c92afbdf69bc",
+      "bytes": 9869
+    },
+    "Content/Measured/HM_Jezero1m.uasset": {
+      "sha256": "5ce28b6fdd015e84dbcd7863eeb8cd666a35d168568f3f64a9d350b951c28e40",
+      "bytes": 1880
+    },
+    "Content/Measured/HM_JezeroCoverage.uasset": {
+      "sha256": "69589c06e844e48981a3fc6563555073acf9f0889402220957b1d03034d93a5f",
+      "bytes": 1922
+    },
+    "Content/Measured/HM_MOLA32.uasset": {
+      "sha256": "344392f1a3af7fef5e1d7f564bf33b79de8b8bae00b4cb9f7bd7a4dd944e1378",
+      "bytes": 1866
+    },
+    "Content/Measured/MI_MarsRock.uasset": {
+      "sha256": "9387a98c4451896c4ee7ada62a852bb1bbd97c54ec53ca8c7a65d1d82fdfdcd1",
+      "bytes": 5772
+    },
+    "Content/Measured/MI_MarsScree.uasset": {
+      "sha256": "8c058453dfb3f3c234224a069ad821fc654aa5d64c4dd8c6cb24eb0e1a53405f",
+      "bytes": 5783
+    },
+    "Content/Measured/MI_MarsSoil.uasset": {
+      "sha256": "7629fe219153e92e0f13188b0eb29f644db37e809cbab273bc8563478ecdf11d",
+      "bytes": 5772
+    },
+    "Content/Measured/MM_Mars.uasset": {
+      "sha256": "43bdb88e394debdab86988e13fb7b16e1aef9574dd03828892daa094d8f5a547",
+      "bytes": 1999
+    },
+    "Content/Measured/M_MarsSurface.uasset": {
+      "sha256": "2e09419b1cb273a1aec807168fbe1bb77514f441c730f4391739d679a5050f3e",
+      "bytes": 33116
+    },
+    "Content/Measured/PAL_Mars.uasset": {
+      "sha256": "fabd06643383e940b49563b19c8ddce270cc8118df7970f01c291d13c740564c",
+      "bytes": 3729
+    },
+    "Content/Measured/ST_MarsRock.uasset": {
+      "sha256": "6c1c03b207b6cc95ff61fc0c297678272b5c599de0cb894ce94552a56eef603f",
+      "bytes": 1608
+    },
+    "Content/Measured/ST_MarsScree.uasset": {
+      "sha256": "0902d7db19113f376d239870dc454cf806eb23d21ba9bfaceb0764314a974602",
+      "bytes": 1615
+    },
+    "Content/Measured/ST_MarsSoil.uasset": {
+      "sha256": "fc2021c06f0d4957e2c284d619391997f348db19c433f8249bbfbe9a4d958b6d",
+      "bytes": 1608
+    },
+    "Content/Measured/T_Jezero1m.uasset": {
+      "sha256": "0f7797e345e81869ab1bc715b5a620eec847910339d508903536f5d6900cabd9",
+      "bytes": 28306253
+    },
+    "Content/Measured/T_JezeroCoverage.uasset": {
+      "sha256": "e1c72987b3cb601d6b24fd15a0d0c5bea86e960fb372c73e65bd438e2dc6f679",
+      "bytes": 23531
+    },
+    "Content/Measured/T_MOLA32.uasset": {
+      "sha256": "f1f00fbbcbaef0bb500dd4bbd2f01a1d05280c43c69f5d2e7e74fd238f1d3f74",
+      "bytes": 90097202
+    },
+    "Content/Measured/T_MarsColor.uasset": {
+      "sha256": "3fff64210ba3e25eb40703bb1f1e2ce5714f0c34010feec66a4f2f14bf2a39de",
+      "bytes": 53050061
+    }
+  },
+  "passed": true,
+  "binarySha256": "1867fe97d9ddc35dfd927304881bafffc43d46192cbecf68a9ad1c69b367a4c1",
+  "sourceOracleSha256": "b1128af78579845ced67f84fa62a6fe64b779209c53c3c7631787769fbcfd1bb",
+  "cases": [
+    {
+      "case": "globe",
+      "metrics": {
+        "passed": true,
+        "editorBuild": false,
+        "engineVersion": "5.7.4-51494982+++UE5+Release-5.7",
+        "message": "Native Mars source, render and contact proof passed",
+        "globe": true,
+        "originShifted": false,
+        "editorExportedRecipeImported": true,
+        "originDeltaCm": [
+          25317,
+          -17129,
+          9067
+        ],
+        "groundedFrames": 0,
+        "nativeFloorFrames": 0,
+        "postShiftNativeFloorFrames": 0,
+        "nativeMeshes": 120,
+        "walkDisplacementMeters": 0,
+        "nativeIdentitiesStable": true,
+        "peakNativeMeshes": 120,
+        "maxFieldErrorMeters": 0,
+        "sourceOracleErrorMeters": 0.00018812529742717743,
+        "originalSourceChecks": 10,
+        "rejectedResourceControls": 2,
+        "residentRasterBytes": 400211968,
+        "processPhysicalBytes": 1325367296,
+        "readySeconds": 0.8291212916374207,
+        "customWindow": false,
+        "nativeMaxLOD": -1,
+        "wallP50Ms": 8.33345577120781,
+        "wallP99Ms": 9.10237431526184,
+        "nativeTextureMips": [
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Diffuse.T_Rock_Diffuse",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_nor_dx.T_Rock_nor_dx",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Rough.T_Rock_Rough",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Diffuse.T_Scree_Diffuse",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_nor_dx.T_Scree_nor_dx",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Rough.T_Scree_Rough",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Diffuse.T_Soil_Diffuse",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_nor_dx.T_Soil_nor_dx",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Rough.T_Soil_Rough",
+            "residentMips": 10,
+            "totalMips": 12
+          }
+        ],
+        "nativeRuntimeRetired": true
+      },
+      "logSha256": "154647d0111c99025cc140420360a661881c5479dc38de8fe99d0812711f0218",
+      "imageSha256": "3607a01d032e4f852e3e21d6ee520d50676d78864c2cc1e7d342003206a6a7a3"
+    },
+    {
+      "case": "walk",
+      "metrics": {
+        "passed": true,
+        "editorBuild": false,
+        "engineVersion": "5.7.4-51494982+++UE5+Release-5.7",
+        "message": "Native Mars source, render and contact proof passed",
+        "globe": false,
+        "originShifted": false,
+        "editorExportedRecipeImported": true,
+        "originDeltaCm": [
+          25317,
+          -17129,
+          9067
+        ],
+        "groundedFrames": 2219,
+        "nativeFloorFrames": 2219,
+        "postShiftNativeFloorFrames": 0,
+        "nativeMeshes": 4981,
+        "walkDisplacementMeters": 22.47294260125716,
+        "nativeIdentitiesStable": true,
+        "peakNativeMeshes": 4985,
+        "maxFieldErrorMeters": 0.00838988833129406,
+        "sourceOracleErrorMeters": 0.00018812529742717743,
+        "originalSourceChecks": 10,
+        "rejectedResourceControls": 2,
+        "residentRasterBytes": 400211968,
+        "processPhysicalBytes": 3377545216,
+        "readySeconds": 12.005094040185213,
+        "customWindow": false,
+        "nativeMaxLOD": -1,
+        "wallP50Ms": 8.341461420059204,
+        "wallP99Ms": 16.956917941570282,
+        "nativeTextureMips": [
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Diffuse.T_Rock_Diffuse",
+            "residentMips": 8,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_nor_dx.T_Rock_nor_dx",
+            "residentMips": 8,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Rough.T_Rock_Rough",
+            "residentMips": 8,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Diffuse.T_Scree_Diffuse",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_nor_dx.T_Scree_nor_dx",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Rough.T_Scree_Rough",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Diffuse.T_Soil_Diffuse",
+            "residentMips": 12,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_nor_dx.T_Soil_nor_dx",
+            "residentMips": 12,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Rough.T_Soil_Rough",
+            "residentMips": 12,
+            "totalMips": 12
+          }
+        ],
+        "nativeRuntimeRetired": true
+      },
+      "logSha256": "6ae039597d7b4ce9a3261db46cf276c897d9121a1a6edfb7be6b42868dad72e3",
+      "imageSha256": "1efbc85b7f80760f0ed5c1653d5b45975bf29103cb4a137f503bf90c30c7991b"
+    },
+    {
+      "case": "live-origin",
+      "metrics": {
+        "passed": true,
+        "editorBuild": false,
+        "engineVersion": "5.7.4-51494982+++UE5+Release-5.7",
+        "message": "Native Mars source, render and contact proof passed",
+        "globe": false,
+        "originShifted": true,
+        "editorExportedRecipeImported": true,
+        "originDeltaCm": [
+          25317,
+          -17129,
+          9067
+        ],
+        "groundedFrames": 2246,
+        "nativeFloorFrames": 2246,
+        "postShiftNativeFloorFrames": 1430,
+        "nativeMeshes": 4978,
+        "walkDisplacementMeters": 22.454869750744596,
+        "nativeIdentitiesStable": true,
+        "peakNativeMeshes": 4978,
+        "maxFieldErrorMeters": 0.008419661782681942,
+        "sourceOracleErrorMeters": 0.00018812529742717743,
+        "originalSourceChecks": 10,
+        "rejectedResourceControls": 2,
+        "residentRasterBytes": 400211968,
+        "processPhysicalBytes": 4221091840,
+        "readySeconds": 12.105348210781813,
+        "customWindow": false,
+        "nativeMaxLOD": -1,
+        "wallP50Ms": 8.333500474691391,
+        "wallP99Ms": 16.825206577777863,
+        "nativeTextureMips": [
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Diffuse.T_Rock_Diffuse",
+            "residentMips": 8,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_nor_dx.T_Rock_nor_dx",
+            "residentMips": 8,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Rough.T_Rock_Rough",
+            "residentMips": 8,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Diffuse.T_Scree_Diffuse",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_nor_dx.T_Scree_nor_dx",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Rough.T_Scree_Rough",
+            "residentMips": 10,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Diffuse.T_Soil_Diffuse",
+            "residentMips": 12,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_nor_dx.T_Soil_nor_dx",
+            "residentMips": 12,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Rough.T_Soil_Rough",
+            "residentMips": 12,
+            "totalMips": 12
+          }
+        ],
+        "nativeRuntimeRetired": true
+      },
+      "logSha256": "e079317f456a996aba96d7d9096d59b4430dd1d002ff7a73c6c9b6127c1a84bb",
+      "imageSha256": "c4fb8b4f5cbb9b912ba131e89bfb17ccb92d26ec008617b4669f7b938a3c78aa"
+    },
+    {
+      "case": "native-lod-limit",
+      "metrics": {
+        "passed": true,
+        "editorBuild": false,
+        "engineVersion": "5.7.4-51494982+++UE5+Release-5.7",
+        "message": "Native Mars source, render and contact proof passed",
+        "globe": false,
+        "originShifted": false,
+        "editorExportedRecipeImported": true,
+        "originDeltaCm": [
+          25317,
+          -17129,
+          9067
+        ],
+        "groundedFrames": 2207,
+        "nativeFloorFrames": 2207,
+        "postShiftNativeFloorFrames": 0,
+        "nativeMeshes": 2760,
+        "walkDisplacementMeters": 22.45081027824524,
+        "nativeIdentitiesStable": true,
+        "peakNativeMeshes": 2764,
+        "maxFieldErrorMeters": 0.008446617983281612,
+        "sourceOracleErrorMeters": 0.00018812529742717743,
+        "originalSourceChecks": 10,
+        "rejectedResourceControls": 2,
+        "residentRasterBytes": 400211968,
+        "processPhysicalBytes": 2482618368,
+        "readySeconds": 7.247415374964476,
+        "customWindow": false,
+        "nativeMaxLOD": 8,
+        "wallP50Ms": 8.34016501903534,
+        "wallP99Ms": 17.275668680667877,
+        "nativeTextureMips": [
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Diffuse.T_Rock_Diffuse",
+            "residentMips": 7,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_nor_dx.T_Rock_nor_dx",
+            "residentMips": 7,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Rock_Rough.T_Rock_Rough",
+            "residentMips": 7,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Diffuse.T_Scree_Diffuse",
+            "residentMips": 7,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_nor_dx.T_Scree_nor_dx",
+            "residentMips": 7,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Scree_Rough.T_Scree_Rough",
+            "residentMips": 7,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Diffuse.T_Soil_Diffuse",
+            "residentMips": 12,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_nor_dx.T_Soil_nor_dx",
+            "residentMips": 12,
+            "totalMips": 12
+          },
+          {
+            "asset": "/CatalystLandform/Surfaces/Textures/T_Soil_Rough.T_Soil_Rough",
+            "residentMips": 12,
+            "totalMips": 12
+          }
+        ],
+        "nativeRuntimeRetired": true
+      },
+      "logSha256": "4f651d9efa23de9f830fb87c068657fe5faf59dd45b55a6858d97a550e207d7f",
+      "imageSha256": "8bda4c23c6aef89b27420e2408be03a88beff0cc747bfcf75e3a884f8725848c"
+    }
+  ],
+  "scope": "Natural-curvature native VPP Mars globe, bounded Jezero walk and independent live-origin case. Resident local resource closure; no custom window/streaming manager. No calibrated climate/albedo, global metre DEM, arbitrary internal NoData smoothing, Mars editing/ACF, multiplayer, circumnavigation or production frame-budget qualification.",
+  "interactiveReview": {
+    "binarySha256": "1867fe97d9ddc35dfd927304881bafffc43d46192cbecf68a9ad1c69b367a4c1",
+    "checks": [
+      "Launch with provided interactive script",
+      "Tab from normalized globe to physical Jezero walk",
+      "Manual WASD movement",
+      "Tab from physical walk to normalized globe",
+      "No planet-top sky capture warning in normalized globe"
+    ],
+    "passed": true,
+    "scope": "Manual controls and views; separate cooked case qualifies contact after origin translation, not uninterrupted every-frame render publication."
+  }
+}

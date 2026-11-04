@@ -96,10 +96,10 @@ bool UCLSurfaceLibraryAsset::BakeAppearance(FString& Error)
     }return true;
 }
 #endif
-TSharedPtr<const FCLCompiledSurfaceLibrary> FCLCompiledSurfaceLibrary::Resolve(FString& Error)
+TSharedPtr<const FCLCompiledSurfaceLibrary> FCLCompiledSurfaceLibrary::Resolve(FString& Error,UCLSurfaceLibraryAsset* SourceOverride)
 {
     if(!IsInGameThread()){Error=TEXT("Surface assets must be resolved on the game thread");return nullptr;}
-    auto* Source=UCLSurfaceLibraryAsset::LoadConfigured();if(!Source||!Source->ValidateLibrary(Error)){if(Error.IsEmpty())Error=TEXT("Configured surface library is missing");return nullptr;}
+    auto* Source=SourceOverride?SourceOverride:UCLSurfaceLibraryAsset::LoadConfigured();if(!Source||!Source->ValidateLibrary(Error)){if(Error.IsEmpty())Error=TEXT("Configured surface library is missing");return nullptr;}
     auto Out=MakeShared<FCLCompiledSurfaceLibrary>();Out->Owner.Reset(Source);auto Entries=Source->Library.Entries;Entries.Sort([](const auto& A,const auto& B){return A.Id.LexicalLess(B.Id);});
     for(const auto& E:Entries){Out->Ids.Add(E.Id);Out->Revisions.Add(E.Revision);Out->Appearances.Add(E.Appearance);Out->Textures.Add(E.Textures);for(auto* T:{E.Textures.BaseColor.Get(),E.Textures.Normal.Get(),E.Textures.Roughness.Get()})if(T)Out->RetainedTextures.Emplace(T);Out->NativeTypes.Add(FVoxelSurfaceType(E.SurfaceType));}return Out;
 }

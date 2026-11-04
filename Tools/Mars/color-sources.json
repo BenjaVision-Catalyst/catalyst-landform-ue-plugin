@@ -1,0 +1,57 @@
+{
+  "sources": {
+    "mars45n045.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45n045.png",
+      "bytes": 33736115,
+      "sha256": "a835bde75cda21436bfc79e40f6a70961761a005b083f2f8535d6695f4539254"
+    },
+    "mars45n135.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45n135.png",
+      "bytes": 30453073,
+      "sha256": "8711a0893721c4b669f5530c5f69b3a55c2548bef63659515936d3c4602c4aeb"
+    },
+    "mars45n225.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45n225.png",
+      "bytes": 31386468,
+      "sha256": "c543dc9ac550891ac88ed9b56c0020885cc5589b5fb69e5452cf56237f1a1266"
+    },
+    "mars45n315.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45n315.png",
+      "bytes": 32844803,
+      "sha256": "50885a8faaea544bed8f3886e60499f7288d898d7786dee3ae80bf02940598b8"
+    },
+    "mars45s045.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45s045.png",
+      "bytes": 36450823,
+      "sha256": "5a79b576aa640817a3e26e46d21628f7c704f5f789b8988fb237d6c6fc631d4a"
+    },
+    "mars45s135.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45s135.png",
+      "bytes": 37665725,
+      "sha256": "bd2ffb15d412585140e437117c8c840dd582ee99633fbbd8dc024a9860167e0c"
+    },
+    "mars45s225.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45s225.png",
+      "bytes": 36428462,
+      "sha256": "70da041d3edfe6eb8c3fa4ed3f03257b158c0da9eb47cf979a690b0f3fafc88d"
+    },
+    "mars45s315.png": {
+      "url": "https://mars.asu.edu/data/mdim_color/large/mars45s315.png",
+      "bytes": 37373839,
+      "sha256": "a33c3fd202b90908d7a6dffde15c4c2a258250ebacb4fe1f17921c92847bf81d"
+    }
+  },
+  "columnsEastLongitude": [
+    0,
+    90,
+    180,
+    270
+  ],
+  "rowsLatitude": [
+    90,
+    0,
+    -90
+  ],
+  "usage": "NASA Viking/MDIM colour context; uncalibrated composite, no local reflectance or fine-scale evidence",
+  "outputSha256": "c9932b55be12824b497ec7e164ca626e824e50552d2c536f14b0e47f00265111"
+}

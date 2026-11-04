@@ -1604,9 +1604,35 @@ material and optional-action configuration is documented, not hidden as game
 conformance. The final fixture uses a nonlethal native curve and retains native
 critical-damage calculation.
 
-Next, qualify real networked ACF players with authoritative shared damage, native
-stamp replication, shared structures and state after server restart. Complete
+Multiplayer qualification is deferred by the user while Landform maturity is
+the active focus. Future networked ACF/shared-world work remains unqualified. Complete
 combat/death assets, enhanced-curvature presentation, topology, frame transitions,
 authority/time/rewind and rotating-frame dynamics remain distinct required gates.
 This advances the required TGC acceptance gate; it does not close full P2 or
 certify the complete game.
+
+
+## Measured Mars library checkpoint — 4 November 2026
+
+The [Mars library](MarsLibrary.md) adds a reusable schema 19 resource with global
+MOLA planetary radii and a bounded HiRISE Jezero fine region. Native GDAL/PROJ
+prepares scientific coordinates/datum; native VPP heightmaps, generation, layers,
+stamps, materials, meshes, LOD and attached moving collision remain the voxel
+platform. The adapter adds only scientific coordinate/coverage/resource binding
+and an explicit semantic digest after the reflected digest failed a cooked run.
+Native UE per-pixel atmospheric transmittance resolves the planet-top lighting
+assumption; no atmosphere renderer or streaming manager was added.
+
+The [record](../conformance/Mars/qualification-mac-arm64.json) closes the bounded
+source, cooked globe, physical walk, invalid-resource and separate live-origin
+checks. The physical host uses unrestricted native VPP LODs without a sampling
+window; a native far-LOD comparison is recorded separately. Existing authored
+inputs remain unchanged. This is natural curvature in an identity body frame
+with origin translations, not arbitrary rotated roots or enhanced-curvature
+Mars qualification. Fine coverage, image control, source accuracy and authored
+material/dust lighting limits remain explicit.
+
+Next Landform maturity work should expand and qualify the measured terrain and
+appearance envelope, including source co-registration/NoData transitions and
+production performance. Multiplayer remains deferred by the user. This advances
+P3 without closing full P2/P3/P4 or the server-recipe ultra-realistic-world goal.

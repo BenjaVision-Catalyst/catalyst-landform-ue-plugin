@@ -11,6 +11,7 @@
 #include "Model/CLSurfaceLayers.h"
 #include "Surface/CLSurfaceCompiler.h"
 #include "Scene/CLVolumes.h"
+#include "Model/CLMeasuredTerrain.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -212,6 +213,8 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FCLPlanetFeature> BaseStructure;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRegionGenerationSettings RegionGeneration;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
+    /** Schema 19: source-backed physical terrain; resource closure is resolved before native activation. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLMeasuredTerrainReference MeasuredTerrain;
     /** Schema 18: body-space solid edits after base terrain height fitting. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLVolumeSettings Volumes;
 };
@@ -279,6 +282,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** Accepted input values for native stamp hashing and authoring activation. */
     TSharedPtr<const FCLPlanetRecipe> SourceRecipe;
     TSharedPtr<const FCLNativeFigureKernel> NativeFigure;
+    TSharedPtr<const FCLCompiledMeasuredTerrain> MeasuredTerrain;
     void SampleRadialFields(TConstArrayView<FVector> Positions,TConstArrayView<double> Heights,TArray<double>& Fields) const;
     FCLCompiledSurfaceStack SurfaceStack;
     FCLSurfaceWeights SurfaceWeightsAt(const FVector& Direction,double HeightMeters,double SlopeDegrees) const;
@@ -303,8 +307,8 @@ class CATALYSTLANDFORM_API FCLPlanetCompiler
 {
 public:
     /** Returns no plan on error; callers may retain their last successful plan. */
-    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE);
-    static TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmapped(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* StampLibrary,const FBox2D* LocalRegion,int32 SurfacePatch);
+    static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE,UCLSurfaceLibraryAsset* SurfaceLibraryOverride=nullptr);
+    static TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmapped(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* StampLibrary,const FBox2D* LocalRegion,int32 SurfacePatch,UCLSurfaceLibraryAsset* SurfaceLibraryOverride=nullptr);
     static FCLPlanetRecipe RollingPlains();
     static FCLPlanetRecipe BasePlanet();
     static FCLPlanetRecipe TectonicBase();

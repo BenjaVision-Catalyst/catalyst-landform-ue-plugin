@@ -1,0 +1,138 @@
+{
+  "sources": {
+    "megr90n000fb.img": {
+      "sha256": "42d8b66054cbd06bd24585007fb56a329122be19d9343f67f49db9f6f96c3eb8",
+      "bytes": 132710400,
+      "url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg032/megr90n000fb.img"
+    },
+    "megr90n000fb.lbl": {
+      "sha256": "c07d5d618b310f37ba955171777c2f98650fe6485834eb38edf5a8d5fdc4eda8",
+      "bytes": 4574,
+      "url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg032/megr90n000fb.lbl"
+    },
+    "megr90n000fb.xml": {
+      "sha256": "4237108a35f4356f815ef98a6ca4de63f0d27440e14bb79f762faddf4dcef23d",
+      "bytes": 15232,
+      "url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg032/megr90n000fb.xml"
+    },
+    "mega90n000eb.img": {
+      "sha256": "e80333b01489e66ebf20ac83ec7e130bd5a03f0c3f98f8f7b8d5c054cd6ad239",
+      "bytes": 33177600,
+      "url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg016/mega90n000eb.img"
+    },
+    "mega90n000eb.lbl": {
+      "sha256": "83b4df3255dade92ab64c7261a3ce54728675e0f1e9c023b56e5facae9ec41ef",
+      "bytes": 3760,
+      "url": "https://pds-geosciences.wustl.edu/mgs/urn-nasa-pds-mgs_mola_topography_derived/meg016/mega90n000eb.lbl"
+    },
+    "Jezero-DTM.IMG": {
+      "sha256": "9e723a990ef2694474bbc2486039098c885d09b938e70b903d60c15cbf704008",
+      "bytes": 411068320,
+      "url": "https://hirise.lpl.arizona.edu/PDS/DTM/ESP/ORB_048800_048899/ESP_048842_1985_ESP_048908_1985/DTEEC_048842_1985_048908_1985_U01.IMG"
+    }
+  },
+  "globalOracle": [
+    {
+      "name": "Olympus Mons",
+      "pixelX": 7238,
+      "pixelY": 2283,
+      "latitude": 18.640625,
+      "longitude": 226.203125,
+      "radiusMeters": 3415973
+    },
+    {
+      "name": "Valles Marineris",
+      "pixelX": 9280,
+      "pixelY": 3200,
+      "latitude": -10.015625,
+      "longitude": 290.015625,
+      "radiusMeters": 3391799
+    },
+    {
+      "name": "Hellas basin",
+      "pixelX": 2256,
+      "pixelY": 4236,
+      "latitude": -42.390625,
+      "longitude": 70.515625,
+      "radiusMeters": 3381962
+    },
+    {
+      "name": "Jezero",
+      "pixelX": 2480,
+      "pixelY": 2289,
+      "latitude": 18.453125,
+      "longitude": 77.515625,
+      "radiusMeters": 3391890
+    },
+    {
+      "name": "North",
+      "pixelX": 0,
+      "pixelY": 3,
+      "latitude": 89.890625,
+      "longitude": 0.015625,
+      "radiusMeters": 3376206
+    },
+    {
+      "name": "Seam",
+      "pixelX": 11519,
+      "pixelY": 2880,
+      "latitude": -0.015625,
+      "longitude": 359.984375,
+      "radiusMeters": 3394096
+    }
+  ],
+  "regionalOracle": [
+    {
+      "latitude": 18.46274269256062,
+      "longitude": 77.5227961818332,
+      "areoidHeightMeters": -2590.75732421875,
+      "areoidRadiusMeters": 3394502.1925472,
+      "planetaryRadiusMeters": 3391911.435222981
+    },
+    {
+      "latitude": 18.47438128958445,
+      "longitude": 77.51074701957518,
+      "areoidHeightMeters": -2582.767822265625,
+      "areoidRadiusMeters": 3394500.427041353,
+      "planetaryRadiusMeters": 3391917.6592190876
+    },
+    {
+      "latitude": 18.480192067893565,
+      "longitude": 77.5227961818332,
+      "areoidHeightMeters": -2581.37353515625,
+      "areoidRadiusMeters": 3394499.3045302276,
+      "planetaryRadiusMeters": 3391917.9309950713
+    },
+    {
+      "latitude": 18.445293317227677,
+      "longitude": 77.5227961818332,
+      "areoidHeightMeters": -2636.11962890625,
+      "areoidRadiusMeters": 3394505.2636372587,
+      "planetaryRadiusMeters": 3391869.1440083524
+    },
+    {
+      "latitude": 18.46274269256062,
+      "longitude": 77.54086110445724,
+      "areoidHeightMeters": -2616.6298828125,
+      "areoidRadiusMeters": 3394501.903508438,
+      "planetaryRadiusMeters": 3391885.2736256253
+    }
+  ],
+  "minimumRadiusMeters": 3372798.0,
+  "maximumRadiusMeters": 3417293.0,
+  "sourceCRS": "PROJCS[\"EQUIRECTANGULAR MARS\",GEOGCS[\"GCS_MARS\",DATUM[\"D_MARS\",SPHEROID[\"MARS_localRadius\",3394839.8133163,0]],PRIMEM[\"Reference_Meridian\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Equirectangular\"],PARAMETER[\"standard_parallel_1\",15],PARAMETER[\"central_meridian\",77.52],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+  "regionAffine": [
+    1.0096633268711,
+    0.0,
+    -1908.2636877864797,
+    0.0,
+    -1.0096633268711,
+    1096006.7055951357,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "regionValidFraction": 1.0,
+  "coveragePolicy": "Regional invalid/border samples use declared global MOLA context; regional feather 100 m; poles converge to original first/last-row mean",
+  "uncertainty": "Original MOLA metre-quantized/interpolated grid and HiRISE stereo precision/artifacts retained; 1 m/pixel is not a claim of 1 m absolute accuracy"
+}

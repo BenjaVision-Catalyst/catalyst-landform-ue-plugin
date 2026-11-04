@@ -74,7 +74,8 @@ bool ACLPlanet::ApplyRecipeJson(const FString& Json, FString& Error)
     UVoxelMegaMaterial* Material=MegaMaterial;
     if(Candidate->Recipe.SurfaceStack.IsActive())
     {
-        Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous();
+        const auto Plan=FCLPlanetCompiler::Compile(Candidate->Recipe,Error);if(!Plan)return false;
+        Material=Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial()?Plan->MeasuredTerrain->GetMaterial():GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous();
         if(!Material){Error=TEXT("Configured client planet material is missing or was not cooked");return false;}
     }
     RecipeAsset=Candidate.Get();MegaMaterial=Material;bRuntimeRecipeApplied=true;RebuildTerrain();return true;
@@ -100,6 +101,7 @@ void ACLPlanet::RebuildTerrain()
         const auto Plan = FCLPlanetCompiler::Compile(RecipeAsset->Recipe, RecipeStatus);
         if (!Plan) { RecipeStatus = TEXT("Keeping last valid terrain: ") + RecipeStatus; return; }
         RadiusMeters = Plan->RadiusMeters;
+        if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
         Stamp.bUseRecipe = true;
         Stamp.Recipe = RecipeAsset->Recipe;
         Stamp.CompiledRecipe = Plan;

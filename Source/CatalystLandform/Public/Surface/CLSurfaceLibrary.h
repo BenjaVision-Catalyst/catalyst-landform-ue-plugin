@@ -90,6 +90,6 @@ struct CATALYSTLANDFORM_API FCLCompiledSurfaceLibrary
     TArray<FCLSurfaceTextures> Textures;
     TArray<TStrongObjectPtr<UTexture2D>> RetainedTextures;
     TArray<FVoxelSurfaceType> NativeTypes;
-    static TSharedPtr<const FCLCompiledSurfaceLibrary> Resolve(FString& Error);
+    static TSharedPtr<const FCLCompiledSurfaceLibrary> Resolve(FString& Error,UCLSurfaceLibraryAsset* SourceOverride=nullptr);
     int32 Find(FName Id,int32 Revision) const;
 };
