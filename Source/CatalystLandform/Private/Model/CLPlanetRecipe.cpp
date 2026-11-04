@@ -422,7 +422,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         const auto* Min=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
         const auto* Max=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});
         if(!Min||!Max){Error=TEXT("Rock Character requires the planet surface guides");return nullptr;}
-        const auto Rock=FCLCompiledRock::Compile(Recipe.Rock,Recipe.Seed,Recipe.RadiusMeters,Recipe.RadiusMeters+Min->HeightMeters,Recipe.RadiusMeters+Max->HeightMeters,Core->Surfaces.Get(),Core->Tectonics,Error);if(!Rock)return nullptr;
+        const auto Rock=FCLCompiledRock::Compile(Recipe.Rock,Recipe.Seed,Recipe.RadiusMeters,Recipe.RadiusMeters+Min->HeightMeters,Recipe.RadiusMeters+Max->HeightMeters,Core->Surfaces.Get(),Core->Tectonics,Error,Core->Continents);if(!Rock)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);Out->Rock=Rock;return RetainInput(Out);
     }
     if(Recipe.MeasuredTerrain.IsActive()||!Recipe.MeasuredTerrain.Digest.IsEmpty()||Recipe.MeasuredTerrain.Revision!=1)

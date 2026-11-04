@@ -3,6 +3,7 @@
 #include "Scene/CLSceneQuery.h"
 #include "CLRockLayer.generated.h"
 class FCLCompiledTectonics;
+class FCLCompiledContinents;
 class FCLNativeNoiseKernel;
 struct FCLCompiledSurfaceLibrary;
 struct FCLSurfaceWeights;
@@ -41,9 +42,11 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.0001",ClampMax="0.1")) double FaultZoneRadiusFraction=.002;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double CrustDepthRadiusFraction=.15;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1")) double ContactFeatherFraction=.015;
-    /** Algorithm 2: thickness of undeformed younger deposits above the truncation surface. */
+    /** V2 cover thickness; V3 reference thickness controls the finite younger bed sequence, not sediment supply. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1",EditCondition="AlgorithmVersion >= 2",EditConditionHides)) double YoungerCoverRadiusFraction=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLRockUnit> Units;
+    /** Algorithm 3: onlap over crust- and extension-conditioned basement relief. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1",EditCondition="AlgorithmVersion >= 3",EditConditionHides)) double DepositionalVariation=0;
     void ApplyProgression(double Position);
 };
 
@@ -71,13 +74,23 @@ struct CATALYSTLANDFORM_API FCLRockBed
     bool bYounger=false;
 };
 
+/** Canonical history inspection; radii in body metres. No live terrain/edit state. */
+struct CATALYSTLANDFORM_API FCLRockColumn
+{
+    bool bValid=false;
+    double Continentalness=0,Extension=0;
+    double RestoredBasementRadiusMeters=0,DeformationMeters=0;
+    double YoungerFloorRadiusMeters=0,YoungerThicknessMeters=0;
+};
+
 class CATALYSTLANDFORM_API FCLCompiledRock final
 {
 public:
-    static TSharedPtr<const FCLCompiledRock> Compile(const FCLRockLayer&,int32 PlanetSeed,double OuterRadius,double SurfaceMinRadius,double SurfaceMaxRadius,const FCLCompiledSurfaceLibrary*,TSharedPtr<const FCLCompiledTectonics>,FString& Error);
+    static TSharedPtr<const FCLCompiledRock> Compile(const FCLRockLayer&,int32 PlanetSeed,double OuterRadius,double SurfaceMinRadius,double SurfaceMaxRadius,const FCLCompiledSurfaceLibrary*,TSharedPtr<const FCLCompiledTectonics>,FString& Error,TSharedPtr<const FCLCompiledContinents> Crust=nullptr);
     FCLRockSample Sample(const FVector3d& BodyMeters)const;
     FLinearColor Properties(const FVector3d& BodyMeters)const;
     void ApplySurfaces(const FVector3d& BodyMeters,FCLSurfaceWeights&)const;
+    FCLRockColumn SampleColumn(const FVector3d& UnitDirection) const;
     const TArray<FCLRockBed>& GetBeds() const {return Beds;}
     /** Restored pre-deformation radius; also used for geological section inspection. */
     double RestoredRadiusMeters(const FVector3d&) const;
@@ -87,12 +100,14 @@ private:
     struct FPoint {int32 Unit=0,Other=0;int64 Bed=0;double Alpha=1;};
     FPoint Classify(const FVector3d&)const;
     FPoint ClassifyFinite(const FVector3d&)const;
+    double DeformationMeters(const FVector3d& UnitDirection,double* Extension=nullptr) const;
     TArray<FCLRockBed> Beds;
     int32 OlderBedCount=0;
     FCLRockLayer Layer;
     TArray<int32> SurfaceIndices;
     TSharedPtr<const FCLNativeNoiseKernel> NativeNoise;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
+    TSharedPtr<const FCLCompiledContinents> Crust;
     FQuat Frame=FQuat::Identity;
     FGuid Namespace;
     double Radius=1,Datum=1,Basement=0,Phase=0,Unconformity=0;

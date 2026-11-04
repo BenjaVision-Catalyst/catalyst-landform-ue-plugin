@@ -1,5 +1,8 @@
 # Finite rock history — research and acceptance
 
+This is the retained algorithm-2 milestone. The current authoring profile adds
+[regional deposition and basin fill](RockDeposition.md); v2 recipes keep this model.
+
 The user's rejection of the first Rock Character globe is the acceptance trigger:
 rock strata should begin locally horizontal/radial and respond to the same plate
 structure as the terrain. A global tilted periodic palette is not an acceptable

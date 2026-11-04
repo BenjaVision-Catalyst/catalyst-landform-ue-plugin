@@ -6,41 +6,19 @@
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLTectonics.h"
 
-namespace
-{
-// Controlled two-plate cross section: the same compiled tectonic model supplies
-// both the terrain displacement and bedding restoration. No alternate generator.
-TSharedPtr<const FCLCompiledTectonics> SectionPlates(bool Compression,FString& Error)
-{
-    FCLTectonicPreset P;P.ApplyProgression(.8);P.BoundaryWarp=0;P.InteriorRelief=0;
-    P.BeltWidthDegrees=10;P.Motion=1;P.Relief=.7;P.CollisionStrength=P.RiftStrength=1;
-    const auto Model=FCLCompiledTectonics::Compile(P,1729,160,Error);
-    if(!Model)return nullptr;
-    auto T=ConstCastSharedPtr<FCLCompiledTectonics>(Model);
-    const double Sign=Compression?1.:-1.;
-    T->Lower.Plates={{FGuid(1,0,0,1),FVector::XAxisVector,FVector(0,-Sign,0)},
-                     {FGuid(1,0,0,2),-FVector::XAxisVector,FVector(0,Sign,0)}};
-    FCLCompiledTectonics::FBoundary B;B.Id=FGuid(1,0,0,3);B.A=0;B.B=1;
-    B.Normal=FVector::XAxisVector;B.Mid=FVector::ZAxisVector;
-    B.Start=FVector(0,-.7071067811865475,.7071067811865475);
-    B.End=FVector(0,.7071067811865475,.7071067811865475);
-    B.HalfCos=.7071067811865475;B.CapCos=0;
-    T->Lower.Boundaries={B};T->Upper={};T->Controls.PlateTransition=0;
-    return Model;
-}
-}
+#include "CLRockSectionFixtures.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRockHistoryTest,"Catalyst.Landform.Rock.FiniteHistoryAndPlateSections",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLRockHistoryTest::RunTest(const FString&)
 {
     FString Error;auto R=FCLPlanetCompiler::ContinentalBase();R.UseGuidedGeology();
     const auto Planet=FCLPlanetCompiler::Compile(R,Error);if(!Planet){AddError(Error);return false;}
-    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.8);L.CrustDepthRadiusFraction=.15;
+    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.8);L.AlgorithmVersion=2;L.CrustDepthRadiusFraction=.15;
     L.BedThicknessRadiusFraction=.022;L.FoldAmplitudeRadiusFraction=.025;
     L.FoldWavelengthRadiusFraction=.14;L.DipDegrees=10;L.TectonicResponse=.4;
     L.FaultThrowRadiusFraction=.018;L.YoungerCoverRadiusFraction=0;
     const auto Flat=FCLCompiledRock::Compile(L,1729,1000,640,800,Planet->Surfaces.Get(),nullptr,Error);
-    const auto Compression=SectionPlates(true,Error),Extension=SectionPlates(false,Error);
+    const auto Compression=CLRockSectionPlates(true,Error),Extension=CLRockSectionPlates(false,Error);
     if(!Flat||!Compression||!Extension){AddError(Error);return false;}
     const auto Folded=FCLCompiledRock::Compile(L,1729,1000,640,800,Planet->Surfaces.Get(),Compression,Error);
     const auto Basin=FCLCompiledRock::Compile(L,1729,1000,640,800,Planet->Surfaces.Get(),Extension,Error);

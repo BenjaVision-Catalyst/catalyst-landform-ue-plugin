@@ -1,12 +1,12 @@
 # Rock Character and excavation
 
 Rock Character is a schema-20 geological material/property layer over the existing
-spherical terrain. Algorithm 2 replaces the global striped profile for new Character
-gestures. It does not add terrain height. In Planet Designer choose
+spherical terrain. Algorithm 3 adds regional deposition to the finite-history profile for new
+Character gestures. It does not add terrain height. In Planet Designer choose
 **Geology → Rock → Character**. Enable explicitly, use Variation for a stable
 alternative structure, and reveal Advanced to edit the resolved parameters and
-three-unit property palette. The new review is `RockHistory/DA_RockHistory`;
-the original `RockCharacter` review remains an algorithm-1 compatibility fixture. A complete knob gesture has one Undo. Existing schemas and
+three-unit property palette. The current review is `RockDeposits/DA_RockDeposits`.
+`RockHistory` and `RockCharacter` retain their v2 and v1 fixture recipes. A complete knob gesture has one Undo. Existing schemas and
 saved planets retain their original geology until explicitly edited.
 
 ## Native audit and ownership
@@ -33,44 +33,20 @@ bed identity, rock properties, folding/dip or shared excavation query. That is t
 demonstrated semantic gap addressed here. No streamer, mesher, collision manager,
 sculpt cache, custom edit format or replacement material renderer was added.
 
-`FCLCompiledRock` compiles a finite deposited stack with seeded individual bed
-thicknesses and stable bed identities above competent basement. There is no
-modulo cycle in algorithm 2. Initially, each bed follows a body-radius interval:
-locally horizontal sedimentary bedding on the spherical body.
+`FCLCompiledRock` compiles finite deposited sequences with stable bed identities.
+[Regional deposition](RockDeposition.md) documents the current v3 field, its research,
+exact native ownership, filled-accommodation assumption and remaining physical gaps.
+Older beds onlap regional basement conditioned by the accepted crust and extensional
+plate context. They are deformed by the same finite plate network. Younger episodes
+fill subsided areas and taper to zero at basin margins; uplifted areas are truncated.
+Rock supplies no terrain-height contribution and uses no edited surface height.
 
-The existing compiled tectonics owns the warped, finite plate segments and their
-relative motion. `SampleRockDeformation` uses that same network and envelope to
-provide local compression folds, tilt and signed normal/reverse throw. Rock
-restores a pre-deformation radial coordinate; it does not move UE actors or add
-a terrain-height contribution. With no plate drive, the beds stay radial.
-Folds vanish in extension and all added dip/fold/throw vanish outside their belts.
-No independent global orientation, fault plane or Perlin fold field is used by v2.
-
-History has one explicit order: older deposition → local plate deformation →
-radial truncation → undeformed younger deposition. `YoungerCoverRadiusFraction`
-sets the thickness above that truncation, measured down from SurfaceMax. It is
-an authored angular unconformity, not simulated erosion or transported sediment.
-The existing terrain solid exposes or removes geology; mining never uses its
-edited surface height to reclassify the remaining volume.
-
-The finite older stack spans SurfaceMin minus the configured crust depth through
-SurfaceMax. Its terminal unit continues where restoration exceeds that original
-upper datum; this is a bounded infill approximation, not a basin fill solver.
-At most 1024 beds are accepted; excessively thin Advanced compositions fail closed.
-No automatic coarsening changes the authored thickness.
-
-This first history profile does not simulate drift, mechanics/rheology, overturned
-folds, strike-slip restoration, region-specific facies, intrusions, metamorphism,
-core/mantle, ore deposition or erosion/deposition transport. The fold shape is a
-bounded kinematic approximation, not a calibrated implementation of the cited
-papers. See [research and acceptance](RockStratigraphy.md).
-
-Algorithm 1 is retained only for serialized recipe/save compatibility. Its global
-dip, global noise and repeating three-unit cycle caused the rejected pole-to-pole
-striping. The earlier numerical and save/load passes established consistency, not
-geological realism. A Character gesture explicitly adopts v2; simply loading,
-previewing or excavating an old recipe retains its accepted version. Arbitrary
-migration of excavated worlds between versions remains unqualified.
+The retained [v2 finite-history proof](RockStratigraphy.md) uses a radial basement
+and fixed younger cover after truncation. V1 retains its global dip/noise/plane
+and repeating material cycle only for saved-data compatibility. Loading either
+older version never changes the accepted geology. The early save/load passes
+proved consistency, not geological realism. Character gestures or explicit layer
+activation adopt v3; migrating an already mined planet's recipe is unqualified.
 
 ## Character progression
 
@@ -79,9 +55,9 @@ The knob uses independent smooth tracks, stored as resolved recipe values:
 | Range | Structure |
 | --- | --- |
 | 0 | Homogeneous competent bedrock; no added stratification, dip, folds, fault throw or tectonic displacement response |
-| 0–25% | Broad finite beds and sparse weak interbeds develop |
+| 0–25% | Broad finite beds, sparse weak interbeds and gentle regional variation develop |
 | 25–55% | Interbeds and local plate-driven deformation enter |
-| 55–80% | Thinner beds, local folds/throw and younger cover enter |
+| 55–80% | Thinner beds, local folds/throw and stronger regional differentiation develop |
 | 80–100% | Established structure becomes finer and more folded; three material units remain available |
 
 Zero removes added rock structure while retaining bedrock and its mining properties.
@@ -91,7 +67,9 @@ separate future layers. The knob never changes
 terrain heights, including exact SurfaceMin/Max fitting. Advanced values can be
 edited directly; the next gesture reapplies the profile's structural tracks while
 preserving palette IDs/properties and Variation seed.
-Orientation is a legacy-only control; v2 structure follows the plate network. Numerical sweeps and native
+Orientation is a v1-only control; newer structure follows the plate network.
+DepositionalVariation is v3-only. YoungerCoverRadiusFraction controls the finite
+younger reference sequence in v3, whose actual thickness follows accommodation. Numerical sweeps and native
 rendered frames qualify a bounded set of seeds and positions, not every possible
 Advanced composition.
 

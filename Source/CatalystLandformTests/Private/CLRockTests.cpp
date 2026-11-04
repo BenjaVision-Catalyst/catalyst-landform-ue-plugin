@@ -55,6 +55,10 @@ bool FCLRockControlTest::RunTest(const FString&)
     R=RockRecipe();R.Rock.AlgorithmVersion=1;R.Tectonics.bEnabled=false;R.Rock.DipDegrees=R.Rock.FoldAmplitudeRadiusFraction=R.Rock.FaultThrowRadiusFraction=R.Rock.TectonicResponse=0;R.Rock.BedThicknessRadiusFraction=.04;
     const auto Parallel=FCLPlanetCompiler::Compile(R,Error);if(!Parallel){AddError(Error);return false;}const auto Low=Parallel->Rock->Sample(FVector(0,0,700)),High=Parallel->Rock->Sample(FVector(0,0,740));
     TestTrue(TEXT("Independent planar-bed period oracle: one 40 m cycle repeats the unit, advances three beds and has a distinct identity"),Low.UnitId==High.UnitId&&High.StratumIndex-Low.StratumIndex==3&&Low.StratumId!=High.StratumId&&FMath::IsNearlyEqual(Low.MiningResistance,High.MiningResistance));
+    auto Center=RockRecipe();Center.Rock.AlgorithmVersion=2;Center.Rock.CrustDepthRadiusFraction=0;
+    const auto LegacyCenter=FCLCompiledRock::Compile(Center.Rock,Center.Seed,1000,0,800,Parallel->Surfaces.Get(),nullptr,Error);
+    if(!LegacyCenter){AddError(Error);return false;}
+    TestEqual(TEXT("V2 with zero basement retains its original finite-bed result at the exact origin"),LegacyCenter->Sample(FVector::ZeroVector).StratumIndex,int64(0));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>()),B(NewObject<UCLPlanetRecipeAsset>());A->Recipe=RockRecipe();FString Json;TestTrue(TEXT("Resolved geology exports"),A->ExportJsonString(Json,Error));TestTrue(TEXT("Resolved geology imports"),B->ImportRecipeJson(Json,Error));TestTrue(TEXT("All resolved data and IDs round-trip"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&A->Recipe,&B->Recipe,0));
     AddInfo(TEXT("24 seed/character cases retain exact terrain heights; zero, unit closure, versions and portable data pass"));return true;
 }

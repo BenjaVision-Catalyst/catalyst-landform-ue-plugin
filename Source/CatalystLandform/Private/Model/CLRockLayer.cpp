@@ -1,5 +1,6 @@
 #include "Model/CLRockLayer.h"
 #include "Model/CLTectonics.h"
+#include "Model/CLContinents.h"
 #include "Surface/CLSurfaceCompiler.h"
 #include "CLNativeNoiseKernel.h"
 
@@ -9,18 +10,18 @@ FCLRockLayer::FCLRockLayer()
     const TCHAR* Names[]={TEXT("Competent unit"),TEXT("Mixed unit"),TEXT("Weak interbed")};
     const TCHAR* Surfaces[]={TEXT("Rock"),TEXT("Scree"),TEXT("Soil")};
     for(int32 I=0;I<3;++I){auto& U=Units[I];U.Id=FGuid(0x434c524b,1,0,I+1);U.Name=Names[I];U.SurfaceId=Surfaces[I];U.MiningResistance=I==0?.85:I==1?.55:.25;U.Erodibility=1-U.MiningResistance;}
-    ApplyProgression(Character);DipDegrees=8.518518518518519;YoungerCoverRadiusFraction=0;AlgorithmVersion=1; // omitted serialized version retains the published v1 model
+    ApplyProgression(Character);DipDegrees=8.518518518518519;YoungerCoverRadiusFraction=0;DepositionalVariation=0;AlgorithmVersion=1; // omitted serialized version retains the published v1 model
 }
 const TCHAR* FCLCompiledRock::PropertiesAssetPath(){return TEXT("/CatalystLandform/Rock/MD_RockProperties.MD_RockProperties");}
 FLinearColor FCLCompiledRock::FillProperties(double Resistance,double Erosion)
 {return FLinearColor(FMath::Clamp(Resistance,0.,1.),FMath::Clamp(Erosion,0.,1.),1,1);}
-TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L,int32 Seed,double R,double Min,double Max,const FCLCompiledSurfaceLibrary* Surfaces,TSharedPtr<const FCLCompiledTectonics> T,FString& Error)
+TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L,int32 Seed,double R,double Min,double Max,const FCLCompiledSurfaceLibrary* Surfaces,TSharedPtr<const FCLCompiledTectonics> T,FString& Error,TSharedPtr<const FCLCompiledContinents> Crust)
 {
     auto In=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
-    if((L.AlgorithmVersion!=1&&L.AlgorithmVersion!=2)||!In(L.Character,0,1)||L.Orientation.ContainsNaN()||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
-       !In(L.BedThicknessRadiusFraction,.00001,1)||!In(L.InterbedFraction,0,.8)||!In(L.DipDegrees,0,25)||!In(L.FoldAmplitudeRadiusFraction,0,.05)||!In(L.FoldWavelengthRadiusFraction,.01,2)||!In(L.TectonicResponse,0,1)||!In(L.FaultThrowRadiusFraction,0,.05)||!In(L.FaultZoneRadiusFraction,.0001,.1)||!In(L.CrustDepthRadiusFraction,0,1)||!In(L.ContactFeatherFraction,0,.1)||!In(L.YoungerCoverRadiusFraction,0,.1))
-    {Error=TEXT("Rock Character requires algorithm 1 or 2, three units and finite bounded structural controls");return nullptr;}
-    auto Out=MakeShared<FCLCompiledRock>();Out->Layer=L;Out->Radius=R;Out->Datum=Max;Out->Basement=FMath::Max(0.,Min-L.CrustDepthRadiusFraction*R);Out->Tectonics=MoveTemp(T);
+    if((L.AlgorithmVersion<1||L.AlgorithmVersion>3)||!In(L.Character,0,1)||L.Orientation.ContainsNaN()||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
+       !In(L.BedThicknessRadiusFraction,.00001,1)||!In(L.InterbedFraction,0,.8)||!In(L.DipDegrees,0,25)||!In(L.FoldAmplitudeRadiusFraction,0,.05)||!In(L.FoldWavelengthRadiusFraction,.01,2)||!In(L.TectonicResponse,0,1)||!In(L.FaultThrowRadiusFraction,0,.05)||!In(L.FaultZoneRadiusFraction,.0001,.1)||!In(L.CrustDepthRadiusFraction,0,1)||!In(L.ContactFeatherFraction,0,.1)||!In(L.YoungerCoverRadiusFraction,0,.1)||!In(L.DepositionalVariation,0,1))
+    {Error=TEXT("Rock Character requires algorithm 1..3, three units and finite bounded structural controls");return nullptr;}
+    auto Out=MakeShared<FCLCompiledRock>();Out->Layer=L;Out->Radius=R;Out->Datum=Max;Out->Basement=FMath::Max(0.,Min-L.CrustDepthRadiusFraction*R);Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(Crust);
     TSet<FGuid> Ids;
     for(const auto& U:L.Units)
     {
@@ -33,11 +34,12 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
     FRandomStream Random(int32(uint32(Seed)^uint32(L.Seed)^0x434c5231U));Out->NoiseSeed=int32(Random.GetUnsignedInt());Out->Phase=Random.FRand();
     Out->Frame=L.Orientation.Quaternion()*FRotator(Random.FRandRange(-45,45),Random.FRandRange(-180,180),Random.FRandRange(-180,180)).Quaternion();
     Out->Namespace=FGuid(0x434c5231,uint32(Seed),uint32(L.Seed),L.AlgorithmVersion);
-    if(L.AlgorithmVersion==2)
+    if(L.AlgorithmVersion>=2)
     {
-        Out->Unconformity=FMath::Max(Out->Basement,Max-L.YoungerCoverRadiusFraction*R);
-        // Ordered history: finite older deposition -> plate deformation ->
-        // truncation at Unconformity -> undeformed younger deposition.
+        const double ReferenceThickness=L.AlgorithmVersion>=3?FMath::Max(L.YoungerCoverRadiusFraction,L.BedThicknessRadiusFraction*2)*R:L.YoungerCoverRadiusFraction*R;
+        Out->Unconformity=FMath::Max(Out->Basement,Max-ReferenceThickness);
+        // V2 uses a fixed truncation/cover level. V3 stores the younger reference
+        // interval here; SampleColumn supplies its actual basin floor/thickness.
         auto Deposit=[&](double Bottom,double Top,bool Young)
         {
             int32 PreviousUnit=INDEX_NONE,RunLength=0;
@@ -62,14 +64,14 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
         if(!Deposit(Out->Basement,Max,false))
         {Error=TEXT("Finite rock history exceeds 1024 beds; increase bed thickness");return nullptr;}
         Out->OlderBedCount=Out->Beds.Num();
-        if(L.YoungerCoverRadiusFraction>0&&!Deposit(Out->Unconformity,Max,true))
+        if((L.AlgorithmVersion>=3||L.YoungerCoverRadiusFraction>0)&&!Deposit(Out->Unconformity,Max,true))
         {Error=TEXT("Finite rock history exceeds 1024 beds; increase bed thickness");return nullptr;}
     }
     return Out;
 }
 FCLCompiledRock::FPoint FCLCompiledRock::Classify(const FVector3d& P)const
 {
-    if(Layer.AlgorithmVersion==2)return ClassifyFinite(P);
+    if(Layer.AlgorithmVersion>=2)return ClassifyFinite(P);
     FPoint Out;const double Distance=P.Length();
     if(Distance<=Basement||Layer.InterbedFraction==0)return Out;
     const FVector D=Distance>1.e-6?P/Distance:FVector::ZAxisVector;
@@ -93,29 +95,75 @@ FCLCompiledRock::FPoint FCLCompiledRock::Classify(const FVector3d& P)const
     }
     return Out;
 }
+double FCLCompiledRock::DeformationMeters(const FVector3d& D,double* Extension) const
+{
+    if(Extension)*Extension=0;
+    if(!Tectonics)return 0;
+    const auto S=Tectonics->SampleRockDeformation(D,Layer.FoldWavelengthRadiusFraction,Phase*2*PI,Layer.FaultZoneRadiusFraction);
+    if(Extension)*Extension=S.Extension;
+    return Layer.TectonicResponse*S.UpliftMeters+
+        Radius*(FMath::Tan(FMath::DegreesToRadians(Layer.DipDegrees))*S.Tilt+
+        Layer.FoldAmplitudeRadiusFraction*S.Fold+Layer.FaultThrowRadiusFraction*S.Fault);
+}
 double FCLCompiledRock::RestoredRadiusMeters(const FVector3d& P) const
 {
     const double R=P.Length();
-    if(!Tectonics||R<1.e-6)return R;
-    const auto S=Tectonics->SampleRockDeformation(P/R,Layer.FoldWavelengthRadiusFraction,Phase*2*PI,Layer.FaultZoneRadiusFraction);
-    // This is a kinematic radial restoration, not a displacement of UE actors.
-    // Local dip and folds vanish outside actual plate belts and with zero drive.
-    const double Displacement=Layer.TectonicResponse*S.UpliftMeters+
-        Radius*(FMath::Tan(FMath::DegreesToRadians(Layer.DipDegrees))*S.Tilt+
-        Layer.FoldAmplitudeRadiusFraction*S.Fold+Layer.FaultThrowRadiusFraction*S.Fault);
-    return R-Displacement;
+    return R<1.e-6?R:R-DeformationMeters(P/R);
+}
+FCLRockColumn FCLCompiledRock::SampleColumn(const FVector3d& Direction) const
+{
+    FCLRockColumn C;
+    if(Layer.AlgorithmVersion<3||Direction.ContainsNaN()||Direction.IsNearlyZero())return C;
+    const FVector D=Direction.GetSafeNormal();C.bValid=true;
+    C.DeformationMeters=DeformationMeters(D,&C.Extension);
+    C.Continentalness=Crust?Crust->CrustContext(D,.75):Tectonics?Tectonics->Continentalness(D):.75;
+    const double CrustValue=FMath::Clamp(C.Continentalness,0.,1.);
+    // Artistic palaeo-accommodation prior: broad margin basins, thin oceanic
+    // cover and inherited extensional lows. These are the existing crust/stress
+    // fields, not a new province/noise generator or a reconstructed history.
+    const double Potential=FMath::Clamp(4*CrustValue*(1-CrustValue)+.08*(1-CrustValue)+C.Extension,0.,1.);
+    C.RestoredBasementRadiusMeters=FMath::Lerp(Basement,Datum-(Datum-Basement)*Potential,Layer.DepositionalVariation);
+    // Older deposition ends at Datum before deformation. Positive displacement
+    // is truncated there; negative displacement creates local accommodation.
+    // Sufficient sediment fills that space to the same fixed reference level.
+    C.YoungerFloorRadiusMeters=FMath::Clamp(Datum+C.DeformationMeters,0.,Datum);
+    C.YoungerThicknessMeters=Datum-C.YoungerFloorRadiusMeters;
+    return C;
 }
 FCLCompiledRock::FPoint FCLCompiledRock::ClassifyFinite(const FVector3d& P) const
 {
     FPoint Out;Out.Bed=-1;
     if(Layer.InterbedFraction==0||Beds.IsEmpty())return Out;
-    const double Distance=P.Length(),Restored=RestoredRadiusMeters(P);
-    const bool Young=Layer.YoungerCoverRadiusFraction>0&&Distance>=Unconformity;
-    const double Coordinate=Young?Distance:Restored;
-    if(!Young&&Coordinate<Basement)return Out;
+    const double Distance=P.Length();if(Layer.AlgorithmVersion>=3&&Distance<1.e-6)return Out;
+    bool Young=false;double Coordinate=0;
+    if(Layer.AlgorithmVersion>=3)
+    {
+        const auto C=SampleColumn(P/Distance);
+        Young=C.YoungerThicknessMeters>1.e-9&&Distance>=C.YoungerFloorRadiusMeters;
+        if(Young)
+        {
+            // One finite set of episode identities spans each basin. Mapping
+            // thickness, rather than restarting a cycle, makes every contact
+            // converge at the basin edge and leaves dry columns untouched.
+            const double Fraction=FMath::Clamp((Distance-C.YoungerFloorRadiusMeters)/C.YoungerThicknessMeters,0.,1.);
+            Coordinate=FMath::Lerp(Unconformity,Datum,Fraction);
+        }
+        else
+        {
+            Coordinate=Distance-C.DeformationMeters;
+            if(Coordinate<C.RestoredBasementRadiusMeters)return Out;
+        }
+    }
+    else
+    {
+        const double Restored=RestoredRadiusMeters(P);
+        Young=Layer.YoungerCoverRadiusFraction>0&&Distance>=Unconformity;
+        Coordinate=Young?Distance:Restored;
+        if(!Young&&Coordinate<Basement)return Out;
+    }
     // Binary lookup within each finite sequence; a surface edit never moves a bed.
     int32 Begin=0,End=Beds.Num();
-    if(Layer.YoungerCoverRadiusFraction>0)
+    if(Layer.AlgorithmVersion>=3||Layer.YoungerCoverRadiusFraction>0)
     {
         if(Young)Begin=OlderBedCount;else End=OlderBedCount;
     }
