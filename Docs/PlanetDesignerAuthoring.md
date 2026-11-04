@@ -12,7 +12,7 @@ low, middle and high parts of SurfaceMin/Max; its independent rare-tail controls
 remain under Advanced. Opening an asset never changes its saved recipe.
 
 Geology lists **Tectonics, Continents, Rock and Watershed**, in that order. Each layer is one
-native expandable category header: chevron, Outliner eyeball, name, Character
+native expandable category header: chevron, Outliner eyeball, indicator toggle, name, Character
 slider/value and reseed icon. All Character readouts use the same native property
 font and fixed width, showing rounded 0–100 values without a percent sign. This
 also applies to Planet Surface Distribution; stored values remain normalized. The eyeball has the same accepted enable/disable
@@ -35,7 +35,16 @@ edits the global profile and cannot redirect itself into a region. The former
 Planet Terrain detail dashboard and bulk size/add-layer shortcuts are removed.
 The existing physical-scale model and saved dimensions remain unchanged.
 
-Preview owns drainage overlays, channel focus and surface walking. Optional
+Layer indicator toggles sit immediately beside the eye and use a native UE wireframe
+icon with the standard checked highlight. They are independent display preferences,
+initially off, scoped to the open editor; they never edit the recipe, dirty the
+asset or request generation. Watershed toggles its existing globe drainage,
+channel and potential-lake-rim diagnostics. Tectonics, Continents and Rock have no
+separate indicator overlays today, so their icons are disabled. Rock strata are
+terrain/material output, not an inspection overlay. No new indicators are generated.
+
+Preview retains channel focus and surface walking. The former Drainage overlay
+checkbox is removed; there is one owner for the layer display preference. Optional
 surface-area and rock-thickness plots live under Preview Advanced. Numeric
 watershed qualification records remain in conformance artifacts. VPP rendering
 LOD is independent of all Character/physical-feature controls and is unchanged.
@@ -51,3 +60,6 @@ asset regeneration or runtime generation/streaming change. The [native UI record
 records actual collapsed/expanded views, tab ownership, shared four-layer layout,
 Undo, region/global isolation and preserved inputs. Domain and cooked qualifications
 remain those of the owning scale/rock/watershed profiles.
+
+The [layer indicator qualification](../conformance/LayerIndicators/qualification-mac-arm64.json)
+records the updated native row layout and display-only toggle checks.

@@ -1879,3 +1879,22 @@ numbers without `%`, and leave normalized saved values and algorithms unchanged.
 conditioning, optional drainage diagnostics and the separate sea-level display
 from unimplemented water bodies/simulation. Reference rain/runoff is bookkeeping;
 its advanced authoring ownership needs review. No new watershed feature was added.
+
+
+## Per-layer visual indicator controls — 5 November 2026
+
+The Geology main row now places a native UE wireframe toggle beside the eye.
+The eye retains its recipe enable/Undo semantics; the second icon changes only
+that layer's optional visual indicators. Watershed owns the existing globe
+drainage, channel and potential-lake-rim overlay. Other current layers expose a
+disabled icon because they provide no separate indicators. This creates no new
+geological or visualisation producer. Display preferences begin off, remain
+local to the open editor and do not dirty recipes or evaluate terrain.
+
+The duplicate Preview drainage checkbox is removed. Preview retains channel
+focus and walking, radial guides, the independent ocean reference and region
+inspection. Existing overlay readiness/LOD suppression and globe-only rendering
+remain unchanged. The [authoring contract](PlanetDesignerAuthoring.md) supersedes
+older notes assigning layer overlay toggles to Preview. The
+[native qualification](../conformance/LayerIndicators/qualification-mac-arm64.json)
+records actual UI, display-only, Undo and navigation checks.

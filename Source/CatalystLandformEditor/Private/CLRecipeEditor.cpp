@@ -661,6 +661,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TArray<TSharedPtr<IPropertyHandle>> WatershedProperties;
     TSharedPtr<SSlider> WatershedSlider;
     TSharedPtr<SButton> LayerVisibility[4],WatershedVariation;
+    TSharedPtr<SCheckBox> LayerIndicators[4];
     TUniquePtr<FScopedTransaction> WatershedTransaction;
     FTSTicker::FDelegateHandle WatershedTicker;
     bool bWatershedDragging=false,bWatershedOverlay=false;
@@ -1295,6 +1296,12 @@ public:
                 .ToolTipText(FText::FromString(TEXT("Toggle layer visibility")))
                 .OnClicked_Lambda([Toggle]{Toggle();return FReply::Handled();})
                 [SNew(SImage).Image_Lambda([Enabled]{return FAppStyle::GetBrush(Enabled.Get()?TEXT("Level.VisibleIcon16x"):TEXT("Level.NotVisibleIcon16x"));})]]
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,4,0)
+            [SAssignNew(LayerIndicators[Index],SCheckBox).Style(FAppStyle::Get(),"ToggleButtonCheckbox").Padding(2).IsEnabled(Index==3)
+                .ToolTipText(FText::FromString(Index==3?TEXT("Toggle Watershed indicators: drainage, channels and potential lake rims (globe)"):TEXT("This layer has no visual indicators")))
+                .IsChecked_Lambda([this,Index]{return Index==3&&bWatershedOverlay?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this,Index](ECheckBoxState V){if(Index==3){bWatershedOverlay=V==ECheckBoxState::Checked;if(Globe)Globe->SetWatershedOverlay(bWatershedOverlay);}})
+                [SNew(SImage).Image(FAppStyle::GetBrush("EditorViewport.WireframeMode"))]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,8,0)
             [SNew(SBox).WidthOverride(100)[SNew(STextBlock).Text(FText::FromString(Name)).Font(FAppStyle::GetFontStyle("PropertyWindow.BoldFont"))]]
             +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center)[Character]
@@ -1572,8 +1579,6 @@ public:
             InspectorRow(C,TEXT("Regions"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsInspectingRegions()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetRegionInspection(V==ECheckBoxState::Checked);}));
             InspectorRow(C,TEXT("Channel"),SNew(SButton).Text(FText::FromString(TEXT("Focus largest channel"))).IsEnabled_Lambda([this]{return AcceptedSurfacePlan&&AcceptedSurfacePlan->Watershed&&!AcceptedSurfacePlan->Watershed->GetChannels().IsEmpty();}).OnClicked_Lambda([this]{if(!bGlobe){bGlobe=true;Refresh();}if(Globe)Globe->FocusWatershed();return FReply::Handled();}));
-            InspectorRow(C,TEXT("Drainage overlay"),SNew(SCheckBox).IsChecked_Lambda([this]{return bWatershedOverlay?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){bWatershedOverlay=V==ECheckBoxState::Checked;if(Globe)Globe->SetWatershedOverlay(bWatershedOverlay);}));
             InspectorRow(C,TEXT("Section area"),SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).Value_Lambda([this]{return float((PendingAreaWidth-100)/900);})
                     .OnMouseCaptureBegin_Lambda([this]{bAreaDragging=true;}).OnMouseCaptureEnd_Lambda([this]{bAreaDragging=false;ApplyPreviewArea();})
@@ -2692,6 +2697,24 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
         E->LayerVisibility[I]->SimulateClick();TestTrue(TEXT("Eye toggles only its layer's existing enable state"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Expected,&A->Recipe,0));
         GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores an eye toggle"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));
     }
+    TestFalse(TEXT("Layer indicators start off"),E->bWatershedOverlay||E->Globe->IsWatershedOverlayEnabled());
+    for(int32 I=0;I<4;++I)TestEqual(TEXT("Only layers with indicators offer an enabled toggle"),E->LayerIndicators[I]->IsEnabled(),I==3);
+    const auto BeforeIndicators=A->Recipe;const bool WasDirty=A->GetOutermost()->IsDirty();const uint32 Evaluations=E->Evaluation.Started;
+    const auto* Native=E->Globe->NativeForTesting();const auto NativeStarts=Native?Native->Metrics.Starts:0;
+    for(bool Enabled:{true,false,true})
+    {
+        E->LayerIndicators[3]->ToggleCheckedState();
+        TestEqual(TEXT("Indicator icon reflects its display preference"),E->LayerIndicators[3]->IsChecked(),Enabled);
+        TestEqual(TEXT("Indicator toggle reaches the native globe renderer"),E->Globe->IsWatershedOverlayEnabled(),Enabled);
+    }
+    TestTrue(TEXT("Indicators never edit the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeIndicators,&A->Recipe,0));
+    TestEqual(TEXT("Indicators never dirty the asset"),A->GetOutermost()->IsDirty(),WasDirty);
+    TestEqual(TEXT("Indicators never evaluate terrain"),E->Evaluation.Started,Evaluations);
+    TestTrue(TEXT("Indicators never create a native generation input"),E->Globe->NativeForTesting()==Native);
+    if(Native)TestEqual(TEXT("Indicators never start native generation"),Native->Metrics.Starts,NativeStarts);
+    E->LayerVisibility[3]->SimulateClick();GEditor->UndoTransaction();
+    TestTrue(TEXT("Layer visibility and Undo preserve the independent indicator preference"),E->LayerIndicators[3]->IsChecked()&&E->Globe->IsWatershedOverlayEnabled());
+    E->LayerIndicators[3]->ToggleCheckedState();
     TestFalse(TEXT("Watershed cannot reseed upstream terrain while it has no independent variation"),E->WatershedVariation->IsEnabled());
 
     class FReview final:public IAutomationLatentCommand
@@ -2733,7 +2756,8 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
                 if(!Test->TestEqual(TEXT("The native watershed chevron can be clicked"),W.Categories.Num(),4))return Close();Toggle=W.Categories[3];
                 TSharedPtr<SSlider> Sliders[]={Editor->ContinentalSlider,Editor->TectonicSlider,Editor->RockSlider,Editor->WatershedSlider};
                 TSharedPtr<SButton> Seeds[]={Editor->ContinentalVariation,Editor->TectonicVariation,Editor->RockVariation,Editor->WatershedVariation};
-                for(int32 I=0;I<4;++I){auto Middle=[](TSharedPtr<SWidget> X){const auto G=X->GetCachedGeometry();return G.GetAbsolutePosition().Y+G.GetAbsoluteSize().Y*.5;};const double Y=Middle(Sliders[I]);Test->TestTrue(TEXT("Eye, slider and reseed share the same main row"),FMath::Abs(Y-Middle(Editor->LayerVisibility[I]))<2&&FMath::Abs(Y-Middle(Seeds[I]))<2);}
+                for(int32 I=0;I<4;++I){auto Middle=[](TSharedPtr<SWidget> X){const auto G=X->GetCachedGeometry();return G.GetAbsolutePosition().Y+G.GetAbsoluteSize().Y*.5;};const double Y=Middle(Sliders[I]);Test->TestTrue(TEXT("Eye, indicators, slider and reseed share the same main row"),FMath::Abs(Y-Middle(Editor->LayerVisibility[I]))<2&&FMath::Abs(Y-Middle(Editor->LayerIndicators[I]))<2&&FMath::Abs(Y-Middle(Seeds[I]))<2);
+                    Test->TestTrue(TEXT("Indicator icon is immediately after the eye"),Editor->LayerIndicators[I]->GetCachedGeometry().GetAbsolutePosition().X>Editor->LayerVisibility[I]->GetCachedGeometry().GetAbsolutePosition().X);}
             }
             if(Step==2)
             {
@@ -2742,7 +2766,7 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
                 Test->TestEqual(TEXT("Opening a layer adds no nested Details container"),W.Details,1);
                 Test->TestEqual(TEXT("Expanded geology still has no Advanced dropdown"),W.Advanced.Num(),0);if(W.Categories.Num()==4)Toggle=W.Categories[3];
             }
-            if(Step==3){Test->TestTrue(TEXT("Preview owns drainage inspection"),W.Text.Contains(TEXT("Drainage overlay"))&&W.Text.Contains(TEXT("Focus largest channel")));Test->TestTrue(TEXT("Schema-22 preview measurement is available"),Editor->MeasuredElevation.Num()>100);Test->TestFalse(TEXT("Inspection overlays are opt-in"),Editor->bWatershedOverlay);}
+            if(Step==3){Test->TestFalse(TEXT("Preview has no duplicate drainage checkbox"),W.Text.Contains(TEXT("Drainage overlay")));Test->TestTrue(TEXT("Preview retains channel focus"),W.Text.Contains(TEXT("Focus largest channel")));Test->TestTrue(TEXT("Schema-22 preview measurement is available"),Editor->MeasuredElevation.Num()>100);Test->TestFalse(TEXT("Inspection overlays are opt-in"),Editor->bWatershedOverlay);}
             if(Step==4){if(!Test->TestEqual(TEXT("Planet has native body and surface Advanced dropdowns"),W.Advanced.Num(),2))return Close();Toggle=W.Advanced[1];}
             if(Step==5)
             {

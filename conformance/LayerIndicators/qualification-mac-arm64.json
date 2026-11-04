@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-05",
+  "passed": true,
+  "scope": "Move layer visual-indicator control beside each Geology eye; remove duplicate Preview drainage checkbox.",
+  "baseComponentCommit": "a60f1856398fec917a963fd1e415841a4b9e36bd",
+  "baseWorkspaceCommit": "6d108db9098080659e74252c213e3a702e7485e1",
+  "environment": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max 128 GB"
+  },
+  "behavior": {
+    "control": "Native ToggleButtonCheckbox with EditorViewport.WireframeMode icon, adjacent to eye; standard checked highlight",
+    "enabled": [
+      "Watershed: existing globe drainage/channel/potential lake rim diagnostics"
+    ],
+    "disabled": [
+      "Tectonics",
+      "Continents",
+      "Rock"
+    ],
+    "ownership": "Display preference scoped to open toolkit, initially off; independent of recipe layer enable state and Undo",
+    "preview": "Duplicate Drainage overlay checkbox removed; focus/walk and other existing view controls retained"
+  },
+  "validation": {
+    "uniqueChecks": 5,
+    "testStates": {
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.Watershed.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Watershed.NativeRenderedReview": "Success"
+    },
+    "counts": {
+      "succeeded": 5,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0
+    },
+    "checks": [
+      "Real native collapsed/expanded layout and shared eye/indicator/slider/reseed row alignment",
+      "Watershed toggle on/off/on reaches renderer preference",
+      "Indicators do not change recipe, asset dirty flag, evaluation count or native input ownership/start count when present",
+      "Eye toggle and Undo retain independent indicator preference",
+      "No duplicate Preview checkbox; channel focus remains",
+      "Existing bounded globe navigation and expanded-property scroll responsiveness",
+      "Existing six-case native VPP Watershed rendered review"
+    ],
+    "protectedInputs": {
+      "root": 184,
+      "review": 177
+    },
+    "assetRegeneration": false,
+    "runtimeGenerationChange": false,
+    "cookedRuntimeRerun": false,
+    "initialTestCorrection": "First run aborted in new test due to dereferencing a preview destroyed by the existing test setup. Corrected null handling and reran all five checks successfully.",
+    "build": "Succeeded; pre-existing CompressImageArray deprecation warnings in unchanged test screenshot helpers"
+  },
+  "sourceSHA256": {
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "44d51c80c27021690f1085ace883ef3e82d4503fd8a0a233637f52e6e2643c8c",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "3e4fd810ad85956087784a5433b3a39de5dd7dfba03af83ded840d62211b71b8",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "289ae5d9afb8bfef23d4b88b1f7c2cfd6ffd1bcbc78fd38c6215f7790dd19fc9"
+  },
+  "artifactSHA256": {
+    "editor-index.json": "004d665e0b2de83fc943561b1bb7ad6c787e82dd3f76f14f33da0f0e5759f7e0",
+    "geology.png": "745fc85a076069f6ed4e299a797696cdf9d3b6ad14f0c8ae89ad805003214c75",
+    "preview.png": "a2ad3bc424a0d62b46bce8196e469b53cd78076803605a684e73cb55cede220c",
+    "navigation.json": "e5269f1d09004c46ecf342fa9f7781bc018e4dac5f6a5f1143a8b9c2be58faf4",
+    "properties.json": "ff18174f3e4f2ccb298fed42f5f3e47d2671909dd5d74174b9bcc4a3be873d98"
+  },
+  "limits": [
+    "Existing diagnostics remain globe-only and suppressed during native readiness/LOD updates.",
+    "No new indicator producers, water bodies, runtime algorithms, schema migration or cooked-world qualification."
+  ]
+}

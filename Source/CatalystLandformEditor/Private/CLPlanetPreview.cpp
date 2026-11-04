@@ -1382,6 +1382,7 @@ bool FCLContinentalRenderedPortfolioTest::RunTest(const FString&)
 #endif
 
 void SCLPlanetPreview::SetWatershedOverlay(bool Enabled){Client->bWatershedOverlay=Enabled;Client->Invalidate();}
+bool SCLPlanetPreview::IsWatershedOverlayEnabled()const{return Client->bWatershedOverlay;}
 
 bool SCLPlanetPreview::FocusWatershed()
 {

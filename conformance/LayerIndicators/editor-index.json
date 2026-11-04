@@ -1,0 +1,130 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "C6F3C7E5D64000316551238C8B129180",
+			"instanceName": "jupiter.local-56656",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.04-23.36.42",
+	"succeeded": 5,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 42.337387084960938,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "AuthoringBoundaries",
+			"fullTestPath": "Catalyst.Landform.Designer.AuthoringBoundaries",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"C6F3C7E5D64000316551238C8B129180"
+			],
+			"duration": 5.6697707176208496,
+			"dateTime": "2026.11.04-23.35.59",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NavigationResponsiveness",
+			"fullTestPath": "Catalyst.Landform.Designer.NavigationResponsiveness",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"C6F3C7E5D64000316551238C8B129180"
+			],
+			"duration": 4.4515824317932129,
+			"dateTime": "2026.11.04-23.36.05",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"baseline\":false,\"watershed\":false,\"frames\":240,\"frameP50Ms\":11.489082,\"frameP95Ms\":15.993208,\"maxFrameMs\":39.348751,\"maxInputMs\":0.084374,\"maxPollMs\":0.029709,\"meshCopies\":0,\"verticesCopied\":0,\"copyMs\":0.000000,\"progressFrames\":0,\"nativeStarts\":0,\"evaluations\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-23.36.09"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "PropertyScrollResponsiveness",
+			"fullTestPath": "Catalyst.Landform.Designer.PropertyScrollResponsiveness",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"C6F3C7E5D64000316551238C8B129180"
+			],
+			"duration": 2.8754594326019287,
+			"dateTime": "2026.11.04-23.36.09",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"watershed\":false,\"frames\":120,\"frameP50Ms\":10.191791,\"frameP95Ms\":10.967668,\"maxFrameMs\":11.478208,\"maxInputMs\":1.802627,\"maxScrollOffset\":35.555546,\"handledWheels\":120,\"progressFrames\":0,\"nativeStarts\":0,\"evaluations\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-23.36.12"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.Watershed.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"C6F3C7E5D64000316551238C8B129180"
+			],
+			"duration": 1.9375307559967041,
+			"dateTime": "2026.11.04-23.36.12",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeRenderedReview",
+			"fullTestPath": "Catalyst.Landform.Watershed.NativeRenderedReview",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"C6F3C7E5D64000316551238C8B129180"
+			],
+			"duration": 27.403041839599609,
+			"dateTime": "2026.11.04-23.36.14",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

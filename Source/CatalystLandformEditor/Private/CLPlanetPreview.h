@@ -56,6 +56,7 @@ public:
     void SetPlacementMode(ECLGlobePlacementMode Mode);
     ECLGlobePlacementMode PlacementMode() const;
     void SetWatershedOverlay(bool Enabled);
+    bool IsWatershedOverlayEnabled() const;
     bool FocusWatershed();
     void SetRegionInspection(bool Inspect);
     bool IsInspectingRegions() const;
