@@ -1,0 +1,158 @@
+{
+  "date": "2026-11-04",
+  "passed": true,
+  "scope": "Native direct Advanced property rows and varied Rock authoring using existing algorithm-4 geological controls; no new voxel generation, preview or runtime model.",
+  "baseComponentCommit": "a8492713fceb69f3d1c204fff0694469d3663980",
+  "environment": {
+    "engine": "UE 5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max, 128 GB",
+    "editorHost": "/private/tmp/landform-folds/LandformLab",
+    "openPreviousHostPreserved": "/private/tmp/landform-strata/LandformLab"
+  },
+  "nativeAudit": {
+    "ui": "UE AddExternalStructureProperty in the owning native Advanced category; native finished-property event validates external drafts before asset commit. No nested Details view.",
+    "generationPresentationEditing": "Existing VPP native stamps, layers, surfaces, metadata, mesh generation, LOD, collision and sculpt persistence retained.",
+    "specialization": "Retune the existing geological authoring tracks only; the finite geological sampler is unchanged.",
+    "newNativeGapOrRuntimeSpecialization": false
+  },
+  "characterAnchors": {
+    "0": "massive substrate",
+    "0.18": "broad rhythmic beds",
+    "0.38": "fine weak interbeds",
+    "0.58": "folded competent packages",
+    "0.78": "bounded fault throws and regional deposition",
+    "1": "regional basin sequences with receding shortening/dip/throw"
+  },
+  "validation": {
+    "uniqueEditorChecks": 28,
+    "testStates": {
+      "Catalyst.Landform.GuidedGeology.CharacterProgression": "Success",
+      "Catalyst.Landform.GuidedGeology.DirectAdvancedAndPersistence": "Success",
+      "Catalyst.Landform.GuidedGeology.FinalExtremaAndPatches": "Success",
+      "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment": "Success",
+      "Catalyst.Landform.GuidedGeology.StampsRegionsAndNativeParity": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections": "Success",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+      "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Continental": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.ContinentalLayer": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Tectonic": "Success",
+      "Catalyst.Landform.Tectonics.InlineAdvanced": "Success",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering": "Success",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": "Success",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts": "Success",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success"
+    },
+    "runs": {
+      "editor": {
+        "succeeded": 28,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      },
+      "layout": {
+        "succeeded": 3,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      },
+      "final": {
+        "succeeded": 3,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      }
+    },
+    "denseCompiledProfiles": 603,
+    "seeds": [
+      1729,
+      817,
+      529
+    ],
+    "fixedSpacingProfiles": 18,
+    "adjacentFixedSpacingComparisons": 15,
+    "solidSamplesPerProfile": 2048,
+    "fixedBedThicknessRadiusFraction": 0.03,
+    "minimumChangedSamples": 355,
+    "maximumChangedSamples": 1150,
+    "minimumChangedFraction": 0.17333984375,
+    "maximumChangedFraction": 0.5615234375,
+    "nativeGlobeCutawayFrames": 24,
+    "nativeReviewPositions": [
+      0.0,
+      0.1,
+      0.18,
+      0.38,
+      0.58,
+      0.78,
+      0.9,
+      1.0
+    ],
+    "directAdvancedLayouts": 3,
+    "nativePropertiesProbes": 2048,
+    "nativePropertiesWorstError": 0,
+    "caveGeologyProbes": 4096,
+    "publishedNativeDefaultsExactlyRetained": {
+      "algorithm_version": 1,
+      "character": 0.55,
+      "seed": 0,
+      "bed_thickness_radius_fraction": 0.04990661443148686,
+      "interbed_fraction": 0.39,
+      "dip_degrees": 8.518518518518519,
+      "fold_amplitude_radius_fraction": 0.006,
+      "fold_wavelength_radius_fraction": 0.42777777777777776,
+      "tectonic_response": 0.32592592592592595,
+      "fault_throw_radius_fraction": 0.001056000000000001,
+      "fault_zone_radius_fraction": 0.006,
+      "crust_depth_radius_fraction": 0.15,
+      "contact_feather_fraction": 0.015,
+      "younger_cover_radius_fraction": 0.0,
+      "depositional_variation": 0.0,
+      "fold_viscosity_contrast": 64.0,
+      "fold_shortening_strain": 0.08
+    },
+    "protectedInputFilesUnchanged": 171,
+    "pythonSyntax": "passed",
+    "plotRenderAndVisualInspection": "passed"
+  },
+  "sourceSHA256": {
+    "Source/CatalystLandform/Private/Model/CLGeologyProgression.cpp": "9f801eca4a5f31a250c12ef49de2cefcf8936a27beeb6490401c0d6258bc033d",
+    "Source/CatalystLandform/Private/Model/CLRockLayer.cpp": "60c36a313562f97880f2d3c272952fb26424c22e55378e7f42672b6b309b9e8f",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "e3e76aa96684d1ee5ff0b64ba746aef85e7de83bb1adbb6393abd3e65ee307d1",
+    "Source/CatalystLandformTests/Private/CLRockTests.cpp": "4995ec4c53efbeec901e843bc318559a8951876659d3b71fefbfa9e662042a37"
+  },
+  "hostPlotScriptSHA256": "a2f4b21b015ebb19dd662987cec8197a180e4867db2c6f1a135197047607784d",
+  "artifactSHA256": {
+    "conformance/RockCharacter/authoring/native-038.png": "c8fff4905c3f664b65334b699979ceef720700a22c44e689779b5a990b46d2a5",
+    "conformance/RockCharacter/authoring/native-000.png": "c00bc0fc6d878e15b30da6837b63967318de2ed04e16f99f9c4660a96d4d6720",
+    "conformance/RockCharacter/authoring/native-058.png": "e0b13b3fe78bc2fd5dd5651454fb02250082ee0d0e80a8dcfa27201f52cd4f69",
+    "conformance/RockCharacter/authoring/native-100.png": "3832821842bc50d389bc3331a241362ed28fe94f39df37c0b72aa9e0c08e905d",
+    "conformance/RockCharacter/authoring/native-078.png": "dd0f98d5326230432b0385624bc9570433bfa58657301a30daec6bac4a3efd3c",
+    "conformance/RockCharacter/authoring/fixed-spacing.csv": "842dead35cc3b477d783769b6fb83550040a52177df093af4ccf2f6ab752ec7a",
+    "conformance/RockCharacter/authoring/native-018.png": "b424007cf6d56f1ae7b3e06e7ae2b11a98ce4e1a7ff3761fac560047dda27adb",
+    "conformance/RockCharacter/authoring/advanced-1.png": "62acefd9c9f82db8e7846d1bfda902b929f0165f6d701d4d86fc6745cab3587c",
+    "conformance/RockCharacter/authoring/advanced-0.png": "dd2b38636ee10b5d9ac20acfc20802d3a17450c204f83f1eec9e34098fb3bc5b",
+    "conformance/RockCharacter/authoring/advanced-2.png": "abfe4c2f5566e80aef5cb6ec31be65dd8e87f7441cc16980693810831104bc5d",
+    "conformance/RockCharacter/character-palette.png": "e746a4f0bdea82d040e54b97d60f3811296a595414e82ab86818f597038bb377"
+  },
+  "limits": [
+    "Character reauthors resolved geological structure; migration of an already mined world remains unqualified.",
+    "The existing early folding, bounded kinematic throw and filled-accommodation approximations remain; no full mechanical history, lateral-slip fault restoration or sediment-transport model was added.",
+    "Palette artwork remains provisional. Arbitrary Advanced combinations are not all qualified.",
+    "This is an editor authoring qualification. No new cooked run was required; the earlier pinned v4 excavation/save record remains separate."
+  ]
+}

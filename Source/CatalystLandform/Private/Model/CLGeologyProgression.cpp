@@ -63,15 +63,19 @@ void FCLRockLayer::ApplyProgression(double Position)
 {
     if(AlgorithmVersion<4&&Units.Num()>0)FoldCompetentUnit=Units[0].Id;
     AlgorithmVersion=4;Character=FMath::Clamp(Position,0.,1.);
-    BedThicknessRadiusFraction=Track(Character,{{0,.25},{.18,.16},{.42,.07},{.70,.025},{1,.008}});
-    InterbedFraction=Track(Character,{{0,0},{.15,.08},{.40,.30},{.70,.48},{1,.65}});
-    DipDegrees=Track(Character,{{0,0},{.20,0},{.50,4},{.80,10},{1,15}});
-    FoldAmplitudeRadiusFraction=Track(Character,{{0,0},{.25,0},{.55,.006},{.80,.014},{1,.020}});
-    FoldWavelengthRadiusFraction=Track(Character,{{0,.8},{.35,.65},{.65,.35},{1,.18}});
-    TectonicResponse=Track(Character,{{0,0},{.20,.05},{.50,.30},{.80,.65},{1,.85}});
-    FaultThrowRadiusFraction=Track(Character,{{0,0},{.45,0},{.70,.003},{1,.010}});
-    FaultZoneRadiusFraction=Track(Character,{{0,.008},{.55,.006},{1,.002}});
-    YoungerCoverRadiusFraction=Track(Character,{{0,0},{.45,0},{.70,.012},{1,.025}});
-    DepositionalVariation=Track(Character,{{0,0},{.15,.15},{.45,.5},{.80,.9},{1,1}});
-    FoldShorteningStrain=Track(Character,{{0,0},{.30,.03},{.55,.08},{.80,.13},{1,.15}});
+    // Independent tracks make a geological palette, not an intensity/history
+    // clock: massive -> rhythmic -> laminated -> folded -> faulted -> basin fill.
+    // Keep the author's unit palette, rheology, crust depth and contact feather.
+    BedThicknessRadiusFraction=Track(Character,{{0,.8},{.18,.09},{.38,.012},{.58,.045},{.78,.028},{1,.018}});
+    InterbedFraction=Track(Character,{{0,0},{.18,.08},{.38,.64},{.58,.18},{.78,.32},{1,.52}});
+    DipDegrees=Track(Character,{{0,0},{.18,1},{.38,4},{.58,14},{.78,7},{1,2}});
+    FoldAmplitudeRadiusFraction=Track(Character,{{0,0},{.18,.0005},{.38,.002},{.58,.03},{.78,.012},{1,.004}});
+    // Compatibility-only artistic wavelength; algorithm 4 derives it from beds.
+    FoldWavelengthRadiusFraction=Track(Character,{{0,.8},{.38,.35},{.58,.65},{1,.18}});
+    TectonicResponse=Track(Character,{{0,0},{.18,.03},{.38,.12},{.58,.5},{.78,.95},{1,.65}});
+    FaultThrowRadiusFraction=Track(Character,{{0,0},{.38,0},{.58,.001},{.78,.024},{1,.004}});
+    FaultZoneRadiusFraction=Track(Character,{{0,.01},{.18,.01},{.38,.006},{.58,.005},{.78,.0008},{1,.006}});
+    YoungerCoverRadiusFraction=Track(Character,{{0,0},{.18,0},{.38,.003},{.58,.006},{.78,.014},{1,.055}});
+    DepositionalVariation=Track(Character,{{0,0},{.18,.08},{.38,.25},{.58,.35},{.78,.7},{1,1}});
+    FoldShorteningStrain=Track(Character,{{0,0},{.18,.005},{.38,.025},{.58,.15},{.78,.08},{1,.025}});
 }

@@ -1,5 +1,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "HAL/FileManager.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Scene/CLScene.h"
 #include "CLPlanetStamp.h"
@@ -77,5 +80,81 @@ bool FCLRockNativeTest::RunTest(const FString&)
     const auto& Values=Buffer->AsChecked<FVoxelLinearColorBuffer>();double Worst=0;
     for(int32 I=0;I<Points.Num();++I){const auto Expected=P->Rock->Properties(Points[I]);const auto Value=Values[I];Worst=FMath::Max(Worst,double(FMath::Abs(Expected.R-Value.R)+FMath::Abs(Expected.G-Value.G)));TestTrue(TEXT("Native surface belongs to a resolved client unit"),!Types[I].IsNull());}
     TestTrue(TEXT("Native VPP metadata preserves rock properties"),Worst<1.e-6);AddInfo(FString::Printf(TEXT("2048 native material/property probes; property error %.9g"),Worst));return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRockPaletteTest,"Catalyst.Landform.Rock.CharacterPaletteAndDefaults",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRockPaletteTest::RunTest(const FString&)
+{
+    // Default values are part of UE's saved-asset contract, independent of the
+    // current authoring curves. These came from the previous native binary.
+    FCLRockLayer Legacy;
+    TestEqual(TEXT("Omitted algorithm retains the original profile"),Legacy.AlgorithmVersion,1);
+    TestEqual(TEXT("Published default bed thickness"),Legacy.BedThicknessRadiusFraction,.04990661443148686);
+    TestEqual(TEXT("Published default interbeds"),Legacy.InterbedFraction,.39);
+    TestEqual(TEXT("Published default dip"),Legacy.DipDegrees,8.518518518518519);
+    TestEqual(TEXT("Published default wavelength"),Legacy.FoldWavelengthRadiusFraction,.42777777777777776);
+    TestEqual(TEXT("Published default response"),Legacy.TectonicResponse,.32592592592592595);
+    TestEqual(TEXT("Published default fault throw"),Legacy.FaultThrowRadiusFraction,.001056000000000001);
+    TestTrue(TEXT("Published default deposition stays absent"),Legacy.YoungerCoverRadiusFraction==0&&Legacy.DepositionalVariation==0);
+    auto Authored=Legacy;Authored.AlgorithmVersion=4;Authored.Seed=817;Authored.FoldCompetentUnit=Authored.Units[1].Id;Authored.FoldViscosityContrast=48;Authored.CrustDepthRadiusFraction=.22;Authored.ContactFeatherFraction=.01;Authored.Units[1].MiningResistance=.63;
+    const auto Before=Authored;Authored.ApplyProgression(.58);
+    TestTrue(TEXT("Character preserves authored palette, seed, rheology and independent depth/contact controls"),Authored.Seed==817&&Authored.FoldCompetentUnit==Before.FoldCompetentUnit&&Authored.FoldViscosityContrast==48&&Authored.CrustDepthRadiusFraction==.22&&Authored.ContactFeatherFraction==.01&&Authored.Units[1].MiningResistance==.63);
+    const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/rock-character");IFileManager::Get().MakeDirectory(*Folder,true);
+    FString Metrics=TEXT("seed,position,beds,weak_fraction,restoration_range_m,changed_with_fixed_spacing\n");
+    FString Error;int32 Reviewed=0;
+    for(int32 Seed:{1729,817,529})
+    {
+        TArray<double> Previous;TArray<FVector> SolidPoints;double PreviousShape=0;
+        for(double Position:{0.,.18,.38,.58,.78,1.})
+        {
+            auto R=RockRecipe(Position);R.Seed=Seed;
+            // Hold spacing fixed: a character change must still change lithology
+            // and restored structure, rather than passing by varying bed height.
+            R.Rock.BedThicknessRadiusFraction=.03;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
+            const double Bottom=FMath::Max(0.,R.RadiusMeters+P->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");})->HeightMeters-R.Rock.CrustDepthRadiusFraction*R.RadiusMeters);
+            if(SolidPoints.IsEmpty())
+            {
+                TArray<FVector> Directions;for(int32 I=0;I<2048;++I){const double Z=1-2*(I+.5)/2048,A=I*2.399963229728653;Directions.Add(FVector(FMath::Cos(A)*FMath::Sqrt(1-Z*Z),FMath::Sin(A)*FMath::Sqrt(1-Z*Z),Z));}
+                TArray<double> Heights;P->SampleHeightsMeters(Directions,Heights);
+                for(int32 I=0;I<2048;++I)SolidPoints.Add(Directions[I]*FMath::Lerp(Bottom,R.RadiusMeters+Heights[I],.05+.9*((I*17)%2048)/2048.));
+            }
+            TArray<double> Current;int32 Weak=0,Changed=0;double Lo=DBL_MAX,Hi=-DBL_MAX;
+            for(int32 I=0;I<2048;++I)
+            {
+                const auto V=SolidPoints[I];const auto D=V.GetSafeNormal();
+                const auto G=P->Rock->Sample(V);Current.Add(G.MiningResistance);Weak+=G.UnitId==R.Rock.Units[2].Id;
+                if(Previous.Num())Changed+=FMath::Abs(Previous[I]-Current[I])>.05;
+                const double Offset=P->Rock->RestoredRadiusMeters(D*700)-700;Lo=FMath::Min(Lo,Offset);Hi=FMath::Max(Hi,Offset);
+            }
+            if(Previous.Num())TestTrue(*FString::Printf(TEXT("Character %.2f changes at least 5%% of the actual geological properties with identical bed spacing, seed %d"),Position,Seed),Changed>102);
+            if(Position==.58)TestTrue(TEXT("Folded interval restores a different structure from the laminated interval"),FMath::Abs((Hi-Lo)-PreviousShape)>1.);
+            Metrics+=FString::Printf(TEXT("%d,%.2f,%d,%.9f,%.9f,%d\n"),Seed,Position,P->Rock->GetBeds().Num(),Weak/2048.,Hi-Lo,Changed);
+            Previous=MoveTemp(Current);PreviousShape=Hi-Lo;++Reviewed;
+            if(Seed==1729)
+            {
+                // Diagnostic field sections use the normal curved profile.
+                R.Rock.ApplyProgression(Position);const auto Section=FCLPlanetCompiler::Compile(R,Error);if(!Section){AddError(Error);return false;}
+                const double Top=R.RadiusMeters+Section->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");})->HeightMeters;
+                TArray<FVector> SectionPoints;
+                for(int32 Z=0;Z<=160;++Z)for(int32 X=0;X<=240;++X)SectionPoints.Add(FVector(-.65*Top+1.3*Top*X/240.,0,Bottom+(Top-Bottom)*Z/160.));
+                TArray<double> Heights;Section->SampleHeightsMeters(SectionPoints,Heights);
+                FString CSV=TEXT("x_m,z_m,unit,stratum,solid\n");
+                for(int32 I=0;I<SectionPoints.Num();++I)
+                {
+                    const auto V=SectionPoints[I];const auto G=Section->Rock->Sample(V);
+                    const int32 Unit=R.Rock.Units.IndexOfByPredicate([&](const FCLRockUnit& U){return U.Id==G.UnitId;});
+                    CSV+=FString::Printf(TEXT("%.6f,%.6f,%d,%lld,%d\n"),V.X,V.Z,Unit,G.StratumIndex,V.Length()<=R.RadiusMeters+Heights[I]?1:0);
+                }
+                TestTrue(TEXT("Character field section exports"),FFileHelper::SaveStringToFile(CSV,*(Folder/FString::Printf(TEXT("character-%02d.csv"),FMath::RoundToInt(Position*100)))));
+            }
+        }
+        for(int32 I=0;I<=200;++I)
+        {
+            auto R=RockRecipe(I/200.);R.Seed=Seed;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(FString::Printf(TEXT("Seed %d position %.3f: %s"),Seed,I/200.,*Error));return false;}
+            const auto G=P->Rock->Sample(FVector(125,0,700));TestTrue(TEXT("Every intermediate position compiles with bounded mining properties"),G.bValid&&FMath::IsFinite(G.MiningResistance)&&G.MiningResistance>=0&&G.MiningResistance<=1);
+        }
+    }
+    TestTrue(TEXT("Character metrics export"),FFileHelper::SaveStringToFile(Metrics,*(Folder/TEXT("metrics.csv"))));
+    AddInfo(FString::Printf(TEXT("603 intermediate profiles and %d fixed-spacing geological comparisons across three seeds"),Reviewed));return true;
 }
 #endif

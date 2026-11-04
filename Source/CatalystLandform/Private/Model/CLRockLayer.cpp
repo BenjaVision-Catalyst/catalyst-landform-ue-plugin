@@ -10,7 +10,13 @@ FCLRockLayer::FCLRockLayer()
     const TCHAR* Names[]={TEXT("Competent unit"),TEXT("Mixed unit"),TEXT("Weak interbed")};
     const TCHAR* Surfaces[]={TEXT("Rock"),TEXT("Scree"),TEXT("Soil")};
     for(int32 I=0;I<3;++I){auto& U=Units[I];U.Id=FGuid(0x434c524b,1,0,I+1);U.Name=Names[I];U.SurfaceId=Surfaces[I];U.MiningResistance=I==0?.85:I==1?.55:.25;U.Erodibility=1-U.MiningResistance;}
-    ApplyProgression(Character);DipDegrees=8.518518518518519;YoungerCoverRadiusFraction=0;DepositionalVariation=0;AlgorithmVersion=1; // omitted serialized version retains the published v1 model
+    // Frozen published defaults: UE serialization may omit values equal to the
+    // default struct. Retuning authoring must not reinterpret those saved recipes.
+    BedThicknessRadiusFraction=.04990661443148686;InterbedFraction=.39;
+    DipDegrees=8.518518518518519;FoldAmplitudeRadiusFraction=.006;
+    FoldWavelengthRadiusFraction=.42777777777777776;TectonicResponse=.32592592592592595;
+    FaultThrowRadiusFraction=.001056000000000001;FaultZoneRadiusFraction=.006;
+    FoldCompetentUnit=Units[0].Id;
 }
 const TCHAR* FCLCompiledRock::PropertiesAssetPath(){return TEXT("/CatalystLandform/Rock/MD_RockProperties.MD_RockProperties");}
 FLinearColor FCLCompiledRock::FillProperties(double Resistance,double Erosion)

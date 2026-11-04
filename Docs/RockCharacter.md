@@ -51,15 +51,43 @@ activation adopt v4; migrating an already mined planet's recipe is unqualified.
 
 ## Character progression
 
-The knob uses independent smooth tracks, stored as resolved recipe values:
+The knob uses independent smooth tracks, stored as resolved recipe values. It
+traverses a palette of structures rather than increasing every effect together:
 
-| Range | Structure |
+| Anchor | Structure |
 | --- | --- |
-| 0 | Homogeneous competent bedrock; no added stratification, dip, folds, fault throw or tectonic displacement response |
-| 0–25% | Broad finite beds, sparse weak interbeds and gentle regional variation develop |
-| 25–55% | Interbeds and local plate-driven deformation enter |
-| 55–80% | Thinner beds, local folds/throw and stronger regional differentiation develop |
-| 80–100% | Established structure becomes finer and more folded; three material units remain available |
+| 0% | Massive competent substrate, no added structure |
+| 18% | Broad rhythmic beds, sparse weak interbeds and gentle deformation |
+| 38% | Fine, weak-interbed-rich packages; modest deformation |
+| 58% | Thicker competent packages, strongest shortening and dip; folds respond to existing compression |
+| 78% | Narrower fault transitions and larger bounded throws; regional deposition grows |
+| 100% | Finer basin sequences, greater regional differentiation and younger reference interval; dip, shortening and throw recede |
+
+These are smooth anchor ranges, not switches, a geological history clock or new
+geological processes. They retain the current finite deposition and early-fold
+approximations. Compression and accommodation still depend on the accepted
+tectonics and crust; a quiet plate setting cannot acquire a compression belt from
+Rock alone. The sharp-throw range uses the existing bounded displacement proxy,
+not a lateral-slip fault solver.
+
+Character preserves seed, palette IDs/properties, selected competent unit,
+viscosity contrast, crust depth and contact feather. Saved resolved settings are
+unchanged on load. The new curation is applied by a Character gesture or explicit
+activation of a legacy layer; published struct defaults are frozen independently
+of the current authoring curves because UE assets can omit default values.
+
+Each layer's Advanced dropdown reveals native UE property rows directly below it.
+There is no embedded second Details view or extra layer container. Native nested
+values such as the Units array retain their own appropriate expanders. External
+structure drafts retain validation, native editing and single-step asset Undo.
+The [authoring qualification](../conformance/RockCharacter/authoring-mac-arm64.json)
+records actual dropdown clicks, rendered layouts and fixed-spacing variation.
+
+![Character palette sampled from the canonical field](../conformance/RockCharacter/character-palette.png)
+
+This is a diagnostic C++ section with the recipe's radial terrain mask. The
+native VPP globe/cutaway captures are recorded separately; the plot is not a
+replacement preview or generator.
 
 Zero removes added rock structure while retaining bedrock and its mining properties.
 Disabling the layer restores the prior surface-stack path. The enabled profile
@@ -69,7 +97,7 @@ terrain heights, including exact SurfaceMin/Max fitting. Advanced values can be
 edited directly; the next gesture reapplies the profile's structural tracks while
 preserving palette IDs/properties and Variation seed.
 Orientation is a v1-only control; newer structure follows the plate network.
-DepositionalVariation is v3-only. YoungerCoverRadiusFraction controls the finite
+DepositionalVariation is available from v3 onward. YoungerCoverRadiusFraction controls the finite
 younger reference sequence in v3, whose actual thickness follows accommodation. V4 derives wavelength from actual
 competent-bed thickness and explicit viscosity contrast. Its shortening proxy is
 separate from mining hardness; the old wavelength control is hidden in v4. Numerical sweeps and native

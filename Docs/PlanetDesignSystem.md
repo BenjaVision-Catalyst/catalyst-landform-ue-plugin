@@ -1700,3 +1700,20 @@ drainage and erosion processes can consume this rock structure and erodibility.
 The repeating three-unit profile does not close complete geological history,
 mineral resources, production persistence or the server-recipe realism goal.
 Mars remains complete; multiplayer remains deferred.
+
+
+## Rock authoring refinement — 4 November 2026
+
+Geology Advanced fields now use native UE external property rows in the owning
+layer category, removing the second Details-view container. The native dropdown,
+nested palette editing, validation and Undo are qualified. Rock Character now
+traverses massive, rhythmic, fine-interbedded, folded, faulted and basin-rich
+ranges using independent smooth tracks. It retains the existing geological model,
+shared crust/plates and sole native VPP generation/presentation/edit platform.
+
+The [current character contract](RockCharacter.md#character-progression) and
+[authoring qualification](../conformance/RockCharacter/authoring-mac-arm64.json)
+distinguish meaningful variation with fixed bed spacing from numerical consistency.
+Published defaults and resolved saved recipes are preserved; moving Character is
+an explicit reauthoring action. This curation does not close the documented
+lateral fault restoration, sediment transport or geological calibration gaps.
