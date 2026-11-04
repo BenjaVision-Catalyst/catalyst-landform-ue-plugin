@@ -61,13 +61,14 @@ void FCLContinentalLayer::ApplyProgression(double Position)
 
 void FCLRockLayer::ApplyProgression(double Position)
 {
-    AlgorithmVersion=1;Character=FMath::Clamp(Position,0.,1.);
+    AlgorithmVersion=2;Character=FMath::Clamp(Position,0.,1.);
     BedThicknessRadiusFraction=Track(Character,{{0,.25},{.18,.16},{.42,.07},{.70,.025},{1,.008}});
     InterbedFraction=Track(Character,{{0,0},{.15,.08},{.40,.30},{.70,.48},{1,.65}});
-    DipDegrees=Track(Character,{{0,0},{.20,2},{.50,8},{.80,15},{1,20}});
+    DipDegrees=Track(Character,{{0,0},{.20,0},{.50,4},{.80,10},{1,15}});
     FoldAmplitudeRadiusFraction=Track(Character,{{0,0},{.25,0},{.55,.006},{.80,.014},{1,.020}});
     FoldWavelengthRadiusFraction=Track(Character,{{0,.8},{.35,.65},{.65,.35},{1,.18}});
     TectonicResponse=Track(Character,{{0,0},{.20,.05},{.50,.30},{.80,.65},{1,.85}});
     FaultThrowRadiusFraction=Track(Character,{{0,0},{.45,0},{.70,.003},{1,.010}});
     FaultZoneRadiusFraction=Track(Character,{{0,.008},{.55,.006},{1,.002}});
+    YoungerCoverRadiusFraction=Track(Character,{{0,0},{.45,0},{.70,.012},{1,.025}});
 }

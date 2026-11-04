@@ -158,6 +158,10 @@ or exposed by incision. Contacts, intrusions, erosion surfaces and deposits have
 explicit process order. Continuous surface relief need not imply a blurred rock
 contact; a deliberate fault must remain a fault.
 
+The bounded [finite rock history proof](RockStratigraphy.md) replaces the first
+global striped profile for new authoring. Its kinematic history and remaining
+process gaps are explicitly scoped; saved algorithm-1 recipes retain their model.
+
 An interior/geological section in Planet Builder can inspect this model. The
 Landform Designer keeps its flat, fixed-size core-to-sky terrain preview and uses
 a disposable context snapshot; it does not become a second planet-history editor.

@@ -30,7 +30,7 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.55;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite) FRotator Orientation=FRotator::ZeroRotator;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 1",EditConditionHides)) FRotator Orientation=FRotator::ZeroRotator;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.00001",ClampMax="1")) double BedThicknessRadiusFraction=.04;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.8")) double InterbedFraction=.3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="25",Units="deg")) double DipDegrees=8;
@@ -41,6 +41,8 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.0001",ClampMax="0.1")) double FaultZoneRadiusFraction=.002;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double CrustDepthRadiusFraction=.15;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1")) double ContactFeatherFraction=.015;
+    /** Algorithm 2: thickness of undeformed younger deposits above the truncation surface. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1",EditCondition="AlgorithmVersion >= 2",EditConditionHides)) double YoungerCoverRadiusFraction=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLRockUnit> Units;
     void ApplyProgression(double Position);
 };
@@ -61,6 +63,14 @@ struct CATALYSTLANDFORM_API FCLRockSample
     UPROPERTY(BlueprintReadOnly) double PlacedFraction=0;
 };
 
+/** One finite deposited bed; Unit indexes the authored property palette. */
+struct CATALYSTLANDFORM_API FCLRockBed
+{
+    int32 Unit=0;
+    double LowerMeters=0,UpperMeters=0;
+    bool bYounger=false;
+};
+
 class CATALYSTLANDFORM_API FCLCompiledRock final
 {
 public:
@@ -68,17 +78,23 @@ public:
     FCLRockSample Sample(const FVector3d& BodyMeters)const;
     FLinearColor Properties(const FVector3d& BodyMeters)const;
     void ApplySurfaces(const FVector3d& BodyMeters,FCLSurfaceWeights&)const;
+    const TArray<FCLRockBed>& GetBeds() const {return Beds;}
+    /** Restored pre-deformation radius; also used for geological section inspection. */
+    double RestoredRadiusMeters(const FVector3d&) const;
     static const TCHAR* PropertiesAssetPath();
     static FLinearColor FillProperties(double Resistance,double Erodibility);
 private:
     struct FPoint {int32 Unit=0,Other=0;int64 Bed=0;double Alpha=1;};
     FPoint Classify(const FVector3d&)const;
+    FPoint ClassifyFinite(const FVector3d&)const;
+    TArray<FCLRockBed> Beds;
+    int32 OlderBedCount=0;
     FCLRockLayer Layer;
     TArray<int32> SurfaceIndices;
     TSharedPtr<const FCLNativeNoiseKernel> NativeNoise;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
     FQuat Frame=FQuat::Identity;
     FGuid Namespace;
-    double Radius=1,Datum=1,Basement=0,Phase=0;
+    double Radius=1,Datum=1,Basement=0,Phase=0,Unconformity=0;
     int32 NoiseSeed=0;
 };

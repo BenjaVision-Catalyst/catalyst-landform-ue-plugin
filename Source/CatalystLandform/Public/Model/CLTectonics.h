@@ -16,6 +16,13 @@ struct CATALYSTLANDFORM_API FCLGeologicalSample
     ECLGeologicalSetting Setting=ECLGeologicalSetting::Interior;
 };
 
+/** Local kinematic bedding response in the existing finite plate belts.
+ * Fold and Fault are bounded weights; Tilt is an angular offset. No terrain output. */
+struct CATALYSTLANDFORM_API FCLRockDeformation
+{
+    double UpliftMeters=0,Fold=0,Tilt=0,Fault=0;
+};
+
 /** Versioned artistic progression. Body-space geometry uses +Z north, +X prime meridian. */
 USTRUCT(BlueprintType,meta=(DisplayName="Tectonic layer"))
 struct CATALYSTLANDFORM_API FCLTectonicPreset
@@ -82,6 +89,7 @@ public:
     double SpanMeters=0,MaximumDeltaMeters=0;
     double Continentalness(const FVector& UnitDirection) const;
     double SampleDeltaMeters(const FVector& UnitDirection) const;
+    FCLRockDeformation SampleRockDeformation(const FVector& UnitDirection,double WavelengthRadians,double PhaseRadians,double FaultWidthRadians) const;
     /** Effective shape contribution, independent of the authored enabled checkbox. */
     bool HasEffect() const;
     /** Algorithm 3 only. Invalid inputs preserve Out. */
@@ -99,6 +107,7 @@ private:
     void BuildContinentalFoundation(const FCLTectonicPreset& Preset,int32 Seed);
     FVector FoundationDirection(const FVector& D) const;
     double ContinentalDomain(const FVector& WarpedDirection) const;
+    FVector WarpDirection(const FVector&) const;
     double SampleLegacyState(const FState& State,const FVector& D) const;
     double SampleState(const FState& State,const FVector& D) const;
 };

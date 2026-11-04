@@ -153,11 +153,8 @@ double FCLCompiledTectonics::SampleLegacyState(const FState& S,const FVector& D)
     }
     return H;
 }
-double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
+FVector FCLCompiledTectonics::WarpDirection(const FVector& D) const
 {
-    if(S.Boundaries.IsEmpty())return 0;
-    // One continuous deformation for the entire plate network, including junctions.
-    // Sampling on the unit sphere avoids latitude seams and polar singularities.
     const FVector P=NoiseRotation.RotateVector(D);
     auto Noise=[&](const FVector& V){return double(FMath::PerlinNoise3D(V+NoiseOffset));};
     auto VectorNoise=[&](double Frequency)
@@ -168,7 +165,58 @@ double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
     // Keep the curated warp small relative to its wavelengths. Large derivative
     // warps fold the coordinate map and turn one belt into spurious closed loops.
     const double Warp=Controls.BoundaryWarp*(AlgorithmVersion>=6?.25:1.);
-    const FVector Warped=(D+NoiseRotation.UnrotateVector(VectorNoise(2.8)*Warp+VectorNoise(7.3)*(AlgorithmVersion>=6?Warp*.10:AlgorithmVersion>=4?Controls.BoundaryWarp*.21:.08))).GetSafeNormal();
+    return (D+NoiseRotation.UnrotateVector(VectorNoise(2.8)*Warp+VectorNoise(7.3)*(AlgorithmVersion>=6?Warp*.10:AlgorithmVersion>=4?Controls.BoundaryWarp*.21:.08))).GetSafeNormal();
+}
+
+FCLRockDeformation FCLCompiledTectonics::SampleRockDeformation(const FVector& Direction,double Wavelength,double Phase,double FaultWidth) const
+{
+    FCLRockDeformation Out;
+    if(Direction.ContainsNaN()||Direction.IsNearlyZero()||!FMath::IsFinite(Wavelength)||Wavelength<=0||!FMath::IsFinite(Phase)||!FMath::IsFinite(FaultWidth)||FaultWidth<=0)return Out;
+    const FVector D=Direction.GetSafeNormal(),Warped=WarpDirection(D);
+    const double Broad=FMath::PerlinNoise3D(NoiseRotation.RotateVector(D)*5.7+NoiseOffset);
+    const double Width=Controls.BeltWidth*(1.05+.55*Broad);
+    if(Width<=0)return Out;
+    auto State=[&](const FState& S)
+    {
+        FCLRockDeformation V;
+        for(const auto& E:S.Boundaries)
+        {
+            if(FVector::DotProduct(Warped,E.Mid)<E.CapCos)continue;
+            const double Plane=FVector::DotProduct(Warped,E.Normal),Across=FMath::Asin(FMath::Clamp(Plane,-1.,1.));
+            const FVector Projected=(Warped-E.Normal*Plane).GetSafeNormal();
+            double EndDistance=0;
+            if(FVector::DotProduct(Projected,E.Mid)<E.HalfCos)EndDistance=FMath::Min((Projected-E.Start).SizeSquared(),(Projected-E.End).SizeSquared());
+            // Same warped boundary, finite segment and belt envelope as terrain.
+            const double Q=(Across*Across+EndDistance)/(Width*Width);
+            if(Q>=9)continue;
+            const double Envelope=FMath::Exp(-Q*1.4)*(1-Smooth((Q-4)/5));
+            const FVector Relative=FVector::CrossProduct(S.Plates[E.A].AngularVelocity-S.Plates[E.B].AngularVelocity,Projected);
+            const double Con=-FVector::DotProduct(Relative,E.Normal)*Controls.Motion;
+            const double Compression=FMath::Max(0.,Con)*Controls.CollisionStrength*Controls.Relief;
+            const double Extension=FMath::Max(0.,-Con)*Controls.RiftStrength*Controls.Relief;
+            const double Along=FMath::Atan2(FVector::DotProduct(Projected,FVector::CrossProduct(E.Normal,E.Mid)),FVector::DotProduct(Projected,E.Mid));
+            V.Fold+=Compression*Envelope*FMath::Cos(2*PI*Across/Wavelength+Phase+.35*FMath::Sin(Along*3));
+            V.Tilt+=(Compression-Extension)*Envelope*Across;
+            // Reverse/normal throw has the sign of the local plate drive. The
+            // finite transition is an authored damage-zone width, not a global plane.
+            V.Fault+=(Compression-Extension)*Envelope*.5*FMath::Tanh(Across/FaultWidth);
+        }
+        return V;
+    };
+    const auto L=State(Lower),H=Upper.Plates.IsEmpty()?L:State(Upper);
+    Out.Fold=FMath::Tanh(FMath::Lerp(L.Fold,H.Fold,Controls.PlateTransition));
+    Out.Tilt=FMath::Lerp(L.Tilt,H.Tilt,Controls.PlateTransition);
+    Out.Fault=FMath::Tanh(FMath::Lerp(L.Fault,H.Fault,Controls.PlateTransition));
+    Out.UpliftMeters=SampleDeltaMeters(D);
+    return Out;
+}
+
+double FCLCompiledTectonics::SampleState(const FState& S,const FVector& D) const
+{
+    if(S.Boundaries.IsEmpty())return 0;
+    const FVector P=NoiseRotation.RotateVector(D);
+    auto Noise=[&](const FVector& V){return double(FMath::PerlinNoise3D(V+NoiseOffset));};
+    const FVector Warped=WarpDirection(D);
     const double Broad=Noise(P*5.7),Detail=Noise(P*17.3),Fine=Noise(P*37.1);
     const double Width=Controls.BeltWidth*(1.05+.55*Broad);
     // A nonperiodic envelope leaves broad saddles and uneven massifs, rather than

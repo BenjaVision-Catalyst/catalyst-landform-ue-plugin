@@ -1245,7 +1245,8 @@ public:
             T.AddCustomRow(FText::FromString(TEXT("Tectonic settings")),true).WholeRowContent()[BuildTectonicAdvanced()];T.SetShowAdvanced(false);
             auto& R=B.EditCategory(TEXT("RockLayer"),FText::FromString(TEXT("Rock")));R.SetSortOrder(2);
             R.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return LayeredRecipe().Rock.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Rock;L.bEnabled=V==ECheckBoxState::Checked;CommitRock(L);}));
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Rock;L.bEnabled=V==ECheckBoxState::Checked;if(L.bEnabled&&L.AlgorithmVersion==1)L.ApplyProgression(L.Character);CommitRock(L);}));
+            InspectorRow(R,TEXT("Model"),SNew(STextBlock).Text_Lambda([this]{return FText::FromString(LayeredRecipe().Rock.AlgorithmVersion>=2?TEXT("Finite history · shared plate structure"):TEXT("Legacy profile · move Character to adopt finite history"));}));
             InspectorRow(R,TEXT("Character"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Rock.bEnabled;})
                 +SHorizontalBox::Slot().FillWidth(1).Padding(0,0,8,0)[SAssignNew(RockSlider,SSlider)
                     .Value_Lambda([this]{return float(bRockDragging?PendingRock:LayeredRecipe().Rock.Character);})
@@ -2163,7 +2164,7 @@ bool FCLRockDesignerTest::RunTest(const FString&)
     auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
     TestTrue(TEXT("Rock joins the existing Geology controls"),E->RockSlider.IsValid()&&E->RockDetails.IsValid()&&E->RockVariation.IsValid());
     auto Layer=E->LayeredRecipe().Rock;Layer.bEnabled=true;TestTrue(TEXT("Explicit enable resolves the versioned native material profile"),E->CommitRock(Layer));const auto Before=A->Recipe;
-    E->BeginRockDrag();E->PendingRock=.3;E->PumpRock(true);E->PendingRock=.85;E->PumpRock(true);TestTrue(TEXT("The held gesture supplies the latest geological structure"),E->bRockDragging&&E->Globe->IsDraftMode()&&A->Recipe.Rock.Character==.85);E->EndRockDrag();const auto After=A->Recipe;
+    E->BeginRockDrag();E->PendingRock=.3;E->PumpRock(true);E->PendingRock=.85;E->PumpRock(true);TestTrue(TEXT("The held gesture supplies the latest geological structure"),E->bRockDragging&&E->Globe->IsDraftMode()&&A->Recipe.Rock.Character==.85);E->EndRockDrag();const auto After=A->Recipe;TestEqual(TEXT("A new Character gesture adopts finite history explicitly"),After.Rock.AlgorithmVersion,2);
     GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete geological gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));GEditor->RedoTransaction();TestTrue(TEXT("Redo restores the exact resolved strata"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&After,&A->Recipe,0));
     auto& Draft=*reinterpret_cast<FCLRockLayer*>(E->RockDraft->GetStructMemory());auto* P=FCLRockLayer::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLRockLayer,DipDegrees));Draft.DipDegrees=3;FPropertyChangedEvent Changed(P,EPropertyChangeType::ValueSet);E->RockDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Changed);TestEqual(TEXT("Advanced changes the accepted model"),A->Recipe.Rock.DipDegrees,3.);TestEqual(TEXT("Advanced preserves the gesture position"),A->Recipe.Rock.Character,.85);
     Draft.DipDegrees=99;E->RockDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Changed);TestEqual(TEXT("Invalid controls retain the accepted model"),A->Recipe.Rock.DipDegrees,3.);
