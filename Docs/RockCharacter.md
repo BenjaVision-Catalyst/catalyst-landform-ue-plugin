@@ -1,12 +1,12 @@
 # Rock Character and excavation
 
 Rock Character is a schema-20 geological material/property layer over the existing
-spherical terrain. Algorithm 3 adds regional deposition to the finite-history profile for new
-Character gestures. It does not add terrain height. In Planet Designer choose
+spherical terrain. Algorithm 4 adds thickness/viscosity-derived early folding to the regional
+deposition profile for new Character gestures. It does not add terrain height. In Planet Designer choose
 **Geology → Rock → Character**. Enable explicitly, use Variation for a stable
 alternative structure, and reveal Advanced to edit the resolved parameters and
-three-unit property palette. The current review is `RockDeposits/DA_RockDeposits`.
-`RockHistory` and `RockCharacter` retain their v2 and v1 fixture recipes. A complete knob gesture has one Undo. Existing schemas and
+three-unit property palette. The current review is `RockFolds/DA_RockFolds`.
+`RockDeposits`, `RockHistory` and `RockCharacter` retain v3, v2 and v1 recipes. A complete knob gesture has one Undo. Existing schemas and
 saved planets retain their original geology until explicitly edited.
 
 ## Native audit and ownership
@@ -34,7 +34,8 @@ demonstrated semantic gap addressed here. No streamer, mesher, collision manager
 sculpt cache, custom edit format or replacement material renderer was added.
 
 `FCLCompiledRock` compiles finite deposited sequences with stable bed identities.
-[Regional deposition](RockDeposition.md) documents the current v3 field, its research,
+[Material-aware folding](RockFolding.md) documents the current v4 prescription.
+[Regional deposition](RockDeposition.md) documents the retained v3 field, its research,
 exact native ownership, filled-accommodation assumption and remaining physical gaps.
 Older beds onlap regional basement conditioned by the accepted crust and extensional
 plate context. They are deformed by the same finite plate network. Younger episodes
@@ -46,7 +47,7 @@ and fixed younger cover after truncation. V1 retains its global dip/noise/plane
 and repeating material cycle only for saved-data compatibility. Loading either
 older version never changes the accepted geology. The early save/load passes
 proved consistency, not geological realism. Character gestures or explicit layer
-activation adopt v3; migrating an already mined planet's recipe is unqualified.
+activation adopt v4; migrating an already mined planet's recipe is unqualified.
 
 ## Character progression
 
@@ -69,7 +70,9 @@ edited directly; the next gesture reapplies the profile's structural tracks whil
 preserving palette IDs/properties and Variation seed.
 Orientation is a v1-only control; newer structure follows the plate network.
 DepositionalVariation is v3-only. YoungerCoverRadiusFraction controls the finite
-younger reference sequence in v3, whose actual thickness follows accommodation. Numerical sweeps and native
+younger reference sequence in v3, whose actual thickness follows accommodation. V4 derives wavelength from actual
+competent-bed thickness and explicit viscosity contrast. Its shortening proxy is
+separate from mining hardness; the old wavelength control is hidden in v4. Numerical sweeps and native
 rendered frames qualify a bounded set of seeds and positions, not every possible
 Advanced composition.
 

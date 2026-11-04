@@ -36,7 +36,7 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.8")) double InterbedFraction=.3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="25",Units="deg")) double DipDegrees=8;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.05")) double FoldAmplitudeRadiusFraction=.005;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.01",ClampMax="2")) double FoldWavelengthRadiusFraction=.4;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.01",ClampMax="2",EditCondition="AlgorithmVersion < 4",EditConditionHides)) double FoldWavelengthRadiusFraction=.4;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double TectonicResponse=.3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.05")) double FaultThrowRadiusFraction=.004;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.0001",ClampMax="0.1")) double FaultZoneRadiusFraction=.002;
@@ -47,6 +47,11 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLRockUnit> Units;
     /** Algorithm 3: onlap over crust- and extension-conditioned basement relief. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1",EditCondition="AlgorithmVersion >= 3",EditConditionHides)) double DepositionalVariation=0;
+    /** Effective competent-bed / weak-matrix Newtonian viscosity ratio; independent of mining hardness. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="1000",EditCondition="AlgorithmVersion >= 4",EditConditionHides)) double FoldViscosityContrast=64;
+    /** Maximum shortening proxy under the existing local compression field. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.15",EditCondition="AlgorithmVersion >= 4",EditConditionHides)) double FoldShorteningStrain=.08;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion >= 4",EditConditionHides)) FGuid FoldCompetentUnit;
     void ApplyProgression(double Position);
 };
 
@@ -74,6 +79,16 @@ struct CATALYSTLANDFORM_API FCLRockBed
     bool bYounger=false;
 };
 
+/** Homogenized early-stage single-competent-layer prescription, not a continuum solver. */
+struct CATALYSTLANDFORM_API FCLRockFolding
+{
+    double CompetentThicknessMeters=0,ViscosityContrast=1,WavelengthMeters=0,ReferenceRadiusMeters=0;
+    double AmplificationRate=0,ShorteningStrain=0,AmplitudeLimitMeters=0;
+    bool bActive=false;
+    static bool Resolve(double ThicknessMeters,double Contrast,double Shortening,double ArtistAmplitudeLimitMeters,FCLRockFolding& Out,FString& Error);
+    double AmplitudeMeters(double Compression) const;
+};
+
 /** Canonical history inspection; radii in body metres. No live terrain/edit state. */
 struct CATALYSTLANDFORM_API FCLRockColumn
 {
@@ -90,6 +105,7 @@ public:
     FCLRockSample Sample(const FVector3d& BodyMeters)const;
     FLinearColor Properties(const FVector3d& BodyMeters)const;
     void ApplySurfaces(const FVector3d& BodyMeters,FCLSurfaceWeights&)const;
+    const FCLRockFolding& GetFolding() const {return Folding;}
     FCLRockColumn SampleColumn(const FVector3d& UnitDirection) const;
     const TArray<FCLRockBed>& GetBeds() const {return Beds;}
     /** Restored pre-deformation radius; also used for geological section inspection. */
@@ -104,6 +120,7 @@ private:
     TArray<FCLRockBed> Beds;
     int32 OlderBedCount=0;
     FCLRockLayer Layer;
+    FCLRockFolding Folding;
     TArray<int32> SurfaceIndices;
     TSharedPtr<const FCLNativeNoiseKernel> NativeNoise;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;

@@ -20,7 +20,7 @@ struct CATALYSTLANDFORM_API FCLGeologicalSample
  * Fold and Fault are bounded weights; Tilt is an angular offset. No terrain output. */
 struct CATALYSTLANDFORM_API FCLRockDeformation
 {
-    double UpliftMeters=0,Fold=0,Tilt=0,Fault=0,Extension=0;
+    double UpliftMeters=0,Fold=0,Tilt=0,Fault=0,Extension=0,Compression=0,FoldWave=0;
 };
 
 /** Versioned artistic progression. Body-space geometry uses +Z north, +X prime meridian. */

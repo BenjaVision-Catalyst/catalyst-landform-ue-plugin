@@ -15,7 +15,7 @@ bool FCLDepositionalTest::RunTest(const FString&)
 {
     FString Error;auto R=FCLPlanetCompiler::ContinentalBase();R.UseGuidedGeology();
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
-    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.8);L.DepositionalVariation=1;
+    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.8);L.AlgorithmVersion=3;L.DepositionalVariation=1;
     L.BedThicknessRadiusFraction=.018;L.YoungerCoverRadiusFraction=.06;
     L.DipDegrees=L.FoldAmplitudeRadiusFraction=0;L.FaultThrowRadiusFraction=.008;L.TectonicResponse=.9;
     FCLContinentalLayer CL;CL.bEnabled=true;CL.ApplyProgression(.8);

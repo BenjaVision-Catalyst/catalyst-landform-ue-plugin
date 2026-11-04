@@ -18,9 +18,9 @@ FLinearColor FCLCompiledRock::FillProperties(double Resistance,double Erosion)
 TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L,int32 Seed,double R,double Min,double Max,const FCLCompiledSurfaceLibrary* Surfaces,TSharedPtr<const FCLCompiledTectonics> T,FString& Error,TSharedPtr<const FCLCompiledContinents> Crust)
 {
     auto In=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
-    if((L.AlgorithmVersion<1||L.AlgorithmVersion>3)||!In(L.Character,0,1)||L.Orientation.ContainsNaN()||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
-       !In(L.BedThicknessRadiusFraction,.00001,1)||!In(L.InterbedFraction,0,.8)||!In(L.DipDegrees,0,25)||!In(L.FoldAmplitudeRadiusFraction,0,.05)||!In(L.FoldWavelengthRadiusFraction,.01,2)||!In(L.TectonicResponse,0,1)||!In(L.FaultThrowRadiusFraction,0,.05)||!In(L.FaultZoneRadiusFraction,.0001,.1)||!In(L.CrustDepthRadiusFraction,0,1)||!In(L.ContactFeatherFraction,0,.1)||!In(L.YoungerCoverRadiusFraction,0,.1)||!In(L.DepositionalVariation,0,1))
-    {Error=TEXT("Rock Character requires algorithm 1..3, three units and finite bounded structural controls");return nullptr;}
+    if((L.AlgorithmVersion<1||L.AlgorithmVersion>4)||!In(L.Character,0,1)||L.Orientation.ContainsNaN()||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
+       !In(L.BedThicknessRadiusFraction,.00001,1)||!In(L.InterbedFraction,0,.8)||!In(L.DipDegrees,0,25)||!In(L.FoldAmplitudeRadiusFraction,0,.05)||(L.AlgorithmVersion<4&&!In(L.FoldWavelengthRadiusFraction,.01,2))||!In(L.TectonicResponse,0,1)||!In(L.FaultThrowRadiusFraction,0,.05)||!In(L.FaultZoneRadiusFraction,.0001,.1)||!In(L.CrustDepthRadiusFraction,0,1)||!In(L.ContactFeatherFraction,0,.1)||!In(L.YoungerCoverRadiusFraction,0,.1)||!In(L.DepositionalVariation,0,1))
+    {Error=TEXT("Rock Character requires algorithm 1..4, three units and finite bounded structural controls");return nullptr;}
     auto Out=MakeShared<FCLCompiledRock>();Out->Layer=L;Out->Radius=R;Out->Datum=Max;Out->Basement=FMath::Max(0.,Min-L.CrustDepthRadiusFraction*R);Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(Crust);
     TSet<FGuid> Ids;
     for(const auto& U:L.Units)
@@ -67,6 +67,18 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
         if((L.AlgorithmVersion>=3||L.YoungerCoverRadiusFraction>0)&&!Deposit(Out->Unconformity,Max,true))
         {Error=TEXT("Finite rock history exceeds 1024 beds; increase bed thickness");return nullptr;}
     }
+    if(L.AlgorithmVersion>=4)
+    {
+        const int32 Competent=L.Units.IndexOfByPredicate([&](const FCLRockUnit& U){return U.Id==L.FoldCompetentUnit;});
+        if(Competent==INDEX_NONE){Error=TEXT("Folding requires an explicit competent unit from the accepted rock palette");return nullptr;}
+        double Thickness=0,Centers=0;int32 Count=0;
+        for(int32 I=0;I<Out->OlderBedCount;++I)if(Out->Beds[I].Unit==Competent)
+        {Thickness+=Out->Beds[I].UpperMeters-Out->Beds[I].LowerMeters;Centers+=(Out->Beds[I].UpperMeters+Out->Beds[I].LowerMeters)*.5;++Count;}
+        // One effective thickness/wavelength for the whole conformable sequence.
+        // Independent per-bed modes would make shared contacts cross.
+        if(!FCLRockFolding::Resolve(Count?Thickness/Count:0,L.FoldViscosityContrast,L.FoldShorteningStrain,L.FoldAmplitudeRadiusFraction*R,Out->Folding,Error))return nullptr;
+        Out->Folding.ReferenceRadiusMeters=Count?Centers/Count:Max;
+    }
     return Out;
 }
 FCLCompiledRock::FPoint FCLCompiledRock::Classify(const FVector3d& P)const
@@ -99,8 +111,11 @@ double FCLCompiledRock::DeformationMeters(const FVector3d& D,double* Extension) 
 {
     if(Extension)*Extension=0;
     if(!Tectonics)return 0;
-    const auto S=Tectonics->SampleRockDeformation(D,Layer.FoldWavelengthRadiusFraction,Phase*2*PI,Layer.FaultZoneRadiusFraction);
+    const double Wavelength=Layer.AlgorithmVersion>=4?(Folding.WavelengthMeters>0?Folding.WavelengthMeters/FMath::Max(Folding.ReferenceRadiusMeters,1.e-6):1.):Layer.FoldWavelengthRadiusFraction;
+    const auto S=Tectonics->SampleRockDeformation(D,Wavelength,Phase*2*PI,Layer.FaultZoneRadiusFraction);
     if(Extension)*Extension=S.Extension;
+    if(Layer.AlgorithmVersion>=4)
+        return Layer.TectonicResponse*S.UpliftMeters+Radius*(FMath::Tan(FMath::DegreesToRadians(Layer.DipDegrees))*S.Tilt+Layer.FaultThrowRadiusFraction*S.Fault)+Folding.AmplitudeMeters(S.Compression)*S.FoldWave;
     return Layer.TectonicResponse*S.UpliftMeters+
         Radius*(FMath::Tan(FMath::DegreesToRadians(Layer.DipDegrees))*S.Tilt+
         Layer.FoldAmplitudeRadiusFraction*S.Fold+Layer.FaultThrowRadiusFraction*S.Fault);

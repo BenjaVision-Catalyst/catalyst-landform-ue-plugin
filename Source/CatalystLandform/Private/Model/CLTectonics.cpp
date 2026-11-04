@@ -198,6 +198,7 @@ FCLRockDeformation FCLCompiledTectonics::SampleRockDeformation(const FVector& Di
             V.Fold+=Compression*Envelope*FMath::Cos(2*PI*Across/Wavelength+Phase+.35*FMath::Sin(Along*3));
             V.Tilt+=(Compression-Extension)*Envelope*Across;
             V.Extension+=Extension*Envelope;
+            V.Compression+=Compression*Envelope;
             // Reverse/normal throw has the sign of the local plate drive. The
             // finite transition is an authored damage-zone width, not a global plane.
             V.Fault+=(Compression-Extension)*Envelope*.5*FMath::Tanh(Across/FaultWidth);
@@ -209,6 +210,9 @@ FCLRockDeformation FCLCompiledTectonics::SampleRockDeformation(const FVector& Di
     Out.Tilt=FMath::Lerp(L.Tilt,H.Tilt,Controls.PlateTransition);
     Out.Fault=FMath::Tanh(FMath::Lerp(L.Fault,H.Fault,Controls.PlateTransition));
     Out.Extension=FMath::Tanh(FMath::Lerp(L.Extension,H.Extension,Controls.PlateTransition));
+    const double Drive=FMath::Lerp(L.Compression,H.Compression,Controls.PlateTransition);
+    Out.Compression=1-FMath::Exp(-Drive);
+    Out.FoldWave=Drive>0?FMath::Clamp(FMath::Lerp(L.Fold,H.Fold,Controls.PlateTransition)/Drive,-1.,1.):0;
     Out.UpliftMeters=SampleDeltaMeters(D);
     return Out;
 }

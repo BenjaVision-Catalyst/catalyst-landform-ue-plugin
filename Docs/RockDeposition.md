@@ -1,5 +1,8 @@
 # Regional deposition and filled basins
 
+This retains the algorithm-3 milestone. Current authoring adds
+[material-aware early folding](RockFolding.md); loading v3 keeps this model.
+
 Algorithm 3 advances the finite rock-history proof with regional onlap and basin
 fill. VPP remains the sole voxel generation, presentation, material, collision,
 sculpting and sculpt-save platform. Landform specializes the canonical geological

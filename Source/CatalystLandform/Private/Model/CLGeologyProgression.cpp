@@ -61,7 +61,8 @@ void FCLContinentalLayer::ApplyProgression(double Position)
 
 void FCLRockLayer::ApplyProgression(double Position)
 {
-    AlgorithmVersion=3;Character=FMath::Clamp(Position,0.,1.);
+    if(AlgorithmVersion<4&&Units.Num()>0)FoldCompetentUnit=Units[0].Id;
+    AlgorithmVersion=4;Character=FMath::Clamp(Position,0.,1.);
     BedThicknessRadiusFraction=Track(Character,{{0,.25},{.18,.16},{.42,.07},{.70,.025},{1,.008}});
     InterbedFraction=Track(Character,{{0,0},{.15,.08},{.40,.30},{.70,.48},{1,.65}});
     DipDegrees=Track(Character,{{0,0},{.20,0},{.50,4},{.80,10},{1,15}});
@@ -72,4 +73,5 @@ void FCLRockLayer::ApplyProgression(double Position)
     FaultZoneRadiusFraction=Track(Character,{{0,.008},{.55,.006},{1,.002}});
     YoungerCoverRadiusFraction=Track(Character,{{0,0},{.45,0},{.70,.012},{1,.025}});
     DepositionalVariation=Track(Character,{{0,0},{.15,.15},{.45,.5},{.80,.9},{1,1}});
+    FoldShorteningStrain=Track(Character,{{0,0},{.30,.03},{.55,.08},{.80,.13},{1,.15}});
 }

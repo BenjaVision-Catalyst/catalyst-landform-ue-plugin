@@ -158,10 +158,14 @@ or exposed by incision. Contacts, intrusions, erosion surfaces and deposits have
 explicit process order. Continuous surface relief need not imply a blurred rock
 contact; a deliberate fault must remain a fault.
 
+The bounded [early folding proof](RockFolding.md) adds a shared thickness/viscosity-
+derived mode with explicit small-amplitude and strain-proxy limits. It is not a
+full mechanical solution and never moves UE actors.
+
 The bounded [regional deposition proof](RockDeposition.md) adds onlap over shared
 crust-conditioned basement and filled accommodation to the finite rock history.
 Its kinematic history, artistic inherited-deposition prior and sufficient-sediment
-assumption remain explicit; saved algorithms 1 and 2 retain their models.
+assumption remain explicit; saved algorithms 1, 2 and 3 retain their models.
 
 An interior/geological section in Planet Builder can inspect this model. The
 Landform Designer keeps its flat, fixed-size core-to-sky terrain preview and uses
