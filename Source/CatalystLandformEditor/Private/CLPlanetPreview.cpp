@@ -415,7 +415,9 @@ void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
 }
 void SCLPlanetPreview::Cancel(){NativePreview.Reset();if(Client)Client->NativePreview=nullptr;}
 FString SCLPlanetPreview::NativePreviewStatus()const{return NativePreview?NativePreview->Status():TEXT("No native preview");}
-bool SCLPlanetPreview::IsUpdating()const{return NativePreview&&NativePreview->IsUpdating();}
+bool SCLPlanetPreview::IsUpdating()const{return bEvaluationPending||(NativePreview&&NativePreview->IsUpdating());}
+void SCLPlanetPreview::SetEvaluationPending(bool Pending){bEvaluationPending=Pending;if(Pending)CancelPlacementDrag();}
+void SCLPlanetPreview::SetAuthoringValid(bool Valid){bAuthoringInvalid=!Valid;if(!Valid)CancelPlacementDrag();}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
     if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
@@ -481,7 +483,7 @@ FVector SCLPlanetPreview::WalkLocation() const{return Client->WalkDirection;}
 void SCLPlanetPreview::CancelPlacementDrag(){DragAxis=EAxisList::None;bPlacementMoved=false;if(Client){Client->Draft.Reset();Client->UpdatePlacementOverlay();Client->Invalidate();}}
 FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPointerEvent& E)
 {
-    const FKey Key=E.GetEffectingButton();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
+    const FKey Key=E.GetEffectingButton();if(!CanPick()&&Key==EKeys::LeftMouseButton)return FReply::Handled();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
     if(DragAxis!=EAxisList::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;
     if(Key==EKeys::LeftMouseButton&&bWalkPicking)

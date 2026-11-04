@@ -1,0 +1,286 @@
+{
+  "date": "2026-11-05",
+  "passed": true,
+  "scope": "Background Planet Designer derived evaluation over captured native inputs, preview stage progress, latest-input coalescing, native Undo, cancellation/retirement and retained terrain on failure. Synchronous native compiler/runtime and schema/algorithms unchanged. No watershed-local variation.",
+  "baseComponentCommit": "bc8004a",
+  "baseWorkspaceCommit": "433b65f",
+  "environment": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max 128 GB"
+  },
+  "ownership": {
+    "authoring": "Native recipe and UE transactions on game thread after native input preparation",
+    "nativePreparation": "VPP stateless kernels, surface/measured resources and native stamp/PCG inputs on game thread",
+    "derivedEvaluation": "UE::Tasks BackgroundNormal; identical range/CDF, rock deposition, generated-region characterization and watershed algorithms over immutable snapshots",
+    "preview": "Existing persistent native AVoxelWorld, native generation/LOD/readiness/rendered-state publication",
+    "progress": "Native SProgressBar activity plus stage text in Preview, no fabricated percentage",
+    "backpressure": "One running and one latest replaceable pending request per editor; serial fence and cooperative cancellation",
+    "cleanup": "Weak toolkit ticker removed on close; independent module ticker releases completed jobs; module shutdown cancels and joins remaining tasks",
+    "customStreamingManager": false,
+    "customMesher": false,
+    "customPCG": false
+  },
+  "failureContract": {
+    "nativePreparation": "Reject before mutation",
+    "derived": "Keep edited authoring values and UE Undo; retain last successful native terrain with explicit stale error; block picking/walking until current valid preview",
+    "runtime": "Synchronous compiler still returns no plan on error"
+  },
+  "validation": {
+    "uniqueChecks": 72,
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+      "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+      "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+      "Catalyst.Landform.Designer.DeferredGesture": "Success",
+      "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+      "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+      "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+      "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+      "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+      "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+      "Catalyst.Landform.Designer.SurfaceArea": "Success",
+      "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+      "Catalyst.Landform.GuidedGeology.CharacterProgression": "Success",
+      "Catalyst.Landform.GuidedGeology.DirectAdvancedAndPersistence": "Success",
+      "Catalyst.Landform.GuidedGeology.FinalExtremaAndPatches": "Success",
+      "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment": "Success",
+      "Catalyst.Landform.GuidedGeology.StampsRegionsAndNativeParity": "Success",
+      "Catalyst.Landform.Measured.Coverage": "Success",
+      "Catalyst.Landform.Measured.MarsLibrarySourceOracle": "Success",
+      "Catalyst.Landform.Measured.NativeSampling": "Success",
+      "Catalyst.Landform.Measured.Recipe": "Success",
+      "Catalyst.Landform.Measured.ResourceClosure": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections": "Success",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.MetricBasinAndFoldContacts": "Success",
+      "Catalyst.Landform.Rock.MetricBedDistribution": "Success",
+      "Catalyst.Landform.Rock.MetricScaleAndCompactHistory": "Success",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+      "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+      "Catalyst.Landform.SurfaceScale.AreaDensityAndMetricSizes": "Success",
+      "Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.SurfaceScale.ElevationAreaAndSlope": "Success",
+      "Catalyst.Landform.SurfaceScale.NativeRenderedReview": "Success",
+      "Catalyst.Landform.SurfaceScale.PersistenceLegacyAndRefusals": "Success",
+      "Catalyst.Landform.SurfaceScale.RegionalBlendsAndNativeVolume": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Continental": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.ContinentalLayer": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Tectonic": "Success",
+      "Catalyst.Landform.Tectonics.InlineAdvanced": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering": "Success",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": "Success",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts": "Success",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success",
+      "Catalyst.Landform.Watershed.CharacterAndPhysicalResolution": "Success",
+      "Catalyst.Landform.Watershed.ContinentalRockIntegration": "Success",
+      "Catalyst.Landform.Watershed.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Watershed.FinalTopologyAndRunoff": "Success",
+      "Catalyst.Landform.Watershed.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Watershed.NativeZeroSetAndClosurePolicies": "Success",
+      "Catalyst.Landform.Watershed.OceanLakeAndClosedBasin": "Success",
+      "Catalyst.Landform.Watershed.VersionsGeologyAndVolumes": "Success",
+      "LandformLab.Inspection.WatershedProjectedRoundTrip": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+      "Catalyst.Landform.Regions.StructureAndPalette": "Success"
+    },
+    "finalRun": {
+      "succeeded": 33,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0
+    },
+    "broadRun": {
+      "succeeded": 66,
+      "succeededWithWarnings": 1,
+      "failed": 1,
+      "notRun": 0
+    },
+    "broadRunNote": "Before final stale-picking/lifecycle and measured getter boundary corrections. Its sole failing test used an unsupported schema-21 face fixture, replaced by a supported schema-18 face fixture. The final authoring/parity/region checks supersede those entries. One unrelated engine HTTP reachability timeout warning occurred in ContinentalRockIntegration. Domain assertions passed.",
+    "qualificationCorrections": [
+      "The invalidation test initially instantiated abstract UObject; it now uses a concrete transient UCLStampLibraryAsset. Production invalidation assertions already passed; the corrected full run must be clean.",
+      "Extended measured parity exposed game-thread-only GetSurfaceLibrary; completion now uses captured raw fields without calling that getter. Retested with actual pinned Mars resources and concurrent GC.",
+      "GeneratedRegions native preparation initially measured 158.168126 ms. Deferred suitability/boundary math and matching immutable native-input reuse remove repeated downstream preparation; parity.csv distinguishes initial from reused preparation."
+    ],
+    "profiles": [
+      {
+        "profile": "Watershed",
+        "preparation_ms": "0.087209",
+        "reused_preparation_ms": "0.021622",
+        "completion_seconds": "0.282606",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "WatershedContinental",
+        "preparation_ms": "1.121875",
+        "reused_preparation_ms": "0.023957",
+        "completion_seconds": "0.717332",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "WatershedExcavation",
+        "preparation_ms": "0.329375",
+        "reused_preparation_ms": "0.026122",
+        "completion_seconds": "0.831252",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "SurfaceScale10",
+        "preparation_ms": "5.150959",
+        "reused_preparation_ms": "0.013750",
+        "completion_seconds": "0.026596",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "SurfaceScaleRegional",
+        "preparation_ms": "0.084419",
+        "reused_preparation_ms": "0.019625",
+        "completion_seconds": "0.016476",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "GeneratedRegions",
+        "preparation_ms": "143.697914",
+        "reused_preparation_ms": "0.021417",
+        "completion_seconds": "0.018638",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "RockBedsExcavation",
+        "preparation_ms": "0.292666",
+        "reused_preparation_ms": "0.021961",
+        "completion_seconds": "0.156429",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "SurfaceScale10Face",
+        "preparation_ms": "0.013750",
+        "reused_preparation_ms": "0.015378",
+        "completion_seconds": "0.000467",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "LocalPatch",
+        "preparation_ms": "12.749746",
+        "reused_preparation_ms": "0.013541",
+        "completion_seconds": "0.000004",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "Mars",
+        "preparation_ms": "531.700585",
+        "reused_preparation_ms": "0.024457",
+        "completion_seconds": "0.000008",
+        "max_height_error_m": "0"
+      }
+    ],
+    "responsive": {
+      "heartbeats": 100,
+      "maxInputMs": 1.462791,
+      "maxPreparationMs": 1.384795,
+      "tasksStarted": 12,
+      "discarded": 7,
+      "workerThread": true,
+      "progressCaptured": true
+    },
+    "nativeInputReuse": {
+      "initialMs": 143.037125,
+      "reusedMs": 0.018165,
+      "reusedInputs": 1,
+      "invalidatedInputs": 0,
+      "upstreamChangedInputs": 0
+    },
+    "retirement": "ResponsiveDesigner asserts no outstanding native task and no retained toolkit after close",
+    "concurrentGC": true,
+    "protectedOriginalInputsUnchanged": 184,
+    "assetRegeneration": false,
+    "recipeMigration": false,
+    "cookedCases": [
+      {
+        "case": "writer",
+        "expectedPass": true,
+        "exitCode": 0
+      },
+      {
+        "case": "cold-reader",
+        "expectedPass": true,
+        "exitCode": 0
+      },
+      {
+        "case": "interactive-input",
+        "expectedPass": true,
+        "exitCode": 0
+      },
+      {
+        "case": "missing-save",
+        "expectedPass": false,
+        "exitCode": 0
+      }
+    ],
+    "cook": {
+      "succeeded": true,
+      "errors": 0,
+      "warnings": 8,
+      "warningScope": "Existing Lab default ACL compression settings references are missing; no host config or plugin enable state changed"
+    },
+    "cookedBinarySHA256": "8a182ba6ad61c04e3724c5c2bd24267907b16ea46e3aa3c4c3d49f0d63628eb3",
+    "nativeScreenshotsVisuallyReviewed": true
+  },
+  "sourceSHA256": {
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "022f8742a7b7335a2d39f9a54da83be0f9387b909bebef05caeedac3c3ab4bf6",
+    "Source/CatalystLandform/Private/Model/CLRegionGeneration.cpp": "8189c205f356b1b25f51cfdb91acc3c430d90f917e0c5f46bcc64452b6b44aca",
+    "Source/CatalystLandform/Private/Model/CLRockLayer.cpp": "1d6ca49cb2a1d091a9eceeb652afe583d249169a6545ce28929c2712e873bb9e",
+    "Source/CatalystLandform/Private/Model/CLSurfaceRange.cpp": "27027b883b7f09a2998b65d632b32cb35e7bff8d97c4e8155667220d7d1258bd",
+    "Source/CatalystLandform/Private/Model/CLWatershed.cpp": "df00eabe2f9bb3855f5fcd3f766a28da14434d22d782ed6f1e3a37ff89955aa9",
+    "Source/CatalystLandform/Public/Model/CLCompileProgress.h": "2e500f78adba64cbb861493845a0510018c693e8ea0de531dce0a4f67f6a4c8e",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "ae3b80536b85efc29ef9ab2b3a8cfe466b5e045049e145263fc7232e461685ac",
+    "Source/CatalystLandform/Public/Model/CLRegionGeneration.h": "824ac18dc7c680d217318123ebf21e32d914022607b8e52182ba6e84a16b6ff6",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "dcfee448549911bbeede05b48a4ac8b86bbbdea27b65a166126d7b3ca444f180",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "1fd1947dae43b3207117d09fea501989d93cab926316f1c3e136d3ec637490b7",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "854d6c17d928472129dd9bfcb345d93fc9d4f78a98460b12a14b36d32a12b68c",
+    "Source/CatalystLandformEditor/Private/CLRecipeEvaluation.cpp": "c7d68d07ac4d37f9fec6dec8bc29bbe52ca6af1e3f9fa8b97485ef4523e40b6a",
+    "Source/CatalystLandformEditor/Private/CLRecipeEvaluation.h": "f30beb6187990515e872509693d8b4f57628a43f196b5574b7e0952f70ff0a1c",
+    "Source/CatalystLandformEditor/Private/CLRegionGenerationPanel.cpp": "e5b4ed598cff7b2cb93e698508fd35137aa6f5a5132b66395349b86b5b45e776",
+    "Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "012eff9e9651fffe6431c3b84f3eae72c5a7cc8a9910f10dff8e321ab63b61b1",
+    "Source/CatalystLandformEditor/Public/CLTerrainEditing.h": "1a9f2e84e54b515f74c04317d9bb8ea2fb6db8d04affe7ebb7f618e87c1d582a",
+    "Source/CatalystLandformTests/Private/CLBackgroundCompileTests.cpp": "a7a24322c2eccb15f7205183de1a271f3083dd7ea464d904597cfa075d8cf182"
+  },
+  "artifactSHA256": {
+    "responsive.json": "6a53fda9a31842f42d1dac29e6576af29beec63f16eaa26782c7774e6cb160f8",
+    "native-input-cache.json": "00ff915043429b42966f2d93c141696e00cd446249509a70aaf950309b545512",
+    "parity.csv": "e4ee8b3bc504459e40e0ca0d5ef31f31adbf1dd4ae3672050439be8c0ddea20d",
+    "updating.png": "377e08f5a3c854232002c2b45ec6d156ff5a8d04b29d5aa4f3595c242ced207a",
+    "failed-retained.png": "08f6923aefc4034e83bc1d545c53de46cbe74ec73833d0f7bd2d4841d2b13a90",
+    "ready.png": "b12adb219d808a9d70686eef2fecf10979d5c75d2eb90014cd50604526460c0e",
+    "editor-final-index.json": "c02126d9784a26f9c79929565c5694553c4eaa5bee6a320ae7ec1e16ad9a62da",
+    "editor-broad-index.json": "dd110ed6ea2537b4dd17f99793dc8d0b777332aeca6db2abc15869d896816110",
+    "cooked-evidence.json": "716274f06462fec850fc25161bf07d4ef2507510ca81c5a41f3e3cb9a3ad4413"
+  },
+  "limits": [
+    "Measured latency applies to the recorded warm workloads on this hardware; native resource activation/revalidation for changed inputs and arbitrary PCG input preparation remain game-thread boundaries.",
+    "Cooperative cancellation can finish its current bounded native sample batch.",
+    "Progress is stage/activity feedback; no time estimate or percentage is claimed.",
+    "The cooked run checks the existing bounded watershed/mining/save-load host; it does not claim production hydrology, whole-planet streaming or arbitrary save migration.",
+    "Watershed-local variation remains separate; multiplayer is out of scope."
+  ],
+  "nextTask": "Meaningful watershed-local seeded variation without changing upstream seeds or duplicating native VPP functionality."
+}

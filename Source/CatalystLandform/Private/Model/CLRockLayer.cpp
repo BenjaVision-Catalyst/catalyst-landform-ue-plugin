@@ -1,4 +1,5 @@
 #include "Model/CLRockLayer.h"
+#include "Model/CLCompileProgress.h"
 #include "Model/CLTectonics.h"
 #include "Model/CLContinents.h"
 #include "Surface/CLSurfaceCompiler.h"
@@ -37,6 +38,11 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
         const int32 Index=Surfaces?Surfaces->Find(U.SurfaceId,U.SurfaceRevision):INDEX_NONE;
         if(Index==INDEX_NONE){Error=TEXT("Rock unit requires a resolved native client surface: ")+U.SurfaceId.ToString();return nullptr;}Out->SurfaceIndices.Add(Index);
     }
+    if(FCLCompileProgress::IsPreparing())
+    {
+        if(L.AlgorithmVersion>=4){FCLRockFolding F;const int32 Competent=L.Units.IndexOfByPredicate([&](const auto& U){return U.Id==L.FoldCompetentUnit;});if(Competent==INDEX_NONE){Error=TEXT("Folding requires an explicit competent unit from the accepted rock palette");return nullptr;}if(!FCLRockFolding::Resolve(3,L.FoldViscosityContrast,L.FoldShorteningStrain,L.FoldAmplitudeRadiusFraction*R,F,Error))return nullptr;}
+        return Out;
+    }
     if(L.AlgorithmVersion==1){Out->NativeNoise=FCLNativeNoiseKernel::Create(Error);if(!Out->NativeNoise)return nullptr;}
     FRandomStream Random(int32(uint32(Seed)^uint32(L.Seed)^0x434c5231U));Out->NoiseSeed=int32(Random.GetUnsignedInt());Out->Phase=Random.FRand();
     Out->Frame=L.Orientation.Quaternion()*FRotator(Random.FRandRange(-45,45),Random.FRandRange(-180,180),Random.FRandRange(-180,180)).Quaternion();
@@ -54,6 +60,7 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
             int32 Previous=INDEX_NONE;
             while(Bottom<Top)
             {
+                if(!FCLCompileProgress::Check(Error))return false;
                 if(Out->MetricUnits.Num()>=MaximumMetricBeds)return false;
                 const double Thickness=FMath::Clamp(double(Curve.Eval(Random.FRand())),L.BedDistribution.MinimumMeters,L.BedDistribution.MaximumMeters);
                 const double End=FMath::Min(Top,Bottom+Thickness);
@@ -80,6 +87,7 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
             int32 PreviousUnit=INDEX_NONE,RunLength=0;
             while(Bottom<Top)
             {
+                if(!FCLCompileProgress::Check(Error))return false;
                 if(Out->Beds.Num()>1022)return false;
                 const double Thickness=L.BedThicknessRadiusFraction*R*Random.FRandRange(.65f,1.35f);
                 const double Contact=FMath::Min(Top,Bottom+Thickness*(1-L.InterbedFraction));
@@ -108,7 +116,7 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
         if(Competent==INDEX_NONE){Error=TEXT("Folding requires an explicit competent unit from the accepted rock palette");return nullptr;}
         double Thickness=0,Centers=0;int32 Count=0;
         for(int32 I=0;I<Out->OlderBedCount;++I)
-        {const auto B=Out->GetBed(I);if(B.Unit==Competent){Thickness+=B.UpperMeters-B.LowerMeters;Centers+=(B.UpperMeters+B.LowerMeters)*.5;++Count;}}
+        {if((I&1023)==0&&!FCLCompileProgress::Check(Error))return nullptr;const auto B=Out->GetBed(I);if(B.Unit==Competent){Thickness+=B.UpperMeters-B.LowerMeters;Centers+=(B.UpperMeters+B.LowerMeters)*.5;++Count;}}
         // One effective thickness/wavelength for the whole conformable sequence.
         // Independent per-bed modes would make shared contacts cross.
         if(!FCLRockFolding::Resolve(Count?Thickness/Count:0,L.FoldViscosityContrast,L.FoldShorteningStrain,L.FoldAmplitudeRadiusFraction*R,Out->Folding,Error))return nullptr;

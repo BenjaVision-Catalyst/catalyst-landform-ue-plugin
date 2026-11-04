@@ -1,4 +1,6 @@
 #include "Model/CLSurfaceRange.h"
+#include "Model/CLCompileProgress.h"
+#include "Misc/ScopeExit.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLRegionGeneration.h"
 #include "Model/CLTerrainType.h"
@@ -33,6 +35,58 @@ public:
 private:
     const UVoxelShapeFunctionLibrary* const Library;
 };
+struct FCLPreparedPlanetCompile
+{
+    FCLPlanetRecipe Recipe;
+    TOptional<FBox2D> Region;
+    int32 Patch=INDEX_NONE,ReusedInputs=0;
+    struct FNativeSnapshot
+    {
+        FCLPlanetRecipe Recipe;TOptional<FBox2D> Region;int32 Patch;
+        const UCLStampLibraryAsset* Stamps;const UCLSurfaceLibraryAsset* Surfaces;
+        TSharedPtr<const FCLCompiledPlanetRecipe> Field;
+    };
+    TArray<FNativeSnapshot> Raw;
+    TMap<const FCLCompiledPlanetRecipe*,TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(FString&)>> DeferredRegions;
+    TSharedPtr<const FCLNativeFigureKernel> Figure;
+    TSharedPtr<const FCLCompiledMeasuredTerrain> Measured;
+};
+namespace
+{
+struct FCompileRun {bool Preparing=false;FCLPreparedPlanetCompile* Prepared=nullptr;int32 Next=0,RawDepth=0;FCLCompileProgress* Progress=nullptr;const FCLPreparedPlanetCompile* Previous=nullptr;};
+thread_local FCompileRun* CompileRun=nullptr;
+TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRecipe&,FString&,UCLStampLibraryAsset*,const FBox2D*,int32,UCLSurfaceLibraryAsset*);
+}
+bool FCLCompileProgress::IsPreparing(){return CompileRun&&CompileRun->Preparing;}
+bool FCLCompileProgress::Check(FString& E)
+{if(CompileRun&&CompileRun->Progress&&CompileRun->Progress->Cancelled.load()){E=TEXT("Evaluation superseded");return false;}return true;}
+void FCLCompileProgress::Report(ECLCompileStage S){if(CompileRun&&CompileRun->Progress)CompileRun->Progress->Stage.store(S);}
+bool FCLCompileProgress::Sample(const FCLCompiledPlanetRecipe& P,TConstArrayView<FVector> D,TArray<double>& H,FString& E)
+{
+    if(!CompileRun){P.SampleHeightsMeters(D,H);return true;}
+    H.Reset(D.Num());for(int32 I=0;I<D.Num();I+=4096){if(!Check(E))return false;TArray<double> Part;P.SampleHeightsMeters(D.Slice(I,FMath::Min(4096,D.Num()-I)),Part);H.Append(Part);}return Check(E);
+}
+bool FCLPlanetCompiler::WithAuthoringValidation(TFunctionRef<bool()> Operation)
+{
+    check(IsInGameThread());FCLPreparedPlanetCompile P;P.Figure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());
+    FCompileRun Run;Run.Preparing=true;Run.Prepared=&P;auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};return Operation();
+}
+TSharedPtr<const FCLPreparedPlanetCompile> FCLPlanetCompiler::PrepareBackground(const FCLPlanetRecipe& R,FString& E,const FBox2D* Region,int32 Patch,const FCLPreparedPlanetCompile* PreviousInputs)
+{
+    check(IsInGameThread());auto P=MakeShared<FCLPreparedPlanetCompile>();P->Recipe=R;if(Region)P->Region=*Region;P->Patch=Patch;
+    P->Figure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());
+    if((R.AlgorithmVersion==2||(R.Rock.bEnabled&&R.Rock.AlgorithmVersion==1))&&!FCLNativeNoiseKernel::Create(E))return nullptr;
+    FCompileRun Run;Run.Preparing=true;Run.Prepared=&P.Get();Run.Previous=PreviousInputs;auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};
+    if(!Compile(R,E,nullptr,Region,Patch))return nullptr;return P;
+}
+int32 FCLCompileProgress::ReusedNativeInputs(const FCLPreparedPlanetCompile& P){return P.ReusedInputs;}
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompleteBackground(const FCLPreparedPlanetCompile& P,const TSharedRef<FCLCompileProgress>& Progress,FString& E)
+{
+    FCompileRun Run;Run.Prepared=const_cast<FCLPreparedPlanetCompile*>(&P);Run.Progress=&Progress.Get();auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};
+    if(!FCLCompileProgress::Check(E))return nullptr;auto Out=Compile(P.Recipe,E,nullptr,P.Region.IsSet()?&P.Region.GetValue():nullptr,P.Patch);
+    if(Out&&Run.Next!=P.Raw.Num()){E=TEXT("Prepared native field sequence did not match completion");return nullptr;}
+    if(!FCLCompileProgress::Check(E))return nullptr;Progress->Stage=ECLCompileStage::Complete;return Out;
+}
 void FCLCompiledPlanetRecipe::SampleRadialFields(TConstArrayView<FVector> Positions,TConstArrayView<double> Heights,TArray<double>& Fields)const
 {
     check(NativeFigure&&Positions.Num()==Heights.Num());NativeFigure->Sample(Positions,Heights,RadiusMeters,Fields);
@@ -408,9 +462,10 @@ bool FCLPlanetCompiler::ValidateNoiseLayers(const TArray<FCLNoiseLayer>& Layers,
 
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* Library,const FBox2D* LocalRegion,int32 SurfacePatch,UCLSurfaceLibraryAsset* SurfaceLibraryOverride)
 {
+    if(!FCLCompileProgress::Check(Error))return nullptr;
     const auto RetainInput=[&](TSharedPtr<const FCLCompiledPlanetRecipe> Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
     {
-        if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
+        if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=CompileRun?CompileRun->Prepared->Figure:MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
     };
 
     if(Recipe.SchemaVersion==22||Recipe.Watershed.bEnabled)
@@ -418,11 +473,14 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(Recipe.SchemaVersion!=22||Recipe.AlgorithmVersion!=2||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||Recipe.MeasuredTerrain.IsActive()||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch))
         {Error=TEXT("Watershed schema 22 requires a whole native procedural sphere; measured terrain remains source-pinned");return nullptr;}
         if(Recipe.Rock.bEnabled&&!Recipe.Volumes.GeologicalUnits.IsEmpty()){Error=TEXT("Watersheds retain one geological source");return nullptr;}
+        if(Recipe.Watershed.bEnabled&&!Recipe.Watershed.Validate(Error))return nullptr;
         auto Base=Recipe;Base.SchemaVersion=21;Base.Watershed=FCLWatershedSettings();Base.Volumes=FCLVolumeSettings();
         const auto Core=Compile(Base,Error,Library,nullptr,SurfacePatch,SurfaceLibraryOverride);if(!Core)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);
+        if(FCLCompileProgress::IsPreparing())return RetainInput(Out);
         if(Recipe.Watershed.bEnabled)
         {
+            FCLCompileProgress::Report(ECLCompileStage::Drainage);
             Out->Watershed=FCLCompiledWatershed::Compile(Recipe.Watershed,*Core,Error);if(!Out->Watershed)return nullptr;Out->WatershedSurface=Core;
         }
         if(Recipe.Volumes.bEnabled){const auto V=FCLCompiledVolumes::Compile(Recipe.Volumes,Recipe.RadiusMeters,Out->Surfaces.Get(),Error);if(!V)return nullptr;Out->Volumes=V;}
@@ -440,8 +498,12 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         for(auto& R:Base.TerrainRegions)R.ElevationDistribution=FCLSurfaceDistributionSettings();
         const auto Core=Compile(Base,Error,Library,nullptr,SurfacePatch,SurfaceLibraryOverride);if(!Core)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);
+        if(Recipe.ElevationDistribution.bEnabled&&!Recipe.ElevationDistribution.Validate(Error))return nullptr;
+        for(const auto& Region:Recipe.TerrainRegions)if(Region.bEnabled&&Region.ElevationDistribution.bEnabled&&!Region.ElevationDistribution.Validate(Error))return nullptr;
+        if(FCLCompileProgress::IsPreparing())return RetainInput(Out);
         if(Recipe.ElevationDistribution.bEnabled||RegionalElevation)
         {
+            FCLCompileProgress::Report(ECLCompileStage::Elevation);
             if(!Core->UnmappedSurface||!Core->SurfaceRange){Error=TEXT("Elevation distribution requires a non-constant base surface");return nullptr;}
             const auto Range=FCLSurfaceRange::Compile(*Core->UnmappedSurface,Core->SurfaceRange->TargetMin,Core->SurfaceRange->TargetMax,Error,&Recipe);if(!Range)return nullptr;
             TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(TSharedPtr<const FCLCompiledPlanetRecipe>)> Replace;
@@ -468,6 +530,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         const auto* Min=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
         const auto* Max=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});
         if(!Min||!Max){Error=TEXT("Rock Character requires the planet surface guides");return nullptr;}
+        FCLCompileProgress::Report(ECLCompileStage::Geology);
         const auto Rock=FCLCompiledRock::Compile(Recipe.Rock,Recipe.Seed,Recipe.RadiusMeters,Recipe.RadiusMeters+Min->HeightMeters,Recipe.RadiusMeters+Max->HeightMeters,Core->Surfaces.Get(),Core->Tectonics,Error,Core->Continents);if(!Rock)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);Out->Rock=Rock;return RetainInput(Out);
     }
@@ -476,8 +539,16 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(Recipe.SchemaVersion!=19||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch)||!Recipe.NoiseLayers.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||Recipe.Continents.bEnabled||Recipe.Tectonics.bEnabled||Recipe.RegionGeneration.bEnabled)
         {Error=TEXT("Measured schema 19 requires a whole spherical scene without height remapping/procedural terrain layers");return nullptr;}
         auto BaseRecipe=Recipe;BaseRecipe.MeasuredTerrain=FCLMeasuredTerrainReference();BaseRecipe.SchemaVersion=18;
-        auto Measured=FCLCompiledMeasuredTerrain::Compile(Recipe.MeasuredTerrain,Recipe.RadiusMeters,Error);if(!Measured)return nullptr;
-        auto Core=Compile(BaseRecipe,Error,Library,nullptr,SurfacePatch,Measured->GetSurfaceLibrary());if(!Core)return nullptr;
+        TSharedPtr<const FCLCompiledMeasuredTerrain> Measured;
+        if(CompileRun&&!CompileRun->Preparing)Measured=CompileRun->Prepared->Measured;
+        else if(CompileRun&&CompileRun->Previous&&CompileRun->Previous->Measured&&Recipe.RadiusMeters==CompileRun->Previous->Recipe.RadiusMeters&&FCLMeasuredTerrainReference::StaticStruct()->CompareScriptStruct(&Recipe.MeasuredTerrain,&CompileRun->Previous->Recipe.MeasuredTerrain,0))Measured=CompileRun->Previous->Measured;
+        else Measured=FCLCompiledMeasuredTerrain::Compile(Recipe.MeasuredTerrain,Recipe.RadiusMeters,Error);
+        if(!Measured)return nullptr;
+        if(CompileRun&&CompileRun->Preparing)CompileRun->Prepared->Measured=Measured;
+        // Native library access stays in preparation; completion replays the
+        // already-resolved raw field and needs no UObject-backed override.
+        auto* Surfaces=CompileRun&&!CompileRun->Preparing?nullptr:Measured->GetSurfaceLibrary();
+        auto Core=Compile(BaseRecipe,Error,Library,nullptr,SurfacePatch,Surfaces);if(!Core)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);Out->MeasuredTerrain=Measured;Out->MinimumHeightMeters=Measured->MinimumHeightMeters;Out->MaximumHeightMeters=Measured->MaximumHeightMeters;
         return RetainInput(Out);
     }
@@ -503,6 +574,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     auto Whole=Raw;
     if(FCLSphericalPatches::IsFace(SurfacePatch))Whole=CompileUnmapped(Recipe,Error,Library,nullptr,FCLSphericalPatches::WholeSphere,SurfaceLibraryOverride);
     if(!Whole)return nullptr;
+    if(FCLCompileProgress::IsPreparing())return RetainInput(Raw);
+    FCLCompileProgress::Report(ECLCompileStage::Elevation);
     const auto Range=FCLSurfaceRange::Compile(*Whole,Low->HeightMeters,High->HeightMeters,Error);if(!Range)return nullptr;
     TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(const TSharedPtr<const FCLCompiledPlanetRecipe>&)> Wrap;
     Wrap=[&](const auto& Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
@@ -515,6 +588,37 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
 }
 
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary, const FBox2D* LocalRegion, int32 SurfacePatch,UCLSurfaceLibraryAsset* SurfaceLibraryOverride)
+{
+    if(CompileRun&&!CompileRun->Preparing)
+    {
+        if(!CompileRun->Prepared->Raw.IsValidIndex(CompileRun->Next)){Error=TEXT("Native field snapshot is missing");return nullptr;}
+        auto Raw=CompileRun->Prepared->Raw[CompileRun->Next++].Field;
+        if(const auto* Deferred=CompileRun->Prepared->DeferredRegions.Find(Raw.Get()))return (*Deferred)(Error);
+        return Raw;
+    }
+    const bool Root=!CompileRun||CompileRun->RawDepth++==0;ON_SCOPE_EXIT{if(CompileRun)--CompileRun->RawDepth;};
+    if(CompileRun&&CompileRun->Preparing&&Root&&CompileRun->Previous)
+    {
+        for(const auto& Native:CompileRun->Previous->Raw)
+        {
+            const bool SameRegion=Native.Region.IsSet()==(LocalRegion!=nullptr)&&(!LocalRegion||(Native.Region->Min==LocalRegion->Min&&Native.Region->Max==LocalRegion->Max));
+            if(Native.Patch!=SurfacePatch||Native.Stamps!=StampLibrary||Native.Surfaces!=SurfaceLibraryOverride||!SameRegion||!FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Native.Recipe,&Recipe,0))continue;
+            CompileRun->Prepared->Raw.Add(Native);++CompileRun->Prepared->ReusedInputs;
+            if(const auto* Deferred=CompileRun->Previous->DeferredRegions.Find(Native.Field.Get()))CompileRun->Prepared->DeferredRegions.Add(Native.Field.Get(),*Deferred);
+            return Native.Field;
+        }
+    }
+    auto Raw=CompileUnmappedBody(Recipe,Error,StampLibrary,LocalRegion,SurfacePatch,SurfaceLibraryOverride);
+    if(Raw&&CompileRun&&CompileRun->Preparing&&Root)
+    {
+        FCLPreparedPlanetCompile::FNativeSnapshot Native{Recipe,{},SurfacePatch,StampLibrary,SurfaceLibraryOverride,Raw};if(LocalRegion)Native.Region=*LocalRegion;
+        CompileRun->Prepared->Raw.Add(MoveTemp(Native));
+    }
+    return Raw;
+}
+namespace
+{
+TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary, const FBox2D* LocalRegion, int32 SurfacePatch,UCLSurfaceLibraryAsset* SurfaceLibraryOverride)
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
@@ -531,10 +635,11 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
     {
         if(Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Fail(TEXT("Generated regions require spherical surface coordinates"));
         auto Plain=Recipe;Plain.RegionGeneration=FCLRegionGenerationSettings();
-        const auto Core=CompileUnmapped(Plain,Error,StampLibrary,LocalRegion,SurfacePatch,SurfaceLibraryOverride);if(!Core)return nullptr;
+        const auto Core=CompileUnmappedBody(Plain,Error,StampLibrary,LocalRegion,SurfacePatch,SurfaceLibraryOverride);if(!Core)return nullptr;
         auto BaseRecipe=Plain;BaseRecipe.TerrainRegions.Reset();
-        const auto Base=CompileUnmapped(BaseRecipe,Error,StampLibrary,nullptr,FCLSphericalPatches::WholeSphere,SurfaceLibraryOverride);if(!Base)return nullptr;
-        const auto Generated=FCLCompiledRegionGeneration::Compile(Recipe,*Base,StampLibrary,Error);if(!Generated)return nullptr;
+        const auto Base=CompileUnmappedBody(BaseRecipe,Error,StampLibrary,nullptr,FCLSphericalPatches::WholeSphere,SurfaceLibraryOverride);if(!Base)return nullptr;
+        auto AttachGenerated=[Core](const TSharedPtr<const FCLCompiledRegionGeneration>& Generated,FString& Error)->TSharedPtr<const FCLCompiledPlanetRecipe>
+        {
         double Low=0,High=0;
         for(const auto& Field:Generated->Fields)if(Field){Low=FMath::Min(Low,Field->MinimumHeightMeters-Generated->NeutralHeight);High=FMath::Max(High,Field->MaximumHeightMeters-Generated->NeutralHeight);}
         TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(const TSharedPtr<const FCLCompiledPlanetRecipe>&)> Attach;
@@ -545,12 +650,27 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
             Out->MinimumHeightMeters=FMath::Clamp(In->MinimumHeightMeters+Low*Generated->Strength,-In->RadiusMeters,0.);
             Out->MaximumHeightMeters=FMath::Clamp(In->MaximumHeightMeters+High*Generated->Strength,-In->RadiusMeters,0.);return Out;
         };
-        const auto Result=Attach(Core);if(Result->GetDistributedStampCount()>1024)return Fail(TEXT("Regional palette exceeds the 1024 unique source stamp-placement proof budget"));return Result;
+        const auto Result=Attach(Core);if(Result->GetDistributedStampCount()>1024){Error=TEXT("Regional palette exceeds the 1024 unique source stamp-placement proof budget");return nullptr;};return Result;
+        };
+        const auto Generated=FCLCompiledRegionGeneration::Compile(Recipe,*Base,StampLibrary,Error);if(!Generated)return nullptr;
+        if(FCLCompileProgress::IsPreparing())
+        {
+            // The placeholder never leaves preparation. Only plain native
+            // children and captured recipe values enter the background task.
+            auto Placeholder=MakeShared<FCLCompiledPlanetRecipe>(*Core);
+            CompileRun->Prepared->DeferredRegions.Add(&Placeholder.Get(),[Recipe,Base,Generated,AttachGenerated](FString& E)
+            {
+                auto Regions=FCLCompiledRegionGeneration::Compile(Recipe,*Base,nullptr,E,Generated.Get());
+                return Regions?AttachGenerated(Regions,E):nullptr;
+            });
+            return Placeholder;
+        }
+        return AttachGenerated(Generated,Error);
     }
     if (!FMath::IsFinite(Recipe.RadiusMeters) || Recipe.RadiusMeters < 10 || Recipe.RadiusMeters > 1.e7)
         return Fail(TEXT("RadiusMeters must be finite and between 10 and 10000000"));
     if (Recipe.RadialGuides.Guides.Num() > 128 || Recipe.NoiseLayers.Num() > 32) return Fail(TEXT("Recipe exceeds 128 guides or 32 noise layers"));
-    if (!ValidateNoiseLayers(Recipe.NoiseLayers, Error)) return nullptr;
+    if (!FCLPlanetCompiler::ValidateNoiseLayers(Recipe.NoiseLayers, Error)) return nullptr;
     if(Recipe.TerrainRegions.Num()>8)return Fail(TEXT("At most eight terrain regions are supported"));
     if(!Recipe.TerrainRegions.IsEmpty() && (Recipe.SchemaVersion<7 || Recipe.Coordinates==ECLTerrainCoordinates::Sphere))
         return Fail(TEXT("Terrain regions require recipe schema 7 and local coordinates"));
@@ -631,7 +751,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
         {
             for(int32 Face=0;Face<6;++Face)
             {
-                const auto Patch=CompileUnmapped(Recipe,Error,StampLibrary,nullptr,Face,SurfaceLibraryOverride);if(!Patch)return nullptr;
+                const auto Patch=CompileUnmappedBody(Recipe,Error,StampLibrary,nullptr,Face,SurfaceLibraryOverride);if(!Patch)return nullptr;
                 Plan->SurfacePatches.Add(Patch);Plan->MinimumHeightMeters=FMath::Min(Plan->MinimumHeightMeters,Patch->MinimumHeightMeters);
                 Plan->MaximumHeightMeters=FMath::Max(Plan->MaximumHeightMeters,Patch->MaximumHeightMeters);
             }
@@ -757,7 +877,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
         auto Child=Recipe;Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;Child.SurfaceStack=Region.SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;
         Child.Seed=int32(uint32(Recipe.Seed)+uint32(Region.SeedOffset));Child.TerrainTypeId=Region.TerrainTypeId;
         Child.TerrainTypeName=Region.TerrainTypeName;Child.NoiseLayers=Region.NoiseLayers;
-        const auto Field=CompileUnmapped(Child,Error,StampLibrary,Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch?&Plan->EvaluationRegion:nullptr,Region.bPlacedLandform?FCLSphericalPatches::WholeSphere:SurfacePatch,SurfaceLibraryOverride);
+        const auto Field=CompileUnmappedBody(Child,Error,StampLibrary,Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch?&Plan->EvaluationRegion:nullptr,Region.bPlacedLandform?FCLSphericalPatches::WholeSphere:SurfacePatch,SurfaceLibraryOverride);
         if(!Field){Error=Region.Name+TEXT(": ")+Error;return nullptr;}
         FCLCompiledPlanetRecipe::FRegion CompiledRegion;CompiledRegion.Id=Region.Id;CompiledRegion.Mask=Region.Mask;CompiledRegion.SphericalMask=Region.SphericalMask;CompiledRegion.Field=Field;
         CompiledRegion.bPlacedLandform=Region.bPlacedLandform;
@@ -777,6 +897,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
     Plan->MinimumHeightMeters=FMath::Clamp(Plan->MinimumHeightMeters,-Plan->RadiusMeters,0.);Plan->MaximumHeightMeters=FMath::Clamp(Plan->MaximumHeightMeters,-Plan->RadiusMeters,0.);
     return Plan;
 }
+}
+
 
 FCLPlanetRecipe FCLPlanetCompiler::RollingPlains()
 {

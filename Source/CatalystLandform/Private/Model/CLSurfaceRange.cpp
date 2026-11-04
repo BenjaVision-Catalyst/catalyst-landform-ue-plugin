@@ -1,4 +1,5 @@
 #include "Model/CLSurfaceRange.h"
+#include "Model/CLCompileProgress.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLStampDistribution.h"
 #include "Curves/RichCurve.h"
@@ -62,7 +63,7 @@ public:
             const double Z=1-2*(I+.5)/Samples,A=(I+.371)*2.399963229728653;
             Directions.Add(FVector(FMath::Cos(A)*FMath::Sqrt(1-Z*Z),FMath::Sin(A)*FMath::Sqrt(1-Z*Z),Z));
         }
-        TArray<double> Heights;Surface.SampleHeightsMeters(Directions,Heights);
+        TArray<double> Heights;if(!FCLCompileProgress::Sample(Surface,Directions,Heights,Error))return nullptr;
         for(int32 I=0;I<Heights.Num();++I)
         {
             if(!FMath::IsFinite(Heights[I])){Error=TEXT("Elevation calibration found a non-finite native height");return nullptr;}
@@ -111,7 +112,7 @@ TSharedPtr<const FCLSurfaceRange> FCLSurfaceRange::Compile(const FCLCompiledPlan
         for(int32 Y=-2;Y<=2;++Y)for(int32 X=-2;X<=2;++X)
             Directions.Add((P.Anchor+(Right*X+Up*Y)*Angle*.2).GetSafeNormal());
     }
-    TArray<double> Heights;Surface.SampleHeightsMeters(Directions,Heights);
+    TArray<double> Heights;if(!FCLCompileProgress::Sample(Surface,Directions,Heights,Error))return nullptr;
     TArray<int32> Order;for(int32 I=0;I<Heights.Num();++I)
     {if(!FMath::IsFinite(Heights[I])){Error=TEXT("Surface generation returned a non-finite height");return nullptr;}Order.Add(I);}
     Order.Sort([&](int32 A,int32 B){return Heights[A]==Heights[B]?A<B:Heights[A]<Heights[B];});
@@ -126,7 +127,7 @@ TSharedPtr<const FCLSurfaceRange> FCLSurfaceRange::Compile(const FCLCompiledPlan
         {
             FVector Right,Up;D.FindBestAxisVectors(Right,Up);TArray<FVector> Probe;
             for(int32 Y=-1;Y<=1;++Y)for(int32 X=-1;X<=1;++X)if(X||Y)Probe.Add((D+(Right*X+Up*Y)*Step).GetSafeNormal());
-            TArray<double> Values;Surface.SampleHeightsMeters(Probe,Values);int32 Best=INDEX_NONE;
+            TArray<double> Values;if(!FCLCompileProgress::Sample(Surface,Probe,Values,Error))return nullptr;int32 Best=INDEX_NONE;
             for(int32 I=0;I<Values.Num();++I)if(Sign*Values[I]>Sign*H){H=Values[I];Best=I;}
             if(Best==INDEX_NONE)break;D=Probe[Best];
         }

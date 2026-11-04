@@ -1,4 +1,6 @@
 #include "CLPreviewMesh.h"
+#include "CLRecipeEvaluation.h"
+#include "Widgets/Notifications/SProgressBar.h"
 #include "CLSurfaceDistributionPlot.h"
 #include "CLRockThicknessPlot.h"
 #include "Model/CLSurfaceRange.h"
@@ -645,6 +647,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLSurfaceDesignerTest;
     friend class FCLWatershedDesignerTest;
     friend class FCLAuthoringLayoutTest;
+    friend class FCLBackgroundDesignerTest;
 #endif
 
 
@@ -661,6 +664,14 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SSlider> ElevationSlider;
     TSharedPtr<IPropertyHandle> RegionProperties;
     TSharedPtr<const FCLCompiledPlanetRecipe> AcceptedSurfacePlan;
+    FCLRecipeEvaluation Evaluation;
+    TSharedPtr<const FCLPreparedPlanetCompile> PreparedEdit;
+    TOptional<FCLPlanetRecipe> PreparedEditRecipe,RequestedRecipe;
+    TOptional<FBox2D> RequestedRegion;
+    FTSTicker::FDelegateHandle EvaluationTicker;
+    uint64 PublishedEvaluation=0;
+    double LastEvaluationSeconds=0;
+    bool LastEvaluationWasWorker=false;
     TArray<FVector2D> MeasuredElevation;
     FString ElevationReadout;
     bool bElevationDragging=false;
@@ -740,6 +751,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
 public:
     virtual ~FCLRecipeToolkit()
     {
+        FTSTicker::GetCoreTicker().RemoveTicker(EvaluationTicker);Evaluation.Cancel();
         FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicDragTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(RockTicker);RockTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(WatershedTicker);WatershedTransaction.Reset();
@@ -824,6 +836,8 @@ public:
             }));
         AddToolbarExtender(Extender); RegenerateMenusAndToolbars();
         if(!TerrainEditing)GetTabManager()->TryInvokeTab(PlanetTab);
+        const TWeakPtr<FCLRecipeToolkit> EvaluationOwner=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        EvaluationTicker=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([EvaluationOwner](float){if(auto E=EvaluationOwner.Pin()){E->PumpEvaluation();return true;}return false;}));
         // Explicit asset target; don't use Foundation's legacy first-PIE-service lookup.
         Refresh();
     }
@@ -858,13 +872,13 @@ public:
                             Target=Region.Id;Candidate.TerrainRegions.Add(Region);
                         }
                         FString Error;
-                        if(!Weak->TerrainType.ApplyToRegion(Candidate,Target,Error)){Status=TEXT("Region was not applied: ")+Error;return;}
+                        if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return Weak->TerrainType.ApplyToRegion(Candidate,Target,Error);})){Status=TEXT("Region was not applied: ")+Error;return;}
                         const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyRegion", "Apply terrain to planet region"));
                         RecipeAsset()->Modify();RecipeAsset()->Recipe=MoveTemp(Candidate);RecipeAsset()->LandformSources.Add(Target,Weak.Get());RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();
                         return;
                     }
                     const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyTerrainType", "Apply terrain type")); FString Error;
-                    if (!Weak->ApplyToRecipe(RecipeAsset(), Error)) Status = TEXT("Terrain type was not applied: ") + Error;
+                    if (!FCLPlanetCompiler::WithAuthoringValidation([&]{return Weak->ApplyToRecipe(RecipeAsset(),Error);})) Status = TEXT("Terrain type was not applied: ") + Error;
                 })));
         }
         return Menu.MakeWidget();
@@ -878,7 +892,7 @@ public:
             {
                 auto* A=RecipeAsset();auto Candidate=A->Recipe;auto* R=Candidate.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Id;});if(!R)return;
                 R->Placement.StructureFeatureId=FeatureId;R->bPlacedLandform=true;Candidate.SchemaVersion=FMath::Max(11,Candidate.SchemaVersion);
-                FString Error;if(!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;return;}
+                FString Error;if(!PrepareEdit(Candidate,Error)){Status=Error;return;}
                 const FScopedTransaction Tx(FText::FromString(TEXT("Connect Landform to structure")));A->Modify();A->Recipe=MoveTemp(Candidate);A->PostEditChange();A->MarkPackageDirty();
             })));
         };
@@ -888,7 +902,7 @@ public:
     {
         if(TerrainEditing)return;
         auto* Asset=RecipeAsset();auto Candidate=Asset->Recipe;FString Error;
-        if(!FCLGlobePlacementEditing::Apply(Candidate,Target,Resize,Error)||!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;return;}
+        if(!FCLGlobePlacementEditing::Apply(Candidate,Target,Resize,Error)||!PrepareEdit(Candidate,Error)){Status=Error;return;}
         const FScopedTransaction Tx(FText::FromString(Resize?TEXT("Resize globe Landform"):TEXT("Place globe Landform")));
         Asset->Modify();Asset->Recipe=MoveTemp(Candidate);Asset->PostEditChange();Asset->MarkPackageDirty();
     }
@@ -952,7 +966,7 @@ public:
     {
         InspectorError.Reset();auto* A=RecipeAsset();auto Candidate=LayeredRecipe();Candidate.Tectonics=Preset;
         if(Preset.AlgorithmVersion==3&&!Candidate.SurfaceStack.IsActive())Candidate.SurfaceStack=FCLSurfaceStack::MakeDefault();
-        FString Error;if(!FCLPlanetCompiler::Compile(Candidate,Error)){Status=Error;InspectorError=Error;return false;}
+        FString Error;if(!PrepareEdit(Candidate,Error)){Status=Error;InspectorError=Error;return false;}
         TUniquePtr<FScopedTransaction> Tx;if(!TectonicDragTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change tectonic layer")));A->Modify();A->Recipe=MoveTemp(Candidate);A->MarkPackageDirty();A->PostEditChange();return true;
     }
     void BeginTectonicDrag()
@@ -982,7 +996,7 @@ public:
     bool CommitContinents(FCLContinentalLayer Layer)
     {
         InspectorError.Reset();auto* A=RecipeAsset();auto R=LayeredRecipe();R.Continents=Layer;FString Error;
-        if(!FCLPlanetCompiler::Compile(R,Error)){Status=Error;InspectorError=Error;return false;}
+        if(!PrepareEdit(R,Error)){Status=Error;InspectorError=Error;return false;}
         TUniquePtr<FScopedTransaction> Tx;if(!TectonicDragTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change continental layer")));
         A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();return true;
     }
@@ -1138,17 +1152,40 @@ public:
         if(Globe){Globe->SetAuthoringRecipe(Asset->Recipe);Globe->SetGuides(Asset->Recipe.RadialGuides,Preview?Preview->Client->bGuides:true);}
         if (Preview) Preview->Client->RadialGuides = Asset->Recipe.RadialGuides;
         if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
-        const auto Plan = !GuidesValid?TSharedPtr<const FCLCompiledPlanetRecipe>():TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
-        if(!GuidesValid)Status=GuideError;
-        bPreviewInvalid = !Plan.IsValid();
-        AcceptedSurfacePlan=Plan;MeasureElevation(Plan);
-        MeasuredRockBeds=Plan&&Plan->Rock?Plan->Rock->ThicknessStatistics():FCLRockBedStatistics();
-        TargetRockBeds.Init(0,FCLRockBedStatistics::BinCount);
-        if(MeasuredRockBeds.Count)
+        FCLPlanetRecipe Input=Asset->Recipe;TOptional<FBox2D> Region;
+        if(TerrainEditing){FBox2D Bounds;if(!TerrainEditing->PreviewRecipe(Input,Bounds,Status,PendingAreaWidth>0?PendingAreaWidth:500)){Evaluation.Cancel();if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(false);}bPreviewInvalid=true;InspectorError=Status;return;}Region=Bounds;}
+        const bool Same=RequestedRecipe.IsSet()&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&RequestedRecipe.GetValue(),&Input,0)&&Region.IsSet()==RequestedRegion.IsSet()&&(!Region.IsSet()||(Region->Min==RequestedRegion->Min&&Region->Max==RequestedRegion->Max));
+        if(!Same)
         {
-            const auto Settings=Asset->Recipe.Rock.BedDistribution;const auto Curve=Settings.QuantileCurve();
-            for(int32 I=0;I<8192;++I){const double T=Curve.Eval((I+.5f)/8192);const int32 Bin=FMath::Clamp(int32((T-Settings.MinimumMeters)/(Settings.MaximumMeters-Settings.MinimumMeters)*FCLRockBedStatistics::BinCount),0,FCLRockBedStatistics::BinCount-1);TargetRockBeds[Bin]+=1./8192;}
+            RequestedRecipe=Input;RequestedRegion=Region;FString Error;
+            auto Prepared=!TerrainEditing&&PreparedEditRecipe.IsSet()&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&PreparedEditRecipe.GetValue(),&Input,0)?PreparedEdit:Evaluation.Prepare(Input,Error,Region.IsSet()?&Region.GetValue():nullptr);
+            PreparedEdit.Reset();PreparedEditRecipe.Reset();
+            if(!GuidesValid||!Prepared){Evaluation.Cancel();if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(false);}bPreviewInvalid=true;InspectorError=Status=!GuidesValid?GuideError:Error;}
+            else {Evaluation.Request(Input,Prepared);bPreviewInvalid=false;InspectorError.Reset();if(Globe){Globe->SetAuthoringValid(true);Globe->SetEvaluationPending(true);}PumpEvaluation();}
         }
+        else if(!Evaluation.IsBusy()&&AcceptedSurfacePlan&&!bPreviewInvalid)PublishPlan(AcceptedSurfacePlan);
+        RefreshAllUI(EditingAsset,false);
+    }
+    bool PrepareEdit(const FCLPlanetRecipe& R,FString& Error)
+    {
+        PreparedEdit=Evaluation.Prepare(R,Error);if(PreparedEdit)PreparedEditRecipe=R;else PreparedEditRecipe.Reset();return PreparedEdit.IsValid();
+    }
+    void PumpEvaluation()
+    {
+        if(auto R=Evaluation.Pump())
+        {
+            if(R->Serial!=Evaluation.Latest())return;
+            if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(R->Plan.IsValid());}
+            LastEvaluationSeconds=R->Seconds;LastEvaluationWasWorker=R->WorkerThread;
+            if(!R->Plan){bPreviewInvalid=true;InspectorError=Status=R->Error;return;}
+            bPreviewInvalid=false;InspectorError.Reset();PublishedEvaluation=R->Serial;AcceptedSurfacePlan=R->Plan;
+            MeasuredElevation=MoveTemp(R->Elevation);ElevationReadout=MoveTemp(R->ElevationReadout);MeasuredRockBeds=R->Beds;TargetRockBeds=MoveTemp(R->TargetBeds);
+            PublishPlan(R->Plan);
+        }
+    }
+    void PublishPlan(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)
+    {
+        auto* Asset=RecipeAsset();
         if(GenerationPanel)GenerationPanel->Refresh(Plan?Plan->GeneratedRegions:nullptr);
         if (Plan)
         {
@@ -1163,9 +1200,26 @@ public:
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
-        else { if (Preview) Preview->CancelPendingBuild(); if(Globe)Globe->Cancel(); Status = TEXT("Preview out of date: ") + Status; }
-        RefreshAllUI(EditingAsset, false);
     }
+    bool EvaluationUpdating()const{return Evaluation.IsBusy()||(!TerrainEditing&&bGlobe?Globe&&Globe->IsUpdating():Preview&&Preview->IsUpdating());}
+    FText EvaluationCaption()const
+    {
+        if(Evaluation.IsBusy())switch(Evaluation.Stage())
+        {
+        case ECLCompileStage::Preparing:return FText::FromString(TEXT("Preparing terrain…"));
+        case ECLCompileStage::Geology:return FText::FromString(TEXT("Building geology…"));
+        case ECLCompileStage::Elevation:return FText::FromString(TEXT("Calibrating terrain…"));
+        case ECLCompileStage::Drainage:return FText::FromString(TEXT("Building drainage…"));
+        default:return FText::FromString(TEXT("Finishing terrain…"));
+        }
+        return FText::FromString(TEXT("Updating preview…"));
+    }
+#if WITH_DEV_AUTOMATION_TESTS
+    void AwaitEvaluationForTesting()
+    {
+        const double Start=FPlatformTime::Seconds();while(Evaluation.IsBusy()&&FPlatformTime::Seconds()-Start<30){PumpEvaluation();FPlatformProcess::SleepNoStats(.001f);}
+    }
+#endif
     TSharedRef<SWidget> BuildViewport()
     {
         TSharedRef<SWidget> GlobeWidget = SNullWidget::NullWidget;
@@ -1177,10 +1231,14 @@ public:
         const auto Content=SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})]
                 + SOverlay::Slot()[GlobeWidget]
+                + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(12)
+                    [SNew(SBorder).BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder")).Padding(8).Visibility_Lambda([this]{return EvaluationUpdating()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+                        [SNew(SVerticalBox)+SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(this,&FCLRecipeToolkit::EvaluationCaption)]
+                            +SVerticalBox::Slot().AutoHeight().Padding(0,4,0,0)[SNew(SBox).WidthOverride(200)[SNew(SProgressBar).Percent(TOptional<float>())]]]]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession).Globe(Globe).UseGlobe_Lambda([this]{return !TerrainEditing&&bGlobe;})
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
                 + SOverlay::Slot().VAlign(VAlign_Top).Padding(12)[SNew(SBorder).Padding(10)
-                    .Visibility_Lambda([this] { return TerrainEditing && bPreviewInvalid ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+                    .Visibility_Lambda([this] { return bPreviewInvalid ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
                     .BorderBackgroundColor(FLinearColor(.12, .06, .025, .95))
                     [SNew(STextBlock).AutoWrapText(true).ColorAndOpacity(FLinearColor(1, .65, .3))
                         .Text_Lambda([this] { return FText::FromString(Status + TEXT("\nThe displayed terrain does not reflect the current layer settings.")); })]];
@@ -1190,6 +1248,7 @@ public:
     }
     void WalkHere()
     {
+        if(EvaluationUpdating()||bPreviewInvalid)return;
         if(!Globe||Globe->WalkLocation().IsNearlyZero()||!FCLPlanetInspection::Launch.IsBound())return;
         FCLPlanetInspectionRequest Request;FString Error;
         if(!RecipeAsset()->ExportJsonString(Request.RecipeJson,Error)){WalkStatus=Error;InspectorError=Error;return;}
@@ -1234,7 +1293,7 @@ public:
     bool CommitRock(FCLRockLayer Layer)
     {
         auto* A=RecipeAsset();auto R=LayeredRecipe();R.Rock=MoveTemp(Layer);R.SchemaVersion=FMath::Max(R.SchemaVersion,20);if(R.Rock.bEnabled&&!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();FString Error;
-        if(!FCLPlanetCompiler::Compile(R,Error)){InspectorError=Status=Error;return false;}
+        if(!PrepareEdit(R,Error)){InspectorError=Status=Error;return false;}
         InspectorError.Reset();TUniquePtr<FScopedTransaction> Tx;if(!RockTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change rock character")));
         A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();return true;
     }
@@ -1275,7 +1334,7 @@ public:
     bool CommitWatershed(FCLWatershedSettings Layer)
     {
         auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.SchemaVersion=22;R.AlgorithmVersion=2;R.Watershed=MoveTemp(Layer);FString Error;
-        if(!FCLPlanetCompiler::Compile(R,Error)){InspectorError=Status=Error;return false;}
+        if(!PrepareEdit(R,Error)){InspectorError=Status=Error;return false;}
         TUniquePtr<FScopedTransaction> Tx;if(!WatershedTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change watershed character")));
         auto* A=RecipeAsset();A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();InspectorError.Reset();return true;
     }
@@ -1315,7 +1374,7 @@ public:
     FCLSurfaceDistributionSettings ElevationSettings()const {return RecipeAsset()->Recipe.ElevationDistribution;}
     bool CommitSurfaceRecipe(FCLPlanetRecipe R)
     {
-        FString Error;if(!FCLPlanetCompiler::Compile(R,Error)){InspectorError=Status=Error;return false;}
+        FString Error;if(!PrepareEdit(R,Error)){InspectorError=Status=Error;return false;}
         TUniquePtr<FScopedTransaction> Tx;if(!SurfaceTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change surface character")));
         auto* A=RecipeAsset();A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();InspectorError.Reset();return true;
     }
@@ -1346,21 +1405,6 @@ public:
         if(!bElevationDragging)return;PumpSurface(true);bElevationDragging=false;
         FTSTicker::GetCoreTicker().RemoveTicker(SurfaceTicker);SurfaceTicker.Reset();SurfaceTransaction.Reset();
         if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
-    }
-    void MeasureElevation(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)
-    {
-        MeasuredElevation.Reset();ElevationReadout=TEXT("Enable distribution to measure area fractions");if(!Plan||!Plan->SurfaceRange||RecipeAsset()->Recipe.SchemaVersion<21)return;
-        TArray<FVector> D;
-        for(int32 I=0;I<8192;++I)
-        {
-            const double Z=1-2*(I+.5)/8192,A=(I+.719)*2.399963229728653;
-            const FVector V(FMath::Cos(A)*FMath::Sqrt(1-Z*Z),FMath::Sin(A)*FMath::Sqrt(1-Z*Z),Z);
-            D.Add(V);
-        }
-        TArray<double> H;Plan->SampleHeightsMeters(D,H);const auto& Range=*Plan->SurfaceRange;for(auto& V:H)V=FMath::Clamp((V-Range.TargetMin)/(Range.TargetMax-Range.TargetMin),0.,1.);H.Sort();
-        const auto P=ElevationSettings();int32 Low=0,High=0;for(double V:H){Low+=V<=P.EndBandHeightPercent/100;High+=V>=1-P.EndBandHeightPercent/100;}
-        MeasuredElevation.Add({0,0});for(int32 I=0;I<=128;++I){const int32 K=FMath::Min(H.Num()-1,I*(H.Num()-1)/128);MeasuredElevation.Add({H[K],double(K+1)/H.Num()});}MeasuredElevation.Add({1,1});
-        ElevationReadout=FString::Printf(TEXT("Measured area · low %.1f%% · high %.1f%% · median %.0f%% height"),100.*Low/H.Num(),100.*High/H.Num(),100*H[H.Num()/2]);
     }
     void BuildSurfaceInspector(IDetailCategoryBuilder& E)
     {
@@ -1474,7 +1518,7 @@ public:
             InspectorRow(C,TEXT("Transform"),Modes);
             InspectorRow(C,TEXT("Source"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return Globe&&!Globe->Selection().bStructure&&RecipeAsset()->LandformSources.Contains(Globe->Selection().Id);})
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Edit"))).OnClicked_Lambda([this]{if(auto* Source=RecipeAsset()->LandformSources.Find(Globe->Selection().Id))CLOpenTerrainDesigner(Source->Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);return FReply::Handled();})]);
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);});return FReply::Handled();})]);
             InspectorRow(C,TEXT("Landform"),SNew(SButton).Text(FText::FromString(TEXT("Remove")))
                 .IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
                 .OnClicked_Lambda([this]{const auto Id=Globe->Selection().Id;const FScopedTransaction Tx(FText::FromString(TEXT("Remove Landform")));auto* A=RecipeAsset();A->Modify();A->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});A->LandformSources.Remove(Id);Globe->Select({});A->MarkPackageDirty();A->PostEditChange();return FReply::Handled();}));
@@ -1531,7 +1575,7 @@ public:
             InspectorRow(S,TEXT("Pick location"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsWalkPicking()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(!bGlobe&&!RecipeAsset()->Recipe.Volumes.bEnabled){bGlobe=true;Refresh();}if(Globe)Globe->SetWalkPicking(V==ECheckBoxState::Checked);if(Preview)Preview->bWalkPicking=V==ECheckBoxState::Checked;}));
             InspectorRow(S,TEXT("Walk"),SNew(SButton).Text(FText::FromString(TEXT("Walk here")))
-                .IsEnabled_Lambda([this]{return (bGlobe||RecipeAsset()->Recipe.Volumes.bEnabled)&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
+                .IsEnabled_Lambda([this]{return !EvaluationUpdating()&&!bPreviewInvalid&&(bGlobe||RecipeAsset()->Recipe.Volumes.bEnabled)&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
                 .OnClicked_Lambda([this]{WalkHere();return FReply::Handled();}));
         }
     }
@@ -1696,6 +1740,7 @@ class FCLDesignerModule : public IModuleInterface
 public:
     virtual void StartupModule() override
     {
+        FCLRecipeEvaluation::Startup();
         CLRegisterGlobePlacementMode();
         Command = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.Designer"), TEXT("Open a terrain definition; selected planet supplies preview guides only"), FConsoleCommandDelegate::CreateStatic(&OpenLandformDesigner));
         PlanetCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.PlanetRecipe"), TEXT("Open selected planet recipe or rolling-plains recipe"), FConsoleCommandDelegate::CreateStatic(&OpenPlanetRecipe));
@@ -1720,7 +1765,7 @@ public:
         }));
     }
     virtual void ShutdownModule() override
-    { CLUnregisterGlobePlacementMode(); Command.Reset(); TerrainCommand.Reset(); PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
+    { FCLRecipeEvaluation::Shutdown(); CLUnregisterGlobePlacementMode(); Command.Reset(); TerrainCommand.Reset(); PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
 };
 }
 
@@ -1827,7 +1872,7 @@ bool FCLTerrainWorkspaceTest::RunTest(const FString&)
     const auto BeforePlanet = Planet->Recipe;
     const auto* SharedCatalog = LoadObject<UCLRadialGuideLibraryAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_StrataLibrary.DA_StrataLibrary"));
     const auto BeforeCatalog = SharedCatalog ? SharedCatalog->Library : FCLRadialGuideLibrary(); const bool CatalogDirty = SharedCatalog && SharedCatalog->GetOutermost()->IsDirty();
-    auto Editor = MakeShared<FCLRecipeToolkit>(); Editor->OpenTerrain(Terrain.Get(), &Planet->Recipe.RadialGuides, EToolkitMode::Standalone, nullptr);
+    auto Editor = MakeShared<FCLRecipeToolkit>(); Editor->OpenTerrain(Terrain.Get(), &Planet->Recipe.RadialGuides, EToolkitMode::Standalone, nullptr);Editor->AwaitEvaluationForTesting();
     const auto Layers = Editor->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLNoiseLayers")));
     const auto Section = Editor->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLRecipeSection")));
     TestTrue(TEXT("Layer stack and cross-section are in the same editor"), Layers.IsValid() && Section.IsValid());
@@ -2028,7 +2073,7 @@ bool FCLTectonicAdvancedTest::RunTest(const FString&)
 {
     const auto Package=CreatePackage(*(TEXT("/Temp/CLAdvanced_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));Asset->Recipe=FCLPlanetCompiler::TectonicBase();
-    const auto Original=Asset->Recipe;const auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset.Get(),EToolkitMode::Standalone,nullptr);
+    const auto Original=Asset->Recipe;const auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset.Get(),EToolkitMode::Standalone,nullptr);Editor->AwaitEvaluationForTesting();
     Editor->Globe->Cancel();const uint64 Builds=Editor->Globe->PublishedBuilds();
     TestNotNull(TEXT("Native Advanced category is available"),Editor->TectonicAdvanced);Editor->PlanetInspectors[1]->SetRootExpansionStates(true,false);
     TestTrue(TEXT("Revealing Advanced keeps the Planet tab foreground"),Editor->GetTabManager()->FindExistingLiveTab(FCLRecipeToolkit::PlanetTab)->IsForeground());
@@ -2058,7 +2103,7 @@ bool FCLPlanetInspectorTest::RunTest(const FString&)
 {
     const auto Package=CreatePackage(*(TEXT("/Temp/CLInspector_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));Asset->Recipe=FCLPlanetCompiler::ContinentalBase();
-    const auto Original=Asset->Recipe;const auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset.Get(),EToolkitMode::Standalone,nullptr);
+    const auto Original=Asset->Recipe;const auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset.Get(),EToolkitMode::Standalone,nullptr);Editor->AwaitEvaluationForTesting();
     TestTrue(TEXT("Opening the new inspector preserves the saved recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Asset->Recipe,0));
     TestEqual(TEXT("Workflow has five native Details views"),Editor->PlanetInspectors.Num(),5);
     TestTrue(TEXT("Both layer controls coexist in Geology"),Editor->ContinentalSlider.IsValid()&&Editor->TectonicSlider.IsValid()&&Editor->InspectorPage==1);
@@ -2101,7 +2146,7 @@ bool FCLTectonicLiveKnobTest::RunTest(const FString& Parameters)
     FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
     if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples")/(Parameters!=TEXT("Tectonic")?TEXT("ContinentalBase.json"):TEXT("TectonicBase.json"))))||!Asset->ImportRecipeJson(Json,Error)){AddError(TEXT("Cannot load owned slider recipe: ")+Error);return false;}
     const bool Crust=Parameters==TEXT("ContinentalLayer");if(Crust){Asset->Recipe.SeparateGeologyLayers();Asset->Recipe.Continents.Strength=.55;}Asset->Recipe.Tectonics.Activity=.55;
-    auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset,EToolkitMode::Standalone,nullptr);Editor->GetTabManager()->TryInvokeTab(FName(TEXT("CLPlanetControls")));
+    auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset,EToolkitMode::Standalone,nullptr);Editor->AwaitEvaluationForTesting();Editor->GetTabManager()->TryInvokeTab(FName(TEXT("CLPlanetControls")));
     ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,Editor,Owned,Crust]
     {
         auto& App=FSlateApplication::Get();App.ReleaseAllPointerCapture();FWidgetPath Actual;App.GeneratePathToWidgetUnchecked((Crust?Editor->ContinentalSlider:Editor->TectonicSlider).ToSharedRef(),Actual,EVisibility::All);
@@ -2366,7 +2411,7 @@ bool FCLRockDesignerTest::RunTest(const FString&)
 {
     auto* Package=CreatePackage(*(TEXT("/Temp/CLRockControls_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));A->Recipe=FCLPlanetCompiler::ContinentalBase();const auto Original=A->Recipe;
-    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->AwaitEvaluationForTesting();
     TestTrue(TEXT("Rock joins the existing Geology controls"),E->RockSlider.IsValid()&&!E->RockAdvancedProperties.IsEmpty()&&E->RockVariation.IsValid());
     auto Layer=E->LayeredRecipe().Rock;Layer.bEnabled=true;TestTrue(TEXT("Explicit enable resolves the versioned native material profile"),E->CommitRock(Layer));const auto Before=A->Recipe;
     E->BeginRockDrag();E->PendingRock=.3;E->PumpRock(true);E->PendingRock=.85;E->PumpRock(true);TestTrue(TEXT("The held gesture supplies the latest geological structure"),E->bRockDragging&&E->Globe->IsDraftMode()&&A->Recipe.Rock.Character==.85);E->EndRockDrag();const auto After=A->Recipe;TestEqual(TEXT("A new Character gesture adopts material-aware folding explicitly"),After.Rock.AlgorithmVersion,5);
@@ -2462,13 +2507,75 @@ bool FCLRockRenderedTest::RunTest(const FString&)
 
 namespace
 {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLBackgroundDesignerTest,"Catalyst.Landform.Background.ResponsiveDesigner",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLBackgroundDesignerTest::RunTest(const FString&)
+{
+    FString J,Error;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/WatershedContinental.json")));
+    auto* Package=CreatePackage(*(TEXT("/Temp/CLBackground_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
+    class FReview final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedPtr<FCLRecipeToolkit> Editor;TWeakPtr<FCLRecipeToolkit> ClosedEditor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;TSharedPtr<const FCLCompiledPlanetRecipe> Previous;FCLPlanetRecipe Before;int32 Step=0,Heartbeats=0;double Started=FPlatformTime::Seconds(),MaxInputMs=0;uint32 InitialTasks=0;bool Captured=false;
+        bool Capture(const TCHAR* Name)
+        {
+            const auto Tab=Editor->GetTabManager()->FindExistingLiveTab(FCLRecipeToolkit::SectionTab);if(!Tab)return false;TArray<FColor> Pixels;FIntVector Size;if(!FSlateApplication::Get().TakeScreenshot(Tab->GetContent(),Pixels,Size))return false;
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/background");IFileManager::Get().MakeDirectory(*Dir,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);return FFileHelper::SaveArrayToFile(PNG,*(Dir/(FString(Name)+TEXT(".png"))));
+        }
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A):Test(T),Editor(E),Asset(A){}
+        bool Update()override
+        {
+            auto Close=[&]{Asset->GetOutermost()->SetDirtyFlag(false);if(Editor)Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);Editor.Reset();return true;};
+            if(Step==5)
+            {
+                if(FCLRecipeEvaluation::OutstandingTasks()>0&&FPlatformTime::Seconds()-Started<120)return false;
+                Test->TestEqual(TEXT("Closed editor leaves no native evaluation task"),FCLRecipeEvaluation::OutstandingTasks(),0);Test->TestFalse(TEXT("Worker does not retain its closed toolkit"),ClosedEditor.IsValid());return true;
+            }
+            if(FPlatformTime::Seconds()-Started>120){Test->AddError(TEXT("Background editor proof timed out"));return Close();}
+            if(Editor->Evaluation.IsBusy())++Heartbeats;
+            if(Step==0)
+            {
+                if(Editor->EvaluationUpdating())return false;if(!Editor->AcceptedSurfacePlan){Test->AddError(Editor->Status);return Close();}Previous=Editor->AcceptedSurfacePlan;Before=Asset->Recipe;InitialTasks=Editor->Evaluation.Started;
+                Editor->BeginWatershedDrag();for(int32 I=0;I<12;++I){const double T=FPlatformTime::Seconds();Editor->PendingWatershed=.1+.8*I/11;Editor->PumpWatershed(true);MaxInputMs=FMath::Max(MaxInputMs,(FPlatformTime::Seconds()-T)*1000);}Editor->EndWatershedDrag();
+                Test->TestTrue(TEXT("Input returns with evaluation still in flight"),Editor->Evaluation.IsBusy());Test->TestFalse(TEXT("Pending evaluation blocks terrain picking"),Editor->Globe->CanPick());Test->TestTrue(TEXT("Previous terrain stays accepted while deriving newer settings"),Editor->AcceptedSurfacePlan==Previous);Step=1;return false;
+            }
+            if(Step==1)
+            {
+                if(Editor->Evaluation.IsBusy()){if(!Captured){Test->TestTrue(TEXT("Preview progress is visible while evaluation runs"),!Editor->EvaluationCaption().IsEmpty());Captured=Capture(TEXT("updating"));}return false;}
+                Test->TestTrue(TEXT("Only latest requested recipe is published"),Editor->AcceptedSurfacePlan&&Editor->AcceptedSurfacePlan->SourceRecipe&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Asset->Recipe,Editor->AcceptedSurfacePlan->SourceRecipe.Get(),0));
+                Test->TestTrue(TEXT("Actual derived work runs off the UI thread"),Editor->LastEvaluationWasWorker);Test->TestTrue(TEXT("Pending work is coalesced, not one task per setting"),Editor->Evaluation.Started-InitialTasks<12);Test->TestTrue(TEXT("Superseded completion is discarded"),Editor->Evaluation.Discarded>0);
+                Test->TestTrue(TEXT("UI heartbeat continues during evaluation"),Heartbeats>1);Test->TestTrue(TEXT("Warm setting input stays below 100 ms in this bounded profile"),MaxInputMs<100);
+                Previous=Editor->AcceptedSurfacePlan;Editor->BeginWatershedDrag();Editor->PendingWatershed=.25;Editor->PumpWatershed(true);Editor->PendingWatershed=.75;Editor->PumpWatershed(true);Editor->EndWatershedDrag();GEditor->UndoTransaction();Step=2;return false;
+            }
+            if(Step==2)
+            {
+                if(Editor->EvaluationUpdating())return false;Test->TestTrue(TEXT("Undo during pending work fences all superseded results"),Editor->AcceptedSurfacePlan&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Asset->Recipe,Editor->AcceptedSurfacePlan->SourceRecipe.Get(),0));
+                Previous=Editor->AcceptedSurfacePlan;auto Bad=Asset->Recipe;Bad.Watershed.bEnabled=false;Bad.Rock.bEnabled=false;Bad.Continents.bEnabled=false;Bad.Tectonics.bEnabled=false;Bad.NoiseLayers.Reset();Bad.BaseStructure.Reset();Bad.TerrainRegions.Reset();Bad.RegionGeneration=FCLRegionGenerationSettings();Bad.ElevationDistribution.bEnabled=true;
+                Test->TestTrue(TEXT("Native authoring accepts structurally valid input for deferred evaluation"),Editor->CommitSurfaceRecipe(Bad));Step=3;return false;
+            }
+            if(Step==3)
+            {
+                if(Editor->Evaluation.IsBusy())return false;Test->TestTrue(TEXT("Derived failure is reported without destroying accepted terrain"),Editor->bPreviewInvalid&&!Editor->InspectorError.IsEmpty()&&Editor->AcceptedSurfacePlan==Previous);Test->TestTrue(TEXT("Failed authoring state remains editable"),Asset->Recipe.ElevationDistribution.bEnabled&&Asset->Recipe.NoiseLayers.IsEmpty());Test->TestFalse(TEXT("Derived failure blocks picking stale terrain"),Editor->Globe->CanPick());Capture(TEXT("failed-retained"));GEditor->UndoTransaction();Step=4;return false;
+            }
+            if(Step==4)
+            {
+                if(Editor->EvaluationUpdating())return false;Test->TestFalse(TEXT("Undo recovers the accepted native preview"),Editor->bPreviewInvalid);Capture(TEXT("ready"));
+                FString Metrics=FString::Printf(TEXT("{\"heartbeats\":%d,\"maxInputMs\":%.6f,\"maxPreparationMs\":%.6f,\"tasksStarted\":%u,\"discarded\":%u,\"workerThread\":%s,\"progressCaptured\":%s}\n"),Heartbeats,MaxInputMs,Editor->Evaluation.MaximumPreparationMs,Editor->Evaluation.Started,Editor->Evaluation.Discarded,Editor->LastEvaluationWasWorker?TEXT("true"):TEXT("false"),Captured?TEXT("true"):TEXT("false"));
+                const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/background");IFileManager::Get().MakeDirectory(*Dir,true);FFileHelper::SaveStringToFile(Metrics,*(Dir/TEXT("responsive.json")));
+                auto L=Asset->Recipe.Watershed;L.ApplyProgression(.4);Editor->CommitWatershed(L);Test->TestTrue(TEXT("Closing test has work in flight"),Editor->Evaluation.IsBusy());ClosedEditor=Editor;Close();Step=5;return false;
+            }
+            return false;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get()));return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLAuthoringLayoutTest,"Catalyst.Landform.Designer.AuthoringBoundaries",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLAuthoringLayoutTest::RunTest(const FString&)
 {
     FString J,Error;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/WatershedContinental.json")));
     auto* Package=CreatePackage(*(TEXT("/Temp/CLAuthoringLayout_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}
-    const auto Original=A->Recipe;auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->Globe->Cancel();E->PlanetInspectors[1]->SetRootExpansionStates(false,false);
+    const auto Original=A->Recipe;auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->AwaitEvaluationForTesting();E->Globe->Cancel();E->PlanetInspectors[1]->SetRootExpansionStates(false,false);
     TestTrue(TEXT("Opening the corrected editor never rewrites the saved planet"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
     for(int32 I=0;I<4;++I)
     {
@@ -2546,14 +2653,14 @@ bool FCLWatershedDesignerTest::RunTest(const FString&)
     FString J,Error;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/Watershed.json")));
     auto* Package=CreatePackage(*(TEXT("/Temp/CLWatershedDesigner_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}
-    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->AwaitEvaluationForTesting();
     TestTrue(TEXT("Watershed joins native Geology with direct Advanced properties"),E->InspectorPage==1&&E->WatershedSlider&&!E->WatershedProperties.IsEmpty());
     const auto Before=A->Recipe;E->BeginWatershedDrag();E->PendingWatershed=.2;E->PumpWatershed(true);E->PendingWatershed=.8;E->PumpWatershed(true);E->EndWatershedDrag();const auto After=A->Recipe;
     TestEqual(TEXT("The held gesture publishes the final character"),A->Recipe.Watershed.Character,.8);GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete watershed gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));GEditor->RedoTransaction();TestTrue(TEXT("Redo restores the complete accepted watershed recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&After,&A->Recipe,0));
     const auto H=*E->WatershedProperties.FindByPredicate([](const auto& V){return V->GetProperty()->GetFName()==TEXT("IncisionMeters");});TestEqual(TEXT("Native direct incision edit succeeds"),H->SetValue(5.),FPropertyAccess::Success);TestEqual(TEXT("Advanced edits reach the canonical recipe"),A->Recipe.Watershed.IncisionMeters,5.);
     GEditor->UndoTransaction();TestEqual(TEXT("One Undo restores the direct edit"),A->Recipe.Watershed.IncisionMeters,After.Watershed.IncisionMeters);
     auto Bad=A->Recipe.Watershed;Bad.MaximumCells=1026;TestFalse(TEXT("Rejected work budget retains the accepted asset"),E->CommitWatershed(Bad));TestEqual(TEXT("Budget failure leaves the previous cell limit"),A->Recipe.Watershed.MaximumCells,After.Watershed.MaximumCells);
-    auto Elevation=A->Recipe.ElevationDistribution;Elevation.ApplyProgression(.55);TestTrue(TEXT("Elevation edits recompile downstream watersheds"),E->CommitElevation(Elevation));TestEqual(TEXT("Elevation edits preserve schema 22"),A->Recipe.SchemaVersion,22);TestTrue(TEXT("The accepted graph is retained after upstream edits"),E->AcceptedSurfacePlan&&E->AcceptedSurfacePlan->Watershed);
+    auto Elevation=A->Recipe.ElevationDistribution;Elevation.ApplyProgression(.55);TestTrue(TEXT("Elevation edits recompile downstream watersheds"),E->CommitElevation(Elevation));TestEqual(TEXT("Elevation edits preserve schema 22"),A->Recipe.SchemaVersion,22);E->AwaitEvaluationForTesting();TestTrue(TEXT("The accepted graph is retained after upstream edits"),E->AcceptedSurfacePlan&&E->AcceptedSurfacePlan->Watershed);
     class FFrame final:public IAutomationLatentCommand
     {
         FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;double Start=FPlatformTime::Seconds();
@@ -2601,7 +2708,7 @@ bool FCLSurfaceDesignerTest::RunTest(const FString&)
     FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/SurfaceScale10.json")));
     const auto Package=CreatePackage(*(TEXT("/Temp/CLSurfaceDesigner_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));if(!A->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
-    const auto Original=A->Recipe;const auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=0;E->Globe->Cancel();
+    const auto Original=A->Recipe;const auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->AwaitEvaluationForTesting();E->InspectorPage=0;E->Globe->Cancel();
     TestTrue(TEXT("Surface distribution is available on the native Planet inspector"),E->ElevationSlider.IsValid());
     TestTrue(TEXT("Opening preserves the saved recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
     E->BeginSurfaceDrag();E->PendingElevation=.25;E->PumpSurface(true);E->PendingElevation=.75;E->PumpSurface(true);E->EndSurfaceDrag();const auto After=A->Recipe;
@@ -2612,7 +2719,7 @@ bool FCLSurfaceDesignerTest::RunTest(const FString&)
     GEditor->UndoTransaction();TestEqual(TEXT("One Undo restores only the tail edit"),A->Recipe.ElevationDistribution.HighEndAreaPercent,1.);
     auto& Draft=*reinterpret_cast<FCLSurfaceDistributionSettings*>(E->ElevationDraft->GetStructMemory());Draft.HighEndAreaPercent=0;FPropertyChangedEvent Bad(FCLSurfaceDistributionSettings::StaticStruct()->FindPropertyByName(TEXT("HighEndAreaPercent")),EPropertyChangeType::ValueSet);E->PlanetInspectors[0]->OnFinishedChangingProperties().Broadcast(Bad);
     TestEqual(TEXT("Invalid native draft retains the accepted area target"),A->Recipe.ElevationDistribution.HighEndAreaPercent,1.);TestEqual(TEXT("Invalid draft rolls back"),Draft.HighEndAreaPercent,1.);
-    TestTrue(TEXT("Measured curve remains available for Preview inspection"),E->MeasuredElevation.Num()>100&&E->ElevationReadout.Contains(TEXT("Measured area")));
+    E->AwaitEvaluationForTesting();TestTrue(TEXT("Measured curve remains available for Preview inspection"),E->MeasuredElevation.Num()>100&&E->ElevationReadout.Contains(TEXT("Measured area")));
     auto Regional=A->Recipe;FCLTerrainRegion Region;Region.Id=FGuid(7,8,9,10);Region.Name=TEXT("Disposable elevation region");Region.bSphericalMask=true;Region.SphericalMask.Shape=ECLTerrainRegionShape::HalfPlane;Region.SphericalMask.TransitionMeters=120;Region.TerrainTypeId=FGuid(8,9,10,11);Region.TerrainTypeName=TEXT("Metric snapshot");Region.NoiseLayers=Regional.NoiseLayers;Region.SurfaceStack=Regional.SurfaceStack;Region.ElevationDistribution.bEnabled=true;Region.ElevationDistribution.HighEndAreaPercent=3;Regional.TerrainRegions={Region};
     TestTrue(TEXT("Regional overrides remain in their owning region"),E->CommitSurfaceRecipe(Regional));auto Global=E->ElevationSettings();Global.HighEndAreaPercent=4;TestTrue(TEXT("Planet surface distribution remains whole-planet scoped"),E->CommitElevation(Global));TestEqual(TEXT("Planet edits leave regional distribution unchanged"),A->Recipe.TerrainRegions[0].ElevationDistribution.HighEndAreaPercent,3.);
     E->PlanetInspectors[2]->ForceRefresh(); // the array was authored after opening this native view

@@ -38,7 +38,13 @@ surface-area and rock-thickness plots live under Preview Advanced. Numeric
 watershed qualification records remain in conformance artifacts. VPP rendering
 LOD is independent of all Character/physical-feature controls and is unchanged.
 
-This is an editor-only correction: no new geological producer, recipe migration,
+[Background evaluation](BackgroundEvaluation.md) now keeps derived field work off
+the UI thread, with stage progress in Preview and the last successful terrain
+retained during edits. Native Undo fences superseded work. Derived errors leave
+the authored settings editable and label the displayed terrain as stale; native
+input errors still reject before mutation.
+
+The geology-row layout change is an editor-only correction: no new geological producer, recipe migration,
 asset regeneration or runtime generation/streaming change. The [native UI record](../conformance/GeologyRows/qualification-mac-arm64.json)
 records actual collapsed/expanded views, tab ownership, shared four-layer layout,
 Undo, region/global isolation and preserved inputs. Domain and cooked qualifications

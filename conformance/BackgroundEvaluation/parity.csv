@@ -1,0 +1,11 @@
+profile,preparation_ms,reused_preparation_ms,completion_seconds,max_height_error_m
+Watershed,0.087209,0.021622,0.282606,0
+WatershedContinental,1.121875,0.023957,0.717332,0
+WatershedExcavation,0.329375,0.026122,0.831252,0
+SurfaceScale10,5.150959,0.013750,0.026596,0
+SurfaceScaleRegional,0.084419,0.019625,0.016476,0
+GeneratedRegions,143.697914,0.021417,0.018638,0
+RockBedsExcavation,0.292666,0.021961,0.156429,0
+SurfaceScale10Face,0.013750,0.015378,0.000467,0
+LocalPatch,12.749746,0.013541,0.000004,0
+Mars,531.700585,0.024457,0.000008,0

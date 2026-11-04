@@ -20,6 +20,7 @@ public:
     bool Enable(int32 Index, bool bEnabled);
     void Reconcile();
     void SetSolo(int32 Index);
+    bool PreviewRecipe(FCLPlanetRecipe& Recipe,FBox2D& Region,FString& Error,double WidthMeters=500)const;
     TSharedPtr<const FCLCompiledPlanetRecipe> CompilePreview(FString& OutError, double WidthMeters = 500) const;
 private:
     FName SoloName;

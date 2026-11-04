@@ -16,7 +16,7 @@
 bool SCLRegionGenerationPanel::Commit(FCLRegionGenerationSettings Settings,const FText& Description,TFunction<void()> EditLinks)
 {
     auto Candidate=Asset->Recipe;Candidate.SchemaVersion=FMath::Max(12,Candidate.SchemaVersion);Candidate.RegionGeneration=MoveTemp(Settings);
-    Error.Reset();if(!FCLPlanetCompiler::Compile(Candidate,Error))return false;
+    Error.Reset();if(!FCLPlanetCompiler::PrepareBackground(Candidate,Error))return false;
     const FScopedTransaction Tx(Description);Asset->Modify();Asset->Recipe=MoveTemp(Candidate);if(EditLinks)EditLinks();Asset->PostEditChange();Asset->MarkPackageDirty();return true;
 }
 const FCLGeneratedRegionCell* SCLRegionGenerationPanel::Cell() const
@@ -84,7 +84,7 @@ void SCLRegionGenerationPanel::Refresh(TSharedPtr<const FCLCompiledRegionGenerat
                 +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Edit Landform"))).IsEnabled(Asset->PaletteSources.Contains(Id))
                     .OnClicked_Lambda([this,Id]{if(const auto* Source=Asset->PaletteSources.Find(Id))CLOpenTerrainDesigner(Source->Get(),&Asset->Recipe.RadialGuides);return FReply::Handled();})]
                 +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Refresh source"))).IsEnabled(Asset->PaletteSources.Contains(Id))
-                    .OnClicked_Lambda([this,Id]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh regional Landform")));Error.Reset();Asset->RefreshPaletteSource(Id,Error);return FReply::Handled();})]
+                    .OnClicked_Lambda([this,Id]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh regional Landform")));Error.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return Asset->RefreshPaletteSource(Id,Error);});return FReply::Handled();})]
                 +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Remove"))).OnClicked_Lambda([this,Id]
                     {auto S=Asset->Recipe.RegionGeneration;S.Palette.RemoveAll([&](const auto& P){return P.Id==Id;});S.Overrides.RemoveAll([&](const auto& O){return O.LandformId==Id;});if(!S.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled;}))S.bEnabled=false;Commit(S,FText::FromString(TEXT("Remove palette Landform")),[this,Id]{Asset->PaletteSources.Remove(Id);});return FReply::Handled();})]]]];
     }
@@ -101,7 +101,7 @@ TSharedRef<SWidget> SCLRegionGenerationPanel::PaletteMenu()
             if(!Weak.IsValid())return;
             const auto* Existing=Asset->Recipe.RegionGeneration.Palette.FindByPredicate([&](const auto& P){return P.Id==Id;});
             if(Existing){auto S=Asset->Recipe.RegionGeneration;S.Palette.RemoveAll([&](const auto& P){return P.Id==Id;});S.Overrides.RemoveAll([&](const auto& O){return O.LandformId==Id;});if(!S.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled;}))S.bEnabled=false;Commit(S,FText::FromString(TEXT("Remove palette Landform")),[this,Id]{Asset->PaletteSources.Remove(Id);});}
-            else {const FScopedTransaction Tx(FText::FromString(TEXT("Add regional Landform")));Error.Reset();Asset->AddPaletteSource(Weak.Get(),Error);}
+            else {const FScopedTransaction Tx(FText::FromString(TEXT("Add regional Landform")));Error.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return Asset->AddPaletteSource(Weak.Get(),Error);});}
         }),FCanExecuteAction(),FIsActionChecked::CreateLambda([this,Id]{return Asset->Recipe.RegionGeneration.Palette.ContainsByPredicate([&](const auto& P){return P.Id==Id;});})),NAME_None,EUserInterfaceActionType::Check);
     }
     return Menu.MakeWidget();

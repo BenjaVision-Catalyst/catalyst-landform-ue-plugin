@@ -314,9 +314,17 @@ private:
     void EvaluateHeightsMeters(TConstArrayView<FVector> Positions, TArray<double>& Heights, bool bLocal) const;
 };
 
+struct FCLPreparedPlanetCompile;
+struct FCLCompileProgress;
 class CATALYSTLANDFORM_API FCLPlanetCompiler
 {
 public:
+    /** Editor operations validate syntax/native inputs while derived fields remain deferred. */
+    static bool WithAuthoringValidation(TFunctionRef<bool()> Operation);
+    /** Resolve native client assets/PCG on the game thread; defer derived field work. */
+    static TSharedPtr<const FCLPreparedPlanetCompile> PrepareBackground(const FCLPlanetRecipe&,FString&,const FBox2D* LocalRegion=nullptr,int32 SurfacePatch=INDEX_NONE,const FCLPreparedPlanetCompile* Previous=nullptr);
+    /** Pure field completion over captured immutable plans. Called on a UE task worker. */
+    static TSharedPtr<const FCLCompiledPlanetRecipe> CompleteBackground(const FCLPreparedPlanetCompile&,const TSharedRef<FCLCompileProgress>&,FString&);
     /** Returns no plan on error; callers may retain their last successful plan. */
     static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE,UCLSurfaceLibraryAsset* SurfaceLibraryOverride=nullptr);
     static TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmapped(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* StampLibrary,const FBox2D* LocalRegion,int32 SurfacePatch,UCLSurfaceLibraryAsset* SurfaceLibraryOverride=nullptr);

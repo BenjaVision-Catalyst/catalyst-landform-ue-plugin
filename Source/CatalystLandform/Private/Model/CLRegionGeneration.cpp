@@ -1,3 +1,4 @@
+#include "Model/CLCompileProgress.h"
 #include "Model/CLRegionGeneration.h"
 #include "Model/CLTerrainType.h"
 #include "Model/CLSphericalPatches.h"
@@ -107,7 +108,7 @@ bool FCLCompiledRegionGeneration::ValidateSettings(const FCLRegionGenerationSett
     if(Settings.bEnabled&&!Settings.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled;}))return Fail(TEXT("Select at least one enabled Landform for generated regions"));
     return true;
 }
-TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compile(const FCLPlanetRecipe& Recipe,const FCLCompiledPlanetRecipe& Base,UCLStampLibraryAsset* Library,FString& Error)
+TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compile(const FCLPlanetRecipe& Recipe,const FCLCompiledPlanetRecipe& Base,UCLStampLibraryAsset* Library,FString& Error,const FCLCompiledRegionGeneration* NativeInputs)
 {
     auto Fail=[&](const FString& E)->TSharedPtr<const FCLCompiledRegionGeneration>{Error=E;return nullptr;};
     const auto& Settings=Recipe.RegionGeneration;
@@ -116,6 +117,18 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     for(const auto& Entry:Settings.Palette)if(Entry.bEnabled)Out->Palette.Add(Entry);
     Out->Palette.Sort([](const auto& A,const auto& B){return A.Id.ToString(EGuidFormats::Digits)<B.Id.ToString(EGuidFormats::Digits);});
     if(Out->Palette.IsEmpty())return Fail(TEXT("Select at least one enabled Landform for generated regions"));
+    if(FCLCompileProgress::IsPreparing())
+    {
+        // Resolve every possible native child on the game thread. An unused
+        // child's failure remains deferred, matching normal palette selection.
+        Out->Fields.SetNum(Out->Palette.Num());Out->FieldErrors.SetNum(Out->Palette.Num());
+        for(int32 P=0;P<Out->Palette.Num();++P)
+        {
+        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
+            Out->Fields[P]=FCLPlanetCompiler::Compile(Child,Out->FieldErrors[P],Library);
+        }
+        return Out;
+    }
     const uint32 Seed=MixRegion(uint32(Recipe.Seed))^MixRegion(uint32(Settings.Seed));
     const double U=RandomRegion(Seed),A=2*UE_DOUBLE_PI*RandomRegion(Seed+1),B=2*UE_DOUBLE_PI*RandomRegion(Seed+2);
     const FQuat Rotation(FMath::Sqrt(1-U)*FMath::Sin(A),FMath::Sqrt(1-U)*FMath::Cos(A),FMath::Sqrt(U)*FMath::Sin(B),FMath::Sqrt(U)*FMath::Cos(B));
@@ -131,6 +144,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     int32 Next=int32(MixRegion(Seed+3)%uint32(PoolCount));
     for(int32 I=0;I<Settings.RegionCount;++I)
     {
+        if(!FCLCompileProgress::Check(Error))return nullptr;
         FCLGeneratedRegionCell Cell;Cell.Id=CellId(Settings.Seed,I);Cell.Centre=Pool[Next];Cell.StructureSignature=Out->Signature(Cell.Centre);Cell.Uplift=Cell.StructureSignature.X;Cell.Basin=Cell.StructureSignature.Y;
         const double Influence=FMath::Max3(Cell.StructureSignature.X,Cell.StructureSignature.Y,Cell.StructureSignature.Z);Cell.StructuralEdge=4*Influence*(1-Influence);
         FVector Axis=FVector::VectorPlaneProject(FVector::XAxisVector,Cell.Centre).GetSafeNormal();if(Axis.IsNearlyZero())Axis=FVector::YAxisVector;
@@ -155,6 +169,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
         constexpr int32 Batch=512;constexpr double Step=.001;
         for(int32 Start=0;Start<Count;Start+=Batch)
         {
+            if(!FCLCompileProgress::Check(Error))return nullptr;
             const int32 N=FMath::Min(Batch,Count-Start);TArray<FVector> D;
             for(int32 J=0;J<N;++J)
             {
@@ -252,6 +267,11 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     Out->Fields.SetNum(Out->Palette.Num());
     for(int32 P=0;P<Out->Palette.Num();++P)if(Out->Cells.ContainsByPredicate([&](const auto& C){return C.PaletteIndex==P;}))
     {
+        if(NativeInputs)
+        {
+            if(!NativeInputs->Fields.IsValidIndex(P)||!NativeInputs->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+(NativeInputs->FieldErrors.IsValidIndex(P)?NativeInputs->FieldErrors[P]:TEXT("Native palette snapshot is missing")));
+            Out->Fields[P]=NativeInputs->Fields[P];continue;
+        }
         auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
         Out->Fields[P]=FCLPlanetCompiler::Compile(Child,Error,Library);if(!Out->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+Error);
     }
@@ -281,6 +301,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     };
     for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<Grid;++Y)for(int32 X=0;X<Grid;++X)
     {
+        if(X==0&&!FCLCompileProgress::Check(Error))return nullptr;
         FVector D[4]={FCLSphericalPatches::Direction(Face,FVector2D(2.*X/Grid-1,2.*Y/Grid-1)),FCLSphericalPatches::Direction(Face,FVector2D(2.*(X+1)/Grid-1,2.*Y/Grid-1)),FCLSphericalPatches::Direction(Face,FVector2D(2.*(X+1)/Grid-1,2.*(Y+1)/Grid-1)),FCLSphericalPatches::Direction(Face,FVector2D(2.*X/Grid-1,2.*(Y+1)/Grid-1))};
         int32 O[4];for(int32 K=0;K<4;++K)O[K]=Out->Owner(D[K]);TArray<FVector,TInlineAllocator<4>> Cross;TArray<TPair<int32,int32>,TInlineAllocator<4>> Pair;
         for(int32 K=0;K<4;++K){const int32 J=(K+1)%4;if(O[K]!=O[J]){Cross.Add(Edge(D[K],D[J],O[K],O[J]));Pair.Emplace(O[K],O[J]);}}

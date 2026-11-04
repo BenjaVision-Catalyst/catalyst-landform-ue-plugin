@@ -110,9 +110,9 @@ bool FCLTerrainEditing::Enable(int32 Index, bool bEnabled)
     Layers[Index].bEnabled = bEnabled;
     return Commit(MoveTemp(Layers), Selected, Solo, NSLOCTEXT("CL", "EnableNoise", "Enable noise layer"));
 }
-TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError, double WidthMeters) const
+bool FCLTerrainEditing::PreviewRecipe(FCLPlanetRecipe& Recipe,FBox2D& Region,FString& OutError,double WidthMeters) const
 {
-    FCLPlanetRecipe Recipe = Context;Recipe.Watershed=FCLWatershedSettings();
+    Recipe = Context;Recipe.Watershed=FCLWatershedSettings();
     auto Visible = Asset->TerrainType;
     if (Visible.NoiseLayers.IsValidIndex(Solo) && Visible.NoiseLayers[Solo].bEnabled)
     {
@@ -140,7 +140,11 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FStr
         }
     }
     const double Half=FMath::Clamp(WidthMeters,100.,1000.)*.5;
-    const FBox2D Region(FVector2D(-Half),FVector2D(Half));
-    if (!Visible.ApplyTo(Recipe, OutError, &Region)) return nullptr;
-    return FCLPlanetCompiler::Compile(Recipe, OutError, nullptr, &Region);
+    Region=FBox2D(FVector2D(-Half),FVector2D(Half));
+    return FCLPlanetCompiler::WithAuthoringValidation([&]{return Visible.ApplyTo(Recipe,OutError,&Region);});
+}
+
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError,double Width)const
+{
+    FCLPlanetRecipe Recipe;FBox2D Region;if(!PreviewRecipe(Recipe,Region,OutError,Width))return nullptr;return FCLPlanetCompiler::Compile(Recipe,OutError,nullptr,&Region);
 }

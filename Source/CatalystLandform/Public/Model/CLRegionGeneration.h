@@ -36,6 +36,8 @@ public:
     TArray<FCLGeneratedRegionCell> Cells;
     TArray<FCLLandformPaletteEntry> Palette;
     TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> Fields;
+    /** Native child inputs captured before deferred regional characterization. */
+    TArray<FString> FieldErrors;
     TArray<FCLGeneratedRegionBoundary> Boundaries;
     TArray<FCLGeneratedRegionJunction> Junctions;
     TArray<FCLCompiledPlanetFeature> Structure;
@@ -47,7 +49,7 @@ public:
     void PaletteWeights(const FVector& Direction,TArray<double>& Weights) const;
     void Blend(TConstArrayView<FVector> Directions,TArray<double>& Heights) const;
     static bool ValidateSettings(const FCLRegionGenerationSettings& Settings,FString& Error);
-    static TSharedPtr<const FCLCompiledRegionGeneration> Compile(const FCLPlanetRecipe& Recipe,const FCLCompiledPlanetRecipe& Base,UCLStampLibraryAsset* Library,FString& Error);
+    static TSharedPtr<const FCLCompiledRegionGeneration> Compile(const FCLPlanetRecipe& Recipe,const FCLCompiledPlanetRecipe& Base,UCLStampLibraryAsset* Library,FString& Error,const FCLCompiledRegionGeneration* NativeInputs=nullptr);
 private:
     void Weights(const FVector& Direction,double* CellWeights,double* PaletteWeights) const;
 };

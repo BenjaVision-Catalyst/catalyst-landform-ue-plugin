@@ -1838,3 +1838,21 @@ The final native row qualification passes 27 checks without warnings, including
 three real pointer-drag cases, four eye-toggle/Undo cases, layer seed isolation,
 direct property expansion, regional isolation and watershed walking. All 184
 protected inputs remain unchanged; no assets or recipes were regenerated.
+
+
+## Background authoring checkpoint — 5 November 2026
+
+[Background evaluation](BackgroundEvaluation.md) separates native game-thread
+resource preparation from derived terrain evaluation on UE tasks. Planet Designer
+retains one running job and one latest pending recipe, fences superseded results,
+keeps native Undo responsive, and shows native stage progress over the last
+successful preview. Native VPP remains the sole generation/presentation platform;
+no custom streaming or mesh owner was introduced. Synchronous runtime compilation
+and recipe/geology versions remain unchanged.
+
+Preparation rejects structural/native-input errors before an edit. Derived-field
+errors retain the authored settings and explicitly label the displayed terrain
+as stale until corrected or undone. The [qualification](../conformance/BackgroundEvaluation/qualification-mac-arm64.json)
+records the actual native editor, parity, timing and cooked checks. Cold resource
+loads and arbitrary native PCG inputs remain outside its latency guarantee.
+Watershed-local variation remains the next separate task; multiplayer is excluded.

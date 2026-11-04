@@ -1,4 +1,5 @@
 #include "Model/CLWatershed.h"
+#include "Model/CLCompileProgress.h"
 #include "Model/CLPlanetRecipe.h"
 #include "DynamicMesh/DynamicMeshAABBTree3.h"
 using namespace UE::Geometry;
@@ -51,6 +52,7 @@ TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWa
     O->Triangles={FIntVector(4,0,2),FIntVector(4,2,1),FIntVector(4,1,3),FIntVector(4,3,0),FIntVector(5,2,0),FIntVector(5,1,2),FIntVector(5,3,1),FIntVector(5,0,3)};
     for(int32 L=0;L<Levels;++L)
     {
+        if(!FCLCompileProgress::Check(Error))return nullptr;
         TSet<uint64> Edges;for(const auto& F:O->Triangles)for(int32 K=0;K<3;++K)Edges.Add(EdgeKey(F[K],F[(K+1)%3]));
         auto Keys=Edges.Array();Keys.Sort();TMap<uint64,int32> Mid;
         for(uint64 K:Keys){const FVector D=(O->Cells[int32(K>>32)].Direction+O->Cells[int32(uint32(K))].Direction).GetSafeNormal();auto& C=O->Cells.Emplace_GetRef();C.Direction=D;Mid.Add(K,O->Cells.Num()-1);}
@@ -58,7 +60,7 @@ TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWa
         for(const auto& F:O->Triangles){const int32 A=Mid[EdgeKey(F.X,F.Y)],B=Mid[EdgeKey(F.Y,F.Z)],C=Mid[EdgeKey(F.Z,F.X)];Next.Append({FIntVector(F.X,A,C),FIntVector(A,F.Y,B),FIntVector(C,B,F.Z),FIntVector(A,B,C)});}O->Triangles=MoveTemp(Next);
     }
     TArray<FVector> Directions;for(const auto& C:O->Cells)Directions.Add(C.Direction);
-    TArray<double> Heights;Base.SampleHeightsMeters(Directions,Heights);
+    TArray<double> Heights;if(!FCLCompileProgress::Sample(Base,Directions,Heights,Error))return nullptr;
     int32 Lowest=0;
     for(int32 I=0;I<O->Cells.Num();++I)
     {
@@ -109,6 +111,7 @@ TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWa
     for(const auto& C:O->Channels)for(int32 I:{C.From,C.To})if(Distance[I]>0){Distance[I]=0;Queue.HeapPush({0,I},FQueueLess());}
     while(!Queue.IsEmpty())
     {
+        if(!FCLCompileProgress::Check(Error))return nullptr;
         FQueue Q;Queue.HeapPop(Q,FQueueLess(),EAllowShrinking::No);if(Q.Value!=Distance[Q.Id])continue;
         for(int32 J:O->Cells[Q.Id].Neighbours){const double V=Q.Value+O->ReferenceRadiusMeters*Arc(O->Cells[Q.Id].Direction,O->Cells[J].Direction)/((Width[Q.Id]+Width[J])*.5);if(V<1&&V<Distance[J]){Distance[J]=V;Queue.HeapPush({V,J},FQueueLess());}}
     }
@@ -117,7 +120,7 @@ TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWa
     Directions.Reset();for(const auto& C:O->Channels)for(int32 K=0;K<=4;++K)Directions.Add(FMath::Lerp(O->Cells[C.From].Direction,O->Cells[C.To].Direction,K/4.).GetSafeNormal());
     if(!Directions.IsEmpty())
     {
-        Base.SampleHeightsMeters(Directions,Heights);
+        if(!FCLCompileProgress::Sample(Base,Directions,Heights,Error))return nullptr;
         for(int32 I=0;I<Directions.Num();++I){const double Delta=O->MapHeight(Directions[I],Heights[I])-Heights[I];O->MaximumMeasuredCutMeters=FMath::Max(O->MaximumMeasuredCutMeters,-Delta);O->MaximumMeasuredFillMeters=FMath::Max(O->MaximumMeasuredFillMeters,Delta);}
     }
     // Drainage is analysed again on the accepted conditioned field. Never present
@@ -155,6 +158,7 @@ bool FCLCompiledWatershed::Route(double Sea,const TSet<int32>& Closed,FString& E
     for(int32 I=0;I<Cells.Num();++I)if(Cells[I].bTerminal){auto& C=Cells[I];C.SpillMeters=C.HeightMeters;Seen[I]=true;Queue.HeapPush({C.SpillMeters,I},FQueueLess());}
     while(!Queue.IsEmpty())
     {
+        if(!FCLCompileProgress::Check(Error))return false;
         FQueue Q;Queue.HeapPop(Q,FQueueLess(),EAllowShrinking::No);auto& C=Cells[Q.Id];C.Rank=FloodOrder.Add(Q.Id);
         for(int32 J:C.Neighbours)if(!Seen[J]){Seen[J]=true;auto& V=Cells[J];V.Receiver=Q.Id;V.SpillMeters=FMath::Max(Q.Value,V.HeightMeters);Queue.HeapPush({V.SpillMeters,J},FQueueLess());}
     }

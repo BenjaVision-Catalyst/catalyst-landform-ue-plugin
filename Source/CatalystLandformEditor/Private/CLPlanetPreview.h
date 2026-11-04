@@ -45,6 +45,9 @@ public:
     virtual ~SCLPlanetPreview();
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan);
     void Cancel();
+    void SetEvaluationPending(bool Pending);
+    void SetAuthoringValid(bool Valid);
+    bool CanPick()const{return !bAuthoringInvalid&&!IsUpdating();}
     void SetAuthoringRecipe(const FCLPlanetRecipe& Recipe);
     void Select(FCLGlobeSelection Key);
     FCLGlobeSelection Selection() const;
@@ -91,6 +94,7 @@ protected:
     virtual FReply OnPreviewKeyDown(const FGeometry&,const FKeyEvent&) override;
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
+    bool bEvaluationPending=false,bAuthoringInvalid=false;
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLNativePreviewTest;
     friend class FCLPreviewMaterialRenderedTest;
