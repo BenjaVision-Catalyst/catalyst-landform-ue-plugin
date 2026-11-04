@@ -63,6 +63,9 @@ The numerical sweep and rendered portfolio are qualification evidence, not a
 guarantee that every unreviewed seed or arbitrary Advanced edit is aesthetically
 finished. Future tuning must retain the same quality gate. This delivery changes
 the tectonic profile; the continental algorithm 2 mapping below remains pinned.
+The subsequent [Continental Character](ContinentalCharacter.md) milestone versions
+the continental control independently as algorithm 3; existing saved recipes keep
+their resolved algorithm 2 settings.
 
 The [Mac qualification](../../Projects/LandformLab/Docs/TectonicCharacter.md)
 records the measured sweep, render review and runtime checks. The gallery compares
@@ -105,7 +108,7 @@ ridges to full-height walls. The last quarter develops pronounced, rougher belts
 Advanced. Quiet retains structure. Extreme introduces more fragmented, sharper terrain.
 The chosen guide heights determine its absolute vertical extent at every setting.
 
-Continental character grows then fragments domains, rather than expanding a
+The historical continental algorithm 2 character grows then fragments domains, rather than expanding a
 fixed continent mask monotonically:
 
 | Resolved setting | 0% | 25% | 50% | 75% | 100% |

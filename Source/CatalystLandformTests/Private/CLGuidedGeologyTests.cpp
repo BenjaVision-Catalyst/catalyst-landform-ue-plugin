@@ -43,6 +43,7 @@ bool FCLGuidedExtremaTest::RunTest(const FString&)
     {
         auto R=Guided();R.Continents.ApplyProgression(Position);R.Tectonics.ApplyProgression(Position);
         const double Started=FPlatformTime::Seconds();const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
+        if(Position==0){TestFalse(TEXT("Zero geology retains the empty sphere without final range fitting"),P->SurfaceRange.IsValid());continue;}
         TestTrue(TEXT("Completed planet owns one final range"),P->SurfaceRange&&P->UnmappedSurface);const auto Range=P->SurfaceRange;
         TestEqual(TEXT("The actual minimum reaches SurfaceMin"),P->SampleHeightMeters(Range->MinimumDirection),Range->TargetMin);
         TestEqual(TEXT("The actual maximum reaches SurfaceMax"),P->SampleHeightMeters(Range->MaximumDirection),Range->TargetMax);

@@ -49,7 +49,7 @@ bool FCLTectonicControls::Resolve(const FCLTectonicPreset& P,FCLTectonicControls
 }
 double FCLCompiledTectonics::Continentalness(const FVector& D) const
 {
-    if(bLayered)return SharedCrust?SharedCrust->Continentalness(D.GetSafeNormal()):(AlgorithmVersion>=6?.75:0);
+    if(bLayered)return SharedCrust?SharedCrust->CrustContext(D.GetSafeNormal(),AlgorithmVersion>=6?.75:0):(AlgorithmVersion>=6?.75:0);
     if(AlgorithmVersion==3)return ContinentalDomain(FoundationDirection(D.GetSafeNormal()));
     double Sum=0;for(const FVector& C:Continents)Sum+=2.7*FMath::Exp((FVector::DotProduct(D,C)-1)*5.);
     return 1-FMath::Exp(-Sum);

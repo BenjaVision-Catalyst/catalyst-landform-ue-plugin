@@ -789,3 +789,8 @@ schema 19 resource: global MOLA planetary radii, a HiRISE Jezero fine region,
 native VPP heightmaps/meshes/materials and an interactive native globe/walk host.
 Its audit separates scientific coordinate/resource binding from native voxel
 ownership and records source, accuracy, coverage and presentation limits.
+
+The [Continental Character](Docs/ContinentalCharacter.md) profile resumes Planet
+Designer authoring with stable continental structures, continuous domain entry
+and native VPP noise. It composes with the independent Tectonic Character layer;
+a continental knob gesture adopts the new version without rewriting saved worlds.

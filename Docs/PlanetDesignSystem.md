@@ -1632,7 +1632,36 @@ with origin translations, not arbitrary rotated roots or enhanced-curvature
 Mars qualification. Fine coverage, image control, source accuracy and authored
 material/dust lighting limits remain explicit.
 
-Next Landform maturity work should expand and qualify the measured terrain and
-appearance envelope, including source co-registration/NoData transitions and
-production performance. Multiplayer remains deferred by the user. This advances
-P3 without closing full P2/P3/P4 or the server-recipe ultra-realistic-world goal.
+Mars is complete as the requested planet-library deliverable. Its wider source
+coverage, origin-presentation and performance limits remain recorded qualification
+boundaries. The user has returned the active focus to Planet Designer authoring:
+realistic continents composed with tectonic plates and curated one-knob results
+throughout the control range. Multiplayer remains deferred. The Mars proof
+advances P3 without closing full P2/P3/P4 or the server-recipe world goal.
+
+
+## Planet Designer authoring checkpoint — 4 November 2026
+
+The active work resumes the [Continental Character](ContinentalCharacter.md)
+control. Algorithm 3 replaces the old rounded-count redistribution with stable
+seeded continental structures and continuous domain entry. Independent curves
+grow, separate and fragment the masses; the existing tectonic layer consumes
+their shared crust while retaining its plate identities and motion. Native VPP
+noise, the planet stamp, preview, materials, meshing, LOD and collision remain
+the generation/presentation path. Existing saved algorithms retain their shapes;
+only an explicit continental knob gesture adopts the new profile.
+
+The product gate is a multi-seed, intermediate-position visual portfolio in the
+actual Designer, final guide fitting, shared native field/contact and live
+knob/Advanced/Undo behavior. Exact zero has no continental effect. This work is
+continental authoring and curation; it does not close geological history,
+drainage, erosion, arbitrary Advanced art quality or production frame budgets.
+
+
+The [continental qualification](../conformance/continental-character-mac-arm64.json)
+now passes 158 editor checks, 80 actual native preview frames and 12 cooked
+walking sites (3,772 native-grounded frames) at natural/half/flat curvature.
+The preserved old-binary reference retains 624 algorithm-2 height/material probes.
+The new isolated review planet provides the current control without changing
+existing saved worlds. The three-seed numerical/visual envelope is evidence
+for this curated profile, not an all-seed or Advanced quality guarantee.

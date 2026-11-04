@@ -6,7 +6,7 @@
 #include "CLStampDistribution.h"
 #include "CLPlanetShape.h"
 #include "Model/CLSphericalPatches.h"
-#include "Nodes/VoxelNoiseNodes.h"
+#include "CLNativeNoiseKernel.h"
 #include "VoxelISPCNodeHelpers.h"
 #include "Shape/VoxelShapeFunctionLibrary.h"
 #include "JsonObjectConverter.h"
@@ -15,18 +15,6 @@
 #include "Serialization/JsonSerializer.h"
 #include "UObject/UnrealType.h"
 #include "Serialization/CustomVersion.h"
-
-// The vendor buffer ABI stays private to the runtime adapter. Compiled plans
-// retain only this immutable owner, without exposing VPP headers in model APIs.
-class FCLNativeNoiseKernel
-{
-public:
-    explicit FCLNativeNoiseKernel(FVoxelNodeISPCPtr InFunction) : Function(InFunction) {}
-    void Evaluate(const ispc::FVoxelInputBuffer* Inputs, void* const* Outputs, int32 Num) const
-    { Function(Inputs, Outputs, Num); }
-private:
-    const FVoxelNodeISPCPtr Function;
-};
 
 // The native graph's shape library is stateless: MakeSphere reads only its
 // double buffers and calls VPP's ISPC kernel. Bind its immortal CDO at compile
@@ -57,27 +45,6 @@ FCustomVersionRegistration RegisterRecipeAssetVersion(RecipeAssetVersion, 3, TEX
 uint32 Mix(uint32 V)
 {
     V ^= V >> 16; V *= 0x7feb352du; V ^= V >> 15; V *= 0x846ca68bu; return V ^ (V >> 16);
-}
-
-// Fail closed if a future VPP changes the compute node's pin layout. The
-// function pointer is cached in the plan; workers never inspect node metadata.
-bool NativePerlinABIIsCompatible()
-{
-    static const bool bCompatible = []
-    {
-        const FVoxelComputeNode_PerlinNoise3D Node;
-        const FName Names[] = {TEXT("Position"), TEXT("Amplitude"), TEXT("FeatureScale"), TEXT("Seed"), TEXT("Value")};
-        const FVoxelPinType Types[] = {FVoxelPinType::Make<FVoxelVectorBuffer>(), FVoxelPinType::Make<FVoxelFloatBuffer>(),
-            FVoxelPinType::Make<FVoxelFloatBuffer>(), FVoxelPinType::Make<FVoxelSeedBuffer>(), FVoxelPinType::Make<FVoxelFloatBuffer>()};
-        int32 Index = 0;
-        for (const FVoxelPin& Pin : Node.GetPins())
-        {
-            if (Index >= 5 || Pin.Name != Names[Index] || Pin.GetType() != Types[Index] || Pin.bIsInput != (Index < 4)) return false;
-            ++Index;
-        }
-        return Index == 5;
-    }();
-    return bCompatible;
 }
 }
 
@@ -469,7 +436,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     const auto Raw=CompileUnmapped(Recipe,Error,Library,LocalRegion,SurfacePatch,SurfaceLibraryOverride);if(!Raw)return nullptr;
     if(Recipe.SchemaVersion<17||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return RetainInput(Raw);
     const bool TectonicShape=Raw->Tectonics&&Raw->Tectonics->HasEffect();
-    const bool HasShape=Recipe.Continents.bEnabled||TectonicShape||!Recipe.NoiseLayers.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||Recipe.RegionGeneration.bEnabled;
+    const bool HasShape=(Raw->Continents&&Raw->Continents->HasEffect())||TectonicShape||!Recipe.NoiseLayers.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||Recipe.RegionGeneration.bEnabled;
     if(!HasShape)return RetainInput(Raw); // A newly created, empty planet is a perfect sphere.
     const auto* Low=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
     const auto* High=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});
@@ -533,10 +500,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
     auto Plan = MakeShared<FCLCompiledPlanetRecipe>();
     if (Recipe.AlgorithmVersion == 2)
     {
-        if (!NativePerlinABIIsCompatible()) return Fail(TEXT("VPP PerlinNoise3D pin layout changed; native adapter requires qualification"));
-        const auto Kernel = GVoxelNodeISPCPtrs.FindRef(TEXT("VoxelComputeNode_PerlinNoise3D"));
-        if (!Kernel) return Fail(TEXT("VPP PerlinNoise3D kernel is unavailable; native generation cannot fall back to algorithm 1"));
-        Plan->NativePerlin = MakeShared<FCLNativeNoiseKernel>(Kernel);
+        Plan->NativePerlin = FCLNativeNoiseKernel::Create(Error);
+        if (!Plan->NativePerlin) return nullptr;
     }
     Plan->bDeferRadialBounds=Recipe.SchemaVersion>=17;
     Plan->RadiusMeters = Recipe.RadiusMeters;
@@ -581,7 +546,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
     }
     if(Recipe.Continents.bEnabled)
     {
-        if(Recipe.Continents.AlgorithmVersion==2&&Recipe.SchemaVersion<17)return Fail(TEXT("Guided continents requires recipe schema 17"));
+        if(Recipe.Continents.AlgorithmVersion>=2&&Recipe.SchemaVersion<17)return Fail(TEXT("Guided continents requires recipe schema 17"));
         if(Recipe.SchemaVersion<15||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return Fail(TEXT("Continental layer requires schema 15 spherical coordinates"));
         const auto* L=Guides.Find(Recipe.Continents.LowerGuide);const auto* U=Guides.Find(Recipe.Continents.UpperGuide);
         if(!L||!U)return Fail(TEXT("Continental layer requires both named radial guides"));
@@ -596,7 +561,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
         const auto* L=Guides.Find(Recipe.Tectonics.LowerGuide);const auto* U=Guides.Find(Recipe.Tectonics.UpperGuide);
         if(!L||!U)return Fail(TEXT("Tectonic preset requires both named radial guides"));
         const double Span=Recipe.SchemaVersion==16?FMath::Min(*U-*L,Recipe.RadiusMeters*Recipe.BaseSurfaceNormalized*.25):*U-*L;
-        Plan->Tectonics=FCLCompiledTectonics::Compile(Recipe.Tectonics,int32(uint32(Recipe.Seed)^(Recipe.SchemaVersion>=15?uint32(Recipe.Tectonics.Seed):0U)),Span,Error,Recipe.SchemaVersion>=15,Plan->Continents,Recipe.SchemaVersion>=16);if(!Plan->Tectonics)return nullptr;
+        Plan->Tectonics=FCLCompiledTectonics::Compile(Recipe.Tectonics,int32(uint32(Recipe.Seed)^(Recipe.SchemaVersion>=15?uint32(Recipe.Tectonics.Seed):0U)),Span,Error,Recipe.SchemaVersion>=15,Plan->Continents&&Plan->Continents->HasEffect()?Plan->Continents:nullptr,Recipe.SchemaVersion>=16);if(!Plan->Tectonics)return nullptr;
     }
     Plan->SurfacePatch=SurfacePatch;
     if(Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface)

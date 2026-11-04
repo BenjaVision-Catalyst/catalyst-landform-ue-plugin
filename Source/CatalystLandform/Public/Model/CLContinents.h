@@ -20,6 +20,9 @@ struct CATALYSTLANDFORM_API FCLContinentalLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Relief=1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bCoastalMargin=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="8")) int32 DomainCount=3;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1",EditCondition="AlgorithmVersion >= 3",EditConditionHides)) double DomainTransition=0;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="3",EditCondition="AlgorithmVersion >= 3",EditConditionHides)) double Elongation=1.7;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1",EditCondition="AlgorithmVersion >= 3",EditConditionHides)) double Fragmentation=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double CoastWarp=.25;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double InteriorRoughness=.1;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.5",ClampMax="3")) double CoastSharpness=1;
@@ -27,6 +30,7 @@ struct CATALYSTLANDFORM_API FCLContinentalLayer
 };
 /** The same resolved mapping feeds compilation and the Advanced inspector. */
 class FCLCompiledTectonics;
+class FCLNativeNoiseKernel;
 struct CATALYSTLANDFORM_API FCLContinentalControls
 {
     double Extent=1,Relief=0;
@@ -36,10 +40,18 @@ class CATALYSTLANDFORM_API FCLCompiledContinents
 {
 public:
     double MaximumDeltaMeters=0;
+    bool HasEffect()const{return AlgorithmVersion<3||Relief>1.e-12;}
     double Continentalness(const FVector& UnitDirection) const;
+    double CrustContext(const FVector& UnitDirection,double NeutralCrust) const;
     double SampleDeltaMeters(const FVector& UnitDirection) const;
     static TSharedPtr<const FCLCompiledContinents> Compile(const FCLContinentalLayer& Layer,int32 PlanetSeed,double SpanMeters,FString& Error,bool Calibrated=false,double DatumOffsetMeters=0);
 private:
+    struct FLobe {FVector Centre,Across;double Aspect=1,Weight=1;};
+    struct FDomain {TArray<FLobe> Lobes;double Weight=1;};
+    TArray<FDomain> Domains;
+    TSharedPtr<const FCLNativeNoiseKernel> NativePerlin;
+    int32 AlgorithmVersion=1,NoiseSeed=0;
+    double SampleContinentalness(const FVector& LocalDirection)const;
     TSharedPtr<const FCLCompiledTectonics> LegacyCrust;
     TArray<FVector> Centres;
     FVector NoiseOffset;

@@ -705,6 +705,7 @@ bool FCLGlobePlacementPointerTest::RunTest(const FString&)
     FString Error;const auto Plan=FCLPlanetCompiler::Compile(Recipe,Error);if(!Plan){AddError(Error);return false;}
     auto& App=FSlateApplication::Get();int32 Commits=0;
     const auto W=SNew(SCLPlanetPreview).OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateLambda([&](const auto& Target,bool Resize){++Commits;TestTrue(TEXT("Native widget commits a valid spherical placement"),FCLGlobePlacementEditing::Apply(Recipe,Target,Resize,Error));}));
+    W->CreateReferenceMeshForTesting(); // Explicit isolated picking oracle.
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native globe widget proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const auto C=W->Client;C->Plan=Plan;C->SetViewLocation(FVector(80000,-60000,200000));C->SetViewRotation((FVector(0,0,45000)-C->GetViewLocation()).Rotation());C->StudioScene->AimLights(C->GetViewRotation());const auto B=FCLGlobeBuffers::Build(*Plan,32);CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents);W->SetAuthoringRecipe(Recipe);W->Select({Region.Id,false});
@@ -777,6 +778,7 @@ bool FCLGlobeGeneratedInspectionTest::RunTest(const FString&)
     const auto Plan=FCLPlanetCompiler::Compile(Asset->Recipe,Error);if(!Plan){AddError(Error);return false;}
     auto& App=FSlateApplication::Get();FGuid Callback;int32 Callbacks=0;
     const auto W=SNew(SCLPlanetPreview).OnRegionSelected(FOnCLGlobeRegionSelected::CreateLambda([&](FGuid Id){Callback=Id;++Callbacks;}));
+    W->CreateReferenceMeshForTesting(); // Explicit isolated picking oracle.
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Generated region inspection proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const auto C=W->Client;C->Plan=Plan;const auto B=FCLGlobeBuffers::Build(*Plan,96);C->RegionBoundaries=B.RegionBoundaries;C->RegionCentres=B.RegionCentres;
@@ -1284,5 +1286,68 @@ bool FCLTectonicRenderedPortfolioTest::RunTest(const FString&)
         },.10f));
     }
     return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLContinentalRenderedPortfolioTest,"Catalyst.Landform.ContinentalCharacter.NativeRenderedPortfolio",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLContinentalRenderedPortfolioTest::RunTest(const FString&)
+{
+    FString Json,Error;TSharedPtr<FJsonObject> Reference;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
+    if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("conformance/continental-character-v2-reference.json")))||!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json),Reference)){AddError(TEXT("Missing pre-change continental reference"));return false;}
+    const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native continental character review"))).ClientSize(FVector2D(800,600))[W];FSlateApplication::Get().AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/continental-character/frames");IFileManager::Get().MakeDirectory(*Folder,true);
+    auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
+    for(int32 Group=0;Group<5;++Group)for(const auto& Value:Reference->GetArrayField(TEXT("cases")))
+    {
+        const auto Case=Value->AsObject();FString Input;FJsonSerializer::Serialize(Case->GetObjectField(TEXT("recipe")).ToSharedRef(),TJsonWriterFactory<>::Create(&Input));
+        TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());if(!Source->ImportRecipeJson(Input,Error)){AddError(Error);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}
+        auto R=Source->Recipe;
+        if(Group>0)
+        {
+            R.Continents.ApplyProgression(Case->GetNumberField(TEXT("position")));R.Tectonics.bEnabled=Group!=1;R.Tectonics.ApplyProgression(Group==3?.85:.45);
+            if(Group>=3)R.Seed=Group==3?817:529;
+        }
+        if(Group==2&&FMath::IsNearlyEqual(Case->GetNumberField(TEXT("position")),.60))
+        {
+            R.Name=TEXT("Continental character");R.RadialGuides.Id=FGuid(0x434C4343,0,0,1);R.RadialGuides.Name=TEXT("Continental character guides");Source->Recipe=R;FString Review;
+            if(!Source->ExportJsonString(Review,Error)){AddError(Error);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}
+            FFileHelper::SaveStringToFile(Review,*(FPaths::ProjectSavedDir()/TEXT("Verification/continental-character/review.json")));
+        }
+        const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}Plans->Add(P);
+    }
+    auto Index=MakeShared<int32>(0);auto Phase=MakeShared<int32>(0);auto Started=MakeShared<double>(FPlatformTime::Seconds());auto Owner=MakeShared<uint32>(0);auto Runtime=MakeShared<const void*>(nullptr);
+    auto Previous=MakeShared<TArray<FColor>>();auto CSV=MakeShared<FString>(TEXT("group,step,angle,mean_pixel_difference,native_vertices\n"));
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,V,Folder,Plans,Index,Phase,Started,Owner,Runtime,Previous,CSV]
+    {
+        auto Close=[&]{W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+        if(*Index>=Plans->Num()){FFileHelper::SaveStringToFile(*CSV,*(Folder/TEXT("differences.csv")));return Close();}
+        if(*Phase==0){W->Rebuild((*Plans)[*Index]);W->SetGuides((*Plans)[*Index]->SourceRecipe->RadialGuides,false);W->SetOceanVisible(true);*Started=FPlatformTime::Seconds();*Phase=1;}
+        W->Pump();
+        if(FPlatformTime::Seconds()-*Started>90){AddError(FString::Printf(TEXT("Native continental review timed out at %d: %s"),*Index,*W->NativePreviewStatus()));return Close();}
+        if(W->IsUpdating())return false;
+        if(!TestTrue(TEXT("Actual native VPP mesh and accepted plan are published"),W->NativePreview&&W->NativePreview->UsesNativePresentation()&&W->NativePreview->PublishedPlan()==(*Plans)[*Index]))return Close();
+        TestFalse(TEXT("Portfolio constructs no application terrain mesh"),W->Mesh.IsValid());
+        TestTrue(TEXT("Coast review retains the actual OceanHeight reference"),W->Ocean&&W->Ocean->IsVisible());
+        if(*Index==0){*Owner=W->NativePreview->WorldIdentity();*Runtime=W->NativePreview->RuntimeIdentity();}
+        TestTrue(TEXT("Knob and seed edits retain the native world/runtime"),*Owner==W->NativePreview->WorldIdentity()&&*Runtime==W->NativePreview->RuntimeIdentity());
+        const int32 Group=*Index/8,Step=*Index%8;const TCHAR* Names[]={TEXT("v2"),TEXT("v3"),TEXT("v3-tectonic"),TEXT("v3-active-variation"),TEXT("v3-variation")};
+        for(int32 Angle=0;Angle<2;++Angle)
+        {
+            const FVector Eye=(Angle==0?FVector(1,-1,.65):FVector(-1,.4,.35)).GetSafeNormal()*220000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());
+            if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            if(!TestEqual(TEXT("Native portfolio frame renders fully"),Pixels.Num(),800*600))return Close();
+            double Difference=0;if(Angle==0)
+            {
+                if(Step>0&&Previous->Num()==Pixels.Num())for(int32 K=0;K<Pixels.Num();++K)Difference+=FMath::Abs(int32(Pixels[K].R)-(*Previous)[K].R)+FMath::Abs(int32(Pixels[K].G)-(*Previous)[K].G)+FMath::Abs(int32(Pixels[K].B)-(*Previous)[K].B);
+                Difference/=800*600*3;if(Group>0&&Step>0)TestTrue(TEXT("Every reviewed interval visibly changes native output"),Difference>.15);*Previous=Pixels;
+            }
+            *CSV+=FString::Printf(TEXT("%d,%d,%d,%.8f,%d\n"),Group,Step,Angle,Difference,W->NativePreview->Published().Vertices.Num());
+            TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("%s-%d-%d.png"),Names[Group],Step,Angle)));
+        }
+        ++*Index;*Phase=0;return false;
+    }));return true;
 }
 #endif

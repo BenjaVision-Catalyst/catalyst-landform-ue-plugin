@@ -1861,6 +1861,12 @@ bool FCLTectonicLiveKnobTest::RunTest(const FString& Parameters)
                 const auto& CD=*reinterpret_cast<const FCLContinentalLayer*>(Editor->ContinentalDraft->GetStructMemory());
                 FCLTectonicControls TC;FString E;FCLTectonicControls::Resolve(Owned->Get()->Recipe.Tectonics,TC,E,true);
                 TestEqual(TEXT("Advanced relief follows accepted live knob before release"),Crust?CD.Relief:TD.Relief,Crust?FCLContinentalControls::Resolve(Owned->Get()->Recipe.Continents).Relief:TC.Relief);
+                if(Crust)
+                {
+                    TestEqual(TEXT("A continental knob gesture adopts the new version explicitly"),Owned->Get()->Recipe.Continents.AlgorithmVersion,3);
+                    TestEqual(TEXT("Advanced shows the live next-domain blend"),CD.DomainTransition,Owned->Get()->Recipe.Continents.DomainTransition);
+                    TestEqual(TEXT("Advanced shows live fragmentation"),CD.Fragmentation,Owned->Get()->Recipe.Continents.Fragmentation);
+                }
                 FSlateApplication::Get().RoutePointerUpEvent(*Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,End,End,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));
                 const double Final=(Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity);TestFalse(TEXT("Release ends draft mode"),Editor->Globe->IsDraftMode());
                 GEditor->UndoTransaction();TestTrue(TEXT("One undo restores the entire drag"),FMath::IsNearlyEqual((Crust?Owned->Get()->Recipe.Continents.Strength:Owned->Get()->Recipe.Tectonics.Activity),.55,1.e-6));

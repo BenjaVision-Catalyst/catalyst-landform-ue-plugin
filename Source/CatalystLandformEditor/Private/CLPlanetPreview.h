@@ -94,6 +94,7 @@ private:
     friend class FCLPreviewMaterialRenderedTest;
     friend class FCLNativePreviewRadiiTest;
     friend class FCLTectonicRenderedPortfolioTest;
+    friend class FCLContinentalRenderedPortfolioTest;
     friend class FCLGlobePublicationTest;
     friend class FCLGeologyRenderedTest;
     friend class FCLGlobeOceanTest;
