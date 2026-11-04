@@ -251,6 +251,17 @@ public:
         for(const auto& T:Targets)if(T.Key.bStructure&&T.Weight(D)>.01)return T.Key;
         return {};
     }
+    bool bWatershedOverlay=true;
+    void DrawWatersheds(FPrimitiveDrawInterface* PDI)
+    {
+        if(!bWatershedOverlay||!Plan||!Plan->Watershed||(NativePreview&&NativePreview->IsUpdating()))return;const auto& W=*Plan->Watershed;const auto& Cells=W.GetCells();
+        auto P=[&](int32 I,double H){return Cells[I].Direction*((Plan->RadiusMeters+H)/Plan->RadiusMeters*100000+110);};
+        auto Front=[&](int32 A,int32 B){const auto N=(Cells[A].Direction+Cells[B].Direction).GetSafeNormal();return FVector::DotProduct(N,GetViewLocation()-P(A,Cells[A].HeightMeters))>0;};
+        for(const auto& Edge:W.GetDrainageLinks())if(Front(Edge.From,Edge.To))PDI->DrawLine(P(Edge.From,Cells[Edge.From].HeightMeters),P(Edge.To,Cells[Edge.To].HeightMeters),FLinearColor(.15,.3,.5),SDPG_Foreground,.6);
+        for(const auto& Edge:W.GetChannels())if(Front(Edge.From,Edge.To))PDI->DrawLine(P(Edge.From,Cells[Edge.From].BedMeters),P(Edge.To,Cells[Edge.To].BedMeters),FLinearColor(.05,.45,1),SDPG_Foreground,1.4);
+        // A sparse potential-lake rim is a diagnostic, not a rendered water surface.
+        for(int32 I=0;I<Cells.Num();I+=2)if(Cells[I].bLake&&Front(I,I)&&Cells[I].Neighbours.ContainsByPredicate([&](int32 J){return !Cells[J].bLake;}))PDI->DrawPoint(P(I,Cells[I].SpillMeters),FLinearColor(.1,.9,.9),2,SDPG_Foreground);
+    }
     void DrawPlacements(FPrimitiveDrawInterface* PDI)
     {
         if(bInspectRegions&&Plan&&Plan->GeneratedRegions)return;
@@ -333,7 +344,7 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);
         if(Plan&&!WalkDirection.IsNearlyZero())
         {
             const FVector P=WalkDirection*((Plan->RadiusMeters+Plan->SampleHeightMeters(WalkDirection))/Plan->RadiusMeters*100000+150);
@@ -1351,3 +1362,14 @@ bool FCLContinentalRenderedPortfolioTest::RunTest(const FString&)
     }));return true;
 }
 #endif
+
+void SCLPlanetPreview::SetWatershedOverlay(bool Enabled){Client->bWatershedOverlay=Enabled;Client->Invalidate();}
+
+bool SCLPlanetPreview::FocusWatershed()
+{
+    if(!Client->Plan||!Client->Plan->Watershed||Client->Plan->Watershed->GetChannels().IsEmpty())return false;
+    const auto& W=*Client->Plan->Watershed;const auto& Cells=W.GetCells();const FCLWatershedChannel* Best=&W.GetChannels()[0];
+    for(const auto& C:W.GetChannels())if(Cells[C.From].AccumulatedAreaSquareMeters>Cells[Best->From].AccumulatedAreaSquareMeters)Best=&C;
+    const FVector D=(Cells[Best->From].Direction+Cells[Best->To].Direction).GetSafeNormal();
+    SetWalkLocation(D);Client->Navigation.Yaw=FMath::RadiansToDegrees(FMath::Atan2(D.Y,D.X));Client->Navigation.Elevation=FMath::Clamp(FMath::RadiansToDegrees(FMath::Asin(D.Z)),-85.,85.);Client->Navigation.Zoom=.55;Client->Navigation.Pan=FVector2D::ZeroVector;Client->Apply();return true;
+}

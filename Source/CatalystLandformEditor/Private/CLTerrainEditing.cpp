@@ -112,7 +112,7 @@ bool FCLTerrainEditing::Enable(int32 Index, bool bEnabled)
 }
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError, double WidthMeters) const
 {
-    FCLPlanetRecipe Recipe = Context;
+    FCLPlanetRecipe Recipe = Context;Recipe.Watershed=FCLWatershedSettings();
     auto Visible = Asset->TerrainType;
     if (Visible.NoiseLayers.IsValidIndex(Solo) && Visible.NoiseLayers[Solo].bEnabled)
     {

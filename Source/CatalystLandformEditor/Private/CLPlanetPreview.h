@@ -52,6 +52,8 @@ public:
     FString PlacementHint() const;
     void SetPlacementMode(ECLGlobePlacementMode Mode);
     ECLGlobePlacementMode PlacementMode() const;
+    void SetWatershedOverlay(bool Enabled);
+    bool FocusWatershed();
     void SetRegionInspection(bool Inspect);
     bool IsInspectingRegions() const;
     void SelectGeneratedRegion(FGuid Id);

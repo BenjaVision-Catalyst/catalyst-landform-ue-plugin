@@ -643,9 +643,17 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLTectonicAdvancedTest;
     friend class FCLRockDesignerTest;
     friend class FCLSurfaceDesignerTest;
+    friend class FCLWatershedDesignerTest;
 #endif
 
 
+    TSharedPtr<FStructOnScope> WatershedDraft;
+    TArray<TSharedPtr<IPropertyHandle>> WatershedProperties;
+    TSharedPtr<SSlider> WatershedSlider;
+    TUniquePtr<FScopedTransaction> WatershedTransaction;
+    FTSTicker::FDelegateHandle WatershedTicker;
+    bool bWatershedDragging=false,bWatershedOverlay=true;
+    double PendingWatershed=.5,AppliedWatershed=.5,LastWatershedApply=0;
     FGuid ElevationTarget;
     TSharedPtr<FStructOnScope> ElevationDraft;
     TArray<TSharedPtr<IPropertyHandle>> ElevationAdvancedProperties;
@@ -732,6 +740,7 @@ public:
     {
         FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicDragTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(RockTicker);RockTransaction.Reset();
+        FTSTicker::GetCoreTicker().RemoveTicker(WatershedTicker);WatershedTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(SurfaceTicker);SurfaceTransaction.Reset();
         if (SelectionInput && FSlateApplication::IsInitialized()) FSlateApplication::Get().UnregisterInputPreProcessor(SelectionInput);
         if (EditingAsset) RecipeAsset()->OnRecipeChanged.Remove(Changed);
@@ -770,7 +779,7 @@ public:
     {
         auto* Asset = RecipeAsset();
         InspectorRecipe=Asset->Recipe;InspectorRecipe.UseGuidedGeology();
-        if(!TerrainEditing&&Asset->Recipe.SchemaVersion==21)InspectorPage=0;
+        if(!TerrainEditing&&Asset->Recipe.SchemaVersion>=21)InspectorPage=0;
         RadialGuidesSession = MakeShared<FCLRadialGuideSession>();
         if (TerrainEditing)
         {
@@ -1031,7 +1040,12 @@ public:
         if(!Property)return;
         // The native Details view finishes the gesture after editing the external
         // draft. Validate before touching the asset and keep a single asset Undo.
-        if(Property->GetOwnerStruct()==FCLSurfaceDistributionSettings::StaticStruct()&&ElevationDraft)
+        if(Property->GetOwnerStruct()==FCLWatershedSettings::StaticStruct()&&WatershedDraft)
+        {
+            if(!CommitWatershed(*reinterpret_cast<const FCLWatershedSettings*>(WatershedDraft->GetStructMemory())))
+                *reinterpret_cast<FCLWatershedSettings*>(WatershedDraft->GetStructMemory())=RecipeAsset()->Recipe.Watershed;
+        }
+        else if(Property->GetOwnerStruct()==FCLSurfaceDistributionSettings::StaticStruct()&&ElevationDraft)
         {
             if(!CommitElevation(*reinterpret_cast<const FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())))
                 *reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
@@ -1107,6 +1121,7 @@ public:
             *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=ResolvedTectonicDraft();
         }
         if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
+        if(WatershedDraft)*reinterpret_cast<FCLWatershedSettings*>(WatershedDraft->GetStructMemory())=RecipeAsset()->Recipe.Watershed;
         if(RockDraft)*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
         if(RockBedDraft)*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
         if(ElevationDraft)*reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
@@ -1246,6 +1261,53 @@ public:
         AddLayerAdvanced(Category,ContinentalDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bCoastalMargin"),TEXT("bEnabled"),TEXT("Strength")},
             TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Continents.bEnabled&&!bContinentalDragging;}),ContinentalAdvancedProperties);
     }
+    bool CommitWatershed(FCLWatershedSettings Layer)
+    {
+        auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.SchemaVersion=22;R.AlgorithmVersion=2;R.Watershed=MoveTemp(Layer);FString Error;
+        if(!FCLPlanetCompiler::Compile(R,Error)){InspectorError=Status=Error;return false;}
+        TUniquePtr<FScopedTransaction> Tx;if(!WatershedTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change watershed character")));
+        auto* A=RecipeAsset();A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();InspectorError.Reset();return true;
+    }
+    void BeginWatershedDrag()
+    {
+        if(bWatershedDragging)return;bWatershedDragging=true;PendingWatershed=AppliedWatershed=RecipeAsset()->Recipe.Watershed.Character;LastWatershedApply=0;
+        WatershedTransaction=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change watershed character")));RecipeAsset()->Modify();
+        if(Globe)Globe->SetDraftMode(true);if(Preview)Preview->SetDraftMode(true);
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        WatershedTicker=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak](float){if(auto E=Weak.Pin();E&&E->bWatershedDragging){E->PumpWatershed(false);return true;}return false;}));
+    }
+    void PumpWatershed(bool Force)
+    {
+        if(FMath::IsNearlyEqual(PendingWatershed,AppliedWatershed,1.e-7))return;const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastWatershedApply<.3)return;
+        auto L=RecipeAsset()->Recipe.Watershed;L.ApplyProgression(PendingWatershed);if(CommitWatershed(L))AppliedWatershed=PendingWatershed;LastWatershedApply=Now;
+    }
+    void EndWatershedDrag()
+    {
+        if(!bWatershedDragging)return;PumpWatershed(true);bWatershedDragging=false;FTSTicker::GetCoreTicker().RemoveTicker(WatershedTicker);WatershedTicker.Reset();WatershedTransaction.Reset();
+        if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
+    }
+    void BuildWatershedInspector(IDetailCategoryBuilder& C)
+    {
+        C.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return RecipeAsset()->Recipe.Watershed.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+            .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=RecipeAsset()->Recipe.Watershed;L.bEnabled=V==ECheckBoxState::Checked;CommitWatershed(L);}));
+        InspectorRow(C,TEXT("Character"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Watershed.bEnabled;})
+            +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(0,0,8,0)[SAssignNew(WatershedSlider,SSlider)
+                .Value_Lambda([this]{return float(bWatershedDragging?PendingWatershed:RecipeAsset()->Recipe.Watershed.Character);})
+                .OnMouseCaptureBegin_Lambda([this]{BeginWatershedDrag();}).OnMouseCaptureEnd_Lambda([this]{EndWatershedDrag();})
+                .OnControllerCaptureBegin_Lambda([this]{BeginWatershedDrag();}).OnControllerCaptureEnd_Lambda([this]{EndWatershedDrag();})
+                .OnValueChanged_Lambda([this](float V){PendingWatershed=V;if(bWatershedDragging)PumpWatershed(false);else{auto L=RecipeAsset()->Recipe.Watershed;L.ApplyProgression(V);CommitWatershed(L);}})]
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text_Lambda([this]{return FText::AsPercent(bWatershedDragging?PendingWatershed:RecipeAsset()->Recipe.Watershed.Character);})]);
+        InspectorRow(C,TEXT("Drainage"),SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]
+        {
+            const auto W=AcceptedSurfacePlan?AcceptedSurfacePlan->Watershed:nullptr;
+            return FText::FromString(W?FString::Printf(TEXT("%d catchment outlets · %d channel reaches · %d potential lake cells\nAnalysis %d cells · max edge %.1f m · runoff closure %.3g m³/s"),W->Catchments,W->GetChannels().Num(),W->LakeCells,W->GetCells().Num(),W->MaximumEdgeMeters,FMath::Abs(W->InputDischarge-W->TerminalDischarge)):TEXT("Enable to derive drainage from the composed surface. Blue globe lines mark graded channel reaches; cyan rims mark potential lake spill levels."));
+        }));
+        InspectorRow(C,TEXT("Inspect"),SNew(SButton).Text(FText::FromString(TEXT("Focus largest channel"))).OnClicked_Lambda([this]{if(Globe)Globe->FocusWatershed();return FReply::Handled();}));
+        InspectorRow(C,TEXT("Drainage overlay"),SNew(SCheckBox).IsChecked_Lambda([this]{return bWatershedOverlay?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+            .OnCheckStateChanged_Lambda([this](ECheckBoxState V){bWatershedOverlay=V==ECheckBoxState::Checked;if(Globe)Globe->SetWatershedOverlay(bWatershedOverlay);}));
+        WatershedDraft=MakeShared<FStructOnScope>(FCLWatershedSettings::StaticStruct());*reinterpret_cast<FCLWatershedSettings*>(WatershedDraft->GetStructMemory())=RecipeAsset()->Recipe.Watershed;
+        AddLayerAdvanced(C,WatershedDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character")},TAttribute<bool>::CreateLambda([this]{return RecipeAsset()->Recipe.Watershed.bEnabled&&!bWatershedDragging;}),WatershedProperties);C.SetShowAdvanced(false);
+    }
     FCLSurfaceDistributionSettings ElevationSettings()const
     {
         if(ElevationTarget.IsValid())if(const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==ElevationTarget;}))return R->ElevationDistribution;
@@ -1259,7 +1321,7 @@ public:
     }
     bool CommitElevation(FCLSurfaceDistributionSettings Settings)
     {
-        auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.AlgorithmVersion=2;R.SchemaVersion=21;
+        auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.AlgorithmVersion=2;R.SchemaVersion=FMath::Max(21,R.SchemaVersion);
         if(ElevationTarget.IsValid())
         {
             auto* Region=R.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==ElevationTarget;});
@@ -1383,7 +1445,8 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Remove"))).OnClicked_Lambda([this]{RadialGuidesSession->RemoveSet();return FReply::Handled();})],true);
             C.SetShowAdvanced(false);
             auto& E=B.EditCategory(TEXT("SurfaceElevation"),FText::FromString(TEXT("Surface elevation")));E.SetSortOrder(1);
-            auto& D=B.EditCategory(TEXT("PhysicalDetail"),FText::FromString(TEXT("Terrain detail")));D.SetSortOrder(2);BuildSurfaceInspector(E,D);
+            auto& D=B.EditCategory(TEXT("PhysicalDetail"),FText::FromString(TEXT("Terrain detail")));D.SetSortOrder(3);BuildSurfaceInspector(E,D);
+            auto& W=B.EditCategory(TEXT("Watershed"),FText::FromString(TEXT("Watershed")));W.SetSortOrder(2);BuildWatershedInspector(W);
         }
         else if(Page==1)
         {
@@ -2427,6 +2490,61 @@ bool FCLRockRenderedTest::RunTest(const FString&)
 
 namespace
 {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWatershedDesignerTest,"Catalyst.Landform.Watershed.DesignerControlsAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLWatershedDesignerTest::RunTest(const FString&)
+{
+    FString J,Error;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/Watershed.json")));
+    auto* Package=CreatePackage(*(TEXT("/Temp/CLWatershedDesigner_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
+    TestTrue(TEXT("Watershed appears in the native Planet inspector with direct Advanced properties"),E->InspectorPage==0&&E->WatershedSlider&&!E->WatershedProperties.IsEmpty());
+    const auto Before=A->Recipe;E->BeginWatershedDrag();E->PendingWatershed=.2;E->PumpWatershed(true);E->PendingWatershed=.8;E->PumpWatershed(true);E->EndWatershedDrag();const auto After=A->Recipe;
+    TestEqual(TEXT("The held gesture publishes the final character"),A->Recipe.Watershed.Character,.8);GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete watershed gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));GEditor->RedoTransaction();TestTrue(TEXT("Redo restores the complete accepted watershed recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&After,&A->Recipe,0));
+    const auto H=*E->WatershedProperties.FindByPredicate([](const auto& V){return V->GetProperty()->GetFName()==TEXT("IncisionMeters");});TestEqual(TEXT("Native direct incision edit succeeds"),H->SetValue(5.),FPropertyAccess::Success);TestEqual(TEXT("Advanced edits reach the canonical recipe"),A->Recipe.Watershed.IncisionMeters,5.);
+    GEditor->UndoTransaction();TestEqual(TEXT("One Undo restores the direct edit"),A->Recipe.Watershed.IncisionMeters,After.Watershed.IncisionMeters);
+    auto Bad=A->Recipe.Watershed;Bad.MaximumCells=1026;TestFalse(TEXT("Rejected work budget retains the accepted asset"),E->CommitWatershed(Bad));TestEqual(TEXT("Budget failure leaves the previous cell limit"),A->Recipe.Watershed.MaximumCells,After.Watershed.MaximumCells);
+    auto Elevation=A->Recipe.ElevationDistribution;Elevation.ApplyProgression(.55);TestTrue(TEXT("Elevation edits recompile downstream watersheds"),E->CommitElevation(Elevation));TestEqual(TEXT("Elevation edits preserve schema 22"),A->Recipe.SchemaVersion,22);TestTrue(TEXT("The accepted graph is retained after upstream edits"),E->AcceptedSurfacePlan&&E->AcceptedSurfacePlan->Watershed);
+    class FFrame final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;double Start=FPlatformTime::Seconds();
+    public:
+        FFrame(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A):Test(T),Editor(E),Asset(A){}
+        bool Update()override
+        {
+            if(FPlatformTime::Seconds()-Start<1)return false;
+            TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native watershed inspector renders"),FSlateApplication::Get().TakeScreenshot(Editor->PlanetInspectors[0].ToSharedRef(),Pixels,Size));
+            if(!Pixels.IsEmpty()){const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/watershed");IFileManager::Get().MakeDirectory(*Dir,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/TEXT("designer.png")));}
+            Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FFrame>(this,E,A.Get()));return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWatershedRenderedTest,"Catalyst.Landform.Watershed.NativeRenderedReview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLWatershedRenderedTest::RunTest(const FString&)
+{
+    const auto Globe=SNew(SCLPlanetPreview);const auto Section=SNew(SCLSectionViewport);const auto Content=SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[Globe]+SHorizontalBox::Slot().FillWidth(1)[Section];const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native watershed globe and section"))).ClientSize(FVector2D(1400,700))[Content];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
+    class FReview final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<SCLPlanetPreview> Globe;TSharedRef<SCLSectionViewport> Section;TSharedRef<SWindow> Window;TSharedRef<SWidget> Content;int32 Index=-1;double Started=FPlatformTime::Seconds(),Stable=0;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<SCLPlanetPreview> G,TSharedRef<SCLSectionViewport> S,TSharedRef<SWindow> W,TSharedRef<SWidget> C):Test(T),Globe(G),Section(S),Window(W),Content(C){}
+        bool Update()override
+        {
+            auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};const double Now=FPlatformTime::Seconds();Section->PumpBuild();
+            if(Now-Started>180){Test->AddError(Globe->NativePreviewStatus());return Close();}
+            if(Index>=0)
+            {
+                if(Globe->IsUpdating()||Section->IsUpdating()){Stable=0;return false;}if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){GShaderCompilingManager->FinishAllCompilation();Stable=0;return false;}if(!Stable){Stable=Now;return false;}if(Now-Stable<.75)return false;
+                Test->TestTrue(TEXT("Watershed review retains native VPP producers in both views"),Globe->PublishedBuilds()>0&&Section->AppliedBuilds>0&&Section->NativePreview->Published().Triangles.Num()>0);FString E;Test->TestTrue(TEXT("Watershed preview retains canonical material coordinates"),Section->NativePreview->CheckMaterialCoordinates(E));
+                TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native watershed frame renders"),FSlateApplication::Get().TakeScreenshot(Content,Pixels,Size));if(!Pixels.IsEmpty()){const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/watershed");IFileManager::Get().MakeDirectory(*Dir,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/FString::Printf(TEXT("native-%d.png"),Index)));}
+            }
+            if(++Index==6)return Close();FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Index>=4?TEXT("Examples/WatershedContinental.json"):TEXT("Examples/Watershed.json"))));
+            TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){Test->AddError(E);return Close();}auto R=A->Recipe;R.Watershed.bEnabled=Index!=0;R.Watershed.ApplyProgression(Index==1?0:Index==3||Index==5?1:.5);const auto P=FCLPlanetCompiler::Compile(R,E);if(!P){Test->AddError(E);return Close();}
+            Globe->Rebuild(P);Globe->Frame();Globe->SetWatershedOverlay(Index==1||Index==2||Index==4);if(Index>=2&&Index!=4)Test->TestTrue(TEXT("A generated graded reach can be focused for inspection/walking"),Globe->FocusWatershed());Section->Rebuild(P);Started=Now;Stable=0;return false;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Globe,Section,Window,Content));return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSurfaceDesignerTest,"Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLSurfaceDesignerTest::RunTest(const FString&)
 {

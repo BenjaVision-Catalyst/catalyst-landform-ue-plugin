@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 22,
+  "algorithmVersion": 2,
+  "name": "Connected watershed character",
+  "radiusMeters": 1274.374368680551,
+  "baseSurfaceNormalized": 0.7,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "radialGuides": {
+    "id": "434C5753000000010000000000000001",
+    "name": "Watershed physical reference guides",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.6372240983763431
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.7627759016236567
+      },
+      {
+        "name": "OceanHeight",
+        "normalizedHeight": 0.685
+      }
+    ]
+  },
+  "noiseLayers": [
+    {
+      "name": "Metric relief",
+      "operation": "Noise",
+      "shape": "Smooth",
+      "blend": "Override",
+      "minimum": {
+        "guide": "SurfaceMin"
+      },
+      "maximum": {
+        "guide": "SurfaceMax"
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 250,
+      "octaves": 3,
+      "persistence": 0.5
+    }
+  ],
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 2
+  },
+  "elevationDistribution": {
+    "bEnabled": true,
+    "algorithmVersion": 1,
+    "character": 0.5,
+    "lowEndAreaPercent": 1.0,
+    "highEndAreaPercent": 1.0,
+    "endBandHeightPercent": 10.0,
+    "typicalHeightPercent": 50.0,
+    "spreadPercent": 35.0,
+    "calibrationSamples": 65536
+  },
+  "watershed": {
+    "algorithmVersion": 1,
+    "bEnabled": true,
+    "character": 0.5,
+    "analysisSubdivisions": 7,
+    "maximumCells": 65538,
+    "incisionMeters": 4.875,
+    "valleyWidthMeters": 67.5,
+    "channelAreaSquareMeters": 6750,
+    "minimumChannelSlope": 1e-05,
+    "referenceRainMetersPerYear": 1,
+    "runoffFraction": 0.65,
+    "closedBasinDirections": []
+  },
+  "baseStructure": [
+    {
+      "id": "434C5753000000000000000000000001",
+      "name": "Plateau lake depression",
+      "bEnabled": true,
+      "locationDegrees": {
+        "x": 30,
+        "y": 30
+      },
+      "halfExtentDegrees": {
+        "x": 14,
+        "y": 14
+      },
+      "relief": {
+        "mode": "IntervalDelta",
+        "guide": "SurfaceMin",
+        "upperGuide": "SurfaceMax",
+        "fraction": -0.22,
+        "offsetMeters": 0
+      },
+      "profile": "Oval"
+    }
+  ]
+}

@@ -1764,3 +1764,32 @@ native editor reviews, cooked excavation/reload and published-save compatibility
 Metre-scale contacts require a human-scale view rather than a distant overview.
 Geological calibration, weathering, connected drainage/erosion and production
 persistence remain separate work. Multiplayer remains out of scope.
+
+
+## Watershed Character checkpoint — 5 November 2026
+
+[Watershed Character](WatershedCharacter.md) adds opt-in schema 22 for bounded
+spherical drainage and terrain conditioning. The one-knob varies contributing
+area threshold, nodal incision and hierarchical valley influence. Native composed
+terrain, existing elevation distribution, plates and physical rock remain shared.
+Reference runoff closes to ocean export plus declared internal terminals.
+
+VPP has no demonstrated native catchment/lake accounting producer. This domain
+specialization uses native UE mesh indexing, watertight ray queries and heaps,
+and emits through the existing planet stamp. VPP remains the sole voxel generation,
+presentation, material, LOD, collision, excavation and compressed sculpt-save
+platform. No custom streaming manager, terrain mesher or preview path was added.
+Native 3D volume splines remain available; this change adds no spline math.
+
+The [qualification](../conformance/Watershed/qualification-mac-arm64.json) records
+18 seed/knob cases, finite-resolution topology and grading, current continental/rock
+integration, native previews, Undo, walking/curvature and cooked save/load. Schema
+1–21 behavior is retained. Advanced controls appear directly below their dropdown.
+Three new library recipes separate basin, continental and excavation witnesses.
+
+This is static natural drainage before excavation, not a dynamic water or
+mass-conserving erosion simulation. Mining does not yet reroute the graph. The
+65,538-cell limit explicitly refuses unresolved global fine drainage. Final routing
+is distinguished from continuously graded constructed reaches. Karst, calibrated
+climate/runoff, sediment/hillslope processes and edit invalidation remain open;
+multiplayer remains out of scope.
