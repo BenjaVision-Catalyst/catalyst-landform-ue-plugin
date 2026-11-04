@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
 #include "Model/CLRadialGuides.h"
+#include "Model/CLSurfaceDistribution.h"
 #include "Model/CLStampDistribution.h"
 #include "Model/CLPlanetStructure.h"
 #include "Model/CLTectonics.h"
@@ -173,6 +174,7 @@ struct CATALYSTLANDFORM_API FCLTerrainRegion
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) bool bSphericalMask = false;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="!bSphericalMask && !bPlacedLandform", EditConditionHides)) FCLTerrainRegionMask Mask;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="bSphericalMask && !bPlacedLandform", EditConditionHides)) FCLSphericalRegionMask SphericalMask;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceDistributionSettings ElevationDistribution;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FGuid TerrainTypeId;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FString TerrainTypeName;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 AlgorithmVersion = 2;
@@ -217,6 +219,8 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     /** Schema 19: source-backed physical terrain; resource closure is resolved before native activation. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLMeasuredTerrainReference MeasuredTerrain;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRockLayer Rock;
+    /** Schema 21: opt-in area-calibrated base-surface elevation distribution. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceDistributionSettings ElevationDistribution;
     /** Schema 18: body-space solid edits after base terrain height fitting. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLVolumeSettings Volumes;
 };

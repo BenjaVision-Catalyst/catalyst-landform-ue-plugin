@@ -218,7 +218,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
 {
     if(MeasuredTerrain){MeasuredTerrain->SampleHeights(Directions,Heights);return;}
     if(UnmappedSurface)
-    {UnmappedSurface->SampleHeightsMeters(Directions,Heights);for(auto& H:Heights)H=SurfaceRange->Map(H);return;}
+    {UnmappedSurface->SampleHeightsMeters(Directions,Heights);SurfaceRange->MapHeights(Directions,Heights);return;}
     if(!SurfacePatches.IsEmpty())
     {
         Heights.SetNumUninitialized(Directions.Num());
@@ -412,6 +412,35 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
     };
 
+    const bool RegionalElevation=Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.bEnabled&&R.ElevationDistribution.bEnabled;});
+    if(Recipe.SchemaVersion==21||Recipe.ElevationDistribution.bEnabled||RegionalElevation)
+    {
+        if(Recipe.SchemaVersion!=21||Recipe.AlgorithmVersion!=2||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||Recipe.MeasuredTerrain.IsActive()||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch))
+        {Error=TEXT("Elevation schema 21 requires native VPP algorithm 2 and a whole spherical procedural scene; measured terrain retains its measured elevations");return nullptr;}
+        if(Recipe.Rock.bEnabled&&!Recipe.Volumes.GeologicalUnits.IsEmpty())
+        {Error=TEXT("Elevation schema 21 retains one geological source; Rock and legacy radial geological units cannot be composed");return nullptr;}
+        auto Base=Recipe;Base.SchemaVersion=Recipe.Rock.bEnabled?20:18;Base.ElevationDistribution=FCLSurfaceDistributionSettings();Base.Volumes=FCLVolumeSettings();
+        for(auto& R:Base.TerrainRegions)R.ElevationDistribution=FCLSurfaceDistributionSettings();
+        const auto Core=Compile(Base,Error,Library,nullptr,SurfacePatch,SurfaceLibraryOverride);if(!Core)return nullptr;
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);
+        if(Recipe.ElevationDistribution.bEnabled||RegionalElevation)
+        {
+            if(!Core->UnmappedSurface||!Core->SurfaceRange){Error=TEXT("Elevation distribution requires a non-constant base surface");return nullptr;}
+            const auto Range=FCLSurfaceRange::Compile(*Core->UnmappedSurface,Core->SurfaceRange->TargetMin,Core->SurfaceRange->TargetMax,Error,&Recipe);if(!Range)return nullptr;
+            TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(TSharedPtr<const FCLCompiledPlanetRecipe>)> Replace;
+            Replace=[&](auto Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
+            {
+                auto P=MakeShared<FCLCompiledPlanetRecipe>(*Input);P->SurfaceRange=Range;P->SurfacePatches.Reset();
+                for(const auto& Patch:Input->SurfacePatches)P->SurfacePatches.Add(Replace(Patch));return P;
+            };
+            Out=MakeShared<FCLCompiledPlanetRecipe>(*Replace(Core));
+        }
+        if(Recipe.Volumes.bEnabled)
+        {
+            const auto Volumes=FCLCompiledVolumes::Compile(Recipe.Volumes,Recipe.RadiusMeters,Out->Surfaces.Get(),Error);if(!Volumes)return nullptr;Out->Volumes=Volumes;
+        }
+        return RetainInput(Out);
+    }
     if(Recipe.SchemaVersion==20||Recipe.Rock.bEnabled)
     {
         if(Recipe.SchemaVersion!=20||Recipe.MeasuredTerrain.IsActive()||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch)||!Recipe.Volumes.GeologicalUnits.IsEmpty())
@@ -692,6 +721,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompileUnmapped(con
         if (!FMath::IsFinite(Low) || !FMath::IsFinite(High) || Low + Plan->RadiusMeters <= .01 || FMath::Max(FMath::Abs(Low), FMath::Abs(High)) > 1.e7)
             return Fail(TEXT("Noise stack exceeds supported radial bounds"));
         Plan->Layers.Add(Compiled);
+        if(Plan->GetDistributedStampCount()>FCLStampDistributionSettings::MaximumPlacements)return Fail(TEXT("Terrain exceeds the 1024 total stamp-placement budget"));
     }
     auto Regions=Recipe.TerrainRegions;
     Regions.Sort([](const auto& A,const auto& B){return A.Priority!=B.Priority ? A.Priority<B.Priority : A.Id.ToString(EGuidFormats::Digits)<B.Id.ToString(EGuidFormats::Digits);});
@@ -846,8 +876,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17 && Schema != 18 && Schema != 19 && Schema != 20) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..20 with algorithm 1, or schemaVersion 3..20 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17 && Schema != 18 && Schema != 19 && Schema != 20 && Schema != 21) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..21 with algorithm 1, or schemaVersion 3..21 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)

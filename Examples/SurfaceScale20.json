@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 21,
+  "algorithmVersion": 2,
+  "name": "Physical detail and elevation \u00b7 20 km\u00b2",
+  "radiusMeters": 1802.237515728686,
+  "baseSurfaceNormalized": 0.7,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "radialGuides": {
+    "id": "434C5343000000010000000000000001",
+    "name": "Scale review 20 km\u00b2",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.6556107342668126
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.7443892657331872
+      }
+    ]
+  },
+  "noiseLayers": [
+    {
+      "name": "Metric relief",
+      "operation": "Noise",
+      "shape": "Smooth",
+      "blend": "Override",
+      "minimum": {
+        "guide": "SurfaceMin"
+      },
+      "maximum": {
+        "guide": "SurfaceMax"
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 250,
+      "octaves": 3,
+      "persistence": 0.5
+    }
+  ],
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 2
+  },
+  "elevationDistribution": {
+    "bEnabled": true,
+    "algorithmVersion": 1,
+    "character": 0.5,
+    "lowEndAreaPercent": 1.0,
+    "highEndAreaPercent": 1.0,
+    "endBandHeightPercent": 10.0,
+    "typicalHeightPercent": 50.0,
+    "spreadPercent": 35.0,
+    "calibrationSamples": 65536
+  }
+}

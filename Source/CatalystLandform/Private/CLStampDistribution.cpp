@@ -55,9 +55,9 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
     const bool bSurface=Input.Coordinates==ECLTerrainCoordinates::SphericalSurface;
     const double ReferenceRadius=FMath::Max(.01,Input.RadiusMeters+(bSurface?Input.BaseHeightMeters:Input.SampleHeightMeters(FVector::ZAxisVector)));
     const double CountValue=bLocal?0:FMath::RoundToDouble(4*UE_PI*FMath::Square(ReferenceRadius)*S.DensityPerSquareKilometer/1.e6);
-    if(!FMath::IsFinite(CountValue)||CountValue>256)
-        return Fail(FString::Printf(TEXT("Stamp layer needs %.0f placements (limit 256) at a %.0f m surface radius. Reduce density to %.3f /km2 or lower the preview radius."),
-            CountValue,ReferenceRadius,256*1.e6/(4*UE_PI*FMath::Square(ReferenceRadius))));
+    if(!FMath::IsFinite(CountValue)||CountValue>FCLStampDistributionSettings::MaximumPlacements)
+        return Fail(FString::Printf(TEXT("Stamp layer needs %.0f placements (limit 1024) at a %.0f m surface radius. Reduce density to %.3f /km2 or lower the preview radius."),
+            CountValue,ReferenceRadius,FCLStampDistributionSettings::MaximumPlacements*1.e6/(4*UE_PI*FMath::Square(ReferenceRadius))));
     int32 Count=int32(CountValue);
     const double Low=S.SizeMode==ECLStampSizeMode::Absolute?S.MinimumSizeMeters:S.MinimumSizeRadiusFraction*Input.RadiusMeters;
     const double High=S.SizeMode==ECLStampSizeMode::Absolute?S.MaximumSizeMeters:S.MaximumSizeRadiusFraction*Input.RadiusMeters;
@@ -72,8 +72,8 @@ TSharedPtr<const FCLCompiledStampDistribution> FCLStampDistributionCompiler::Com
         Source->RegionMax=Input.EvaluationRegion.Max+FVector2D(Halo);
         Source->Density=S.DensityPerSquareKilometer;
         const FVector2D Tiles=(Source->RegionMax-Source->RegionMin)/256+FVector2D(2);
-        if(Tiles.X*Tiles.Y>1024 || Tiles.X*Tiles.Y*FMath::CeilToDouble(S.DensityPerSquareKilometer*256*256/1.e6)>256)
-            return Fail(TEXT("Local stamp window and its contributing halo exceed the 256-placement budget; reduce density or footprint size"));
+        if(Tiles.X*Tiles.Y>1024 || Tiles.X*Tiles.Y*FMath::CeilToDouble(S.DensityPerSquareKilometer*256*256/1.e6)>FCLStampDistributionSettings::MaximumPlacements)
+            return Fail(TEXT("Local stamp window and its contributing halo exceed the 1024-placement budget; increase the qualified budget or reduce the requested region"));
     }
     for(const auto& E:Entries)Source->Weights.Add(E.Weight);
     auto Points=RunPCG(Source.Get(),{},Error);if(!Points)return nullptr;

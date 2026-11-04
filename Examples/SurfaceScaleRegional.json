@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 21,
+  "algorithmVersion": 2,
+  "name": "Regional elevation \u00b7 mixed lowlands and uplands",
+  "radiusMeters": 1274.374368680551,
+  "baseSurfaceNormalized": 0.7,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "radialGuides": {
+    "id": "434C5343000000010000000000000001",
+    "name": "Scale review 10 km\u00b2",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.6372240983763431
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.7627759016236567
+      }
+    ]
+  },
+  "noiseLayers": [
+    {
+      "name": "Metric relief",
+      "operation": "Noise",
+      "shape": "Smooth",
+      "blend": "Override",
+      "minimum": {
+        "guide": "SurfaceMin"
+      },
+      "maximum": {
+        "guide": "SurfaceMax"
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 250,
+      "octaves": 3,
+      "persistence": 0.5
+    }
+  ],
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 2
+  },
+  "elevationDistribution": {
+    "bEnabled": true,
+    "algorithmVersion": 1,
+    "character": 0.5,
+    "lowEndAreaPercent": 1.0,
+    "highEndAreaPercent": 1.0,
+    "endBandHeightPercent": 10.0,
+    "typicalHeightPercent": 50.0,
+    "spreadPercent": 35.0,
+    "calibrationSamples": 65536
+  },
+  "terrainRegions": [
+    {
+      "id": "00000001000000020000000300000004",
+      "name": "Upland region",
+      "bEnabled": true,
+      "bSphericalMask": true,
+      "sphericalMask": {
+        "shape": "HalfPlane",
+        "axis": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "offsetMeters": 0,
+        "transitionMeters": 120
+      },
+      "terrainTypeId": "00000002000000030000000400000005",
+      "terrainTypeName": "Metric regional snapshot",
+      "algorithmVersion": 2,
+      "noiseLayers": [
+        {
+          "name": "Metric relief",
+          "operation": "Noise",
+          "shape": "Smooth",
+          "blend": "Override",
+          "minimum": {
+            "guide": "SurfaceMin"
+          },
+          "maximum": {
+            "guide": "SurfaceMax"
+          },
+          "scale": "Meters",
+          "wavelengthMeters": 250,
+          "octaves": 3,
+          "persistence": 0.5
+        }
+      ],
+      "surfaceStack": {
+        "algorithmVersion": 1,
+        "defaultSurfaceId": "Rock",
+        "defaultSurfaceRevision": 2
+      },
+      "elevationDistribution": {
+        "bEnabled": true,
+        "algorithmVersion": 1,
+        "character": 1,
+        "lowEndAreaPercent": 1.0,
+        "highEndAreaPercent": 1.0,
+        "endBandHeightPercent": 10.0,
+        "typicalHeightPercent": 78,
+        "spreadPercent": 60,
+        "calibrationSamples": 65536
+      }
+    }
+  ]
+}

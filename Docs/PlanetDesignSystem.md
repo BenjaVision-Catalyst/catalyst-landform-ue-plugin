@@ -1717,3 +1717,27 @@ distinguish meaningful variation with fixed bed spacing from numerical consisten
 Published defaults and resolved saved recipes are preserved; moving Character is
 an explicit reauthoring action. This curation does not close the documented
 lateral fault restoration, sediment transport or geological calibration gaps.
+
+
+## Physical scale and hypsometry checkpoint — 4 November 2026
+
+[Physical scale and elevation distribution](SurfaceScaleAndElevation.md) adds an
+explicit schema-21 statistical shaping layer. Native metre-scale noise and stamp
+settings retain local dimensions as reference area grows; the 5/10/20 km² proof
+keeps 20 placements/km² with 100/200/400 features. Native placement admission now
+shares the existing 1,024-item total budget and refuses excess without truncation.
+
+The Planet inspector exposes physical-size controls, independent rare low/high
+area percentages, a character progression and target/measured elevation curves.
+Whole-surface and explicit regional profiles use native UE curves, area-calibrated
+from the existing native terrain and blended through existing masks. This is the
+only new runtime domain specialization. VPP remains the voxel generation,
+presentation, LOD, collision, material and sculpt-save platform; no streaming or
+preview manager was added. Caves/mining retain the base-terrain-only height policy.
+
+The [qualification](../conformance/SurfaceScale/qualification-mac-arm64.json)
+records density, metric spacing, hypsometry, slopes, native previews and cooked
+save compatibility. Historical recipes remain unchanged when the new layer is
+disabled. Hypsometry alone does not close realistic drainage/erosion or unlimited
+planet-wide placement populations. Those remain explicit native-first gaps;
+multiplayer remains out of scope.

@@ -15,6 +15,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLStampDistributionSettings
 {
     GENERATED_BODY()
+    static constexpr int32 MaximumPlacements=1024;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FName CollectionId = TEXT("Mountains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="1")) int32 CollectionRevision = 1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Seed = 0;

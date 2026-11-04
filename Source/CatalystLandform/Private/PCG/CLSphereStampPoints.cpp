@@ -1,4 +1,5 @@
 #include "PCG/CLSphereStampPoints.h"
+#include "Model/CLStampDistribution.h"
 #include "PCGContext.h"
 #include "PCGElement.h"
 #include "PCGPin.h"
@@ -12,7 +13,7 @@ class FCLSphereStampPointsElement : public IPCGElement
     virtual bool ExecuteInternal(FPCGContext* Context) const override
     {
         const auto* S = Context->GetInputSettings<UCLSphereStampPointsSettings>();
-        if (!S || S->Count < 0 || S->Count > 256 || S->Weights.IsEmpty()) return true;
+        if (!S || S->Count < 0 || S->Count > FCLStampDistributionSettings::MaximumPlacements || S->Weights.IsEmpty()) return true;
         double Total = 0; for (double W : S->Weights) { if (!FMath::IsFinite(W) || W <= 0) return true; Total += W; }
         auto* Data = NewObject<UPCGPointData>();
         auto* Metadata = Data->MutableMetadata();
@@ -35,7 +36,7 @@ class FCLSphereStampPointsElement : public IPCGElement
                 FRandomStream CellRandom(CellSeed);
                 const double Expected=S->Density*Tile*Tile/1.e6;
                 const int32 Count=FMath::FloorToInt(Expected)+(CellRandom.FRand()<FMath::Frac(Expected)?1:0);
-                if(Points.Num()+Count>256) return true; // Compiler reports the absent output, never truncates.
+                if(Points.Num()+Count>FCLStampDistributionSettings::MaximumPlacements) return true; // Compiler reports the absent output, never truncates.
                 for (int32 I=0;I<Count;++I)
                 {
                     FRandomStream Random(PCGHelpers::ComputeSeed(CellSeed,I));

@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "areasSquareKilometres": [
+    5,
+    10,
+    20
+  ],
+  "densityPerSquareKilometre": 20,
+  "nativeFeatureCounts": [
+    100,
+    200,
+    400
+  ],
+  "physicalFootprintMetres": [
+    80.007338524,
+    119.908280373
+  ],
+  "noiseWavelengthMetres": 250,
+  "elevationCases": 27,
+  "maximumTailErrorPercentagePoints": 0.01809700000000008,
+  "maximumPhysicalSpacingStatisticRelativeDrift": 0.10839752469184294,
+  "referenceFixtureReliefMetres": 160,
+  "scope": "Statistical area/height/spacing evidence. No claim of hydraulic erosion, calibrated geology or universal slope realism."
+}

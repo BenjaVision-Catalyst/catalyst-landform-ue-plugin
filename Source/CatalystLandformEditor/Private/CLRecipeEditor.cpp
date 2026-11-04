@@ -1,4 +1,6 @@
 #include "CLPreviewMesh.h"
+#include "CLSurfaceDistributionPlot.h"
+#include "Model/CLSurfaceRange.h"
 #include "CLRecipeAssetTools.h"
 #include "CLTerrainDesigner.h"
 #include "CLSurfacePreview.h"
@@ -639,9 +641,21 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLTectonicLiveKnobTest;
     friend class FCLTectonicAdvancedTest;
     friend class FCLRockDesignerTest;
+    friend class FCLSurfaceDesignerTest;
 #endif
 
 
+    FGuid ElevationTarget;
+    TSharedPtr<FStructOnScope> ElevationDraft;
+    TArray<TSharedPtr<IPropertyHandle>> ElevationAdvancedProperties;
+    TSharedPtr<SSlider> ElevationSlider,DetailScaleSlider;
+    TSharedPtr<const FCLCompiledPlanetRecipe> AcceptedSurfacePlan;
+    TArray<FVector2D> MeasuredElevation;
+    FString ElevationReadout;
+    bool bElevationDragging=false,bDetailScaleDragging=false;
+    double PendingElevation=.5,AppliedElevation=.5,PendingDetailScale=250,AppliedDetailScale=250,LastSurfaceApply=0;
+    FTSTicker::FDelegateHandle SurfaceTicker;
+    TUniquePtr<FScopedTransaction> SurfaceTransaction;
     TSharedPtr<FStructOnScope> RockDraft;
     TArray<TSharedPtr<IPropertyHandle>> RockAdvancedProperties;
     TSharedPtr<SSlider> RockSlider;
@@ -714,6 +728,7 @@ public:
     {
         FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicDragTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(RockTicker);RockTransaction.Reset();
+        FTSTicker::GetCoreTicker().RemoveTicker(SurfaceTicker);SurfaceTransaction.Reset();
         if (SelectionInput && FSlateApplication::IsInitialized()) FSlateApplication::Get().UnregisterInputPreProcessor(SelectionInput);
         if (EditingAsset) RecipeAsset()->OnRecipeChanged.Remove(Changed);
         if (TerrainEditing) TerrainEditing->Asset->OnTerrainChanged.Remove(TerrainChanged);
@@ -751,6 +766,7 @@ public:
     {
         auto* Asset = RecipeAsset();
         InspectorRecipe=Asset->Recipe;InspectorRecipe.UseGuidedGeology();
+        if(!TerrainEditing&&Asset->Recipe.SchemaVersion==21)InspectorPage=0;
         RadialGuidesSession = MakeShared<FCLRadialGuideSession>();
         if (TerrainEditing)
         {
@@ -1011,7 +1027,12 @@ public:
         if(!Property)return;
         // The native Details view finishes the gesture after editing the external
         // draft. Validate before touching the asset and keep a single asset Undo.
-        if(Property->GetOwnerStruct()==FCLTectonicPreset::StaticStruct()&&TectonicDraft)
+        if(Property->GetOwnerStruct()==FCLSurfaceDistributionSettings::StaticStruct()&&ElevationDraft)
+        {
+            if(!CommitElevation(*reinterpret_cast<const FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())))
+                *reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
+        }
+        else if(Property->GetOwnerStruct()==FCLTectonicPreset::StaticStruct()&&TectonicDraft)
         {
             if(!CommitTectonicLayer(*reinterpret_cast<const FCLTectonicPreset*>(TectonicDraft->GetStructMemory())))
                 *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=ResolvedTectonicDraft();
@@ -1070,6 +1091,7 @@ public:
     void Refresh()
     {
         auto* Asset = RecipeAsset();
+        if(ElevationTarget.IsValid()&&!Asset->Recipe.TerrainRegions.ContainsByPredicate([this](const auto& R){return R.Id==ElevationTarget&&R.bEnabled;}))ElevationTarget.Invalidate();
         InspectorRecipe=Asset->Recipe;InspectorRecipe.UseGuidedGeology();
         if(TectonicDraft)
         {
@@ -1077,6 +1099,7 @@ public:
         }
         if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
         if(RockDraft)*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
+        if(ElevationDraft)*reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
         if (TerrainEditing) TerrainSource.Reset(TerrainEditing->Asset);
         else if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
         else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
@@ -1093,6 +1116,7 @@ public:
         const auto Plan = !GuidesValid?TSharedPtr<const FCLCompiledPlanetRecipe>():TerrainEditing ? TerrainEditing->CompilePreview(Status, PendingAreaWidth > 0 ? PendingAreaWidth : 500) : FCLPlanetCompiler::Compile(Asset->Recipe, Status);
         if(!GuidesValid)Status=GuideError;
         bPreviewInvalid = !Plan.IsValid();
+        AcceptedSurfacePlan=Plan;MeasureElevation(Plan);
         if(GenerationPanel)GenerationPanel->Refresh(Plan?Plan->GeneratedRegions:nullptr);
         if (Plan)
         {
@@ -1199,6 +1223,116 @@ public:
         AddLayerAdvanced(Category,ContinentalDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bCoastalMargin"),TEXT("bEnabled"),TEXT("Strength")},
             TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Continents.bEnabled&&!bContinentalDragging;}),ContinentalAdvancedProperties);
     }
+    FCLSurfaceDistributionSettings ElevationSettings()const
+    {
+        if(ElevationTarget.IsValid())if(const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==ElevationTarget;}))return R->ElevationDistribution;
+        return RecipeAsset()->Recipe.ElevationDistribution;
+    }
+    bool CommitSurfaceRecipe(FCLPlanetRecipe R)
+    {
+        FString Error;if(!FCLPlanetCompiler::Compile(R,Error)){InspectorError=Status=Error;return false;}
+        TUniquePtr<FScopedTransaction> Tx;if(!SurfaceTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change surface character")));
+        auto* A=RecipeAsset();A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();InspectorError.Reset();return true;
+    }
+    bool CommitElevation(FCLSurfaceDistributionSettings Settings)
+    {
+        auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.AlgorithmVersion=2;R.SchemaVersion=21;
+        if(ElevationTarget.IsValid())
+        {
+            auto* Region=R.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==ElevationTarget;});
+            if(!Region){InspectorError=TEXT("Selected elevation region no longer exists");return false;}Region->ElevationDistribution=Settings;
+        }
+        else R.ElevationDistribution=Settings;
+        return CommitSurfaceRecipe(MoveTemp(R));
+    }
+    void BeginSurfaceDrag(bool Elevation)
+    {
+        if(bElevationDragging||bDetailScaleDragging)return;bElevationDragging=Elevation;bDetailScaleDragging=!Elevation;
+        PendingElevation=AppliedElevation=ElevationSettings().Character;PendingDetailScale=AppliedDetailScale=FCLPhysicalDetailScale::MaximumMeters(RecipeAsset()->Recipe);LastSurfaceApply=0;
+        SurfaceTransaction=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change surface character")));RecipeAsset()->Modify();
+        if(Globe)Globe->SetDraftMode(true);if(Preview)Preview->SetDraftMode(true);
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        SurfaceTicker=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak](float){if(auto E=Weak.Pin();E&&(E->bElevationDragging||E->bDetailScaleDragging)){E->PumpSurface(false);return true;}return false;}));
+    }
+    void PumpSurface(bool Force)
+    {
+        const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastSurfaceApply<.12)return;
+        if(bElevationDragging&&!FMath::IsNearlyEqual(PendingElevation,AppliedElevation,1.e-7))
+        {auto P=ElevationSettings();P.ApplyProgression(PendingElevation);if(CommitElevation(P))AppliedElevation=PendingElevation;}
+        if(bDetailScaleDragging&&!FMath::IsNearlyEqual(PendingDetailScale,AppliedDetailScale,1.e-5))
+        {auto R=RecipeAsset()->Recipe;FString Error;if(FCLPhysicalDetailScale::SetMaximumMeters(R,PendingDetailScale,Error)&&CommitSurfaceRecipe(R))AppliedDetailScale=PendingDetailScale;else if(!Error.IsEmpty())InspectorError=Error;}
+        LastSurfaceApply=Now;
+    }
+    void EndSurfaceDrag()
+    {
+        if(!bElevationDragging&&!bDetailScaleDragging)return;PumpSurface(true);bElevationDragging=bDetailScaleDragging=false;
+        FTSTicker::GetCoreTicker().RemoveTicker(SurfaceTicker);SurfaceTicker.Reset();SurfaceTransaction.Reset();
+        if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
+    }
+    void MeasureElevation(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)
+    {
+        MeasuredElevation.Reset();ElevationReadout=TEXT("Enable distribution to measure area fractions");if(!Plan||!Plan->SurfaceRange||RecipeAsset()->Recipe.SchemaVersion!=21)return;
+        TArray<FVector> D;const FCLTerrainRegion* Region=ElevationTarget.IsValid()?RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==ElevationTarget;}):nullptr;
+        FCLCompiledLandformPlacement Placement;FString Error;if(Region&&Region->bPlacedLandform&&!FCLCompiledLandformPlacement::Resolve(Region->Placement,RecipeAsset()->Recipe.BaseStructure,Placement,Error))return;
+        const double Radius=Plan->RadiusMeters+Plan->BaseHeightMeters;
+        for(int32 I=0;I<8192;++I)
+        {
+            const double Z=1-2*(I+.5)/8192,A=(I+.719)*2.399963229728653;
+            const FVector V(FMath::Cos(A)*FMath::Sqrt(1-Z*Z),FMath::Sin(A)*FMath::Sqrt(1-Z*Z),Z);
+            if(!Region||(Region->bPlacedLandform?Placement.Weight(V):Region->SphericalMask.Weight(V,Radius))>.9999)D.Add(V);
+        }
+        if(D.IsEmpty()){ElevationReadout=TEXT("No full-strength region interior to measure");return;}
+        TArray<double> H;Plan->SampleHeightsMeters(D,H);const auto& Range=*Plan->SurfaceRange;for(auto& V:H)V=FMath::Clamp((V-Range.TargetMin)/(Range.TargetMax-Range.TargetMin),0.,1.);H.Sort();
+        const auto P=ElevationSettings();int32 Low=0,High=0;for(double V:H){Low+=V<=P.EndBandHeightPercent/100;High+=V>=1-P.EndBandHeightPercent/100;}
+        MeasuredElevation.Add({0,0});for(int32 I=0;I<=128;++I){const int32 K=FMath::Min(H.Num()-1,I*(H.Num()-1)/128);MeasuredElevation.Add({H[K],double(K+1)/H.Num()});}MeasuredElevation.Add({1,1});
+        ElevationReadout=FString::Printf(TEXT("Measured area · low %.1f%% · high %.1f%% · median %.0f%% height"),100.*Low/H.Num(),100.*High/H.Num(),100*H[H.Num()/2]);
+    }
+    TSharedRef<SWidget> ElevationTargetMenu()
+    {
+        FMenuBuilder Menu(true,nullptr);auto Add=[&](const FString& Name,FGuid Id)
+        {Menu.AddMenuEntry(FText::FromString(Name),FText::GetEmpty(),FSlateIcon(),FUIAction(FExecuteAction::CreateLambda([this,Id]{ElevationTarget=Id;if(PlanetInspectors.Num())PlanetInspectors[0]->ForceRefresh();MeasureElevation(AcceptedSurfacePlan);}),FCanExecuteAction(),FIsActionChecked::CreateLambda([this,Id]{return ElevationTarget==Id;})),NAME_None,EUserInterfaceActionType::RadioButton);};
+        Add(TEXT("Whole surface"),FGuid());for(const auto& R:RecipeAsset()->Recipe.TerrainRegions)if(R.bEnabled)Add(R.Name,R.Id);return Menu.MakeWidget();
+    }
+    void BuildSurfaceInspector(IDetailCategoryBuilder& E,IDetailCategoryBuilder& D)
+    {
+        E.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return ElevationSettings().bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+            .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto P=ElevationSettings();P.bEnabled=V==ECheckBoxState::Checked;CommitElevation(P);}));
+        InspectorRow(E,TEXT("Target"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::ElevationTargetMenu)
+            .ButtonContent()[SNew(STextBlock).Text_Lambda([this]{if(ElevationTarget.IsValid())if(const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==ElevationTarget;}))return FText::FromString(R->Name);return FText::FromString(TEXT("Whole surface"));})]);
+        InspectorRow(E,TEXT("Character"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return ElevationSettings().bEnabled;})
+            +SHorizontalBox::Slot().FillWidth(1).Padding(0,0,8,0)[SAssignNew(ElevationSlider,SSlider)
+                .Value_Lambda([this]{return float(bElevationDragging?PendingElevation:ElevationSettings().Character);})
+                .ToolTipText(FText::FromString(TEXT("Lowlands → mixed elevations → uplands. Tail areas remain independent.")))
+                .OnMouseCaptureBegin_Lambda([this]{BeginSurfaceDrag(true);}).OnMouseCaptureEnd(this,&FCLRecipeToolkit::EndSurfaceDrag)
+                .OnControllerCaptureBegin_Lambda([this]{BeginSurfaceDrag(true);}).OnControllerCaptureEnd(this,&FCLRecipeToolkit::EndSurfaceDrag)
+                .OnValueChanged_Lambda([this](float V){PendingElevation=V;if(bElevationDragging)PumpSurface(false);else{auto P=ElevationSettings();P.ApplyProgression(V);CommitElevation(P);}})]
+            +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text_Lambda([this]{return FText::AsPercent(bElevationDragging?PendingElevation:ElevationSettings().Character);})]);
+        InspectorRow(E,TEXT("Area below height"),SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight()[SNew(SCLSurfaceDistributionPlot).Profile_Lambda([this]{return ElevationSettings();}).Measured_Lambda([this]{return MeasuredElevation;})]
+            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(FText::FromString(TEXT("Min → Max height · blue target · orange measured"))).AutoWrapText(true)]
+            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text_Lambda([this]{return FText::FromString(ElevationReadout);}).AutoWrapText(true)]);
+        ElevationDraft=MakeShared<FStructOnScope>(FCLSurfaceDistributionSettings::StaticStruct());*reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
+        const auto Enabled=TAttribute<bool>::CreateLambda([this]{return ElevationSettings().bEnabled&&!bElevationDragging;});
+        AddLayerAdvanced(E,ElevationDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character"),TEXT("LowEndAreaPercent"),TEXT("HighEndAreaPercent")},Enabled,ElevationAdvancedProperties);
+        for(const TCHAR* Name:{TEXT("LowEndAreaPercent"),TEXT("HighEndAreaPercent")})if(auto* Row=E.AddExternalStructureProperty(ElevationDraft,FName(Name),EPropertyLocation::Default))
+        {Row->IsEnabled(Enabled);Row->DisplayName(FText::FromString(FString(Name).StartsWith(TEXT("Low"))?TEXT("Low end area"):TEXT("High end area")));ElevationAdvancedProperties.Add(Row->GetPropertyHandle());}
+        E.SetShowAdvanced(false);
+        InspectorRow(D,TEXT("Largest feature"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return FCLPhysicalDetailScale::MaximumMeters(RecipeAsset()->Recipe)>0;})
+            +SHorizontalBox::Slot().FillWidth(1).Padding(0,0,8,0)[SAssignNew(DetailScaleSlider,SSlider)
+                .ToolTipText(FText::FromString(TEXT("Rescale terrain noise wavelengths and stamp footprints in metres. Continental and plate structure retain their own scale.")))
+                .Value_Lambda([this]{const double V=bDetailScaleDragging?PendingDetailScale:FCLPhysicalDetailScale::MaximumMeters(RecipeAsset()->Recipe);return float(FMath::Clamp(FMath::Loge(FMath::Max(20.,V)/20)/FMath::Loge(100.),0.,1.));})
+                .OnMouseCaptureBegin_Lambda([this]{BeginSurfaceDrag(false);}).OnMouseCaptureEnd(this,&FCLRecipeToolkit::EndSurfaceDrag)
+                .OnControllerCaptureBegin_Lambda([this]{BeginSurfaceDrag(false);}).OnControllerCaptureEnd(this,&FCLRecipeToolkit::EndSurfaceDrag)
+                .OnValueChanged_Lambda([this](float V){PendingDetailScale=20*FMath::Pow(100.,double(V));if(bDetailScaleDragging)PumpSurface(false);else{auto R=RecipeAsset()->Recipe;FString Error;if(FCLPhysicalDetailScale::SetMaximumMeters(R,PendingDetailScale,Error))CommitSurfaceRecipe(R);else InspectorError=Error;}})]
+            +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text_Lambda([this]{return FText::FromString(FString::Printf(TEXT("%.0f m"),bDetailScaleDragging?PendingDetailScale:FCLPhysicalDetailScale::MaximumMeters(RecipeAsset()->Recipe)));})]);
+        InspectorRow(D,TEXT("Feature population"),SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{if(!AcceptedSurfacePlan)return FText::FromString(TEXT("No accepted surface"));const int32 Count=AcceptedSurfacePlan->GetDistributedStampCount();const auto& R=RecipeAsset()->Recipe;const double Area=4*UE_DOUBLE_PI*FMath::Square(R.RadiusMeters*R.BaseSurfaceNormalized)/1.e6;return FText::FromString(Count?FString::Printf(TEXT("%d placed features · %.1f per km²"),Count,Count/Area):TEXT("Noise detail · no placed features"));}));
+        InspectorRow(D,TEXT("Physical sizes"),SNew(SHorizontalBox)
+            +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Lock to metres"))).IsEnabled_Lambda([this]{return FCLPhysicalDetailScale::MaximumMeters(RecipeAsset()->Recipe)>0&&!FCLPhysicalDetailScale::UsesMeters(RecipeAsset()->Recipe);})
+                .OnClicked_Lambda([this]{auto R=RecipeAsset()->Recipe;FString Error;if(FCLPhysicalDetailScale::SetMaximumMeters(R,FCLPhysicalDetailScale::MaximumMeters(R),Error))CommitSurfaceRecipe(R);return FReply::Handled();})]
+            +SHorizontalBox::Slot().AutoWidth().Padding(6,0)[SNew(SButton).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.NoiseLayers.ContainsByPredicate([](const auto& L){return L.Name==TEXT("Physical surface detail")&&L.Operation==ECLTerrainOperation::Noise;})?TEXT("Enable detail layer"):TEXT("Add detail layer"));})
+                .IsEnabled_Lambda([this]{return !RecipeAsset()->Recipe.NoiseLayers.ContainsByPredicate([](const auto& L){return L.Name==TEXT("Physical surface detail")&&L.Operation==ECLTerrainOperation::Noise&&L.bEnabled;});}).OnClicked_Lambda([this]{auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();FCLPhysicalDetailScale::AddNativeDetail(R);CommitSurfaceRecipe(R);return FReply::Handled();})]);
+        InspectorRow(D,TEXT("Size policy"),SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(FCLPhysicalDetailScale::UsesMeters(RecipeAsset()->Recipe)?TEXT("Terrain detail uses metres. Feature counts follow area and authored density."):TEXT("Some terrain sizes follow planet radius. Lock them here to retain physical sizes when resizing."));}));
+    }
     void BuildPlanetInspector(IDetailLayoutBuilder& B,int32 Page)
     {
         const auto Recipe=B.GetProperty(GET_MEMBER_NAME_CHECKED(UCLPlanetRecipeAsset,Recipe));
@@ -1208,6 +1342,7 @@ public:
         {
             auto& C=B.EditCategory(TEXT("Body"),FText::FromString(TEXT("Planet")));C.SetSortOrder(0);
             Add(C,TEXT("Name"));Add(C,TEXT("RadiusMeters"));
+            InspectorRow(C,TEXT("Reference area"),SNew(STextBlock).Text_Lambda([this]{const auto& R=RecipeAsset()->Recipe;return FText::FromString(FString::Printf(TEXT("%.2f km²"),4*UE_DOUBLE_PI*FMath::Square(R.RadiusMeters*R.BaseSurfaceNormalized)/1.e6));}));
             InspectorRow(C,TEXT("Radial Guides"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::RadialGuidesMenu)
                 .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.RadialGuides.Name);})]);
             Add(C,TEXT("BaseSurfaceNormalized"),true);Add(C,TEXT("Seed"),true);
@@ -1224,6 +1359,8 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Duplicate"))).OnClicked_Lambda([this]{RadialGuidesSession->NewSet();return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Remove"))).OnClicked_Lambda([this]{RadialGuidesSession->RemoveSet();return FReply::Handled();})],true);
             C.SetShowAdvanced(false);
+            auto& E=B.EditCategory(TEXT("SurfaceElevation"),FText::FromString(TEXT("Surface elevation")));E.SetSortOrder(1);
+            auto& D=B.EditCategory(TEXT("PhysicalDetail"),FText::FromString(TEXT("Terrain detail")));D.SetSortOrder(2);BuildSurfaceInspector(E,D);
         }
         else if(Page==1)
         {
@@ -1357,7 +1494,7 @@ public:
             const auto View=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateDetailView(Args);
             View->RegisterInstancedCustomPropertyLayout(UCLPlanetRecipeAsset::StaticClass(),FOnGetDetailCustomizationInstance::CreateLambda([Weak,Page]
             {return MakeShared<FCLPlanetDetailsLayout>([Weak,Page](IDetailLayoutBuilder& B){if(auto E=Weak.Pin())E->BuildPlanetInspector(B,Page);});}));
-            if(Page==1)View->OnFinishedChangingProperties().AddSP(this,&FCLRecipeToolkit::FinishGeologyAdvanced);
+            if(Page==0||Page==1)View->OnFinishedChangingProperties().AddSP(this,&FCLRecipeToolkit::FinishGeologyAdvanced);
             View->SetObject(RecipeAsset());PlanetInspectors.Add(View);InspectorPages->AddSlot()[View];
         }
         return SNew(SDockTab).Label(FText::FromString(TEXT("Planet")))[SNew(SVerticalBox)
@@ -2258,5 +2395,79 @@ bool FCLRockRenderedTest::RunTest(const FString&)
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Globe,Section,Window,Content));return true;
+}
+
+namespace
+{
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSurfaceDesignerTest,"Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLSurfaceDesignerTest::RunTest(const FString&)
+{
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/SurfaceScale10.json")));
+    const auto Package=CreatePackage(*(TEXT("/Temp/CLSurfaceDesigner_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));if(!A->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    const auto Original=A->Recipe;const auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->Globe->Cancel();
+    TestTrue(TEXT("Surface review opens on its existing native Planet inspector"),E->InspectorPage==0&&E->ElevationSlider&&E->DetailScaleSlider);
+    TestTrue(TEXT("Opening preserves the saved recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
+    E->BeginSurfaceDrag(true);E->PendingElevation=.25;E->PumpSurface(true);E->PendingElevation=.75;E->PumpSurface(true);E->EndSurfaceDrag();const auto After=A->Recipe;
+    TestEqual(TEXT("Held elevation gesture reaches the latest character"),After.ElevationDistribution.Character,.75);
+    GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete elevation gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));GEditor->RedoTransaction();
+    const auto HighHandle=*E->ElevationAdvancedProperties.FindByPredicate([](const auto& H){return H->GetProperty()->GetFName()==TEXT("HighEndAreaPercent");});
+    TestEqual(TEXT("Native percentage edit succeeds"),HighHandle->SetValue(4.),FPropertyAccess::Success);TestEqual(TEXT("Four percent remains independent of Character"),A->Recipe.ElevationDistribution.HighEndAreaPercent,4.);TestEqual(TEXT("Tail editing preserves Character"),A->Recipe.ElevationDistribution.Character,.75);
+    GEditor->UndoTransaction();TestEqual(TEXT("One Undo restores only the tail edit"),A->Recipe.ElevationDistribution.HighEndAreaPercent,1.);
+    auto& Draft=*reinterpret_cast<FCLSurfaceDistributionSettings*>(E->ElevationDraft->GetStructMemory());Draft.HighEndAreaPercent=0;FPropertyChangedEvent Bad(FCLSurfaceDistributionSettings::StaticStruct()->FindPropertyByName(TEXT("HighEndAreaPercent")),EPropertyChangeType::ValueSet);E->PlanetInspectors[0]->OnFinishedChangingProperties().Broadcast(Bad);
+    TestEqual(TEXT("Invalid native draft retains the accepted area target"),A->Recipe.ElevationDistribution.HighEndAreaPercent,1.);TestEqual(TEXT("Invalid draft rolls back"),Draft.HighEndAreaPercent,1.);
+    E->BeginSurfaceDrag(false);E->PendingDetailScale=350;E->PumpSurface(true);E->PendingDetailScale=500;E->PumpSurface(true);E->EndSurfaceDrag();
+    TestEqual(TEXT("Detail gesture rewrites existing native metre wavelengths"),A->Recipe.NoiseLayers[0].WavelengthMeters,500.);GEditor->UndoTransaction();TestEqual(TEXT("One Undo restores the detail gesture"),A->Recipe.NoiseLayers[0].WavelengthMeters,250.);
+    TestTrue(TEXT("Measured curve is available to the interactive designer"),E->MeasuredElevation.Num()>100&&E->ElevationReadout.Contains(TEXT("Measured area")));
+    auto Regional=A->Recipe;FCLTerrainRegion Region;Region.Id=FGuid(7,8,9,10);Region.Name=TEXT("Disposable elevation region");Region.bSphericalMask=true;Region.SphericalMask.Shape=ECLTerrainRegionShape::HalfPlane;Region.SphericalMask.TransitionMeters=120;Region.TerrainTypeId=FGuid(8,9,10,11);Region.TerrainTypeName=TEXT("Metric snapshot");Region.NoiseLayers=Regional.NoiseLayers;Region.SurfaceStack=Regional.SurfaceStack;Regional.TerrainRegions={Region};
+    TestTrue(TEXT("A regional target can be authored"),E->CommitSurfaceRecipe(Regional));E->ElevationTarget=Region.Id;E->Refresh();Regional.TerrainRegions.Reset();TestTrue(TEXT("A region can be removed"),E->CommitSurfaceRecipe(Regional));TestFalse(TEXT("Removing the selected region returns editing to the whole surface"),E->ElevationTarget.IsValid());
+    E->Globe->Cancel();
+    class FFrame final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;double Started=FPlatformTime::Seconds();
+    public:
+        FFrame(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A):Test(T),Editor(E),Asset(A){}
+        bool Update()override
+        {
+            if(FPlatformTime::Seconds()-Started<.75)return false;
+            TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native inspector renders target/measured curves and percentage controls"),FSlateApplication::Get().TakeScreenshot(Editor->PlanetInspectors[0].ToSharedRef(),Pixels,Size));
+            if(!Pixels.IsEmpty()){const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/surface-scale");IFileManager::Get().MakeDirectory(*Folder,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/TEXT("designer.png")));}
+            Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FFrame>(this,E,A.Get()));return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSurfaceRenderedTest,"Catalyst.Landform.SurfaceScale.NativeRenderedReview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLSurfaceRenderedTest::RunTest(const FString&)
+{
+    const auto Globe=SNew(SCLPlanetPreview);const auto Section=SNew(SCLSectionViewport);const auto Content=SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[Globe]+SHorizontalBox::Slot().FillWidth(1)[Section];const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Physical scale and elevation · native VPP"))).ClientSize(FVector2D(1400,700))[Content];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
+    class FReview final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<SCLPlanetPreview> Globe;TSharedRef<SCLSectionViewport> Section;TSharedRef<SWindow> Window;TSharedRef<SWidget> Content;int32 Index=-1;double Started=FPlatformTime::Seconds(),Stable=0;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<SCLPlanetPreview> G,TSharedRef<SCLSectionViewport> S,TSharedRef<SWindow> W,TSharedRef<SWidget> C):Test(T),Globe(G),Section(S),Window(W),Content(C){}
+        bool Update()override
+        {
+            auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};const double Now=FPlatformTime::Seconds();Section->PumpBuild();if(Now-Started>180){Test->AddError(Globe->NativePreviewStatus());return Close();}
+            if(Index>=0)
+            {
+                if(Globe->IsUpdating()||Section->IsUpdating()){Stable=0;return false;}if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){GShaderCompilingManager->FinishAllCompilation();Stable=0;return false;}if(!Stable){Stable=Now;return false;}if(Now-Stable<.75)return false;
+                Test->TestTrue(TEXT("Scale/elevation review uses native VPP geometry in both views"),Globe->PublishedBuilds()>0&&Section->AppliedBuilds>0&&Section->NativePreview->Published().Triangles.Num()>0);FString Error;Test->TestTrue(TEXT("Shaping retains canonical native material coordinates"),Section->NativePreview->CheckMaterialCoordinates(Error));
+                TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native scale review frame renders"),FSlateApplication::Get().TakeScreenshot(Content,Pixels,Size));if(!Pixels.IsEmpty()){const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/surface-scale");IFileManager::Get().MakeDirectory(*Folder,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("native-%d.png"),Index)));}
+            }
+            if(++Index==6)return Close();const int32 Area=Index<3?(Index==0?5:Index==1?10:20):10;FString Json,Error;
+            FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/FString::Printf(TEXT("Examples/SurfaceScale%d.json"),Area)));
+            TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(Json,Error)){Test->AddError(Error);return Close();}auto R=A->Recipe;R.SurfaceStack=FCLSurfaceStack::MakeDefault();
+            R.ElevationDistribution.ApplyProgression(Index==3?0.:Index==4?1.:.5);
+            FCLNoiseLayer Stamps;Stamps.Name=TEXT("Metric native mountain stamps");Stamps.Operation=ECLTerrainOperation::StampDistribution;Stamps.Distribution.DensityPerSquareKilometer=20;Stamps.Distribution.SizeMode=ECLStampSizeMode::Absolute;Stamps.Distribution.MinimumSizeMeters=80;Stamps.Distribution.MaximumSizeMeters=120;R.NoiseLayers.Add(Stamps);
+            if(Index==5)
+            {
+                FCLTerrainRegion Region;Region.Id=FGuid(1,2,3,4);Region.Name=TEXT("Upland region");Region.bSphericalMask=true;Region.SphericalMask.Shape=ECLTerrainRegionShape::HalfPlane;Region.SphericalMask.Axis=FVector::XAxisVector;Region.SphericalMask.TransitionMeters=120;Region.TerrainTypeId=FGuid(2,3,4,5);Region.TerrainTypeName=TEXT("Metric regional snapshot");Region.NoiseLayers={R.NoiseLayers[0]};Region.SurfaceStack=R.SurfaceStack;Region.ElevationDistribution.bEnabled=true;Region.ElevationDistribution.ApplyProgression(1);R.TerrainRegions={Region};
+            }
+            const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){Test->AddError(Error);return Close();}Globe->Rebuild(P);Section->Rebuild(P);Started=Now;Stable=0;return false;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Globe,Section,Window,Content));return true;
+}
 }
 #endif
