@@ -1,5 +1,6 @@
 #include "Model/CLTectonics.h"
 #include "Model/CLContinents.h"
+#include "Model/CLRockLayer.h"
 namespace
 {
 struct FKey { double Position,Value; };
@@ -56,4 +57,17 @@ void FCLContinentalLayer::ApplyProgression(double Position)
     Elongation=Track(Strength,{{0,1.4},{.25,1.8},{.55,2.2},{.80,1.9},{1,1.6}});
     Fragmentation=Track(Strength,{{0,0},{.35,.08},{.58,.22},{.80,.55},{1,.85}});
     bOverrideExtent=bOverrideRelief=false;
+}
+
+void FCLRockLayer::ApplyProgression(double Position)
+{
+    AlgorithmVersion=1;Character=FMath::Clamp(Position,0.,1.);
+    BedThicknessRadiusFraction=Track(Character,{{0,.25},{.18,.16},{.42,.07},{.70,.025},{1,.008}});
+    InterbedFraction=Track(Character,{{0,0},{.15,.08},{.40,.30},{.70,.48},{1,.65}});
+    DipDegrees=Track(Character,{{0,0},{.20,2},{.50,8},{.80,15},{1,20}});
+    FoldAmplitudeRadiusFraction=Track(Character,{{0,0},{.25,0},{.55,.006},{.80,.014},{1,.020}});
+    FoldWavelengthRadiusFraction=Track(Character,{{0,.8},{.35,.65},{.65,.35},{1,.18}});
+    TectonicResponse=Track(Character,{{0,0},{.20,.05},{.50,.30},{.80,.65},{1,.85}});
+    FaultThrowRadiusFraction=Track(Character,{{0,0},{.45,0},{.70,.003},{1,.010}});
+    FaultZoneRadiusFraction=Track(Character,{{0,.008},{.55,.006},{1,.002}});
 }

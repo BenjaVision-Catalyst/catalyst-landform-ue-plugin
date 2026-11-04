@@ -412,6 +412,19 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
     };
 
+    if(Recipe.SchemaVersion==20||Recipe.Rock.bEnabled)
+    {
+        if(Recipe.SchemaVersion!=20||Recipe.MeasuredTerrain.IsActive()||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch)||!Recipe.Volumes.GeologicalUnits.IsEmpty())
+        {Error=TEXT("Rock schema 20 requires a whole spherical scene and one geological source; legacy radial units and measured profiles retain their versions");return nullptr;}
+        auto Base=Recipe;Base.Rock=FCLRockLayer();Base.SchemaVersion=18;
+        const auto Core=Compile(Base,Error,Library,nullptr,SurfacePatch,SurfaceLibraryOverride);if(!Core)return nullptr;
+        if(!Recipe.Rock.bEnabled)return RetainInput(Core);
+        const auto* Min=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
+        const auto* Max=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});
+        if(!Min||!Max){Error=TEXT("Rock Character requires the planet surface guides");return nullptr;}
+        const auto Rock=FCLCompiledRock::Compile(Recipe.Rock,Recipe.Seed,Recipe.RadiusMeters,Recipe.RadiusMeters+Min->HeightMeters,Recipe.RadiusMeters+Max->HeightMeters,Core->Surfaces.Get(),Core->Tectonics,Error);if(!Rock)return nullptr;
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);Out->Rock=Rock;return RetainInput(Out);
+    }
     if(Recipe.MeasuredTerrain.IsActive()||!Recipe.MeasuredTerrain.Digest.IsEmpty()||Recipe.MeasuredTerrain.Revision!=1)
     {
         if(Recipe.SchemaVersion!=19||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch)||!Recipe.NoiseLayers.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||Recipe.Continents.bEnabled||Recipe.Tectonics.bEnabled||Recipe.RegionGeneration.bEnabled)
@@ -833,8 +846,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17 && Schema != 18 && Schema != 19) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..19 with algorithm 1, or schemaVersion 3..19 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17 && Schema != 18 && Schema != 19 && Schema != 20) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..20 with algorithm 1, or schemaVersion 3..20 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)

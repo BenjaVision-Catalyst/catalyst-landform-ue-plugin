@@ -1665,3 +1665,29 @@ The preserved old-binary reference retains 624 algorithm-2 height/material probe
 The new isolated review planet provides the current control without changing
 existing saved worlds. The three-seed numerical/visual envelope is evidence
 for this curated profile, not an all-seed or Advanced quality guarantee.
+
+
+## Rock Character and excavation checkpoint — 4 November 2026
+
+The [Rock Character layer](RockCharacter.md) adds schema-20 geological structure
+and stable unit/bed identities throughout the body volume. Its one knob composes
+bed thickness, interbeds, dip, folding, a bounded fault transition and response
+to the existing tectonic displacement. It adds no terrain height. Generic native
+Rock/Scree/Soil artwork is provisional; geological properties are explicit,
+normalized gameplay values rather than calibrated excavation energy.
+
+VPP remains the sole voxel platform. Native sphere sculpting mines the authored
+cave, native material/metadata painting identifies placed fill, and native
+compressed sculpt save/load retains the edited fields and properties in a
+distinct cold process. Landform adds only the body-space geological semantics
+and their stamp/query binding. The native audit and proven editor-bootstrap
+readiness boundary are documented; no streaming manager or edit serializer was
+added. The [qualification](../conformance/RockCharacter/qualification-mac-arm64.json)
+records 24 native globe/cutaway cases, the relevant regression checks and the
+cooked excavation/reload/rejection cases.
+
+The next geology work remains distinct: weathering/topsoil cover, connected
+drainage and erosion processes can consume this rock structure and erodibility.
+The repeating three-unit profile does not close complete geological history,
+mineral resources, production persistence or the server-recipe realism goal.
+Mars remains complete; multiplayer remains deferred.

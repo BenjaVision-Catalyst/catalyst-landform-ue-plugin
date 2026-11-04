@@ -204,3 +204,12 @@ total above the bracket. Callout leaders locate exact render heights; bracket
 endpoints use those aligned label rows so short projected intervals stay readable.
 Missing or reversed surface guides omit the bracket; an absent/outside ocean
 omits only its subdivision. These annotations never change recipe data.
+
+
+## Rock Character
+
+[Schema-20 Rock Character](RockCharacter.md) adds an independent material/property
+sequence without changing final terrain heights. Zero supplies homogeneous
+bedrock with no added structure; disabling restores legacy surface classification.
+Its native excavation proof checks caves, mining, explicit backfill and a
+separate-process VPP sculpt reload. Weathering and topsoil are later layers.

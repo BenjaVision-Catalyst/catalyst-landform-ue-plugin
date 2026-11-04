@@ -1,4 +1,6 @@
 #include "CLPlanetStamp.h"
+#include "VoxelLinearColorMetadata.h"
+#include "UObject/StrongObjectPtr.h"
 #include "CLPlanetShape.h"
 #include "Heightmap/VoxelHeightmap.h"
 #include "Heightmap/VoxelHeightmap_Height.h"
@@ -33,6 +35,13 @@ FVector FCLSphericalHeightmapPlacement::FromChart(double Radius, const FVector2D
     Map.ChartXAxis = TangentX;
     return Map.FromChart(Chart);
 }
+
+class FCLRockMetadataBinding
+{
+public:
+    explicit FCLRockMetadataBinding(UVoxelLinearColorMetadata* Value):Asset(Value){}
+    TStrongObjectPtr<UVoxelLinearColorMetadata> Asset;
+};
 
 double FCLPlanetStampRuntime::FSource::Weight(double Radius, const FVector& Direction, FVector2D& Chart) const
 {
@@ -73,6 +82,11 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
         FString Error;
         RecipePlan = Stamp.CompiledRecipe ? Stamp.CompiledRecipe : FCLPlanetCompiler::Compile(Stamp.Recipe, Error);
         if (!RecipePlan) return false;
+        if(RecipePlan->Rock)
+        {
+            auto* Asset=LoadObject<UVoxelLinearColorMetadata>(nullptr,FCLCompiledRock::PropertiesAssetPath());if(!Asset)return false;
+            RockBinding=MakeShared<FCLRockMetadataBinding>(Asset);RockMetadata=FVoxelMetadataRef(Asset);
+        }
         Extent += FMath::Max(FMath::Abs(RecipePlan->MinimumHeightMeters), FMath::Abs(RecipePlan->MaximumHeightMeters)) * 100;
     }
     for (const FCLSphericalHeightmapPlacement& Placement : Stamp.Placements)
@@ -248,12 +262,23 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeBulkQuery& Query, const FVox
 void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FVoxelVolumeTransform& Transform) const
 {
     const bool Surfaces=AffectSurfaceType()&&Query.bQuerySurfaceTypes&&RecipePlan&&RecipePlan->Surfaces;
+    const bool Rock=AffectMetadata()&&RockMetadata&&Query.MetadatasToQuery.Contains(RockMetadata);
     const bool Metadata=AffectMetadata()&&Query.MetadatasToQuery.Num()>0&&RuntimeMetadata->ShouldCompute(Query);
-    if(!AffectShape()&&!Surfaces&&!Metadata)return;
+    if(!AffectShape()&&!Surfaces&&!Metadata&&!Rock)return;
     const auto Positions=FVoxelStampUtilities::ComputePositions(Query,Transform);FVoxelFloatBuffer Alphas;
-    FVoxelStampUtilities::ApplyDistances(*this,Query,Transform,SampleDistances(Query.Query,Positions),AffectShape(),(Surfaces||Metadata)?&Alphas:nullptr);
+    FVoxelStampUtilities::ApplyDistances(*this,Query,Transform,SampleDistances(Query.Query,Positions),AffectShape(),(Surfaces||Metadata||Rock)?&Alphas:nullptr);
     if(Surfaces)FVoxelStampUtilities::ApplySurfaceTypes(Query,SampleSurfaceTypes(Query.Query,Positions),Alphas);
     if(Metadata)FVoxelStampUtilities::ApplyMetadatas(Query,*RuntimeMetadata,{},Alphas);
+    if(Rock)
+    {
+        FVoxelLinearColorBuffer Values;Values.Allocate(Positions.Num());
+        for(int32 I=0;I<Positions.Num();++I)
+        {
+            FVector P=SamplingFrame.NativeToBodyMeters(Positions[I]);if(Stamp.bSectionPreview)P=SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters);
+            Values.Set(I,RecipePlan->Rock->Properties(P));
+        }
+        RockMetadata.IndirectBlend(Query.Indirection,Values,Alphas,Query.IndirectMetadata.FindChecked(RockMetadata));
+    }
 }
 
 FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const

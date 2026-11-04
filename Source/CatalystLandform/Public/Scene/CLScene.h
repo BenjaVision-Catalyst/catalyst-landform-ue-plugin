@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Scene/CLSceneQuery.h"
+#include "Model/CLRockLayer.h"
 
 struct FCLCompiledPlanetRecipe;
 
@@ -27,6 +28,7 @@ public:
     /** No Euclidean-distance/Lipschitz bound is claimed by the radial provider. */
     bool HasConservativeStepBound() const { return false; }
     bool SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSample>& Out, FString& Error) const;
+    bool SampleGeology(const FCLSceneQuery& Query,TArray<FCLRockSample>& Out,FString& Error)const;
     bool SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurfaceSample>& Out, FString& Error) const;
 
 private:

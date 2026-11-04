@@ -10,6 +10,7 @@
 #include "CLPlanetStamp.generated.h"
 
 class FCLScene;
+class FCLRockMetadataBinding;
 
 /** Immutable placement copied from an authoring actor; all distances are cm. */
 USTRUCT()
@@ -76,6 +77,8 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     TArray<FSource> Sources;
     TSharedPtr<const FVoxelRuntimeMetadataOverrides> RuntimeMetadata;
     const class UVoxelShapeFunctionLibrary* NativeShapes=nullptr;
+    FVoxelMetadataRef RockMetadata;
+    TSharedPtr<FCLRockMetadataBinding> RockBinding;
     double Extent = 10000;
     FCLBodyFrame SamplingFrame;
     TSharedPtr<const FCLCompiledPlanetRecipe> RecipePlan;

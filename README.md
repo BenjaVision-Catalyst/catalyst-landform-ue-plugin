@@ -794,3 +794,9 @@ The [Continental Character](Docs/ContinentalCharacter.md) profile resumes Planet
 Designer authoring with stable continental structures, continuous domain entry
 and native VPP noise. It composes with the independent Tectonic Character layer;
 a continental knob gesture adopts the new version without rewriting saved worlds.
+
+
+[Rock Character](Docs/RockCharacter.md) adds a schema-20 one-knob geological
+material/property layer, stable beds through caves and mining, and native VPP
+sculpt save/load qualification. See the linked native audit, scoped proof and
+[portable example](Examples/RockCharacter.json).

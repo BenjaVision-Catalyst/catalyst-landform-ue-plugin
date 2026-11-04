@@ -639,9 +639,18 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLPlanetInspectorTest;
     friend class FCLTectonicLiveKnobTest;
     friend class FCLTectonicAdvancedTest;
+    friend class FCLRockDesignerTest;
 #endif
 
 
+    TSharedPtr<FStructOnScope> RockDraft;
+    TSharedPtr<IStructureDetailsView> RockDetails;
+    TSharedPtr<SSlider> RockSlider;
+    TSharedPtr<SButton> RockVariation;
+    bool bRockDragging=false;
+    double PendingRock=.55,AppliedRock=.55,LastRockApply=0;
+    FTSTicker::FDelegateHandle RockTicker;
+    TUniquePtr<FScopedTransaction> RockTransaction;
     TSharedPtr<SCLSectionViewport> Preview;
     FCLPlanetRecipe InspectorRecipe;
     FString InspectorError;
@@ -703,6 +712,7 @@ public:
     virtual ~FCLRecipeToolkit()
     {
         FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicDragTransaction.Reset();
+        FTSTicker::GetCoreTicker().RemoveTicker(RockTicker);RockTransaction.Reset();
         if (SelectionInput && FSlateApplication::IsInitialized()) FSlateApplication::Get().UnregisterInputPreProcessor(SelectionInput);
         if (EditingAsset) RecipeAsset()->OnRecipeChanged.Remove(Changed);
         if (TerrainEditing) TerrainEditing->Asset->OnTerrainChanged.Remove(TerrainChanged);
@@ -1042,6 +1052,7 @@ public:
             if(VersionChanged&&TectonicDetails)TectonicDetails->SetStructureData(TectonicDraft);
         }
         if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
+        if(RockDraft)*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
         if (TerrainEditing) TerrainSource.Reset(TerrainEditing->Asset);
         else if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
         else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
@@ -1126,6 +1137,43 @@ public:
             .OnClicked_Lambda([this,Continental]{VaryLayer(Continental);return FReply::Handled();})
             [SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))];
     }
+    bool CommitRock(FCLRockLayer Layer)
+    {
+        auto* A=RecipeAsset();auto R=LayeredRecipe();R.Rock=MoveTemp(Layer);R.SchemaVersion=20;if(R.Rock.bEnabled&&!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();FString Error;
+        if(!FCLPlanetCompiler::Compile(R,Error)){InspectorError=Status=Error;return false;}
+        InspectorError.Reset();TUniquePtr<FScopedTransaction> Tx;if(!RockTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change rock character")));
+        A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();return true;
+    }
+    void BeginRockDrag()
+    {
+        if(bRockDragging)return;bRockDragging=true;PendingRock=AppliedRock=LayeredRecipe().Rock.Character;LastRockApply=0;
+        RockTransaction=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change rock character")));RecipeAsset()->Modify();
+        if(Globe)Globe->SetDraftMode(true);if(Preview)Preview->SetDraftMode(true);
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        RockTicker=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak](float){if(auto E=Weak.Pin();E&&E->bRockDragging){E->PumpRock(false);return true;}return false;}));
+    }
+    void PumpRock(bool Force)
+    {
+        if(FMath::IsNearlyEqual(PendingRock,AppliedRock,1.e-7))return;const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastRockApply<.12)return;
+        auto L=LayeredRecipe().Rock;L.ApplyProgression(PendingRock);if(CommitRock(L))AppliedRock=PendingRock;LastRockApply=Now;
+    }
+    void EndRockDrag()
+    {
+        if(!bRockDragging)return;PumpRock(true);bRockDragging=false;FTSTicker::GetCoreTicker().RemoveTicker(RockTicker);RockTicker.Reset();RockTransaction.Reset();
+        if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
+    }
+    TSharedRef<SWidget> BuildRockAdvanced()
+    {
+        RockDraft=MakeShared<FStructOnScope>(FCLRockLayer::StaticStruct());*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
+        FDetailsViewArgs A;A.bAllowSearch=false;A.bHideSelectionTip=true;A.bUpdatesFromSelection=false;A.NameAreaSettings=FDetailsViewArgs::HideNameArea;
+        RockDetails=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(A,FStructureDetailsViewArgs(),nullptr,FText::GetEmpty());
+        RockDetails->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P)
+        {const FName N=P.Property.GetFName();return N!=GET_MEMBER_NAME_CHECKED(FCLRockLayer,AlgorithmVersion)&&N!=GET_MEMBER_NAME_CHECKED(FCLRockLayer,bEnabled)&&N!=GET_MEMBER_NAME_CHECKED(FCLRockLayer,Character);}));
+        RockDetails->GetOnFinishedChangingPropertiesDelegate().AddSPLambda(this,[this](const FPropertyChangedEvent& E)
+        {if(E.ChangeType&EPropertyChangeType::Interactive)return;if(!CommitRock(*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())))*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;});
+        RockDetails->SetStructureData(RockDraft);
+        return SNew(SBox).IsEnabled_Lambda([this]{return LayeredRecipe().Rock.bEnabled&&!bRockDragging;})[RockDetails->GetWidget().ToSharedRef()];
+    }
     TSharedRef<SWidget> BuildContinentalAdvanced()
     {
         ContinentalDraft=MakeShared<FStructOnScope>(FCLContinentalLayer::StaticStruct());
@@ -1195,6 +1243,20 @@ public:
                 +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::AsPercent(bTectonicDragging?PendingTectonicActivity:LayeredRecipe().Tectonics.Activity);})]
                 +SHorizontalBox::Slot().AutoWidth().Padding(6,0)[VariationButton(false)]);
             T.AddCustomRow(FText::FromString(TEXT("Tectonic settings")),true).WholeRowContent()[BuildTectonicAdvanced()];T.SetShowAdvanced(false);
+            auto& R=B.EditCategory(TEXT("RockLayer"),FText::FromString(TEXT("Rock")));R.SetSortOrder(2);
+            R.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return LayeredRecipe().Rock.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Rock;L.bEnabled=V==ECheckBoxState::Checked;CommitRock(L);}));
+            InspectorRow(R,TEXT("Character"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Rock.bEnabled;})
+                +SHorizontalBox::Slot().FillWidth(1).Padding(0,0,8,0)[SAssignNew(RockSlider,SSlider)
+                    .Value_Lambda([this]{return float(bRockDragging?PendingRock:LayeredRecipe().Rock.Character);})
+                    .OnMouseCaptureBegin_Lambda([this]{BeginRockDrag();}).OnMouseCaptureEnd_Lambda([this]{EndRockDrag();})
+                    .OnControllerCaptureBegin_Lambda([this]{BeginRockDrag();}).OnControllerCaptureEnd_Lambda([this]{EndRockDrag();})
+                    .OnValueChanged_Lambda([this](float V){PendingRock=V;if(bRockDragging)PumpRock(false);else{auto L=LayeredRecipe().Rock;L.ApplyProgression(V);CommitRock(L);}})]
+                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text_Lambda([this]{return FText::AsPercent(bRockDragging?PendingRock:LayeredRecipe().Rock.Character);})]
+                +SHorizontalBox::Slot().AutoWidth().Padding(6,0)[SAssignNew(RockVariation,SButton).ButtonStyle(&FAppStyle::Get().GetWidgetStyle<FButtonStyle>("HoverHintOnly"))
+                    .OnClicked_Lambda([this]{auto L=LayeredRecipe().Rock;const int32 Old=L.Seed;do{L.Seed=int32(FGuid::NewGuid().A);}while(L.Seed==Old);CommitRock(L);return FReply::Handled();})[SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))]]);
+            R.AddCustomRow(FText::FromString(TEXT("Rock settings")),true).WholeRowContent()[BuildRockAdvanced()];R.SetShowAdvanced(false);
+
 
         }
         else if(Page==2)
@@ -2088,5 +2150,48 @@ bool FCLNativePreviewTest::RunTest(const FString&)
         }
     };
     ADD_LATENT_AUTOMATION_COMMAND(FWait(this,Section,Globe,Window,Content));return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+namespace {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRockDesignerTest,"Catalyst.Landform.Rock.DesignerControlsAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRockDesignerTest::RunTest(const FString&)
+{
+    auto* Package=CreatePackage(*(TEXT("/Temp/CLRockControls_")+FGuid::NewGuid().ToString(EGuidFormats::Digits)));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(Package,NAME_None,RF_Transactional));A->Recipe=FCLPlanetCompiler::ContinentalBase();const auto Original=A->Recipe;
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
+    TestTrue(TEXT("Rock joins the existing Geology controls"),E->RockSlider.IsValid()&&E->RockDetails.IsValid()&&E->RockVariation.IsValid());
+    auto Layer=E->LayeredRecipe().Rock;Layer.bEnabled=true;TestTrue(TEXT("Explicit enable resolves the versioned native material profile"),E->CommitRock(Layer));const auto Before=A->Recipe;
+    E->BeginRockDrag();E->PendingRock=.3;E->PumpRock(true);E->PendingRock=.85;E->PumpRock(true);TestTrue(TEXT("The held gesture supplies the latest geological structure"),E->bRockDragging&&E->Globe->IsDraftMode()&&A->Recipe.Rock.Character==.85);E->EndRockDrag();const auto After=A->Recipe;
+    GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete geological gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));GEditor->RedoTransaction();TestTrue(TEXT("Redo restores the exact resolved strata"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&After,&A->Recipe,0));
+    auto& Draft=*reinterpret_cast<FCLRockLayer*>(E->RockDraft->GetStructMemory());auto* P=FCLRockLayer::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLRockLayer,DipDegrees));Draft.DipDegrees=3;FPropertyChangedEvent Changed(P,EPropertyChangeType::ValueSet);E->RockDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Changed);TestEqual(TEXT("Advanced changes the accepted model"),A->Recipe.Rock.DipDegrees,3.);TestEqual(TEXT("Advanced preserves the gesture position"),A->Recipe.Rock.Character,.85);
+    Draft.DipDegrees=99;E->RockDetails->GetOnFinishedChangingPropertiesDelegate().Broadcast(Changed);TestEqual(TEXT("Invalid controls retain the accepted model"),A->Recipe.Rock.DipDegrees,3.);
+    const auto BeforeVariation=A->Recipe;E->RockVariation->SimulateClick();TestTrue(TEXT("Variation changes only the rock seed"),A->Recipe.Rock.Seed!=BeforeVariation.Rock.Seed&&A->Recipe.Continents.Seed==BeforeVariation.Continents.Seed&&A->Recipe.Tectonics.Seed==BeforeVariation.Tectonics.Seed);GEditor->UndoTransaction();TestTrue(TEXT("Variation has one Undo"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeVariation,&A->Recipe,0));
+    A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;
+}
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRockRenderedTest,"Catalyst.Landform.Rock.NativeRenderedReview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRockRenderedTest::RunTest(const FString&)
+{
+    const auto Globe=SNew(SCLPlanetPreview);const auto Section=SNew(SCLSectionViewport);const auto Content=SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[Globe]+SHorizontalBox::Slot().FillWidth(1)[Section];const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native Rock Character globe and section"))).ClientSize(FVector2D(1400,700))[Content];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
+    class FReview final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<SCLPlanetPreview> Globe;TSharedRef<SCLSectionViewport> Section;TSharedRef<SWindow> Window;TSharedRef<SWidget> Content;int32 Index=-1;double Started=FPlatformTime::Seconds(),Stable=0;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<SCLPlanetPreview> G,TSharedRef<SCLSectionViewport> S,TSharedRef<SWindow> W,TSharedRef<SWidget> C):Test(T),Globe(G),Section(S),Window(W),Content(C){}
+        bool Update()override
+        {
+            auto Close=[&]{FSlateApplication::Get().RequestDestroyWindow(Window);return true;};const double Now=FPlatformTime::Seconds();Section->PumpBuild();if(Now-Started>120){Test->AddError(Globe->NativePreviewStatus());return Close();}
+            if(Index>=0)
+            {
+                if(Globe->IsUpdating()||Section->IsUpdating()){Stable=0;return false;}if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){GShaderCompilingManager->FinishAllCompilation();Stable=0;return false;}if(!Stable){Stable=Now;return false;}if(Now-Stable<.75)return false;
+                Test->TestTrue(TEXT("The geology review uses native VPP geometry in both views"),Globe->PublishedBuilds()>0&&Section->AppliedBuilds>0&&Section->NativePreview->Published().Triangles.Num()>0);FString E;Test->TestTrue(TEXT("Native geological preview keeps canonical material coordinates"),Section->NativePreview->CheckMaterialCoordinates(E));
+                TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native geological review frame renders"),FSlateApplication::Get().TakeScreenshot(Content,Pixels,Size));if(!Pixels.IsEmpty()){const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/rock-review");IFileManager::Get().MakeDirectory(*Folder,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("case-%02d.png"),Index)));}
+            }
+            if(++Index==24)return Close();auto R=FCLPlanetCompiler::ContinentalBase();R.UseGuidedGeology();R.SchemaVersion=20;const int32 Seeds[]={1729,817,529};const double Positions[]={0.,.15,.30,.45,.60,.75,.90,1.};R.Seed=Seeds[Index/8];R.Rock.bEnabled=true;R.Rock.ApplyProgression(Positions[Index%8]);FCLSolidOperation Cave;Cave.Id=FGuid(1,0,0,1);Cave.Name=TEXT("Review cave");Cave.Primitive=ECLSolidPrimitive::Box;Cave.Composition=ECLSolidComposition::Subtract;Cave.CenterMeters=FVector(0,0,700);Cave.HalfExtentsMeters=FVector(100,100,80);R.Volumes.bEnabled=true;R.Volumes.Operations={Cave};FString Error;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){Test->AddError(Error);return Close();}Globe->Rebuild(P);Section->Rebuild(P);Started=Now;Stable=0;return false;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Globe,Section,Window,Content));return true;
 }
 #endif
