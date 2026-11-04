@@ -19,16 +19,22 @@ public:
     void Reset();
     bool Poll(bool Grid=false);
     bool IsUpdating() const;
+    bool IsApplyingInput()const;
+    TOptional<float> InputProgress()const;
+    FString InputProgressText()const;
     bool IsActive() const{return Native.IsValid();}
     FString Status()const;
     FBox DisplayBounds()const;
-    const FBuffers& Published()const{return Last;}
+    /** Explicit read-only inspection, outside normal publication/navigation. */
+    const FBuffers& Published()const;
     TSharedPtr<const FCLCompiledPlanetRecipe> PublishedPlan()const{return VisiblePlan;}
     bool IsDraft()const{return AppliedDraft;}
     uint32 WorldIdentity()const{return Native?Native->GetUniqueID():0;}
     const void* RuntimeIdentity()const;
     bool UsesNativePresentation()const;
 #if WITH_DEV_AUTOMATION_TESTS
+    struct FMetrics{uint64 MeshCopies=0,VerticesCopied=0,Starts=0;double MaxPollMs=0,TotalCopyMs=0;};
+    mutable FMetrics Metrics;
     bool CheckMaterialCoordinates(FString& Error)const;
     void SetMaterialCoordinatesEnabledForTesting(bool Enabled);
 #endif
@@ -44,7 +50,8 @@ private:
 #endif
     double Width=500,PendingWidth=500;
     uint32 PublishedHash=0;
-    FBuffers Last;
+    mutable FBuffers Last;
+    mutable uint32 InspectionHash=0;
     FString Failure;
     FVoxelVolumeTransform StampToDisplay()const;
     bool ApplyPending();

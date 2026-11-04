@@ -1856,3 +1856,15 @@ as stale until corrected or undone. The [qualification](../conformance/Backgroun
 records the actual native editor, parity, timing and cooked checks. Cold resource
 loads and arbitrary native PCG inputs remain outside its latency guarantee.
 Watershed-local variation remains the next separate task; multiplayer is excluded.
+
+
+## Navigation and progress correction — 5 November 2026
+
+[Preview navigation](PreviewNavigation.md) separates authoring publication from
+native camera LOD. Camera movement and ordinary property scrolling show no
+authoring activity. New camera drags remain available while native readiness
+fences terrain picking. VPP remains the visible mesh owner; dense geometry copies
+are explicit inspection only. Progress reuses native VPP percentages and measured
+field-pass counts, with text-only unmeasured phases. The [qualification](../conformance/PreviewNavigation/qualification-mac-arm64.json)
+records single-editor timings and preserved inputs; it does not claim a large
+rendering speedup or a whole-planet performance guarantee.

@@ -1,4 +1,5 @@
 #include "CLNativePreview.h"
+#include "Misc/ScopeExit.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanetStamp.h"
 #include "VoxelLayer.h"
@@ -32,7 +33,7 @@ void FCLNativePreview::Reset()
 {
     Pending.Reset();VisiblePlan.Reset();Plan.Reset();Stamp.Reset();
     if(Native){Native->DestroyRuntime();Native->Destroy();Native.Reset();}
-    Last=FBuffers();PublishedHash=0;AwaitingPublication=false;Failure.Reset();
+    Last=FBuffers();InspectionHash=0;PublishedHash=0;AwaitingPublication=false;Failure.Reset();
 }
 bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRecipe> Input,bool Flat,double Area,FString& Error,bool Draft)
 {
@@ -48,6 +49,9 @@ bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRec
         if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
         auto* Component=NewObject<UVoxelStampComponent>(Native.Get());Component->SetupAttachment(Native->GetRootComponent());Component->RegisterComponent();Stamp=Component;
     }
+#if WITH_DEV_AUTOMATION_TESTS
+    ++Metrics.Starts;
+#endif
     Pending=MoveTemp(Input);PendingSection=Flat;PendingWidth=FMath::Clamp(Area,100.,1000.);PendingDraft=Draft;
     Error.Reset();return true;
 }
@@ -84,6 +88,16 @@ bool FCLNativePreview::ApplyPending()
 }
 bool FCLNativePreview::IsUpdating()const
 {return Pending.IsValid()||(Native&&Failure.IsEmpty()&&(AwaitingPublication||!VisiblePlan||Native->IsProcessingNewState()||!Native->IsVoxelWorldReady()));}
+bool FCLNativePreview::IsApplyingInput()const
+{return Failure.IsEmpty()&&(Pending.IsValid()||(Native&&(AwaitingPublication||Plan!=VisiblePlan)));}
+TOptional<float> FCLNativePreview::InputProgress()const
+{return !Pending&&IsApplyingInput()&&Native&&Native->IsProcessingNewState()?TOptional<float>(Native->GetProgress()):TOptional<float>();}
+FString FCLNativePreview::InputProgressText()const
+{
+    if(Pending)return TEXT("Preparing preview…");
+    if(Native&&Native->IsProcessingNewState())return FString::Printf(TEXT("Generating preview · %.0f%% · %d native tasks remaining"),Native->GetProgress()*100,Native->GetNumPendingTasks());
+    return TEXT("Publishing preview…");
+}
 const void* FCLNativePreview::RuntimeIdentity()const{return Native?Native->GetRuntime().Get():nullptr;}
 bool FCLNativePreview::UsesNativePresentation()const
 {
@@ -107,13 +121,28 @@ FBox FCLNativePreview::DisplayBounds()const
 }
 bool FCLNativePreview::Poll(bool)
 {
+#if WITH_DEV_AUTOMATION_TESTS
+    const double PollStart=FPlatformTime::Seconds();ON_SCOPE_EXIT{Metrics.MaxPollMs=FMath::Max(Metrics.MaxPollMs,(FPlatformTime::Seconds()-PollStart)*1000);};
+#endif
     if(!Native||!Failure.IsEmpty())return false;
     ApplyPending();
     if(Pending||AwaitingPublication||!Plan||!Native->IsVoxelWorldReady()||Native->IsProcessingNewState())return false;
-    TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);uint32 Hash=0;int32 Count=0;
-    for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy()){Hash=HashCombine(Hash,PointerHash(Proxy.Get()));Count+=Proxy->Mesh->Vertices.Num();}
+    TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);uint32 Hash=0;
+    for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())Hash=HashCombine(Hash,PointerHash(Proxy.Get()));
     if(!Hash||Hash==PublishedHash)return false;
-    if(Count>1000000){Failure=TEXT("Native preview inspection exceeds one million vertices");return false;}
+    PublishedHash=Hash;VisiblePlan=Plan;return true;
+}
+const FCLNativePreview::FBuffers& FCLNativePreview::Published()const
+{
+    if(!Native||!VisiblePlan||VisiblePlan!=Plan||IsUpdating()||InspectionHash==PublishedHash)return Last;
+    TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);int32 Count=0;
+    for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())Count+=Proxy->Mesh->Vertices.Num();
+    // This bound belongs only to explicit inspection. Native presentation and
+    // LOD have no application inspection budget or copying dependency.
+    if(Count>1000000){Last=FBuffers();InspectionHash=PublishedHash;return Last;}
+#if WITH_DEV_AUTOMATION_TESTS
+    const double CopyStart=FPlatformTime::Seconds();
+#endif
     FBuffers Next;const auto SourceToDisplay=StampToDisplay();
     for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())
     {
@@ -128,7 +157,10 @@ bool FCLNativePreview::Poll(bool)
         }
         for(int32 I:M.Indices)Next.Triangles.Add(Offset+I);
     }
-    Last=MoveTemp(Next);PublishedHash=Hash;VisiblePlan=Plan;return true;
+#if WITH_DEV_AUTOMATION_TESTS
+    ++Metrics.MeshCopies;Metrics.VerticesCopied+=Next.Vertices.Num();Metrics.TotalCopyMs+=(FPlatformTime::Seconds()-CopyStart)*1000;
+#endif
+    Last=MoveTemp(Next);InspectionHash=PublishedHash;return Last;
 }
 bool FCLNativePreview::Pick(const FVector& Start,const FVector& Direction,FVector& BodyMeters)const
 {

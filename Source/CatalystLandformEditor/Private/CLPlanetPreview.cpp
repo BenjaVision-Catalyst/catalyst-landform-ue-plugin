@@ -1,4 +1,5 @@
 #include "CLPlanetPreview.h"
+#include "Misc/ScopeExit.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "CLPreviewMesh.h"
@@ -413,9 +414,15 @@ void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
     Client->UpdatePlacementOverlay();
     if(!Framed){Framed=true;Frame();}Client->Apply();
 }
+#if WITH_DEV_AUTOMATION_TESTS
+void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->Navigation.Orbit(Delta);Client->Apply();}
+#endif
 void SCLPlanetPreview::Cancel(){NativePreview.Reset();if(Client)Client->NativePreview=nullptr;}
 FString SCLPlanetPreview::NativePreviewStatus()const{return NativePreview?NativePreview->Status():TEXT("No native preview");}
 bool SCLPlanetPreview::IsUpdating()const{return bEvaluationPending||(NativePreview&&NativePreview->IsUpdating());}
+bool SCLPlanetPreview::IsApplyingInput()const{return bEvaluationPending||(NativePreview&&NativePreview->IsApplyingInput());}
+TOptional<float> SCLPlanetPreview::InputProgress()const{return NativePreview?NativePreview->InputProgress():TOptional<float>();}
+FString SCLPlanetPreview::InputProgressText()const{return NativePreview?NativePreview->InputProgressText():TEXT("Preparing preview…");}
 void SCLPlanetPreview::SetEvaluationPending(bool Pending){bEvaluationPending=Pending;if(Pending)CancelPlacementDrag();}
 void SCLPlanetPreview::SetAuthoringValid(bool Valid){bAuthoringInvalid=!Valid;if(!Valid)CancelPlacementDrag();}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
@@ -483,18 +490,18 @@ FVector SCLPlanetPreview::WalkLocation() const{return Client->WalkDirection;}
 void SCLPlanetPreview::CancelPlacementDrag(){DragAxis=EAxisList::None;bPlacementMoved=false;if(Client){Client->Draft.Reset();Client->UpdatePlacementOverlay();Client->Invalidate();}}
 FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPointerEvent& E)
 {
-    const FKey Key=E.GetEffectingButton();if(!CanPick()&&Key==EKeys::LeftMouseButton)return FReply::Handled();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
+    const FKey Key=E.GetEffectingButton();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
     if(DragAxis!=EAxisList::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
-    Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;
-    if(Key==EKeys::LeftMouseButton&&bWalkPicking)
+    Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;bPressCanPick=CanPick();
+    if(bPressCanPick&&Key==EKeys::LeftMouseButton&&bWalkPicking)
     {
         ClickWalkLocation=FVector::ZeroVector;Client->CursorDirection(PointerPosition(G,E),ClickWalkLocation);ClickWalkPoint=Client->LastPickPoint;
     }
-    else if(Key==EKeys::LeftMouseButton&&IsInspectingRegions())
+    else if(bPressCanPick&&Key==EKeys::LeftMouseButton&&IsInspectingRegions())
     {
         FVector D;ClickGeneratedRegion.Invalidate();if(Client->CursorDirection(PointerPosition(G,E),D)){const auto& Cells=Client->Plan->GeneratedRegions->Cells;const int32 Index=Client->Plan->GeneratedRegions->Owner(D);if(Cells.IsValidIndex(Index))ClickGeneratedRegion=Cells[Index].Id;}
     }
-    else if(Key==EKeys::LeftMouseButton)
+    else if(bPressCanPick&&Key==EKeys::LeftMouseButton)
     {
         const auto P=PointerPosition(G,E);const auto Axis=Client->HitWidgetAxis(P);const auto* T=Client->SelectedTarget();FVector Point;
         if(Axis!=EAxisList::None&&T&&Client->WidgetPoint(P,*T,Axis,Client->GetWidgetLocation(),Point))
@@ -550,7 +557,7 @@ FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E
         const bool Resize=Client->Mode==ECLGlobePlacementMode::Resize;
         CancelPlacementDrag();if(Changed)OnPlacementCommitted.ExecuteIfBound(Target,Resize);
     }
-    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag){if(bWalkPicking){SetWalkLocation(ClickWalkLocation);WalkSurfacePoint=ClickWalkPoint;}else if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
+    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag&&bPressCanPick&&CanPick()){if(bWalkPicking){SetWalkLocation(ClickWalkLocation);WalkSurfacePoint=ClickWalkPoint;}else if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
     Button=FKey();return FReply::Handled().ReleaseMouseCapture();
 }
 void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();CancelPlacementDrag();}
@@ -612,7 +619,7 @@ bool FCLGlobeGuidesTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobePointerTest,"Catalyst.Landform.PlanetBuilder.RoutedPointerOrbit",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLGlobePointerTest::RunTest(const FString&)
 {
-    auto& App=FSlateApplication::Get();const auto Widget=SNew(SCLPlanetPreview);
+    auto& App=FSlateApplication::Get();const bool PreviousInput=App.GetHandleDeviceInputWhenApplicationNotActive();App.SetHandleDeviceInputWhenApplicationNotActive(true);ON_SCOPE_EXIT{App.SetHandleDeviceInputWhenApplicationNotActive(PreviousInput);};const auto Widget=SNew(SCLPlanetPreview);
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Globe pointer routing test"))).ClientSize(FVector2D(800,600))[Widget];
     App.AddWindow(Window,false);Window->SlatePrepass();
     FWidgetPath WidgetPath;App.GeneratePathToWidgetUnchecked(Widget->ViewportWidget.ToSharedRef(),WidgetPath,EVisibility::All);
@@ -639,6 +646,15 @@ bool FCLGlobePointerTest::RunTest(const FString&)
     const double WheelZoom=Widget->Client->Navigation.Zoom;
     Widget->Client->InputKey(FInputKeyEventArgs::CreateSimulated(EKeys::MouseScrollUp,IE_Released,1));
     TestEqual(TEXT("Wheel release does not apply a second zoom step"),Widget->Client->Navigation.Zoom,WheelZoom);
+    for(bool Pending:{true,false})
+    {
+        Widget->SetEvaluationPending(Pending);Widget->SetAuthoringValid(Pending);const double Before=Widget->Client->Navigation.Yaw;
+        TestFalse(TEXT("Busy/stale geometry remains unpickable"),Widget->CanPick());
+        App.RoutePointerDownEvent(Path,Down);TestTrue(TEXT("Busy/stale preview still admits camera capture"),Widget->HasMouseCapture());
+        App.RoutePointerMoveEvent(Path,Move,false);App.RoutePointerUpEvent(Path,Up);
+        TestTrue(TEXT("Busy/stale preview still orbits through routed pointer input"),Widget->Client->Navigation.Yaw>Before);
+    }
+    Widget->SetEvaluationPending(false);Widget->SetAuthoringValid(true);
     App.ReleaseAllPointerCapture();App.RequestDestroyWindow(Window);return true;
 }
 #endif

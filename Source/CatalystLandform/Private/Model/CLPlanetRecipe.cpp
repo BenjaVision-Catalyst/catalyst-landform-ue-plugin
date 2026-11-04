@@ -60,11 +60,14 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
 bool FCLCompileProgress::IsPreparing(){return CompileRun&&CompileRun->Preparing;}
 bool FCLCompileProgress::Check(FString& E)
 {if(CompileRun&&CompileRun->Progress&&CompileRun->Progress->Cancelled.load()){E=TEXT("Evaluation superseded");return false;}return true;}
-void FCLCompileProgress::Report(ECLCompileStage S){if(CompileRun&&CompileRun->Progress)CompileRun->Progress->Stage.store(S);}
+void FCLCompileProgress::Report(ECLCompileStage S){if(CompileRun&&CompileRun->Progress){CompileRun->Progress->Work=0;CompileRun->Progress->Stage.store(S);}}
+void FCLCompileProgress::Count(uint32 Done,uint32 Total){if(CompileRun&&CompileRun->Progress)CompileRun->Progress->Work=(uint64(Total)<<32)|FMath::Min(Done,Total);}
 bool FCLCompileProgress::Sample(const FCLCompiledPlanetRecipe& P,TConstArrayView<FVector> D,TArray<double>& H,FString& E)
 {
     if(!CompileRun){P.SampleHeightsMeters(D,H);return true;}
-    H.Reset(D.Num());for(int32 I=0;I<D.Num();I+=4096){if(!Check(E))return false;TArray<double> Part;P.SampleHeightsMeters(D.Slice(I,FMath::Min(4096,D.Num()-I)),Part);H.Append(Part);}return Check(E);
+    const bool OwnProgress=!CompileRun->Progress||!uint32(CompileRun->Progress->Work.load()>>32);
+    if(OwnProgress)Count(0,D.Num());ON_SCOPE_EXIT{if(OwnProgress)Count(0,0);};
+    H.Reset(D.Num());for(int32 I=0;I<D.Num();I+=4096){if(!Check(E))return false;TArray<double> Part;P.SampleHeightsMeters(D.Slice(I,FMath::Min(4096,D.Num()-I)),Part);H.Append(Part);if(OwnProgress)Count(H.Num(),D.Num());}return Check(E);
 }
 bool FCLPlanetCompiler::WithAuthoringValidation(TFunctionRef<bool()> Operation)
 {

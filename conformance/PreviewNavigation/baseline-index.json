@@ -1,0 +1,57 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "0E08DC66BF430CCF41BBE9853A3829ED",
+			"instanceName": "jupiter.local-21936",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.04-22.35.08",
+	"succeeded": 1,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 4.5551719665527344,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "NavigationResponsiveness",
+			"fullTestPath": "Catalyst.Landform.Designer.NavigationResponsiveness",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"0E08DC66BF430CCF41BBE9853A3829ED"
+			],
+			"duration": 4.5551719665527344,
+			"dateTime": "2026.11.04-22.35.03",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"baseline\":true,\"watershed\":false,\"frames\":240,\"frameP50Ms\":11.096414,\"frameP95Ms\":15.738875,\"maxFrameMs\":30.747540,\"maxInputMs\":0.044920,\"maxPollMs\":2.488583,\"meshCopies\":1,\"verticesCopied\":73308,\"copyMs\":2.455834,\"progressFrames\":179,\"nativeStarts\":0,\"evaluations\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.35.08"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

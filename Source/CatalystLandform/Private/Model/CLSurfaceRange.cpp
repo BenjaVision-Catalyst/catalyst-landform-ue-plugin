@@ -1,4 +1,5 @@
 #include "Model/CLSurfaceRange.h"
+#include "Misc/ScopeExit.h"
 #include "Model/CLCompileProgress.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLStampDistribution.h"
@@ -120,6 +121,8 @@ TSharedPtr<const FCLSurfaceRange> FCLSurfaceRange::Compile(const FCLCompiledPlan
     Out->SourceMin=Heights[Order[0]];Out->SourceMax=Heights[Order.Last()];
     Out->MinimumDirection=Directions[Order[0]];Out->MaximumDirection=Directions[Order.Last()];
     // Refine several extrema independently; one deterministic range is shared by all patches.
+    {
+    FCLCompileProgress::Count(0,8);ON_SCOPE_EXIT{FCLCompileProgress::Count(0,0);};int32 CompletedExtrema=0;
     for(int32 Sign:{-1,1})for(int32 Rank=0;Rank<4;++Rank)
     {
         const int32 Index=Order[Sign<0?Rank:Order.Num()-1-Rank];FVector D=Directions[Index];double H=Heights[Index];
@@ -133,6 +136,8 @@ TSharedPtr<const FCLSurfaceRange> FCLSurfaceRange::Compile(const FCLCompiledPlan
         }
         if(H<Out->SourceMin){Out->SourceMin=H;Out->MinimumDirection=D;}
         if(H>Out->SourceMax){Out->SourceMax=H;Out->MaximumDirection=D;}
+        FCLCompileProgress::Count(++CompletedExtrema,8);
+    }
     }
     if(Out->SourceMax-Out->SourceMin<1.e-8)
     {Error=TEXT("A constant surface cannot reach two distinct surface guides; enable a shape layer or separate the guide values");return nullptr;}

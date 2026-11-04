@@ -1,0 +1,243 @@
+{
+  "date": "2026-11-05",
+  "passed": true,
+  "scope": "General Planet Designer navigation/input and property-scroll regression; Watershed disabled only to isolate ordinary editing. Authoring/native-publication progress separated from VPP camera LOD; measured phase progress and native VPP percentages; explicit lazy mesh inspection.",
+  "baseComponentCommit": "6008f534cd541e8ee11db441f8c760326e665d0c",
+  "baseWorkspaceCommit": "5da377e70ecb07e722506b2bd0050bdfc6256e21",
+  "environment": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max 128 GB"
+  },
+  "initialLoad": {
+    "reviewEditors": 4,
+    "observedCPUPercent": [
+      106.4,
+      44.1,
+      80.8,
+      49.6
+    ],
+    "userAction": "User closed all editors before the reproducer and authorised preserving their saved edits. Both baseline and fixed tests use one editor; no measured four-versus-one speedup claim."
+  },
+  "nativeAudit": {
+    "generationProgress": "Installed AVoxelWorld::GetProgress returns native new-state 0..1 progress; GetNumPendingTasks gives actual pending work",
+    "nativeOwnership": "Unmodified VPP generation, LOD, visible meshes, materials, collision and native readiness/callbacks",
+    "inspectedData": "VPP components are rendered directly; copied vertex/triangle buffers were read only by inspection tests",
+    "specialization": "Existing spherical-field compiler reports actual completed/total work for native height sample batches and eight extrema searches; nested probes retain parent progress. No invented overall percentage.",
+    "streamingManager": false,
+    "customMesher": false,
+    "qualityReduction": false
+  },
+  "changes": [
+    "Authoring indicator follows queued/new input through native publication; camera-driven LOD shows no authoring indicator",
+    "Camera capture/orbit remains available during native readiness/evaluation and stale authoring; terrain picking and release-selection retain their fences",
+    "Native Poll no longer copies geometry or enforces an inspection budget on ordinary presentation; explicit inspection remains cached and bounded",
+    "Native SProgressBar is determinate for measured work; unmeasured phases use text only, without a marquee; queued inputs never display older LOD progress"
+  ],
+  "validation": {
+    "checks": 28,
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+      "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+      "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+      "Catalyst.Landform.Designer.DeferredGesture": "Success",
+      "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+      "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+      "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+      "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+      "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+      "Catalyst.Landform.Designer.SurfaceArea": "Success",
+      "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii": "Success",
+      "Catalyst.Landform.NativeMaterials.PreviewCoordinateGPU": "Success",
+      "Catalyst.Landform.NativeMaterials.RenderedPreviewCoordinates": "Success",
+      "Catalyst.Landform.NativeMaterials.StampMetadataOverrides": "Success",
+      "Catalyst.Landform.PlanetBuilder.RoutedPlacementHandles": "Success",
+      "Catalyst.Landform.PlanetBuilder.RoutedPointerOrbit": "Success",
+      "Catalyst.Landform.PlanetLayers.VariationPublication": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success",
+      "LandformLab.Inspection.WatershedProjectedRoundTrip": "Success"
+    },
+    "finalRun": {
+      "succeeded": 28,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0
+    },
+    "nativeEditorExitCode": 0,
+    "baseline": {
+      "baseline": true,
+      "watershed": false,
+      "frames": 240,
+      "frameP50Ms": 11.096414,
+      "frameP95Ms": 15.738875,
+      "maxFrameMs": 30.74754,
+      "maxInputMs": 0.04492,
+      "maxPollMs": 2.488583,
+      "meshCopies": 1,
+      "verticesCopied": 73308,
+      "copyMs": 2.455834,
+      "progressFrames": 179,
+      "nativeStarts": 0,
+      "evaluations": 0
+    },
+    "globe": {
+      "baseline": false,
+      "watershed": false,
+      "frames": 240,
+      "frameP50Ms": 12.472585,
+      "frameP95Ms": 18.419627,
+      "maxFrameMs": 56.292586,
+      "maxInputMs": 0.041377,
+      "maxPollMs": 0.02921,
+      "meshCopies": 0,
+      "verticesCopied": 0,
+      "copyMs": 0.0,
+      "progressFrames": 0,
+      "nativeStarts": 0,
+      "evaluations": 0
+    },
+    "expandedGeologyProperties": {
+      "watershed": false,
+      "frames": 120,
+      "frameP50Ms": 10.393124,
+      "frameP95Ms": 11.30008,
+      "maxFrameMs": 11.628542,
+      "maxInputMs": 1.763083,
+      "maxScrollOffset": 35.555546,
+      "handledWheels": 120,
+      "progressFrames": 0,
+      "nativeStarts": 0,
+      "evaluations": 0
+    },
+    "responsive": {
+      "heartbeats": 244,
+      "maxInputMs": 1.225002,
+      "maxPreparationMs": 1.168791,
+      "tasksStarted": 11,
+      "discarded": 6,
+      "workerThread": true,
+      "progressCaptured": true
+    },
+    "fieldProfiles": [
+      {
+        "profile": "Watershed",
+        "preparation_ms": "0.069667",
+        "reused_preparation_ms": "0.024959",
+        "completion_seconds": "0.249675",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "WatershedContinental",
+        "preparation_ms": "1.114167",
+        "reused_preparation_ms": "0.021044",
+        "completion_seconds": "0.608056",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "WatershedExcavation",
+        "preparation_ms": "0.305250",
+        "reused_preparation_ms": "0.020541",
+        "completion_seconds": "0.721152",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "SurfaceScale10",
+        "preparation_ms": "4.541792",
+        "reused_preparation_ms": "0.009999",
+        "completion_seconds": "0.024341",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "SurfaceScaleRegional",
+        "preparation_ms": "0.072084",
+        "reused_preparation_ms": "0.021294",
+        "completion_seconds": "0.014987",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "GeneratedRegions",
+        "preparation_ms": "135.323130",
+        "reused_preparation_ms": "0.016458",
+        "completion_seconds": "0.016189",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "RockBedsExcavation",
+        "preparation_ms": "0.283085",
+        "reused_preparation_ms": "0.026960",
+        "completion_seconds": "0.148545",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "SurfaceScale10Face",
+        "preparation_ms": "0.012793",
+        "reused_preparation_ms": "0.013001",
+        "completion_seconds": "0.000475",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "LocalPatch",
+        "preparation_ms": "12.254458",
+        "reused_preparation_ms": "0.010747",
+        "completion_seconds": "0.000005",
+        "max_height_error_m": "0"
+      },
+      {
+        "profile": "Mars",
+        "preparation_ms": "510.710459",
+        "reused_preparation_ms": "0.029042",
+        "completion_seconds": "0.000007",
+        "max_height_error_m": "0"
+      }
+    ],
+    "routedBusyOrbit": "Actual pointer press/move/release retains capture and changes camera yaw while field evaluation is pending or authoring is stale; picking remains refused",
+    "inspectionRegression": "Native normalized radii, cutaway domain/triangles, material coordinate GPU/mesh metadata and variation publication remain successful",
+    "walking": "Existing native watershed projected round trip passes",
+    "measuredProgress": "ResponsiveDesigner requires a displayed fraction strictly between 0 and 1 and captures it",
+    "visuallyReviewed": "measured-progress.png",
+    "protectedOriginalFiles": 184,
+    "protectedSavedReviewFiles": 177,
+    "assetRegeneration": false,
+    "recipeMigration": false,
+    "cookedRuntimeRerun": false
+  },
+  "limits": [
+    "Rendering frame time did not improve substantially: baseline and fixed single-editor runs are recorded without attributing all reported lag to mesh inspection.",
+    "Measured timing covers these single-editor workloads on this hardware, including rendering/scheduling; it is not a guaranteed frame rate for every asset/zoom/host.",
+    "The 2.46 ms baseline inspection copy was unnecessary, but does not alone explain a severe global editor slowdown.",
+    "Phase counts describe the current pass, can restart between passes, and are not a whole-job time estimate.",
+    "This editor/input correction does not replace prior cooked qualifications or claim new hydrology, streaming or multiplayer behaviour."
+  ],
+  "sourceSHA256": {
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "15ff644cbe2c1b0f00096bc4cf1354079cdb7e194092f4e053e854a5c5a0d1c4",
+    "Source/CatalystLandform/Private/Model/CLSurfaceRange.cpp": "2fb39f90f4b1febb9d2581b788dae5dddadff81ebd65b95ea74318e68ab15db7",
+    "Source/CatalystLandform/Public/Model/CLCompileProgress.h": "882faacd4262e94487f33c13b2e67be6d019f657123a99294788532b690079a6",
+    "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "bf6b1c94662ad5d9f51c57ce314ab65e23ae13d043a9b6fad76d8cc04d4b3212",
+    "Source/CatalystLandformEditor/Private/CLNativePreview.h": "1169711322304260f28efc3a17af6a921bf4c9dad2d517a87641ac89e903ce04",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "5d194ddc0bee57ae3d02cc78d71baeec751159e7096ab8fb208af9c61a763ad9",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "d6f1e838e0d03941282586a8efcb517f20e15c69d3e659e4e57f493ac229533f",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "65af78d91d8cdf4ce57e7486a98b6684e122f124ab18ed0e5a8ff826ab0fec4f",
+    "Source/CatalystLandformEditor/Private/CLRecipeEvaluation.h": "73c192301f8296e57943be1795834368be9a44957881838a8e4d27cd1b45e1d6"
+  },
+  "artifactSHA256": {
+    "baseline.json": "bc38d0eecc3c4d61531e2a7c3e15d919a568d563d032f18aafcca0e6ed5eec32",
+    "baseline-source.json": "196e103dfa39a93948d6c7f842a34a71c44bb085b9c2389c676b2953f7f3ef29",
+    "baseline-index.json": "e73765bf4a684bef8cc0b0a15ab2e6ace0e6870a37a4bcbd1ae6b96231fae99c",
+    "editor-index.json": "892684f78c9a88bb29dadab55919fa351a8612700c7f9624c1b75e4479be9d03",
+    "globe.json": "78c542aa018bcb6e57c5b71e3fe8a0af55998f72b95d490b3e114744675be1f1",
+    "properties.json": "5078d01a6c11ab06fbb9e1765dee488143a5ed1e68347f7efbbe4e5593b713eb",
+    "responsive.json": "63d81acec651a3ff57dc3b1e7da2fc3c4a6179a65a35c2196717fa19c7ba5fdb",
+    "field-parity.csv": "dc11a7668c411cbb05862b901a972e283f11a6755aec66baa0139418a0e0f5a5",
+    "measured-progress.png": "8841ce76c99e26adc1979ec1635c331b4a50349ac781448fe32c40024f619d14"
+  }
+}

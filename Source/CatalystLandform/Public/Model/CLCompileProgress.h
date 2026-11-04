@@ -9,6 +9,9 @@ struct CATALYSTLANDFORM_API FCLCompileProgress
 {
     std::atomic<bool> Cancelled{false};
     std::atomic<ECLCompileStage> Stage{ECLCompileStage::Preparing};
+    /** One coherent phase-local completed/total snapshot, zero when unmeasured. */
+    std::atomic<uint64> Work{0};
+    static void Count(uint32 Completed,uint32 Total);
     static bool IsPreparing();
     static int32 ReusedNativeInputs(const FCLPreparedPlanetCompile&);
     static bool Check(FString& Error);

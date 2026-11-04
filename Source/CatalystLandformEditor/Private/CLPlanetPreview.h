@@ -73,6 +73,8 @@ public:
     bool HasDraftMesh() const{return bLastPublishedDraft;}
 #if WITH_DEV_AUTOMATION_TESTS
     void CreateReferenceMeshForTesting();
+    FCLNativePreview* NativeForTesting()const{return NativePreview.Get();}
+    void OrbitForTesting(FVector2D Delta);
 #endif
     void SetOceanVisible(bool Visible);
     bool IsOceanVisible() const{return bOceanVisible;}
@@ -83,6 +85,9 @@ public:
     const TArray<FCLGuideIndicator>& Indicators() const;
     const TArray<TArray<FVector2D>>& Rings() const;
     bool IsUpdating() const;
+    bool IsApplyingInput()const;
+    TOptional<float> InputProgress()const;
+    FString InputProgressText()const;
     FString NativePreviewStatus()const;
 protected:
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
@@ -94,7 +99,7 @@ protected:
     virtual FReply OnPreviewKeyDown(const FGeometry&,const FKeyEvent&) override;
     virtual FReply OnMouseWheel(const FGeometry&,const FPointerEvent&) override;
 private:
-    bool bEvaluationPending=false,bAuthoringInvalid=false;
+    bool bEvaluationPending=false,bAuthoringInvalid=false,bPressCanPick=true;
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLNativePreviewTest;
     friend class FCLPreviewMaterialRenderedTest;

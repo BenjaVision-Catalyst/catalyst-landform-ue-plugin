@@ -1,0 +1,964 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "DFA191035E4AFBEF71993BBD553ABC29",
+			"instanceName": "jupiter.local-38012",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.04-22.51.32",
+	"succeeded": 28,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 48.12109375,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "NativeFieldParity",
+			"fullTestPath": "Catalyst.Landform.Background.NativeFieldParity",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 7.7204947471618652,
+			"dateTime": "2026.11.04-22.50.43",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeInputInvalidation",
+			"fullTestPath": "Catalyst.Landform.Background.NativeInputInvalidation",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.61199820041656494,
+			"dateTime": "2026.11.04-22.50.51",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ResponsiveDesigner",
+			"fullTestPath": "Catalyst.Landform.Background.ResponsiveDesigner",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 6.3305397033691406,
+			"dateTime": "2026.11.04-22.50.52",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "AuthoringBoundaries",
+			"fullTestPath": "Catalyst.Landform.Designer.AuthoringBoundaries",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 5.3372917175292969,
+			"dateTime": "2026.11.04-22.50.58",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "BoundedNavigation",
+			"fullTestPath": "Catalyst.Landform.Designer.BoundedNavigation",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.0083072111010551453,
+			"dateTime": "2026.11.04-22.51.03",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "CentreAxisPivot",
+			"fullTestPath": "Catalyst.Landform.Designer.CentreAxisPivot",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.0081089995801448822,
+			"dateTime": "2026.11.04-22.51.03",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "CoreToSkySection",
+			"fullTestPath": "Catalyst.Landform.Designer.CoreToSkySection",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.015544168651103973,
+			"dateTime": "2026.11.04-22.51.03",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Section maximum surface/field error: 0.000000 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.03"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DeferredGesture",
+			"fullTestPath": "Catalyst.Landform.Designer.DeferredGesture",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.030065417289733887,
+			"dateTime": "2026.11.04-22.51.03",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "200 guide-only updates: 0.069 ms; mesh rebuilds while dragging: 0; after release: 1",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.04"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DistanceInputUnits",
+			"fullTestPath": "Catalyst.Landform.Designer.DistanceInputUnits",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.0088853761553764343,
+			"dateTime": "2026.11.04-22.51.04",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "FixedDisplayFrame",
+			"fullTestPath": "Catalyst.Landform.Designer.FixedDisplayFrame",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.053747124969959259,
+			"dateTime": "2026.11.04-22.51.04",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LayerPropertyDraft",
+			"fullTestPath": "Catalyst.Landform.Designer.LayerPropertyDraft",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.020086918026208878,
+			"dateTime": "2026.11.04-22.51.04",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "MinimumZoomFit",
+			"fullTestPath": "Catalyst.Landform.Designer.MinimumZoomFit",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.0079645439982414246,
+			"dateTime": "2026.11.04-22.51.04",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NavigationResponsiveness",
+			"fullTestPath": "Catalyst.Landform.Designer.NavigationResponsiveness",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 4.7865142822265625,
+			"dateTime": "2026.11.04-22.51.04",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"baseline\":false,\"watershed\":false,\"frames\":240,\"frameP50Ms\":12.472585,\"frameP95Ms\":18.419627,\"maxFrameMs\":56.292586,\"maxInputMs\":0.041377,\"maxPollMs\":0.029210,\"meshCopies\":0,\"verticesCopied\":0,\"copyMs\":0.000000,\"progressFrames\":0,\"nativeStarts\":0,\"evaluations\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.08"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "PropertyScrollResponsiveness",
+			"fullTestPath": "Catalyst.Landform.Designer.PropertyScrollResponsiveness",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 2.8978550434112549,
+			"dateTime": "2026.11.04-22.51.08",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"watershed\":false,\"frames\":120,\"frameP50Ms\":10.393124,\"frameP95Ms\":11.300080,\"maxFrameMs\":11.628542,\"maxInputMs\":1.763083,\"maxScrollOffset\":35.555546,\"handledWheels\":120,\"progressFrames\":0,\"nativeStarts\":0,\"evaluations\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.11"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SelectionAndCoreAdd",
+			"fullTestPath": "Catalyst.Landform.Designer.SelectionAndCoreAdd",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.022591542452573776,
+			"dateTime": "2026.11.04-22.51.11",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "StableOrbitZoom",
+			"fullTestPath": "Catalyst.Landform.Designer.StableOrbitZoom",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.0081401653587818146,
+			"dateTime": "2026.11.04-22.51.11",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "SurfaceArea",
+			"fullTestPath": "Catalyst.Landform.Designer.SurfaceArea",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.034077294170856476,
+			"dateTime": "2026.11.04-22.51.11",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "TerrainWorkspace",
+			"fullTestPath": "Catalyst.Landform.Designer.TerrainWorkspace",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.22246241569519043,
+			"dateTime": "2026.11.04-22.51.11",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativePreviewRadii",
+			"fullTestPath": "Catalyst.Landform.NativeGeneration.NativePreviewRadii",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.19931907951831818,
+			"dateTime": "2026.11.04-22.51.12",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "55554 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.12"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Radius 100 m: 27777 native vertices, normalized sphere residual 20.138865 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.12"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "55554 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.12"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Radius 1000 m: 27777 native vertices, normalized sphere residual 20.138865 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.12"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "55554 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.12"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Radius 6371000 m: 27777 native vertices, normalized sphere residual 20.138270 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.12"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "PreviewCoordinateGPU",
+			"fullTestPath": "Catalyst.Landform.NativeMaterials.PreviewCoordinateGPU",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.024357333779335022,
+			"dateTime": "2026.11.04-22.51.12",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "120 GPU coordinate witnesses: position 0.0224930848926 cm, physical tile phase 0.0225007534027 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.12"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RenderedPreviewCoordinates",
+			"fullTestPath": "Catalyst.Landform.NativeMaterials.RenderedPreviewCoordinates",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 3.4293444156646729,
+			"dateTime": "2026.11.04-22.51.12",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "55554 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.13"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "81914 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.13"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "55554 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.14"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "81914 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.14"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "55554 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.15"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "81914 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.15"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native material coordinate control: 24734 surface pixels, on/off 2.557761/255, repeated-on 0.653594/255",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.15"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "StampMetadataOverrides",
+			"fullTestPath": "Catalyst.Landform.NativeMaterials.StampMetadataOverrides",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.0081783756613731384,
+			"dateTime": "2026.11.04-22.51.15",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RoutedPlacementHandles",
+			"fullTestPath": "Catalyst.Landform.PlanetBuilder.RoutedPlacementHandles",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.16476824879646301,
+			"dateTime": "2026.11.04-22.51.15",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native handle mode 0 axis 1 at 399.5 / 298.5; viewport 800 x 600",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.15"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Routed actual axis 1, changed 1, commits 0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.15"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native handle mode 0 axis 2 at 328.5 / 254.5; viewport 800 x 600",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.15"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Routed actual axis 2, changed 1, commits 1",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.15"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native handle mode 0 axis 3 at 378.5 / 287.5; viewport 800 x 600",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Routed actual axis 3, changed 1, commits 2",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native handle mode 1 axis 4 at 480.5 / 350.5; viewport 800 x 600",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Routed actual axis 4, changed 1, commits 3",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native handle mode 2 axis 1 at 391.5 / 305.5; viewport 800 x 600",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Routed actual axis 1, changed 1, commits 4",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native handle mode 2 axis 2 at 347.5 / 254.5; viewport 800 x 600",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Routed actual axis 2, changed 1, commits 5",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native handle mode 2 axis 3 at 362.5 / 278.5; viewport 800 x 600",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Routed actual axis 3, changed 1, commits 6",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "RoutedPointerOrbit",
+			"fullTestPath": "Catalyst.Landform.PlanetBuilder.RoutedPointerOrbit",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.033409498631954193,
+			"dateTime": "2026.11.04-22.51.16",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "VariationPublication",
+			"fullTestPath": "Catalyst.Landform.PlanetLayers.VariationPublication",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.64588481187820435,
+			"dateTime": "2026.11.04-22.51.16",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "native producer/presenter 43815, ready 1, processing 0, tasks 0, inspected vertices 0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.16"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativePreview",
+			"fullTestPath": "Catalyst.Landform.Volumes.NativePreview",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 1.4584157466888428,
+			"dateTime": "2026.11.04-22.51.16",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "166414 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "153106 native full-float mapping values checked",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "native producer/presenter 43691, ready 1, processing 0, tasks 0, inspected vertices 0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Source IsValid=true, Min=(X=-25682.971 Y=-25708.799 Z=0.000), Max=(X=25218.123 Y=25788.609 Z=82409.311) display IsValid=true, Min=(X=-50000.001 Y=-50000.001 Z=0.000), Max=(X=50000.000 Y=50000.000 Z=82899.456) radii 0.000..82899.456",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Cutaway native triangles 151576, original body positions 79820; producer: native producer/presenter 43712, ready 1, processing 0, tasks 0, inspected vertices 79820",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Cutaway floor 631: hit 1, X=0.000 Y=44.863 Z=631.066",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Cutaway floor 604: hit 1, X=0.000 Y=44.852 Z=604.010",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Globe detached pick: hit 1, X=85.000 Y=-20.000 Z=823.565",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeSectionDomain",
+			"fullTestPath": "Catalyst.Landform.Volumes.NativeSectionDomain",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 0.0079413354396820068,
+			"dateTime": "2026.11.04-22.51.18",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "96 native section points: field error 0.00016784668 cm, chart error 2.27484671e-13 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.04-22.51.18"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "WatershedProjectedRoundTrip",
+			"fullTestPath": "LandformLab.Inspection.WatershedProjectedRoundTrip",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"DFA191035E4AFBEF71993BBD553ABC29"
+			],
+			"duration": 14.024802207946777,
+			"dateTime": "2026.11.04-22.51.18",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

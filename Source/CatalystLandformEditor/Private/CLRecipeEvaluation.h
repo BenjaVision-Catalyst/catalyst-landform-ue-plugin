@@ -33,6 +33,8 @@ public:
 #endif
     bool IsBusy()const{return Active.IsSet()||Pending.IsSet();}
     ECLCompileStage Stage()const{return Progress?Progress->Stage.load():ECLCompileStage::Preparing;}
+    uint64 Work()const{return Progress?Progress->Work.load():0;}
+    TOptional<float> Fraction()const{const uint64 W=Work();return uint32(W>>32)?TOptional<float>(float(uint32(W))/uint32(W>>32)):TOptional<float>();}
     uint64 Latest()const{return Serial;}
     uint32 Started=0,Discarded=0;
     double LastPreparationMs=0,MaximumPreparationMs=0;

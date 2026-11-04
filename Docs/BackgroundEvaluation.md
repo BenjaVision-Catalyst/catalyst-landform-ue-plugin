@@ -9,9 +9,11 @@ watershed variation or a streaming manager.
 Changing a setting updates the authored recipe and UE transaction immediately
 after structural/native-input preparation. Expensive derived fields run in a UE
 background task. The last successful terrain remains visible. Preview shows a
-native indeterminate progress bar and the current stage: geology, elevation,
-drainage or native preview update. This is stage/activity feedback, not an
-invented percentage or estimated completion time. Camera navigation remains
+native determinate bar for measured work: current-pass completed/total field
+samples/extrema searches, or VPP’s own generation percentage and pending-task count. Unmeasured
+phases show stage text without an animated marquee. Camera-driven LOD does not
+show authoring progress. See the [navigation correction](PreviewNavigation.md)
+for the measured scope. Camera navigation remains
 available; terrain placement, picking and walking wait for a current preview.
 
 The editor admits one running evaluation and one replaceable latest pending
@@ -53,7 +55,8 @@ thread. It captures immutable snapshots. Matching raw field inputs are reused
 between downstream edits. Any non-recipe UObject modification or property change
 invalidates this reuse; upstream recipe values, native resource pointers and
 local region/face requests are compared explicitly. The cache is bounded to the
-last prepared input per editor. Unchanged measured pins and outer radius also reuse the captured resource. A
+last prepared input per editor. Unchanged measured pins and outer radius also
+reuse the captured resource. A
 changed measured reference or outer radius resolves and validates its pinned
 native resource on the game thread. `CompleteBackground` then follows the
 same compiler pipeline on a UE task, performing range/CDF fitting, deposited rock

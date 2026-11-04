@@ -1,5 +1,6 @@
 #include "CLPreviewMesh.h"
 #include "CLRecipeEvaluation.h"
+#include "Widgets/Views/STableViewBase.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "CLSurfaceDistributionPlot.h"
 #include "CLRockThicknessPlot.h"
@@ -605,6 +606,9 @@ public:
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
     { Client = MakeShared<FCLSectionClient>(&Scene, SharedThis(this)); return Client.ToSharedRef(); }
     bool IsUpdating() const{return NativePreview&&NativePreview->IsUpdating();}
+    bool IsApplyingInput()const{return NativePreview&&NativePreview->IsApplyingInput();}
+    TOptional<float> InputProgress()const{return NativePreview?NativePreview->InputProgress():TOptional<float>();}
+    FString InputProgressText()const{return NativePreview?NativePreview->InputProgressText():TEXT("Preparing preview…");}
     void CancelPendingBuild(){NativePreview.Reset();}
     void PumpBuild()
     {
@@ -648,6 +652,8 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLWatershedDesignerTest;
     friend class FCLAuthoringLayoutTest;
     friend class FCLBackgroundDesignerTest;
+    friend class FCLNavigationResponsivenessTest;
+    friend class FCLPropertyScrollTest;
 #endif
 
 
@@ -1202,17 +1208,22 @@ public:
         }
     }
     bool EvaluationUpdating()const{return Evaluation.IsBusy()||(!TerrainEditing&&bGlobe?Globe&&Globe->IsUpdating():Preview&&Preview->IsUpdating());}
+    bool AuthoringUpdating()const{return Evaluation.IsBusy()||(!TerrainEditing&&bGlobe?Globe&&Globe->IsApplyingInput():Preview&&Preview->IsApplyingInput());}
+    TOptional<float> EvaluationFraction()const
+    {return Evaluation.IsBusy()?Evaluation.Fraction():!TerrainEditing&&bGlobe?(Globe?Globe->InputProgress():TOptional<float>()):(Preview?Preview->InputProgress():TOptional<float>());}
     FText EvaluationCaption()const
     {
-        if(Evaluation.IsBusy())switch(Evaluation.Stage())
+        if(!Evaluation.IsBusy())return FText::FromString(!TerrainEditing&&bGlobe?Globe->InputProgressText():Preview->InputProgressText());
+        FString Caption;switch(Evaluation.Stage())
         {
-        case ECLCompileStage::Preparing:return FText::FromString(TEXT("Preparing terrain…"));
-        case ECLCompileStage::Geology:return FText::FromString(TEXT("Building geology…"));
-        case ECLCompileStage::Elevation:return FText::FromString(TEXT("Calibrating terrain…"));
-        case ECLCompileStage::Drainage:return FText::FromString(TEXT("Building drainage…"));
-        default:return FText::FromString(TEXT("Finishing terrain…"));
+        case ECLCompileStage::Preparing:Caption=TEXT("Preparing terrain…");break;
+        case ECLCompileStage::Geology:Caption=TEXT("Building geology…");break;
+        case ECLCompileStage::Elevation:Caption=TEXT("Calibrating terrain…");break;
+        case ECLCompileStage::Drainage:Caption=TEXT("Building drainage…");break;
+        default:Caption=TEXT("Finishing terrain…");break;
         }
-        return FText::FromString(TEXT("Updating preview…"));
+        const uint64 Work=Evaluation.Work();if(uint32(Work>>32))Caption+=FString::Printf(TEXT(" · %u / %u"),uint32(Work),uint32(Work>>32));
+        return FText::FromString(Caption);
     }
 #if WITH_DEV_AUTOMATION_TESTS
     void AwaitEvaluationForTesting()
@@ -1232,9 +1243,9 @@ public:
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})]
                 + SOverlay::Slot()[GlobeWidget]
                 + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(12)
-                    [SNew(SBorder).BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder")).Padding(8).Visibility_Lambda([this]{return EvaluationUpdating()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+                    [SNew(SBorder).BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder")).Padding(8).Visibility_Lambda([this]{return AuthoringUpdating()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
                         [SNew(SVerticalBox)+SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(this,&FCLRecipeToolkit::EvaluationCaption)]
-                            +SVerticalBox::Slot().AutoHeight().Padding(0,4,0,0)[SNew(SBox).WidthOverride(200)[SNew(SProgressBar).Percent(TOptional<float>())]]]]
+                            +SVerticalBox::Slot().AutoHeight().Padding(0,4,0,0)[SNew(SBox).WidthOverride(200)[SNew(SProgressBar).Percent_Lambda([this]{return TOptional<float>(EvaluationFraction().Get(0.f));}).Visibility_Lambda([this]{return EvaluationFraction().IsSet()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})]]]]
                 + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession).Globe(Globe).UseGlobe_Lambda([this]{return !TerrainEditing&&bGlobe;})
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
                 + SOverlay::Slot().VAlign(VAlign_Top).Padding(12)[SNew(SBorder).Padding(10)
@@ -1687,7 +1698,7 @@ public:
                         TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
                     if(!TerrainEditing&&bGlobe&&!RadialGuidesSession->Gesture)Legend=Globe->PlacementHint()+TEXT(" | Middle drag: pan | Right drag / wheel: zoom | Drag guides: radius");
                     else if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Radial Guide");
-                    if ((Preview && Preview->IsUpdating()) || (Globe&&Globe->IsUpdating())) Legend = TEXT("Updating terrain preview… | ") + Legend;
+                    if (AuthoringUpdating()) Legend = TEXT("Updating terrain preview… | ") + Legend;
                     if (Preview && Preview->Client->Plan && Preview->Client->Plan->Coordinates == ECLTerrainCoordinates::Sphere && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
                         UE_PI * FCLSectionGeometry::ReferenceSurfaceRadius(*Preview->Client->Plan))
                         Legend += TEXT(" | Area passes the far side of this small planet: terrain repeats");
@@ -2507,6 +2518,97 @@ bool FCLRockRenderedTest::RunTest(const FString&)
 
 namespace
 {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNavigationResponsivenessTest,"Catalyst.Landform.Designer.NavigationResponsiveness",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLNavigationResponsivenessTest::RunTest(const FString&)
+{
+    FString J,Error;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/WatershedContinental.json")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLNavigation_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));
+    if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}A->Recipe.Watershed.bEnabled=false;
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
+    class FRun final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;TSharedPtr<FCLAutomationSlateInputScope> InputScope;
+        FCLPlanetRecipe Before;FCLNativePreview::FMetrics Initial;uint32 Evaluations=0,World=0;int32 Frame=-30,Indicators=0;double Start=FPlatformTime::Seconds(),Last=0,MaxWheelMs=0;TArray<double> Frames;bool Ready=false;
+    public:
+        FRun(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A):Test(T),Editor(E),Asset(A){}
+        bool Update()override
+        {
+            const auto Close=[&]{Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
+            const double Now=FPlatformTime::Seconds();if(Now-Start>150){Test->AddError(TEXT("Navigation proof timed out"));return Close();}
+            auto* Native=Editor->Globe->NativeForTesting();
+            if(!Ready)
+            {
+                if(Editor->EvaluationUpdating()||!Native)return false;
+                Test->TestTrue(TEXT("Navigation workload has Watershed disabled"),!Asset->Recipe.Watershed.bEnabled&&Editor->AcceptedSurfacePlan&&!Editor->AcceptedSurfacePlan->Watershed);
+                InputScope=MakeShared<FCLAutomationSlateInputScope>();Before=Asset->Recipe;Ready=true;Last=Now;return false;
+            }
+            if(Frame<0){++Frame;Last=Now;if(Frame==0){Initial=Native->Metrics;Native->Metrics.MaxPollMs=0;Evaluations=Editor->Evaluation.Started;World=Native->WorldIdentity();}return false;}
+            if(Frame<180)
+            {
+                Frames.Add((Now-Last)*1000);Last=Now;if(Editor->AuthoringUpdating())++Indicators;
+                auto& App=FSlateApplication::Get();const auto User=App.FindOrCreateVirtualUser(39);FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(Editor->Globe.ToSharedRef(),Actual,EVisibility::All);
+                if(!Actual.IsValid()){Test->AddError(TEXT("Globe has no routed wheel path"));return Close();}
+                TArray<FWidgetAndPointer> Arranged;for(const auto& W:Actual.Widgets.GetInternalArray())Arranged.Emplace(W,TOptional<FVirtualPointerPosition>());FWidgetPath Path(MakeArrayView(Arranged));
+                const auto G=Editor->Globe->GetCachedGeometry();const FVector2D P=G.LocalToAbsolute(G.GetLocalSize()*.5);
+                const double T=FPlatformTime::Seconds();const double Wheel=(Frame/30)%2?-.08:.08;
+                App.RouteMouseWheelOrGestureEvent(Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{},EKeys::Invalid,Wheel,FModifierKeysState()));
+                Editor->Globe->OrbitForTesting(FVector2D(1.5,.35));MaxWheelMs=FMath::Max(MaxWheelMs,(FPlatformTime::Seconds()-T)*1000);++Frame;return false;
+            }
+            if(Frame<240||(Editor->EvaluationUpdating()&&Frame<600)){Frames.Add((Now-Last)*1000);Last=Now;++Frame;return false;}
+            Frames.Sort();const auto M=Native->Metrics;const double P50=Frames[Frames.Num()/2],P95=Frames[FMath::FloorToInt(.95*(Frames.Num()-1))],Worst=Frames.Last();
+            Test->TestEqual(TEXT("Camera navigation starts no recipe evaluation"),Editor->Evaluation.Started,Evaluations);Test->TestEqual(TEXT("Camera navigation queues no native recipe input"),M.Starts,Initial.Starts);Test->TestEqual(TEXT("Camera navigation retains native world"),Native->WorldIdentity(),World);Test->TestTrue(TEXT("Navigation preserves the authored recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&Asset->Recipe,0));
+            const bool Baseline=FParse::Param(FCommandLine::Get(),TEXT("CLNavigationBaseline"));
+            if(!Baseline){Test->TestEqual(TEXT("Camera motion displays no authoring progress"),Indicators,0);Test->TestEqual(TEXT("Camera motion copies no native inspection mesh"),M.MeshCopies,Initial.MeshCopies);Test->TestTrue(TEXT("Routed wheel/orbit work stays below 8 ms"),MaxWheelMs<8);Test->TestTrue(TEXT("Navigation p95 stays below 50 ms in this bounded profile"),P95<50);}
+            FString JSON=FString::Printf(TEXT("{\"baseline\":%s,\"watershed\":false,\"frames\":%d,\"frameP50Ms\":%.6f,\"frameP95Ms\":%.6f,\"maxFrameMs\":%.6f,\"maxInputMs\":%.6f,\"maxPollMs\":%.6f,\"meshCopies\":%llu,\"verticesCopied\":%llu,\"copyMs\":%.6f,\"progressFrames\":%d,\"nativeStarts\":%llu,\"evaluations\":%u}\n"),Baseline?TEXT("true"):TEXT("false"),Frames.Num(),P50,P95,Worst,MaxWheelMs,M.MaxPollMs,M.MeshCopies-Initial.MeshCopies,M.VerticesCopied-Initial.VerticesCopied,M.TotalCopyMs-Initial.TotalCopyMs,Indicators,M.Starts-Initial.Starts,Editor->Evaluation.Started-Evaluations);
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/navigation");IFileManager::Get().MakeDirectory(*Dir,true);FFileHelper::SaveStringToFile(JSON,*(Dir/(Baseline?TEXT("baseline.json"):TEXT("fixed.json"))));Test->AddInfo(JSON);return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FRun>(this,E,A.Get()));return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPropertyScrollTest,"Catalyst.Landform.Designer.PropertyScrollResponsiveness",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPropertyScrollTest::RunTest(const FString&)
+{
+    FString J,Error;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/WatershedContinental.json")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLPropertyScroll_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));
+    if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}A->Recipe.Watershed.bEnabled=false;
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=1;E->PlanetInspectors[1]->SetRootExpansionStates(true,true);
+    class FRun final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;TSharedPtr<STableViewBase> Tree;TSharedPtr<FCLAutomationSlateInputScope> InputScope;
+        FCLPlanetRecipe Before;FCLNativePreview::FMetrics Initial;uint32 Evaluations=0;int32 Frame=-30,Handled=0,Indicators=0;double Start=FPlatformTime::Seconds(),Last=0,MaxInputMs=0,MaxOffset=0;TArray<double> Frames;bool Ready=false;
+        static TSharedPtr<STableViewBase> FindTree(TSharedRef<SWidget> W)
+        {
+            if(W->GetTypeAsString()==TEXT("SDetailTree")||W->GetTypeAsString()==TEXT("STreeView"))return StaticCastSharedRef<STableViewBase>(W);
+            auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)if(auto T=FindTree(C->GetChildAt(I)))return T;return nullptr;
+        }
+    public:
+        FRun(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A):Test(T),Editor(E),Asset(A){}
+        bool Update()override
+        {
+            const auto Close=[&]{Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};const double Now=FPlatformTime::Seconds();if(Now-Start>120){Test->AddError(TEXT("Property scrolling timed out"));return Close();}
+            auto* Native=Editor->Globe->NativeForTesting();if(!Ready)
+            {
+                if(Editor->EvaluationUpdating()||!Native)return false;Tree=FindTree(Editor->PlanetInspectors[1].ToSharedRef());if(!Tree){Test->AddError(TEXT("Native Details tree was not found"));return Close();}
+                InputScope=MakeShared<FCLAutomationSlateInputScope>();Before=Asset->Recipe;Initial=Native->Metrics;Evaluations=Editor->Evaluation.Started;Ready=true;Last=Now;return false;
+            }
+            if(Frame<0){++Frame;Last=Now;return false;}
+            if(Frame<120)
+            {
+                Frames.Add((Now-Last)*1000);Last=Now;MaxOffset=FMath::Max(MaxOffset,double(Tree->GetScrollOffset()));if(Editor->AuthoringUpdating())++Indicators;
+                auto& App=FSlateApplication::Get();const auto User=App.FindOrCreateVirtualUser(40);FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(Tree.ToSharedRef(),Actual,EVisibility::All);if(!Actual.IsValid()){Test->AddError(TEXT("Details tree has no routed path"));return Close();}
+                TArray<FWidgetAndPointer> Arranged;for(const auto& W:Actual.Widgets.GetInternalArray())Arranged.Emplace(W,TOptional<FVirtualPointerPosition>());FWidgetPath Path(MakeArrayView(Arranged));
+                const auto G=Tree->GetCachedGeometry();const FVector2D P=G.LocalToAbsolute(G.GetLocalSize()*.5);const double T=FPlatformTime::Seconds();
+                const auto Reply=App.RouteMouseWheelOrGestureEvent(Path,FPointerEvent(User->GetUserIndex(),FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{},EKeys::Invalid,(Frame/30)%2?1.:-1.,FModifierKeysState()));Handled+=Reply.IsEventHandled();MaxInputMs=FMath::Max(MaxInputMs,(FPlatformTime::Seconds()-T)*1000);++Frame;return false;
+            }
+            Frames.Sort();const double P95=Frames[FMath::FloorToInt(.95*(Frames.Num()-1))];const auto M=Native->Metrics;
+            Test->TestTrue(TEXT("Native expanded Details tree actually scrolls"),Handled>0&&MaxOffset>1);Test->TestFalse(TEXT("Watershed stays disabled"),Asset->Recipe.Watershed.bEnabled);
+            Test->TestEqual(TEXT("Property scrolling shows no authoring progress"),Indicators,0);Test->TestEqual(TEXT("Property scrolling evaluates no recipe"),Editor->Evaluation.Started,Evaluations);Test->TestEqual(TEXT("Property scrolling starts no native input"),M.Starts,Initial.Starts);Test->TestEqual(TEXT("Property scrolling copies no native inspection mesh"),M.MeshCopies,Initial.MeshCopies);
+            Test->TestTrue(TEXT("Scrolling leaves authored fields unchanged"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&Asset->Recipe,0));Test->TestTrue(TEXT("Native property wheel dispatch stays below 8 ms"),MaxInputMs<8);Test->TestTrue(TEXT("Expanded property scrolling p95 stays below 50 ms"),P95<50);
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/navigation");IFileManager::Get().MakeDirectory(*Dir,true);const FString JSON=FString::Printf(TEXT("{\"watershed\":false,\"frames\":%d,\"frameP50Ms\":%.6f,\"frameP95Ms\":%.6f,\"maxFrameMs\":%.6f,\"maxInputMs\":%.6f,\"maxScrollOffset\":%.6f,\"handledWheels\":%d,\"progressFrames\":%d,\"nativeStarts\":%llu,\"evaluations\":%u}\n"),Frames.Num(),Frames[Frames.Num()/2],P95,Frames.Last(),MaxInputMs,MaxOffset,Handled,Indicators,M.Starts-Initial.Starts,Editor->Evaluation.Started-Evaluations);FFileHelper::SaveStringToFile(JSON,*(Dir/TEXT("properties.json")));Test->AddInfo(JSON);return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FRun>(this,E,A.Get()));return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLBackgroundDesignerTest,"Catalyst.Landform.Background.ResponsiveDesigner",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLBackgroundDesignerTest::RunTest(const FString&)
 {
@@ -2515,7 +2617,7 @@ bool FCLBackgroundDesignerTest::RunTest(const FString&)
     auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
     class FReview final:public IAutomationLatentCommand
     {
-        FAutomationTestBase* Test;TSharedPtr<FCLRecipeToolkit> Editor;TWeakPtr<FCLRecipeToolkit> ClosedEditor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;TSharedPtr<const FCLCompiledPlanetRecipe> Previous;FCLPlanetRecipe Before;int32 Step=0,Heartbeats=0;double Started=FPlatformTime::Seconds(),MaxInputMs=0;uint32 InitialTasks=0;bool Captured=false;
+        FAutomationTestBase* Test;TSharedPtr<FCLRecipeToolkit> Editor;TWeakPtr<FCLRecipeToolkit> ClosedEditor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;TSharedPtr<const FCLCompiledPlanetRecipe> Previous;FCLPlanetRecipe Before;int32 Step=0,Heartbeats=0;double Started=FPlatformTime::Seconds(),MaxInputMs=0;uint32 InitialTasks=0;bool Captured=false,SawMeasuredProgress=false;
         bool Capture(const TCHAR* Name)
         {
             const auto Tab=Editor->GetTabManager()->FindExistingLiveTab(FCLRecipeToolkit::SectionTab);if(!Tab)return false;TArray<FColor> Pixels;FIntVector Size;if(!FSlateApplication::Get().TakeScreenshot(Tab->GetContent(),Pixels,Size))return false;
@@ -2532,7 +2634,7 @@ bool FCLBackgroundDesignerTest::RunTest(const FString&)
                 Test->TestEqual(TEXT("Closed editor leaves no native evaluation task"),FCLRecipeEvaluation::OutstandingTasks(),0);Test->TestFalse(TEXT("Worker does not retain its closed toolkit"),ClosedEditor.IsValid());return true;
             }
             if(FPlatformTime::Seconds()-Started>120){Test->AddError(TEXT("Background editor proof timed out"));return Close();}
-            if(Editor->Evaluation.IsBusy())++Heartbeats;
+            if(Editor->Evaluation.IsBusy()){++Heartbeats;const auto Fraction=Editor->EvaluationFraction();SawMeasuredProgress|=Fraction.IsSet()&&Fraction.GetValue()>0&&Fraction.GetValue()<1;}
             if(Step==0)
             {
                 if(Editor->EvaluationUpdating())return false;if(!Editor->AcceptedSurfacePlan){Test->AddError(Editor->Status);return Close();}Previous=Editor->AcceptedSurfacePlan;Before=Asset->Recipe;InitialTasks=Editor->Evaluation.Started;
@@ -2541,10 +2643,10 @@ bool FCLBackgroundDesignerTest::RunTest(const FString&)
             }
             if(Step==1)
             {
-                if(Editor->Evaluation.IsBusy()){if(!Captured){Test->TestTrue(TEXT("Preview progress is visible while evaluation runs"),!Editor->EvaluationCaption().IsEmpty());Captured=Capture(TEXT("updating"));}return false;}
+                if(Editor->Evaluation.IsBusy()){if(!Captured&&Editor->EvaluationFraction().IsSet()&&Editor->EvaluationFraction().GetValue()>0&&Editor->EvaluationFraction().GetValue()<1){Test->TestTrue(TEXT("Preview progress is visible while evaluation runs"),!Editor->EvaluationCaption().IsEmpty());Captured=Capture(TEXT("updating"));}return false;}
                 Test->TestTrue(TEXT("Only latest requested recipe is published"),Editor->AcceptedSurfacePlan&&Editor->AcceptedSurfacePlan->SourceRecipe&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Asset->Recipe,Editor->AcceptedSurfacePlan->SourceRecipe.Get(),0));
                 Test->TestTrue(TEXT("Actual derived work runs off the UI thread"),Editor->LastEvaluationWasWorker);Test->TestTrue(TEXT("Pending work is coalesced, not one task per setting"),Editor->Evaluation.Started-InitialTasks<12);Test->TestTrue(TEXT("Superseded completion is discarded"),Editor->Evaluation.Discarded>0);
-                Test->TestTrue(TEXT("UI heartbeat continues during evaluation"),Heartbeats>1);Test->TestTrue(TEXT("Warm setting input stays below 100 ms in this bounded profile"),MaxInputMs<100);
+                Test->TestTrue(TEXT("Measured phase progress was reported"),SawMeasuredProgress);Test->TestTrue(TEXT("UI heartbeat continues during evaluation"),Heartbeats>1);Test->TestTrue(TEXT("Warm setting input stays below 100 ms in this bounded profile"),MaxInputMs<100);
                 Previous=Editor->AcceptedSurfacePlan;Editor->BeginWatershedDrag();Editor->PendingWatershed=.25;Editor->PumpWatershed(true);Editor->PendingWatershed=.75;Editor->PumpWatershed(true);Editor->EndWatershedDrag();GEditor->UndoTransaction();Step=2;return false;
             }
             if(Step==2)
