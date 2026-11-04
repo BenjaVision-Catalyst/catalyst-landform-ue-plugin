@@ -1,13 +1,15 @@
 # Rock Character and excavation
 
-Rock Character is a schema-20 geological material/property layer over the existing
-spherical terrain. Algorithm 4 adds thickness/viscosity-derived early folding to the regional
-deposition profile for new Character gestures. It does not add terrain height. In Planet Designer choose
-**Geology → Rock → Character**. Enable explicitly, use Variation for a stable
-alternative structure, and reveal Advanced to edit the resolved parameters and
-three-unit property palette. The current review is `RockFolds/DA_RockFolds`.
-`RockDeposits`, `RockHistory` and `RockCharacter` retain v3, v2 and v1 recipes. A complete knob gesture has one Undo. Existing schemas and
-saved planets retain their original geology until explicitly edited.
+Rock Character is a schema-20/21 geological material/property layer over the
+existing spherical terrain. New Character gestures adopt algorithm 5's
+[physical bed distribution](RockBedThickness.md), retaining algorithm 4's
+thickness/viscosity-derived early folding and the shared regional deposition model.
+It adds no terrain height. In Planet Designer choose **Geology → Rock → Character**.
+Advanced exposes resolved structure, physical thickness statistics and the
+three-unit palette directly. The current review is `RockBeds/DA_RockBeds`.
+`RockFolds`, `RockDeposits`, `RockHistory` and `RockCharacter` retain v4, v3, v2
+and v1 recipes. A complete knob gesture has one Undo. Saved planets retain their
+original geology until explicitly reauthored; edited-world migration is not qualified.
 
 ## Native audit and ownership
 
@@ -56,13 +58,16 @@ traverses a palette of structures rather than increasing every effect together:
 
 | Anchor | Structure |
 | --- | --- |
-| 0% | Massive competent substrate, no added structure |
-| 18% | Broad rhythmic beds, sparse weak interbeds and gentle deformation |
-| 38% | Fine, weak-interbed-rich packages; modest deformation |
-| 58% | Thicker competent packages, strongest shortening and dip; folds respond to existing compression |
-| 78% | Narrower fault transitions and larger bounded throws; regional deposition grows |
-| 100% | Finer basin sequences, greater regional differentiation and younger reference interval; dip, shortening and throw recede |
+| 0% | Quiet layered substrate; peak 3.8 m, spread 0.7 m |
+| 18% | Rhythmic beds, sparse weak units and gentle deformation; peak 3.4 m, spread 0.8 m |
+| 38% | Fine, weak-unit-rich beds; modest deformation; peak 2.8 m, spread 0.55 m |
+| 58% | Strongest shortening and dip in existing compression; peak 3.2 m, spread 0.85 m |
+| 78% | Narrow fault transitions, larger bounded throws and regional deposition; peak 3.8 m, spread 0.9 m |
+| 100% | Basin-rich, greater regional differentiation; deformation recedes; peak 3 m, spread 0.75 m |
 
+These physical peak/spread anchors use the default 2–6 m core edges. Authored
+rare-tail percentages, edges and limits remain independent. Algorithms 1–4 keep
+their saved radius-relative behavior, including the original massive zero.
 These are smooth anchor ranges, not switches, a geological history clock or new
 geological processes. They retain the current finite deposition and early-fold
 approximations. Compression and accommodation still depend on the accepted
@@ -83,13 +88,18 @@ structure drafts retain validation, native editing and single-step asset Undo.
 The [authoring qualification](../conformance/RockCharacter/authoring-mac-arm64.json)
 records actual dropdown clicks, rendered layouts and fixed-spacing variation.
 
-![Character palette sampled from the canonical field](../conformance/RockCharacter/character-palette.png)
+The retained image below records the earlier radius-relative authoring palette;
+the [physical-bed qualification](../conformance/RockBeds/qualification-mac-arm64.json)
+records current metre-scale authoring.
+
+![Earlier character palette sampled from the canonical field](../conformance/RockCharacter/character-palette.png)
 
 This is a diagnostic C++ section with the recipe's radial terrain mask. The
 native VPP globe/cutaway captures are recorded separately; the plot is not a
 replacement preview or generator.
 
-Zero removes added rock structure while retaining bedrock and its mining properties.
+Algorithm 5 zero retains quiet physical beds and mining properties; older profiles
+retain their original homogeneous zero.
 Disabling the layer restores the prior surface-stack path. The enabled profile
 owns exposed-rock material classification; weathering and topsoil cover are
 separate future layers. The knob never changes

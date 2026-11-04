@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Scene/CLSceneQuery.h"
+#include "Curves/RichCurve.h"
 #include "CLRockLayer.generated.h"
 class FCLCompiledTectonics;
 class FCLCompiledContinents;
@@ -21,6 +22,33 @@ struct CATALYSTLANDFORM_API FCLRockUnit
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Erodibility=.2;
 };
 
+/** Algorithm 5: probabilities are by deposited bed count, independently of planet radius. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLRockBedDistribution
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="1000",ForceUnits="m")) double MinimumMeters=1;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="1000",ForceUnits="m")) double ThinTailUpperMeters=2;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="1000",ForceUnits="m")) double PeakMeters=3;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="1000",ForceUnits="m")) double SpreadMeters=.85;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="1000",ForceUnits="m")) double ThickTailLowerMeters=6;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="1000",ForceUnits="m")) double MaximumMeters=10;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="20",Units="%")) double ThinBedPercent=1;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",ClampMax="20",Units="%")) double ThickBedPercent=5;
+    bool Validate(FString& Error) const;
+    FRichCurve QuantileCurve() const;
+};
+
+/** Stored older sequence, excluding the final possibly truncated bed. No exposure/area weighting. */
+struct CATALYSTLANDFORM_API FCLRockBedStatistics
+{
+    static constexpr int32 BinCount=20;
+    int32 Count=0;
+    double TotalMeters=0,MinimumMeters=0,MaximumMeters=0;
+    int32 Counts[BinCount]={};
+    double DepthMeters[BinCount]={};
+};
+
 /** Resolved structure controls, not a second height generator. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRockLayer
@@ -32,7 +60,7 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.55;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 1",EditConditionHides)) FRotator Orientation=FRotator::ZeroRotator;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.00001",ClampMax="1")) double BedThicknessRadiusFraction=.04;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.00001",ClampMax="1",EditCondition="AlgorithmVersion < 5",EditConditionHides)) double BedThicknessRadiusFraction=.04;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.8")) double InterbedFraction=.3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="25",Units="deg")) double DipDegrees=8;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.05")) double FoldAmplitudeRadiusFraction=.005;
@@ -43,7 +71,7 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double CrustDepthRadiusFraction=.15;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1")) double ContactFeatherFraction=.015;
     /** V2 cover thickness; V3 reference thickness controls the finite younger bed sequence, not sediment supply. */
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1",EditCondition="AlgorithmVersion >= 2",EditConditionHides)) double YoungerCoverRadiusFraction=0;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1",EditCondition="AlgorithmVersion >= 2 && AlgorithmVersion < 5",EditConditionHides)) double YoungerCoverRadiusFraction=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLRockUnit> Units;
     /** Algorithm 3: onlap over crust- and extension-conditioned basement relief. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1",EditCondition="AlgorithmVersion >= 3",EditConditionHides)) double DepositionalVariation=0;
@@ -52,6 +80,7 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     /** Maximum shortening proxy under the existing local compression field. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.15",EditCondition="AlgorithmVersion >= 4",EditConditionHides)) double FoldShorteningStrain=.08;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion >= 4",EditConditionHides)) FGuid FoldCompetentUnit;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion >= 5",EditConditionHides)) FCLRockBedDistribution BedDistribution;
     void ApplyProgression(double Position);
 };
 
@@ -107,7 +136,14 @@ public:
     void ApplySurfaces(const FVector3d& BodyMeters,FCLSurfaceWeights&)const;
     const FCLRockFolding& GetFolding() const {return Folding;}
     FCLRockColumn SampleColumn(const FVector3d& UnitDirection) const;
+    /** Legacy expanded histories only. Use indexed access for current compact histories. */
     const TArray<FCLRockBed>& GetBeds() const {return Beds;}
+    int32 GetBedCount() const {return Layer.AlgorithmVersion>=5?MetricUnits.Num():Beds.Num();}
+    int32 GetOlderBedCount() const {return OlderBedCount;}
+    FCLRockBed GetBed(int32 Index) const;
+    FCLRockBedStatistics ThicknessStatistics() const;
+    uint64 HistoryBytes() const {return MetricUppers.GetAllocatedSize()+MetricUnits.GetAllocatedSize()+Beds.GetAllocatedSize();}
+    static constexpr int32 MaximumMetricBeds=4194304;
     /** Restored pre-deformation radius; also used for geological section inspection. */
     double RestoredRadiusMeters(const FVector3d&) const;
     static const TCHAR* PropertiesAssetPath();
@@ -118,6 +154,9 @@ private:
     FPoint ClassifyFinite(const FVector3d&)const;
     double DeformationMeters(const FVector3d& UnitDirection,double* Extension=nullptr) const;
     TArray<FCLRockBed> Beds;
+    // Immutable double-precision contacts + palette indices; no per-view state.
+    TArray<double> MetricUppers;
+    TArray<uint8> MetricUnits;
     int32 OlderBedCount=0;
     FCLRockLayer Layer;
     FCLRockFolding Folding;

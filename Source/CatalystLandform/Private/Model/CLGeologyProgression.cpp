@@ -62,9 +62,12 @@ void FCLContinentalLayer::ApplyProgression(double Position)
 void FCLRockLayer::ApplyProgression(double Position)
 {
     if(AlgorithmVersion<4&&Units.Num()>0)FoldCompetentUnit=Units[0].Id;
-    AlgorithmVersion=4;Character=FMath::Clamp(Position,0.,1.);
+    AlgorithmVersion=5;Character=FMath::Clamp(Position,0.,1.);
     // Independent tracks make a geological palette, not an intensity/history
-    // clock: massive -> rhythmic -> laminated -> folded -> faulted -> basin fill.
+    // clock: quiet -> rhythmic -> laminated -> folded -> faulted -> basin fill.
+    // Physical beds throughout. Tail rarity/limits remain independently authored.
+    BedDistribution.PeakMeters=FMath::Lerp(BedDistribution.ThinTailUpperMeters,BedDistribution.ThickTailLowerMeters,Track(Character,{{0,.45},{.18,.35},{.38,.2},{.58,.3},{.78,.45},{1,.25}}));
+    BedDistribution.SpreadMeters=FMath::Max(.1,(BedDistribution.ThickTailLowerMeters-BedDistribution.ThinTailUpperMeters)*Track(Character,{{0,.175},{.18,.2},{.38,.1375},{.58,.2125},{.78,.225},{1,.1875}}));
     // Keep the author's unit palette, rheology, crust depth and contact feather.
     BedThicknessRadiusFraction=Track(Character,{{0,.8},{.18,.09},{.38,.012},{.58,.045},{.78,.028},{1,.018}});
     InterbedFraction=Track(Character,{{0,0},{.18,.08},{.38,.64},{.58,.18},{.78,.32},{1,.52}});

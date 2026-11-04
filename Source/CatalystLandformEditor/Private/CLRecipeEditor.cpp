@@ -1,5 +1,6 @@
 #include "CLPreviewMesh.h"
 #include "CLSurfaceDistributionPlot.h"
+#include "CLRockThicknessPlot.h"
 #include "Model/CLSurfaceRange.h"
 #include "CLRecipeAssetTools.h"
 #include "CLTerrainDesigner.h"
@@ -656,7 +657,10 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     double PendingElevation=.5,AppliedElevation=.5,PendingDetailScale=250,AppliedDetailScale=250,LastSurfaceApply=0;
     FTSTicker::FDelegateHandle SurfaceTicker;
     TUniquePtr<FScopedTransaction> SurfaceTransaction;
-    TSharedPtr<FStructOnScope> RockDraft;
+    TSharedPtr<FStructOnScope> RockDraft,RockBedDraft;
+    TArray<TSharedPtr<IPropertyHandle>> RockBedProperties;
+    FCLRockBedStatistics MeasuredRockBeds;
+    TArray<double> TargetRockBeds;
     TArray<TSharedPtr<IPropertyHandle>> RockAdvancedProperties;
     TSharedPtr<SSlider> RockSlider;
     TSharedPtr<SButton> RockVariation;
@@ -1042,6 +1046,11 @@ public:
             if(!CommitContinents(*reinterpret_cast<const FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())))
                 *reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
         }
+        else if(Property->GetOwnerStruct()==FCLRockBedDistribution::StaticStruct()&&RockBedDraft)
+        {
+            auto L=LayeredRecipe().Rock;L.BedDistribution=*reinterpret_cast<const FCLRockBedDistribution*>(RockBedDraft->GetStructMemory());
+            if(!CommitRock(L))*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
+        }
         else if(Property->GetOwnerStruct()==FCLRockLayer::StaticStruct()&&RockDraft)
         {
             if(!CommitRock(*reinterpret_cast<const FCLRockLayer*>(RockDraft->GetStructMemory())))
@@ -1099,6 +1108,7 @@ public:
         }
         if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
         if(RockDraft)*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
+        if(RockBedDraft)*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
         if(ElevationDraft)*reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
         if (TerrainEditing) TerrainSource.Reset(TerrainEditing->Asset);
         else if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
@@ -1117,6 +1127,13 @@ public:
         if(!GuidesValid)Status=GuideError;
         bPreviewInvalid = !Plan.IsValid();
         AcceptedSurfacePlan=Plan;MeasureElevation(Plan);
+        MeasuredRockBeds=Plan&&Plan->Rock?Plan->Rock->ThicknessStatistics():FCLRockBedStatistics();
+        TargetRockBeds.Init(0,FCLRockBedStatistics::BinCount);
+        if(MeasuredRockBeds.Count)
+        {
+            const auto Settings=Asset->Recipe.Rock.BedDistribution;const auto Curve=Settings.QuantileCurve();
+            for(int32 I=0;I<8192;++I){const double T=Curve.Eval((I+.5f)/8192);const int32 Bin=FMath::Clamp(int32((T-Settings.MinimumMeters)/(Settings.MaximumMeters-Settings.MinimumMeters)*FCLRockBedStatistics::BinCount),0,FCLRockBedStatistics::BinCount-1);TargetRockBeds[Bin]+=1./8192;}
+        }
         if(GenerationPanel)GenerationPanel->Refresh(Plan?Plan->GeneratedRegions:nullptr);
         if (Plan)
         {
@@ -1187,7 +1204,7 @@ public:
     }
     bool CommitRock(FCLRockLayer Layer)
     {
-        auto* A=RecipeAsset();auto R=LayeredRecipe();R.Rock=MoveTemp(Layer);R.SchemaVersion=20;if(R.Rock.bEnabled&&!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();FString Error;
+        auto* A=RecipeAsset();auto R=LayeredRecipe();R.Rock=MoveTemp(Layer);R.SchemaVersion=FMath::Max(R.SchemaVersion,20);if(R.Rock.bEnabled&&!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();FString Error;
         if(!FCLPlanetCompiler::Compile(R,Error)){InspectorError=Status=Error;return false;}
         InspectorError.Reset();TUniquePtr<FScopedTransaction> Tx;if(!RockTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change rock character")));
         A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();return true;
@@ -1213,8 +1230,14 @@ public:
     void BuildRockAdvanced(IDetailCategoryBuilder& Category)
     {
         RockDraft=MakeShared<FStructOnScope>(FCLRockLayer::StaticStruct());*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
-        AddLayerAdvanced(Category,RockDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character")},
+        AddLayerAdvanced(Category,RockDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character"),TEXT("BedDistribution")},
             TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Rock.bEnabled&&!bRockDragging;}),RockAdvancedProperties);
+        RockBedDraft=MakeShared<FStructOnScope>(FCLRockBedDistribution::StaticStruct());*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
+        AddLayerAdvanced(Category,RockBedDraft.ToSharedRef(),{},TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Rock.bEnabled&&LayeredRecipe().Rock.AlgorithmVersion>=5&&!bRockDragging;}),RockBedProperties);
+        Category.AddCustomRow(FText::FromString(TEXT("Bed thickness distribution")),true).WholeRowContent()
+        [SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(MeasuredRockBeds.Count?FString::Printf(TEXT("%.1f–%.1f m · %d older beds · mean %.2f m\nBlue: requested bed count · orange: measured count · green: depth share. Excludes terminal partial bed; before erosion/onlap."),MeasuredRockBeds.MinimumMeters,MeasuredRockBeds.MaximumMeters,MeasuredRockBeds.Count,MeasuredRockBeds.TotalMeters/MeasuredRockBeds.Count):TEXT("Move Character to adopt physical beds. Saved profiles retain their original thickness."));})]
+            +SVerticalBox::Slot().AutoHeight()[SNew(SCLRockThicknessPlot).Measured_Lambda([this]{return MeasuredRockBeds;}).Target_Lambda([this]{return TargetRockBeds;})]];
     }
     void BuildContinentalAdvanced(IDetailCategoryBuilder& Category)
     {
@@ -1390,8 +1413,8 @@ public:
             BuildTectonicAdvanced(T);T.SetShowAdvanced(false);
             auto& R=B.EditCategory(TEXT("RockLayer"),FText::FromString(TEXT("Rock")));R.SetSortOrder(2);RockAdvanced=&R;
             R.HeaderContent(SNew(SCheckBox).IsChecked_Lambda([this]{return LayeredRecipe().Rock.bEnabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Rock;L.bEnabled=V==ECheckBoxState::Checked;if(L.bEnabled&&L.AlgorithmVersion<4)L.ApplyProgression(L.Character);CommitRock(L);}));
-            InspectorRow(R,TEXT("Model"),SNew(STextBlock).Text_Lambda([this]{return FText::FromString(LayeredRecipe().Rock.AlgorithmVersion>=4?TEXT("Material-aware folds · shared crust and plates"):TEXT("Saved profile · move Character to adopt material-aware folds"));}));
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto L=LayeredRecipe().Rock;L.bEnabled=V==ECheckBoxState::Checked;if(L.bEnabled&&L.AlgorithmVersion<5)L.ApplyProgression(L.Character);CommitRock(L);}));
+            InspectorRow(R,TEXT("Model"),SNew(STextBlock).Text_Lambda([this]{return FText::FromString(LayeredRecipe().Rock.AlgorithmVersion>=5?TEXT("Physical beds · shared crust, plates and material-aware folds"):TEXT("Saved profile · move Character to adopt physical beds"));}));
             InspectorRow(R,TEXT("Character"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Rock.bEnabled;})
                 +SHorizontalBox::Slot().FillWidth(1).Padding(0,0,8,0)[SAssignNew(RockSlider,SSlider)
                     .Value_Lambda([this]{return float(bRockDragging?PendingRock:LayeredRecipe().Rock.Character);})
@@ -2312,7 +2335,7 @@ bool FCLRockDesignerTest::RunTest(const FString&)
     auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);
     TestTrue(TEXT("Rock joins the existing Geology controls"),E->RockSlider.IsValid()&&!E->RockAdvancedProperties.IsEmpty()&&E->RockVariation.IsValid());
     auto Layer=E->LayeredRecipe().Rock;Layer.bEnabled=true;TestTrue(TEXT("Explicit enable resolves the versioned native material profile"),E->CommitRock(Layer));const auto Before=A->Recipe;
-    E->BeginRockDrag();E->PendingRock=.3;E->PumpRock(true);E->PendingRock=.85;E->PumpRock(true);TestTrue(TEXT("The held gesture supplies the latest geological structure"),E->bRockDragging&&E->Globe->IsDraftMode()&&A->Recipe.Rock.Character==.85);E->EndRockDrag();const auto After=A->Recipe;TestEqual(TEXT("A new Character gesture adopts material-aware folding explicitly"),After.Rock.AlgorithmVersion,4);
+    E->BeginRockDrag();E->PendingRock=.3;E->PumpRock(true);E->PendingRock=.85;E->PumpRock(true);TestTrue(TEXT("The held gesture supplies the latest geological structure"),E->bRockDragging&&E->Globe->IsDraftMode()&&A->Recipe.Rock.Character==.85);E->EndRockDrag();const auto After=A->Recipe;TestEqual(TEXT("A new Character gesture adopts material-aware folding explicitly"),After.Rock.AlgorithmVersion,5);
     GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete geological gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));GEditor->RedoTransaction();TestTrue(TEXT("Redo restores the exact resolved strata"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&After,&A->Recipe,0));
     auto& Draft=*reinterpret_cast<FCLRockLayer*>(E->RockDraft->GetStructMemory());auto* P=FCLRockLayer::StaticStruct()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(FCLRockLayer,DipDegrees));FPropertyChangedEvent Changed(P,EPropertyChangeType::ValueSet);
     const auto DipHandle=*E->RockAdvancedProperties.FindByPredicate([](const auto& H){return H->GetProperty()->GetFName()==TEXT("DipDegrees");});
@@ -2323,6 +2346,11 @@ bool FCLRockDesignerTest::RunTest(const FString&)
     TestEqual(TEXT("Native nested palette edit succeeds"),ResistanceHandle->SetValue(.61),FPropertyAccess::Success);
     TestEqual(TEXT("Nested array edit reaches the accepted geological palette"),A->Recipe.Rock.Units[1].MiningResistance,.61);
     GEditor->UndoTransaction();TestEqual(TEXT("One Undo restores the nested palette edit"),A->Recipe.Rock.Units[1].MiningResistance,.55);
+    const auto PeakHandle=*E->RockBedProperties.FindByPredicate([](const auto& H){return H->GetProperty()->GetFName()==TEXT("PeakMeters");});
+    TestEqual(TEXT("Native flat physical-bed edit succeeds"),PeakHandle->SetValue(4.2),FPropertyAccess::Success);TestEqual(TEXT("Bed peak reaches the accepted canonical recipe"),A->Recipe.Rock.BedDistribution.PeakMeters,4.2);
+    GEditor->UndoTransaction();TestEqual(TEXT("One Undo restores the physical peak"),A->Recipe.Rock.BedDistribution.PeakMeters,After.Rock.BedDistribution.PeakMeters);
+    A->Recipe.SchemaVersion=21;A->Recipe.AlgorithmVersion=2;A->Recipe.ElevationDistribution.bEnabled=true;A->PostEditChange();
+    auto Physical=A->Recipe.Rock;Physical.BedDistribution.ThickBedPercent=8;TestTrue(TEXT("Physical geology edits coexist with schema-21 elevation"),E->CommitRock(Physical));TestEqual(TEXT("Rock never downgrades the current recipe schema"),A->Recipe.SchemaVersion,21);TestTrue(TEXT("Elevation mapping remains enabled"),A->Recipe.ElevationDistribution.bEnabled);
     const auto BeforeVariation=A->Recipe;E->RockVariation->SimulateClick();TestTrue(TEXT("Variation changes only the rock seed"),A->Recipe.Rock.Seed!=BeforeVariation.Rock.Seed&&A->Recipe.Continents.Seed==BeforeVariation.Continents.Seed&&A->Recipe.Tectonics.Seed==BeforeVariation.Tectonics.Seed);GEditor->UndoTransaction();TestTrue(TEXT("Variation has one Undo"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeVariation,&A->Recipe,0));
     class FLayoutReview final:public IAutomationLatentCommand
     {
@@ -2357,7 +2385,7 @@ bool FCLRockDesignerTest::RunTest(const FString&)
             }
             if(Now-Started<.5)return false;
             FString Visible;for(const auto& Path:View->GetPropertiesInOrderDisplayed())Visible+=Path.ToString()+TEXT(";");
-            const TCHAR* Expected[]={TEXT("Extent"),TEXT("PlateCount"),TEXT("BedThicknessRadiusFraction")};
+            const TCHAR* Expected[]={TEXT("Extent"),TEXT("PlateCount"),TEXT("PeakMeters")};
             Test->TestTrue(TEXT("Clicking Advanced reveals the layer's direct property rows"),Visible.Contains(Expected[Layer]));
             TArray<FColor> Pixels;FIntVector Size;
             Test->TestTrue(TEXT("Direct Advanced layout renders"),FSlateApplication::Get().TakeScreenshot(View.ToSharedRef(),Pixels,Size));

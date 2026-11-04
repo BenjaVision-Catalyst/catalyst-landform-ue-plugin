@@ -50,11 +50,11 @@ bool FCLRockControlTest::RunTest(const FString&)
         TArray<double> A,B;P->SampleHeightsMeters(Points,A);Off->SampleHeightsMeters(Points,B);for(int32 I=0;I<A.Num();++I)TestEqual(TEXT("Rock controls never add a second terrain-height contribution"),A[I],B[I]);
         TSet<FGuid> Units;
         for(const auto& Point:Points){const auto S=P->Rock->Sample(Point);TestTrue(TEXT("Every reviewed position supplies bounded mining properties"),S.bValid&&S.MiningResistance>=0&&S.MiningResistance<=1&&S.Erodibility>=0&&S.Erodibility<=1);Units.Add(S.UnitId);}
-        if(Position==0)TestEqual(TEXT("Zero structure is homogeneous bedrock"),Units.Num(),1);else if(Position>=.45)TestEqual(*FString::Printf(TEXT("Developed settings retain three rock types, seed %d character %.2f"),Seed,Position),Units.Num(),3);
+        if(Position==0)TestEqual(TEXT("Quiet structure retains readable physical beds"),Units.Num(),2);else if(Position>=.45)TestEqual(*FString::Printf(TEXT("Developed settings retain three rock types, seed %d character %.2f"),Seed,Position),Units.Num(),3);
     }
     auto R=RockRecipe();R.SchemaVersion=18;TestFalse(TEXT("Old schemas cannot acquire new geology silently"),FCLPlanetCompiler::Compile(R,Error).IsValid());R.SchemaVersion=20;
     R.Rock.Units[1].Id=R.Rock.Units[0].Id;TestFalse(TEXT("Duplicate identities fail closed"),FCLPlanetCompiler::Compile(R,Error).IsValid());R=RockRecipe();R.Rock.Units[1].SurfaceId=TEXT("MissingRockSurface");TestFalse(TEXT("Missing native surfaces fail closed"),FCLPlanetCompiler::Compile(R,Error).IsValid());
-    R=RockRecipe();R.Rock.BedThicknessRadiusFraction=0;TestFalse(TEXT("Zero bed thickness fails closed"),FCLPlanetCompiler::Compile(R,Error).IsValid());
+    R=RockRecipe();R.Rock.BedDistribution.MinimumMeters=0;TestFalse(TEXT("Zero bed thickness fails closed"),FCLPlanetCompiler::Compile(R,Error).IsValid());
     R=RockRecipe();R.Rock.AlgorithmVersion=1;R.Tectonics.bEnabled=false;R.Rock.DipDegrees=R.Rock.FoldAmplitudeRadiusFraction=R.Rock.FaultThrowRadiusFraction=R.Rock.TectonicResponse=0;R.Rock.BedThicknessRadiusFraction=.04;
     const auto Parallel=FCLPlanetCompiler::Compile(R,Error);if(!Parallel){AddError(Error);return false;}const auto Low=Parallel->Rock->Sample(FVector(0,0,700)),High=Parallel->Rock->Sample(FVector(0,0,740));
     TestTrue(TEXT("Independent planar-bed period oracle: one 40 m cycle repeats the unit, advances three beds and has a distinct identity"),Low.UnitId==High.UnitId&&High.StratumIndex-Low.StratumIndex==3&&Low.StratumId!=High.StratumId&&FMath::IsNearlyEqual(Low.MiningResistance,High.MiningResistance));
@@ -110,7 +110,7 @@ bool FCLRockPaletteTest::RunTest(const FString&)
             auto R=RockRecipe(Position);R.Seed=Seed;
             // Hold spacing fixed: a character change must still change lithology
             // and restored structure, rather than passing by varying bed height.
-            R.Rock.BedThicknessRadiusFraction=.03;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
+            R.Rock.BedDistribution=FCLRockBedDistribution();const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
             const double Bottom=FMath::Max(0.,R.RadiusMeters+P->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");})->HeightMeters-R.Rock.CrustDepthRadiusFraction*R.RadiusMeters);
             if(SolidPoints.IsEmpty())
             {
@@ -128,7 +128,7 @@ bool FCLRockPaletteTest::RunTest(const FString&)
             }
             if(Previous.Num())TestTrue(*FString::Printf(TEXT("Character %.2f changes at least 5%% of the actual geological properties with identical bed spacing, seed %d"),Position,Seed),Changed>102);
             if(Position==.58)TestTrue(TEXT("Folded interval restores a different structure from the laminated interval"),FMath::Abs((Hi-Lo)-PreviousShape)>1.);
-            Metrics+=FString::Printf(TEXT("%d,%.2f,%d,%.9f,%.9f,%d\n"),Seed,Position,P->Rock->GetBeds().Num(),Weak/2048.,Hi-Lo,Changed);
+            Metrics+=FString::Printf(TEXT("%d,%.2f,%d,%.9f,%.9f,%d\n"),Seed,Position,P->Rock->GetBedCount(),Weak/2048.,Hi-Lo,Changed);
             Previous=MoveTemp(Current);PreviousShape=Hi-Lo;++Reviewed;
             if(Seed==1729)
             {

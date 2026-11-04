@@ -1741,3 +1741,26 @@ save compatibility. Historical recipes remain unchanged when the new layer is
 disabled. Hypsometry alone does not close realistic drainage/erosion or unlimited
 planet-wide placement populations. Those remain explicit native-first gaps;
 multiplayer remains out of scope.
+
+
+## Physical rock beds checkpoint — 4 November 2026
+
+New Rock Character gestures adopt [algorithm 5 physical beds](RockBedThickness.md):
+a configurable 3 m peak, mostly 2–5 m beds, a 1% thin tail below 2 m and 5% thick
+tail from 6–10 m. Thickness stays in metres as planet size changes. The native
+Advanced rows expose peak, spread, limits and tail counts with requested/measured
+count and depth histograms. Character retains structural variation across its range.
+
+The demonstrated gaps were radius-scaled/split packets, stretched younger basin
+sequences and the 1,024-bed limit. Native UE curves and compact immutable contacts
+close those bounded geological-data gaps. VPP still supplies generation,
+presentation, LOD, moving collision, native materials, mining and compressed sculpt
+persistence. There is no custom streaming manager or replacement preview path.
+Algorithms 1–4 retain their saved behavior; Rock edits now retain schema-21 elevation.
+
+The [qualification](../conformance/RockBeds/qualification-mac-arm64.json) records
+physical distributions, Earth-radius compact storage, folded/basin contacts,
+native editor reviews, cooked excavation/reload and published-save compatibility.
+Metre-scale contacts require a human-scale view rather than a distant overview.
+Geological calibration, weathering, connected drainage/erosion and production
+persistence remain separate work. Multiplayer remains out of scope.

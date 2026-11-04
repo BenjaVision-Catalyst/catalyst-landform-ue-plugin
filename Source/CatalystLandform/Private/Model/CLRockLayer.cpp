@@ -24,9 +24,10 @@ FLinearColor FCLCompiledRock::FillProperties(double Resistance,double Erosion)
 TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L,int32 Seed,double R,double Min,double Max,const FCLCompiledSurfaceLibrary* Surfaces,TSharedPtr<const FCLCompiledTectonics> T,FString& Error,TSharedPtr<const FCLCompiledContinents> Crust)
 {
     auto In=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
-    if((L.AlgorithmVersion<1||L.AlgorithmVersion>4)||!In(L.Character,0,1)||L.Orientation.ContainsNaN()||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
+    if((L.AlgorithmVersion<1||L.AlgorithmVersion>5)||!In(L.Character,0,1)||L.Orientation.ContainsNaN()||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
        !In(L.BedThicknessRadiusFraction,.00001,1)||!In(L.InterbedFraction,0,.8)||!In(L.DipDegrees,0,25)||!In(L.FoldAmplitudeRadiusFraction,0,.05)||(L.AlgorithmVersion<4&&!In(L.FoldWavelengthRadiusFraction,.01,2))||!In(L.TectonicResponse,0,1)||!In(L.FaultThrowRadiusFraction,0,.05)||!In(L.FaultZoneRadiusFraction,.0001,.1)||!In(L.CrustDepthRadiusFraction,0,1)||!In(L.ContactFeatherFraction,0,.1)||!In(L.YoungerCoverRadiusFraction,0,.1)||!In(L.DepositionalVariation,0,1))
-    {Error=TEXT("Rock Character requires algorithm 1..4, three units and finite bounded structural controls");return nullptr;}
+    {Error=TEXT("Rock Character requires algorithm 1..5, three units and finite bounded structural controls");return nullptr;}
+    if(L.AlgorithmVersion>=5&&!L.BedDistribution.Validate(Error))return nullptr;
     auto Out=MakeShared<FCLCompiledRock>();Out->Layer=L;Out->Radius=R;Out->Datum=Max;Out->Basement=FMath::Max(0.,Min-L.CrustDepthRadiusFraction*R);Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(Crust);
     TSet<FGuid> Ids;
     for(const auto& U:L.Units)
@@ -40,7 +41,35 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
     FRandomStream Random(int32(uint32(Seed)^uint32(L.Seed)^0x434c5231U));Out->NoiseSeed=int32(Random.GetUnsignedInt());Out->Phase=Random.FRand();
     Out->Frame=L.Orientation.Quaternion()*FRotator(Random.FRandRange(-45,45),Random.FRandRange(-180,180),Random.FRandRange(-180,180)).Quaternion();
     Out->Namespace=FGuid(0x434c5231,uint32(Seed),uint32(L.Seed),L.AlgorithmVersion);
-    if(L.AlgorithmVersion>=2)
+    if(L.AlgorithmVersion>=5)
+    {
+        if((Max-Out->Basement+Max)/L.BedDistribution.MaximumMeters>MaximumMetricBeds)
+        {Error=TEXT("Metric rock history exceeds 4194304 contacts even at maximum thickness; no coarsening was applied");return nullptr;}
+        const auto Curve=L.BedDistribution.QuantileCurve();
+        // One physical sample per bed. Basin fill shares a radial sequence clipped
+        // by its floor; it never stretches a short packet across accommodation.
+        // Compact immutable contacts replace the old 1024 expanded-bed limit.
+        auto Deposit=[&](double Bottom,double Top)
+        {
+            int32 Previous=INDEX_NONE;
+            while(Bottom<Top)
+            {
+                if(Out->MetricUnits.Num()>=MaximumMetricBeds)return false;
+                const double Thickness=FMath::Clamp(double(Curve.Eval(Random.FRand())),L.BedDistribution.MinimumMeters,L.BedDistribution.MaximumMeters);
+                const double End=FMath::Min(Top,Bottom+Thickness);
+                int32 Unit=Random.FRand()<L.InterbedFraction?2:Random.FRand()<.65?0:1;
+                // Adjacent beds should remain readable even with provisional art.
+                // This conditions lithology only, never the thickness draw.
+                if(Unit==Previous)Unit=Unit==2?(Random.FRand()<.65?0:1):1-Unit;
+                Out->MetricUppers.Add(End);Out->MetricUnits.Add(uint8(Unit));Previous=Unit;Bottom=End;
+            }
+            return true;
+        };
+        if(!Deposit(Out->Basement,Max)){Error=TEXT("Metric rock history exceeds 4194304 contacts; no coarsening was applied");return nullptr;}
+        Out->OlderBedCount=Out->MetricUnits.Num();
+        if(!Deposit(0,Max)){Error=TEXT("Metric rock history exceeds 4194304 contacts; no coarsening was applied");return nullptr;}
+    }
+    else if(L.AlgorithmVersion>=2)
     {
         const double ReferenceThickness=L.AlgorithmVersion>=3?FMath::Max(L.YoungerCoverRadiusFraction,L.BedThicknessRadiusFraction*2)*R:L.YoungerCoverRadiusFraction*R;
         Out->Unconformity=FMath::Max(Out->Basement,Max-ReferenceThickness);
@@ -78,8 +107,8 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
         const int32 Competent=L.Units.IndexOfByPredicate([&](const FCLRockUnit& U){return U.Id==L.FoldCompetentUnit;});
         if(Competent==INDEX_NONE){Error=TEXT("Folding requires an explicit competent unit from the accepted rock palette");return nullptr;}
         double Thickness=0,Centers=0;int32 Count=0;
-        for(int32 I=0;I<Out->OlderBedCount;++I)if(Out->Beds[I].Unit==Competent)
-        {Thickness+=Out->Beds[I].UpperMeters-Out->Beds[I].LowerMeters;Centers+=(Out->Beds[I].UpperMeters+Out->Beds[I].LowerMeters)*.5;++Count;}
+        for(int32 I=0;I<Out->OlderBedCount;++I)
+        {const auto B=Out->GetBed(I);if(B.Unit==Competent){Thickness+=B.UpperMeters-B.LowerMeters;Centers+=(B.UpperMeters+B.LowerMeters)*.5;++Count;}}
         // One effective thickness/wavelength for the whole conformable sequence.
         // Independent per-bed modes would make shared contacts cross.
         if(!FCLRockFolding::Resolve(Count?Thickness/Count:0,L.FoldViscosityContrast,L.FoldShorteningStrain,L.FoldAmplitudeRadiusFraction*R,Out->Folding,Error))return nullptr;
@@ -154,7 +183,7 @@ FCLRockColumn FCLCompiledRock::SampleColumn(const FVector3d& Direction) const
 FCLCompiledRock::FPoint FCLCompiledRock::ClassifyFinite(const FVector3d& P) const
 {
     FPoint Out;Out.Bed=-1;
-    if(Layer.InterbedFraction==0||Beds.IsEmpty())return Out;
+    if((Layer.AlgorithmVersion<5&&Layer.InterbedFraction==0)||GetBedCount()==0)return Out;
     const double Distance=P.Length();if(Layer.AlgorithmVersion>=3&&Distance<1.e-6)return Out;
     bool Young=false;double Coordinate=0;
     if(Layer.AlgorithmVersion>=3)
@@ -167,7 +196,7 @@ FCLCompiledRock::FPoint FCLCompiledRock::ClassifyFinite(const FVector3d& P) cons
             // thickness, rather than restarting a cycle, makes every contact
             // converge at the basin edge and leaves dry columns untouched.
             const double Fraction=FMath::Clamp((Distance-C.YoungerFloorRadiusMeters)/C.YoungerThicknessMeters,0.,1.);
-            Coordinate=FMath::Lerp(Unconformity,Datum,Fraction);
+            Coordinate=Layer.AlgorithmVersion>=5?Distance:FMath::Lerp(Unconformity,Datum,Fraction);
         }
         else
         {
@@ -183,21 +212,21 @@ FCLCompiledRock::FPoint FCLCompiledRock::ClassifyFinite(const FVector3d& P) cons
         if(!Young&&Coordinate<Basement)return Out;
     }
     // Binary lookup within each finite sequence; a surface edit never moves a bed.
-    int32 Begin=0,End=Beds.Num();
+    int32 Begin=0,End=GetBedCount();
     if(Layer.AlgorithmVersion>=3||Layer.YoungerCoverRadiusFraction>0)
     {
         if(Young)Begin=OlderBedCount;else End=OlderBedCount;
     }
     if(Begin==End)return Out;
     const int32 First=Begin,Last=End-1;
-    while(Begin<End){const int32 Mid=(Begin+End)/2;if(Coordinate>=Beds[Mid].UpperMeters)Begin=Mid+1;else End=Mid;}
-    const int32 Index=FMath::Clamp(Begin,First,Last);const auto& B=Beds[Index];Out.Unit=Out.Other=B.Unit;Out.Bed=Index;
-    const double Feather=FMath::Min(Layer.ContactFeatherFraction*Layer.BedThicknessRadiusFraction*Radius,(B.UpperMeters-B.LowerMeters)*.2);
+    while(Begin<End){const int32 Mid=(Begin+End)/2;if(Coordinate>=GetBed(Mid).UpperMeters)Begin=Mid+1;else End=Mid;}
+    const int32 Index=FMath::Clamp(Begin,First,Last);const auto B=GetBed(Index);Out.Unit=Out.Other=B.Unit;Out.Bed=Index;
+    const double Feather=FMath::Min(Layer.ContactFeatherFraction*(Layer.AlgorithmVersion>=5?B.UpperMeters-B.LowerMeters:Layer.BedThicknessRadiusFraction*Radius),(B.UpperMeters-B.LowerMeters)*.2);
     // Keep the angular unconformity sharp: only conformable neighbours feather.
     if(Feather>0&&Coordinate>=B.LowerMeters&&Coordinate-B.LowerMeters<Feather&&Index>First)
-    {Out.Other=Beds[Index-1].Unit;const double T=(Coordinate-B.LowerMeters)/Feather;Out.Alpha=.5+.5*T*T*(3-2*T);}
+    {Out.Other=GetBed(Index-1).Unit;const double T=(Coordinate-B.LowerMeters)/Feather;Out.Alpha=.5+.5*T*T*(3-2*T);}
     else if(Feather>0&&Coordinate<=B.UpperMeters&&B.UpperMeters-Coordinate<Feather&&Index<Last)
-    {Out.Other=Beds[Index+1].Unit;const double T=(B.UpperMeters-Coordinate)/Feather;Out.Alpha=.5+.5*T*T*(3-2*T);}
+    {Out.Other=GetBed(Index+1).Unit;const double T=(B.UpperMeters-Coordinate)/Feather;Out.Alpha=.5+.5*T*T*(3-2*T);}
     return Out;
 }
 FCLRockSample FCLCompiledRock::Sample(const FVector3d& P)const

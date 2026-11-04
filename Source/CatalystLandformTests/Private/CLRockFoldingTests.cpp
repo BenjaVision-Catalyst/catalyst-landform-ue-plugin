@@ -45,7 +45,7 @@ bool FCLRockFoldVolumeTest::RunTest(const FString&)
 {
     FString Error;auto R=FCLPlanetCompiler::ContinentalBase();R.UseGuidedGeology();
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
-    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.9);L.DepositionalVariation=0;
+    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.9);L.AlgorithmVersion=4;L.DepositionalVariation=0;
     L.BedThicknessRadiusFraction=.02;L.FoldViscosityContrast=48;L.FoldShorteningStrain=.15;
     L.FoldAmplitudeRadiusFraction=.05;L.TectonicResponse=L.DipDegrees=L.FaultThrowRadiusFraction=0;
     const auto Compression=CLRockSectionPlates(true,Error,2,1,1),Extension=CLRockSectionPlates(false,Error,2,1,1);

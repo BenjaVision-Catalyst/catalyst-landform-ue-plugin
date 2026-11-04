@@ -1,5 +1,8 @@
 # Material-aware early folding
 
+Current authoring uses [algorithm 5 physical beds](RockBedThickness.md). The
+algorithm-4 law below remains the folding prescription and a frozen saved profile.
+
 Algorithm 4 replaces the free fold wavelength in new authoring with a bounded,
 mechanically informed prescription. It reuses the existing crust, finite plate
 network and one canonical geological field. VPP owns voxel generation, native
