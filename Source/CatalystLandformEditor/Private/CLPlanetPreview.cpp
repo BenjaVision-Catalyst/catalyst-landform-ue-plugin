@@ -251,7 +251,7 @@ public:
         for(const auto& T:Targets)if(T.Key.bStructure&&T.Weight(D)>.01)return T.Key;
         return {};
     }
-    bool bWatershedOverlay=true;
+    bool bWatershedOverlay=false;
     void DrawWatersheds(FPrimitiveDrawInterface* PDI)
     {
         if(!bWatershedOverlay||!Plan||!Plan->Watershed||(NativePreview&&NativePreview->IsUpdating()))return;const auto& W=*Plan->Watershed;const auto& Cells=W.GetCells();

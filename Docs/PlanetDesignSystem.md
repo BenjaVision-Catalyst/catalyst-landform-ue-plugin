@@ -1793,3 +1793,26 @@ mass-conserving erosion simulation. Mining does not yet reroute the graph. The
 is distinguished from continuously graded constructed reaches. Karst, calibrated
 climate/runoff, sediment/hillslope processes and edit invalidation remain open;
 multiplayer remains out of scope.
+
+
+## Authoring requirements correction — 5 November 2026
+
+The watershed update failed the established authoring requirements despite its
+technical checks. The [explicit authoring contract](PlanetDesignerAuthoring.md)
+supersedes its UI placement and the older SurfaceScale dashboard. Planet retains
+Surface Distribution with one knob and Advanced, always scoped to the whole body.
+Geology owns Watershed beside Continents, Tectonics and Rock, using the same
+one-knob/direct-Advanced layout. No Target popup, layer status prose, plots or
+inspection actions appear in those authoring sections. Existing variation actions
+move into Advanced. Preview owns overlays, channel focus and optional diagnostics.
+
+Physical terrain dimensions/density remain with native terrain-layer/source
+authoring; the Planet Terrain detail dashboard is removed. Regional distribution
+remains with the owning region. This changes editor presentation and scope
+routing, preserves saved recipes and native VPP generation/LOD, and makes no
+new domain or cooked-world qualification claim. The [native UI qualification](../conformance/Authoring/qualification-mac-arm64.json)
+checks the actual requirements, screenshots and protected local inputs.
+
+The final correction passes 24 focused native checks without warnings, including
+real collapsed/expanded panels, region/global isolation and watershed walking.
+All 184 protected inputs remain unchanged; no content assets were regenerated.

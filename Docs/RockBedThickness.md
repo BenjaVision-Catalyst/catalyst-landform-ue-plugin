@@ -30,6 +30,8 @@ bed statistics, not a sediment-transport, compaction or continuum-mechanics mode
 ## Distribution and Character
 
 Advanced fields appear directly below Rock's existing native Advanced dropdown.
+Collapsed Rock has one Character knob and Advanced. Optional measured/requested
+bed plots belong to Preview Advanced; variation is available in Rock Advanced.
 Min/max, the thin-tail upper edge, peak, spread, thick-tail lower edge and the two
 rare-tail percentages are independently editable. Percentages are **by bed count**.
 The core is a numerically integrated truncated Gaussian between the two tail

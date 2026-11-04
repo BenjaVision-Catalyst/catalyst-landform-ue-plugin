@@ -1,0 +1,107 @@
+{
+  "date": "2026-11-05",
+  "passed": true,
+  "scope": "Native Planet Designer authoring UI correction; tab ownership, one Character knob plus direct Advanced, optional Preview inspection, whole-planet/regional editing isolation, Undo and walking. No new runtime geology or cooked qualification.",
+  "baseComponentCommit": "116b78876469ced224c8c1db3c5a41375a275e91",
+  "baseWorkspaceCommit": "30bc949d06f3ec98a0d9b5bbd9dbf68a99a00a3b",
+  "environment": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max 128 GB"
+  },
+  "requirements": {
+    "Planet": "Body configuration + global Surface Distribution, no Target selector or Terrain detail dashboard",
+    "Geology": [
+      "Continents",
+      "Tectonics",
+      "Rock",
+      "Watershed"
+    ],
+    "collapsedLayer": "Existing enable header; one Character slider/value and native Advanced dropdown",
+    "advanced": "Native external property rows directly below dropdown; no nested Details container; variation actions inside Advanced",
+    "Preview": "Optional drainage overlay/focus and walking; distribution/bed plots under Advanced; drainage overlay off by default",
+    "Landforms": "Native source/per-layer physical sizes and densities; explicit region ElevationDistribution in owning Advanced tree",
+    "globalRegionalIsolation": "Planet cannot redirect into a region; each region keeps its own native profile",
+    "LOD": "Unchanged native VPP rendering LOD, independent of physical-feature/Character settings"
+  },
+  "validation": {
+    "uniqueChecks": 24,
+    "testStates": {
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+      "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+      "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+      "Catalyst.Landform.Designer.DeferredGesture": "Success",
+      "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+      "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+      "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+      "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+      "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+      "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+      "Catalyst.Landform.Designer.SurfaceArea": "Success",
+      "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.SurfaceScale.AreaDensityAndMetricSizes": "Success",
+      "Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.SurfaceScale.PersistenceLegacyAndRefusals": "Success",
+      "Catalyst.Landform.SurfaceScale.RegionalBlendsAndNativeVolume": "Success",
+      "Catalyst.Landform.Tectonics.InlineAdvanced": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.Watershed.DesignerControlsAndUndo": "Success",
+      "LandformLab.Inspection.WatershedProjectedRoundTrip": "Success"
+    },
+    "run": {
+      "succeeded": 24,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0
+    },
+    "nativeScreenshots": {
+      "page-0.png": "Planet collapsed",
+      "page-1.png": "Geology collapsed, exactly four knobs and four Advanced dropdowns",
+      "page-2.png": "Watershed expanded directly below Advanced",
+      "page-3.png": "Preview inspection controls",
+      "page-4.png": "Planet collapsed before expanding Surface Distribution",
+      "page-5.png": "Surface Distribution Advanced with configurable tail fields"
+    },
+    "nativeScreenshotsVisuallyReviewed": true,
+    "protectedOriginalInputsUnchanged": 184,
+    "assetRegeneration": false,
+    "recipeMigration": false,
+    "editorWalking": {
+      "callbacks": 1,
+      "groundedFrames": 576,
+      "returned": "X=0.655 Y=0.366 Z=0.661",
+      "expected": "X=0.655 Y=0.366 Z=0.661",
+      "status": "Returned from the surface. Your last location is marked on the globe.",
+      "curvatureChecks": 3
+    },
+    "initialTestCorrections": "Initial UI check matched watershed inside editable planet/guide names; changed to exact row labels. Regional test now refreshes native rows after creating an array element and guards missing handles. First run crashed from dereferencing its stale test handle. The existing surface screenshot test also needed to select Planet explicitly after restoring the normal Geology landing page. One subsequent test-expression compile typo was corrected. Final build and full focused suite passed.",
+    "measurementFix": "Schema22 Preview now samples existing SurfaceRange; the earlier schema21-only guard produced a misleading readout for watershed profiles."
+  },
+  "sourceSHA256": {
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "8110a185a7c135749bfee41a73aaedd5714b68721ce79e86cdff234653d2c7a3",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "cedca0a94825c5af7792eba406ee922fce3f5e2ede623a8d8a7decaf6ef5f8e2"
+  },
+  "artifactSHA256": {
+    "editor-index.json": "148ab10a1568a03db3cc09c2079840d8e169c6f858ac61f2f014c5c2c6648046",
+    "editor-walk.json": "c1a0101ec258bcd9e41bd4db98762c38ebb2b89fccf4f8e390740bf5e1755ae6",
+    "page-0.png": "5a10d5560af899886d430044b1fb59d9c74b96e21506b16994409ec6703cd37f",
+    "page-1.png": "6a31a6b8430813d7180efe2b163ca207234e3d3523996d73f6dd86f7f30440ed",
+    "page-2.png": "86c0f3c6360e017f8094334bc2d9cd861d2021cad03ed6b9b0b0a66ec61b2419",
+    "page-3.png": "665bca4cd6a612c7d8b6c0c8aa302c812958d0a2fa058ea068e7e87aa5bddfe9",
+    "page-4.png": "5a10d5560af899886d430044b1fb59d9c74b96e21506b16994409ec6703cd37f",
+    "page-5.png": "1bfeabcd25466a61fcd7daab73cbd1802b24fc9f3860f4221b276ddb65ae3bf5",
+    "rock-advanced.png": "7870f1ed793c450b8f78e01e13e70f9fff147f2f801e1ef86f1e53486f0476f7",
+    "surface-distribution-edit.png": "1f5566656557fe5225c698488ff6e84b2c601bfbe45eb89ce0833e2d5ae1719f"
+  },
+  "nativeOwnership": "Editor reuses UE native Details, property rows, sliders, Undo and existing Preview. VPP remains sole voxel generation/presentation/LOD/collision/sculpt platform.",
+  "limits": [
+    "No runtime algorithm/schema/data changes; prior domain/cooked records remain historical qualification of those paths",
+    "Focused native editor checks and screenshots establish this UI correction; not a full application usability or production performance qualification",
+    "Watershed remains static pre-excavation drainage; dynamic water/karst and multiplayer remain out of scope"
+  ]
+}

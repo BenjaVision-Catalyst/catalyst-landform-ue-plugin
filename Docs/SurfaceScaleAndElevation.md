@@ -9,28 +9,25 @@ VPP retains generation, surfaces, meshes, LOD, collision and sculpt ownership.
 
 ## Designer controls
 
-Planet Designer's **Planet** page shows the reference surface area and two groups:
+Planet Designer's **Planet → Surface Distribution** contains one Character
+knob and Advanced. Character varies lowland-, mixed- and upland-heavy height
+statistics. Advanced contains independently configurable low/high end-area
+percentages, end-band width, typical height, spread and calibration sample count.
+There is no Target popup: this profile always applies to the whole planet.
+Defaults put 1% of reference area in the lowest 10% of SurfaceMin/Max and another
+1% in the highest 10%. This is an explicit statistical authoring constraint,
+not a geological process or a rendering LOD control.
 
-- **Terrain detail:** Largest feature rescales existing terrain noise wavelengths
-  and stamp footprints together, retaining their ratios. Lock to metres converts
-  radius-relative settings at their current size without changing the field.
-  Add/Enable detail creates one named native noise layer; repeated use does not
-  duplicate it. Continental and plate counts, angular belts and geological
-  parameters retain their independent, planet-scale meaning.
-- **Surface elevation:** Character moves between lowland-, mixed- and upland-heavy
-  distributions. Low end area and High end area are independent percentages.
-  By default, 1% of reference area occupies the lowest 10% of the SurfaceMin/Max
-  interval, and another 1% occupies the highest 10%. Advanced exposes the end-band
-  width, typical height, interquartile spread and calibration sample count directly
-  below its native dropdown. The plot shows the target and measured cumulative
-  area curves, and the readout reports actual end fractions and median height.
+Regional overrides remain on each explicit region under Landforms Advanced.
+Noise wavelengths, stamp footprints and density are edited through their existing
+native terrain-layer/source controls. The Planet Terrain detail dashboard and
+bulk size/add-layer shortcuts were removed in the [authoring correction](PlanetDesignerAuthoring.md).
+The physical-scale model and saved values are retained. Optional target/measured
+area curves and rock-bed diagnostics belong to Preview Advanced.
 
-The target menu selects the whole surface or an existing enabled editorial
-terrain region. Regional settings live on that region's self-contained recipe
-snapshot. The regional review isolates a masked elevation override over identical
-native noise terrain on both sides. Generated palette-cell-specific elevation
-profiles are not implemented; generated terrain is included in the whole-field
-calibration.
+Generated palette-cell-specific elevation profiles are not implemented; generated
+terrain is included in the whole-field calibration. Regional profiles use their
+own masks and do not change the scope of the Planet control.
 
 Physical locking applies to root terrain layers, unplaced regional snapshots and
 region-generation palette snapshots. Placed Landforms keep their explicit source

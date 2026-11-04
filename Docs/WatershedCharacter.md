@@ -121,10 +121,11 @@ an iterative geological evolution or converged continuum hydrology solve.
 
 ## Review and qualification
 
-In Planet Designer choose **Planet → Watershed**. Advanced fields appear directly
-under that group's native dropdown. Character dragging is coalesced and has one
-Undo. **Focus largest channel** points the existing globe camera at a generated
-reach and marks it for the existing **Walk here** host. The overlay can be hidden:
+In Planet Designer choose **Geology → Watershed**. Advanced fields appear directly
+under that group's native dropdown. Its collapsed content is one Character knob
+and Advanced; no statistics, explanatory rows or inspection buttons. Character dragging is coalesced and has one
+Undo. In **Preview**, **Focus largest channel** points the existing globe camera at a generated
+reach and marks it for the existing **Walk here** host. The Preview drainage overlay can be hidden:
 blue marks active graded reaches, grey final routing and cyan potential lake rims.
 Overlays wait for native terrain publication and are diagnostics, not water meshes.
 Watershed previews retain native VPP final quality 4 and draft quality 1. A trial
