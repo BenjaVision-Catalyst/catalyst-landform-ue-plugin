@@ -121,9 +121,10 @@ an iterative geological evolution or converged continuum hydrology solve.
 
 ## Review and qualification
 
-In Planet Designer choose **Geology → Watershed**. Advanced fields appear directly
-under that group's native dropdown. Its collapsed content is one Character knob
-and Advanced; no statistics, explanatory rows or inspection buttons. Character dragging is coalesced and has one
+In Planet Designer choose **Geology → Watershed**. The native main row contains its
+eye toggle, Character slider and disabled reseed icon. Its category chevron opens
+the detailed property rows directly below; there is no separate Advanced button.
+Watershed-local seeded variation is the next separate task. Character dragging is coalesced and has one
 Undo. In **Preview**, **Focus largest channel** points the existing globe camera at a generated
 reach and marks it for the existing **Walk here** host. The Preview drainage overlay can be hidden:
 blue marks active graded reaches, grey final routing and cyan potential lake rims.

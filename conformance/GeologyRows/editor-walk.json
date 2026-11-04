@@ -1,0 +1,8 @@
+{
+	"callbacks": 1,
+	"groundedFrames": 153,
+	"returned": "X=0.655 Y=0.366 Z=0.661",
+	"expected": "X=0.655 Y=0.366 Z=0.661",
+	"status": "Returned from the surface. Your last location is marked on the globe.",
+	"curvatureChecks": 3
+}

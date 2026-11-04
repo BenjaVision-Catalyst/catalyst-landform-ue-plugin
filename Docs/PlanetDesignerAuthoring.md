@@ -11,12 +11,19 @@ geological process. It has no Target selector. It controls how much area occupie
 low, middle and high parts of SurfaceMin/Max; its independent rare-tail controls
 remain under Advanced. Opening an asset never changes its saved recipe.
 
-Geology owns **Continents, Tectonics, Rock and Watershed**. Each native layer
-header keeps its enable checkbox. Collapsed layer content is one Character knob
-and its value, followed by **Advanced**. Native external property rows appear
-directly below Advanced; there is no nested Details container. Existing variation
-actions live inside Advanced. Model/status prose, topology counts, plots and
-inspection actions do not belong in the authoring layers.
+Geology owns **Continents, Tectonics, Rock and Watershed**. Each layer is one
+native expandable category header: chevron, Outliner eyeball, name, Character
+slider/value and reseed icon. The eyeball has the same accepted enable/disable
+semantics as the former checkbox. The slider and reseed remain accessible while
+the category is collapsed. Opening the header reveals its ordinary native
+property rows directly underneath. There is no separate Character row, Advanced
+button, nested Details container or extra panel for geology.
+
+Continents, Tectonics and Rock retain their own reseed/Undo behavior. Watershed
+currently has no independent seeded variation; its native reseed icon is disabled.
+The user selected watershed-local variation as the next separate task. It must not
+reseed the planet or upstream layers. This UI change adds no generation algorithm.
+Planet Surface Distribution retains its existing one-knob/Advanced layout.
 
 Landforms owns terrain sources and placed/explicit regional definitions. Noise
 wavelengths, stamp footprints and feature densities remain in their existing
@@ -32,7 +39,7 @@ watershed qualification records remain in conformance artifacts. VPP rendering
 LOD is independent of all Character/physical-feature controls and is unchanged.
 
 This is an editor-only correction: no new geological producer, recipe migration,
-asset regeneration or runtime generation/streaming change. The [native UI record](../conformance/Authoring/qualification-mac-arm64.json)
+asset regeneration or runtime generation/streaming change. The [native UI record](../conformance/GeologyRows/qualification-mac-arm64.json)
 records actual collapsed/expanded views, tab ownership, shared four-layer layout,
 Undo, region/global isolation and preserved inputs. Domain and cooked qualifications
 remain those of the owning scale/rock/watershed profiles.

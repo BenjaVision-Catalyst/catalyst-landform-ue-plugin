@@ -1816,3 +1816,25 @@ checks the actual requirements, screenshots and protected local inputs.
 The final correction passes 24 focused native checks without warnings, including
 real collapsed/expanded panels, region/global isolation and watershed walking.
 All 184 protected inputs remain unchanged; no content assets were regenerated.
+
+
+## Native geology header rows — 5 November 2026
+
+The user refined Geology to a standard UE expandable-row design. Each header now
+contains the Outliner eye icon (same enable state as the checkbox), name, Character
+slider/value and layer reseed action. Native category expansion reveals ordinary
+property rows immediately below; Geology has no separate Character row, Advanced
+dropdown or additional panel. Surface Distribution on Planet keeps its agreed
+Advanced layout. The [current authoring contract](PlanetDesignerAuthoring.md) and
+[native row qualification](../conformance/GeologyRows/qualification-mac-arm64.json)
+supersede the earlier four-knob/Advanced screenshots for Geology only.
+
+Watershed's reseed icon is disabled because no independent variation exists. The
+user selected meaningful watershed-local variation as the next separate task;
+that work must retain upstream seeds, actual terrain consistency and native VPP
+ownership. This UI change does not add or reinterpret geological randomness.
+
+The final native row qualification passes 27 checks without warnings, including
+three real pointer-drag cases, four eye-toggle/Undo cases, layer seed isolation,
+direct property expansion, regional isolation and watershed walking. All 184
+protected inputs remain unchanged; no assets or recipes were regenerated.

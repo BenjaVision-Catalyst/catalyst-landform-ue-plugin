@@ -1,0 +1,121 @@
+{
+  "date": "2026-11-05",
+  "passed": true,
+  "scope": "Standard UE geology category headers with Outliner eyes, Character sliders and reseed icons. Direct ordinary property children, native chevrons, no Advanced dropdown on Geology. Editor-only; no recipe/generator/LOD changes.",
+  "baseComponentCommit": "71c683a3e85934bc18a33bc630f1b88c008ea8dd",
+  "baseWorkspaceCommit": "4df56fd3397b1e75aea9844dd7671dac1e4d381e",
+  "environment": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max 128 GB"
+  },
+  "nativeReuse": {
+    "expansion": "IDetailCategoryBuilder HeaderContent whole-row plus existing SDetailExpanderArrow",
+    "eye": "Native SButton/SImage with FAppStyle Level.VisibleIcon16x and Level.NotVisibleIcon16x, bound to existing accepted bEnabled state",
+    "properties": "Native AddExternalStructureProperty with normal child location; no nested Details view",
+    "sliderReseedUndo": "Existing native sliders, layer seed actions, validated commits and UE transactions"
+  },
+  "requirements": {
+    "Geology": [
+      "Continents",
+      "Tectonics",
+      "Rock",
+      "Watershed"
+    ],
+    "mainRow": "Native chevron, eye, layer name, Character slider/value, reseed icon",
+    "expanded": "Ordinary native property rows directly below main row",
+    "geologyAdvancedDropdowns": 0,
+    "characterChildRows": 0,
+    "planetSurfaceDistribution": "Unchanged one knob plus Advanced, global scope, no Target popup",
+    "watershedReseed": "Disabled; user selected meaningful watershed-local variation as the next separate task; no upstream reseed fallback"
+  },
+  "validation": {
+    "uniqueChecks": 27,
+    "testStates": {
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.BoundedNavigation": "Success",
+      "Catalyst.Landform.Designer.CentreAxisPivot": "Success",
+      "Catalyst.Landform.Designer.CoreToSkySection": "Success",
+      "Catalyst.Landform.Designer.DeferredGesture": "Success",
+      "Catalyst.Landform.Designer.DistanceInputUnits": "Success",
+      "Catalyst.Landform.Designer.FixedDisplayFrame": "Success",
+      "Catalyst.Landform.Designer.LayerPropertyDraft": "Success",
+      "Catalyst.Landform.Designer.MinimumZoomFit": "Success",
+      "Catalyst.Landform.Designer.SelectionAndCoreAdd": "Success",
+      "Catalyst.Landform.Designer.StableOrbitZoom": "Success",
+      "Catalyst.Landform.Designer.SurfaceArea": "Success",
+      "Catalyst.Landform.Designer.TerrainWorkspace": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.SurfaceScale.AreaDensityAndMetricSizes": "Success",
+      "Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.SurfaceScale.PersistenceLegacyAndRefusals": "Success",
+      "Catalyst.Landform.SurfaceScale.RegionalBlendsAndNativeVolume": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Continental": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.ContinentalLayer": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Tectonic": "Success",
+      "Catalyst.Landform.Tectonics.InlineAdvanced": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.Watershed.DesignerControlsAndUndo": "Success",
+      "LandformLab.Inspection.WatershedProjectedRoundTrip": "Success"
+    },
+    "run": {
+      "succeeded": 27,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0
+    },
+    "eyeToggles": 4,
+    "eyeToggleUndo": "Full recipe equality after one native Undo; only clicked layer enable state changes",
+    "mainRowAlignment": "All four eye/slider/reseed vertical centres within two pixels in actual native header layout",
+    "realPointerCases": [
+      "Tectonic",
+      "Continental",
+      "ContinentalLayer"
+    ],
+    "seedIsolation": "Existing Continents/Tectonics/Rock reseed and Undo checks retained",
+    "nativeScreenshotsVisuallyReviewed": true,
+    "nativeScreenshots": {
+      "page-0.png": "Planet collapsed",
+      "page-1.png": "Four collapsed geology header rows",
+      "page-2.png": "Watershed opened with direct properties and no Advanced dropdown",
+      "page-3.png": "Preview inspection",
+      "page-4.png": "Planet before opening Surface Distribution Advanced",
+      "page-5.png": "Surface Distribution Advanced retained"
+    },
+    "protectedOriginalInputsUnchanged": 184,
+    "assetRegeneration": false,
+    "recipeMigration": false,
+    "editorWalking": {
+      "callbacks": 1,
+      "groundedFrames": 153,
+      "returned": "X=0.655 Y=0.366 Z=0.661",
+      "expected": "X=0.655 Y=0.366 Z=0.661",
+      "status": "Returned from the surface. Your last location is marked on the globe.",
+      "curvatureChecks": 3
+    }
+  },
+  "sourceSHA256": {
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "50a80d8d58409a48437e1cc5c59283ec08965dcdb0c710062884d77d7234d613"
+  },
+  "artifactSHA256": {
+    "editor-index.json": "626397868c5b346c94f0fdbf3b8b8fd6798bca3a1333a117b809d38f2c3e4a9f",
+    "editor-walk.json": "21f528ec70f78fdb6d7976beac5046a2fd516c536a676dfe9901c56ae5c71aeb",
+    "page-0.png": "5a10d5560af899886d430044b1fb59d9c74b96e21506b16994409ec6703cd37f",
+    "page-1.png": "cf518647ebcee543763c117e3b067361463b3ae6542013396662f0fddd60c28a",
+    "page-2.png": "f6954a6a59546b72375ff807619c978aa6ea36beb05b751e1d93fb04eb271ab6",
+    "page-3.png": "665bca4cd6a612c7d8b6c0c8aa302c812958d0a2fa058ea068e7e87aa5bddfe9",
+    "page-4.png": "5a10d5560af899886d430044b1fb59d9c74b96e21506b16994409ec6703cd37f",
+    "page-5.png": "1bfeabcd25466a61fcd7daab73cbd1802b24fc9f3860f4221b276ddb65ae3bf5",
+    "rock-properties.png": "7cfe90cc8847b20da29ed6770b56180221fb2958fda6e9f2baaa455b1d10aaec",
+    "surface-distribution-edit.png": "1f5566656557fe5225c698488ff6e84b2c601bfbe45eb89ce0833e2d5ae1719f"
+  },
+  "nextTask": "Define and qualify meaningful watershed-local variation without changing upstream seeds or violating terrain/drainage consistency; native VPP remains sole voxel platform.",
+  "limits": [
+    "Watershed reseed deliberately disabled until that separately requested work is implemented",
+    "No new runtime geology, schema, cooked save or world-generation claim; existing qualifications retain their original scope",
+    "Multiplayer remains out of scope"
+  ]
+}

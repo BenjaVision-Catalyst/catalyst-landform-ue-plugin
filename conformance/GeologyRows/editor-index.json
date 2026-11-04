@@ -1,0 +1,470 @@
+{
+  "devices": [
+    {
+      "deviceName": "jupiter.local",
+      "instance": "00C4BB55784BCB227065269D70644C48",
+      "instanceName": "jupiter.local-38491",
+      "platform": "MacEditor",
+      "oSVersion": "macOS 26.6.1 25G76",
+      "model": "Default",
+      "gPU": "Apple M3 Max",
+      "cPUModel": "Apple M3 Max",
+      "rAMInGB": 128,
+      "renderMode": "SM6",
+      "rHI": "Metal Bindless (SM6)",
+      "appInstanceLog": ""
+    }
+  ],
+  "reportCreatedOn": "2026.11.04-20.49.02",
+  "succeeded": 27,
+  "succeededWithWarnings": 0,
+  "failed": 0,
+  "notRun": 0,
+  "inProcess": 0,
+  "totalDuration": 67.12914276123047,
+  "comparisonExported": false,
+  "comparisonExportDirectory": "",
+  "tests": [
+    {
+      "testDisplayName": "AuthoringBoundaries",
+      "fullTestPath": "Catalyst.Landform.Designer.AuthoringBoundaries",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 15.415007591247559,
+      "dateTime": "2026.11.04-20.47.55",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "BoundedNavigation",
+      "fullTestPath": "Catalyst.Landform.Designer.BoundedNavigation",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.008686583489179611,
+      "dateTime": "2026.11.04-20.48.10",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CentreAxisPivot",
+      "fullTestPath": "Catalyst.Landform.Designer.CentreAxisPivot",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.026448871940374374,
+      "dateTime": "2026.11.04-20.48.10",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CoreToSkySection",
+      "fullTestPath": "Catalyst.Landform.Designer.CoreToSkySection",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.04288037493824959,
+      "dateTime": "2026.11.04-20.48.10",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Section maximum surface/field error: 0.000000 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.04-20.48.10"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DeferredGesture",
+      "fullTestPath": "Catalyst.Landform.Designer.DeferredGesture",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.22662979364395142,
+      "dateTime": "2026.11.04-20.48.10",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "200 guide-only updates: 0.065 ms; mesh rebuilds while dragging: 0; after release: 1",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.04-20.48.10"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DistanceInputUnits",
+      "fullTestPath": "Catalyst.Landform.Designer.DistanceInputUnits",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.010796792805194855,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "FixedDisplayFrame",
+      "fullTestPath": "Catalyst.Landform.Designer.FixedDisplayFrame",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.12078991532325745,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "LayerPropertyDraft",
+      "fullTestPath": "Catalyst.Landform.Designer.LayerPropertyDraft",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.04006745666265488,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MinimumZoomFit",
+      "fullTestPath": "Catalyst.Landform.Designer.MinimumZoomFit",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.01600458472967148,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "SelectionAndCoreAdd",
+      "fullTestPath": "Catalyst.Landform.Designer.SelectionAndCoreAdd",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.006114918738603592,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "StableOrbitZoom",
+      "fullTestPath": "Catalyst.Landform.Designer.StableOrbitZoom",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.018835917115211487,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "SurfaceArea",
+      "fullTestPath": "Catalyst.Landform.Designer.SurfaceArea",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.030391331762075424,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "TerrainWorkspace",
+      "fullTestPath": "Catalyst.Landform.Designer.TerrainWorkspace",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.2708147466182709,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "InspectorAndVariationUndo",
+      "fullTestPath": "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.5257506370544434,
+      "dateTime": "2026.11.04-20.48.11",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DesignerControlsAndUndo",
+      "fullTestPath": "Catalyst.Landform.Rock.DesignerControlsAndUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 4.501048564910889,
+      "dateTime": "2026.11.04-20.48.12",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "AreaDensityAndMetricSizes",
+      "fullTestPath": "Catalyst.Landform.SurfaceScale.AreaDensityAndMetricSizes",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.11687900125980377,
+      "dateTime": "2026.11.04-20.48.16",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DesignerControlsAndUndo",
+      "fullTestPath": "Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 1.3742562532424927,
+      "dateTime": "2026.11.04-20.48.17",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "PersistenceLegacyAndRefusals",
+      "fullTestPath": "Catalyst.Landform.SurfaceScale.PersistenceLegacyAndRefusals",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.0693259984254837,
+      "dateTime": "2026.11.04-20.48.18",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "RegionalBlendsAndNativeVolume",
+      "fullTestPath": "Catalyst.Landform.SurfaceScale.RegionalBlendsAndNativeVolume",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.07147033512592316,
+      "dateTime": "2026.11.04-20.48.18",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Regional median 78.000000; max 2m blend step 4.427925 m; 2048 native probes residual 0.00286102295 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.04-20.48.18"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "Continental",
+      "fullTestPath": "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Continental",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 6.715603351593018,
+      "dateTime": "2026.11.04-20.48.18",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ContinentalLayer",
+      "fullTestPath": "Catalyst.Landform.Tectonics.LiveKnobAndUndo.ContinentalLayer",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 6.950346946716309,
+      "dateTime": "2026.11.04-20.48.25",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "Tectonic",
+      "fullTestPath": "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Tectonic",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 6.545811653137207,
+      "dateTime": "2026.11.04-20.48.32",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "InlineAdvanced",
+      "fullTestPath": "Catalyst.Landform.Tectonics.InlineAdvanced",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.340265154838562,
+      "dateTime": "2026.11.04-20.48.38",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "AuthoringSnapshots",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.AuthoringSnapshots",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.009049836546182632,
+      "dateTime": "2026.11.04-20.48.39",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "LayerAuthoring",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.LayerAuthoring",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 0.008712664246559143,
+      "dateTime": "2026.11.04-20.48.39",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DesignerControlsAndUndo",
+      "fullTestPath": "Catalyst.Landform.Watershed.DesignerControlsAndUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 6.415223598480225,
+      "dateTime": "2026.11.04-20.48.39",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "WatershedProjectedRoundTrip",
+      "fullTestPath": "LandformLab.Inspection.WatershedProjectedRoundTrip",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "00C4BB55784BCB227065269D70644C48"
+      ],
+      "duration": 17.25193214416504,
+      "dateTime": "2026.11.04-20.48.45",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    }
+  ]
+}
