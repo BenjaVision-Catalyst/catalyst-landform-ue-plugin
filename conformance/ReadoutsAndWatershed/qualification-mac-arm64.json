@@ -1,0 +1,169 @@
+{
+  "date": "2026-11-05",
+  "passed": true,
+  "scope": "Shared plain 0\u2013100 native Character readouts and Tectonics-first Geology order; source/history review of existing Watershed preview/terrain scope. No new water or terrain algorithm.",
+  "baseComponentCommit": "a4884ca74a6d38e12454deba93151b5b98b1ab2d",
+  "baseWorkspaceCommit": "1627898b19ca811af3ab359af4bdf04484418c34",
+  "environment": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max 128 GB"
+  },
+  "ui": {
+    "order": [
+      "Tectonics",
+      "Continents",
+      "Rock",
+      "Watershed"
+    ],
+    "readout": "Shared native PropertyWindow.NormalFont, fixed 36 logical-pixel box, right-aligned rounded 0\u2013100 integer with no percent sign",
+    "alsoAppliedTo": "Planet Surface Distribution Character only; actual percentage-unit advanced controls remain percentages",
+    "savedValues": "Unchanged normalized 0\u20131 values, existing UE sliders/transactions/reseed/enable flags"
+  },
+  "audit": {
+    "initialWatershedCommit": "116b788",
+    "historyFinding": "Only cancellation/native sampling-progress wrappers changed the watershed model since introduction; reference rain/runoff and lake/ocean/closed-terminal policies already existed in the first implementation",
+    "core": "Native terrain valley/channel-bed conditioning plus finite drainage/catchment metadata",
+    "preview": "Optional blue active-channel/grey routing lines and cyan potential lake rims; existing separate sea-level sphere is not generated hydrologic water",
+    "scopeConcern": "Reference rain/runoff advanced controls are diagnostic hydrology extras, not terrain-shaping controls; recommend reviewing their ownership before further expansion",
+    "notDelivered": [
+      "River/lake/ocean water bodies or meshes",
+      "Current water level or flowing-water simulation",
+      "Sediment/climate/groundwater/karst",
+      "Drainage invalidation after mining/dams",
+      "Global metre-scale Earth/Mars drainage"
+    ],
+    "presentationGap": "Drainage overlay currently suppresses itself during ordinary native LOD/readiness work; unchanged in this review",
+    "nextBoundedProof": "Fixed-view overlay-off eye-off/0/50/100 comparisons over representative seeds and body areas; verify terrain visibility and overlay stability before water features"
+  },
+  "validation": {
+    "uniqueChecks": 13,
+    "testStates": {
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Continental": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.ContinentalLayer": "Success",
+      "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Tectonic": "Success",
+      "Catalyst.Landform.Watershed.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Watershed.NativeRenderedReview": "Success",
+      "Catalyst.Landform.PlanetBuilder.DisplayOcean": "Success",
+      "Catalyst.Landform.Watershed.CharacterAndPhysicalResolution": "Success",
+      "Catalyst.Landform.Watershed.ScopeBoundaries": "Success",
+      "Catalyst.Landform.Watershed.VersionsGeologyAndVolumes": "Success"
+    },
+    "runs": {
+      "checks": {
+        "succeeded": 9,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      },
+      "scope": {
+        "succeeded": 4,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      }
+    },
+    "nativeHeaderChecks": [
+      "Four numeric readouts, no percent signs",
+      "All readout fonts equal native property font",
+      "All readout widths equal 36 logical pixels",
+      "Tectonics text precedes Continents",
+      "Native eye/reseed/slider alignment and direct property structure retained",
+      "Enable changes and native Undo preserve unrelated fields"
+    ],
+    "scopeBoundary": "Wet/dry reference rainfall variants retain exact native height field, channel count and per-cell receiver/height; only discharge changes. Existing scale/refusal, volume/excavation and independent ocean-display tests pass.",
+    "renderCases": [
+      {
+        "file": "watershed-0.png",
+        "profile": "Watershed",
+        "enabled": false,
+        "character": 0.5,
+        "overlay": false,
+        "camera": "overview"
+      },
+      {
+        "file": "watershed-1.png",
+        "profile": "Watershed",
+        "enabled": true,
+        "character": 0,
+        "overlay": true,
+        "camera": "overview"
+      },
+      {
+        "file": "watershed-2.png",
+        "profile": "Watershed",
+        "enabled": true,
+        "character": 0.5,
+        "overlay": true,
+        "camera": "focused"
+      },
+      {
+        "file": "watershed-3.png",
+        "profile": "Watershed",
+        "enabled": true,
+        "character": 1,
+        "overlay": false,
+        "camera": "focused"
+      },
+      {
+        "file": "watershed-4.png",
+        "profile": "WatershedContinental",
+        "enabled": true,
+        "character": 0.5,
+        "overlay": true,
+        "camera": "overview"
+      },
+      {
+        "file": "watershed-5.png",
+        "profile": "WatershedContinental",
+        "enabled": true,
+        "character": 1,
+        "overlay": false,
+        "camera": "focused"
+      }
+    ],
+    "visuallyReviewed": [
+      "geology.png",
+      "watershed-1.png",
+      "watershed-4.png"
+    ],
+    "protectedOriginalFiles": 184,
+    "protectedSavedReviewFiles": 177,
+    "algorithmChanges": false,
+    "assetRegeneration": false,
+    "recipeMigration": false,
+    "cookedRuntimeRerun": false
+  },
+  "sourceSHA256": {
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "b12f3058923ee93130978889ca061c36420a6a8c5401b9ba1a998399809aa76e",
+    "Source/CatalystLandformTests/Private/CLWatershedTests.cpp": "e406ca482b21727e957d96a1e4359a05cf355428ccfafd184950967a180f1dad"
+  },
+  "auditedSourceSHA256": {
+    "Source/CatalystLandform/Private/Model/CLWatershed.cpp": "df00eabe2f9bb3855f5fcd3f766a28da14434d22d782ed6f1e3a37ff89955aa9",
+    "Source/CatalystLandform/Public/Model/CLWatershed.h": "d883271ee59b15c885bf89f85e05588998643e2c74c4002c3c23b545392a907b",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "15ff644cbe2c1b0f00096bc4cf1354079cdb7e194092f4e053e854a5c5a0d1c4",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "5d194ddc0bee57ae3d02cc78d71baeec751159e7096ab8fb208af9c61a763ad9"
+  },
+  "artifactSHA256": {
+    "editor-index.json": "24b7c88ee3484a0b6da056ff883606e6086f71cf00b5c6115f55649233778286",
+    "scope-index.json": "3fda3ec31e61a5ffd8dcf8823e4184af0d0fe928fe07dec325e1a5c4b7236d51",
+    "geology.png": "a5876c1ebbd6a7dc878dea8022b3890da3f03bc4b58a601713262c31ef877b4e",
+    "planet.png": "f639b8b8c50cfc79f30c2033eea77636da59a095cc857dbb0a2676510671cf09",
+    "watershed-0.png": "e0566762e0392b9c48768c4b5cb570a5048b79ac183769fdd3822de769954c3e",
+    "watershed-1.png": "112a86dcddd06fc853d17f2c482ead13042a1b3e7fac2253f5b63d374c8d07d7",
+    "watershed-2.png": "9631c8810c81e235a70d7767d8b625abc1eb5ea76ed2ef6ae24acf1de440c43d",
+    "watershed-3.png": "901fb451d5f814c174604ec7a6a6943e2c3bf63f3e4674a3015ef414860f6fd7",
+    "watershed-4.png": "9784e056a0ca0a92952d43cc596b3026f0599a462a456e648a613b9f9266b12b",
+    "watershed-5.png": "a99a387d8609dbec3c0a10a5f712ab0601243719af79d9d7bd5648d05286c9c6"
+  },
+  "limits": [
+    "Visual native cases are not identical-camera comparisons across every Character position/seed/scale.",
+    "Audit identifies potential diagnostic-control scope creep and preview gaps; it does not silently remove controls or change watershed behaviour.",
+    "Prior native cooked qualifications retain their original scope; this task does not requalify production hydrology or multiplayer."
+  ]
+}

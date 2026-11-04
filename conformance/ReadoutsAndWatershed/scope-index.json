@@ -1,0 +1,89 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "5A9A7650FC4A04EDA6B5F4A71C89A2D9",
+			"instanceName": "jupiter.local-47395",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.04-23.18.03",
+	"succeeded": 4,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 7.4311723709106445,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "DisplayOcean",
+			"fullTestPath": "Catalyst.Landform.PlanetBuilder.DisplayOcean",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"5A9A7650FC4A04EDA6B5F4A71C89A2D9"
+			],
+			"duration": 0.044885586947202682,
+			"dateTime": "2026.11.04-23.17.55",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "CharacterAndPhysicalResolution",
+			"fullTestPath": "Catalyst.Landform.Watershed.CharacterAndPhysicalResolution",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"5A9A7650FC4A04EDA6B5F4A71C89A2D9"
+			],
+			"duration": 5.1712627410888672,
+			"dateTime": "2026.11.04-23.17.55",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ScopeBoundaries",
+			"fullTestPath": "Catalyst.Landform.Watershed.ScopeBoundaries",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"5A9A7650FC4A04EDA6B5F4A71C89A2D9"
+			],
+			"duration": 0.97527521848678589,
+			"dateTime": "2026.11.04-23.18.01",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "VersionsGeologyAndVolumes",
+			"fullTestPath": "Catalyst.Landform.Watershed.VersionsGeologyAndVolumes",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"5A9A7650FC4A04EDA6B5F4A71C89A2D9"
+			],
+			"duration": 1.2397487163543701,
+			"dateTime": "2026.11.04-23.18.02",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

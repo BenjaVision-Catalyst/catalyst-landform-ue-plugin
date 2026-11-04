@@ -1280,6 +1280,12 @@ public:
     {return SNew(STextBlock).Text(FText::FromString(Text)).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"));}
     static FDetailWidgetRow& InspectorRow(IDetailCategoryBuilder& Category,const TCHAR* Label,const TSharedRef<SWidget>& Widget,bool Advanced=false)
     {return Category.AddCustomRow(FText::FromString(Label),Advanced).NameContent()[InspectorLabel(Label)].ValueContent().MinDesiredWidth(220).MaxDesiredWidth(900)[Widget];}
+    static TSharedRef<SWidget> CharacterReadout(TAttribute<double> Value)
+    {
+        return SNew(SBox).WidthOverride(36)[SNew(STextBlock)
+            .Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Justification(ETextJustify::Right)
+            .Text_Lambda([Value]{return FText::AsNumber(FMath::RoundToInt(100*FMath::Clamp(Value.Get(),0.,1.)));})];
+    }
     TSharedRef<SWidget> GeologyHeader(int32 Index,const TCHAR* Name,TAttribute<bool> Enabled,
         TFunction<void()> Toggle,const TSharedRef<SWidget>& Character,const TSharedRef<SWidget>& Reseed)
     {
@@ -1377,7 +1383,7 @@ public:
                 .OnMouseCaptureBegin_Lambda([this]{BeginWatershedDrag();}).OnMouseCaptureEnd_Lambda([this]{EndWatershedDrag();})
                 .OnControllerCaptureBegin_Lambda([this]{BeginWatershedDrag();}).OnControllerCaptureEnd_Lambda([this]{EndWatershedDrag();})
                 .OnValueChanged_Lambda([this](float V){PendingWatershed=V;if(bWatershedDragging)PumpWatershed(false);else{auto L=RecipeAsset()->Recipe.Watershed;L.ApplyProgression(V);CommitWatershed(L);}})]
-            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text_Lambda([this]{return FText::AsPercent(bWatershedDragging?PendingWatershed:RecipeAsset()->Recipe.Watershed.Character);})],SAssignNew(WatershedVariation,SButton).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).IsEnabled(false).ToolTipText(FText::FromString(TEXT("Watershed derives from the existing terrain; it has no independent seed")))[SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))]),true);
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[CharacterReadout(TAttribute<double>::CreateLambda([this]{return bWatershedDragging?PendingWatershed:RecipeAsset()->Recipe.Watershed.Character;}))],SAssignNew(WatershedVariation,SButton).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).IsEnabled(false).ToolTipText(FText::FromString(TEXT("Watershed derives from the existing terrain; it has no independent seed")))[SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))]),true);
         C.InitiallyCollapsed(true);
         WatershedDraft=MakeShared<FStructOnScope>(FCLWatershedSettings::StaticStruct());*reinterpret_cast<FCLWatershedSettings*>(WatershedDraft->GetStructMemory())=RecipeAsset()->Recipe.Watershed;
         AddLayerAdvanced(C,WatershedDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character")},TAttribute<bool>::CreateLambda([this]{return RecipeAsset()->Recipe.Watershed.bEnabled&&!bWatershedDragging;}),WatershedProperties,false);C.SetShowAdvanced(false);
@@ -1428,7 +1434,7 @@ public:
                 .OnMouseCaptureBegin_Lambda([this]{BeginSurfaceDrag();}).OnMouseCaptureEnd(this,&FCLRecipeToolkit::EndSurfaceDrag)
                 .OnControllerCaptureBegin_Lambda([this]{BeginSurfaceDrag();}).OnControllerCaptureEnd(this,&FCLRecipeToolkit::EndSurfaceDrag)
                 .OnValueChanged_Lambda([this](float V){PendingElevation=V;if(bElevationDragging)PumpSurface(false);else{auto P=ElevationSettings();P.ApplyProgression(V);CommitElevation(P);}})]
-            +SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text_Lambda([this]{return FText::AsPercent(bElevationDragging?PendingElevation:ElevationSettings().Character);})]);
+            +SHorizontalBox::Slot().AutoWidth()[CharacterReadout(TAttribute<double>::CreateLambda([this]{return bElevationDragging?PendingElevation:ElevationSettings().Character;}))]);
         ElevationDraft=MakeShared<FStructOnScope>(FCLSurfaceDistributionSettings::StaticStruct());*reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
         const auto Enabled=TAttribute<bool>::CreateLambda([this]{return ElevationSettings().bEnabled&&!bElevationDragging;});
         AddLayerAdvanced(E,ElevationDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character")},Enabled,ElevationAdvancedProperties);
@@ -1464,7 +1470,7 @@ public:
         }
         else if(Page==1)
         {
-            auto& C=B.EditCategory(TEXT("ContinentalLayer"),FText::FromString(TEXT("Continents")));C.SetSortOrder(0);ContinentalAdvanced=&C;
+            auto& C=B.EditCategory(TEXT("ContinentalLayer"),FText::FromString(TEXT("Continents")));C.SetSortOrder(1);ContinentalAdvanced=&C;
             C.HeaderContent(GeologyHeader(0,TEXT("Continents"),TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Continents.bEnabled;}),
                 [this]{auto L=LayeredRecipe().Continents;L.bEnabled=!L.bEnabled;CommitContinents(L);},
                 SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Continents.bEnabled;})
@@ -1473,10 +1479,10 @@ public:
                     .OnMouseCaptureBegin_Lambda([this]{BeginContinentalDrag();}).OnMouseCaptureEnd_Lambda([this]{EndContinentalDrag();})
                     .OnControllerCaptureBegin_Lambda([this]{BeginContinentalDrag();}).OnControllerCaptureEnd_Lambda([this]{EndContinentalDrag();})
                     .OnValueChanged_Lambda([this](float V){PendingContinentalStrength=V;if(bContinentalDragging)PumpContinentalChanges(false);else{auto L=LayeredRecipe().Continents;L.ApplyProgression(V);CommitContinents(L);}})]
-                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::AsPercent(bContinentalDragging?PendingContinentalStrength:LayeredRecipe().Continents.Strength);})],VariationButton(true)),true);
+                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[CharacterReadout(TAttribute<double>::CreateLambda([this]{return bContinentalDragging?PendingContinentalStrength:LayeredRecipe().Continents.Strength;}))],VariationButton(true)),true);
             C.InitiallyCollapsed(true);
             BuildContinentalAdvanced(C);C.SetShowAdvanced(false);
-            auto& T=B.EditCategory(TEXT("TectonicLayer"),FText::FromString(TEXT("Tectonics")));T.SetSortOrder(1);TectonicAdvanced=&T;
+            auto& T=B.EditCategory(TEXT("TectonicLayer"),FText::FromString(TEXT("Tectonics")));T.SetSortOrder(0);TectonicAdvanced=&T;
             T.HeaderContent(GeologyHeader(1,TEXT("Tectonics"),TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Tectonics.bEnabled;}),
                 [this]{auto L=LayeredRecipe().Tectonics;L.bEnabled=!L.bEnabled;CommitTectonicLayer(L);},
                 SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Tectonics.bEnabled;})
@@ -1485,7 +1491,7 @@ public:
                     .OnMouseCaptureBegin_Lambda([this]{BeginTectonicDrag();}).OnMouseCaptureEnd_Lambda([this]{EndTectonicDrag();})
                     .OnControllerCaptureBegin_Lambda([this]{BeginTectonicDrag();}).OnControllerCaptureEnd_Lambda([this]{EndTectonicDrag();})
                     .OnValueChanged_Lambda([this](float V){PendingTectonicActivity=V;if(bTectonicDragging)PumpTectonicChanges(false);else{auto L=LayeredRecipe().Tectonics;L.ApplyProgression(V);CommitTectonicLayer(L);}})]
-                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::AsPercent(bTectonicDragging?PendingTectonicActivity:LayeredRecipe().Tectonics.Activity);})],VariationButton(false)),true);
+                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[CharacterReadout(TAttribute<double>::CreateLambda([this]{return bTectonicDragging?PendingTectonicActivity:LayeredRecipe().Tectonics.Activity;}))],VariationButton(false)),true);
             T.InitiallyCollapsed(true);
             BuildTectonicAdvanced(T);T.SetShowAdvanced(false);
             auto& R=B.EditCategory(TEXT("RockLayer"),FText::FromString(TEXT("Rock")));R.SetSortOrder(2);RockAdvanced=&R;
@@ -1497,7 +1503,7 @@ public:
                     .OnMouseCaptureBegin_Lambda([this]{BeginRockDrag();}).OnMouseCaptureEnd_Lambda([this]{EndRockDrag();})
                     .OnControllerCaptureBegin_Lambda([this]{BeginRockDrag();}).OnControllerCaptureEnd_Lambda([this]{EndRockDrag();})
                     .OnValueChanged_Lambda([this](float V){PendingRock=V;if(bRockDragging)PumpRock(false);else{auto L=LayeredRecipe().Rock;L.ApplyProgression(V);CommitRock(L);}})]
-                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text_Lambda([this]{return FText::AsPercent(bRockDragging?PendingRock:LayeredRecipe().Rock.Character);})],SAssignNew(RockVariation,SButton).ButtonStyle(&FAppStyle::Get().GetWidgetStyle<FButtonStyle>("HoverHintOnly"))
+                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[CharacterReadout(TAttribute<double>::CreateLambda([this]{return bRockDragging?PendingRock:LayeredRecipe().Rock.Character;}))],SAssignNew(RockVariation,SButton).ButtonStyle(&FAppStyle::Get().GetWidgetStyle<FButtonStyle>("HoverHintOnly"))
                     .OnClicked_Lambda([this]{auto L=LayeredRecipe().Rock;const int32 Old=L.Seed;do{L.Seed=int32(FGuid::NewGuid().A);}while(L.Seed==Old);CommitRock(L);return FReply::Handled();})[SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))]),true);
             R.InitiallyCollapsed(true);
             BuildRockAdvanced(R);R.SetShowAdvanced(false);
@@ -2691,11 +2697,11 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
     class FReview final:public IAutomationLatentCommand
     {
         FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;int32 Step=0;double Started=0;
-        struct FWidgets {FString Text;int32 Sliders=0,Details=0;TArray<TSharedPtr<SButton>> Advanced,Categories;};
+        struct FWidgets {FString Text;int32 Sliders=0,Details=0;TArray<TSharedPtr<STextBlock>> Numbers;TArray<TSharedPtr<SButton>> Advanced,Categories;};
         static void Inspect(TSharedRef<SWidget> W,FWidgets& Out)
         {
             if(!W->GetVisibility().IsVisible())return;const auto Type=W->GetTypeAsString();
-            if(Type==TEXT("STextBlock"))Out.Text+=StaticCastSharedRef<STextBlock>(W)->GetText().ToString()+TEXT(";");
+            if(Type==TEXT("STextBlock")){const auto Text=StaticCastSharedRef<STextBlock>(W);const auto Value=Text->GetText().ToString();Out.Text+=Value+TEXT(";");if(Value.IsNumeric())Out.Numbers.Add(Text);}
             if(Type==TEXT("SSlider"))++Out.Sliders;if(Type==TEXT("SDetailsView"))++Out.Details;
             if(Type==TEXT("SAdvancedDropdownRow")||Type==TEXT("SDetailCategoryTableRow"))
             {
@@ -2717,6 +2723,10 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
             }
             if(Step==1)
             {
+                Test->TestFalse(TEXT("Character readouts have no percent sign"),W.Text.Contains(TEXT("%")));
+                Test->TestTrue(TEXT("Tectonics appears before Continents"),W.Text.Find(TEXT("Tectonics"))<W.Text.Find(TEXT("Continents")));
+                Test->TestEqual(TEXT("Four plain numeric readouts"),W.Numbers.Num(),4);
+                for(const auto& N:W.Numbers){Test->TestTrue(TEXT("Readouts share the native property font"),N->GetFont()==FAppStyle::GetFontStyle("PropertyWindow.NormalFont"));Test->TestTrue(TEXT("Readouts share the same width"),FMath::IsNearlyEqual(N->GetCachedGeometry().GetLocalSize().X,36.,1.));}
                 Test->TestEqual(TEXT("Geology has exactly four Character knobs"),W.Sliders,4);Test->TestEqual(TEXT("Geology has no Advanced dropdowns"),W.Advanced.Num(),0);Test->TestEqual(TEXT("Each layer uses one native category chevron"),W.Categories.Num(),4);
                 for(const TCHAR* Name:{TEXT("Continents"),TEXT("Tectonics"),TEXT("Rock"),TEXT("Watershed")})Test->TestTrue(FString(TEXT("Geology owns "))+Name,W.Text.Contains(Name));
                 for(const TCHAR* Forbidden:{TEXT("Model"),TEXT("Variation"),TEXT("Character"),TEXT("Advanced"),TEXT("Drainage"),TEXT("Focus largest channel"),TEXT("Analysis"),TEXT("Bed thickness distribution")})Test->TestFalse(FString(TEXT("Collapsed geology excludes "))+Forbidden,W.Text.Contains(Forbidden));

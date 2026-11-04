@@ -11,9 +11,11 @@ geological process. It has no Target selector. It controls how much area occupie
 low, middle and high parts of SurfaceMin/Max; its independent rare-tail controls
 remain under Advanced. Opening an asset never changes its saved recipe.
 
-Geology owns **Continents, Tectonics, Rock and Watershed**. Each layer is one
+Geology lists **Tectonics, Continents, Rock and Watershed**, in that order. Each layer is one
 native expandable category header: chevron, Outliner eyeball, name, Character
-slider/value and reseed icon. The eyeball has the same accepted enable/disable
+slider/value and reseed icon. All Character readouts use the same native property
+font and fixed width, showing rounded 0–100 values without a percent sign. This
+also applies to Planet Surface Distribution; stored values remain normalized. The eyeball has the same accepted enable/disable
 semantics as the former checkbox. The slider and reseed remain accessible while
 the category is collapsed. Opening the header reveals its ordinary native
 property rows directly underneath. There is no separate Character row, Advanced

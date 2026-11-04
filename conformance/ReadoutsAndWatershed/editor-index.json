@@ -1,0 +1,164 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "AA7BCC158143E53C7FD9949DC4D01D84",
+			"instanceName": "jupiter.local-43378",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.04-23.15.01",
+	"succeeded": 9,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 56.673336029052734,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "AuthoringBoundaries",
+			"fullTestPath": "Catalyst.Landform.Designer.AuthoringBoundaries",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 5.5733404159545898,
+			"dateTime": "2026.11.04-23.14.04",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "InspectorAndVariationUndo",
+			"fullTestPath": "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 0.26814234256744385,
+			"dateTime": "2026.11.04-23.14.09",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.Rock.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 1.9618031978607178,
+			"dateTime": "2026.11.04-23.14.10",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.SurfaceScale.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 0.92946326732635498,
+			"dateTime": "2026.11.04-23.14.12",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "Continental",
+			"fullTestPath": "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Continental",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 6.2768416404724121,
+			"dateTime": "2026.11.04-23.14.13",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ContinentalLayer",
+			"fullTestPath": "Catalyst.Landform.Tectonics.LiveKnobAndUndo.ContinentalLayer",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 6.5678319931030273,
+			"dateTime": "2026.11.04-23.14.19",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "Tectonic",
+			"fullTestPath": "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Tectonic",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 6.3279767036437988,
+			"dateTime": "2026.11.04-23.14.26",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.Watershed.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 1.9375193119049072,
+			"dateTime": "2026.11.04-23.14.32",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeRenderedReview",
+			"fullTestPath": "Catalyst.Landform.Watershed.NativeRenderedReview",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"AA7BCC158143E53C7FD9949DC4D01D84"
+			],
+			"duration": 26.830417633056641,
+			"dateTime": "2026.11.04-23.14.34",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

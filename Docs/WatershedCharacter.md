@@ -129,9 +129,12 @@ Undo. In **Preview**, **Focus largest channel** points the existing globe camera
 reach and marks it for the existing **Walk here** host. The Preview drainage overlay can be hidden:
 blue marks active graded reaches, grey final routing and cyan potential lake rims.
 Overlays wait for native terrain publication and are diagnostics, not water meshes.
-Watershed previews retain native VPP final quality 4 and draft quality 1. A trial
-at quality 8 exceeded the existing one-million-vertex inspection budget; the
-qualified path keeps that guard and the established native quality.
+Watershed previews retain native VPP final quality 4 and draft quality 1. The
+historical quality-8 trial exceeded an inspection budget, not a native VPP
+presentation limit. Dense inspection is now explicit/lazy; it does not cap
+ordinary preview generation. See the [scope and preview review](WatershedScopeReview.md)
+for delivered terrain versus diagnostics/water, controls needing scope review
+and current presentation gaps.
 
 The library includes a basin study, current continental/rock integration and a
 miniature excavation witness. The [qualification record](../conformance/Watershed/qualification-mac-arm64.json)

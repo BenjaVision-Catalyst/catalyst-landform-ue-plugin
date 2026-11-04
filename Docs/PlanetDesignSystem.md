@@ -1868,3 +1868,14 @@ are explicit inspection only. Progress reuses native VPP percentages and measure
 field-pass counts, with text-only unmeasured phases. The [qualification](../conformance/PreviewNavigation/qualification-mac-arm64.json)
 records single-editor timings and preserved inputs; it does not claim a large
 rendering speedup or a whole-planet performance guarantee.
+
+
+## Character readouts and Watershed review — 5 November 2026
+
+Geology now lists Tectonics, Continents, Rock and Watershed. All Character
+readouts share a native property font and fixed width, display rounded 0–100
+numbers without `%`, and leave normalized saved values and algorithms unchanged.
+[Watershed scope review](WatershedScopeReview.md) distinguishes real native terrain
+conditioning, optional drainage diagnostics and the separate sea-level display
+from unimplemented water bodies/simulation. Reference rain/runoff is bookkeeping;
+its advanced authoring ownership needs review. No new watershed feature was added.

@@ -50,6 +50,23 @@ bool FCLWatershedGraphTest::RunTest(const FString&)
     const auto F=Async(EAsyncExecution::ThreadPool,[P]{return P->SampleHeightMeters(FVector(1,2,3));});TestEqual(TEXT("Native spatial queries retain worker parity"),F.Get(),P->SampleHeightMeters(FVector(1,2,3)));
     AddInfo(FString::Printf(TEXT("%d cells, %d catchment outlets, %d graded reaches, %d lake cells, %d grade probes; cut %.3f m, fill %.3f m"),C.Num(),W->Catchments,W->GetChannels().Num(),W->LakeCells,Graded,W->MaximumMeasuredCutMeters,W->MaximumMeasuredFillMeters));return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWatershedScopeTest,"Catalyst.Landform.Watershed.ScopeBoundaries",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLWatershedScopeTest::RunTest(const FString&)
+{
+    FString Error;auto Recipe=WatershedRecipe(Error);if(!Error.IsEmpty()){AddError(Error);return false;}
+    const auto Base=FCLPlanetCompiler::Compile(Recipe,Error);if(!Base){AddError(Error);return false;}
+    for(bool Dry:{false,true})
+    {
+        auto R=Recipe;R.Watershed.ReferenceRainMetersPerYear=Dry?0:Recipe.Watershed.ReferenceRainMetersPerYear*2;
+        const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
+        const auto& A=Base->Watershed->GetCells();const auto& B=P->Watershed->GetCells();TestEqual(TEXT("Reference rain does not change analysis topology"),A.Num(),B.Num());
+        TestEqual(TEXT("Reference rain does not create or remove terrain channels"),Base->Watershed->GetChannels().Num(),P->Watershed->GetChannels().Num());
+        for(int32 I=0;I<A.Num();++I){if(A[I].Receiver!=B[I].Receiver||A[I].HeightMeters!=B[I].HeightMeters){AddError(TEXT("Reference runoff changed terrain/routing scope"));return false;}}
+        for(int32 I=0;I<512;++I){const FVector D=FVector(I+1,37-I,17).GetSafeNormal();TestEqual(TEXT("Reference rain leaves the final native height field exact"),Base->SampleHeightMeters(D),P->SampleHeightMeters(D));}
+        TestTrue(TEXT("Reference discharge alone follows authored rain"),FMath::IsNearlyEqual(P->Watershed->InputDischarge,Base->Watershed->InputDischarge*(Dry?0:2),1.e-10));
+    }
+    return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWatershedCharacterTest,"Catalyst.Landform.Watershed.CharacterAndPhysicalResolution",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLWatershedCharacterTest::RunTest(const FString&)
 {
