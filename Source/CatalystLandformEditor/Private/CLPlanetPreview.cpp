@@ -1559,20 +1559,21 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
 #include "Testing/CLCaveIntersections.h"
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLCaveDebugRenderedTest,"Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 void FCLCaveDebugRenderedTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const
-{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1"),TEXT("CarbonateKarst"),TEXT("MixedFamilies"),TEXT("IntersectingVolumes")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low"),TEXT("karst"),TEXT("mixed"),TEXT("joined")};}
+{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1"),TEXT("CarbonateKarst"),TEXT("MixedFamilies"),TEXT("IntersectingVolumes"),TEXT("MorphFissure"),TEXT("MorphKarst"),TEXT("MorphMixed")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low"),TEXT("karst"),TEXT("mixed"),TEXT("joined"),TEXT("morph-fissure"),TEXT("morph-karst"),TEXT("morph-mixed")};}
 bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
 {
+    const bool Morph=Parameters.StartsWith(TEXT("morph-"));
     const bool Mixed=Parameters==TEXT("mixed"),Joined=Parameters==TEXT("joined"),Karst=Parameters==TEXT("karst"),Small=Parameters==TEXT("small")||Parameters==TEXT("small-low"),Low=Parameters==TEXT("small-low");
-    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/((Mixed||Joined)?TEXT("Examples/MixedCaves.json"):Karst?TEXT("Examples/KarstCaves.json"):Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
+    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Morph?(Parameters==TEXT("morph-fissure")?TEXT("Examples/FissureMorphology.json"):Parameters==TEXT("morph-karst")?TEXT("Examples/KarstMorphology.json"):TEXT("Examples/CaveMorphology.json")):(Mixed||Joined)?TEXT("Examples/MixedCaves.json"):Karst?TEXT("Examples/KarstCaves.json"):Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}if(Low)A->Recipe.Caves.ApplyProgression(.01);
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Planet-wide native cave surfaces"))).ClientSize(FVector2D(1000,800))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
     struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0,Networks=0,Vertices=0,Cyan=0;double Start=FPlatformTime::Seconds(),Last=0,OffLuma=0,DimLuma=0,Residual=0;TArray<double> Times;TArray<FColor> Off;uint32 Terrain=0;TArray<uint32> Inspection;TMap<FGuid,uint32> DomainOwners;uint64 Copies=0,Starts=0;FVector Eye;FRotator Rotation;};
     const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(A->Recipe,E);if(!Prepared){AddError(E);return false;}State->Evaluation.Request(A->Recipe,Prepared);
-    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst,Mixed,Joined]
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst,Mixed,Joined,Morph]
     {
         auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
         if(Now-S.Start>300){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
-        const FString Dir=FPaths::ProjectSavedDir()/(Joined?TEXT("Verification/cave-joined"):Mixed?TEXT("Verification/cave-mixed"):Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
+        const FString Dir=FPaths::ProjectSavedDir()/(Morph?(S.Plan&&S.Plan->Caves&&S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::CarbonateKarst;})?(S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::Structural;})?TEXT("Verification/morph-mixed"):TEXT("Verification/morph-karst")):TEXT("Verification/morph-fissure")):Joined?TEXT("Verification/cave-joined"):Mixed?TEXT("Verification/cave-mixed"):Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
         auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
         {
             auto* V=W->Client->Viewport;if(!V)return;W->Scene->UpdateCaptureContents();
@@ -1644,6 +1645,17 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
             // from guide lines and does not assume a fixed shaded brightness.
             TestTrue(TEXT("A network on the far hemisphere still has actual visible surface pixels"),Count>0);
             const FString Metrics=FString::Printf(TEXT("{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":%.6f,\"normalSurfaceLuma\":%.6f,\"debugSurfaceLuma\":%.6f,\"cyanPixels\":%d,\"networks\":%d,\"nativeDomains\":%d,\"nativeVertices\":%d,\"maxFieldResidualMeters\":%.6f,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n"),P95,S.OffLuma,S.DimLuma,S.Cyan,S.Plan->Caves->Networks,S.Networks,S.Vertices,S.Residual);FFileHelper::SaveStringToFile(Metrics,*(Dir/TEXT("native-review.json")));AddInfo(Metrics);
+            if(Morph)
+            {
+                const FVector OverviewEye=W->Client->GetViewLocation();const FRotator OverviewRotation=W->Client->GetViewRotation();
+                const auto& Room=S.Plan->Caves->Chambers[0];const FVector Center=Room.Center,Up=Room.Rotation.GetAxisZ(),Along=Room.Rotation.GetAxisX();
+                for(int32 View=0;View<2;++View)
+                {
+                    const FVector Eye=Center+Up*28+(View?Room.Rotation.GetAxisY():Along)*18;
+                    W->Client->SetViewLocation(Eye*Scale);W->Client->SetViewRotation((Center-Eye).Rotation());TArray<FColor> Detail;Capture(View?TEXT("room-side-physical-scale"):TEXT("room-physical-scale"),Detail);
+                }
+                W->Client->SetViewLocation(OverviewEye);W->Client->SetViewRotation(OverviewRotation);
+            }
             if(Joined)
             {
                 // Test-only junction anatomy capture, with no product focus UI.

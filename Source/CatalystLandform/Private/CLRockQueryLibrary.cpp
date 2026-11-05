@@ -24,7 +24,7 @@ TVoxelFuture<FCLRockSample> UCLRockQueryLibrary::QueryRock(ACLPlanet* Planet,con
         const auto& Q=Data->GetValue()[0];if(!FMath::IsFinite(Q.Value)||Q.Value>2)return S;
         const auto* V=Q.MetadataToValue.Find(Metadata);if(!V)return S;
         const FLinearColor Props=V->Get<FLinearColor>();if(!FMath::IsFinite(Props.R)||!FMath::IsFinite(Props.G)||!FMath::IsFinite(Props.B)||!FMath::IsFinite(Props.A)||Props.B<.99f)return S;
-        S=Snapshot->RecipePlan->Rock->Sample(Body);if(!S.bValid)return S;
+        S=Snapshot->RecipePlan->Rock->Sample(Snapshot->RecipePlan->RockPositionMeters(Body));if(!S.bValid)return S;
         S.MiningResistance=FMath::Clamp(double(Props.R),0.,1.);S.Erodibility=FMath::Clamp(double(Props.G),0.,1.);S.PlacedFraction=FMath::Clamp(double(Props.A),0.,1.);
         if(S.PlacedFraction>=.5)
         {S.UnitId=FGuid(0x434c4649,1,0,1);S.StratumId=S.UnitId;S.StratumIndex=0;S.Name=TEXT("Placed fill");}

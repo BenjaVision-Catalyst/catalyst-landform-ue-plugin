@@ -1,5 +1,9 @@
 # Generated cave volumes
 
+Current section/room development is documented in [Cave morphology profile 4](CaveMorphology.md).
+Earlier milestones below retain their historical scope; connected volume tests
+alone did not qualify natural cave appearance.
+
 The cave layer generates connected underground negative spaces in the planet's
 native VPP field. Its floors, walls and ceilings are terrain surfaces with the
 same canonical rock strata as the exterior. Native VPP sculpting can enlarge,
@@ -12,15 +16,12 @@ The previous three straight capsule segments, optional branch and uniform oval
 section were a field/presentation prototype. They failed the intended cave
 morphology. Earlier passing qualifications establish their recorded plumbing,
 minimum counts and editor behavior; they do not establish natural cave realism.
-This change intentionally replaces that unreleased generated geometry. It retains
-the recipe fields/schema and does not rewrite existing saved assets.
-
-A complete structural network now has shared junctions, curved passages,
-spatially correlated widths/heights, irregular enlarged junction spaces and side
-passages. The knob develops physical extent, section sizes, topology, loops and
-lower levels with steep connectors. Seeds vary joint orientation, route bends,
-section changes and chamber proportions. Native VPP noise adds restrained wall
-relief in physical coordinates; it is not the source of network topology.
+The first volumetric milestone retained the recipe schema and added shared
+junctions, curved passages, variable sections, enlarged junctions, loops and lower
+levels. That qualified connected spaces, but its shared oval anatomy still failed
+the visual target. Profile 4 adds the distinct section and room constructions in
+[Cave morphology](CaveMorphology.md). Existing saved profiles remain unchanged
+until the knob explicitly resolves the current profile.
 
 The retained research separates geological constraints, network construction,
 passage volumes and wall details:
@@ -49,9 +50,10 @@ sole voxel generator, mesher, LOD, collision, sculpt and save platform. Audited:
 `FCLCompiledCaveVolume` lowers immutable geological construction data into those
 native operators inside the existing canonical scene provider. It calls the same
 exported nearest-cubic-spline kernel as VPP's GetClosestSplineKey3D node. UE owns
-curve interpolation and interval bounds. VPP's sphere kernel evaluates normalized
-elliptical sections and ellipsoidal chamber lobes; native smooth union joins them,
-and native subtraction cuts the planet. VPP Perlin supplies wall relief. No
+curve interpolation and interval bounds. Legacy profiles use VPP's sphere kernel for normalized elliptical sections and
+ellipsoidal chamber lobes. Profile 4 reuses native sphere and cube kernels for
+geological sections, rooms, roof scars and solid breakdown; native blends join
+the spaces and native subtraction cuts the planet. VPP Perlin supplies wall relief. No
 spline-distance algorithm, noise implementation, mesher, sculpt persistence or
 streaming manager is copied or replaced.
 
@@ -66,7 +68,7 @@ A future ABI/platform change requires requalification.
 The old 64-operation mask belongs to the authored-edit qualification profile. It
 cannot accommodate meaningful natural networks. Generated caves now use VPP's
 native AABB tree directly with a separate bounded natural-feature collection:
-4,096 passages and 2,048 chamber lobes, in addition to the existing 16,384 placement
+4,096 passages and 2,048 chamber/scar volumes, in addition to the existing 16,384 placement
 candidate limit. Overflow refuses the complete build. Authored edits retain their
 existing order and limits. These are bridge budgets, not VPP feature limits.
 
@@ -80,7 +82,7 @@ roof and cover checks reject a whole candidate before publication; these checks
 are not a continuous mathematical roof/host certificate.
 
 Enabled caves request at least one complete eligible network at every knob
-position. The eye is the way to request zero. Algorithms 2 and 3 resolve density to a requested complete-network count over estimated
+position. The eye is the way to request zero. Algorithms 2–4 resolve density to a requested complete-network count over estimated
 eligible physical area, then visits stable occurrence-ranked sites. The automatic
 profile is `6 * Character²` networks per eligible km². Physical area is measured at
 the fitted surface midpoint, using the existing equal-area candidate sampling.
@@ -93,7 +95,8 @@ The minimum never fabricates eligible geology or an independent debug-only cave.
 One immutable result defines the actual solid/air field, geological queries and
 diagnostic boundaries. Authored earthworks and native sculpting follow natural
 cave generation. Backfill can deliberately fill a generated cave; the minimum
-does not undo player edits. Rock identity remains a canonical XYZ query.
+does not undo player edits. Rock identity remains a canonical geological query; profile 4 maps transported
+breakdown back to its roof-rock source.
 
 The UI remains the standard eye, indicator, one knob, reseed and directly expanded
 advanced properties. Cave debug dims the current planet and displays every network

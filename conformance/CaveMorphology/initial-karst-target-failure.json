@@ -1,0 +1,23 @@
+{
+	"passed": false,
+	"message": "Mining target is not underground solid rock",
+	"coldReader": false,
+	"processID": 90929,
+	"writerPID": 90929,
+	"nativeContacts": 4,
+	"nativeBreakdownProbes": 10,
+	"walkDistanceCm": 250.4697179603067,
+	"walkGroundedFrames": 92,
+	"nativeFloorFrames": 1212,
+	"beforeMineCm": 11.775588989257812,
+	"afterMineCm": 0,
+	"afterFillCm": 0,
+	"controlBeforeCm": -43.542861938476562,
+	"controlAfterCm": 0,
+	"controlOffsetCm": 397.68597575145486,
+	"controlIdentityUnchanged": false,
+	"comparedProbes": 0,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 0,
+	"elapsedSeconds": 228.34548116475344
+}

@@ -289,7 +289,7 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FV
         for(int32 I=0;I<Positions.Num();++I)
         {
             FVector P=SamplingFrame.NativeToBodyMeters(Positions[I]);if(Stamp.bSectionPreview)P=SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters);
-            Values.Set(I,RecipePlan->Rock->Properties(P));
+            Values.Set(I,RecipePlan->Rock->Properties(RecipePlan->RockPositionMeters(P)));
         }
         RockMetadata.IndirectBlend(Query.Indirection,Values,Alphas,Query.IndirectMetadata.FindChecked(RockMetadata));
     }

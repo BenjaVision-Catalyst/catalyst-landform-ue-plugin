@@ -257,6 +257,8 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     TSharedPtr<const FCLNativeNoiseKernel> NativePerlin;
     TSharedPtr<const FCLCompiledRock> Rock;
     TSharedPtr<const FCLCompiledCaves> Caves;
+    /** Natural bedrock is XYZ; displaced cave blocks retain their source coordinate. */
+    FVector RockPositionMeters(const FVector& P)const {return Caves&&Caves->Cutters?Caves->Cutters->GeologicalPosition(P):P;}
     TSharedPtr<const FCLCompiledWatershed> Watershed;
     TSharedPtr<const FCLCompiledPlanetRecipe> WatershedSurface;
     double RadiusMeters = 100;

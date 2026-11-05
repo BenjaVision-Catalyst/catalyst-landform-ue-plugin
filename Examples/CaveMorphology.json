@@ -1,0 +1,861 @@
+{
+  "schemaVersion": 23,
+  "algorithmVersion": 2,
+  "name": "Geological cave morphology reference",
+  "radiusMeters": 800,
+  "baseSurfaceNormalized": 0.45,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "terrainPatch": {
+    "anchor": {
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "tangentX": {
+      "x": 1,
+      "y": 0,
+      "z": 0
+    },
+    "halfWidthMeters": 750,
+    "transitionMeters": 100
+  },
+  "radialGuides": {
+    "id": "434C5753000000010000000000000002",
+    "name": "Watershed physical reference guides",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.74,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.76,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      },
+      {
+        "name": "OceanHeight",
+        "normalizedHeight": 0.745,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      },
+      {
+        "name": "AtmosphereMax",
+        "normalizedHeight": 0.9,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      }
+    ]
+  },
+  "terrainTypeId": "00000000000000000000000000000000",
+  "terrainTypeName": "",
+  "noiseLayers": [],
+  "terrainRegions": [],
+  "tectonics": {
+    "bEnabled": true,
+    "algorithmVersion": 6,
+    "activity": 0.45,
+    "seed": -164894091,
+    "lowerGuide": "SurfaceMin",
+    "upperGuide": "SurfaceMax",
+    "bOverridePlateCount": false,
+    "plateCount": 4,
+    "plateTransition": 0.5320990727609822,
+    "bOverrideMotion": false,
+    "motion": 0.7697220135236664,
+    "bOverrideRelief": false,
+    "relief": 0.43812500000000004,
+    "beltWidthDegrees": 14.734375,
+    "crustThickness": 0.023841649519890262,
+    "boundaryWarp": 0.23011297376093293,
+    "roughness": 0.1,
+    "collisionStrength": 0.380375,
+    "riftStrength": 1.0950374999999999,
+    "transformStrength": 0.9,
+    "interiorRelief": 0.04994936342592593,
+    "interiorFrequency": 2.3,
+    "foldStrength": 0.07178812922614577,
+    "arcStrength": 0.41265965439519153,
+    "trenchStrength": 0.05319754210286752,
+    "setting": "Collision",
+    "foundationOrientation": {
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    },
+    "motionDirection": 1,
+    "continentalExtent": 1
+  },
+  "continents": {
+    "algorithmVersion": 3,
+    "bEnabled": true,
+    "strength": 0.6,
+    "seed": 0,
+    "lowerGuide": "SurfaceMin",
+    "upperGuide": "SurfaceMax",
+    "orientation": {
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    },
+    "bOverrideExtent": false,
+    "extent": 1.2660557245006987,
+    "bOverrideRelief": false,
+    "relief": 0.7851851851851852,
+    "bCoastalMargin": false,
+    "domainCount": 3,
+    "domainTransition": 0.5371415744818052,
+    "elongation": 2.1688,
+    "fragmentation": 0.22768595041322315,
+    "coastWarp": 0.272069970845481,
+    "interiorRoughness": 0.02481748615632913,
+    "coastSharpness": 1.211111111111111
+  },
+  "baseStructure": [],
+  "regionGeneration": {
+    "bEnabled": true,
+    "algorithmVersion": 3,
+    "regionCount": 32,
+    "seed": 73,
+    "structureGuidance": 0.8,
+    "blendFraction": 0.55,
+    "reliefStrength": 1,
+    "palette": [
+      {
+        "id": "434C5052000000010000000000000001",
+        "name": "Crystalline shield",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "CrystallineShield",
+            "bPlaceholder": true,
+            "requirements": [
+              "ContinentalCrust",
+              "CrystallineBasement",
+              "AncientBasement"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Exposed basement",
+              "Weathered uplands",
+              "Jointed outcrops"
+            ],
+            "subsurfacePotential": [
+              "Fissure",
+              "Talus"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000002",
+        "name": "Covered continental platform",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "ContinentalPlatform",
+            "bPlaceholder": true,
+            "requirements": [
+              "ContinentalCrust",
+              "SedimentaryCover"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Broad plains",
+              "Layered plateaus",
+              "Escarpments"
+            ],
+            "subsurfacePotential": [
+              "Formation-dependent karst",
+              "Fissure"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000003",
+        "name": "Clastic sedimentary basin",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0.5,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "ClasticBasin",
+            "bPlaceholder": true,
+            "requirements": [
+              "ContinentalCrust",
+              "ClasticSequence"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Layered hills",
+              "Escarpments",
+              "Valleys",
+              "Depositional lowlands"
+            ],
+            "subsurfacePotential": [
+              "Fracture openings",
+              "Weathering shelters"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000004",
+        "name": "Carbonate platform and reef province",
+        "bEnabled": true,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "CarbonatePlatform",
+            "bPlaceholder": true,
+            "requirements": [
+              "CarbonateSequence"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Carbonate plateaus",
+              "Reef-derived ridges",
+              "Karst uplands"
+            ],
+            "subsurfacePotential": [
+              "Karst",
+              "Shafts",
+              "Chambers"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000005",
+        "name": "Evaporite basin",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0.5,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "EvaporiteBasin",
+            "bPlaceholder": true,
+            "requirements": [
+              "EvaporiteSequence"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Evaporitic flats",
+              "Solution depressions",
+              "Subsidence terrain"
+            ],
+            "subsurfacePotential": [
+              "Dissolution",
+              "Collapse"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000006",
+        "name": "Fold and thrust belt",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0.5,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "FoldThrustBelt",
+            "bPlaceholder": true,
+            "requirements": [
+              "ContinentalCrust",
+              "Compression",
+              "SedimentaryCover"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Structural ridges",
+              "Folded valleys",
+              "Thrust escarpments"
+            ],
+            "subsurfacePotential": [
+              "Formation-dependent karst",
+              "Fissure"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000007",
+        "name": "Metamorphic mountain core",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0.5,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "MetamorphicCore",
+            "bPlaceholder": true,
+            "requirements": [
+              "ContinentalCrust",
+              "MetamorphicSequence"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Exposed mountain cores",
+              "Foliated ridges",
+              "Eroded massifs"
+            ],
+            "subsurfacePotential": [
+              "Marble karst",
+              "Fissure",
+              "Talus"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000008",
+        "name": "Continental rift and fault-block province",
+        "bEnabled": true,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "ContinentalRift",
+            "bPlaceholder": true,
+            "requirements": [
+              "ContinentalCrust",
+              "Extension"
+            ],
+            "minimumCoverage": 0.35,
+            "regionalForms": [
+              "Fault-block ranges",
+              "Rift valleys",
+              "Escarpments"
+            ],
+            "subsurfacePotential": [
+              "Fissure",
+              "Formation-dependent caves"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000009",
+        "name": "Transform and shear belt",
+        "bEnabled": true,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "TransformBelt",
+            "bPlaceholder": true,
+            "requirements": [
+              "Shear"
+            ],
+            "minimumCoverage": 0.35,
+            "regionalForms": [
+              "Shear valleys",
+              "Offset ridges",
+              "Pull-apart settings"
+            ],
+            "subsurfacePotential": [
+              "Open-fracture caves"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C505200000001000000000000000A",
+        "name": "Volcanic arc province",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "VolcanicArc",
+            "bPlaceholder": true,
+            "requirements": [
+              "SubductionHistory",
+              "VolcanicHistory"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Volcanic centres",
+              "Arc ridges",
+              "Volcaniclastic basins"
+            ],
+            "subsurfacePotential": [
+              "Flow-dependent lava tubes",
+              "Context-dependent hypogene"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C505200000001000000000000000B",
+        "name": "Basaltic volcanic province",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "BasalticVolcanic",
+            "bPlaceholder": true,
+            "requirements": [
+              "MaficFlowHistory"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Shield landscapes",
+              "Distributed lava fields",
+              "Flood-basalt plateaus"
+            ],
+            "subsurfacePotential": [
+              "Lava tubes",
+              "Skylights"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C505200000001000000000000000C",
+        "name": "Silicic volcanic province",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "SilicicVolcanic",
+            "bPlaceholder": true,
+            "requirements": [
+              "SilicicEruptionHistory"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Caldera complexes",
+              "Lava domes",
+              "Ignimbrite plateaus"
+            ],
+            "subsurfacePotential": [
+              "Fracture openings",
+              "Collapse"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C505200000001000000000000000D",
+        "name": "Plutonic and intrusive province",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "IntrusiveProvince",
+            "bPlaceholder": true,
+            "requirements": [
+              "IntrusionHistory"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Exposed batholiths",
+              "Jointed granite terrain",
+              "Intrusive contacts"
+            ],
+            "subsurfacePotential": [
+              "Fissure",
+              "Weathering openings"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C505200000001000000000000000E",
+        "name": "Passive continental margin",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "PassiveMargin",
+            "bPlaceholder": true,
+            "requirements": [
+              "PassiveMarginHistory"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Coastal plains",
+              "Continental shelves",
+              "Continental slopes"
+            ],
+            "subsurfacePotential": [
+              "Coastal erosion",
+              "Formation-dependent karst"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C505200000001000000000000000F",
+        "name": "Oceanic crust province",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "OceanicCrust",
+            "bPlaceholder": true,
+            "requirements": [
+              "OceanicCrust"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Spreading terrain",
+              "Ocean-floor basalt settings",
+              "Sediment-covered abyssal terrain",
+              "Seamount settings"
+            ],
+            "subsurfacePotential": [
+              "Flow-dependent lava tubes"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000010",
+        "name": "Impact province",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "ImpactProvince",
+            "bPlaceholder": true,
+            "requirements": [
+              "ImpactHistory"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Impact basins",
+              "Crater fields",
+              "Ejecta terrain",
+              "Impact-melt units"
+            ],
+            "subsurfacePotential": [
+              "Fracture and collapse potential"
+            ]
+          }
+        },
+        "noiseLayers": []
+      },
+      {
+        "id": "434C5052000000010000000000000011",
+        "name": "Icy-crust province",
+        "bEnabled": false,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "IcyCrust",
+            "bPlaceholder": true,
+            "requirements": [
+              "IceCrust"
+            ],
+            "minimumCoverage": 0.6,
+            "regionalForms": [
+              "Ice-dominated crust",
+              "Fractured ice terrain",
+              "Icy depositional units"
+            ],
+            "subsurfacePotential": [
+              "Ice-hosted cavities"
+            ]
+          }
+        },
+        "noiseLayers": []
+      }
+    ]
+  },
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 2,
+    "layers": [
+      {
+        "name": "Scree on slopes",
+        "bEnabled": true,
+        "surfaceId": "Scree",
+        "surfaceRevision": 2,
+        "slopeDegrees": {
+          "x": 18,
+          "y": 46
+        },
+        "slopeFeatherDegrees": 7,
+        "bUseHeightRange": false,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "None",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "None",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "heightFeatherRadiusFraction": 0.005,
+        "strength": 1,
+        "noiseAmount": 0.25,
+        "noiseWavelengthMeters": 55,
+        "noiseSeed": 31
+      },
+      {
+        "name": "Soil on gentle ground",
+        "bEnabled": true,
+        "surfaceId": "Soil",
+        "surfaceRevision": 2,
+        "slopeDegrees": {
+          "x": 0,
+          "y": 14
+        },
+        "slopeFeatherDegrees": 5,
+        "bUseHeightRange": true,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMin",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": -50
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMax",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "heightFeatherRadiusFraction": 0.015,
+        "strength": 1,
+        "noiseAmount": 0.15,
+        "noiseWavelengthMeters": 85,
+        "noiseSeed": 31
+      }
+    ]
+  },
+  "measuredTerrain": {
+    "id": "None",
+    "revision": 1,
+    "digest": ""
+  },
+  "rock": {
+    "algorithmVersion": 5,
+    "bEnabled": true,
+    "character": 0.55,
+    "seed": 0,
+    "orientation": {
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    },
+    "bedThicknessRadiusFraction": 0.04990661443148686,
+    "interbedFraction": 0.39,
+    "dipDegrees": 4.444444444444445,
+    "foldAmplitudeRadiusFraction": 0.006,
+    "foldWavelengthRadiusFraction": 0.42777777777777776,
+    "tectonicResponse": 0.32592592592592595,
+    "faultThrowRadiusFraction": 0.001056000000000001,
+    "faultZoneRadiusFraction": 0.006,
+    "crustDepthRadiusFraction": 0.15,
+    "contactFeatherFraction": 0.015,
+    "units": [
+      {
+        "id": "434C524B000000010000000000000001",
+        "name": "Limestone succession",
+        "surfaceId": "Rock",
+        "surfaceRevision": 2,
+        "miningResistance": 0.85,
+        "erodibility": 0.15000000000000002,
+        "lithology": "Carbonate",
+        "fracturePotential": 0.5,
+        "dissolutionPotential": 0.85
+      },
+      {
+        "id": "434C524B000000010000000000000002",
+        "name": "Dolostone succession",
+        "surfaceId": "Scree",
+        "surfaceRevision": 2,
+        "miningResistance": 0.55,
+        "erodibility": 0.44999999999999996,
+        "lithology": "Carbonate",
+        "fracturePotential": 0.5,
+        "dissolutionPotential": 0.85
+      },
+      {
+        "id": "434C524B000000010000000000000003",
+        "name": "Carbonate interbeds",
+        "surfaceId": "Soil",
+        "surfaceRevision": 2,
+        "miningResistance": 0.25,
+        "erodibility": 0.75,
+        "lithology": "Carbonate",
+        "fracturePotential": 0.5,
+        "dissolutionPotential": 0.85
+      }
+    ],
+    "youngerCoverRadiusFraction": 0.004224,
+    "depositionalVariation": 0.5793002915451896,
+    "foldViscosityContrast": 64,
+    "foldShorteningStrain": 0.08,
+    "foldCompetentUnit": "434C524B000000010000000000000001",
+    "bedDistribution": {
+      "minimumMeters": 1,
+      "thinTailUpperMeters": 2,
+      "peakMeters": 3,
+      "spreadMeters": 0.85,
+      "thickTailLowerMeters": 6,
+      "maximumMeters": 10,
+      "thinBedPercent": 1,
+      "thickBedPercent": 5
+    }
+  },
+  "volumes": {
+    "bEnabled": false,
+    "algorithmVersion": 1,
+    "heightPolicy": "BaseTerrainOnly",
+    "operations": [],
+    "geologicalUnits": []
+  },
+  "watershed": {
+    "algorithmVersion": 1,
+    "bEnabled": true,
+    "character": 0.5,
+    "analysisSubdivisions": 7,
+    "maximumCells": 65538,
+    "incisionMeters": 4.875,
+    "valleyWidthMeters": 67.5,
+    "channelAreaSquareMeters": 6750,
+    "minimumChannelSlope": 1e-05,
+    "referenceRainMetersPerYear": 1,
+    "runoffFraction": 0.65,
+    "closedBasinDirections": []
+  },
+  "caves": {
+    "algorithmVersion": 4,
+    "bEnabled": true,
+    "character": 0.65,
+    "seed": 176,
+    "networksPerSquareKilometer": 2,
+    "lengthMeters": 280,
+    "radiusMeters": 5,
+    "minimumCoverMeters": 3,
+    "depthMeters": 15,
+    "branching": 0.7025,
+    "bSurfaceEntrances": true
+  }
+}

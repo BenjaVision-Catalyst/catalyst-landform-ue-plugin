@@ -1,0 +1,2738 @@
+{
+  "devices": [
+    {
+      "deviceName": "jupiter.local",
+      "instance": "15CAD1FA6242C2C15C5919BA965E0C27",
+      "instanceName": "jupiter.local-82003",
+      "platform": "MacEditor",
+      "oSVersion": "macOS 26.6.1 25G76",
+      "model": "Default",
+      "gPU": "Apple M3 Max",
+      "cPUModel": "Apple M3 Max",
+      "rAMInGB": 128,
+      "renderMode": "SM6",
+      "rHI": "Metal Bindless (SM6)",
+      "appInstanceLog": ""
+    }
+  ],
+  "reportCreatedOn": "2026.11.05-19.52.44",
+  "succeeded": 71,
+  "succeededWithWarnings": 2,
+  "failed": 1,
+  "notRun": 0,
+  "inProcess": 0,
+  "totalDuration": 780.7796020507812,
+  "comparisonExported": false,
+  "comparisonExportDirectory": "",
+  "tests": [
+    {
+      "testDisplayName": "NativeFieldParity",
+      "fullTestPath": "Catalyst.Landform.Background.NativeFieldParity",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 7.876287937164307,
+      "dateTime": "2026.11.05-19.39.42",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeInputInvalidation",
+      "fullTestPath": "Catalyst.Landform.Background.NativeInputInvalidation",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.6093558073043823,
+      "dateTime": "2026.11.05-19.39.50",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ResponsiveDesigner",
+      "fullTestPath": "Catalyst.Landform.Background.ResponsiveDesigner",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 6.83059024810791,
+      "dateTime": "2026.11.05-19.39.51",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "GenerationAndProvenance",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.GenerationAndProvenance",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 4.913485527038574,
+      "dateTime": "2026.11.05-19.39.58",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "MORPHOLOGY 8 structural, 1 karst; 61 passages, 27 chamber/scar volumes, 18 transported blocks, 54 source-geology probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.40.03"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeLibrary",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.NativeLibrary",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 7.082347393035889,
+      "dateTime": "2026.11.05-19.40.03",
+      "entries": [
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.40.06"
+        }
+      ],
+      "warnings": 1,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeSectionAnatomy",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.NativeSectionAnatomy",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007889043539762497,
+      "dateTime": "2026.11.05-19.40.10",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CarbonateKarst",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CarbonateKarst",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 260.34991455078125,
+      "dateTime": "2026.11.05-19.40.10",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":18.350415,\"normalSurfaceLuma\":192.309412,\"debugSurfaceLuma\":23.132492,\"cyanPixels\":1635,\"networks\":21,\"nativeDomains\":21,\"nativeVertices\":3190841,\"maxFieldResidualMeters\":0.253886,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.41.38"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":26,\"nativeDomains\":21,\"nativeVertices\":5833098,\"maxFieldResidualMeters\":0.333863,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.44.28"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MorphFissure",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.MorphFissure",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 29.58901596069336,
+      "dateTime": "2026.11.05-19.44.30",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":15.317835,\"normalSurfaceLuma\":187.703842,\"debugSurfaceLuma\":21.829715,\"cyanPixels\":9841,\"networks\":6,\"nativeDomains\":5,\"nativeVertices\":996495,\"maxFieldResidualMeters\":0.397594,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.44.40"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":18,\"nativeDomains\":18,\"nativeVertices\":2897055,\"maxFieldResidualMeters\":0.260828,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.44.57"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MorphKarst",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.MorphKarst",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 139.81472778320312,
+      "dateTime": "2026.11.05-19.45.00",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":16.972750,\"normalSurfaceLuma\":189.254395,\"debugSurfaceLuma\":21.813884,\"cyanPixels\":5213,\"networks\":5,\"nativeDomains\":5,\"nativeVertices\":1872571,\"maxFieldResidualMeters\":0.402143,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.46.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":9,\"nativeDomains\":9,\"nativeVertices\":1564434,\"maxFieldResidualMeters\":0.415098,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.47.17"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MorphMixed",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.MorphMixed",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 77.15105438232422,
+      "dateTime": "2026.11.05-19.47.20",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":17.190624,\"normalSurfaceLuma\":189.998784,\"debugSurfaceLuma\":21.936869,\"cyanPixels\":12827,\"networks\":9,\"nativeDomains\":5,\"nativeVertices\":2109046,\"maxFieldResidualMeters\":0.286614,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.47.46"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":24,\"nativeDomains\":23,\"nativeVertices\":4181036,\"maxFieldResidualMeters\":0.415098,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.48.34"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "Reference2km",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Reference2km",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 85.06230926513672,
+      "dateTime": "2026.11.05-19.48.37",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":15.866917,\"normalSurfaceLuma\":186.288642,\"debugSurfaceLuma\":21.831726,\"cyanPixels\":280,\"networks\":24,\"nativeDomains\":24,\"nativeVertices\":791424,\"maxFieldResidualMeters\":0.155408,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.48.50"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":56,\"nativeDomains\":56,\"nativeVertices\":10214818,\"maxFieldResidualMeters\":0.263537,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.00"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "Saved500m1",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m1",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 17.05121421813965,
+      "dateTime": "2026.11.05-19.50.02",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":14.861498,\"normalSurfaceLuma\":188.300609,\"debugSurfaceLuma\":20.991649,\"cyanPixels\":106,\"networks\":1,\"nativeDomains\":1,\"nativeVertices\":22604,\"maxFieldResidualMeters\":0.084591,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.09"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":3,\"nativeDomains\":3,\"nativeVertices\":518721,\"maxFieldResidualMeters\":0.206135,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.17"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "Saved500m100",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m100",
+      "tags": [],
+      "state": "Fail",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 20.85399055480957,
+      "dateTime": "2026.11.05-19.50.19",
+      "entries": [
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: === Handled ensure: ===",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: Ensure condition failed: !CachedHash  [File:/private/tmp/landform-morphology/LandformLab/Plugins/Voxel/Source/VoxelCore/Private/VoxelInvalidationCallstack.cpp] [Line: 162] ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: Stack: ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54de15c4 UnrealEditor-VoxelCore.dylib!FVoxelInvalidationCallstack::ComputeHash() const   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54de07fc UnrealEditor-VoxelCore.dylib!FVoxelInvalidationCallstack::AddCaller(TSharedRef<FVoxelInvalidationCallstack const, (ESPMode)1> const&)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54d5d718 UnrealEditor-VoxelCore.dylib!FVoxelInvalidationQueue::FindInvalidation(FVoxelDependencyTracker const&) const   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54e77c00 UnrealEditor-VoxelCore.dylib!FVoxelDependencyCollector::Finalize(FVoxelInvalidationQueue const*, TVoxelUniqueFunction<void (FVoxelInvalidationCallstack const&)>&&)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x561e3794 UnrealEditor-Voxel.dylib!FVoxelSubsystem::Finalize(FVoxelDependencyCollector&) const   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x563dc2c0 UnrealEditor-Voxel.dylib!void VoxelCall<TVoxelFutureTypeImpl<void>::Type FVoxelFuture::Execute<FVoxelRenderSubsystem::StartMeshingTasks()::$_0, void>(EVoxelFutureThread, FVoxelRenderSubsystem::StartMeshingTasks()::$_0)::'lambda'(), void>(void*)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54df8568 UnrealEditor-VoxelCore.dylib!FVoxelTaskContext::LaunchTask(TVoxelUniqueFunction<void ()>)::$_0::operator()() const   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54df8604 UnrealEditor-VoxelCore.dylib!UE::Tasks::Private::TExecutableTaskBase<FVoxelTaskContext::LaunchTask(TVoxelUniqueFunction<void ()>)::$_0, void, void>::ExecuteTask()   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54df52c4 UnrealEditor-VoxelCore.dylib!UE::Tasks::Private::FTaskBase::TryExecuteTask()   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x54df4bb0 UnrealEditor-VoxelCore.dylib!LowLevelTasks::TTaskDelegate<LowLevelTasks::FTask* (bool), 112u>::TTaskDelegateImpl<void LowLevelTasks::FTask::Init<UE::Tasks::Private::FTaskBase::Init(char16_t const*, LowLevelTasks::ETaskPriority, UE::Tasks::EExtendedTaskPriority, UE::Tasks::ETaskFlags)::'lambda'()>(char16_t const*, LowLevelTasks::ETaskPriority, UE::Tasks::Private::FTaskBase::Init(char16_t const*, LowLevelTasks::ETaskPriority, UE::Tasks::EExtendedTaskPriority, UE::Tasks::ETaskFlags)::'lambda'()&&, LowLevelTasks::ETaskFlags)::'lambda'(bool), false>::CallAndMove(LowLevelTasks::TTaskDelegate<LowLevelTasks::FTask* (bool), 112u>&, void*, unsigned int, bool)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x07a1df2c UnrealEditor-Core.dylib!LowLevelTasks::FTask::ExecuteTask()   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x079fb96c UnrealEditor-Core.dylib!LowLevelTasks::FScheduler::ExecuteTask(LowLevelTasks::FTask*)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x079fd6f0 UnrealEditor-Core.dylib!LowLevelTasks::FScheduler::WorkerLoop(LowLevelTasks::Private::FWaitEvent*, LowLevelTasks::Private::TLocalQueueRegistry<1024u, 1024u>::TLocalQueue*, unsigned int, bool)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x079fe04c UnrealEditor-Core.dylib!LowLevelTasks::FScheduler::WorkerMain(LowLevelTasks::Private::FWaitEvent*, LowLevelTasks::Private::TLocalQueueRegistry<1024u, 1024u>::TLocalQueue*, unsigned int, bool)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x07cea97c UnrealEditor-Core.dylib!FThreadImpl::Run()   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x07ca8f30 UnrealEditor-Core.dylib!FRunnableThreadPThread::Run()   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x07c0ea20 UnrealEditor-Core.dylib!FRunnableThreadPThread::_ThreadProc(void*)   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x85aabc58 libsystem_pthread.dylib!_pthread_start()   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: [Callstack] 0x85aa6c1c libsystem_pthread.dylib!thread_start()   [UnknownFile]) ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogOutputDevice: ",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogRHI: Breadcrumbs 'RDGExecute_RenderThread'\n - RenderGraphExecute - /ViewFamilies\n - SceneRender - ViewFamilies\n - Frame 21125\n",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.24"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogRHI: Breadcrumbs 'RDGTask_48899'\n - PrePass DDM_AllOpaqueNoVelocity (Forced by Nanite)\n - Scene\n - RenderGraphExecute - /ViewFamilies\n - SceneRender - ViewFamilies\n - Frame 21125\n",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.24"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "LogRHI: Breadcrumbs 'RDGTask_48899'\n - LumenScreenProbeGather\n - DiffuseIndirectAndAO\n - RenderDeferredLighting\n - Scene\n - RenderGraphExecute - /ViewFamilies\n - SceneRender - ViewFamilies\n - Frame 21125\n",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: CL_CAVE_NAV_BEGIN",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: CL_CAVE_NAV_END",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":14.731795,\"normalSurfaceLuma\":191.035210,\"debugSurfaceLuma\":22.018895,\"cyanPixels\":1654,\"networks\":3,\"nativeDomains\":3,\"nativeVertices\":190453,\"maxFieldResidualMeters\":0.143170,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":3,\"nativeDomains\":3,\"nativeVertices\":518721,\"maxFieldResidualMeters\":0.206135,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.37"
+        }
+      ],
+      "warnings": 0,
+      "errors": 28,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "AbundanceUpgradeAndScale",
+      "fullTestPath": "Catalyst.Landform.Caves.AbundanceUpgradeAndScale",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.3928825855255127,
+      "dateTime": "2026.11.05-19.50.40",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 0: 1/1 requested cave networks (0 carbonate karst, 1 structural), 5 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.41"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 1: 1/1 requested cave networks (0 carbonate karst, 1 structural), 5 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.41"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 25: 1/1 requested cave networks (0 carbonate karst, 1 structural), 6 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.41"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 50: 1/1 requested cave networks (0 carbonate karst, 1 structural), 6 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.41"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 75: 2/2 requested cave networks (0 carbonate karst, 2 structural), 18 curved passages, 2 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.41"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 100: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.41"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CarbonateKarstVolumesAndHosts",
+      "fullTestPath": "Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 9.487454414367676,
+      "dateTime": "2026.11.05-19.50.41",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "21/70 requested cave networks (21 carbonate karst, 0 structural), 105 curved passages, 21 entrances; 439/439 eligible sites; complete-fit capacity reached",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.43"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Karst minimum chord clearance 0.310059 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.43"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Inspection full/pruned max error 3.69548798e-06 at X=-1354.938 Y=-528.131 Z=-248.823: original -68.6398163 air 1.7880286 final 1.7880249 inspection -1.7880286",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Reproduced corner axis X=1.000 Y=0.000 Z=0.000 maximum 2 cm field step 0.006437 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Reproduced corner axis X=0.000 Y=1.000 Z=0.000 maximum 2 cm field step 0.034061 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Reproduced corner axis X=0.000 Y=0.000 Z=1.000 maximum 2 cm field step 0.019356 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.44"
+        },
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Karst 21 networks, 105 curved passages, 42 keyholes, 63 chamber lobes, 1316 route probes; minimum clearance 0.3101 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.51"
+        }
+      ],
+      "warnings": 1,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ConnectedVolumetricMorphology",
+      "fullTestPath": "Catalyst.Landform.Caves.ConnectedVolumetricMorphology",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.4220788478851318,
+      "dateTime": "2026.11.05-19.50.51",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 73: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.415 m; width ratio 1.750; curve deviation 0.664 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 74: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.459 m; width ratio 1.750; curve deviation 0.605 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 75: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.466 m; width ratio 1.750; curve deviation 0.624 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 76: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.470 m; width ratio 1.750; curve deviation 0.605 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 73: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.796 m; width ratio 1.750; curve deviation 1.274 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 74: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.883 m; width ratio 1.750; curve deviation 1.160 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 75: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.895 m; width ratio 1.750; curve deviation 1.197 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 76: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.898 m; width ratio 1.750; curve deviation 1.161 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 73: 3 networks, 24 nodes, 27 curved passages, 36 chamber lobes; minimum route clearance 1.011 m; width ratio 2.041; curve deviation 1.911 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 74: 3 networks, 24 nodes, 27 curved passages, 36 chamber lobes; minimum route clearance 1.123 m; width ratio 2.044; curve deviation 1.728 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 75: 4 networks, 32 nodes, 36 curved passages, 48 chamber lobes; minimum route clearance 1.168 m; width ratio 2.014; curve deviation 1.902 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 76: 4 networks, 32 nodes, 36 curved passages, 48 chamber lobes; minimum route clearance 1.023 m; width ratio 2.321; curve deviation 1.880 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.52"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DesignerControlsAndUndo",
+      "fullTestPath": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.9150503873825073,
+      "dateTime": "2026.11.05-19.50.52",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "EligibilityAndVersions",
+      "fullTestPath": "Catalyst.Landform.Caves.EligibilityAndVersions",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.5858379006385803,
+      "dateTime": "2026.11.05-19.50.54",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24/24 requested cave networks (0 carbonate karst, 24 structural), 168 curved passages, 24 entrances; 147/439 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.54"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "InspectionVolume",
+      "fullTestPath": "Catalyst.Landform.Caves.InspectionVolume",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.4242806136608124,
+      "dateTime": "2026.11.05-19.50.55",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "IntersectingNativeVolumes",
+      "fullTestPath": "Catalyst.Landform.Caves.IntersectingNativeVolumes",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.5578490495681763,
+      "dateTime": "2026.11.05-19.50.55",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Five source formations retained; four share one support domain; same-family and cross-family intersections remain open; separate solid barrier remains intact.",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.50.57"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "KnobAndBackground",
+      "fullTestPath": "Catalyst.Landform.Caves.KnobAndBackground",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.592671275138855,
+      "dateTime": "2026.11.05-19.50.57",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "LegacyNativeAssetProfiles",
+      "fullTestPath": "Catalyst.Landform.Caves.LegacyNativeAssetProfiles",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.4899928569793701,
+      "dateTime": "2026.11.05-19.50.57",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MixedGeneratedFamilies",
+      "fullTestPath": "Catalyst.Landform.Caves.MixedGeneratedFamilies",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 5.484766483306885,
+      "dateTime": "2026.11.05-19.50.59",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Mixed seed 176: 9/9 requested cave networks (1 carbonate karst, 8 structural), 61 curved passages, 9 entrances; 67/73 eligible sites; 7 native domains, 0 same-family and 1 cross-family positive-overlap pairs; cross X=6.432 Y=-369.715 Z=409.677",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.01"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeFieldsAndPersistence",
+      "fullTestPath": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.8533025979995728,
+      "dateTime": "2026.11.05-19.51.04",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 0 field 0.78307 host -33.44012 at X=1410.904 Y=301.252 Z=495.229",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 1 field 0.91359 host -33.07035 at X=1411.800 Y=298.055 Z=495.217",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 2 field 0.78244 host -32.84159 at X=1412.197 Y=294.727 Z=496.232",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 3 field 0.66306 host -32.75691 at X=1412.604 Y=291.416 Z=496.742",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 4 field 0.92897 host -32.66320 at X=1413.456 Y=288.235 Z=495.913",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 5 field 1.28932 host -32.40275 at X=1414.417 Y=285.072 Z=495.230",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 6 field 1.16061 host -32.18294 at X=1414.805 Y=281.934 Z=496.069",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "probe 7 field 0.87031 host -32.15733 at X=1414.694 Y=278.844 Z=497.716",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 networks, 1008 cutters; 297 native bulk/sparse points, max residual 0 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.05"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeNoiseBatchParity",
+      "fullTestPath": "Catalyst.Landform.Caves.NativeNoiseBatchParity",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007884163409471512,
+      "dateTime": "2026.11.05-19.51.05",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "SmallPlanetMinimumAndScale",
+      "fullTestPath": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 3.029045343399048,
+      "dateTime": "2026.11.05-19.51.05",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 73: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 74: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 75: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 76: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 77: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 78: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 79: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 10/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 80: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.07"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "AuthoringBoundaries",
+      "fullTestPath": "Catalyst.Landform.Designer.AuthoringBoundaries",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 5.3537516593933105,
+      "dateTime": "2026.11.05-19.51.08",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NavigationResponsiveness",
+      "fullTestPath": "Catalyst.Landform.Designer.NavigationResponsiveness",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 4.112375736236572,
+      "dateTime": "2026.11.05-19.51.14",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"baseline\":false,\"watershed\":false,\"frames\":240,\"frameP50Ms\":8.961916,\"frameP95Ms\":16.283289,\"maxFrameMs\":56.318209,\"maxInputMs\":0.044707,\"maxPollMs\":0.027377,\"meshCopies\":0,\"verticesCopied\":0,\"copyMs\":0.000000,\"progressFrames\":0,\"nativeStarts\":0,\"evaluations\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.18"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "PropertyScrollResponsiveness",
+      "fullTestPath": "Catalyst.Landform.Designer.PropertyScrollResponsiveness",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 2.8101682662963867,
+      "dateTime": "2026.11.05-19.51.18",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"watershed\":false,\"frames\":120,\"frameP50Ms\":9.599749,\"frameP95Ms\":12.136292,\"maxFrameMs\":21.152455,\"maxInputMs\":1.508042,\"maxScrollOffset\":35.555546,\"handledWheels\":120,\"progressFrames\":0,\"nativeStarts\":0,\"evaluations\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativePreviewRadii",
+      "fullTestPath": "Catalyst.Landform.NativeGeneration.NativePreviewRadii",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.15140333771705627,
+      "dateTime": "2026.11.05-19.51.21",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "55554 native full-float mapping values checked",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Radius 100 m: 27777 native vertices, normalized sphere residual 20.138865 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "55554 native full-float mapping values checked",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Radius 1000 m: 27777 native vertices, normalized sphere residual 20.138865 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "55554 native full-float mapping values checked",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Radius 6371000 m: 27777 native vertices, normalized sphere residual 20.138270 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "Navigation",
+      "fullTestPath": "Catalyst.Landform.PlanetBuilder.Navigation",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.008160583674907684,
+      "dateTime": "2026.11.05-19.51.21",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NewPlanetReference",
+      "fullTestPath": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007948875427246094,
+      "dateTime": "2026.11.05-19.51.21",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CalibratedRange",
+      "fullTestPath": "Catalyst.Landform.PlanetLayers.CalibratedRange",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.29340243339538574,
+      "dateTime": "2026.11.05-19.51.21",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Calibrated geology: 61440 probes, worst local slope 0.7108, radial relief 0.0698",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CompositionAndSeeds",
+      "fullTestPath": "Catalyst.Landform.PlanetLayers.CompositionAndSeeds",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.03173033148050308,
+      "dateTime": "2026.11.05-19.51.21",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Independent geology: 1014 shared-field probes; separate seed and disable controls",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.21"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "InspectorAndVariationUndo",
+      "fullTestPath": "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.26582884788513184,
+      "dateTime": "2026.11.05-19.51.21",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativePersistenceAndLegacy",
+      "fullTestPath": "Catalyst.Landform.PlanetLayers.NativePersistenceAndLegacy",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.30997300148010254,
+      "dateTime": "2026.11.05-19.51.21",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Native independent geology: 1014 directions, 1.70530257e-11 cm residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.22"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "RenderedRangeAndOcean",
+      "fullTestPath": "Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 5.45281457901001,
+      "dateTime": "2026.11.05-19.51.22",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rendered mean differences: continents 9.528, tectonics 11.538, ocean 3.313",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.27"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "VariationPublication",
+      "fullTestPath": "Catalyst.Landform.PlanetLayers.VariationPublication",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.6181772947311401,
+      "dateTime": "2026.11.05-19.51.27",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "components 20, native producer/presenter 46209, ready 1, processing 0, tasks 0, inspected vertices 0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.28"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "BaseGeologyAndNeutrality",
+      "fullTestPath": "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 5.834414958953857,
+      "dateTime": "2026.11.05-19.51.28",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 geological assignments, 0 retained base regions; max final-height change 0 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.34"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DefinitionsAndEvidence",
+      "fullTestPath": "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007842876017093658,
+      "dateTime": "2026.11.05-19.51.34",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeDesignerAndNavigation",
+      "fullTestPath": "Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 2.9500439167022705,
+      "dateTime": "2026.11.05-19.51.34",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"p95Ms\":10.455165,\"assignedRegions\":29,\"retainedBaseRegions\":3,\"counts\":{\"Crystalline shield\":0,\"Covered continental platform\":0,\"Clastic sedimentary basin\":0,\"Carbonate platform and reef province\":0,\"Evaporite basin\":0,\"Fold and thrust belt\":0,\"Metamorphic mountain core\":0,\"Continental rift and fault-block province\":2,\"Transform and shear belt\":12,\"Volcanic arc province\":0,\"Basaltic volcanic province\":0,\"Silicic volcanic province\":0,\"Plutonic and intrusive province\":0,\"Passive continental margin\":0,\"Oceanic crust province\":15,\"Impact province\":0,\"Icy-crust province\":0,\"Base geology\":3}}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.37"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "PackagedLibrary",
+      "fullTestPath": "Catalyst.Landform.Provinces.PackagedLibrary",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007824752479791641,
+      "dateTime": "2026.11.05-19.51.37",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "BlendAndNativeParity",
+      "fullTestPath": "Catalyst.Landform.Regions.BlendAndNativeParity",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.550693154335022,
+      "dateTime": "2026.11.05-19.51.37",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generated field: 2379 directions, 2.22044604925e-16 weight error, 9.04038199678e-06 m oracle error, 1.02409524061e-06 m atlas error, 0.000102409525 cm native residual, 0.00197791478 cm section residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.38"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "PortabilityAndOverrides",
+      "fullTestPath": "Catalyst.Landform.Regions.PortabilityAndOverrides",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.4044660329818726,
+      "dateTime": "2026.11.05-19.51.38",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "StructureAndPalette",
+      "fullTestPath": "Catalyst.Landform.Regions.StructureAndPalette",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.9679478406906128,
+      "dateTime": "2026.11.05-19.51.40",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Regions: 24 cells, 8 mountain / 16 plateau; mean uplift 0.34760 / 0.00000; 23 sites respond to guidance",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.41"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CharacterPaletteAndDefaults",
+      "fullTestPath": "Catalyst.Landform.Rock.CharacterPaletteAndDefaults",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 12.943660736083984,
+      "dateTime": "2026.11.05-19.51.41",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "603 intermediate profiles and 18 fixed-spacing geological comparisons across three seeds",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.54"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ControlsVersionsAndHeight",
+      "fullTestPath": "Catalyst.Landform.Rock.ControlsVersionsAndHeight",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.2400671243667603,
+      "dateTime": "2026.11.05-19.51.54",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 seed/character cases retain exact terrain heights; zero, unit closure, versions and portable data pass",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.55"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DepositionalExcavationFixture",
+      "fullTestPath": "Catalyst.Landform.Rock.DepositionalExcavationFixture",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.016779419034719467,
+      "dateTime": "2026.11.05-19.51.55",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Resolved tectonic seed 26: 8 older and 40 younger wall probes, 16 strata; all 48 wall probes begin solid",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.55"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DesignerControlsAndUndo",
+      "fullTestPath": "Catalyst.Landform.Rock.DesignerControlsAndUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.9514458179473877,
+      "dateTime": "2026.11.05-19.51.55",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "FiniteHistoryAndPlateSections",
+      "fullTestPath": "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.2328776717185974,
+      "dateTime": "2026.11.05-19.51.57",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Four canonical sections; 27 finite older beds; 118 compression and 132 basin exposure probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.57"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "FoldingExcavationFixture",
+      "fullTestPath": "Catalyst.Landform.Rock.FoldingExcavationFixture",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.029509831219911575,
+      "dateTime": "2026.11.05-19.51.57",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Resolved seed 7: 25 rheology-sensitive wall properties; 0.557028 m fold displacement; 20 strata; 48 initially solid and shape-identical wall probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.57"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "FoldThicknessAndViscosityLaw",
+      "fullTestPath": "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.008224748075008392,
+      "dateTime": "2026.11.05-19.51.57",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Independent Biot wavelength/growth oracles, 660 bounded amplitude samples, thickness and contrast scaling pass",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.57"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MetricBasinAndFoldContacts",
+      "fullTestPath": "Catalyst.Landform.Rock.MetricBasinAndFoldContacts",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.022900834679603577,
+      "dateTime": "2026.11.05-19.51.57",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Physical younger probes 31; central basin depth 69.636256 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.57"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MetricBedDistribution",
+      "fullTestPath": "Catalyst.Landform.Rock.MetricBedDistribution",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.008317500352859497,
+      "dateTime": "2026.11.05-19.51.57",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "65536 native quantile probes: thin 0.999%, 2\u20135 m 93.028%, thick 5.000%, mean 3.384 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.57"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MetricScaleAndCompactHistory",
+      "fullTestPath": "Catalyst.Landform.Rock.MetricScaleAndCompactHistory",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.1264125406742096,
+      "dateTime": "2026.11.05-19.51.57",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativePropertiesAndSurfaces",
+      "fullTestPath": "Catalyst.Landform.Rock.NativePropertiesAndSurfaces",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.07288721203804016,
+      "dateTime": "2026.11.05-19.51.57",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "2048 native material/property probes; property error 0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.51.58"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeRenderedReview",
+      "fullTestPath": "Catalyst.Landform.Rock.NativeRenderedReview",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 37.09965133666992,
+      "dateTime": "2026.11.05-19.51.58",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "RegionalOnlapAndBasinFill",
+      "fullTestPath": "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.2935417890548706,
+      "dateTime": "2026.11.05-19.52.35",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "2048 shared-crust probes; basement 490.000..774.965 m; 768 onlap pinchout probes; 62.673 m filled accommodation; 7 younger episodes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.35"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "SharedFoldCoordinateAndSections",
+      "fullTestPath": "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.4019635319709778,
+      "dateTime": "2026.11.05-19.52.35",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "513 radial-order/neutral/extension probes; 75 material-bed probes; effective h 11.246451 m, wavelength 141.327069 m, 278 bent probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.35"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "VolumeAndCaveCoherence",
+      "fullTestPath": "Catalyst.Landform.Rock.VolumeAndCaveCoherence",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.09109591692686081,
+      "dateTime": "2026.11.05-19.52.35",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "4096 3D probes, 3 rock units and 129 strata; cave leaves geology unchanged",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.35"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "AuthoringSnapshots",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.AuthoringSnapshots",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.016384124755859375,
+      "dateTime": "2026.11.05-19.52.35",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "GuideIntervals",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.GuideIntervals",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.011182960122823715,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "LayerAuthoring",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.LayerAuthoring",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.01379433274269104,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MixedLayerIsolation",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.MixedLayerIsolation",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.054346874356269836,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Mixed layers: 31 stamp placements; signed noise -2.987020 to 2.949938 m; additive parity error 0.000000000000 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ProfilesAndSnapshots",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.018886208534240723,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rolling plains sampled relief: 15.895 m at 1000m sky radius",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Plains section maximum field error: 0.000 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Hills sampled relief: 57.046 m at 1000m sky radius",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Hills section maximum field error: 0.000 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Mountain ridges sampled relief: 84.160 m at 1000m sky radius",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "MountainRidges section maximum field error: 0.001 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "StampIsolation",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.StampIsolation",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.01574079319834709,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Stamp isolation: 51 placements; 40.386282 m visible relief; 173 flat samples",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "VPPAndUndo",
+      "fullTestPath": "Catalyst.Landform.TerrainTypes.VPPAndUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.015409916639328003,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "AnalyticAndOrdering",
+      "fullTestPath": "Catalyst.Landform.Volumes.AnalyticAndOrdering",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007836833596229553,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "GuidePolicyAndTwoFloors",
+      "fullTestPath": "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.008689500391483307,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "IndexAndSmoothContacts",
+      "fullTestPath": "Catalyst.Landform.Volumes.IndexAndSmoothContacts",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.008758794516324997,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeBulkSparseAndMaterials",
+      "fullTestPath": "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007569335401058197,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "297 native samples: field 0 cm, float rounding 2.86102295e-05 cm, material 6.22277391e-06, cavity crossings 2",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.36"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativePreview",
+      "fullTestPath": "Catalyst.Landform.Volumes.NativePreview",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 1.5006338357925415,
+      "dateTime": "2026.11.05-19.52.36",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "166414 native full-float mapping values checked",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "153106 native full-float mapping values checked",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "components 63, native producer/presenter 45784, ready 1, processing 0, tasks 0, inspected vertices 0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Source IsValid=true, Min=(X=-25682.971 Y=-25708.799 Z=0.000), Max=(X=25218.123 Y=25788.609 Z=82409.311) display IsValid=true, Min=(X=-50000.001 Y=-50000.001 Z=0.000), Max=(X=50000.000 Y=50000.000 Z=82899.456) radii 0.000..82899.456",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cutaway native triangles 151576, original body positions 79820; producer: components 40, native producer/presenter 45802, ready 1, processing 0, tasks 0, inspected vertices 79820",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cutaway floor 631: hit 1, X=0.000 Y=44.863 Z=631.066",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cutaway floor 604: hit 1, X=0.000 Y=44.852 Z=604.010",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Globe detached pick: hit 1, X=85.000 Y=-20.000 Z=823.565",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeSectionDomain",
+      "fullTestPath": "Catalyst.Landform.Volumes.NativeSectionDomain",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 0.007893417030572891,
+      "dateTime": "2026.11.05-19.52.37",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "96 native section points: field error 0.00016784668 cm, chart error 2.27484671e-13 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.37"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DebugRenderedNavigation",
+      "fullTestPath": "Catalyst.Landform.Watershed.DebugRenderedNavigation",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "15CAD1FA6242C2C15C5919BA965E0C27"
+      ],
+      "duration": 6.979174613952637,
+      "dateTime": "2026.11.05-19.52.37",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":180,\"nativeBusyFrames\":180,\"p95Ms\":22.881668,\"maxInputMs\":0.034083,\"waterTriangles\":22102,\"shoreSegments\":4016,\"paths\":218,\"buildSeconds\":0.080479}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.52.42"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    }
+  ]
+}

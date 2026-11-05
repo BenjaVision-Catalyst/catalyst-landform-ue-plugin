@@ -1,0 +1,44 @@
+{
+  "devices": [
+    {
+      "deviceName": "jupiter.local",
+      "instance": "E3A6E2CBC24BD208947A1892DD7C5DC4",
+      "instanceName": "jupiter.local-99612",
+      "platform": "MacEditor",
+      "oSVersion": "macOS 26.6.1 25G76",
+      "model": "Default",
+      "gPU": "Apple M3 Max",
+      "cPUModel": "Apple M3 Max",
+      "rAMInGB": 128,
+      "renderMode": "SM6",
+      "rHI": "Metal Bindless (SM6)",
+      "appInstanceLog": ""
+    }
+  ],
+  "reportCreatedOn": "2026.11.05-20.33.36",
+  "succeeded": 1,
+  "succeededWithWarnings": 0,
+  "failed": 0,
+  "notRun": 0,
+  "inProcess": 0,
+  "totalDuration": 0.18574945628643036,
+  "comparisonExported": false,
+  "comparisonExportDirectory": "",
+  "tests": [
+    {
+      "testDisplayName": "NativeBreakthroughFixture",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.NativeBreakthroughFixture",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "E3A6E2CBC24BD208947A1892DD7C5DC4"
+      ],
+      "duration": 0.18574945628643036,
+      "dateTime": "2026.11.05-20.33.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    }
+  ]
+}

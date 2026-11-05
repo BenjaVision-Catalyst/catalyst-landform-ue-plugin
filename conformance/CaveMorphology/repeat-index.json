@@ -1,0 +1,67 @@
+{
+  "devices": [
+    {
+      "deviceName": "jupiter.local",
+      "instance": "82BA2B1FE54CEA532A161F806E3AC6AB",
+      "instanceName": "jupiter.local-82740",
+      "platform": "MacEditor",
+      "oSVersion": "macOS 26.6.1 25G76",
+      "model": "Default",
+      "gPU": "Apple M3 Max",
+      "cPUModel": "Apple M3 Max",
+      "rAMInGB": 128,
+      "renderMode": "SM6",
+      "rHI": "Metal Bindless (SM6)",
+      "appInstanceLog": ""
+    }
+  ],
+  "reportCreatedOn": "2026.11.05-19.54.26",
+  "succeeded": 1,
+  "succeededWithWarnings": 0,
+  "failed": 0,
+  "notRun": 0,
+  "inProcess": 0,
+  "totalDuration": 19.809778213500977,
+  "comparisonExported": false,
+  "comparisonExportDirectory": "",
+  "tests": [
+    {
+      "testDisplayName": "Saved500m100",
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m100",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "82BA2B1FE54CEA532A161F806E3AC6AB"
+      ],
+      "duration": 19.809778213500977,
+      "dateTime": "2026.11.05-19.54.06",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":14.747210,\"normalSurfaceLuma\":190.924506,\"debugSurfaceLuma\":22.009257,\"cyanPixels\":1654,\"networks\":3,\"nativeDomains\":3,\"nativeVertices\":190453,\"maxFieldResidualMeters\":0.143170,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.54.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"character\":100,\"networks\":3,\"nativeDomains\":3,\"nativeVertices\":518721,\"maxFieldResidualMeters\":0.206135,\"cameraMovedByInput\":false}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.05-19.54.23"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    }
+  ]
+}

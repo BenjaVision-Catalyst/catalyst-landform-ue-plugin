@@ -2070,3 +2070,15 @@ input rebuilds or mesh copies. The frozen UObject/CDO default preserves native
 legacy packages at profile 2, while fresh factory planets use 3. Original local
 edits/assets remain byte-identical. Larger chained-domain workloads and full
 route/cooked qualification remain open.
+
+
+### Cave section development — profile 4
+
+The user rejected the shared swollen-tube appearance of the earlier two families.
+[Cave morphology](CaveMorphology.md) separates joint clefts from bedding slots,
+phreatic/keyhole/canyon development, angular rooms and static breakdown. VPP
+retains generation, shapes, blends, meshing, LOD, moving collision, sculpt and save.
+The native UObject default remains frozen at 2 for package compatibility; only new
+profiles and explicit knob changes resolve 4. Separate morphology review assets
+preserve authored older recipes. Sediment provenance, mineral growth, groundwater
+history and full-route/cooked qualification remain open.
