@@ -8,6 +8,7 @@
 #include "CLGlobePlacement.h"
 #include "Model/CLRegionGeneration.h"
 #include "UnrealWidgetFwd.h"
+struct FCLWatershedDebugGeometry;
 void CLRegisterGlobePlacementMode();
 void CLUnregisterGlobePlacementMode();
 DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementTarget&,bool);
@@ -43,7 +44,7 @@ public:
     SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
-    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan);
+    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug=nullptr);
     void Cancel();
     void SetEvaluationPending(bool Pending);
     void SetAuthoringValid(bool Valid);
@@ -102,6 +103,7 @@ protected:
 private:
     bool bEvaluationPending=false,bAuthoringInvalid=false,bPressCanPick=true;
 #if WITH_DEV_AUTOMATION_TESTS
+    friend class FCLWatershedDebugRenderedTest;
     friend class FCLNativePreviewTest;
     friend class FCLPreviewMaterialRenderedTest;
     friend class FCLNativePreviewRadiiTest;
@@ -123,6 +125,10 @@ private:
 #endif
     void Pump();
     void UpdateOcean();
+    void UpdateWatershedDebug();
+    TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;
+    TSharedPtr<const FCLWatershedDebugGeometry> PendingWatershedDebug;
+    TStrongObjectPtr<UDynamicMeshComponent> DebugWater;
     bool bOceanVisible=false;
     TStrongObjectPtr<UStaticMeshComponent> Ocean;
     void CancelPlacementDrag();

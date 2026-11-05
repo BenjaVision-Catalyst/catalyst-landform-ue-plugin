@@ -1,5 +1,9 @@
 # Watershed scope and preview review
 
+**Presentation update:** the later [Watershed debug view](WatershedDebugView.md)
+supersedes the old line/rim-only display and fixes camera-LOD suppression below.
+It adds editor-only ocean/lake surfaces and splines; runtime hydrology limits remain.
+
 5 November 2026. Review of `a4884ca` against the initial Watershed implementation
 `116b788`. This task changes Character typography and Geology row order, and
 reviews Watershed; it does not change its generation algorithm or add water.

@@ -1898,3 +1898,23 @@ remain unchanged. The [authoring contract](PlanetDesignerAuthoring.md) supersede
 older notes assigning layer overlay toggles to Preview. The
 [native qualification](../conformance/LayerIndicators/qualification-mac-arm64.json)
 records actual UI, display-only, Undo and navigation checks.
+
+
+## Watershed debug water and splines — 5 November 2026
+
+The per-layer indicator now includes transparent connected-ocean and shore-bounded
+potential-lake surfaces, plus draped native spline paths for selected drainage.
+Lake levels mean potential fill to spill. UE Dynamic Mesh/material/spline-data
+features own the diagnostic display; VPP alone owns terrain. The
+[native feature audit and contract](WatershedDebugView.md) records why planar UE
+Water meshes and VPP terrain spline stamps do not directly provide this spherical,
+read-only view. No saved recipe, terrain or routing algorithm is changed.
+
+Derivation uses the existing cancellable background evaluation owner and reports
+measured progress. Geometry pairs with VPP's published plan, so normal camera LOD
+no longer suppresses it. The duplicate reference ocean sphere is hidden only while
+debug is on. Existing finite-resolution, potential-level and post-excavation
+hydrology limitations remain explicit. The
+[qualification](../conformance/WatershedDebug/qualification-mac-arm64.json) records
+native geometry validity, distinct lake levels, shore accuracy, route topology,
+rendering, navigation and accepted-plan replacement, plus preserved local inputs.

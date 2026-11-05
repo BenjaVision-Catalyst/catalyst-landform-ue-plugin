@@ -1,4 +1,5 @@
 #include "CLPlanetPreview.h"
+#include "CLWatershedDebug.h"
 #include "Misc/ScopeExit.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -253,15 +254,34 @@ public:
         return {};
     }
     bool bWatershedOverlay=false;
+    TSharedPtr<const FCLWatershedDebugGeometry> WatershedDebug;
+    TSharedPtr<const FCLCompiledPlanetRecipe> DebugPlan;
+    int32 LastWatershedSegments=0;
+    bool CanDrawWatershed()const
+    {return bWatershedOverlay&&WatershedDebug&&NativePreview&&NativePreview->PublishedPlan()==DebugPlan;}
     void DrawWatersheds(FPrimitiveDrawInterface* PDI)
     {
-        if(!bWatershedOverlay||!Plan||!Plan->Watershed||(NativePreview&&NativePreview->IsUpdating()))return;const auto& W=*Plan->Watershed;const auto& Cells=W.GetCells();
-        auto P=[&](int32 I,double H){return Cells[I].Direction*((Plan->RadiusMeters+H)/Plan->RadiusMeters*100000+110);};
-        auto Front=[&](int32 A,int32 B){const auto N=(Cells[A].Direction+Cells[B].Direction).GetSafeNormal();return FVector::DotProduct(N,GetViewLocation()-P(A,Cells[A].HeightMeters))>0;};
-        for(const auto& Edge:W.GetDrainageLinks())if(Front(Edge.From,Edge.To))PDI->DrawLine(P(Edge.From,Cells[Edge.From].HeightMeters),P(Edge.To,Cells[Edge.To].HeightMeters),FLinearColor(.15,.3,.5),SDPG_Foreground,.6);
-        for(const auto& Edge:W.GetChannels())if(Front(Edge.From,Edge.To))PDI->DrawLine(P(Edge.From,Cells[Edge.From].BedMeters),P(Edge.To,Cells[Edge.To].BedMeters),FLinearColor(.05,.45,1),SDPG_Foreground,1.4);
-        // A sparse potential-lake rim is a diagnostic, not a rendered water surface.
-        for(int32 I=0;I<Cells.Num();I+=2)if(Cells[I].bLake&&Front(I,I)&&Cells[I].Neighbours.ContainsByPredicate([&](int32 J){return !Cells[J].bLake;}))PDI->DrawPoint(P(I,Cells[I].SpillMeters),FLinearColor(.1,.9,.9),2,SDPG_Foreground);
+        LastWatershedSegments=0;if(!CanDrawWatershed())return;
+        const double Scale=100000/DebugPlan->RadiusMeters;
+        auto Line=[&](FVector A,FVector B,FLinearColor Color,float Width)
+        {
+            A*=Scale;B*=Scale;const FVector Mid=(A+B)*.5;
+            // Debug lines stay legible above native terrain discretisation. Cull
+            // the back hemisphere; translucent water itself retains ordinary depth.
+            if(FVector::DotProduct(Mid.GetSafeNormal(),GetViewLocation()-Mid)<=0)return;
+            PDI->DrawLine(A,B,Color,SDPG_Foreground,Width,0,true);++LastWatershedSegments;
+        };
+        for(const auto& S:WatershedDebug->Shores)
+        {
+            const FLinearColor C=WatershedDebug->Bodies[S.Body].Ocean?FLinearColor(.12,.55,.85):FLinearColor(.15,.9,.95);
+            Line(S.A,S.B,C,1.3);
+        }
+        for(const auto& P:WatershedDebug->Paths)
+        {
+            const FLinearColor C=P.Channel?FLinearColor(.05,.5,1):FLinearColor(.25,.55,.65);
+            for(int32 I=1;I<P.Curve.Points.Num();++I)
+            {Line(P.Curve.Points[I-1].OutVal,P.Curve.Points[I].OutVal,C,P.Channel?2:1);}
+        }
     }
     void DrawPlacements(FPrimitiveDrawInterface* PDI)
     {
@@ -385,6 +405,7 @@ SCLPlanetPreview::~SCLPlanetPreview()
 #if WITH_DEV_AUTOMATION_TESTS
     if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());
 #endif
+    if(DebugWater&&Scene)Scene->RemoveComponent(DebugWater.Get());
     if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());
 }
 #if WITH_DEV_AUTOMATION_TESTS
@@ -396,10 +417,10 @@ void SCLPlanetPreview::CreateReferenceMeshForTesting()
 }
 #endif
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
-void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
+void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug)
 {
     if(!Plan){Cancel();return;}
-    SetWalkLocation(FVector::ZeroVector);Client->Plan=Plan;
+    SetWalkLocation(FVector::ZeroVector);Client->Plan=Plan;PendingDebugPlan=Plan;PendingWatershedDebug=MoveTemp(Debug);
     if(!NativePreview)NativePreview=MakeUnique<FCLNativePreview>();FString Error;
     if(!NativePreview->Start(*Scene->GetWorld(),Plan,false,500,Error,bDraft))UE_LOG(LogTemp,Error,TEXT("Native globe: %s"),*Error);
     Client->NativePreview=NativePreview.Get();
@@ -417,7 +438,12 @@ void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan)
 #if WITH_DEV_AUTOMATION_TESTS
 void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->Navigation.Orbit(Delta);Client->Apply();}
 #endif
-void SCLPlanetPreview::Cancel(){NativePreview.Reset();if(Client)Client->NativePreview=nullptr;}
+void SCLPlanetPreview::Cancel()
+{
+    NativePreview.Reset();PendingDebugPlan.Reset();DisplayedDebugPlan.Reset();PendingWatershedDebug.Reset();
+    if(Client){Client->NativePreview=nullptr;Client->WatershedDebug.Reset();Client->DebugPlan.Reset();}
+    if(DebugWater)DebugWater->SetVisibility(false);
+}
 FString SCLPlanetPreview::NativePreviewStatus()const{return NativePreview?NativePreview->Status():TEXT("No native preview");}
 bool SCLPlanetPreview::IsUpdating()const{return bEvaluationPending||(NativePreview&&NativePreview->IsUpdating());}
 bool SCLPlanetPreview::IsApplyingInput()const{return bEvaluationPending||(NativePreview&&NativePreview->IsApplyingInput());}
@@ -443,7 +469,7 @@ void SCLPlanetPreview::UpdateOcean()
 {
     if(!Client||!Ocean)return;
     const auto* Guide=Client->Guides.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("OceanHeight");});
-    const bool Show=bOceanVisible&&Guide&&FMath::IsFinite(Guide->NormalizedHeight)&&Guide->NormalizedHeight>0&&Guide->NormalizedHeight<=1;
+    const bool Show=bOceanVisible&&!Client->bWatershedOverlay&&Guide&&FMath::IsFinite(Guide->NormalizedHeight)&&Guide->NormalizedHeight>0&&Guide->NormalizedHeight<=1;
     Ocean->SetVisibility(Show);
     if(Show)Ocean->SetWorldScale3D(FVector(Guide->NormalizedHeight*FCLPlanetNavigation::Radius/50.));
     Client->Invalidate();
@@ -454,6 +480,7 @@ const TArray<TArray<FVector2D>>& SCLPlanetPreview::Rings()const{return Client->R
 void SCLPlanetPreview::Pump()
 {
     if(NativePreview&&NativePreview->Poll(true)){++AppliedBuilds;bLastPublishedDraft=NativePreview->IsDraft();Client->Invalidate();}
+    UpdateWatershedDebug();
 }
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
@@ -1381,7 +1408,29 @@ bool FCLContinentalRenderedPortfolioTest::RunTest(const FString&)
 }
 #endif
 
-void SCLPlanetPreview::SetWatershedOverlay(bool Enabled){Client->bWatershedOverlay=Enabled;Client->Invalidate();}
+void SCLPlanetPreview::UpdateWatershedDebug()
+{
+    if(NativePreview&&PendingDebugPlan&&NativePreview->PublishedPlan()==PendingDebugPlan&&DisplayedDebugPlan!=PendingDebugPlan)
+    {
+        DisplayedDebugPlan=PendingDebugPlan;Client->DebugPlan=DisplayedDebugPlan;Client->WatershedDebug=PendingWatershedDebug;
+        if(PendingWatershedDebug&&PendingWatershedDebug->Source==DisplayedDebugPlan->Watershed)
+        {
+            if(!DebugWater)
+            {
+                DebugWater.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));
+                DebugWater->SetCollisionEnabled(ECollisionEnabled::NoCollision);DebugWater->SetCastShadow(false);DebugWater->bSelectable=false;
+                DebugWater->SetMaterial(0,Ocean->GetMaterial(0));Scene->AddComponent(DebugWater.Get(),FTransform::Identity);
+            }
+            DebugWater->SetMesh(UE::Geometry::FDynamicMesh3(PendingWatershedDebug->Water));
+            DebugWater->SetWorldScale3D(FVector(100000/DisplayedDebugPlan->RadiusMeters));
+        }
+        else Client->WatershedDebug.Reset();
+        Client->Invalidate();
+    }
+    if(DebugWater)DebugWater->SetVisibility(Client->CanDrawWatershed());
+}
+void SCLPlanetPreview::SetWatershedOverlay(bool Enabled)
+{Client->bWatershedOverlay=Enabled;UpdateWatershedDebug();UpdateOcean();Client->Invalidate();}
 bool SCLPlanetPreview::IsWatershedOverlayEnabled()const{return Client->bWatershedOverlay;}
 
 bool SCLPlanetPreview::FocusWatershed()
@@ -1392,3 +1441,89 @@ bool SCLPlanetPreview::FocusWatershed()
     const FVector D=(Cells[Best->From].Direction+Cells[Best->To].Direction).GetSafeNormal();
     SetWalkLocation(D);Client->Navigation.Yaw=FMath::RadiansToDegrees(FMath::Atan2(D.Y,D.X));Client->Navigation.Elevation=FMath::Clamp(FMath::RadiansToDegrees(FMath::Asin(D.Z)),-85.,85.);Client->Navigation.Zoom=.55;Client->Navigation.Pan=FVector2D::ZeroVector;Client->Apply();return true;
 }
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "CLRecipeEvaluation.h"
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWatershedDebugRenderedTest,"Catalyst.Landform.Watershed.DebugRenderedNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
+{
+    FString Error;auto R=CLWatershedDebugRecipe(Error);if(!Error.IsEmpty()){AddError(Error);return false;}
+    const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Watershed debug water and drainage"))).ClientSize(FVector2D(1000,800))[W];
+    FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
+    struct FState
+    {
+        FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;TSharedPtr<const FCLWatershedDebugGeometry> Debug;
+        int32 Phase=0,Frame=0,Busy=0;uint32 World=0;const void* Runtime=nullptr;FCLNativePreview::FMetrics Metrics;
+        double Start=FPlatformTime::Seconds(),Stable=0,Last=0,MaxInputMs=0;TArray<double> Frames;TArray<FColor> Off;
+    };
+    const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(R,Error);
+    if(!Prepared){AddError(Error);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}State->Evaluation.Request(R,Prepared);
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,R]
+    {
+        auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+        if(Now-S.Start>180){AddError(FString::Printf(TEXT("Debug view timed out at phase %d: %s"),S.Phase,*W->NativePreviewStatus()));return Close();}
+        const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/watershed-debug");IFileManager::Get().MakeDirectory(*Dir,true);
+        auto Capture=[&](const TCHAR* Name,TArray<FColor>* Output=nullptr)
+        {
+            auto* V=W->Client->Viewport;if(!V)return;W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
+            for(int32 K=0;K<3;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/(FString(Name)+TEXT(".png"))));if(Output)*Output=Pixels;
+        };
+        if(S.Phase==0||S.Phase==6)
+        {
+            if(auto Result=S.Evaluation.Pump())
+            {
+                if(!Result->Plan||!Result->WatershedDebug){AddError(Result->Error);return Close();}
+                TestTrue(TEXT("Water diagnostics build inside the existing background task"),Result->WorkerThread);
+                if(S.Phase==6)TestTrue(TEXT("Old debug remains paired with the currently published terrain during authoring"),W->Client->DebugPlan==S.Plan&&W->Client->CanDrawWatershed());
+                S.Plan=Result->Plan;S.Debug=Result->WatershedDebug;W->SetGuides(R.RadialGuides,false);W->Rebuild(S.Plan,S.Debug);W->SetWatershedOverlay(true);
+                if(S.Phase==6)TestTrue(TEXT("Queued input cannot display the new debug over old terrain"),W->Client->DebugPlan!=S.Plan);
+                S.Phase=S.Phase==0?1:7;S.Stable=0;
+            }
+            return false;
+        }
+        if(S.Phase==1||S.Phase==7)
+        {
+            if(W->IsUpdating()||!W->Client->CanDrawWatershed())return false;
+            if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){GShaderCompilingManager->FinishAllCompilation();return false;}
+            if(!S.Stable){S.Stable=Now;return false;}if(Now-S.Stable<.6)return false;
+            TestTrue(TEXT("Water mesh is a visible collision-free UE debug component"),W->DebugWater&&W->DebugWater->IsVisible()&&W->DebugWater->GetCollisionEnabled()==ECollisionEnabled::NoCollision);
+            TestTrue(TEXT("Water presentation matches the native published terrain"),W->DisplayedDebugPlan==W->NativePreview->PublishedPlan()&&W->Client->WatershedDebug==S.Debug);
+            if(S.Phase==7){Capture(TEXT("replacement"));return Close();}
+            W->Client->Navigation.Yaw=0;W->Client->Navigation.Elevation=10;W->Client->Navigation.Zoom=.8;W->Client->Apply();
+            W->SetWatershedOverlay(false);Capture(TEXT("off"),&S.Off);W->SetWatershedOverlay(true);S.Phase=2;return false;
+        }
+        if(S.Phase==2)
+        {
+            TArray<FColor> On;Capture(TEXT("ocean"),&On);double Difference=0;for(int32 I=0;I<FMath::Min(On.Num(),S.Off.Num());++I)Difference+=FMath::Abs(int32(On[I].B)-S.Off[I].B)+FMath::Abs(int32(On[I].R)-S.Off[I].R)+FMath::Abs(int32(On[I].G)-S.Off[I].G);
+            Difference/=FMath::Max(1,On.Num()*3);TestTrue(TEXT("Transparent water and debug lines visibly change the same-camera native frame"),Difference>.3);
+            const auto PathsOnly=MakeShared<FCLWatershedDebugGeometry>(*S.Debug);PathsOnly->Shores.Reset();W->Client->WatershedDebug=PathsOnly;W->DebugWater->SetVisibility(false);
+            TArray<FColor> PathPixels;Capture(TEXT("paths-only"),&PathPixels);
+            auto Cyan=[](const TArray<FColor>& Pixels){int32 Count=0;for(const auto& P:Pixels)Count+=P.R<180&&P.G>180&&P.B>180;return Count;};
+            TestTrue(TEXT("Native spline paths themselves render with legible pixel widths"),Cyan(PathPixels)>Cyan(S.Off)+50);
+            W->Client->WatershedDebug=S.Debug;W->UpdateWatershedDebug();
+            W->SetOceanVisible(true);TestFalse(TEXT("Watershed debug suppresses the duplicate reference sphere"),W->Ocean->IsVisible());W->SetWatershedOverlay(false);TestTrue(TEXT("Turning debug off restores the requested ocean reference"),W->Ocean->IsVisible());W->SetWatershedOverlay(true);W->SetOceanVisible(false);
+            W->Client->Navigation.Yaw=180;W->Client->Navigation.Elevation=0;W->Client->Navigation.Zoom=.65;W->Client->Apply();S.Phase=3;return false;
+        }
+        if(S.Phase==3){Capture(TEXT("lake"));W->Client->Navigation.Yaw=90;W->Client->Apply();S.Phase=4;return false;}
+        if(S.Phase==4)
+        {
+            Capture(TEXT("raised-lake"));S.World=W->NativePreview->WorldIdentity();S.Runtime=W->NativePreview->RuntimeIdentity();S.Metrics=W->NativePreview->Metrics;S.Last=Now;S.Phase=5;return false;
+        }
+        if(S.Phase==5)
+        {
+            S.Frames.Add((Now-S.Last)*1000);S.Last=Now;const double Start=FPlatformTime::Seconds();W->Client->Navigation.Orbit(FVector2D(1.4,.15));W->Dolly(S.Frame%2?.02:-.02);S.MaxInputMs=FMath::Max(S.MaxInputMs,(FPlatformTime::Seconds()-Start)*1000);
+            S.Busy+=W->NativePreview->IsUpdating();TestTrue(TEXT("Indicators remain visible while navigation drives native LOD"),W->Client->CanDrawWatershed()&&W->DebugWater->IsVisible());
+            TestFalse(TEXT("Navigation creates no authoring-progress state"),W->IsApplyingInput());
+            if(++S.Frame<180)return false;
+            TestTrue(TEXT("Navigation exercised native LOD work"),S.Busy>0);TestTrue(TEXT("Spline and shore lines are emitted during navigation"),W->Client->LastWatershedSegments>0);
+            TestTrue(TEXT("Navigation retains one native VPP owner"),W->NativePreview->WorldIdentity()==S.World&&W->NativePreview->RuntimeIdentity()==S.Runtime);
+            TestEqual(TEXT("Navigation starts no terrain recipe input"),W->NativePreview->Metrics.Starts,S.Metrics.Starts);TestEqual(TEXT("Navigation copies no terrain inspection mesh"),W->NativePreview->Metrics.MeshCopies,S.Metrics.MeshCopies);
+            S.Frames.RemoveAt(0);S.Frames.Sort();const double P95=S.Frames[FMath::Min(S.Frames.Num()-1,int32(S.Frames.Num()*.95))];TestTrue(TEXT("Debug navigation p95 remains below 50 ms in this bounded view"),P95<50);TestTrue(TEXT("Debug navigation input remains below 8 ms"),S.MaxInputMs<8);
+            const FString JSON=FString::Printf(TEXT("{\"frames\":%d,\"nativeBusyFrames\":%d,\"p95Ms\":%.6f,\"maxInputMs\":%.6f,\"waterTriangles\":%d,\"shoreSegments\":%d,\"paths\":%d,\"buildSeconds\":%.6f}\n"),S.Frame,S.Busy,P95,S.MaxInputMs,S.Debug->Water.TriangleCount(),S.Debug->Shores.Num(),S.Debug->Paths.Num(),S.Debug->Seconds);FFileHelper::SaveStringToFile(JSON,*(Dir/TEXT("navigation.json")));AddInfo(JSON);Capture(TEXT("navigation"));
+            auto Changed=R;Changed.Watershed.ApplyProgression(.85);FString Error;auto Prepared=S.Evaluation.Prepare(Changed,Error);if(!Prepared){AddError(Error);return Close();}S.Evaluation.Request(Changed,Prepared);S.Phase=6;return false;
+        }
+        return false;
+    }));return true;
+}
+#endif

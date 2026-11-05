@@ -38,8 +38,8 @@ The existing physical-scale model and saved dimensions remain unchanged.
 Layer indicator toggles sit immediately beside the eye and use a native UE wireframe
 icon with the standard checked highlight. They are independent display preferences,
 initially off, scoped to the open editor; they never edit the recipe, dirty the
-asset or request generation. Watershed toggles its existing globe drainage,
-channel and potential-lake-rim diagnostics. Tectonics, Continents and Rock have no
+asset or request generation. Watershed toggles its globe drainage/channel splines,
+transparent connected ocean and shore-bounded potential-lake surfaces. Tectonics, Continents and Rock have no
 separate indicator overlays today, so their icons are disabled. Rock strata are
 terrain/material output, not an inspection overlay. No new indicators are generated.
 
@@ -63,3 +63,6 @@ remain those of the owning scale/rock/watershed profiles.
 
 The [layer indicator qualification](../conformance/LayerIndicators/qualification-mac-arm64.json)
 records the updated native row layout and display-only toggle checks.
+
+The [Watershed debug contract](WatershedDebugView.md) specifies native reuse,
+fill-to-spill meaning, background derivation and visibility during navigation.

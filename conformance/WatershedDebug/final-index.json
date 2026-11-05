@@ -1,0 +1,87 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "D4A209B1DA4F9CDB060E839E669A5C84",
+			"instanceName": "jupiter.local-83467",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-00.06.55",
+	"succeeded": 3,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 42.458103179931641,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "AuthoringBoundaries",
+			"fullTestPath": "Catalyst.Landform.Designer.AuthoringBoundaries",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D4A209B1DA4F9CDB060E839E669A5C84"
+			],
+			"duration": 5.7109026908874512,
+			"dateTime": "2026.11.05-00.06.13",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DebugRenderedNavigation",
+			"fullTestPath": "Catalyst.Landform.Watershed.DebugRenderedNavigation",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D4A209B1DA4F9CDB060E839E669A5C84"
+			],
+			"duration": 7.2583637237548828,
+			"dateTime": "2026.11.05-00.06.19",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":180,\"nativeBusyFrames\":180,\"p95Ms\":21.432001,\"maxInputMs\":0.031918,\"waterTriangles\":22102,\"shoreSegments\":4016,\"paths\":218,\"buildSeconds\":0.080386}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-00.06.23"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeRenderedReview",
+			"fullTestPath": "Catalyst.Landform.Watershed.NativeRenderedReview",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D4A209B1DA4F9CDB060E839E669A5C84"
+			],
+			"duration": 29.488836288452148,
+			"dateTime": "2026.11.05-00.06.26",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

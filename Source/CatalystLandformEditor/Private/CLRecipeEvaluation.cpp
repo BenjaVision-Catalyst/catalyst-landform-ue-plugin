@@ -1,4 +1,5 @@
 #include "CLRecipeEvaluation.h"
+#include "CLWatershedDebug.h"
 #include "Model/CLSurfaceRange.h"
 #include "Containers/Ticker.h"
 #include "UObject/UObjectGlobals.h"
@@ -52,6 +53,8 @@ TSharedPtr<FCLRecipeEvaluationResult> FCLRecipeEvaluation::Pump()
             const double Start=FPlatformTime::Seconds();auto R=MakeShared<FCLRecipeEvaluationResult>();R->Serial=Input.Serial;R->Recipe=Input.Recipe;R->WorkerThread=!IsInGameThread();
             if(Input.Prepared)R->Plan=FCLPlanetCompiler::CompleteBackground(*Input.Prepared,Control,R->Error);else R->Error=TEXT("Native input preparation failed");
             if(R->Plan&&!Control->Cancelled.load())Measure(*R,Control);
+            if(R->Plan&&R->Plan->Watershed&&!Control->Cancelled.load())
+            {Control->Stage=ECLCompileStage::Presentation;Control->Work=0;R->WatershedDebug=FCLWatershedDebugGeometry::Build(*R->Plan,&Control.Get());}
             R->Seconds=FPlatformTime::Seconds()-Start;return R;
         },UE::Tasks::ETaskPriority::BackgroundNormal);
         LiveEvaluations.Add({Task,Control});

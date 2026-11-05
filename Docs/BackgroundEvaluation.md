@@ -89,3 +89,10 @@ The four Geology header rows and Planet Surface Distribution authoring layout
 remain those of [Planet Designer authoring](PlanetDesignerAuthoring.md). Independent
 watershed-local variation remains the next separate task. Multiplayer remains
 out of scope.
+
+
+Watershed debug geometry now derives in this same evaluation task after the final
+plan and measurements, with a measured **Building watershed view…** phase. It uses
+immutable analysis topology and native height queries; component upload waits for
+VPP to publish the corresponding terrain plan. No second work queue or streaming
+owner is added. See [Watershed debug view](WatershedDebugView.md).

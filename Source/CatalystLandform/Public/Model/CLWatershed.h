@@ -42,6 +42,8 @@ public:
     const TArray<FCLWatershedCell>& GetCells() const {return Cells;}
     const TArray<FCLWatershedChannel>& GetChannels() const {return Channels;}
     const TArray<FCLWatershedChannel>& GetDrainageLinks() const {return DrainageLinks;}
+    /** Retained native analysis topology; read-only access for derived diagnostics. */
+    const TArray<FIntVector>& GetTriangles() const {return Triangles;}
     int32 ConditionedReaches=0;
     double ReferenceRadiusMeters=0,TotalAreaSquareMeters=0,InputDischarge=0,TerminalDischarge=0,OceanExport=0,ClosedInput=0,MaximumEdgeMeters=0,MaximumLakeDepthMeters=0;
     int32 OceanCells=0,LakeCells=0,Catchments=0,ClosedTerminals=0;

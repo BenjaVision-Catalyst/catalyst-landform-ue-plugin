@@ -3,7 +3,7 @@
 #include <atomic>
 struct FCLCompiledPlanetRecipe;
 struct FCLPreparedPlanetCompile;
-enum class ECLCompileStage:uint8 {Preparing,Geology,Elevation,Drainage,Complete};
+enum class ECLCompileStage:uint8 {Preparing,Geology,Elevation,Drainage,Presentation,Complete};
 /** Per-evaluation plain state. No widget, mutable authoring asset or UObject lookup is used by a worker. */
 struct CATALYSTLANDFORM_API FCLCompileProgress
 {

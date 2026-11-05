@@ -1,0 +1,146 @@
+{
+  "date": "2026-11-05",
+  "passed": true,
+  "scope": "Editor Watershed debug: connected ocean and shore-bounded potential lake surfaces, draped native spline paths, visibility during native camera LOD. Existing terrain/routing algorithms unchanged.",
+  "baseComponentCommit": "d410833be8bf25a54b23ba5b96af69ba64648be8",
+  "baseWorkspaceCommit": "a5ddca5738408d17ea7ba690b15205f824691862",
+  "environment": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "platform": "mac-arm64 Metal SM6",
+    "hardware": "Apple M3 Max 128 GB"
+  },
+  "nativeReuse": {
+    "terrain": "Unchanged native VPP presenter, generation, stamp/material features, LOD and collision",
+    "display": "UE GeometryCore Dynamic Mesh/normal overlays/native fan splitting; existing UE translucent material; native FInterpCurveVector linear spline data and screen-space PDI lines",
+    "workOwner": "Existing FCLRecipeEvaluation task, cancellation, latest-result fence and shutdown join; no second queue or streaming manager",
+    "audit": "Installed VPP height/volume spline stamps are terrain producers. UE Water lake meshes flatten spline polygons to local XY/Z=0 and ocean bodies require a flat surface; these do not directly implement the required spherical read-only debug view. Native USplineComponent.Draw adds editing handles and twenty redundant substeps per already-draped segment. See Docs/WatershedDebugView.md."
+  },
+  "behavior": {
+    "ocean": "Only the connected reference ocean classification, at OceanHeight; not every below-sea depression",
+    "lakes": "Connected potential lake cells grouped by spill level; shore-clipped translucent constant-radial-level surfaces",
+    "shore": "Retained analysis topology plus eight native-height bisection rounds; native saddle-fan splitting preserves positions",
+    "paths": "Final selected receiver chains preserve junctions and channel classes, stop at water shores, and use four native-height drape samples per edge; linear native interpolation avoids cubic overshoot",
+    "visibility": "Uses native PublishedPlan identity instead of IsUpdating; previous terrain/debug pair retained until replacement publishes",
+    "controls": "Existing per-layer indicator icon; reference ocean sphere suppressed while debug is on; no new persisted controls or water assets"
+  },
+  "validation": {
+    "uniqueChecks": 17,
+    "testStates": {
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.PlanetBuilder.DisplayOcean": "Success",
+      "Catalyst.Landform.Watershed.CharacterAndPhysicalResolution": "Success",
+      "Catalyst.Landform.Watershed.ContinentalRockIntegration": "Success",
+      "Catalyst.Landform.Watershed.DebugGeometry": "Success",
+      "Catalyst.Landform.Watershed.DebugRenderedNavigation": "Success",
+      "Catalyst.Landform.Watershed.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Watershed.FinalTopologyAndRunoff": "Success",
+      "Catalyst.Landform.Watershed.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Watershed.NativeZeroSetAndClosurePolicies": "Success",
+      "Catalyst.Landform.Watershed.OceanLakeAndClosedBasin": "Success",
+      "Catalyst.Landform.Watershed.ScopeBoundaries": "Success",
+      "Catalyst.Landform.Watershed.VersionsGeologyAndVolumes": "Success"
+    },
+    "runs": {
+      "qualification": {
+        "succeeded": 17,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      },
+      "final": {
+        "succeeded": 3,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      }
+    },
+    "finalRerunRationale": "After the 17-check regression run passed, image review led to the renderer-only native pixel-width fix and explicit paths-only pixel assertion. All three affected authoring/rendered checks were rerun on final source.",
+    "geometry": {
+      "waterTriangles": 22102,
+      "bodies": 6,
+      "shoreSegments": 4016,
+      "paths": 218,
+      "routingEdges": 2671,
+      "maxShoreErrorMeters": 0.010348,
+      "seconds": 0.074
+    },
+    "navigation": {
+      "frames": 180,
+      "nativeBusyFrames": 180,
+      "p95Ms": 21.432001,
+      "maxInputMs": 0.031918,
+      "waterTriangles": 22102,
+      "shoreSegments": 4016,
+      "paths": 218,
+      "buildSeconds": 0.080386
+    },
+    "checked": [
+      "Native manifold mesh validity, independent distinct lake levels and radial water elevations",
+      "Shore points agree with final native terrain within 0.5 m in the bounded fixture; measured error recorded above",
+      "Every selected receiver edge appears once; native drape samples match field, no cubic overshoot",
+      "No invented all-ocean rivers or all-land water, disabled-layer output absent, cancellation honored",
+      "Same-view off/on rendered water; separate paths-only pixels; native ocean-reference suppression/restoration",
+      "All navigation frames retain visible indicators during native LOD; no new recipe input or inspection copies; one native owner",
+      "Background derivation and old/new native publication pairing",
+      "Existing Watershed topology, physical resolution/refusal, reference runoff, persistence, geology/volume composition, native zero set, authoring/Undo and background lifecycle checks"
+    ],
+    "protectedInputs": {
+      "root": 184,
+      "review": 177
+    },
+    "assetRegeneration": false,
+    "recipeMigration": false,
+    "runtimeTerrainOrRoutingAlgorithmChange": false,
+    "cookedRuntimeRerun": false,
+    "build": "Succeeded; existing deprecated CompressImageArray calls in unchanged legacy screenshot helpers still warn",
+    "initialCorrections": [
+      "Native mesh validity exposed wet patches meeting only at saddle vertices; fixed with native fan splitting and numerical level tolerance.",
+      "Image review exposed world-unit line widths; fixed with native bScreenSpace pixel widths and an independent rendered-path assertion."
+    ]
+  },
+  "sourceSHA256": {
+    "Source/CatalystLandform/Public/Model/CLCompileProgress.h": "ae86d72e46a12f331a427ea812d3ee9a2448b11168de3dba3ca778aadceee946",
+    "Source/CatalystLandform/Public/Model/CLWatershed.h": "325309ad76748c250409d194c2b11ef2fea4052993299672b2e558a5946bbe08",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "0987908560f01bc6ce8a8cf3cc749af8e12d76b9c48acabf77c60cedaa564fb2",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "8d05ec0fc590846aaa5989f54f2e58fa25b422c9c87a83f1e2538c88707425f2",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "f1cf14a6a3ed01daf8213d070a372d33d4d7ed4a22aa421dc7c917e3e0dcc43d",
+    "Source/CatalystLandformEditor/Private/CLRecipeEvaluation.cpp": "81ba52e3326901a7e5ebac72708ae4c68f616565a8cd82ef773d2b304b78a587",
+    "Source/CatalystLandformEditor/Private/CLRecipeEvaluation.h": "7972f121863a2e5e353ca2822fb50d2092e188919d73be01bd0723ce73117711",
+    "Source/CatalystLandformEditor/Private/CLWatershedDebug.cpp": "62ea19f75971aaa82b50a69fd7a1242521421755db2499337ed40f034d87e91d",
+    "Source/CatalystLandformEditor/Private/CLWatershedDebug.h": "cdae75e29154040d25023188eec6193316fd80524151a117ab35aef49f6f7a75",
+    "Source/CatalystLandformEditor/Private/CLWatershedDebugTests.cpp": "6134332caccb292a62af282a79eab5c05f15e5bdb3a5fd25772c3a180d3924e2"
+  },
+  "artifactSHA256": {
+    "qualification-index.json": "b36d8e0ed93d75f5389998fa554f762808258cb119a911968ca4d2b6cb2a3bef",
+    "final-index.json": "457bde81ee3abd54ddac3ebecd67b9ef5eb2bb831ccaa1bba315513a2f80100c",
+    "navigation.json": "4369d924401c02be4bc698afe3ee59f6d20a71d33da1687fd501caec843bc084",
+    "geology.png": "745fc85a076069f6ed4e299a797696cdf9d3b6ad14f0c8ae89ad805003214c75",
+    "continental.png": "b1b20c49a409bfefde34f60cfe80ad93e33b3d289fd95f528f3762e5c0055c1c",
+    "off.png": "f55210d9e34c064b97c14b81854548be0d068d1ee6537c297b20a4dbb954e207",
+    "ocean.png": "b0e201c20b7b7764f530070245805198075ad5cf332e58cf36d343d7f830d94f",
+    "lake.png": "7e90fb4973ae480065b92cb046bc890407cd815f82b0c13a7cd13bd40648583f",
+    "raised-lake.png": "8b122af58062a6961bab3b5d4ad0f37335e3a33feb3338e091f1a6e6255e2356",
+    "paths-only.png": "171f9a61f0a1628fab3848de5b39d933808afc7473818970a068518bdf12f825",
+    "navigation.png": "a3425686a0ffe9d5062b99ab8995e21d4001e24ad37561e5b365764c61f6c472",
+    "replacement.png": "64431fb52f1b7899ff7e52edb55194ebc2e19f46c6da5ddcc45dd5a7f586cf67"
+  },
+  "visuallyReviewed": [
+    "ocean.png",
+    "lake.png",
+    "paths-only.png",
+    "navigation.png",
+    "continental.png"
+  ],
+  "limits": [
+    "This is potential fill-to-spill water and static drainage, not present water stage, flowing-water simulation or gameplay water.",
+    "Finite graph resolution limits shoreline topology and path selection; refinement cannot recover unsampled islands or channels.",
+    "Flat analytic terrain reveals angular finite-grid routes and ponding along conditioned corridors; debug visibility is not a new realism qualification of the existing hydrology.",
+    "Diagnostic lines use front-hemisphere foreground presentation, not physical occlusion.",
+    "Post-mining/dam drainage invalidation, closed-basin current levels, global metre-scale drainage, cooked water and multiplayer remain unqualified."
+  ]
+}

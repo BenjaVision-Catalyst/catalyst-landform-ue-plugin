@@ -129,8 +129,12 @@ Undo. In **Preview**, **Focus largest channel** points the existing globe camera
 reach and marks it for the existing **Walk here** host. The indicator icon beside
 the Watershed eye toggles the existing globe diagnostics (initially off), independently
 of terrain visibility. There is no duplicate Preview checkbox:
-blue marks active graded reaches, grey final routing and cyan potential lake rims.
-Overlays wait for native terrain publication and are diagnostics, not water meshes.
+blue splines mark active graded reaches, muted blue marks other selected final
+routing, and translucent surfaces display the connected ocean and shore-bounded
+potential lakes. Water is diagnostic geometry, not a water simulation. Geometry
+is paired with native terrain publication and remains visible during camera LOD.
+See the [debug-view contract](WatershedDebugView.md) for potential fill levels,
+shoreline refinement and remaining resolution/edit limitations.
 Watershed previews retain native VPP final quality 4 and draft quality 1. The
 historical quality-8 trial exceeded an inspection budget, not a native VPP
 presentation limit. Dense inspection is now explicit/lazy; it does not cap

@@ -29,6 +29,7 @@
 #include "Async/Async.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanetPreview.h"
+#include "CLWatershedDebug.h"
 #include "CLNativePreview.h"
 #include "CLPlanetInspection.h"
 #include "Containers/Ticker.h"
@@ -671,6 +672,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SSlider> ElevationSlider;
     TSharedPtr<IPropertyHandle> RegionProperties;
     TSharedPtr<const FCLCompiledPlanetRecipe> AcceptedSurfacePlan;
+    TSharedPtr<const FCLWatershedDebugGeometry> AcceptedWatershedDebug;
     FCLRecipeEvaluation Evaluation;
     TSharedPtr<const FCLPreparedPlanetCompile> PreparedEdit;
     TOptional<FCLPlanetRecipe> PreparedEditRecipe,RequestedRecipe;
@@ -1185,7 +1187,7 @@ public:
             if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(R->Plan.IsValid());}
             LastEvaluationSeconds=R->Seconds;LastEvaluationWasWorker=R->WorkerThread;
             if(!R->Plan){bPreviewInvalid=true;InspectorError=Status=R->Error;return;}
-            bPreviewInvalid=false;InspectorError.Reset();PublishedEvaluation=R->Serial;AcceptedSurfacePlan=R->Plan;
+            bPreviewInvalid=false;InspectorError.Reset();PublishedEvaluation=R->Serial;AcceptedSurfacePlan=R->Plan;AcceptedWatershedDebug=R->WatershedDebug;
             MeasuredElevation=MoveTemp(R->Elevation);ElevationReadout=MoveTemp(R->ElevationReadout);MeasuredRockBeds=R->Beds;TargetRockBeds=MoveTemp(R->TargetBeds);
             PublishPlan(R->Plan);
         }
@@ -1203,7 +1205,7 @@ public:
             {
                 if(!TerrainEditing && bGlobe){Preview->CancelPendingBuild();Preview->Client->Plan=Plan;}
                 else if (TerrainEditing || !Plan->Regions.IsEmpty() || !Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
-                if(Globe && !TerrainEditing){if(bGlobe)Globe->Rebuild(Plan);else Globe->Cancel();}
+                if(Globe && !TerrainEditing){if(bGlobe)Globe->Rebuild(Plan,AcceptedWatershedDebug);else Globe->Cancel();}
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
@@ -1221,6 +1223,7 @@ public:
         case ECLCompileStage::Geology:Caption=TEXT("Building geology…");break;
         case ECLCompileStage::Elevation:Caption=TEXT("Calibrating terrain…");break;
         case ECLCompileStage::Drainage:Caption=TEXT("Building drainage…");break;
+        case ECLCompileStage::Presentation:Caption=TEXT("Building watershed view…");break;
         default:Caption=TEXT("Finishing terrain…");break;
         }
         const uint64 Work=Evaluation.Work();if(uint32(Work>>32))Caption+=FString::Printf(TEXT(" · %u / %u"),uint32(Work),uint32(Work>>32));
@@ -2833,7 +2836,7 @@ bool FCLWatershedRenderedTest::RunTest(const FString&)
             }
             if(++Index==6)return Close();FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Index>=4?TEXT("Examples/WatershedContinental.json"):TEXT("Examples/Watershed.json"))));
             TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){Test->AddError(E);return Close();}auto R=A->Recipe;R.Watershed.bEnabled=Index!=0;R.Watershed.ApplyProgression(Index==1?0:Index==3||Index==5?1:.5);const auto P=FCLPlanetCompiler::Compile(R,E);if(!P){Test->AddError(E);return Close();}
-            Globe->Rebuild(P);Globe->Frame();Globe->SetWatershedOverlay(Index==1||Index==2||Index==4);if(Index>=2&&Index!=4)Test->TestTrue(TEXT("A generated graded reach can be focused for inspection/walking"),Globe->FocusWatershed());Section->Rebuild(P);Started=Now;Stable=0;return false;
+            Globe->Rebuild(P,FCLWatershedDebugGeometry::Build(*P));Globe->Frame();Globe->SetWatershedOverlay(Index==1||Index==2||Index==4);if(Index>=2&&Index!=4)Test->TestTrue(TEXT("A generated graded reach can be focused for inspection/walking"),Globe->FocusWatershed());Section->Rebuild(P);Started=Now;Stable=0;return false;
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Globe,Section,Window,Content));return true;
