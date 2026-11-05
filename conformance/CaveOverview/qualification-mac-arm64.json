@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "status": "Qualified planet-wide native cave surfaces with unchanged camera; supersedes the rejected automatic focus/select interaction",
+  "baseRevisions": {
+    "component": "a4cde6c02304ed7027aed2f8600d4584e6c88e42",
+    "workspace": "adbb704808056d3d19c928722ca1d984bf5e4682"
+  },
+  "platform": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "architecture": "macOS arm64",
+    "hardware": "M3 Max, 128 GiB",
+    "configuration": "LandformLabEditor Mac Development",
+    "host": "/private/tmp/landform-background/LandformLab"
+  },
+  "contract": {
+    "toggle": "Dim the existing surface and show every generated cave surface together, including the far hemisphere; toggle off restores normal lighting",
+    "camera": "Preserve camera, selection and ordinary globe orbit/pan/zoom on toggle and accepted input changes",
+    "removed": [
+      "Automatic cave zoom/framing",
+      "Cave network picking/focus mode",
+      "Cave handles and marker substitutes",
+      "Cave-specific navigation state and key handling"
+    ],
+    "scale": "Actual physical cave dimensions. Narrow fissures occupy few pixels when the kilometre-scale planet is framed; no exaggerated widths or substitute geometry."
+  },
+  "diagnosis": {
+    "data": "All networks were already present in the accepted cave field. There was no single-network generation filter.",
+    "baseline": "After removing focus, native quality 4 on the earlier single planet-spanning diagnostic domain produced zero native cave vertices for two generated networks at globe framing.",
+    "rejectedGlobalRefinement": "Native quality 8192 on that same domain reached voxel.MaxRenderChunks and still failed the all-surface check.",
+    "nativeSource": [
+      "Voxel/Private/Render/VoxelScreenSizeHelper.h: camera distance and chunk-size quality selection",
+      "Voxel/Private/Render/VoxelRenderSubsystem.cpp: one BoundsToGenerate box, depth measured from voxel-world origin",
+      "Voxel/Private/Render/VoxelRenderTree.cpp: native subdivision and voxel.MaxRenderChunks admission"
+    ],
+    "correction": "A static, tightly bounded and centered native VPP domain per network. All domains remain active together and are independent of camera direction. Native layers/stacks isolate each domain. The source stamp retains canonical body coordinates."
+  },
+  "ownership": {
+    "native": "VPP owns shape/blend/AABB kernels, native voxel-domain meshing, subdivision/LOD, render components, material binding and publication. UE owns translucent depth-disabled diagnostic shading and visibility. Main terrain generation, presentation, quality, collision and sculpt/save remain native.",
+    "specialization": "Select the existing operations for a stable network identity, clip actual cave air against natural rock and final air/backfill, compose the native diagnostic domains and pair them with accepted terrain publication.",
+    "notAdded": [
+      "Custom voxel mesher",
+      "Copied-mesh presentation",
+      "Cave generation replacement",
+      "Camera-based streaming manager",
+      "New cave families",
+      "Recipe schema or diagnostic material UAssets"
+    ],
+    "nativeConfiguration": {
+      "inspectionVoxelSizeDisplayCm": 10,
+      "inspectionEditorQuality": [
+        8192,
+        8192
+      ],
+      "mainTerrainEditorQuality": [
+        4,
+        4
+      ],
+      "diagnosticCollision": false
+    },
+    "lifecycle": "Retain native owners by stable network identity across accepted edits; create/retire domains only for changes to the generated network set. Hide only native mesh components, not source actors. No recipe/stamp input or mesh copying during navigation.",
+    "progress": "Existing input-progress display reports native cave-network readiness; navigation does not trigger authoring progress."
+  },
+  "validation": {
+    "checks": 56,
+    "failed": 0,
+    "notRun": 0,
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Caves.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Caves.EligibilityAndVersions": "Success",
+      "Catalyst.Landform.Caves.InspectionVolume": "Success",
+      "Catalyst.Landform.Caves.KnobAndBackground": "Success",
+      "Catalyst.Landform.Caves.NativeFieldsAndPersistence": "Success",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii": "Success",
+      "Catalyst.Landform.PlanetBuilder.Navigation": "Success",
+      "Catalyst.Landform.PlanetLayers.CalibratedRange": "Success",
+      "Catalyst.Landform.PlanetLayers.CompositionAndSeeds": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.PlanetLayers.NativePersistenceAndLegacy": "Success",
+      "Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean": "Success",
+      "Catalyst.Landform.PlanetLayers.VariationPublication": "Success",
+      "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": "Success",
+      "Catalyst.Landform.Provinces.DefinitionsAndEvidence": "Success",
+      "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": "Success",
+      "Catalyst.Landform.Provinces.PackagedLibrary": "Success",
+      "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+      "Catalyst.Landform.Regions.StructureAndPalette": "Success",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections": "Success",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.MetricBasinAndFoldContacts": "Success",
+      "Catalyst.Landform.Rock.MetricBedDistribution": "Success",
+      "Catalyst.Landform.Rock.MetricScaleAndCompactHistory": "Success",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+      "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering": "Success",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": "Success",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts": "Success",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success",
+      "Catalyst.Landform.Watershed.DebugRenderedNavigation": "Success"
+    },
+    "nativeOverview": {
+      "frames": 90,
+      "p95Ms": 15.611332,
+      "normalSurfaceLuma": 195.728036,
+      "debugSurfaceLuma": 24.231788,
+      "cyanPixels": 61,
+      "networks": 2,
+      "nativeNetworks": 2,
+      "nativeVertices": 77374,
+      "maxFieldResidualMeters": 0.072189,
+      "cameraMovedByToggle": false,
+      "inputStartsDuringNavigation": 0,
+      "meshCopiesDuringNavigation": 0
+    },
+    "maximumKnob": {
+      "character": 100,
+      "networks": 3,
+      "nativeNetworks": 3,
+      "nativeVertices": 160362,
+      "maxFieldResidualMeters": 0.072626,
+      "cameraMovedByInput": false
+    },
+    "assertions": [
+      "Every generated network has native mesh vertices at the unchanged globe view.",
+      "Every projected network has native highlighted surface pixels. Pixel classification accounts for native tone mapping and subpixel terrain coverage.",
+      "Far-hemisphere network surfaces contribute actual visible pixels through the planet.",
+      "Toggling and accepted cave edits do not move or rotate the camera.",
+      "Native per-network fields and bounds exclude other networks and retain canonical clipping/backfill behavior.",
+      "90 navigation frames retain all native presenters, start no diagnostic input, copy no meshes and show no input progress.",
+      "An entrance edit retains all existing native domain owners.",
+      "100 progression presents all three generated networks with no camera change.",
+      "Cold native user asset roundtrips its own payload and is not replaced by a fixture."
+    ],
+    "preservation": {
+      "root-protected": {
+        "files": 28,
+        "changed": 0
+      },
+      "plugin-content-protected": {
+        "files": 115,
+        "changed": 0
+      },
+      "review-protected": {
+        "files": 179,
+        "changed": 0
+      }
+    },
+    "sourceSha256": {
+      "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "7bbf6a76d31aed0f0e35978c6d9a4c8bee4fefe48ddb85adc46ec1f67542a2cf",
+      "Source/CatalystLandform/Private/Scene/CLScene.cpp": "bd8062cdc5a8a212d03d2fd86080e82f08a81c234b6fe5ca014b2990a53de585",
+      "Source/CatalystLandform/Public/CLPlanetStamp.h": "ac2e5cc20dfdfc11fcfb612caa1dab0c6eed18e5919357036251a88b79580c01",
+      "Source/CatalystLandform/Public/Scene/CLScene.h": "7fb9702bca61340af7dc5f1b0c3b357690a11ff13777b46d70d3edd5ed3991cd",
+      "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "224db0be1093d4f2c18f1d269f42cd857cb80dc75bab3d8b10ecd33673c0e2a5",
+      "Source/CatalystLandformEditor/Private/CLNativePreview.h": "b797a9deef88872028d988a8ed510a83e2b01af6b734dafd10d31c9e33fc33b1",
+      "Source/CatalystLandformEditor/Private/CLPlanetNavigation.cpp": "01d0656b40d35706c9233792197dfce0c5dc8c58673847b43487dbd196d9b9e6",
+      "Source/CatalystLandformEditor/Private/CLPlanetNavigation.h": "c19eeeb5749659808194ee01bf9ab4cb53dafcb916ee967e8926988e4f9dbb8b",
+      "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "33c192e740d94504f734c72b5f7be1d79a9f5c01112adc38f2aaa72ab7b37172",
+      "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "5419f79c1d27c25a6f970432117b5878c9db640824cf8e49118659f73bb879be",
+      "Source/CatalystLandformTests/Private/CLCaveTests.cpp": "6ef8d7445a054f77bf7f6469c80bacc1a6e629d15d32a8b0dc319b78f2dd4f7a"
+    }
+  },
+  "limits": [
+    "Frozen 2 km body recipe at 65 and 100; arbitrary advanced dimensions, larger scales and all possible profiles are not qualified by this run.",
+    "Native voxel sampling approximates the analytic cave field; maximum sampled field residual is recorded, not a global geometric error bound.",
+    "Current generator remains the bounded structural fissure family, not karst, lava tubes or large caverns.",
+    "No new cooked cave walking, mining, collision or sculpt-save qualification. No production streaming architecture is inferred from the editor domain layout."
+  ]
+}

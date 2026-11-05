@@ -33,9 +33,9 @@ UVoxelMegaMaterial* CaveInspectionMaterial()
     M->GetEditorOnlyData()->Opacity.UseConstant=true;M->GetEditorOnlyData()->Opacity.Constant=1;
     auto* N=NewObject<UMaterialExpressionPixelNormalWS>(M);auto* Direction=NewObject<UMaterialExpressionConstant3Vector>(M);Direction->Constant=FLinearColor(.3,-.4,.85);
     auto* Dot=NewObject<UMaterialExpressionDotProduct>(M);Dot->A.Expression=N;Dot->B.Expression=Direction;
-    auto* Half=NewObject<UMaterialExpressionMultiply>(M);Half->A.Expression=Dot;Half->ConstB=.45;
-    auto* Shade=NewObject<UMaterialExpressionAdd>(M);Shade->A.Expression=Half;Shade->ConstB=.55;
-    auto* Color=NewObject<UMaterialExpressionConstant3Vector>(M);Color->Constant=FLinearColor(.001,.16,.24);
+    auto* Half=NewObject<UMaterialExpressionMultiply>(M);Half->A.Expression=Dot;Half->ConstB=.3;
+    auto* Shade=NewObject<UMaterialExpressionAdd>(M);Shade->A.Expression=Half;Shade->ConstB=.7;
+    auto* Color=NewObject<UMaterialExpressionConstant3Vector>(M);Color->Constant=FLinearColor(.0001,.8,1.3);
     auto* Result=NewObject<UMaterialExpressionMultiply>(M);Result->A.Expression=Shade;Result->B.Expression=Color;
     for(auto* E:TArray<UMaterialExpression*>{N,Direction,Dot,Half,Shade,Color,Result})M->GetExpressionCollection().AddExpression(E);
     M->GetEditorOnlyData()->EmissiveColor.Expression=Result;M->PostEditChange();
@@ -45,6 +45,7 @@ UVoxelMegaMaterial* CaveInspectionMaterial()
 }
 void FCLNativePreview::SetVisible(bool Visible)
 {
+    if(IsCaveOverview()){for(const auto& N:CaveNetworks)N->SetVisible(Visible);return;}
     if(!Native)return;
     // Hiding the actor also disables its source stamp in VPP. Hide only the
     // native render components so inspection toggles retain the accepted field.
@@ -66,13 +67,30 @@ FVoxelVolumeTransform FCLNativePreview::StampToDisplay()const
 FCLNativePreview::~FCLNativePreview(){Reset();}
 void FCLNativePreview::Reset()
 {
-    Pending.Reset();VisiblePlan.Reset();Plan.Reset();Stamp.Reset();
+    CaveNetworks.Reset();Pending.Reset();VisiblePlan.Reset();Plan.Reset();Stamp.Reset();
     if(Native){Native->DestroyRuntime();Native->Destroy();Native.Reset();}
     Last=FBuffers();InspectionHash=0;PublishedHash=0;AwaitingPublication=false;Failure.Reset();
 }
 bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRecipe> Input,bool Flat,double Area,FString& Error,bool Draft)
 {
     if(!Input){Error=TEXT("Native preview requires an accepted compiled recipe");return false;}
+    if(IsCaveOverview())
+    {
+        if(!Input->Caves||!Input->Caves->Cutters){Error=TEXT("Native cave overview requires generated caves");return false;}
+        TArray<FGuid> Ids;for(const auto& S:Input->Caves->Segments)Ids.AddUnique(S.Network);
+        CaveNetworks.RemoveAll([&](const auto& N){return !Ids.Contains(N->CaveNetwork);});
+        for(const auto Id:Ids)
+        {
+            auto* Found=CaveNetworks.FindByPredicate([&](const auto& N){return N->CaveNetwork==Id;});
+            if(!Found){CaveNetworks.Add(MakeUnique<FCLNativePreview>(true,Id));Found=&CaveNetworks.Last();}
+            if(!(*Found)->Start(World,Input,false,Area,Error,false))return false;
+        }
+        Plan=MoveTemp(Input);
+#if WITH_DEV_AUTOMATION_TESTS
+        ++Metrics.Starts;
+#endif
+        Error.Reset();return true;
+    }
     if(!Native)
     {
         FActorSpawnParameters Params;Params.ObjectFlags=RF_Transient;Params.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -107,13 +125,24 @@ bool FCLNativePreview::ApplyPending()
     // Scale the stamp through VPP's supported transform, never the voxel world
     // or the produced mesh. Native LOD sees the same geometry the viewport sees.
     const FVector Scale=Section?FVector(1000./Width,1000./Width,1000./Plan->RadiusMeters):FVector(1000./Plan->RadiusMeters);
-    Stamp->SetRelativeScale3D(Scale);
+    if(CaveInspection&&CaveNetwork.IsValid())
+    {
+        FBox Bounds(ForceInit);for(int32 I=0;I<Plan->Caves->Segments.Num();++I)if(Plan->Caves->Segments[I].Network==CaveNetwork)Bounds+=Plan->Caves->Cutters->Operations[I].Bounds;
+        // Centre the native voxel domain around its own geometry. VPP's render
+        // tree is rooted at the voxel-world origin, so an offset planet-sized
+        // domain would still subdivide enormous empty regions at fine quality.
+        Native->SetActorLocation(Bounds.GetCenter()*100000/Plan->RadiusMeters);
+    }
+    Stamp->SetRelativeScale3D(Scale);if(CaveInspection)Stamp->SetWorldLocation(FVector::ZeroVector);
     FCLPlanetStamp Source;Source.bUseRecipe=true;Source.CompiledRecipe=Plan;Source.Radius=Plan->RadiusMeters*100;
     check(Plan->SourceRecipe);Source.Recipe=*Plan->SourceRecipe;
-    Source.bCaveInspectionPreview=CaveInspection;
+    Source.bCaveInspectionPreview=CaveInspection;Source.CaveInspectionNetwork=CaveNetwork;
     Source.Layer=CaveInspection?Native->LayerStack->VolumeLayers[0].Get():UVoxelVolumeLayer::Default();Source.Behavior=CaveInspection?EVoxelStampBehavior::AffectShape:EVoxelStampBehavior::AffectAll;Source.Smoothness=0;Source.BoundsExtension=.05;
     Source.bSectionPreview=Section;Source.SectionWidthMeters=Width;Source.SectionReferenceRadiusMeters=FCLSectionGeometry::ReferenceSurfaceRadius(*Plan);
-    Native->LODQuality.EditorQuality=AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
+    // A planet-wide cave diagnostic must retain thin voids even when terrain
+    // overview LOD would sample them away. VPP owns subdivision and meshing;
+    // this higher native quality applies only to the sparse inspection layer.
+    Native->LODQuality.EditorQuality=CaveInspection?FFloatInterval(8192,8192):AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
     auto Coordinates=MaterialCoordinates(StampToDisplay(),Section,Source.SectionReferenceRadiusMeters);
 #if WITH_DEV_AUTOMATION_TESTS
     if(!MaterialCoordinatesEnabled)Coordinates.High.A=0;
@@ -130,13 +159,16 @@ bool FCLNativePreview::ApplyPending()
     return true;
 }
 bool FCLNativePreview::IsUpdating()const
-{return Pending.IsValid()||(Native&&Failure.IsEmpty()&&(AwaitingPublication||!VisiblePlan||Native->IsProcessingNewState()||!Native->IsVoxelWorldReady()));}
+{if(IsCaveOverview())return Plan!=VisiblePlan||CaveNetworks.ContainsByPredicate([](const auto& N){return N->IsUpdating();});return Pending.IsValid()||(Native&&Failure.IsEmpty()&&(AwaitingPublication||!VisiblePlan||Native->IsProcessingNewState()||!Native->IsVoxelWorldReady()));}
 bool FCLNativePreview::IsApplyingInput()const
-{return Failure.IsEmpty()&&(Pending.IsValid()||(Native&&(AwaitingPublication||Plan!=VisiblePlan)));}
+{if(IsCaveOverview())return Plan!=VisiblePlan||CaveNetworks.ContainsByPredicate([](const auto& N){return N->IsApplyingInput();});return Failure.IsEmpty()&&(Pending.IsValid()||(Native&&(AwaitingPublication||Plan!=VisiblePlan)));}
 TOptional<float> FCLNativePreview::InputProgress()const
-{return !Pending&&IsApplyingInput()&&Native&&Native->IsProcessingNewState()?TOptional<float>(Native->GetProgress()):TOptional<float>();}
+{if(IsCaveOverview())
+    {float Sum=0;for(const auto& N:CaveNetworks){if(!N->IsApplyingInput()){Sum+=1;continue;}const auto P=N->InputProgress();if(!P.IsSet())return {};Sum+=P.GetValue();}return CaveNetworks.IsEmpty()?TOptional<float>():TOptional<float>(Sum/CaveNetworks.Num());}
+    return !Pending&&IsApplyingInput()&&Native&&Native->IsProcessingNewState()?TOptional<float>(Native->GetProgress()):TOptional<float>();}
 FString FCLNativePreview::InputProgressText()const
 {
+    if(IsCaveOverview()){int32 Ready=0;for(const auto& N:CaveNetworks)Ready+=N->PublishedPlan()==Plan&&!N->IsApplyingInput();return FString::Printf(TEXT("Generating cave surfaces · %d/%d native networks ready"),Ready,CaveNetworks.Num());}
     if(Pending)return TEXT("Preparing preview…");
     if(Native&&Native->IsProcessingNewState())return FString::Printf(TEXT("Generating preview · %.0f%% · %d native tasks remaining"),Native->GetProgress()*100,Native->GetNumPendingTasks());
     return TEXT("Publishing preview…");
@@ -144,6 +176,7 @@ FString FCLNativePreview::InputProgressText()const
 const void* FCLNativePreview::RuntimeIdentity()const{return Native?Native->GetRuntime().Get():nullptr;}
 bool FCLNativePreview::UsesNativePresentation()const
 {
+    if(IsCaveOverview())return !CaveNetworks.IsEmpty()&&!CaveNetworks.ContainsByPredicate([](const auto& N){return !N->UsesNativePresentation();});
     if(!Native||!VisiblePlan)return false;
     TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);int32 Count=0;
     for(auto* C:Components)if(C->IsRegistered()&&C->GetRenderProxy()){if(!C->IsVisible()||C->bHiddenInGame)return false;++Count;}
@@ -151,6 +184,7 @@ bool FCLNativePreview::UsesNativePresentation()const
 }
 FString FCLNativePreview::Status()const
 {
+    if(IsCaveOverview()){FString Result=InputProgressText();for(const auto& N:CaveNetworks)Result+=TEXT(" | ")+N->Status();return Result;}
     if(!Failure.IsEmpty())return Failure;if(!Native)return TEXT("No native producer");
     TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);
     return FString::Printf(TEXT("components %d, native producer/presenter %u, ready %d, processing %d, tasks %d, inspected vertices %d"),Components.Num(),Native->GetUniqueID(),Native->IsVoxelWorldReady(),Native->IsProcessingNewState(),Native->GetNumPendingTasks(),Last.Vertices.Num());
@@ -168,6 +202,12 @@ bool FCLNativePreview::Poll(bool)
 #if WITH_DEV_AUTOMATION_TESTS
     const double PollStart=FPlatformTime::Seconds();ON_SCOPE_EXIT{Metrics.MaxPollMs=FMath::Max(Metrics.MaxPollMs,(FPlatformTime::Seconds()-PollStart)*1000);};
 #endif
+    if(IsCaveOverview())
+    {
+        bool Changed=false,Ready=Plan.IsValid();uint32 Hash=0;
+        for(const auto& N:CaveNetworks){Changed|=N->Poll(true);Ready&=N->PublishedPlan()==Plan;Hash=HashCombine(Hash,N->PublishedHash);}
+        if(!Ready)return false;const bool Published=VisiblePlan!=Plan||PublishedHash!=Hash;VisiblePlan=Plan;PublishedHash=Hash;return Changed||Published;
+    }
     if(!Native||!Failure.IsEmpty())return false;
     ApplyPending();
     if(Pending||AwaitingPublication||!Plan||!Native->IsVoxelWorldReady()||Native->IsProcessingNewState())return false;
@@ -178,6 +218,16 @@ bool FCLNativePreview::Poll(bool)
 }
 const FCLNativePreview::FBuffers& FCLNativePreview::Published()const
 {
+    if(IsCaveOverview())
+    {
+        if(!VisiblePlan||VisiblePlan!=Plan||IsUpdating()||InspectionHash==PublishedHash)return Last;
+        FBuffers Next;for(const auto& N:CaveNetworks){const auto& M=N->Published();const int32 Offset=Next.Vertices.Num();Next.Vertices.Append(M.Vertices);Next.SourcePoints.Append(M.SourcePoints);for(const auto I:M.Triangles)Next.Triangles.Add(Offset+I);}
+        Last=MoveTemp(Next);InspectionHash=PublishedHash;
+#if WITH_DEV_AUTOMATION_TESTS
+        ++Metrics.MeshCopies;Metrics.VerticesCopied+=Last.Vertices.Num();
+#endif
+        return Last;
+    }
     if(!Native||!VisiblePlan||VisiblePlan!=Plan||IsUpdating()||InspectionHash==PublishedHash)return Last;
     TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);int32 Count=0;
     for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())Count+=Proxy->Mesh->Vertices.Num();
@@ -221,6 +271,8 @@ bool FCLNativePreview::PickGlobe(const FVector& A,const FVector& B,FVector& P)co
 bool FCLNativePreview::PickSection(const FVector& A,const FVector& B,FVector& P)const{return Section&&Pick(A,B,P);}
 
 #if WITH_DEV_AUTOMATION_TESTS
+TArray<uint32> FCLNativePreview::CaveWorldIdentities()const
+{TArray<uint32> Ids;for(const auto& N:CaveNetworks)Ids.Add(N->WorldIdentity());return Ids;}
 void FCLNativePreview::SetMaterialCoordinatesEnabledForTesting(bool Enabled)
 {MaterialCoordinatesEnabled=Enabled;FString Error;Start(*Native->GetWorld(),Plan,Section,Width,Error,AppliedDraft);}
 bool FCLNativePreview::CheckMaterialCoordinates(FString& Error)const

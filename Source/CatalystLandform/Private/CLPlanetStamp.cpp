@@ -131,6 +131,14 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
         }
         if((RecipePlan->Volumes||(RecipePlan->Caves&&RecipePlan->Caves->Cutters)||Stamp.Window.bEnabled)&&!Scene)return false; // No framed or volume fallback to a radial actor profile.
     }
+    if(Stamp.bCaveInspectionPreview&&Stamp.CaveInspectionNetwork.IsValid())
+    {
+        FCLVolumeSettings Selected;Selected.bEnabled=true;
+        const auto& C=*RecipePlan->Caves;
+        for(int32 I=0;I<C.Segments.Num();++I)if(C.Segments[I].Network==Stamp.CaveInspectionNetwork)Selected.Operations.Add(C.Cutters->Operations[I].Source);
+        FString Error;if(Selected.Operations.IsEmpty())return false;
+        InspectionCutters=FCLCompiledVolumes::Compile(Selected,RecipePlan->RadiusMeters,RecipePlan->Surfaces.Get(),Error);if(!InspectionCutters)return false;
+    }
     return true;
 }
 
@@ -143,7 +151,7 @@ FVector FCLPlanetStampRuntime::SectionToBodyMeters(const FVector& P,double Refer
 FVoxelBox FCLPlanetStampRuntime::GetLocalBounds() const
 {
     if(Stamp.bCaveInspectionPreview&&RecipePlan&&RecipePlan->Caves&&RecipePlan->Caves->Cutters)
-    {FBox3d Bounds(EForceInit::ForceInit);for(const auto& O:RecipePlan->Caves->Cutters->Operations)Bounds+=O.Bounds;return FVoxelBox(Bounds.Min*100,Bounds.Max*100);}
+    {FBox3d Bounds(EForceInit::ForceInit);const auto& Cutters=InspectionCutters?InspectionCutters:RecipePlan->Caves->Cutters;for(const auto& O:Cutters->Operations)Bounds+=O.Bounds;return FVoxelBox(Bounds.Min*100,Bounds.Max*100);}
     if(Stamp.Window.bEnabled)return FVoxelBox(Stamp.Window.BoundsCm());
     if(Stamp.bSectionPreview){const double H=Stamp.SectionWidthMeters*50.;return FVoxelBox(FVector(-H,-H,0),FVector(H,H,Extent));}
     return FVoxelBox(-Extent,Extent);
@@ -240,7 +248,7 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Quer
             }
             TArray<FCLSceneShapeSample> Samples;
             FString Error;
-            const bool bSampled = Stamp.bCaveInspectionPreview?Scene->SampleCaveVoid({BodyPositions},Samples,Error):Scene->SampleShape({BodyPositions}, Samples, Error);
+            const bool bSampled = Stamp.bCaveInspectionPreview?Scene->SampleCaveVoid({BodyPositions},Samples,Error,InspectionCutters.Get()):Scene->SampleShape({BodyPositions}, Samples, Error);
             checkf(bSampled, TEXT("Compiled point scene query failed: %s"), *Error);
             for (int32 I = 0; I < Count; ++I)
             {

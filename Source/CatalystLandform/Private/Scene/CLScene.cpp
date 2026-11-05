@@ -90,7 +90,7 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
     return true;
 }
 
-bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error)const
+bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error,const FCLCompiledVolumes* SelectedCutters)const
 {
     Out.Reset();if(!ValidateQuery(Query,Error))return false;Out.SetNum(Query.PositionsMeters.Num());
     for(int32 Start=0;Start<Out.Num();Start+=SampleBatchSize)
@@ -99,7 +99,9 @@ bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSam
         for(int32 I=0;I<Count;++I)Positions.Add(IsFinitePosition(Query.PositionsMeters[Start+I])?Query.PositionsMeters[Start+I]:FVector::ZeroVector);
         TArray<double> H,Natural;RadialPlan->SampleHeightsMeters(Positions,H);RadialPlan->SampleRadialFields(Positions,H,Natural);
         TArray<double> Air;Air.Init(-1.,Count);auto Cut=Natural;
-        if(RadialPlan->Caves&&RadialPlan->Caves->Cutters){Air.Init(FVoxelUtilities::NaNf(),Count);RadialPlan->Caves->Cutters->ComposeBatch(Positions,Air);RadialPlan->Caves->Cutters->ComposeBatch(Positions,Cut);}
+        const auto* AirCutters=SelectedCutters?SelectedCutters:(RadialPlan->Caves?RadialPlan->Caves->Cutters.Get():nullptr);
+        if(AirCutters){Air.Init(FVoxelUtilities::NaNf(),Count);AirCutters->ComposeBatch(Positions,Air);}
+        if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)RadialPlan->Caves->Cutters->ComposeBatch(Positions,Cut);
         auto Final=Cut;if(RadialPlan->Volumes)RadialPlan->Volumes->ComposeBatch(Positions,Final);
         for(int32 I=0;I<Count;++I)
         {

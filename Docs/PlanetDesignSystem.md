@@ -1960,15 +1960,18 @@ The [qualification](../conformance/Caves/qualification-mac-arm64.json) separates
 field/recipe/editor evidence from the remaining cooked gameplay qualification.
 
 
-## Connected cave inspection — 5 November 2026
+## Planet-wide cave inspection — 5 November 2026
 
-The initial cutter-wire diagnostic was insufficient for reading a cave network.
-The [connected cave inspection](Caves.md#connected-inspection-qualification--5-november-2026)
-now presents the actual cave-air volume through native VPP's own mesh components,
-in a unique native volume layer/stack with a custom native MegaMaterial. Surface
-clipping and authored backfill use the shared scene field; no alternative mesher
-or streaming manager is introduced. Enabling the existing indicator frames a
-network, ordinary orbit/pan/zoom inspects it, and F/Frame returns to the globe for
-clicking another network. Both native preview owners survive accepted cave edits.
-The 56-check native editor qualification retains the existing fissure-family scope
-and leaves cooked cave gameplay qualification explicit.
+Cave debug is an all-cave display toggle. It dims the planet and reveals every
+generated cave surface, including the far hemisphere, while leaving the current
+camera, selection and ordinary navigation unchanged. The automatic network focus,
+picking and zoom from the earlier inspection experiment were rejected and removed.
+
+The [native presentation audit and qualification](Caves.md#native-ownership-and-feature-audit)
+showed that terrain overview quality erased thin cave surfaces, while uniformly
+refining a single planet-spanning native domain hit VPP's chunk limit. All networks
+now render together through tightly bounded, centred native VPP diagnostic domains,
+each with an isolated native layer/stack and native quality configuration. VPP owns
+all voxel execution and presentation. This adds no alternative mesher, cave
+formation path or production streaming manager. Current structural-fissure scope
+and the remaining cooked cave gameplay qualification are unchanged.

@@ -18,19 +18,20 @@ switches cave inspection on independently of the eye. No additional tab, preview
 checkbox, selector or settings panel is introduced. **Landforms → Include** remains
 the sole default choice of available regional Landforms.
 
-Cave inspection dims the existing native preview lighting and presents the actual
-connected cave void in shaded cyan through the surface. Enabling it frames a
-network automatically. Left drag orbits, middle drag pans and the wheel zooms
-around that network. **F** or the existing **Frame** control returns to the whole
-planet; click a cyan network handle to inspect another. Turning inspection off
-restores normal lighting. These display preferences never alter the saved recipe.
-The debug view is currently a globe diagnostic.
+The cave indicator dims the existing native preview lighting and shows the
+surfaces of **all generated caves together**, in shaded cyan through the planet,
+including the far hemisphere. It keeps the current camera, selection and ordinary
+globe navigation unchanged. Turning it off hides those surfaces and restores the
+lighting. There is no cave focus mode, automatic zoom, network picking or handle.
+Caves keep their actual physical dimensions; a metre-wide passage occupies very
+few pixels when the whole kilometre-scale planet is framed.
 
 The volume is the intersection of generated cave air, the original rock and the
 final air after authored earthworks. Entrance cutters stop at the actual surface,
 backfill removes filled portions, and unrelated excavations are not highlighted.
 This replaces the initial tiny capsule outlines/axes, which did not make the
-connected passages readable or permit useful close-up inspection.
+connected passages readable. The subsequent automatic focus/select experiment
+was rejected: debug is an all-cave display preference, not a navigation mode.
 
 ## Native ownership and feature audit
 
@@ -44,21 +45,38 @@ subtraction blend and conservative AABB index. Its previously qualified capsule
 coordinate specialization is reused; no spline-distance implementation, voxel
 mesher, alternative presentation platform, scheduler or streaming manager is added.
 
-Native UE lighting provides dimming. VPP's native volume layers and layer stack
-isolate an additional diagnostic `AVoxelWorld` from the terrain in the same preview
-scene. It presents the same accepted cave field using VPP's meshing, component
-publication and LOD, with collision disabled. A native custom MegaMaterial uses
-UE translucency, disabled depth testing and normal-based emissive shading to show
-the solid cave-air volume through the dim planet. No diagnostic UAsset is saved.
+Native UE lighting provides dimming. Each generated network has a tightly bounded,
+centred native `AVoxelWorld`, isolated by its own native volume layer/stack. All
+networks are active and displayed together in the existing preview scene. VPP owns
+their field sampling, subdivision, meshing, components and publication. Native
+collision is disabled for these editor diagnostics. Native custom MegaMaterials
+use UE translucency, disabled depth testing and normal-based emissive shading.
+No diagnostic material UAsset is saved.
 
-The demonstrated gap is an application inspection view: VPP supplies field
-execution, isolated layers, native mesh presentation and custom material binding;
-it does not know which generated air belongs to Catalyst's cave recipe or which
-network the designer wants framed. Catalyst supplies that field selection,
-publication pairing and camera focus. The existing terrain owner remains intact.
-The inspection owner is retained while enabled/disabled and receives input only
-when the accepted terrain plan changes. Camera motion starts no recipe or stamp
-input, and extracts no mesh. Its VPP LOD updates remain native.
+The native audit demonstrated two presentation gaps with the earlier setup:
+
+- Native camera-distance quality 4 sampled the thin caves away in the fixed globe
+  reproducer: two generated networks, zero native surface vertices.
+- Applying fine native quality 8192 to a single planet-spanning domain reached
+  `voxel.MaxRenderChunks`. VPP 2.0p8's render tree is rooted at the voxel-world
+  origin and uses one enclosing box, so fine subdivision also covers empty space
+  between distant networks.
+
+The correction uses native configuration and bounded static diagnostic domains.
+Each network's existing cutter operations are lowered through `FCLCompiledVolumes`
+into the same native kernels; the native world is centred on that network while
+the stamp's body-coordinate transform stays canonical. Native quality 8192 and
+10 cm display voxels retain the qualified fissure surfaces at overview distance.
+The main terrain world and its normal quality are unchanged. This is editor
+presentation, not a new cave generator or a production streaming requirement.
+
+Catalyst supplies cave provenance, field clipping and publication pairing. It
+retains native domain owners by stable network identity across accepted edits and
+adds/removes them only when the generated network set changes. Camera motion
+starts no input, extracts no mesh and does not select or retire networks. Every
+network remains active regardless of which hemisphere faces the camera. The
+existing progress display reports native network readiness while input is built;
+ordinary navigation shows no authoring progress.
 
 The structural prior follows the distinction in [NPS open and closed faults](https://home.nps.gov/grba/learn/nature/geologic-faults-and-earth-movement.htm)
 and [USGS cave fractures](https://www.usgs.gov/media/images/cave-fractures): structural
@@ -145,19 +163,24 @@ approximation; lava tubes need suitable flow history and geometry. A broad provi
 label cannot stand in for those inputs.
 
 
-## Connected inspection qualification — 5 November 2026
+## Planet-wide inspection qualification — 5 November 2026
 
-The [native editor qualification](../conformance/CaveInspection/qualification-mac-arm64.json)
-passes 56 checks, including cave fields, clipping/backfill, native rendered volume,
-live input replacement, navigation and affected geology/volume/editor regressions.
-The frozen 65 recipe has two networks, ten cutters and two entrances. The recorded
-native view contains 4,605 inspection vertices; the maximum sampled cave-field
-residual is 0.369 m at this native LOD. The 90-frame close-up navigation p95 is
-23.12 ms; movement starts no new stamp/recipe input and copies no mesh.
+The [planet-wide qualification](../conformance/CaveOverview/qualification-mac-arm64.json)
+supersedes the earlier [focus/select experiment](../conformance/CaveInspection/qualification-mac-arm64.json).
+The latter remains historical evidence and is not the accepted debug interaction.
 
-![Native cave-air volume through the dimmed surface](../conformance/CaveInspection/debug.png)
+The qualification checks every generated network's native vertices and projected
+surface pixels at fixed globe framing, camera invariance on toggle and accepted
+recipe edits, the far hemisphere, 100 progression, and retained native owners.
+The saved user asset is preserved; frozen portable recipes provide repeatability.
+No cooked cave gameplay, mining, collision or sculpt-save claim is added.
 
-The user's saved review asset, including its own knob/settings changes, is retained.
-This qualification uses the portable frozen recipe for repeatability and separately
-roundtrips the saved native asset's own payload. It adds no cooked cave gameplay,
-mining, collision or sculpt-save claim.
+All 56 native/editor checks pass. At 65, both networks have native surfaces
+(77,374 vertices; maximum sampled cave-field residual 0.0722 m). At 100, all three
+networks have surfaces (160,362 vertices; residual 0.0727 m). The 90-frame globe
+navigation p95 is 15.61 ms, with no input starts or mesh copies during
+movement. The native source fields, clipping/backfill and saved asset checks pass.
+These measurements qualify the frozen 2 km body and recorded profiles; arbitrary
+advanced dimensions and larger scenes require separate qualification.
+
+![All native cave surfaces at unchanged globe framing](../conformance/CaveOverview/all-caves.png)

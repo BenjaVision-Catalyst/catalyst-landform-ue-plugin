@@ -1,0 +1,1317 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "7ACFB4243848320D528EAE8B323E7DED",
+			"instanceName": "jupiter.local-96924",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-04.08.17",
+	"succeeded": 0,
+	"succeededWithWarnings": 0,
+	"failed": 1,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 6.8974885940551758,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "PlanetWideNativeDebugAndNavigation",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation",
+			"tags": [],
+			"state": "Fail",
+			"deviceInstance": [
+				"7ACFB4243848320D528EAE8B323E7DED"
+			],
+			"duration": 6.8974885940551758,
+			"dateTime": "2026.11.05-04.08.10",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogStreaming: FlushAsyncLoading(318): 1 QueuedPackages, 0 AsyncPackages",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-04.08.10"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogStreaming: FlushAsyncLoading(319): 1 QueuedPackages, 0 AsyncPackages",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-04.08.10"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogStreaming: FlushAsyncLoading(324): 1 QueuedPackages, 0 AsyncPackages",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-04.08.10"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteWPO took 3.5ms",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-04.08.11"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteDisplacement took 4.7ms",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-04.08.11"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteMaterialSelection took 3.5ms",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-04.08.11"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Every generated network has native surface vertices at globe scale' to be 2, but it was 0.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Native VPP presents actual cave surface triangles at globe scale' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Every projected network has visible surface pixels' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Every projected network has visible surface pixels' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Off restores ordinary native surface' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.13"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.14"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'All-cave presentation survives navigation' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Every generated network has native surface vertices at globe scale' to be 2, but it was 0.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Native VPP presents actual cave surface triangles at globe scale' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"p95Ms\":22.269748,\"normalSurfaceLuma\":128.356171,\"debugSurfaceLuma\":39.825559,\"cyanPixels\":28,\"networks\":2,\"nativeNetworks\":0,\"nativeVertices\":0,\"maxFieldResidualMeters\":0.000000,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-04.08.15"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Every generated network has native surface vertices at globe scale' to be 2, but it was 0.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.17"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Native VPP presents actual cave surface triangles at globe scale' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-04.08.17"
+				}
+			],
+			"warnings": 0,
+			"errors": 99,
+			"artifacts": []
+		}
+	]
+}

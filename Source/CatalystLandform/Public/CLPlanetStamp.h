@@ -54,6 +54,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     UPROPERTY() bool bSectionPreview=false;
     /** Activation-only diagnostic; the server recipe and production terrain are unchanged. */
     UPROPERTY() bool bCaveInspectionPreview=false;
+    UPROPERTY() FGuid CaveInspectionNetwork;
     UPROPERTY() double SectionWidthMeters=500;
     UPROPERTY() double SectionReferenceRadiusMeters=1;
 };
@@ -87,6 +88,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     /** Shared XYZ scene for recipe-only spherical terrain with matching radii.
      * Actor/planar/custom-radius profiles retain their pinned legacy path. */
     TSharedPtr<const FCLScene> Scene;
+    TSharedPtr<const FCLCompiledVolumes> InspectionCutters;
 
     virtual bool Initialize(FVoxelDependencyCollector& Dependencies) override;
     virtual FVoxelBox GetLocalBounds() const override;

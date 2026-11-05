@@ -11,9 +11,6 @@ struct FCLPlanetNavigation
     FVector2D Pan=FVector2D::ZeroVector;
     FVector Right,Up;
     FVector2D PanLimit=FVector2D::ZeroVector,PanScale=FVector2D::ZeroVector;
-    TOptional<FBox> FocusBounds;
-    void Focus(const FBox& Bounds);
-    void ResetFrame();
     void Orbit(FVector2D Pixels);
     void PanBy(FVector2D Pixels);
     void Dolly(double Steps);
