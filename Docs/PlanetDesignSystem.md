@@ -1975,3 +1975,18 @@ each with an isolated native layer/stack and native quality configuration. VPP o
 all voxel execution and presentation. This adds no alternative mesher, cave
 formation path or production streaming manager. Current structural-fissure scope
 and the remaining cooked cave gameplay qualification are unchanged.
+
+
+## Enabled cave minimum — 5 November 2026
+
+Caves enabled means at least one admissible generated cave at every knob position;
+only the eye toggle requests zero. Existing physical-density draws supply larger
+counts. A deterministic minimum fills a zero result using an existing candidate
+that passes the complete geological/path rules. Missing hosts or no admissible
+network now refuse the build explicitly instead of accepting an empty result.
+
+The [saved 500 m regression](Caves.md#enabled-minimum-and-the-saved-500-m-planet--5-november-2026)
+reproduces the user's formerly empty planet and checks native all-cave surfaces at
+1 and 100. Cave voxel resolution is derived from physical passage widths before
+normalizing the preview, using native VPP voxel-size configuration. The existing
+camera and one-knob UI are unchanged; saved local edits remain intact.

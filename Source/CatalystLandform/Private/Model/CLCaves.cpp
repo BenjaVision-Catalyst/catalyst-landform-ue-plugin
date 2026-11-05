@@ -22,13 +22,13 @@ bool FCLCaveSettings::Validate(FString& Error)const
 }
 TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettings& S,const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {
-    if(!S.Validate(Error))return nullptr;
+    Error.Reset();if(!S.Validate(Error))return nullptr;
     auto Out=MakeShared<FCLCompiledCaves>();
-    if(!S.bEnabled||S.NetworksPerSquareKilometer==0){Out->Readiness=TEXT("No cave development requested");return Out;}
+    if(!S.bEnabled){Out->Readiness=TEXT("No cave development requested");return Out;}
     if(!Base.Rock||!Base.Tectonics||!Base.GeneratedRegions)
-    {Out->Readiness=TEXT("Fissures require Rock, tectonics and selected rift/shear Landforms");return Out;}
+    {Error=TEXT("Enabled caves require Rock, tectonics and selected rift/shear Landforms");return nullptr;}
     if(!Base.Rock->HasFractureHosts())
-    {Out->Readiness=TEXT("This bounded fissure profile requires all three rock units to declare a known lithology and positive fracture potential; generic or mixed unknown hosts remain untouched");return Out;}
+    {Error=TEXT("Enabled fissure caves require all three rock units to declare a known non-ice lithology and positive fracture potential");return nullptr;}
     const double Reference=Base.RadiusMeters+(Base.MinimumHeightMeters+Base.MaximumHeightMeters)*.5;
     if(S.DepthMeters+S.MinimumCoverMeters+S.RadiusMeters*3>Reference*.3||S.LengthMeters>Reference*.5)
     {Error=TEXT("Cave dimensions exceed this body's bounded physical profile; reduce depth/length or enlarge the body");return nullptr;}
@@ -56,15 +56,11 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
         const FVector Along=(B-A).GetSafeNormal(),Up=O.CenterMeters.GetSafeNormal();FVector Across=FVector::CrossProduct(Up,Along).GetSafeNormal();if(Across.IsNearlyZero())Across=FVector::VectorPlaneProject(FVector::XAxisVector,Along).GetSafeNormal();
         O.Rotation=FRotationMatrix::MakeFromXZ(Across,Along).Rotator();
     };
-    for(int32 I=0;I<Out->Candidates;++I)
+    struct FCandidate {int32 Index;FVector Direction;ECLProvinceType Type;double Occurrence,Phase,Depth,Width,Branch,Entrance;};
+    TArray<FCandidate> Eligible;
+    auto Place=[&](const FCandidate& C)->bool
     {
-        if(!FCLCompileProgress::Check(Error))return nullptr;
-        FCLCompileProgress::Count(I,Out->Candidates);
-        const double Z=1-2*(I+.5)/Out->Candidates,A=I*2.399963229728653;
-        const FVector D=Rotation.RotateVector(FVector(FMath::Sqrt(1-Z*Z)*FMath::Cos(A),FMath::Sqrt(1-Z*Z)*FMath::Sin(A),Z));
-        const double Occurrence=Random.FRand(),Phase=Random.FRandRange(-.35,.35),DepthJitter=Random.FRandRange(.8,1.2),WidthJitter=Random.FRandRange(.8,1.2),BranchDraw=Random.FRand(),EntranceDraw=Random.FRand();
-        const auto Type=Profile(D);if(Type==ECLProvinceType::None)continue;++Out->EligibleCandidates;
-        if(Occurrence>S.NetworksPerSquareKilometer*Area/Out->Candidates*Base.Rock->FracturePotential())continue;
+        const auto D=C.Direction;const auto Type=C.Type;const double Phase=C.Phase,DepthJitter=C.Depth,WidthJitter=C.Width,BranchDraw=C.Branch,EntranceDraw=C.Entrance;
         const FVector X=FVector::CrossProduct(D,FMath::Abs(D.Z)<.8?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal(),Y=FVector::CrossProduct(D,X);
         constexpr double Step=.001;
         const FVector Gradient=X*(Drive((D+X*Step).GetSafeNormal(),Type)-Drive((D-X*Step).GetSafeNormal(),Type))+Y*(Drive((D+Y*Step).GetSafeNormal(),Type)-Drive((D-Y*Step).GetSafeNormal(),Type));
@@ -73,13 +69,13 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
         const double Radius=S.RadiusMeters*WidthJitter,Depth=S.MinimumCoverMeters+Radius*2.5+S.DepthMeters*DepthJitter;
         TArray<FVector> Directions,Points;
         for(int32 K=0;K<4;++K)Directions.Add((D+Tangent*((double(K)/3-.5)*S.LengthMeters/Reference)).GetSafeNormal());
-        bool Compatible=true;for(const auto& Q:Directions)Compatible&=Profile(Q)==Type;if(!Compatible)continue;
+        bool Compatible=true;for(const auto& Q:Directions)Compatible&=Profile(Q)==Type;if(!Compatible)return false;
         TArray<double> Heights;Base.SampleHeightsMeters(Directions,Heights);
         for(int32 K=0;K<4;++K)Points.Add(Directions[K]*(Base.RadiusMeters+Heights[K]-Depth-(K%2)*Radius));
         const bool Branch=BranchDraw<S.Branching,Entrance=S.bSurfaceEntrances&&EntranceDraw<.65;
         const int32 Needed=3+int32(Branch)+int32(Entrance);
-        if(Volumes.Operations.Num()+Needed>64){Error=TEXT("Caves exceed the existing 64-operation native volume proof budget; no networks were silently dropped");return nullptr;}
-        const FGuid Id(0x43415645,uint32(Seed),uint32(S.Seed),I+1);
+        if(Volumes.Operations.Num()+Needed>64){Error=TEXT("Caves exceed the existing 64-operation native volume proof budget; no networks were silently dropped");return false;}
+        const FGuid Id(0x43415645,uint32(Seed),uint32(S.Seed),C.Index+1);
         for(int32 K=1;K<4;++K)Add(Points[K-1],Points[K],Radius,Id,false);
         if(Branch)
         {
@@ -88,9 +84,36 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
         }
         if(Entrance){Add(Points[0],Directions[0]*(Base.RadiusMeters+Heights[0]+Radius*3),Radius*.65,Id,true);++Out->Entrances;}
         ++Out->Networks;
+        return true;
+    };
+    for(int32 I=0;I<Out->Candidates;++I)
+    {
+        if(!FCLCompileProgress::Check(Error))return nullptr;
+        FCLCompileProgress::Count(I,Out->Candidates);
+        const double Z=1-2*(I+.5)/Out->Candidates,A=I*2.399963229728653;
+        const FVector D=Rotation.RotateVector(FVector(FMath::Sqrt(1-Z*Z)*FMath::Cos(A),FMath::Sqrt(1-Z*Z)*FMath::Sin(A),Z));
+        const double Occurrence=Random.FRand(),Phase=Random.FRandRange(-.35,.35),DepthJitter=Random.FRandRange(.8,1.2),WidthJitter=Random.FRandRange(.8,1.2),BranchDraw=Random.FRand(),EntranceDraw=Random.FRand();
+        const auto Type=Profile(D);if(Type==ECLProvinceType::None)continue;++Out->EligibleCandidates;
+        const FCandidate C{I,D,Type,Occurrence,Phase,DepthJitter,WidthJitter,BranchDraw,EntranceDraw};Eligible.Add(C);
+        if(Occurrence>S.NetworksPerSquareKilometer*Area/Out->Candidates*Base.Rock->FracturePotential())continue;
+        Place(C);if(!Error.IsEmpty())return nullptr;
     }
+    bool MinimumApplied=false;
+    if(Out->Networks==0)
+    {
+        // Preserve the density draws and identities. An enabled layer guarantees
+        // representation only where the existing complete network is admissible.
+        Eligible.Sort([](const auto& A,const auto& B){return A.Occurrence==B.Occurrence?A.Index<B.Index:A.Occurrence<B.Occurrence;});
+        for(const auto& C:Eligible)
+        {
+            if(!FCLCompileProgress::Check(Error))return nullptr;
+            if(Place(C)){MinimumApplied=true;break;}if(!Error.IsEmpty())return nullptr;
+        }
+    }
+    if(Out->Networks==0){Error=TEXT("Caves are enabled but no complete fissure network fits the selected eligible geology at the requested dimensions; select compatible Landforms/hosts or reduce the cave dimensions");return nullptr;}
     FCLCompileProgress::Count(Out->Candidates,Out->Candidates);
     if(!Volumes.Operations.IsEmpty()){Out->Cutters=FCLCompiledVolumes::Compile(Volumes,Base.RadiusMeters,Base.Surfaces.Get(),Error);if(!Out->Cutters)return nullptr;}
     Out->Readiness=FString::Printf(TEXT("%d fissure networks, %d native cutters, %d entrances; %d/%d candidates have selected local rift/shear evidence"),Out->Networks,Out->Segments.Num(),Out->Entrances,Out->EligibleCandidates,Out->Candidates);
+    if(MinimumApplied)Out->Readiness+=TEXT("; enabled-layer minimum applied");
     return Out;
 }

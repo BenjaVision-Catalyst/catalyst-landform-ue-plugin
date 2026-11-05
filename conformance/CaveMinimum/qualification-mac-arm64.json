@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "status": "Qualified enabled cave minimum and native rendering of the saved 500 m planet at 1 and 100",
+  "baseRevisions": {
+    "component": "2e0220e1877d2259089918db18b1bf9ea3049f56",
+    "workspace": "fbf84e61a6c11a4ce932cddcee610de059871d6a"
+  },
+  "platform": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "architecture": "macOS arm64",
+    "hardware": "M3 Max, 128 GiB",
+    "configuration": "LandformLabEditor Mac Development",
+    "host": "/private/tmp/landform-background/LandformLab"
+  },
+  "contract": {
+    "enabled": "Every enabled knob position, including 0 and 1, produces at least one admissible generated cave network. The eye toggle is the way to request zero.",
+    "density": "Existing physical-density draws run first. If they already produce networks, counts and candidate identities are unchanged. Otherwise use the first complete admissible candidate in deterministic draw order. Zero advanced density leaves the enabled minimum.",
+    "incompatibleGeology": "Refuse compilation with an explicit error rather than accept an empty cave result. Do not fabricate unsupported hosts/provinces or a preview-only cave.",
+    "format": "Recipe schema 23 and native operation format unchanged; this implements the explicitly requested correction to the existing enabled-layer contract. Saved asset bytes are preserved.",
+    "presentation": "All native cave surfaces together through the dimmed planet; unchanged camera, selection and ordinary navigation."
+  },
+  "diagnosis": {
+    "savedAsset": "/Game/LandformDesigner/Caves/DA_FissureCaves",
+    "fixture": "Examples/CavesSmall.json",
+    "radiusMeters": 500,
+    "referenceSurfaceRadiusMeters": 369.293,
+    "referenceAreaSquareKilometers": 1.713771,
+    "knob": 100,
+    "densityPerSquareKilometer": 0.8,
+    "hostPrior": 0.6,
+    "eligibleCandidates": 8,
+    "candidates": 28,
+    "previousNetworks": 0,
+    "previousSeedsChecked": [
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80
+    ],
+    "cause": "Sparse physical occurrence produced zero networks on the small body; there was nothing for the native diagnostic to render.",
+    "nativeResolutionCorrection": "Fixed display-space voxels over-refine small normalized bodies and under-resolve narrow profiles. Derive target physical cell size as min(20 cm, half of the narrowest passage half-width), convert through the existing display scale to VPP integer voxel size, floor to retain detail, and respect its 1 cm display minimum."
+  },
+  "ownership": {
+    "specialization": "An authoring minimum in the existing geological placement compiler; complete existing host/province/path checks and the same native cutter path. No alternate cave generator or debug-only geometry.",
+    "native": "VPP owns shape/blend/AABB kernels, voxel sampling, subdivision/LOD, meshing, material binding and presentation. The existing static per-network native diagnostic domains are reused.",
+    "notAdded": [
+      "Custom mesher",
+      "Copied-mesh presentation",
+      "Streaming manager",
+      "New cave-family implementation",
+      "New UI container or control",
+      "Saved recipe/guide replacement"
+    ]
+  },
+  "validation": {
+    "passed": 59,
+    "cleanPasses": 58,
+    "passesWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0,
+    "warnings": [
+      {
+        "test": "Catalyst.Landform.Rock.CharacterPaletteAndDefaults",
+        "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204"
+      }
+    ],
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Reference2km": "Success",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m1": "Success",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m100": "Success",
+      "Catalyst.Landform.Caves.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Caves.EligibilityAndVersions": "Success",
+      "Catalyst.Landform.Caves.InspectionVolume": "Success",
+      "Catalyst.Landform.Caves.KnobAndBackground": "Success",
+      "Catalyst.Landform.Caves.NativeFieldsAndPersistence": "Success",
+      "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii": "Success",
+      "Catalyst.Landform.PlanetBuilder.Navigation": "Success",
+      "Catalyst.Landform.PlanetLayers.CalibratedRange": "Success",
+      "Catalyst.Landform.PlanetLayers.CompositionAndSeeds": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.PlanetLayers.NativePersistenceAndLegacy": "Success",
+      "Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean": "Success",
+      "Catalyst.Landform.PlanetLayers.VariationPublication": "Success",
+      "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": "Success",
+      "Catalyst.Landform.Provinces.DefinitionsAndEvidence": "Success",
+      "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": "Success",
+      "Catalyst.Landform.Provinces.PackagedLibrary": "Success",
+      "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+      "Catalyst.Landform.Regions.StructureAndPalette": "Success",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections": "Success",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.MetricBasinAndFoldContacts": "Success",
+      "Catalyst.Landform.Rock.MetricBedDistribution": "Success",
+      "Catalyst.Landform.Rock.MetricScaleAndCompactHistory": "Success",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+      "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering": "Success",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": "Success",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts": "Success",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success",
+      "Catalyst.Landform.Watershed.DebugRenderedNavigation": "Success"
+    },
+    "nativeViews": {
+      "500m-1": {
+        "frames": 90,
+        "p95Ms": 18.207666,
+        "normalSurfaceLuma": 188.685276,
+        "debugSurfaceLuma": 21.072668,
+        "cyanPixels": 31,
+        "networks": 1,
+        "nativeNetworks": 1,
+        "nativeVertices": 33070,
+        "maxFieldResidualMeters": 0.021268,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      },
+      "500m-100": {
+        "frames": 90,
+        "p95Ms": 18.618293,
+        "normalSurfaceLuma": 186.704213,
+        "debugSurfaceLuma": 20.826742,
+        "cyanPixels": 210,
+        "networks": 1,
+        "nativeNetworks": 1,
+        "nativeVertices": 59075,
+        "maxFieldResidualMeters": 0.07018,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      },
+      "2km": {
+        "frames": 90,
+        "p95Ms": 17.77529,
+        "normalSurfaceLuma": 195.859205,
+        "debugSurfaceLuma": 24.247105,
+        "cyanPixels": 61,
+        "networks": 2,
+        "nativeNetworks": 2,
+        "nativeVertices": 85712,
+        "maxFieldResidualMeters": 0.059271,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      }
+    },
+    "checks": [
+      "500 m saved recipe: one network at 100 where the previous implementation produced zero.",
+      "500 m enabled positions 0, 1, 25, 50 and 100 each produce at least one cave.",
+      "Eight seeds supply a complete eligible network in this frozen profile.",
+      "Disabled layer produces zero; zero density produces the enabled minimum.",
+      "Unknown/missing hosts or unavailable compatible provinces explicitly refuse an enabled cave build.",
+      "Existing 2 km density produces multiple networks without applying the minimum.",
+      "Deterministic candidate identity, coordinates and recipe reload.",
+      "Native overview rendering at 500 m/1, 500 m/100 and the 2 km reference; every generated network has native vertices and projected pixels.",
+      "Far-hemisphere surfaces, camera invariance, native owner retention, clipping/backfill and no mesh copies or new input during 90 navigation frames."
+    ],
+    "preservation": {
+      "root-protected": {
+        "files": 28,
+        "changed": 0
+      },
+      "plugin-content-protected": {
+        "files": 115,
+        "changed": 0
+      },
+      "review-protected": {
+        "files": 179,
+        "changed": 0
+      }
+    },
+    "sourceSha256": {
+      "Source/CatalystLandform/Private/Model/CLCaves.cpp": "421f80dc50a0d7121b9f16ca82aa04370e006c34914bd4162feaa7d8514b4ff6",
+      "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "f342d6ae637d3df497d360e578044d18af8a854f0fe5aa57daa98cee21ed09e5",
+      "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "8212a47989c40938e5c87f1a22203e762f743b604550feda6a3f3e325daff7fd",
+      "Source/CatalystLandformTests/Private/CLCaveTests.cpp": "7a82297420d187b8192b32d5b9ebca334b733840394fec0d0213f3bf01854c83"
+    },
+    "fixtureSha256": "ba01d6674e66004da955f0bc91f7dd903f44ac772bb041f7ae5c9b695e7a85b9"
+  },
+  "limits": [
+    "First bounded structural fissure family; karst, lava tubes, larger caverns and exact formation clipping remain separate work.",
+    "Rendered qualification covers the recorded 500 m and 2 km profiles, not arbitrary dimensions or planet scales. Native 1 cm display minimum still limits the finest achievable physical sampling at larger scales.",
+    "No new cooked cave walking, mining, collision or sculpt-save qualification. Authored backfill can deliberately fill a generated cave; the minimum does not undo earthworks."
+  ]
+}

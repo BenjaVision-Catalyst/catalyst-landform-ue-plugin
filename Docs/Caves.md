@@ -65,8 +65,10 @@ The native audit demonstrated two presentation gaps with the earlier setup:
 The correction uses native configuration and bounded static diagnostic domains.
 Each network's existing cutter operations are lowered through `FCLCompiledVolumes`
 into the same native kernels; the native world is centred on that network while
-the stamp's body-coordinate transform stays canonical. Native quality 8192 and
-10 cm display voxels retain the qualified fissure surfaces at overview distance.
+the stamp's body-coordinate transform stays canonical. Native quality 8192 retains the qualified fissure surfaces at overview distance.
+Voxel detail is resolved in body-space metres before display normalization: at
+most 20 cm per cell, refined to at least four cells across the narrowest passage
+diameter, then converted to VPP's integer display-space voxel size.
 The main terrain world and its normal quality are unchanged. This is editor
 presentation, not a new cave generator or a production streaming requirement.
 
@@ -101,8 +103,9 @@ Landforms or an empty available palette do not create random substitute caves.
 
 The host rule is deliberately conservative: all three units in the existing Rock
 palette must have known non-ice lithology and positive fracture potential. The
-minimum of those potentials scales occurrence. A mixed unknown or protected unit
-leaves the body uncut, with a readiness reason on the compiled result. This avoids
+minimum of those potentials scales density-driven occurrence. An enabled layer
+with unknown/protected hosts or missing prerequisites now refuses compilation
+with an explicit reason; it does not accept a successful empty cave result. This avoids
 claiming selective 3D host clipping before that feature exists. Typed units are a
 foundation for formation-aware generation; they are not a complete depositional,
 chemical or eruption history. Province evidence versions retain their prior rules.
@@ -116,13 +119,26 @@ reference area / candidate count × host potential, including the small-body min
 of 16 samples. This preserves physical occurrence scaling despite integer rounding.
 It does not claim the exact area of a rough triangulated terrain surface.
 
-The knob develops occurrence, physical passage length, aperture, depth and branching.
-Zero development creates no cuts. Advanced values are resolved physical quantities;
+While the layer is enabled, every knob position—including 0 and 1—requests at
+least one admissible cave network. The eye toggle is the way to produce zero.
+The knob develops density, physical passage length, aperture, depth and branching.
+Advanced values are resolved physical quantities;
 changing the knob resolves the profile again. Reseeding changes candidate rotation,
 occurrence and shape variation while retaining deterministic body-space identities.
 Local extension/shear gradients guide the main axis. Three joined elliptical native
 capsules form a fissure; optional branches and surface connectors use the same native
 cutters. Radius, cover and depth are in metres, independent of preview scale.
+
+The existing seeded physical-density draws run first. If they produce no network,
+the compiler tests eligible candidates in deterministic draw order and places the
+first complete network that satisfies the same province, host and path rules.
+Positive density results are unchanged; the minimum does not add another cave to
+an already populated world. Zero advanced density means the enabled minimum with
+no density-driven extras. If no complete network can fit the selected geology and
+dimensions, the build fails explicitly. No unsupported hosts, provinces or fake
+debug-only caves are substituted. This corrects the enabled-layer contract without
+changing recipe schema 23 or the native operation format; it changes previously
+empty enabled outputs, as explicitly requested. Saved assets are not rewritten.
 
 The current proof admits at most 16,384 candidates and the existing 64 native volume
 operations. Exceeding a budget refuses the complete result with a diagnostic; it
@@ -184,3 +200,34 @@ These measurements qualify the frozen 2 km body and recorded profiles; arbitrary
 advanced dimensions and larger scenes require separate qualification.
 
 ![All native cave surfaces at unchanged globe framing](../conformance/CaveOverview/all-caves.png)
+
+
+## Enabled minimum and the saved 500 m planet — 5 November 2026
+
+The exact saved recipe is frozen in [Examples/CavesSmall.json](../Examples/CavesSmall.json).
+Before the correction, its fitted reference radius was 369.293 m, reference area
+1.713771 km², density 0.8/km² and host prior 0.6. Eight of 28 candidates satisfied
+local province evidence, but all eight tested seeds produced zero networks. This
+was empty generation, not missing native rendering.
+
+The [small-planet qualification](../conformance/CaveMinimum/qualification-mac-arm64.json)
+checks enabled minima across the knob, explicit disabled zero, density extras,
+prerequisite refusal, deterministic reload and native all-cave rendering of that
+500 m recipe at both 1 and 100. The 2 km reference remains in the same rendered
+regression. Camera invariance, far-hemisphere visibility, native owner reuse,
+clipping/backfill and no input/mesh copies during navigation remain required.
+
+Physical voxel sizing also corrects the fixed display resolution: smaller bodies
+no longer over-refine their normalized cave domains, while narrow low-knob passages
+receive sufficient native samples. VPP owns all subdivision, meshing and presentation.
+No custom renderer or streaming manager is introduced.
+
+
+All 59 checks passed (58 clean and one successful Rock test carrying an unrelated
+HTTP connectivity-probe timeout). The exact small planet produces one network at
+both 1 and 100. In the final 90-frame native runs, navigation p95 was 18.21 ms at 1
+and 18.62 ms at 100, with zero new input starts or mesh copies during movement.
+Physical detail remains subject to VPP's minimum 1 cm display voxel size and the
+recorded profile limits.
+
+![Native cave surfaces on the saved 500 m planet at 100](../conformance/CaveMinimum/500m-100/all-caves.png)

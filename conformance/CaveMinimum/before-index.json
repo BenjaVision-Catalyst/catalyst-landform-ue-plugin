@@ -1,0 +1,153 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "0F8BB0E7244D287BF5F230B2CDF10079",
+			"instanceName": "jupiter.local-27015",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-05.07.47",
+	"succeeded": 1,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 2.164525032043457,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "SmallPlanetAudit",
+			"fullTestPath": "Catalyst.Landform.Caves.SmallPlanetAudit",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"0F8BB0E7244D287BF5F230B2CDF10079"
+			],
+			"duration": 2.164525032043457,
+			"dateTime": "2026.11.05-05.07.45",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "radius 500.000 m, reference 369.293 m, area 1.713771 km2, density 0.800000/km2, host 0.600000; 0 fissure networks, 0 native cutters, 0 entrances; 8/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.46"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 73: 0 fissure networks, 0 native cutters, 0 entrances; 8/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 74: 0 fissure networks, 0 native cutters, 0 entrances; 8/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 75: 0 fissure networks, 0 native cutters, 0 entrances; 9/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 76: 0 fissure networks, 0 native cutters, 0 entrances; 9/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 77: 0 fissure networks, 0 native cutters, 0 entrances; 9/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 78: 0 fissure networks, 0 native cutters, 0 entrances; 9/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 79: 0 fissure networks, 0 native cutters, 0 entrances; 10/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "seed 80: 0 fissure networks, 0 native cutters, 0 entrances; 8/28 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-05.07.47"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

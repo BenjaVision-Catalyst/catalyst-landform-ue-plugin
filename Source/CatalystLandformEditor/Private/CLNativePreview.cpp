@@ -132,6 +132,10 @@ bool FCLNativePreview::ApplyPending()
         // tree is rooted at the voxel-world origin, so an offset planet-sized
         // domain would still subdivide enormous empty regions at fine quality.
         Native->SetActorLocation(Bounds.GetCenter()*100000/Plan->RadiusMeters);
+        // Resolve physical detail before display normalization: at most 20 cm,
+        // and at least four samples across the narrowest passage diameter.
+        double CellCm=20.;for(const auto& S:Plan->Caves->Segments)if(S.Network==CaveNetwork)CellCm=FMath::Min(CellCm,S.Radius*S.Scale.GetMin()*50.);
+        Native->VoxelSize=FMath::Max(1,FMath::FloorToInt(CellCm*1000./Plan->RadiusMeters));
     }
     Stamp->SetRelativeScale3D(Scale);if(CaveInspection)Stamp->SetWorldLocation(FVector::ZeroVector);
     FCLPlanetStamp Source;Source.bUseRecipe=true;Source.CompiledRecipe=Plan;Source.Radius=Plan->RadiusMeters*100;

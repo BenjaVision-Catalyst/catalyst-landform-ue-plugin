@@ -1555,19 +1555,22 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
 #endif
 
 #if WITH_DEV_AUTOMATION_TESTS
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveDebugRenderedTest,"Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLCaveDebugRenderedTest::RunTest(const FString&)
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLCaveDebugRenderedTest,"Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+void FCLCaveDebugRenderedTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const
+{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low")};}
+bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
 {
-    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/Caves.json")));
-    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}
+    const bool Small=Parameters!=TEXT("reference"),Low=Parameters==TEXT("small-low");
+    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}if(Low)A->Recipe.Caves.ApplyProgression(.01);
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Planet-wide native cave surfaces"))).ClientSize(FVector2D(1000,800))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
     struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0,Networks=0,Vertices=0,Cyan=0;double Start=FPlatformTime::Seconds(),Last=0,OffLuma=0,DimLuma=0,Residual=0;TArray<double> Times;TArray<FColor> Off;uint32 Terrain=0;TArray<uint32> Inspection;uint64 Copies=0,Starts=0;FVector Eye;FRotator Rotation;};
     const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(A->Recipe,E);if(!Prepared){AddError(E);return false;}State->Evaluation.Request(A->Recipe,Prepared);
-    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State]
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low]
     {
         auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
         if(Now-S.Start>180){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
-        const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/cave-overview");IFileManager::Get().MakeDirectory(*Dir,true);
+        const FString Dir=FPaths::ProjectSavedDir()/(Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
         auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
         {
             auto* V=W->Client->Viewport;if(!V)return;W->Scene->UpdateCaptureContents();
