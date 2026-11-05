@@ -56,6 +56,8 @@ public:
     FString PlacementHint() const;
     void SetPlacementMode(ECLGlobePlacementMode Mode);
     ECLGlobePlacementMode PlacementMode() const;
+    void SetCaveOverlay(bool Enabled);
+    bool IsCaveOverlayEnabled()const;
     void SetWatershedOverlay(bool Enabled);
     bool IsWatershedOverlayEnabled() const;
     bool FocusWatershed();
@@ -104,6 +106,7 @@ private:
     bool bEvaluationPending=false,bAuthoringInvalid=false,bPressCanPick=true;
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLWatershedDebugRenderedTest;
+    friend class FCLCaveDebugRenderedTest;
     friend class FCLNativePreviewTest;
     friend class FCLPreviewMaterialRenderedTest;
     friend class FCLNativePreviewRadiiTest;

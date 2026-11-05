@@ -27,7 +27,7 @@ FCLScene::FCLScene(TSharedPtr<const FCLCompiledPlanetRecipe> InPlan) : RadialPla
 
 TSharedPtr<const FCLScene> FCLScene::FromLegacyRadial(TSharedPtr<const FCLCompiledPlanetRecipe> Plan, FString& Error)
 {
-    if(Plan&&Plan->Volumes){Error=TEXT("A volume scene cannot use the radial-only provider");return nullptr;}
+    if(Plan&&(Plan->Volumes||(Plan->Caves&&Plan->Caves->Cutters))){Error=TEXT("A volume scene cannot use the radial-only provider");return nullptr;}
     return FromPlanet(MoveTemp(Plan),Error);
 }
 
@@ -44,7 +44,7 @@ TSharedPtr<const FCLScene> FCLScene::FromPlanet(TSharedPtr<const FCLCompiledPlan
 }
 
 double FCLScene::OuterRadiusMeters() const { return RadialPlan->RadiusMeters; }
-bool FCLScene::IsHeightOnly() const { return !RadialPlan->Volumes; }
+bool FCLScene::IsHeightOnly() const { return !RadialPlan->Volumes&&!(RadialPlan->Caves&&RadialPlan->Caves->Cutters); }
 
 FBox3d FCLScene::SolidBoundsMeters() const
 {
@@ -79,9 +79,10 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
             Sample.FieldMeters = Fields[I];
             Sample.State = ECLSceneSampleState::Known;
         }
-        if(RadialPlan->Volumes)
+        if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)RadialPlan->Caves->Cutters->ComposeBatch(Positions,Fields);
+        if(RadialPlan->Volumes||RadialPlan->Caves)
         {
-            RadialPlan->Volumes->ComposeBatch(Positions,Fields);
+            if(RadialPlan->Volumes)RadialPlan->Volumes->ComposeBatch(Positions,Fields);
             for(int32 I=0;I<Count;++I)if(Out[Start+I].State==ECLSceneSampleState::Known)Out[Start+I].FieldMeters=Fields[I];
         }
     }
@@ -111,7 +112,7 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
             FCLSurfaceWeights W;RadialPlan->Rock->ApplySurfaces(P,W);
             if(RadialPlan->Volumes&&RadialPlan->Volumes->Operations.ContainsByPredicate([](const auto& O){return O.SurfaceIndex!=INDEX_NONE;}))
             {
-                const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Base;RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Base);RadialPlan->Volumes->Compose(P,Base[0],&W);
+                const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Base;RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Base);if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)Base[0]=RadialPlan->Caves->Cutters->Compose(P,Base[0]);RadialPlan->Volumes->Compose(P,Base[0],&W);
             }
             S.State=ECLSceneSampleState::Known;
             for(int32 K=0;K<RadialPlan->Surfaces->Ids.Num();++K)if(W.Values[K]>0)S.Weights.Add({RadialPlan->Surfaces->Ids[K],RadialPlan->Surfaces->Revisions[K],W.Values[K]});
@@ -150,7 +151,7 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
                 }
                 const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Base;
                 RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Base);
-                RadialPlan->Volumes->Compose(P,Base[0],&W);
+                if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)Base[0]=RadialPlan->Caves->Cutters->Compose(P,Base[0]);RadialPlan->Volumes->Compose(P,Base[0],&W);
                 Sample.State=ECLSceneSampleState::Known;
                 for(int32 J=0;J<RadialPlan->Surfaces->Ids.Num();++J)if(W.Values[J]>0)
                     Sample.Weights.Add({RadialPlan->Surfaces->Ids[J],RadialPlan->Surfaces->Revisions[J],W.Values[J]});

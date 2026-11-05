@@ -55,6 +55,7 @@ namespace
 {
 struct FCompileRun {bool Preparing=false;FCLPreparedPlanetCompile* Prepared=nullptr;int32 Next=0,RawDepth=0;FCLCompileProgress* Progress=nullptr;const FCLPreparedPlanetCompile* Previous=nullptr;};
 thread_local FCompileRun* CompileRun=nullptr;
+thread_local bool CompilingCaveBase=false;
 TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRecipe&,FString&,UCLStampLibraryAsset*,const FBox2D*,int32,UCLSurfaceLibraryAsset*);
 }
 bool FCLCompileProgress::IsPreparing(){return CompileRun&&CompileRun->Preparing;}
@@ -471,6 +472,23 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=CompileRun?CompileRun->Prepared->Figure:MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
     };
 
+    const bool TypedHosts=Recipe.Rock.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Unknown||U.FracturePotential!=0;});
+    if(Recipe.SchemaVersion<23&&TypedHosts&&!CompilingCaveBase){Error=TEXT("Typed cave-host rock requires recipe schema 23");return nullptr;}
+    if(Recipe.SchemaVersion==23||Recipe.Caves.bEnabled)
+    {
+        if(Recipe.SchemaVersion!=23||Recipe.AlgorithmVersion!=2||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||Recipe.MeasuredTerrain.IsActive()||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch))
+        {Error=TEXT("Caves schema 23 requires a whole native procedural spherical scene");return nullptr;}
+        if(!Recipe.Caves.Validate(Error))return nullptr;
+        if(Recipe.Rock.bEnabled&&!Recipe.Volumes.GeologicalUnits.IsEmpty()){Error=TEXT("Caves retain one canonical geological source");return nullptr;}
+        auto Base=Recipe;Base.SchemaVersion=22;Base.Caves=FCLCaveSettings();Base.Volumes=FCLVolumeSettings();
+        TSharedPtr<const FCLCompiledPlanetRecipe> Core;
+        {TGuardValue<bool> Scope(CompilingCaveBase,true);Core=Compile(Base,Error,Library,nullptr,SurfacePatch,SurfaceLibraryOverride);}if(!Core)return nullptr;
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);
+        if(FCLCompileProgress::IsPreparing())return RetainInput(Out);
+        if(Recipe.Caves.bEnabled){FCLCompileProgress::Report(ECLCompileStage::Caves);Out->Caves=FCLCompiledCaves::Compile(Recipe.Caves,*Out,Recipe.Seed,Error);if(!Out->Caves)return nullptr;}
+        if(Recipe.Volumes.bEnabled){Out->Volumes=FCLCompiledVolumes::Compile(Recipe.Volumes,Recipe.RadiusMeters,Out->Surfaces.Get(),Error);if(!Out->Volumes)return nullptr;}
+        return RetainInput(Out);
+    }
     if(Recipe.SchemaVersion==22||Recipe.Watershed.bEnabled)
     {
         if(Recipe.SchemaVersion!=22||Recipe.AlgorithmVersion!=2||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||Recipe.MeasuredTerrain.IsActive()||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch))
@@ -1019,8 +1037,8 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
     { Error = TEXT("Invalid recipe JSON object"); return false; }
     double Schema = 0, Algorithm = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17 && Schema != 18 && Schema != 19 && Schema != 20 && Schema != 21 && Schema != 22) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
-    { Error = TEXT("Recipe requires schemaVersion 1..22 with algorithm 1, or schemaVersion 3..22 with algorithm 2"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || !Object->TryGetNumberField(TEXT("algorithmVersion"), Algorithm) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13 && Schema != 14 && Schema != 15 && Schema != 16 && Schema != 17 && Schema != 18 && Schema != 19 && Schema != 20 && Schema != 21 && Schema != 22 && Schema != 23) || (Algorithm != 1 && Algorithm != 2) || (Algorithm == 2 && Schema < 3))
+    { Error = TEXT("Recipe requires schemaVersion 1..23 with algorithm 1, or schemaVersion 3..23 with algorithm 2"); return false; }
     // Schema 9 gives the guide model its canonical names. Legacy spelling is
     // accepted only for older documents, with ambiguous aliases rejected.
     if (Schema < 9)

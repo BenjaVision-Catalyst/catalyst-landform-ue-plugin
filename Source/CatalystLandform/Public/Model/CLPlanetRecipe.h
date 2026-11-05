@@ -15,6 +15,7 @@
 #include "Model/CLMeasuredTerrain.h"
 #include "Model/CLRockLayer.h"
 #include "Model/CLWatershed.h"
+#include "Model/CLCaves.h"
 #include "CLPlanetRecipe.generated.h"
 
 /** Resolved metre heights for compiler output and legacy schema migration. */
@@ -221,6 +222,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLMeasuredTerrainReference MeasuredTerrain;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRockLayer Rock;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLWatershedSettings Watershed;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLCaveSettings Caves;
     /** Schema 21: opt-in area-calibrated base-surface elevation distribution. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceDistributionSettings ElevationDistribution;
     /** Schema 18: body-space solid edits after base terrain height fitting. */
@@ -254,6 +256,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** Captured native kernel only: no graph assets or UObject access on workers. */
     TSharedPtr<const FCLNativeNoiseKernel> NativePerlin;
     TSharedPtr<const FCLCompiledRock> Rock;
+    TSharedPtr<const FCLCompiledCaves> Caves;
     TSharedPtr<const FCLCompiledWatershed> Watershed;
     TSharedPtr<const FCLCompiledPlanetRecipe> WatershedSurface;
     double RadiusMeters = 100;

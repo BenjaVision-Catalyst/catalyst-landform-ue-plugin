@@ -121,6 +121,8 @@ public:
         auto AddLight=[&](float Intensity,FLinearColor Color){auto* L=NewObject<UDirectionalLightComponent>(GetTransientPackage());L->SetMobility(EComponentMobility::Movable);L->SetIntensity(Intensity);L->SetLightColor(Color);L->SetCastShadows(false);AddComponent(L,FTransform::Identity);return L;};
         Fill=AddLight(.7,FLinearColor(.65,.8,1));Rim=AddLight(1.1,FLinearColor(.58,.79,1));
     }
+    void SetCaveInspection(bool Enabled)
+    {const float K=Enabled?.025f:1.f;DirectionalLight->SetIntensity(2.2f*K);Fill->SetIntensity(.7f*K);Rim->SetIntensity(1.1f*K);SetSkyBrightness(.25f*K);}
     void AimLights(const FRotator& Rotation)
     {
         const FRotationMatrix Axes(Rotation);const FVector Back=-Axes.GetUnitAxis(EAxis::X),Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
@@ -136,6 +138,8 @@ public:
     FCLGlobeScene* StudioScene=nullptr;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     FCLNativePreview* NativePreview=nullptr;
+    bool bCaveOverlay=false;
+    int32 LastCaveSegments=0;
 #if WITH_DEV_AUTOMATION_TESTS
     bool bReferenceFixture=false;
 #endif
@@ -283,6 +287,28 @@ public:
             {Line(P.Curve.Points[I-1].OutVal,P.Curve.Points[I].OutVal,C,P.Channel?2:1);}
         }
     }
+    void DrawCaves(FPrimitiveDrawInterface* PDI)
+    {
+        LastCaveSegments=0;if(!bCaveOverlay||!NativePreview)return;
+        const auto Published=NativePreview->PublishedPlan();if(!Published||!Published->Caves||!Published->Caves->Cutters)return;
+        const double Scale=100000/Published->RadiusMeters;
+        for(const auto& O:Published->Caves->Cutters->Operations)
+        {
+            const FVector Centre=O.Source.CenterMeters*Scale;
+            if(FVector::DotProduct(Centre.GetSafeNormal(),GetViewLocation()-Centre)<=0)continue;
+            const FLinearColor Color=Published->Caves->Segments[LastIndex(O,*Published->Caves->Cutters)].Entrance?FLinearColor(1,.65,.1):FLinearColor(.05,.95,1);
+            const FMatrix M=O.Transform.ToMatrixNoScale();
+            // UE's capsule helper circularizes nonuniform scale. Native circle/arc
+            // primitives retain this cutter's ellipsoidal cross section instead.
+            const FVector X=M.GetUnitAxis(EAxis::X)*O.Source.Scale.X,Y=M.GetUnitAxis(EAxis::Y)*O.Source.Scale.Y,Z=M.GetUnitAxis(EAxis::Z)*O.Source.Scale.Z;
+            const FVector Along=M.GetUnitAxis(EAxis::Z)*O.Source.HalfLengthMeters*Scale;
+            const double R=O.Source.RadiusMeters*Scale;
+            for(double Sign:{-1.,1.}){const FVector End=Centre+Along*Sign;DrawCircle(PDI,End,X,Y,Color,R,12,SDPG_Foreground,1.2,0,true);DrawArc(PDI,End,X,Z*Sign,0,180,R,6,Color,SDPG_Foreground);DrawArc(PDI,End,Y,Z*Sign,0,180,R,6,Color,SDPG_Foreground);}
+            for(const FVector Axis:{X,-X,Y,-Y})PDI->DrawLine(Centre-Along+Axis*R,Centre+Along+Axis*R,Color,SDPG_Foreground,1.2,0,true);
+            PDI->DrawLine(Centre-Along,Centre+Along,Color,SDPG_Foreground,2.5,0,true);++LastCaveSegments;
+        }
+    }
+    int32 LastIndex(const FCLCompiledVolumes::FOperation& O,const FCLCompiledVolumes& V)const{return int32(&O-V.Operations.GetData());}
     void DrawPlacements(FPrimitiveDrawInterface* PDI)
     {
         if(bInspectRegions&&Plan&&Plan->GeneratedRegions)return;
@@ -365,7 +391,7 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawCaves(PDI);
         if(Plan&&!WalkDirection.IsNearlyZero())
         {
             const FVector P=WalkDirection*((Plan->RadiusMeters+Plan->SampleHeightMeters(WalkDirection))/Plan->RadiusMeters*100000+150);
@@ -1429,6 +1455,9 @@ void SCLPlanetPreview::UpdateWatershedDebug()
     }
     if(DebugWater)DebugWater->SetVisibility(Client->CanDrawWatershed());
 }
+void SCLPlanetPreview::SetCaveOverlay(bool Enabled)
+{Client->bCaveOverlay=Enabled;static_cast<FCLGlobeScene*>(Scene.Get())->SetCaveInspection(Enabled);Scene->UpdateCaptureContents();Client->Invalidate();}
+bool SCLPlanetPreview::IsCaveOverlayEnabled()const{return Client->bCaveOverlay;}
 void SCLPlanetPreview::SetWatershedOverlay(bool Enabled)
 {Client->bWatershedOverlay=Enabled;UpdateWatershedDebug();UpdateOcean();Client->Invalidate();}
 bool SCLPlanetPreview::IsWatershedOverlayEnabled()const{return Client->bWatershedOverlay;}
@@ -1524,6 +1553,55 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
             auto Changed=R;Changed.Watershed.ApplyProgression(.85);FString Error;auto Prepared=S.Evaluation.Prepare(Changed,Error);if(!Prepared){AddError(Error);return Close();}S.Evaluation.Request(Changed,Prepared);S.Phase=6;return false;
         }
         return false;
+    }));return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveDebugRenderedTest,"Catalyst.Landform.Caves.DimmedNativeDebugAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLCaveDebugRenderedTest::RunTest(const FString&)
+{
+    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/Caves.json")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}const auto R=A->Recipe;
+    const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native fissure cave inspection"))).ClientSize(FVector2D(1000,800))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
+    struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0;double Start=FPlatformTime::Seconds(),Last=0,OffLuma=0,DimLuma=0;TArray<double> Times;TArray<FColor> Off;uint32 World=0,Starts=0;uint64 Copies=0;int32 Cyan=0;};
+    const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(R,E);if(!Prepared){AddError(E);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}State->Evaluation.Request(R,Prepared);
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State]
+    {
+        auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+        if(Now-S.Start>180){AddError(W->NativePreviewStatus());return Close();}
+        const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/caves");IFileManager::Get().MakeDirectory(*Dir,true);
+        auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
+        {
+            auto* V=W->Client->Viewport;if(!V)return;W->Scene->UpdateCaptureContents();
+            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+            TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/(FString(Name)+TEXT(".png"))));
+        };
+        if(S.Phase==0)
+        {
+            if(auto Done=S.Evaluation.Pump()){if(!Done->Plan||!Done->Plan->Caves||!Done->Plan->Caves->Cutters){AddError(Done->Error);return Close();}TestTrue(TEXT("Cave development uses the existing background worker"),Done->WorkerThread);S.Plan=Done->Plan;W->Rebuild(S.Plan);W->SetGuides({},false);W->SetRegionInspection(false);W->SetOceanVisible(false);S.Phase=1;}return false;
+        }
+        if(S.Phase==1)
+        {
+            if(W->IsUpdating())return false;TestTrue(TEXT("VPP is the sole cave terrain presenter"),W->NativePreview->UsesNativePresentation()&&!W->Mesh);
+            const FVector D=S.Plan->Caves->Segments[0].A.GetSafeNormal();W->Client->Navigation.Yaw=FMath::RadiansToDegrees(FMath::Atan2(D.Y,D.X));W->Client->Navigation.Elevation=FMath::Clamp(FMath::RadiansToDegrees(FMath::Asin(D.Z)),-85.,85.);W->Client->Navigation.Zoom=.8;W->Client->Apply();
+            Capture(TEXT("surface"),S.Off);W->SetCaveOverlay(true);TArray<FColor> Dim;Capture(TEXT("debug"),Dim);int32 Samples=0;
+            for(int32 I=0;I<FMath::Min(S.Off.Num(),Dim.Num());++I){const auto A=S.Off[I],B=Dim[I];if(A.R>110&&A.G>100&&A.B>70){S.OffLuma+=(A.R+A.G+A.B)/3.;S.DimLuma+=(B.R+B.G+B.B)/3.;++Samples;}S.Cyan+=B.G>115&&B.B>115&&B.R<B.G*.65;}
+            if(Samples){S.OffLuma/=Samples;S.DimLuma/=Samples;}TestTrue(TEXT("Cave inspection visibly dims the existing native planet"),Samples>1000&&S.DimLuma<S.OffLuma*.7);TestTrue(TEXT("Underground cave geometry is visibly highlighted through the surface"),S.Cyan>10&&W->Client->LastCaveSegments>0);
+            W->SetCaveOverlay(false);TArray<FColor> Restored;Capture(TEXT("restored"),Restored);double RestoreError=0;int32 RestoreSamples=0;for(int32 I=0;I<FMath::Min(S.Off.Num(),Restored.Num());++I)if(S.Off[I].R>110&&S.Off[I].G>100&&S.Off[I].B>70){RestoreError+=FMath::Abs(int(S.Off[I].R)-int(Restored[I].R))+FMath::Abs(int(S.Off[I].G)-int(Restored[I].G))+FMath::Abs(int(S.Off[I].B)-int(Restored[I].B));++RestoreSamples;}TestTrue(TEXT("Disabling cave debug restores the rendered native surface"),RestoreSamples>1000&&RestoreError/(3*RestoreSamples)<5);W->SetCaveOverlay(true);
+            S.World=W->NativePreview->WorldIdentity();S.Starts=S.Evaluation.Started;S.Copies=W->NativePreview->Metrics.MeshCopies;S.Last=Now;S.Phase=2;return false;
+        }
+        if(S.Phase==2)
+        {
+            S.Times.Add((Now-S.Last)*1000);S.Last=Now;W->OrbitForTesting(FVector2D(.12,.03));W->Dolly(S.Frames%2?.008:-.008);
+            if(auto* V=W->Client->Viewport){V->Invalidate();V->Draw(false);}
+            TestTrue(TEXT("Cave indicators remain visible during native navigation/LOD"),W->Client->LastCaveSegments>0);if(++S.Frames<90)return false;
+            S.Times.RemoveAt(0);S.Times.Sort();const double P95=S.Times[FMath::Min(S.Times.Num()-1,int32(S.Times.Num()*.95))];TestTrue(TEXT("Bounded cave navigation p95 stays below 50 ms"),P95<50);
+            TestEqual(TEXT("Debug navigation keeps the VPP world"),W->NativePreview->WorldIdentity(),S.World);TestEqual(TEXT("Debug navigation does not copy terrain meshes"),W->NativePreview->Metrics.MeshCopies,S.Copies);TestEqual(TEXT("Debug navigation schedules no cave generation"),S.Evaluation.Started,S.Starts);
+            TArray<FColor> Pixels;Capture(TEXT("navigation"),Pixels);W->SetCaveOverlay(false);Capture(TEXT("off-after-navigation"),Pixels);TestEqual(TEXT("Turning off debug removes all cave indicators"),W->Client->LastCaveSegments,0);
+            const FString Metrics=FString::Printf(TEXT("{\"frames\":90,\"p95Ms\":%.6f,\"normalSurfaceLuma\":%.6f,\"debugSurfaceLuma\":%.6f,\"cyanPixels\":%d,\"networks\":%d,\"cutters\":%d,\"entrances\":%d}\n"),P95,S.OffLuma,S.DimLuma,S.Cyan,S.Plan->Caves->Networks,S.Plan->Caves->Segments.Num(),S.Plan->Caves->Entrances);FFileHelper::SaveStringToFile(Metrics,*(Dir/TEXT("native-review.json")));AddInfo(Metrics);return Close();
+        }
+        return Close();
     }));return true;
 }
 #endif

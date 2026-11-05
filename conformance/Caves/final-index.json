@@ -1,0 +1,143 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "FA3056B8684FF1A3AEEB4C93A61347A9",
+			"instanceName": "jupiter.local-56761",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-02.26.52",
+	"succeeded": 5,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 5.6283364295959473,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"FA3056B8684FF1A3AEEB4C93A61347A9"
+			],
+			"duration": 0.72453582286834717,
+			"dateTime": "2026.11.05-02.26.47",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DimmedNativeDebugAndNavigation",
+			"fullTestPath": "Catalyst.Landform.Caves.DimmedNativeDebugAndNavigation",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"FA3056B8684FF1A3AEEB4C93A61347A9"
+			],
+			"duration": 3.2080078125,
+			"dateTime": "2026.11.05-02.26.47",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"p95Ms\":21.899164,\"normalSurfaceLuma\":123.391500,\"debugSurfaceLuma\":8.168796,\"cyanPixels\":243,\"networks\":2,\"cutters\":10,\"entrances\":2}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-02.26.51"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "EligibilityAndVersions",
+			"fullTestPath": "Catalyst.Landform.Caves.EligibilityAndVersions",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"FA3056B8684FF1A3AEEB4C93A61347A9"
+			],
+			"duration": 0.55615693330764771,
+			"dateTime": "2026.11.05-02.26.51",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "2 fissure networks, 10 native cutters, 2 entrances; 147/439 candidates have selected local rift/shear evidence",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-02.26.51"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "KnobAndBackground",
+			"fullTestPath": "Catalyst.Landform.Caves.KnobAndBackground",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"FA3056B8684FF1A3AEEB4C93A61347A9"
+			],
+			"duration": 0.38375407457351685,
+			"dateTime": "2026.11.05-02.26.51",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeFieldsAndPersistence",
+			"fullTestPath": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"FA3056B8684FF1A3AEEB4C93A61347A9"
+			],
+			"duration": 0.75588119029998779,
+			"dateTime": "2026.11.05-02.26.51",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "2 networks, 10 cutters; 297 native bulk/sparse points, max residual 0 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-02.26.52"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

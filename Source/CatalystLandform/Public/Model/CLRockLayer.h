@@ -9,6 +9,9 @@ class FCLNativeNoiseKernel;
 struct FCLCompiledSurfaceLibrary;
 struct FCLSurfaceWeights;
 
+UENUM(BlueprintType)
+enum class ECLRockLithology:uint8 {Unknown,Crystalline,Clastic,Carbonate,Evaporite,MaficVolcanic,SilicicVolcanic,Metamorphic,Ice};
+
 /** Geological identity is independent of the client artwork used to expose it. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRockUnit
@@ -16,6 +19,8 @@ struct CATALYSTLANDFORM_API FCLRockUnit
     GENERATED_BODY()
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FGuid Id;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName Name;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) ECLRockLithology Lithology=ECLRockLithology::Unknown;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double FracturePotential=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName SurfaceId=TEXT("Rock");
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 SurfaceRevision=2;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double MiningResistance=.8;
@@ -132,6 +137,9 @@ class CATALYSTLANDFORM_API FCLCompiledRock final
 public:
     static TSharedPtr<const FCLCompiledRock> Compile(const FCLRockLayer&,int32 PlanetSeed,double OuterRadius,double SurfaceMinRadius,double SurfaceMaxRadius,const FCLCompiledSurfaceLibrary*,TSharedPtr<const FCLCompiledTectonics>,FString& Error,TSharedPtr<const FCLCompiledContinents> Crust=nullptr);
     FCLRockSample Sample(const FVector3d& BodyMeters)const;
+    /** Conservative first profile: no selective host clipping is claimed. */
+    bool HasFractureHosts()const;
+    double FracturePotential()const;
     FLinearColor Properties(const FVector3d& BodyMeters)const;
     void ApplySurfaces(const FVector3d& BodyMeters,FCLSurfaceWeights&)const;
     const FCLRockFolding& GetFolding() const {return Folding;}

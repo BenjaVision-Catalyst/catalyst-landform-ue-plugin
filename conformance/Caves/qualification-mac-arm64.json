@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "status": "Qualified first structural fissure family, native cave field and dimmed globe debug; no new cooked gameplay qualification",
+  "platform": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "architecture": "macOS arm64",
+    "hardware": "M3 Max, 128 GiB",
+    "configuration": "LandformLabEditor Mac Development",
+    "host": "/private/tmp/landform-background/LandformLab"
+  },
+  "baseRevisions": {
+    "component": "58e8497591f5c2a1b20187ab74e038d1645244a3",
+    "workspace": "533691515008992a76e8f383ed6161e0f524c71f"
+  },
+  "ownership": {
+    "native": "Existing VPP generation, native shape/subtraction/AABB kernels, materials, collision, LOD, sculpt/save ownership",
+    "specialization": "Geological candidate/network placement and explicit host prerequisites lower into the already qualified FCLCompiledVolumes capsule path",
+    "audit": "VPP volume spline stamps and graph APIs inspected; they provide field execution, not geological network/history/placement. No new spline sampler or alternative voxel generator. UE capsule wire helper circularizes nonuniform scale and draws some arcs at world depth; native circle/arc/foreground lines retain the actual cutter profile. Native preview lights supply dimming.",
+    "task": "Existing FCLRecipeEvaluation job, cancellation, progress, latest result and shutdown join. Debug always reads native PublishedPlan, including during navigation and pending authoring."
+  },
+  "features": {
+    "schema": 23,
+    "caveAlgorithm": 1,
+    "rockHostMetadata": [
+      "Lithology enum, default Unknown",
+      "FracturePotential 0..1, default 0"
+    ],
+    "hostPolicy": "All three existing Rock palette units must be declared known non-ice lithologies with positive fracture potential. Minimum potential scales occurrence. Mixed/unknown/protected palettes remain uncut. No selective host clipping claim.",
+    "placement": "Only selected rift/shear Landforms with positive local prerequisite evidence at candidate/path nodes; no unselected substitute provinces. Local native plate-drive gradients guide alignment.",
+    "density": "16 equal-area candidate sites/km2 on the midpoint fitted-surface reference sphere; requested density * reference area / candidate count * host potential gives occurrence. Minimum 16 sites does not inflate small-body rates.",
+    "knob": "Occurrence, length, aperture, depth and branching; independent reseed; zero produces no cuts",
+    "budgets": "16384 candidates and existing 64 volume operations; complete refusal instead of silent truncation or coarsening",
+    "composition": "Natural surface and geology -> cave subtraction -> authored solid edits; explicit backfill surface blending sees the cave-cut field",
+    "ui": "Fifth standard Geology row: chevron, eye, indicator, one slider/plain readout/reseed; direct native details beneath expanded row; no new dashboard/tab/checkbox",
+    "debug": "Native lighting dims surface; cyan actual cutter geometry/axes, amber entrances, front hemisphere, screen-space lines. Display-only, camera independent, no extracted terrain mesh.",
+    "reviewAsset": "/Game/LandformDesigner/Caves/DA_FissureCaves",
+    "reviewSource": "Examples/Caves.json"
+  },
+  "validation": {
+    "uniqueChecks": 47,
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Caves.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Caves.DimmedNativeDebugAndNavigation": "Success",
+      "Catalyst.Landform.Caves.EligibilityAndVersions": "Success",
+      "Catalyst.Landform.Caves.KnobAndBackground": "Success",
+      "Catalyst.Landform.Caves.NativeFieldsAndPersistence": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": "Success",
+      "Catalyst.Landform.Provinces.DefinitionsAndEvidence": "Success",
+      "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": "Success",
+      "Catalyst.Landform.Provinces.PackagedLibrary": "Success",
+      "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+      "Catalyst.Landform.Regions.StructureAndPalette": "Success",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections": "Success",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.MetricBasinAndFoldContacts": "Success",
+      "Catalyst.Landform.Rock.MetricBedDistribution": "Success",
+      "Catalyst.Landform.Rock.MetricScaleAndCompactHistory": "Success",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+      "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering": "Success",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": "Success",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts": "Success",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success"
+    },
+    "runs": {
+      "qualification": {
+        "succeeded": 47,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      },
+      "final": {
+        "succeeded": 5,
+        "succeededWithWarnings": 0,
+        "failed": 0,
+        "notRun": 0
+      }
+    },
+    "finalRerunReason": "After 47 checks passed, corrected minimum-sample density rounding and added a cold native asset equality/source-link check. All five cave checks rerun on final source.",
+    "build": "build-final.log: Succeeded",
+    "nativeReview": {
+      "frames": 90,
+      "p95Ms": 21.899164,
+      "normalSurfaceLuma": 123.3915,
+      "debugSurfaceLuma": 8.168796,
+      "cyanPixels": 243,
+      "networks": 2,
+      "cutters": 10,
+      "entrances": 2
+    },
+    "geometry": "Two networks, ten native cutters and two surface connectors in the frozen review recipe",
+    "nativeAdapter": "297 bulk/sparse VPP field queries equal shared-scene cm fields; zero bulk/sparse residual",
+    "geology": "Native cutter centres become air while uncut host was solid; canonical StratumId and inherited surface weights unchanged",
+    "earthworks": "Later additive solid backfills a cave and explicit Soil material blends over the cut field",
+    "persistence": "Portable recipe export/import regenerates exact deterministic coordinates; actual native UAsset cold-load matches the portable recipe and links all 17 selected source assets",
+    "knob": "Eleven positions 0..1 validate; occurrence/branch counts vary as well as physical dimensions; reseed varies layout",
+    "background": "Existing worker completes the same native result; progress/cancellation remain with existing owner",
+    "display": "Measured dimming, native highlighted pixels, image-based restoration, 90-frame navigation with stable native owner, no terrain mesh inspection copies or new cave evaluation",
+    "editor": "Whole gesture Undo, reseed Undo, independent eye/indicator, enclosing schema retained across Watershed edits, standard five-row authoring layout",
+    "corrections": [
+      "Density used pre-fit base radius; changed to the fitted surface interval reference",
+      "Minimum sample count acceptance now includes actual reference area",
+      "Native sparse-query fixture omitted its material output buffer; allocated the required native buffer",
+      "Diagnostic draw counts were asserted before redraw; tests now explicitly render before observing",
+      "Explicit backfill material composition now receives the natural cave-cut field"
+    ]
+  },
+  "exclusions": [
+    "Karst, lava tubes, large caverns and ice cavities",
+    "Groundwater, dissolution, weathering, stability/collapse and palaeo-history reconstruction",
+    "Selective local 3D host clipping and exact continuous province/roof masks",
+    "Cave scalability beyond the explicitly bounded native-volume bridge",
+    "New cooked mining/walking/contact/native sculpt-save qualification",
+    "Hydrologic reanalysis after excavation",
+    "Multiplayer"
+  ],
+  "preservation": {
+    "root-protected.json": {
+      "files": 28,
+      "changed": 0,
+      "snapshotSha256": "46b0ff6540b6474095df503616939eb38e3919791830aa3938734e741fef82c9"
+    },
+    "plugin-content-protected.json": {
+      "files": 115,
+      "changed": 0,
+      "snapshotSha256": "5521151023f1b6e8c195258e6de2041f187dc5cb432844c18c2c9c6e3cef1ade"
+    },
+    "review-protected.json": {
+      "files": 178,
+      "changed": 0,
+      "snapshotSha256": "bc8089de3fc7f095c40e39d941c961a8a7a72698e8163440761bcf7fe7437d24"
+    }
+  },
+  "sourceSha256": {
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "2e369c5478ff59aa63215dc38d061f1f34e4020e797f9ae81ece67216727ce53",
+    "Source/CatalystLandform/Private/Model/CLCaves.cpp": "fdf2fd5f92f008a1d7e6b02b69e3505a355e3c525cd3eb1d1459150ecb9076bc",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "f12a7a6f63c7484fa5077d677a27a6b429e1419b2d30f22619b2e196a247fbbe",
+    "Source/CatalystLandform/Private/Model/CLRockLayer.cpp": "766b459833da58f7253ab9156d14506ca87984d45d26db4f79ec37f5c6f514d3",
+    "Source/CatalystLandform/Private/Scene/CLScene.cpp": "11a5c378a09d3b40dd10f229ed1990c3268b3839de3e955289d5a0e45fcd261c",
+    "Source/CatalystLandform/Public/Model/CLCaves.h": "71500640ee35be1e2d08f0abb571c4010674f6204f41e126b1dbb569843fb9fc",
+    "Source/CatalystLandform/Public/Model/CLCompileProgress.h": "024c4ea7d2ccb53512a500f90e0b78062a77a785b59e88e41c16e51068dd1e12",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "1818481e9221256bc6635e3bb50eb0fb512ceb76316e4b9f630ad0942d0ec319",
+    "Source/CatalystLandform/Public/Model/CLRockLayer.h": "c8a46dd60b77e1ed1bbb6f7b4768b079b26488e7e2a0979595995b36f6bd3a8d",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "bfd49785fe8302a050f251962cba358ef082108550581d7d977d18be057851f7",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "130ff268fb4b4f574aee5d02553c3210a61d2dccdd558b0046b0c8b5d380a9c5",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "bbffb0c5a3ac1758826477385d5a970f0957db305d489c4eca1bcd304cd91761",
+    "Source/CatalystLandformTests/Private/CLCaveTests.cpp": "87325fea874cbbae1c1ff3c47c2c39c21ea79bf4c5894a275188abd4b824a9aa"
+  },
+  "portableRecipeSha256": "e4f9fd15271c28e66a610e13fee9c3c688d35dba2db0f52eb85ebd54d5ba10ff",
+  "nativeReviewAssetSha256": "a505f61e99e3ca5bb32877ed431ccaed04b53694bfca2dee1f71a1f6f855ecfc",
+  "artifactRoot": "/private/tmp/landform-caves",
+  "artifacts": {
+    "debug.png": "12328952ddda1aff511848b350bf238ef9f01c46a038b8ae0de432886f1ffb90",
+    "final-index.json": "834d44e1defad9f1e96c8d537f6e869dc07189078a938a4dabc92c49f8b46fa5",
+    "geology.png": "0fe65c732bdee250891139b066167b31b28bc4c1f1bae115d5a1fa41cf15ecaf",
+    "native-review.json": "19773497f6722ff0837dcdf2880bdb72589e17449822a16d12c9af3ebb2f4ca0",
+    "navigation.png": "53af99bc938f2ec2187f4bbc3fcdf210773b0cddb45b2717d10fbe2a0fadcbfb",
+    "off-after-navigation.png": "a91993415466ff946ec8fb98cdffcb20c2a8f94a2a4cb4690b92a3abb2fd3534",
+    "qualification-index.json": "6b14fbc80fc75d58dec2ed0a53745dcd7c5847dcecc5ead09dc0b830f07b6998",
+    "restored.png": "97d16a7047b2125c8850706c571dc188878bade632798b6d7bf17ad5385626d3",
+    "surface.png": "965640ec55465d8de85ed55ee65f40a296113844703920e8fa40614c8fc5caf9"
+  }
+}

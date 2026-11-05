@@ -127,7 +127,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
             Scene = FCLScene::FromPlanet(RecipePlan, Error);
             if (!Scene) return false;
         }
-        if((RecipePlan->Volumes||Stamp.Window.bEnabled)&&!Scene)return false; // No framed or volume fallback to a radial actor profile.
+        if((RecipePlan->Volumes||(RecipePlan->Caves&&RecipePlan->Caves->Cutters)||Stamp.Window.bEnabled)&&!Scene)return false; // No framed or volume fallback to a radial actor profile.
     }
     return true;
 }

@@ -652,6 +652,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLSurfaceDesignerTest;
     friend class FCLWatershedDesignerTest;
     friend class FCLProvinceEditorTest;
+    friend class FCLCaveDesignerTest;
     friend class FCLAuthoringLayoutTest;
     friend class FCLBackgroundDesignerTest;
     friend class FCLNavigationResponsivenessTest;
@@ -662,8 +663,16 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<FStructOnScope> WatershedDraft;
     TArray<TSharedPtr<IPropertyHandle>> WatershedProperties;
     TSharedPtr<SSlider> WatershedSlider;
-    TSharedPtr<SButton> LayerVisibility[4],WatershedVariation;
-    TSharedPtr<SCheckBox> LayerIndicators[4];
+    TSharedPtr<SButton> LayerVisibility[5],WatershedVariation;
+    TSharedPtr<SCheckBox> LayerIndicators[5];
+    TSharedPtr<FStructOnScope> CaveDraft;
+    TArray<TSharedPtr<IPropertyHandle>> CaveProperties;
+    TSharedPtr<SSlider> CaveSlider;
+    TSharedPtr<SButton> CaveVariation;
+    TUniquePtr<FScopedTransaction> CaveTransaction;
+    FTSTicker::FDelegateHandle CaveTicker;
+    bool bCaveDragging=false,bCaveOverlay=false;
+    double PendingCave=.5,AppliedCave=.5,LastCaveApply=0;
     TUniquePtr<FScopedTransaction> WatershedTransaction;
     FTSTicker::FDelegateHandle WatershedTicker;
     bool bWatershedDragging=false,bWatershedOverlay=false;
@@ -764,6 +773,7 @@ public:
         FTSTicker::GetCoreTicker().RemoveTicker(EvaluationTicker);Evaluation.Cancel();
         FTSTicker::GetCoreTicker().RemoveTicker(TectonicTicker);TectonicDragTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(RockTicker);RockTransaction.Reset();
+        FTSTicker::GetCoreTicker().RemoveTicker(CaveTicker);CaveTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(WatershedTicker);WatershedTransaction.Reset();
         FTSTicker::GetCoreTicker().RemoveTicker(SurfaceTicker);SurfaceTransaction.Reset();
         if (SelectionInput && FSlateApplication::IsInitialized()) FSlateApplication::Get().UnregisterInputPreProcessor(SelectionInput);
@@ -1065,6 +1075,8 @@ public:
         if(!Property)return;
         // The native Details view finishes the gesture after editing the external
         // draft. Validate before touching the asset and keep a single asset Undo.
+        if(Property->GetOwnerStruct()==FCLCaveSettings::StaticStruct()&&CaveDraft)
+        {if(!CommitCave(*reinterpret_cast<const FCLCaveSettings*>(CaveDraft->GetStructMemory())))*reinterpret_cast<FCLCaveSettings*>(CaveDraft->GetStructMemory())=RecipeAsset()->Recipe.Caves;return;}
         if(Property->GetOwnerStruct()==FCLWatershedSettings::StaticStruct()&&WatershedDraft)
         {
             if(!CommitWatershed(*reinterpret_cast<const FCLWatershedSettings*>(WatershedDraft->GetStructMemory())))
@@ -1090,7 +1102,7 @@ public:
             auto L=LayeredRecipe().Rock;L.BedDistribution=*reinterpret_cast<const FCLRockBedDistribution*>(RockBedDraft->GetStructMemory());
             if(!CommitRock(L))*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
         }
-        else if(Property->GetOwnerStruct()==FCLRockLayer::StaticStruct()&&RockDraft)
+        else if((Property->GetOwnerStruct()==FCLRockLayer::StaticStruct()||Property->GetOwnerStruct()==FCLRockUnit::StaticStruct())&&RockDraft)
         {
             if(!CommitRock(*reinterpret_cast<const FCLRockLayer*>(RockDraft->GetStructMemory())))
                 *reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
@@ -1145,6 +1157,7 @@ public:
             *reinterpret_cast<FCLTectonicPreset*>(TectonicDraft->GetStructMemory())=ResolvedTectonicDraft();
         }
         if(ContinentalDraft)*reinterpret_cast<FCLContinentalLayer*>(ContinentalDraft->GetStructMemory())=ResolvedContinentalDraft();
+        if(CaveDraft)*reinterpret_cast<FCLCaveSettings*>(CaveDraft->GetStructMemory())=RecipeAsset()->Recipe.Caves;
         if(WatershedDraft)*reinterpret_cast<FCLWatershedSettings*>(WatershedDraft->GetStructMemory())=RecipeAsset()->Recipe.Watershed;
         if(RockDraft)*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
         if(RockBedDraft)*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
@@ -1224,6 +1237,7 @@ public:
         case ECLCompileStage::Geology:Caption=TEXT("Building geology…");break;
         case ECLCompileStage::Elevation:Caption=TEXT("Calibrating terrain…");break;
         case ECLCompileStage::Drainage:Caption=TEXT("Building drainage…");break;
+        case ECLCompileStage::Caves:Caption=TEXT("Building caves…");break;
         case ECLCompileStage::Presentation:Caption=TEXT("Building watershed view…");break;
         default:Caption=TEXT("Finishing terrain…");break;
         }
@@ -1301,10 +1315,10 @@ public:
                 .OnClicked_Lambda([Toggle]{Toggle();return FReply::Handled();})
                 [SNew(SImage).Image_Lambda([Enabled]{return FAppStyle::GetBrush(Enabled.Get()?TEXT("Level.VisibleIcon16x"):TEXT("Level.NotVisibleIcon16x"));})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,4,0)
-            [SAssignNew(LayerIndicators[Index],SCheckBox).Style(FAppStyle::Get(),"ToggleButtonCheckbox").Padding(2).IsEnabled(Index==3)
-                .ToolTipText(FText::FromString(Index==3?TEXT("Toggle Watershed indicators: drainage, channels and potential lake rims (globe)"):TEXT("This layer has no visual indicators")))
-                .IsChecked_Lambda([this,Index]{return Index==3&&bWatershedOverlay?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this,Index](ECheckBoxState V){if(Index==3){bWatershedOverlay=V==ECheckBoxState::Checked;if(Globe)Globe->SetWatershedOverlay(bWatershedOverlay);}})
+            [SAssignNew(LayerIndicators[Index],SCheckBox).Style(FAppStyle::Get(),"ToggleButtonCheckbox").Padding(2).IsEnabled(Index==3||Index==4)
+                .ToolTipText(FText::FromString(Index==3?TEXT("Toggle Watershed indicators: drainage, channels and potential lake rims (globe)"):Index==4?TEXT("Inspect caves through a dimmed planet surface"):TEXT("This layer has no visual indicators")))
+                .IsChecked_Lambda([this,Index]{return ((Index==3&&bWatershedOverlay)||(Index==4&&bCaveOverlay))?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this,Index](ECheckBoxState V){if(Index==3){bWatershedOverlay=V==ECheckBoxState::Checked;if(Globe)Globe->SetWatershedOverlay(bWatershedOverlay);}else if(Index==4){bCaveOverlay=V==ECheckBoxState::Checked;if(Globe)Globe->SetCaveOverlay(bCaveOverlay);}})
                 [SNew(SImage).Image(FAppStyle::GetBrush("EditorViewport.WireframeMode"))]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,8,0)
             [SNew(SBox).WidthOverride(100)[SNew(STextBlock).Text(FText::FromString(Name)).Font(FAppStyle::GetFontStyle("PropertyWindow.BoldFont"))]]
@@ -1320,7 +1334,7 @@ public:
     }
     bool CommitRock(FCLRockLayer Layer)
     {
-        auto* A=RecipeAsset();auto R=LayeredRecipe();R.Rock=MoveTemp(Layer);R.SchemaVersion=FMath::Max(R.SchemaVersion,20);if(R.Rock.bEnabled&&!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();FString Error;
+        auto* A=RecipeAsset();auto R=LayeredRecipe();R.Rock=MoveTemp(Layer);R.SchemaVersion=FMath::Max(R.SchemaVersion,R.Rock.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Unknown||U.FracturePotential>0;})?23:20);if(R.Rock.bEnabled&&!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();FString Error;
         if(!PrepareEdit(R,Error)){InspectorError=Status=Error;return false;}
         InspectorError.Reset();TUniquePtr<FScopedTransaction> Tx;if(!RockTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change rock character")));
         A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();return true;
@@ -1361,7 +1375,7 @@ public:
     }
     bool CommitWatershed(FCLWatershedSettings Layer)
     {
-        auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.SchemaVersion=22;R.AlgorithmVersion=2;R.Watershed=MoveTemp(Layer);FString Error;
+        auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.SchemaVersion=FMath::Max(22,R.SchemaVersion);R.AlgorithmVersion=2;R.Watershed=MoveTemp(Layer);FString Error;
         if(!PrepareEdit(R,Error)){InspectorError=Status=Error;return false;}
         TUniquePtr<FScopedTransaction> Tx;if(!WatershedTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change watershed character")));
         auto* A=RecipeAsset();A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();InspectorError.Reset();return true;
@@ -1398,6 +1412,47 @@ public:
         C.InitiallyCollapsed(true);
         WatershedDraft=MakeShared<FStructOnScope>(FCLWatershedSettings::StaticStruct());*reinterpret_cast<FCLWatershedSettings*>(WatershedDraft->GetStructMemory())=RecipeAsset()->Recipe.Watershed;
         AddLayerAdvanced(C,WatershedDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character")},TAttribute<bool>::CreateLambda([this]{return RecipeAsset()->Recipe.Watershed.bEnabled&&!bWatershedDragging;}),WatershedProperties,false);C.SetShowAdvanced(false);
+    }
+    bool CommitCave(FCLCaveSettings Layer)
+    {
+        auto R=RecipeAsset()->Recipe;R.UseGuidedGeology();R.SchemaVersion=23;R.AlgorithmVersion=2;R.Caves=MoveTemp(Layer);FString Error;
+        if(!PrepareEdit(R,Error)){InspectorError=Status=Error;return false;}
+        TUniquePtr<FScopedTransaction> Tx;if(!CaveTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change caves")));
+        auto* A=RecipeAsset();A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();InspectorError.Reset();return true;
+    }
+    void BeginCaveDrag()
+    {
+        if(bCaveDragging)return;bCaveDragging=true;PendingCave=AppliedCave=RecipeAsset()->Recipe.Caves.Character;LastCaveApply=0;
+        CaveTransaction=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change caves")));RecipeAsset()->Modify();
+        if(Globe)Globe->SetDraftMode(true);if(Preview)Preview->SetDraftMode(true);
+        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        CaveTicker=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak](float){if(auto E=Weak.Pin();E&&E->bCaveDragging){E->PumpCave(false);return true;}return false;}));
+    }
+    void PumpCave(bool Force)
+    {
+        if(FMath::IsNearlyEqual(PendingCave,AppliedCave,1.e-7))return;const double Now=FPlatformTime::Seconds();if(!Force&&Now-LastCaveApply<.3)return;
+        auto L=RecipeAsset()->Recipe.Caves;L.ApplyProgression(PendingCave);if(CommitCave(L))AppliedCave=PendingCave;LastCaveApply=Now;
+    }
+    void EndCaveDrag()
+    {
+        if(!bCaveDragging)return;PumpCave(true);bCaveDragging=false;FTSTicker::GetCoreTicker().RemoveTicker(CaveTicker);CaveTicker.Reset();CaveTransaction.Reset();
+        if(Globe)Globe->SetDraftMode(false);if(Preview)Preview->SetDraftMode(false);Refresh();
+    }
+    void BuildCaveInspector(IDetailCategoryBuilder& C)
+    {
+        C.HeaderContent(GeologyHeader(4,TEXT("Caves"),TAttribute<bool>::CreateLambda([this]{return RecipeAsset()->Recipe.Caves.bEnabled;}),
+            [this]{auto L=RecipeAsset()->Recipe.Caves;L.bEnabled=!L.bEnabled;CommitCave(L);},
+            SNew(SHorizontalBox).IsEnabled_Lambda([this]{return RecipeAsset()->Recipe.Caves.bEnabled;})
+            +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(0,0,8,0)[SAssignNew(CaveSlider,SSlider)
+                .Value_Lambda([this]{return float(bCaveDragging?PendingCave:RecipeAsset()->Recipe.Caves.Character);})
+                .OnMouseCaptureBegin_Lambda([this]{BeginCaveDrag();}).OnMouseCaptureEnd_Lambda([this]{EndCaveDrag();})
+                .OnControllerCaptureBegin_Lambda([this]{BeginCaveDrag();}).OnControllerCaptureEnd_Lambda([this]{EndCaveDrag();})
+                .OnValueChanged_Lambda([this](float V){PendingCave=V;if(bCaveDragging)PumpCave(false);else{auto L=RecipeAsset()->Recipe.Caves;L.ApplyProgression(V);CommitCave(L);}})]
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[CharacterReadout(TAttribute<double>::CreateLambda([this]{return bCaveDragging?PendingCave:RecipeAsset()->Recipe.Caves.Character;}))],
+            SAssignNew(CaveVariation,SButton).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3)
+                .OnClicked_Lambda([this]{auto L=RecipeAsset()->Recipe.Caves;const int32 Before=L.Seed;do{L.Seed=int32(FGuid::NewGuid().A);}while(L.Seed==Before);CommitCave(L);return FReply::Handled();})[SNew(SImage).Image(FAppStyle::GetBrush("Icons.Refresh"))]),true);
+        C.InitiallyCollapsed(true);CaveDraft=MakeShared<FStructOnScope>(FCLCaveSettings::StaticStruct());*reinterpret_cast<FCLCaveSettings*>(CaveDraft->GetStructMemory())=RecipeAsset()->Recipe.Caves;
+        AddLayerAdvanced(C,CaveDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character")},TAttribute<bool>::CreateLambda([this]{return RecipeAsset()->Recipe.Caves.bEnabled&&!bCaveDragging;}),CaveProperties,false);C.SetShowAdvanced(false);
     }
     FCLSurfaceDistributionSettings ElevationSettings()const {return RecipeAsset()->Recipe.ElevationDistribution;}
     bool CommitSurfaceRecipe(FCLPlanetRecipe R)
@@ -1519,6 +1574,7 @@ public:
             R.InitiallyCollapsed(true);
             BuildRockAdvanced(R);R.SetShowAdvanced(false);
             auto& W=B.EditCategory(TEXT("Watershed"),FText::FromString(TEXT("Watershed")));W.SetSortOrder(3);BuildWatershedInspector(W);
+            auto& V=B.EditCategory(TEXT("Caves"),FText::FromString(TEXT("Caves")));V.SetSortOrder(4);BuildCaveInspector(V);
 
 
         }
@@ -2701,7 +2757,7 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
         GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores an eye toggle"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));
     }
     TestFalse(TEXT("Layer indicators start off"),E->bWatershedOverlay||E->Globe->IsWatershedOverlayEnabled());
-    for(int32 I=0;I<4;++I)TestEqual(TEXT("Only layers with indicators offer an enabled toggle"),E->LayerIndicators[I]->IsEnabled(),I==3);
+    for(int32 I=0;I<5;++I)TestEqual(TEXT("Only layers with indicators offer an enabled toggle"),E->LayerIndicators[I]->IsEnabled(),I>=3);
     const auto BeforeIndicators=A->Recipe;const bool WasDirty=A->GetOutermost()->IsDirty();const uint32 Evaluations=E->Evaluation.Started;
     const auto* Native=E->Globe->NativeForTesting();const auto NativeStarts=Native?Native->Metrics.Starts:0;
     for(bool Enabled:{true,false,true})
@@ -2751,15 +2807,15 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
             {
                 Test->TestFalse(TEXT("Character readouts have no percent sign"),W.Text.Contains(TEXT("%")));
                 Test->TestTrue(TEXT("Tectonics appears before Continents"),W.Text.Find(TEXT("Tectonics"))<W.Text.Find(TEXT("Continents")));
-                Test->TestEqual(TEXT("Four plain numeric readouts"),W.Numbers.Num(),4);
+                Test->TestEqual(TEXT("Five plain numeric readouts"),W.Numbers.Num(),5);
                 for(const auto& N:W.Numbers){Test->TestTrue(TEXT("Readouts share the native property font"),N->GetFont()==FAppStyle::GetFontStyle("PropertyWindow.NormalFont"));Test->TestTrue(TEXT("Readouts share the same width"),FMath::IsNearlyEqual(N->GetCachedGeometry().GetLocalSize().X,36.,1.));}
-                Test->TestEqual(TEXT("Geology has exactly four Character knobs"),W.Sliders,4);Test->TestEqual(TEXT("Geology has no Advanced dropdowns"),W.Advanced.Num(),0);Test->TestEqual(TEXT("Each layer uses one native category chevron"),W.Categories.Num(),4);
-                for(const TCHAR* Name:{TEXT("Continents"),TEXT("Tectonics"),TEXT("Rock"),TEXT("Watershed")})Test->TestTrue(FString(TEXT("Geology owns "))+Name,W.Text.Contains(Name));
+                Test->TestEqual(TEXT("Geology has exactly five Character knobs"),W.Sliders,5);Test->TestEqual(TEXT("Geology has no Advanced dropdowns"),W.Advanced.Num(),0);Test->TestEqual(TEXT("Each layer uses one native category chevron"),W.Categories.Num(),5);
+                for(const TCHAR* Name:{TEXT("Continents"),TEXT("Tectonics"),TEXT("Rock"),TEXT("Watershed"),TEXT("Caves")})Test->TestTrue(FString(TEXT("Geology owns "))+Name,W.Text.Contains(Name));
                 for(const TCHAR* Forbidden:{TEXT("Model"),TEXT("Variation"),TEXT("Character"),TEXT("Advanced"),TEXT("Drainage"),TEXT("Focus largest channel"),TEXT("Analysis"),TEXT("Bed thickness distribution")})Test->TestFalse(FString(TEXT("Collapsed geology excludes "))+Forbidden,W.Text.Contains(Forbidden));
-                if(!Test->TestEqual(TEXT("The native watershed chevron can be clicked"),W.Categories.Num(),4))return Close();Toggle=W.Categories[3];
-                TSharedPtr<SSlider> Sliders[]={Editor->ContinentalSlider,Editor->TectonicSlider,Editor->RockSlider,Editor->WatershedSlider};
-                TSharedPtr<SButton> Seeds[]={Editor->ContinentalVariation,Editor->TectonicVariation,Editor->RockVariation,Editor->WatershedVariation};
-                for(int32 I=0;I<4;++I){auto Middle=[](TSharedPtr<SWidget> X){const auto G=X->GetCachedGeometry();return G.GetAbsolutePosition().Y+G.GetAbsoluteSize().Y*.5;};const double Y=Middle(Sliders[I]);Test->TestTrue(TEXT("Eye, indicators, slider and reseed share the same main row"),FMath::Abs(Y-Middle(Editor->LayerVisibility[I]))<2&&FMath::Abs(Y-Middle(Editor->LayerIndicators[I]))<2&&FMath::Abs(Y-Middle(Seeds[I]))<2);
+                if(!Test->TestEqual(TEXT("The native watershed chevron can be clicked"),W.Categories.Num(),5))return Close();Toggle=W.Categories[3];
+                TSharedPtr<SSlider> Sliders[]={Editor->ContinentalSlider,Editor->TectonicSlider,Editor->RockSlider,Editor->WatershedSlider,Editor->CaveSlider};
+                TSharedPtr<SButton> Seeds[]={Editor->ContinentalVariation,Editor->TectonicVariation,Editor->RockVariation,Editor->WatershedVariation,Editor->CaveVariation};
+                for(int32 I=0;I<5;++I){auto Middle=[](TSharedPtr<SWidget> X){const auto G=X->GetCachedGeometry();return G.GetAbsolutePosition().Y+G.GetAbsoluteSize().Y*.5;};const double Y=Middle(Sliders[I]);Test->TestTrue(TEXT("Eye, indicators, slider and reseed share the same main row"),FMath::Abs(Y-Middle(Editor->LayerVisibility[I]))<2&&FMath::Abs(Y-Middle(Editor->LayerIndicators[I]))<2&&FMath::Abs(Y-Middle(Seeds[I]))<2);
                     Test->TestTrue(TEXT("Indicator icon is immediately after the eye"),Editor->LayerIndicators[I]->GetCachedGeometry().GetAbsolutePosition().X>Editor->LayerVisibility[I]->GetCachedGeometry().GetAbsolutePosition().X);}
             }
             if(Step==2)
@@ -2767,7 +2823,7 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
                 FString Properties;for(const auto& P:View->GetPropertiesInOrderDisplayed())Properties+=P.ToString()+TEXT(";");
                 Test->TestTrue(TEXT("Opening Watershed exposes its direct physical properties"),Properties.Contains(TEXT("IncisionMeters"))&&Properties.Contains(TEXT("ValleyWidthMeters")));
                 Test->TestEqual(TEXT("Opening a layer adds no nested Details container"),W.Details,1);
-                Test->TestEqual(TEXT("Expanded geology still has no Advanced dropdown"),W.Advanced.Num(),0);if(W.Categories.Num()==4)Toggle=W.Categories[3];
+                Test->TestEqual(TEXT("Expanded geology still has no Advanced dropdown"),W.Advanced.Num(),0);if(W.Categories.Num()==5)Toggle=W.Categories[3];
             }
             if(Step==3){Test->TestFalse(TEXT("Preview has no duplicate drainage checkbox"),W.Text.Contains(TEXT("Drainage overlay")));Test->TestTrue(TEXT("Preview retains channel focus"),W.Text.Contains(TEXT("Focus largest channel")));Test->TestTrue(TEXT("Schema-22 preview measurement is available"),Editor->MeasuredElevation.Num()>100);Test->TestFalse(TEXT("Inspection overlays are opt-in"),Editor->bWatershedOverlay);}
             if(Step==4){if(!Test->TestEqual(TEXT("Planet has native body and surface Advanced dropdowns"),W.Advanced.Num(),2))return Close();Toggle=W.Advanced[1];}
@@ -2966,6 +3022,26 @@ bool FCLProvinceEditorTest::RunTest(const FString&)
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Before));return true;
+}
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+namespace {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveDesignerTest,"Catalyst.Landform.Caves.DesignerControlsAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLCaveDesignerTest::RunTest(const FString&)
+{
+    FString J,Error;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/Caves.json")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLCaveDesigner_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}
+    const auto Original=A->Recipe;const auto* Saved=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Caves/DA_FissureCaves"));if(!TestNotNull(TEXT("Cave review is a real native library asset"),Saved))return false;TestTrue(TEXT("Cold-loaded cave asset equals the portable recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&Saved->Recipe,0));TestEqual(TEXT("Cave review links its 17 selected native Landforms"),Saved->PaletteSources.Num(),17);
+    const auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->AwaitEvaluationForTesting();
+    TestTrue(TEXT("Caves supplies the fifth standard one-knob row"),E->CaveSlider&&E->LayerVisibility[4]&&E->LayerIndicators[4]&&E->CaveVariation);TestTrue(TEXT("Cave indicators are independent and initially disabled"),E->LayerIndicators[4]->IsEnabled()&&!E->Globe->IsCaveOverlayEnabled());
+    const auto Started=E->Evaluation.Started;E->LayerIndicators[4]->ToggleCheckedState();TestTrue(TEXT("The indicator toggles the dimmed underground view"),E->Globe->IsCaveOverlayEnabled());TestEqual(TEXT("Indicators start no authoring task"),E->Evaluation.Started,Started);TestTrue(TEXT("Indicators preserve the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
+    E->BeginCaveDrag();E->PendingCave=.25;E->PumpCave(true);E->PendingCave=.85;E->PumpCave(true);E->EndCaveDrag();TestEqual(TEXT("Cave knob commits the latest position"),A->Recipe.Caves.Character,.85);TestTrue(TEXT("Cave knob develops length and width"),A->Recipe.Caves.LengthMeters!=Original.Caves.LengthMeters&&A->Recipe.Caves.RadiusMeters!=Original.Caves.RadiusMeters);GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete cave gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
+    E->CaveVariation->SimulateClick();TestTrue(TEXT("Caves has an independent reseed"),A->Recipe.Caves.Seed!=Original.Caves.Seed);GEditor->UndoTransaction();TestTrue(TEXT("Reseed Undo preserves geology"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
+    E->LayerVisibility[4]->SimulateClick();TestFalse(TEXT("Eye disables the cave producer"),A->Recipe.Caves.bEnabled);TestTrue(TEXT("Eye preserves the independent debug preference"),E->Globe->IsCaveOverlayEnabled());GEditor->UndoTransaction();
+    auto W=A->Recipe.Watershed;W.bEnabled=false;TestTrue(TEXT("Watershed edits preserve the enclosing cave schema"),E->CommitWatershed(W));TestEqual(TEXT("Cave schema survives other geology edits"),A->Recipe.SchemaVersion,23);
+    E->LayerIndicators[4]->ToggleCheckedState();TestFalse(TEXT("Debug mode switches off independently"),E->Globe->IsCaveOverlayEnabled());A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;
 }
 }
 #endif

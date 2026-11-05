@@ -1940,3 +1940,21 @@ The default Landforms build page is one native **Include → Landforms** checkli
 Automatic placement chooses only enabled entries from that selection. Existing
 manual composition, region tuning and inspection controls remain under the same
 native Advanced reveal; geological prerequisite authoring stays in source assets.
+
+
+## First structural cave layer — 5 November 2026
+
+Schema 23 adds a standard Caves row under Geology and explicitly typed fracture
+host properties on the existing Rock units. The first bounded family produces
+fissures only in selected rift/shear profiles with positive local structural evidence
+and a fully declared fracture-capable rock palette. Existing recipes retain unknown
+hosts and unchanged geometry/materials. The [cave contract](Caves.md) records the
+conservative host rule, physical scale, budget and sampling limits.
+
+Native VPP volume kernels cut the shared scene after the natural surface, and
+later solid earthworks can backfill those cuts with explicit material. The existing
+background job owns generation. The cave indicator dims native preview lighting
+and draws the actual native cutter geometry through the surface without replacing
+the terrain presenter. Debug follows native publication and survives navigation.
+The [qualification](../conformance/Caves/qualification-mac-arm64.json) separates
+field/recipe/editor evidence from the remaining cooked gameplay qualification.
