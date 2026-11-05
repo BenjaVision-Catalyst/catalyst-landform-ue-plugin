@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "status": "Qualified connected structural cave volumes, native editor presentation and standalone underground sculpt persistence on bounded reference recipes",
+  "baseRevisions": {
+    "component": "cf2f69ed5782e7148d31ad73bc4b0b9b544b0c8a",
+    "workspace": "abd60a831912b8b3b368fa71b5e1f8f5592bf0f1"
+  },
+  "platform": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "architecture": "macOS arm64",
+    "hardware": "M3 Max, 128 GiB",
+    "build": "LandformLabEditor Mac Development",
+    "host": "/private/tmp/landform-background/LandformLab"
+  },
+  "delivery": {
+    "geometry": "Connected negative volumes in native VPP terrain, with curved variable-section passages, irregular enlarged junction spaces, branches and developing loops/lower levels. Native terrain meshes their floors, walls and ceilings.",
+    "editor": "Existing eye/indicator/one knob/reseed/native expansion; dimmed globe and all actual generated cave surfaces together; no automatic camera change, selection mode or new UI container.",
+    "gameplay": "Actual generated saved 500 m recipe; native moving collision, grounded character, native underground sphere mining, localized solid placement, compressed VPP sculpt save and fresh-process reload.",
+    "minimum": "Every enabled knob position requests at least one complete eligible cave; only the eye requests zero. Impossible prerequisites/fit explicitly refuse.",
+    "compatibility": "Intentional correction of unreleased cave morphology under existing recipe schema/fields; authored advanced values and saved asset bytes preserved. New defaults match the revised middle profile."
+  },
+  "nativeAudit": {
+    "reused": [
+      "FVoxelSplineSegment::Create and UE FSplineCurves interpolation/interval bounds",
+      "VPP exported VoxelSplineStamp_FindNearest3D, the same kernel used by GetClosestSplineKey3D",
+      "FVoxelSphereShape for normalized elliptical passages and ellipsoidal chamber lobes",
+      "Native volume smooth union and subtraction",
+      "Native PerlinNoise3D, with stable body coordinates and per-network identities",
+      "FVoxelAABBTree for generated natural feature indexing",
+      "Get Voxel Flat Normal for diagnostic surface shading",
+      "Existing native AVoxelWorld generation/LOD/meshing/collision and VPP sculpt/save APIs"
+    ],
+    "specializations": [
+      "Geologically eligible network topology and placement",
+      "Physical passage/chamber parameters and correlated section variation",
+      "Stable section frames for steep passages",
+      "Candidate/feature identities, sampled footprint and cover checks",
+      "Shared scene ordering, canonical geology and diagnostic publication"
+    ],
+    "demonstratedGaps": [
+      "VPP does not supply this geological network/host/province policy.",
+      "The existing Catalyst 64-operation authored-edit mask cannot represent developed natural networks; reuse VPP native AABB indexing directly for bounded natural features.",
+      "An ordinary PixelNormalWS diagnostic hid cave form; VPP Get Voxel Flat Normal provides the native mesh normals."
+    ],
+    "notAdded": [
+      "Custom spline-distance or noise implementation",
+      "Custom voxel mesher",
+      "Custom streaming manager",
+      "Separate debug-only cave geometry",
+      "Replacement sculpting or persistence",
+      "Karst/lava simulation claims"
+    ]
+  },
+  "validation": {
+    "distinctChecksPassed": 60,
+    "failedFinalStates": 0,
+    "notRun": 0,
+    "execution": "Full regression: 59 successes and one obsolete fixed-brightness far-side assertion. Corrected rendered test compares a matched dimmed hidden-cave control; focused rerun: all three rendered scenarios pass. Final states replace those three test entries; generation/gameplay code is unchanged by the test correction.",
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Caves.ConnectedVolumetricMorphology": "Success",
+      "Catalyst.Landform.Caves.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Caves.EligibilityAndVersions": "Success",
+      "Catalyst.Landform.Caves.InspectionVolume": "Success",
+      "Catalyst.Landform.Caves.KnobAndBackground": "Success",
+      "Catalyst.Landform.Caves.NativeFieldsAndPersistence": "Success",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Reference2km": "Success",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m1": "Success",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m100": "Success",
+      "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii": "Success",
+      "Catalyst.Landform.PlanetBuilder.Navigation": "Success",
+      "Catalyst.Landform.PlanetLayers.CalibratedRange": "Success",
+      "Catalyst.Landform.PlanetLayers.CompositionAndSeeds": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.PlanetLayers.NativePersistenceAndLegacy": "Success",
+      "Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean": "Success",
+      "Catalyst.Landform.PlanetLayers.VariationPublication": "Success",
+      "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": "Success",
+      "Catalyst.Landform.Provinces.DefinitionsAndEvidence": "Success",
+      "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": "Success",
+      "Catalyst.Landform.Provinces.PackagedLibrary": "Success",
+      "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+      "Catalyst.Landform.Regions.StructureAndPalette": "Success",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.MetricBasinAndFoldContacts": "Success",
+      "Catalyst.Landform.Rock.MetricBedDistribution": "Success",
+      "Catalyst.Landform.Rock.MetricScaleAndCompactHistory": "Success",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+      "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering": "Success",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": "Success",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts": "Success",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success",
+      "Catalyst.Landform.Watershed.DebugRenderedNavigation": "Success"
+    },
+    "morphology": [
+      "knob 1 seed 73: 1 networks, 6 nodes, 5 curved passages, 3 chamber lobes; minimum route clearance 0.669 m; width ratio 2.081; curve deviation 1.425 m",
+      "knob 1 seed 74: 1 networks, 7 nodes, 6 curved passages, 6 chamber lobes; minimum route clearance 0.709 m; width ratio 2.198; curve deviation 1.608 m",
+      "knob 1 seed 75: 1 networks, 6 nodes, 5 curved passages, 3 chamber lobes; minimum route clearance 0.773 m; width ratio 2.212; curve deviation 1.155 m",
+      "knob 1 seed 76: 1 networks, 6 nodes, 5 curved passages, 3 chamber lobes; minimum route clearance 0.708 m; width ratio 2.341; curve deviation 1.468 m",
+      "knob 50 seed 73: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.238 m; width ratio 2.177; curve deviation 3.455 m",
+      "knob 50 seed 74: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.294 m; width ratio 2.198; curve deviation 3.896 m",
+      "knob 50 seed 75: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.442 m; width ratio 2.298; curve deviation 2.781 m",
+      "knob 50 seed 76: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.314 m; width ratio 2.290; curve deviation 3.552 m",
+      "knob 100 seed 73: 1 networks, 8 nodes, 9 curved passages, 9 chamber lobes; minimum route clearance 1.700 m; width ratio 2.142; curve deviation 5.863 m",
+      "knob 100 seed 74: 1 networks, 8 nodes, 9 curved passages, 9 chamber lobes; minimum route clearance 1.537 m; width ratio 2.439; curve deviation 5.495 m",
+      "knob 100 seed 75: 1 networks, 8 nodes, 9 curved passages, 9 chamber lobes; minimum route clearance 1.628 m; width ratio 2.232; curve deviation 5.444 m",
+      "knob 100 seed 76: 1 networks, 8 nodes, 9 curved passages, 9 chamber lobes; minimum route clearance 1.990 m; width ratio 2.290; curve deviation 5.681 m"
+    ],
+    "nativeViews": {
+      "500m-100": {
+        "frames": 90,
+        "p95Ms": 20.877253,
+        "normalSurfaceLuma": 186.987898,
+        "debugSurfaceLuma": 20.862301,
+        "cyanPixels": 679,
+        "networks": 1,
+        "nativeNetworks": 1,
+        "nativeVertices": 68589,
+        "maxFieldResidualMeters": 0.147152,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      },
+      "500m-1": {
+        "frames": 90,
+        "p95Ms": 18.64329,
+        "normalSurfaceLuma": 188.318947,
+        "debugSurfaceLuma": 20.990252,
+        "cyanPixels": 151,
+        "networks": 1,
+        "nativeNetworks": 1,
+        "nativeVertices": 13766,
+        "maxFieldResidualMeters": 0.126453,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      },
+      "2km": {
+        "frames": 90,
+        "p95Ms": 19.340418,
+        "normalSurfaceLuma": 195.741116,
+        "debugSurfaceLuma": 24.239867,
+        "cyanPixels": 81,
+        "networks": 2,
+        "nativeNetworks": 2,
+        "nativeVertices": 79898,
+        "maxFieldResidualMeters": 0.148833,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      }
+    },
+    "maximumKnobViews": {
+      "500m-100": {
+        "character": 100,
+        "networks": 1,
+        "nativeNetworks": 1,
+        "nativeVertices": 192265,
+        "maxFieldResidualMeters": 0.438255,
+        "cameraMovedByInput": false
+      },
+      "500m-1": {
+        "character": 100,
+        "networks": 1,
+        "nativeNetworks": 1,
+        "nativeVertices": 192265,
+        "maxFieldResidualMeters": 0.438255,
+        "cameraMovedByInput": false
+      },
+      "2km": {
+        "character": 100,
+        "networks": 3,
+        "nativeNetworks": 3,
+        "nativeVertices": 827129,
+        "maxFieldResidualMeters": 0.437852,
+        "cameraMovedByInput": false
+      }
+    },
+    "undergroundWriter": {
+      "passed": true,
+      "message": "Generated cave contacts, player floor, native mining, placement and compressed sculpt save passed",
+      "coldReader": false,
+      "processID": 79615,
+      "writerPID": 79615,
+      "nativeContacts": 4,
+      "nativeFloorFrames": 1776,
+      "beforeMineCm": -95.33538818359375,
+      "afterMineCm": 137.4402618408203,
+      "afterFillCm": -74.4688720703125,
+      "comparedProbes": 0,
+      "maximumReloadErrorCm": 0,
+      "saveBytes": 174493,
+      "elapsedSeconds": 126.56036166846752
+    },
+    "independentReader": {
+      "passed": true,
+      "message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+      "coldReader": true,
+      "processID": 79689,
+      "writerPID": 79615,
+      "nativeContacts": 4,
+      "nativeFloorFrames": 441,
+      "beforeMineCm": 0,
+      "afterMineCm": 0,
+      "afterFillCm": 0,
+      "comparedProbes": 34,
+      "maximumReloadErrorCm": 0,
+      "saveBytes": 174493,
+      "elapsedSeconds": 117.75190908461809
+    },
+    "preservation": {
+      "workspace": {
+        "files": 23,
+        "changed": 0,
+        "manifestSHA256": "b1e6e753c4f496675b26aadb972d6378290d63f5bfb14f5aaf37c0a8d668447f"
+      },
+      "content": {
+        "files": 115,
+        "changed": 0,
+        "manifestSHA256": "ba9ec8b63a5d554bbc0174d34f2603c4f50be5fe3af0b95f164a85c63abf3c78"
+      },
+      "review": {
+        "files": 176,
+        "changed": 0,
+        "manifestSHA256": "7b55132b0c9a25a80db930856bf40d0984f4acd248f51e94be316a9d53438295"
+      }
+    },
+    "componentSourceSHA256": {
+      "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "9e55e4611afd7bb55a604283e649fc5aeb71cfa4cfc0c6a5911d3c2425ad9f88",
+      "Source/CatalystLandform/Private/Model/CLCaves.cpp": "9bbf297535f4bf2103030fbce56e2f203c8fa935f82139c06731aa825292438c",
+      "Source/CatalystLandform/Private/Scene/CLCaveVolume.cpp": "1cd305915b8e7e8da71cfb6dd09be6160c3c7ce3da402088ec7f8594ef757574",
+      "Source/CatalystLandform/Private/Scene/CLScene.cpp": "23789c22fdad4911f2c3a38fa344d6e5f1050be92f8989a9f9f10ec94dcf5642",
+      "Source/CatalystLandform/Public/CLPlanetStamp.h": "d97052f7548585d39d26c48283b46532d3511ef5b91f350e066ff82cc168681f",
+      "Source/CatalystLandform/Public/Model/CLCaves.h": "c0fa17c5dec847e8a4c6c3f35fac79095fe623f584b7238f5d0a97e9e5ee7d6c",
+      "Source/CatalystLandform/Public/Scene/CLScene.h": "35d260945f532f614888190252a74762dc9260d24f0de664dac3740ad3064641",
+      "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "4e868e1ba7101d1d911ecfdb0fe280a7366c21899d4f2a240d16538be9d0076d",
+      "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "830b9d69e5f50d7a519df5be76cd7a62c935d11d1523d75c8eee8efb2c93b1cd",
+      "Source/CatalystLandformTests/Private/CLCaveMorphologyTests.cpp": "a2b68ec6d83b7c7b9920730644ffaf251c61635c7a5e6fe320e85417b729bde0"
+    },
+    "labSourceSHA256": {
+      "Private/CLGeneratedCaveProof.cpp": "f666fee49f21c1352af7276541796f8532aeda57a8f2dbf38e58e6d9d8a666a3",
+      "Public/CLGeneratedCaveProof.h": "1e05a2b806f50992535f3514e14395e5a9d1b9421a52f78bb47cb164f85fa15d"
+    },
+    "fixtureSHA256": {
+      "Examples/Caves.json": "e4f9fd15271c28e66a610e13fee9c3c688d35dba2db0f52eb85ebd54d5ba10ff",
+      "Examples/CavesSmall.json": "ba01d6674e66004da955f0bc91f7dd903f44ac772bb041f7ae5c9b695e7a85b9"
+    },
+    "builds": [
+      "final-build.log: success; final runtime/qualification host source",
+      "review-build.log: success; matched-control rendered test and corrected physical-cell comment only"
+    ]
+  },
+  "limits": [
+    "Structural opening approximation in selected rift/shear settings and explicitly fracture-capable known non-ice hosts; not geomechanical fracture/collapse simulation.",
+    "Karst dissolution, water-table/hydraulic regimes, lava-flow tubes, ice cavities and speleothems remain distinct family work.",
+    "Conservative three-unit host rule and sampled footprint/roof checks; no selective formation clipping or continuous roof certificate.",
+    "4096 generated passages, 2048 chamber lobes and 16384 placement candidates; overflow refuses the complete build. These are bridge budgets, not VPP limits.",
+    "Native editor/standalone gameplay qualification on the saved 500 m and reference 2 km recipes; no new cooked cave-gameplay or route-by-route traversal qualification.",
+    "Physical-scale thin passages can be subpixel at globe framing; native surfaces are not inflated for debug. Ordinary zoom reveals their form.",
+    "Diagnostic domains are static and all active; this editor proof does not establish a need for production custom streaming.",
+    "Debug represents generated voids and authored backfill; no new runtime overlay of native player-sculpt save data is claimed."
+  ]
+}

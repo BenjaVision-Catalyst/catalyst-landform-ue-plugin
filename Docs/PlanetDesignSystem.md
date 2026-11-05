@@ -1990,3 +1990,22 @@ reproduces the user's formerly empty planet and checks native all-cave surfaces 
 1 and 100. Cave voxel resolution is derived from physical passage widths before
 normalizing the preview, using native VPP voxel-size configuration. The existing
 camera and one-knob UI are unchanged; saved local edits remain intact.
+
+
+## Generated cave volumes — 5 November 2026
+
+The three-segment fissure prototype and its visibility/minimum-count milestones
+above failed cave morphology acceptance. Their records qualify their stated field
+and presentation plumbing, not natural underground spaces. The replacement
+[generated cave contract](Caves.md) separates geological topology, variable passage
+sections, chambers and wall detail, and lowers them through native VPP spline,
+shape, blend, noise and spatial-index features. VPP remains the sole voxel
+presenter and native sculpt/save owner.
+
+The current structural family generates connected curved passages, enlarged
+junction spaces, side passages and developing loops/lower levels. The one-knob UI,
+all-cave debug toggle and normal globe navigation remain unchanged. Physical
+minimums, native mesh/field conformance, visual anatomy and actual underground
+editing/persistence are separate acceptance gates. The 64-operation authored-edit
+proof limit no longer constrains natural cave construction. Exact results and
+remaining geological/cooked limits are recorded in the cave qualification.

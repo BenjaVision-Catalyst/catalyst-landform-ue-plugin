@@ -133,11 +133,8 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
     }
     if(Stamp.bCaveInspectionPreview&&Stamp.CaveInspectionNetwork.IsValid())
     {
-        FCLVolumeSettings Selected;Selected.bEnabled=true;
-        const auto& C=*RecipePlan->Caves;
-        for(int32 I=0;I<C.Segments.Num();++I)if(C.Segments[I].Network==Stamp.CaveInspectionNetwork)Selected.Operations.Add(C.Cutters->Operations[I].Source);
-        FString Error;if(Selected.Operations.IsEmpty())return false;
-        InspectionCutters=FCLCompiledVolumes::Compile(Selected,RecipePlan->RadiusMeters,RecipePlan->Surfaces.Get(),Error);if(!InspectionCutters)return false;
+        InspectionCutters=RecipePlan->Caves->Cutters->Select(Stamp.CaveInspectionNetwork);
+        if(!InspectionCutters->Bounds().IsValid)return false;
     }
     return true;
 }
@@ -151,7 +148,7 @@ FVector FCLPlanetStampRuntime::SectionToBodyMeters(const FVector& P,double Refer
 FVoxelBox FCLPlanetStampRuntime::GetLocalBounds() const
 {
     if(Stamp.bCaveInspectionPreview&&RecipePlan&&RecipePlan->Caves&&RecipePlan->Caves->Cutters)
-    {FBox3d Bounds(EForceInit::ForceInit);const auto& Cutters=InspectionCutters?InspectionCutters:RecipePlan->Caves->Cutters;for(const auto& O:Cutters->Operations)Bounds+=O.Bounds;return FVoxelBox(Bounds.Min*100,Bounds.Max*100);}
+    {const auto& Cutters=InspectionCutters?InspectionCutters:RecipePlan->Caves->Cutters;const auto Bounds=Cutters->Bounds();return FVoxelBox(Bounds.Min*100,Bounds.Max*100);}
     if(Stamp.Window.bEnabled)return FVoxelBox(Stamp.Window.BoundsCm());
     if(Stamp.bSectionPreview){const double H=Stamp.SectionWidthMeters*50.;return FVoxelBox(FVector(-H,-H,0),FVector(H,H,Extent));}
     return FVoxelBox(-Extent,Extent);

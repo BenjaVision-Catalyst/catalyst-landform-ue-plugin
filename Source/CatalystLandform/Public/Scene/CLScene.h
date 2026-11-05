@@ -6,6 +6,7 @@
 
 struct FCLCompiledPlanetRecipe;
 class FCLCompiledVolumes;
+class FCLCompiledCaveVolume;
 
 /** Immutable, body-space query boundary. This first provider preserves the pinned
  * radial compiler. It is not yet the generalized-volume recipe/acceptance format. */
@@ -30,7 +31,7 @@ public:
     bool HasConservativeStepBound() const { return false; }
     bool SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSample>& Out, FString& Error) const;
     /** Negative inside generated cave air within the original solid, after authored backfill. */
-    bool SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error,const FCLCompiledVolumes* SelectedCutters=nullptr)const;
+    bool SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error,const FCLCompiledCaveVolume* SelectedCutters=nullptr)const;
     bool SampleGeology(const FCLSceneQuery& Query,TArray<FCLRockSample>& Out,FString& Error)const;
     bool SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurfaceSample>& Out, FString& Error) const;
 

@@ -7,6 +7,7 @@
 #include "Surface/VoxelSurfaceTypeBlendBuffer.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Scene/CLSceneWindow.h"
+class FCLCompiledCaveVolume;
 #include "CLPlanetStamp.generated.h"
 
 class FCLScene;
@@ -88,7 +89,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStampRuntime : public FVoxelVolumeStampRunt
     /** Shared XYZ scene for recipe-only spherical terrain with matching radii.
      * Actor/planar/custom-radius profiles retain their pinned legacy path. */
     TSharedPtr<const FCLScene> Scene;
-    TSharedPtr<const FCLCompiledVolumes> InspectionCutters;
+    TSharedPtr<const FCLCompiledCaveVolume> InspectionCutters;
 
     virtual bool Initialize(FVoxelDependencyCollector& Dependencies) override;
     virtual FVoxelBox GetLocalBounds() const override;

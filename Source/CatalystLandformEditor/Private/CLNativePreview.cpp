@@ -5,7 +5,7 @@
 #include "VoxelLayer.h"
 #include "VoxelLayerStack.h"
 #include "Materials/Material.h"
-#include "Materials/MaterialExpressionPixelNormalWS.h"
+#include "MegaMaterial/MaterialExpressionGetVoxelFlatNormal.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
 #include "Materials/MaterialExpressionDotProduct.h"
 #include "Materials/MaterialExpressionMultiply.h"
@@ -31,11 +31,11 @@ UVoxelMegaMaterial* CaveInspectionMaterial()
     auto* Mega=UVoxelMegaMaterial::CreateTransient();Mega->bDetectNewSurfaces=false;
     auto* M=NewObject<UMaterial>(Mega,NAME_None,RF_Transient);M->BlendMode=BLEND_Translucent;M->bDisableDepthTest=true;M->SetShadingModel(MSM_Unlit);
     M->GetEditorOnlyData()->Opacity.UseConstant=true;M->GetEditorOnlyData()->Opacity.Constant=1;
-    auto* N=NewObject<UMaterialExpressionPixelNormalWS>(M);auto* Direction=NewObject<UMaterialExpressionConstant3Vector>(M);Direction->Constant=FLinearColor(.3,-.4,.85);
+    auto* N=NewObject<UMaterialExpressionGetVoxelFlatNormal>(M);auto* Direction=NewObject<UMaterialExpressionConstant3Vector>(M);Direction->Constant=FLinearColor(.3,-.4,.85);
     auto* Dot=NewObject<UMaterialExpressionDotProduct>(M);Dot->A.Expression=N;Dot->B.Expression=Direction;
-    auto* Half=NewObject<UMaterialExpressionMultiply>(M);Half->A.Expression=Dot;Half->ConstB=.3;
-    auto* Shade=NewObject<UMaterialExpressionAdd>(M);Shade->A.Expression=Half;Shade->ConstB=.7;
-    auto* Color=NewObject<UMaterialExpressionConstant3Vector>(M);Color->Constant=FLinearColor(.0001,.8,1.3);
+    auto* Half=NewObject<UMaterialExpressionMultiply>(M);Half->A.Expression=Dot;Half->ConstB=.45;
+    auto* Shade=NewObject<UMaterialExpressionAdd>(M);Shade->A.Expression=Half;Shade->ConstB=.55;
+    auto* Color=NewObject<UMaterialExpressionConstant3Vector>(M);Color->Constant=FLinearColor(.005,.32,.5);
     auto* Result=NewObject<UMaterialExpressionMultiply>(M);Result->A.Expression=Shade;Result->B.Expression=Color;
     for(auto* E:TArray<UMaterialExpression*>{N,Direction,Dot,Half,Shade,Color,Result})M->GetExpressionCollection().AddExpression(E);
     M->GetEditorOnlyData()->EmissiveColor.Expression=Result;M->PostEditChange();
@@ -127,14 +127,14 @@ bool FCLNativePreview::ApplyPending()
     const FVector Scale=Section?FVector(1000./Width,1000./Width,1000./Plan->RadiusMeters):FVector(1000./Plan->RadiusMeters);
     if(CaveInspection&&CaveNetwork.IsValid())
     {
-        FBox Bounds(ForceInit);for(int32 I=0;I<Plan->Caves->Segments.Num();++I)if(Plan->Caves->Segments[I].Network==CaveNetwork)Bounds+=Plan->Caves->Cutters->Operations[I].Bounds;
+        const FBox Bounds=Plan->Caves->Cutters->Bounds(CaveNetwork);
         // Centre the native voxel domain around its own geometry. VPP's render
         // tree is rooted at the voxel-world origin, so an offset planet-sized
         // domain would still subdivide enormous empty regions at fine quality.
         Native->SetActorLocation(Bounds.GetCenter()*100000/Plan->RadiusMeters);
-        // Resolve physical detail before display normalization: at most 20 cm,
+        // Resolve physical detail before display normalization: at most 25 cm,
         // and at least four samples across the narrowest passage diameter.
-        double CellCm=20.;for(const auto& S:Plan->Caves->Segments)if(S.Network==CaveNetwork)CellCm=FMath::Min(CellCm,S.Radius*S.Scale.GetMin()*50.);
+        double CellCm=FMath::Min(25.,Plan->Caves->Cutters->MinimumHalfWidth(CaveNetwork)*50.);
         Native->VoxelSize=FMath::Max(1,FMath::FloorToInt(CellCm*1000./Plan->RadiusMeters));
     }
     Stamp->SetRelativeScale3D(Scale);if(CaveInspection)Stamp->SetWorldLocation(FVector::ZeroVector);

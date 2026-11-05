@@ -1591,7 +1591,7 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
                 for(const auto& Segment:S.Plan->Caves->Segments)if(FMath::PointDistToSegment(B,Segment.A,Segment.B)<Segment.Radius*Segment.Scale.GetMax()+1.)Represented.Add(Segment.Network);
             }
             S.Networks=Represented.Num();TestEqual(TEXT("Every generated network has native surface vertices at globe scale"),S.Networks,S.Plan->Caves->Networks);TestTrue(TEXT("Native VPP presents actual cave surface triangles at globe scale"),M.Vertices.Num()>100&&M.Triangles.Num()>300&&W->CavePreview->UsesNativePresentation());
-            TArray<FCLSceneShapeSample> Fields;FString Error;FCLScene::FromPlanet(S.Plan,Error)->SampleCaveVoid({Body},Fields,Error);S.Residual=0;for(const auto& F:Fields)S.Residual=FMath::Max(S.Residual,FMath::Abs(F.FieldMeters));TestTrue(TEXT("Native vertices follow the real cave field"),S.Residual<.5);
+            TArray<FCLSceneShapeSample> Fields;FString Error;FCLScene::FromPlanet(S.Plan,Error)->SampleCaveVoid({Body},Fields,Error);S.Residual=0;FVector WorstPoint;for(int32 I=0;I<Fields.Num();++I)if(FMath::Abs(Fields[I].FieldMeters)>S.Residual){S.Residual=FMath::Abs(Fields[I].FieldMeters);WorstPoint=Body[I];}if(S.Residual>=.5)AddInfo(FString::Printf(TEXT("Cave mesh worst residual %.6f m at %s"),S.Residual,*WorstPoint.ToString()));TestTrue(TEXT("Native vertices follow the real cave field"),S.Residual<.5);
         };
         if(S.Phase==0)
         {
@@ -1618,6 +1618,7 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
                 int32 Count=0;const auto Box=Pair.Value.ExpandBy(5);for(int32 Y=FMath::Max(0,FMath::FloorToInt(Box.Min.Y));Y<=FMath::Min(Size.Y-1,FMath::CeilToInt(Box.Max.Y));++Y)for(int32 X=FMath::Max(0,FMath::FloorToInt(Box.Min.X));X<=FMath::Min(Size.X-1,FMath::CeilToInt(Box.Max.X));++X)Count+=Cyan(Dim[Y*Size.X+X]);TestTrue(TEXT("Every projected network has visible surface pixels"),Count>0);
             }
             TestEqual(TEXT("All networks project in this bounded view"),Boxes.Num(),S.Plan->Caves->Networks);
+
             W->SetCaveOverlay(false);CameraUnchanged();TArray<FColor> Restored;Capture(TEXT("restored"),Restored);double Difference=0;for(int32 I=0;I<FMath::Min(S.Off.Num(),Restored.Num());++I)Difference+=FMath::Abs(int(S.Off[I].R)-int(Restored[I].R))+FMath::Abs(int(S.Off[I].G)-int(Restored[I].G))+FMath::Abs(int(S.Off[I].B)-int(Restored[I].B));TestTrue(TEXT("Off restores ordinary native surface"),Difference/(3*Restored.Num())<5);
             W->SetCaveOverlay(true);CameraUnchanged();S.Terrain=W->NativePreview->WorldIdentity();S.Inspection=W->CavePreview->CaveWorldIdentities();TestEqual(TEXT("One bounded native domain for every network"),S.Inspection.Num(),S.Plan->Caves->Networks);S.Copies=W->CavePreview->Metrics.MeshCopies;S.Starts=W->CavePreview->Metrics.Starts;S.Last=Now;S.Phase=3;return false;
         }
@@ -1632,9 +1633,14 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
             if(W->CavePreview->IsUpdating())return false;
             S.Times.RemoveAt(0);S.Times.Sort();const double P95=S.Times[FMath::Min(S.Times.Num()-1,int32(S.Times.Num()*.95))];TestTrue(TEXT("Planet-wide navigation p95 is below 50 ms"),P95<50);TestEqual(TEXT("Navigation copies no cave mesh"),W->CavePreview->Metrics.MeshCopies,S.Copies);TestEqual(TEXT("Navigation starts no cave input"),W->CavePreview->Metrics.Starts,S.Starts);CheckAllGeometry();TArray<FColor> Pixels;Capture(TEXT("navigation"),Pixels);
             // Rotate the same globe to put the first network on the back hemisphere.
-            const FVector Back=-S.Plan->Caves->Segments[0].A.GetSafeNormal();W->Client->Navigation.Yaw=Back.Rotation().Yaw;W->Client->Navigation.Elevation=Back.Rotation().Pitch;W->Client->Apply();Capture(TEXT("back-hemisphere"),Pixels);
+            const FVector Back=-S.Plan->Caves->Segments[0].A.GetSafeNormal();W->Client->Navigation.Yaw=Back.Rotation().Yaw;W->Client->Navigation.Elevation=Back.Rotation().Pitch;W->Client->Apply();
+            TArray<FColor> BackControl;W->CavePreview->SetVisible(false);Capture(TEXT("back-hemisphere-control"),BackControl);W->CavePreview->SetVisible(true);Capture(TEXT("back-hemisphere"),Pixels);
             const auto Id=S.Plan->Caves->Segments[0].Network;FBox2D Box(ForceInit);const double Scale=100000/S.Plan->RadiusMeters;for(const auto& Segment:S.Plan->Caves->Segments)if(Segment.Network==Id)for(const auto& P:{Segment.A,Segment.B}){FVector2D Pixel;if(FSceneView::ProjectWorldToScreen(P*Scale,W->Client->ViewRect,W->Client->ViewProjection,Pixel))Box+=Pixel;}
-            const auto Size=W->Client->Viewport->GetSizeXY();Box=Box.ExpandBy(5);int32 Count=0;for(int32 Y=FMath::Max(0,FMath::FloorToInt(Box.Min.Y));Y<=FMath::Min(Size.Y-1,FMath::CeilToInt(Box.Max.Y));++Y)for(int32 X=FMath::Max(0,FMath::FloorToInt(Box.Min.X));X<=FMath::Min(Size.X-1,FMath::CeilToInt(Box.Max.X));++X)Count+=Cyan(Pixels[Y*Size.X+X]);TestTrue(TEXT("A network on the far hemisphere still has actual visible surface pixels"),Count>0);
+            const auto Size=W->Client->Viewport->GetSizeXY();Box=Box.ExpandBy(5);int32 Count=0;for(int32 Y=FMath::Max(0,FMath::FloorToInt(Box.Min.Y));Y<=FMath::Min(Size.Y-1,FMath::CeilToInt(Box.Max.Y));++Y)for(int32 X=FMath::Max(0,FMath::FloorToInt(Box.Min.X));X<=FMath::Min(Size.X-1,FMath::CeilToInt(Box.Max.X));++X){const int32 I=Y*Size.X+X;const auto A=BackControl[I],B=Pixels[I];Count+=B.B>A.B+8&&B.G>A.G+5&&B.R<B.G*.85;}
+            // Compare against an identical dimmed view with only native cave
+            // components hidden. This distinguishes real subpixel cave coverage
+            // from guide lines and does not assume a fixed shaded brightness.
+            TestTrue(TEXT("A network on the far hemisphere still has actual visible surface pixels"),Count>0);
             const FString Metrics=FString::Printf(TEXT("{\"frames\":90,\"p95Ms\":%.6f,\"normalSurfaceLuma\":%.6f,\"debugSurfaceLuma\":%.6f,\"cyanPixels\":%d,\"networks\":%d,\"nativeNetworks\":%d,\"nativeVertices\":%d,\"maxFieldResidualMeters\":%.6f,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n"),P95,S.OffLuma,S.DimLuma,S.Cyan,S.Plan->Caves->Networks,S.Networks,S.Vertices,S.Residual);FFileHelper::SaveStringToFile(Metrics,*(Dir/TEXT("native-review.json")));AddInfo(Metrics);
             S.Eye=W->Client->GetViewLocation();S.Rotation=W->Client->GetViewRotation();auto Changed=*S.Plan->SourceRecipe;Changed.Caves.bSurfaceEntrances=false;FString Error;const auto Prepared=S.Evaluation.Prepare(Changed,Error);if(!Prepared){AddError(Error);return Close();}S.Evaluation.Request(Changed,Prepared);S.Phase=4;return false;
         }
@@ -1648,7 +1654,19 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
         if(S.Phase==7)
         {
             if(W->IsUpdating()||W->CavePreview->IsUpdating()||W->CavePreview->PublishedPlan()!=S.Plan||(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()))return false;CameraUnchanged();CheckAllGeometry();TestEqual(TEXT("Maximum knob still presents every network"),W->CavePreview->CaveWorldIdentities().Num(),S.Plan->Caves->Networks);TestEqual(TEXT("Maximum knob is one accepted diagnostic input"),W->CavePreview->Metrics.Starts,uint64(3));TArray<FColor> Pixels;Capture(TEXT("maximum-knob"),Pixels);
-            const FString JSON=FString::Printf(TEXT("{\"character\":100,\"networks\":%d,\"nativeNetworks\":%d,\"nativeVertices\":%d,\"maxFieldResidualMeters\":%.6f,\"cameraMovedByInput\":false}\n"),S.Plan->Caves->Networks,S.Networks,S.Vertices,S.Residual);FFileHelper::SaveStringToFile(JSON,*(Dir/TEXT("maximum-knob.json")));AddInfo(JSON);return Close();
+            const FString JSON=FString::Printf(TEXT("{\"character\":100,\"networks\":%d,\"nativeNetworks\":%d,\"nativeVertices\":%d,\"maxFieldResidualMeters\":%.6f,\"cameraMovedByInput\":false}\n"),S.Plan->Caves->Networks,S.Networks,S.Vertices,S.Residual);FFileHelper::SaveStringToFile(JSON,*(Dir/TEXT("maximum-knob.json")));AddInfo(JSON);
+            // Qualification views only: inspect the complete first native
+            // network from two angles, then restore the unchanged user view.
+            const FBox NetworkBounds=S.Plan->Caves->Cutters->Bounds(S.Plan->Caves->Nodes[0].Network);
+            const FVector Center=NetworkBounds.GetCenter(),Up=Center.GetSafeNormal();const double Distance=NetworkBounds.GetExtent().Length()*2.8;
+            for(int32 View=0;View<2;++View)
+            {
+                const FVector Eye=Center+(View==0?Up:(Up+FVector::CrossProduct(Up,FVector::ZAxisVector).GetSafeNormal()).GetSafeNormal())*Distance;
+                W->Client->SetViewLocation(Eye*(100000/S.Plan->RadiusMeters));W->Client->SetViewRotation((Center-Eye).Rotation());TArray<FColor> Detail;Capture(View==0?TEXT("network-detail"):TEXT("network-side"),Detail);
+            }
+            W->Client->SetViewLocation(S.Eye);W->Client->SetViewRotation(S.Rotation);
+
+            return Close();
         }
         return Close();
     }));return true;

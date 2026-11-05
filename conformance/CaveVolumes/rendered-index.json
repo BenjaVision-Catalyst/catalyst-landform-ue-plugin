@@ -1,0 +1,149 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "ADC89D2F694A4037DA298CAF0F41D676",
+			"instanceName": "jupiter.local-83877",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-07.33.55",
+	"succeeded": 3,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 70.43701171875,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "Reference2km",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Reference2km",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"ADC89D2F694A4037DA298CAF0F41D676"
+			],
+			"duration": 28.718175888061523,
+			"dateTime": "2026.11.05-07.32.45",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"p95Ms\":19.340418,\"normalSurfaceLuma\":195.741116,\"debugSurfaceLuma\":24.239867,\"cyanPixels\":81,\"networks\":2,\"nativeNetworks\":2,\"nativeVertices\":79898,\"maxFieldResidualMeters\":0.148833,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-07.32.52"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":3,\"nativeNetworks\":3,\"nativeVertices\":827129,\"maxFieldResidualMeters\":0.437852,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-07.33.11"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "Saved500m1",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m1",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"ADC89D2F694A4037DA298CAF0F41D676"
+			],
+			"duration": 19.414638519287109,
+			"dateTime": "2026.11.05-07.33.14",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"p95Ms\":18.643290,\"normalSurfaceLuma\":188.318947,\"debugSurfaceLuma\":20.990252,\"cyanPixels\":151,\"networks\":1,\"nativeNetworks\":1,\"nativeVertices\":13766,\"maxFieldResidualMeters\":0.126453,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-07.33.21"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":1,\"nativeNetworks\":1,\"nativeVertices\":192265,\"maxFieldResidualMeters\":0.438255,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-07.33.30"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "Saved500m100",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m100",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"ADC89D2F694A4037DA298CAF0F41D676"
+			],
+			"duration": 22.304201126098633,
+			"dateTime": "2026.11.05-07.33.33",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"p95Ms\":20.877253,\"normalSurfaceLuma\":186.987898,\"debugSurfaceLuma\":20.862301,\"cyanPixels\":679,\"networks\":1,\"nativeNetworks\":1,\"nativeVertices\":68589,\"maxFieldResidualMeters\":0.147152,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-07.33.43"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":1,\"nativeNetworks\":1,\"nativeVertices\":192265,\"maxFieldResidualMeters\":0.438255,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-07.33.53"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

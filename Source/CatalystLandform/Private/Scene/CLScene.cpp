@@ -90,7 +90,7 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
     return true;
 }
 
-bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error,const FCLCompiledVolumes* SelectedCutters)const
+bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error,const FCLCompiledCaveVolume* SelectedCutters)const
 {
     Out.Reset();if(!ValidateQuery(Query,Error))return false;Out.SetNum(Query.PositionsMeters.Num());
     for(int32 Start=0;Start<Out.Num();Start+=SampleBatchSize)

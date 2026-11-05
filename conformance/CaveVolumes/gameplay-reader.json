@@ -1,0 +1,16 @@
+{
+	"passed": true,
+	"message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+	"coldReader": true,
+	"processID": 79689,
+	"writerPID": 79615,
+	"nativeContacts": 4,
+	"nativeFloorFrames": 441,
+	"beforeMineCm": 0,
+	"afterMineCm": 0,
+	"afterFillCm": 0,
+	"comparedProbes": 34,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 174493,
+	"elapsedSeconds": 117.75190908461809
+}
