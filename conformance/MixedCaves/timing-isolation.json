@@ -1,0 +1,78 @@
+{
+  "rendered": [
+    {
+      "action": "paused",
+      "pid": 65615,
+      "marker": "[2026.11.05-11.52.44:425][ 61]LogTemp: Display: CL_CAVE_NAV_BEGIN"
+    },
+    {
+      "action": "resumed",
+      "reason": "sample complete",
+      "pausedSeconds": 2.466110832989216
+    },
+    {
+      "action": "paused",
+      "pid": 65615,
+      "marker": "[2026.11.05-11.53.13:690][762]LogTemp: Display: CL_CAVE_NAV_BEGIN"
+    },
+    {
+      "action": "resumed",
+      "reason": "sample complete",
+      "pausedSeconds": 2.4575367495417595
+    }
+  ],
+  "regression": [
+    {
+      "action": "paused",
+      "pid": 65615,
+      "marker": "[2026.11.05-11.57.18:726][963]LogTemp: Display: CL_CAVE_NAV_BEGIN"
+    },
+    {
+      "action": "resumed",
+      "reason": "sample complete",
+      "pausedSeconds": 2.6372066671028733
+    },
+    {
+      "action": "paused",
+      "pid": 65615,
+      "marker": "[2026.11.05-12.00.55:376][ 99]LogTemp: Display: CL_CAVE_NAV_BEGIN"
+    },
+    {
+      "action": "resumed",
+      "reason": "sample complete",
+      "pausedSeconds": 2.500552332960069
+    },
+    {
+      "action": "paused",
+      "pid": 65615,
+      "marker": "[2026.11.05-12.02.13:495][592]LogTemp: Display: CL_CAVE_NAV_BEGIN"
+    },
+    {
+      "action": "resumed",
+      "reason": "sample complete",
+      "pausedSeconds": 2.2360950000584126
+    },
+    {
+      "action": "paused",
+      "pid": 65615,
+      "marker": "[2026.11.05-12.02.43:797][743]LogTemp: Display: CL_CAVE_NAV_BEGIN"
+    },
+    {
+      "action": "resumed",
+      "reason": "sample complete",
+      "pausedSeconds": 2.258967791683972
+    }
+  ],
+  "library": [
+    {
+      "action": "paused",
+      "pid": 65615,
+      "marker": "[2026.11.05-12.24.25:232][859]LogTemp: Display: CL_WATERSHED_NAV_BEGIN"
+    },
+    {
+      "action": "resumed",
+      "reason": "sample complete",
+      "pausedSeconds": 3.28045704215765
+    }
+  ]
+}

@@ -2042,3 +2042,31 @@ networks; the karst reference displays 21 at its saved setting and 22 at maximum
 All native surfaces remain visible together without camera changes. Native
 mining, backfill and cold reload retain geology, with zero measured field error
 across 216 karst and 98 structural probes. Existing local edits/assets are preserved.
+
+
+## Mixed cave families and native union checkpoint
+
+New cave algorithm 3 permits same-family and cross-family intersections while
+retaining host/roof checks and source formation identity. Profiles 1/2 preserve
+their former separated placement; moving the knob resolves the current profile.
+Native VPP combines air volumes before planet subtraction. Debug groups
+potentially overlapping supports into static native union domains so it cannot
+draw source walls inside joined cavities. A domain is not a claimed connected
+component. All domains stay active; the standard cave row and camera remain.
+
+The bounded mixed reference includes carbonate, rift and shear Landforms with
+explicit carbonate/fracture-capable hosts. It is separate from heterogeneous
+soluble/insoluble bedding, new cave families and groundwater simulation. See the
+[intersection contract](Caves.md#mixed-families-and-intersections) for the native
+bounds audit, renderer limitation and qualification scope.
+
+
+The [mixed qualification](../conformance/MixedCaves/qualification-mac-arm64.json)
+records 70 passing distinct native/editor checks, actual library reload parity,
+and independent native mining/backfill/save writer/readers. The saved 800 m
+reference has nine formations across both families and a real cross-family
+junction; maximum develops 24. Native debug navigation p95 is 27.76 ms with no
+input rebuilds or mesh copies. The frozen UObject/CDO default preserves native
+legacy packages at profile 2, while fresh factory planets use 3. Original local
+edits/assets remain byte-identical. Larger chained-domain workloads and full
+route/cooked qualification remain open.

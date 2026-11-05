@@ -9,7 +9,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLCaveSettings
 {
     GENERATED_BODY()
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=2;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
@@ -58,11 +58,12 @@ public:
     double Compose(const FVector3d& P,double Field,FCLSurfaceWeights* Weights=nullptr)const;
     void ComposeBatch(TConstArrayView<FVector3d>,TArrayView<double>)const;
     TSharedPtr<const FCLCompiledCaveVolume> Select(FGuid Network)const;
+    TSharedPtr<const FCLCompiledCaveVolume> Select(TConstArrayView<FGuid> Networks)const;
     FBox Bounds(FGuid Network=FGuid())const;
     double MinimumHalfWidth(FGuid Network=FGuid())const;
 private:
     TSharedPtr<const FCLCaveVolumeData> Data;
-    FGuid SelectedNetwork;
+    TSet<FGuid> SelectedNetworks;
 };
 
 class CATALYSTLANDFORM_API FCLCompiledCaves
@@ -77,8 +78,12 @@ public:
     TArray<FCLCaveChamber> Chambers;
     TSharedPtr<const FCLCompiledCaveVolume> Cutters;
     enum class EFamily:uint8 {Structural,CarbonateKarst};
-    struct FNetwork {FGuid Id;EFamily Family=EFamily::Structural;int32 RechargeCell=INDEX_NONE,ReceivingCell=INDEX_NONE;double InceptionRadiusMeters=0;};
+    struct FNetwork {FGuid Id;EFamily Family=EFamily::Structural;int32 RechargeCell=INDEX_NONE,ReceivingCell=INDEX_NONE;double InceptionRadiusMeters=0;FBox InspectionBounds=FBox(ForceInit);FGuid Landform;FVector OriginDirection=FVector::ZeroVector;};
     TArray<FNetwork> NetworkInfo;
+    /** Static query/render support groups, not a claim of physical connectivity. */
+    struct FInspectionDomain {FGuid Id;TArray<FGuid> Networks;FBox Bounds=FBox(ForceInit);};
+    TArray<FInspectionDomain> InspectionDomains;
+    void ResolveInspectionDomains();
     int32 Candidates=0,EligibleCandidates=0,RequestedNetworks=0,Networks=0,Entrances=0;
     FString Readiness;
     static TSharedPtr<const FCLCompiledCaves> Compile(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32 PlanetSeed,FString& Error);

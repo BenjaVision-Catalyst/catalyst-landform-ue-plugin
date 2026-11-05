@@ -47,7 +47,7 @@ UVoxelMegaMaterial* CaveInspectionMaterial()
 }
 void FCLNativePreview::SetVisible(bool Visible)
 {
-    if(IsCaveOverview()){for(const auto& N:CaveNetworks)N->SetVisible(Visible);return;}
+    if(IsCaveOverview()){for(const auto& N:CaveDomains)N->SetVisible(Visible);return;}
     if(!Native)return;
     // Hiding the actor also disables its source stamp in VPP. Hide only the
     // native render components so inspection toggles retain the accepted field.
@@ -69,7 +69,7 @@ FVoxelVolumeTransform FCLNativePreview::StampToDisplay()const
 FCLNativePreview::~FCLNativePreview(){Reset();}
 void FCLNativePreview::Reset()
 {
-    CaveNetworks.Reset();Pending.Reset();VisiblePlan.Reset();Plan.Reset();Stamp.Reset();
+    CaveDomains.Reset();Pending.Reset();VisiblePlan.Reset();Plan.Reset();Stamp.Reset();
     if(Native){Native->DestroyRuntime();Native->Destroy();Native.Reset();}
     Last=FBuffers();InspectionHash=0;PublishedHash=0;AwaitingPublication=false;Failure.Reset();
 }
@@ -79,12 +79,12 @@ bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRec
     if(IsCaveOverview())
     {
         if(!Input->Caves||!Input->Caves->Cutters){Error=TEXT("Native cave overview requires generated caves");return false;}
-        TArray<FGuid> Ids;for(const auto& S:Input->Caves->Segments)Ids.AddUnique(S.Network);
-        CaveNetworks.RemoveAll([&](const auto& N){return !Ids.Contains(N->CaveNetwork);});
+        TArray<FGuid> Ids;for(const auto& D:Input->Caves->InspectionDomains)Ids.Add(D.Id);
+        CaveDomains.RemoveAll([&](const auto& N){return !Ids.Contains(N->CaveDomain);});
         for(const auto Id:Ids)
         {
-            auto* Found=CaveNetworks.FindByPredicate([&](const auto& N){return N->CaveNetwork==Id;});
-            if(!Found){CaveNetworks.Add(MakeUnique<FCLNativePreview>(true,Id));Found=&CaveNetworks.Last();}
+            auto* Found=CaveDomains.FindByPredicate([&](const auto& N){return N->CaveDomain==Id;});
+            if(!Found){CaveDomains.Add(MakeUnique<FCLNativePreview>(true,Id));Found=&CaveDomains.Last();}
             if(!(*Found)->Start(World,Input,false,Area,Error,false))return false;
         }
         Plan=MoveTemp(Input);
@@ -128,22 +128,25 @@ bool FCLNativePreview::ApplyPending()
     // Scale the stamp through VPP's supported transform, never the voxel world
     // or the produced mesh. Native LOD sees the same geometry the viewport sees.
     const FVector Scale=Section?FVector(1000./Width,1000./Width,1000./Plan->RadiusMeters):FVector(1000./Plan->RadiusMeters);
-    if(CaveInspection&&CaveNetwork.IsValid())
+    if(CaveInspection&&CaveDomain.IsValid())
     {
-        const FBox Bounds=Plan->Caves->Cutters->Bounds(CaveNetwork);
+        const auto* Domain=Plan->Caves->InspectionDomains.FindByPredicate([&](const auto& D){return D.Id==CaveDomain;});check(Domain);
+        const auto Cutters=Plan->Caves->Cutters->Select(Domain->Networks);const FBox Bounds=Cutters->Bounds();
         // Centre the native voxel domain around its own geometry. VPP's render
         // tree is rooted at the voxel-world origin, so an offset planet-sized
         // domain would still subdivide enormous empty regions at fine quality.
         Native->SetActorLocation(Bounds.GetCenter()*100000/Plan->RadiusMeters);
-        // Resolve physical detail before display normalization: at most 25 cm,
-        // and at least four samples across the narrowest passage diameter.
-        double CellCm=FMath::Min(25.,Plan->Caves->Cutters->MinimumHalfWidth(CaveNetwork)*50.);
+        // Native diagnostic resolution follows physical passage size: at most
+        // 50 cm for wide caves, while narrow sections retain the prior 25 cm
+        // cap and at least four samples across their minimum diameter.
+        const double HalfWidth=Cutters->MinimumHalfWidth();
+        const double CellCm=FMath::Min(HalfWidth*50.,FMath::Clamp(HalfWidth*25.,25.,50.));
         Native->VoxelSize=FMath::Max(1,FMath::FloorToInt(CellCm*1000./Plan->RadiusMeters));
     }
     Stamp->SetRelativeScale3D(Scale);if(CaveInspection)Stamp->SetWorldLocation(FVector::ZeroVector);
     FCLPlanetStamp Source;Source.bUseRecipe=true;Source.CompiledRecipe=Plan;Source.Radius=Plan->RadiusMeters*100;
     check(Plan->SourceRecipe);Source.Recipe=*Plan->SourceRecipe;
-    Source.bCaveInspectionPreview=CaveInspection;Source.CaveInspectionNetwork=CaveNetwork;
+    Source.bCaveInspectionPreview=CaveInspection;Source.CaveInspectionDomain=CaveDomain;
     Source.Layer=CaveInspection?Native->LayerStack->VolumeLayers[0].Get():UVoxelVolumeLayer::Default();Source.Behavior=CaveInspection?EVoxelStampBehavior::AffectShape:EVoxelStampBehavior::AffectAll;Source.Smoothness=0;Source.BoundsExtension=.05;
     Source.bSectionPreview=Section;Source.SectionWidthMeters=Width;Source.SectionReferenceRadiusMeters=FCLSectionGeometry::ReferenceSurfaceRadius(*Plan);
     // A planet-wide cave diagnostic must retain thin voids even when terrain
@@ -166,16 +169,16 @@ bool FCLNativePreview::ApplyPending()
     return true;
 }
 bool FCLNativePreview::IsUpdating()const
-{if(IsCaveOverview())return Plan!=VisiblePlan||CaveNetworks.ContainsByPredicate([](const auto& N){return N->IsUpdating();});return Pending.IsValid()||(Native&&Failure.IsEmpty()&&(AwaitingPublication||!VisiblePlan||Native->IsProcessingNewState()||!Native->IsVoxelWorldReady()));}
+{if(IsCaveOverview())return Plan!=VisiblePlan||CaveDomains.ContainsByPredicate([](const auto& N){return N->IsUpdating();});return Pending.IsValid()||(Native&&Failure.IsEmpty()&&(AwaitingPublication||!VisiblePlan||Native->IsProcessingNewState()||!Native->IsVoxelWorldReady()));}
 bool FCLNativePreview::IsApplyingInput()const
-{if(IsCaveOverview())return Plan!=VisiblePlan||CaveNetworks.ContainsByPredicate([](const auto& N){return N->IsApplyingInput();});return Failure.IsEmpty()&&(Pending.IsValid()||(Native&&(AwaitingPublication||Plan!=VisiblePlan)));}
+{if(IsCaveOverview())return Plan!=VisiblePlan||CaveDomains.ContainsByPredicate([](const auto& N){return N->IsApplyingInput();});return Failure.IsEmpty()&&(Pending.IsValid()||(Native&&(AwaitingPublication||Plan!=VisiblePlan)));}
 TOptional<float> FCLNativePreview::InputProgress()const
 {if(IsCaveOverview())
-    {float Sum=0;for(const auto& N:CaveNetworks){if(!N->IsApplyingInput()){Sum+=1;continue;}const auto P=N->InputProgress();if(!P.IsSet())return {};Sum+=P.GetValue();}return CaveNetworks.IsEmpty()?TOptional<float>():TOptional<float>(Sum/CaveNetworks.Num());}
+    {float Sum=0;for(const auto& N:CaveDomains){if(!N->IsApplyingInput()){Sum+=1;continue;}const auto P=N->InputProgress();if(!P.IsSet())return {};Sum+=P.GetValue();}return CaveDomains.IsEmpty()?TOptional<float>():TOptional<float>(Sum/CaveDomains.Num());}
     return !Pending&&IsApplyingInput()&&Native&&Native->IsProcessingNewState()?TOptional<float>(Native->GetProgress()):TOptional<float>();}
 FString FCLNativePreview::InputProgressText()const
 {
-    if(IsCaveOverview()){int32 Ready=0;for(const auto& N:CaveNetworks)Ready+=N->PublishedPlan()==Plan&&!N->IsApplyingInput();return FString::Printf(TEXT("Generating cave surfaces · %d/%d native networks ready"),Ready,CaveNetworks.Num());}
+    if(IsCaveOverview()){int32 Ready=0;for(const auto& N:CaveDomains)Ready+=N->PublishedPlan()==Plan&&!N->IsApplyingInput();return FString::Printf(TEXT("Generating cave surfaces · %d/%d ready"),Ready,CaveDomains.Num());}
     if(Pending)return TEXT("Preparing preview…");
     if(Native&&Native->IsProcessingNewState())return FString::Printf(TEXT("Generating preview · %.0f%% · %d native tasks remaining"),Native->GetProgress()*100,Native->GetNumPendingTasks());
     return TEXT("Publishing preview…");
@@ -183,7 +186,7 @@ FString FCLNativePreview::InputProgressText()const
 const void* FCLNativePreview::RuntimeIdentity()const{return Native?Native->GetRuntime().Get():nullptr;}
 bool FCLNativePreview::UsesNativePresentation()const
 {
-    if(IsCaveOverview())return !CaveNetworks.IsEmpty()&&!CaveNetworks.ContainsByPredicate([](const auto& N){return !N->UsesNativePresentation();});
+    if(IsCaveOverview())return !CaveDomains.IsEmpty()&&!CaveDomains.ContainsByPredicate([](const auto& N){return !N->UsesNativePresentation();});
     if(!Native||!VisiblePlan)return false;
     TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);int32 Count=0;
     for(auto* C:Components)if(C->IsRegistered()&&C->GetRenderProxy()){if(!C->IsVisible()||C->bHiddenInGame)return false;++Count;}
@@ -191,7 +194,7 @@ bool FCLNativePreview::UsesNativePresentation()const
 }
 FString FCLNativePreview::Status()const
 {
-    if(IsCaveOverview()){FString Result=InputProgressText();for(const auto& N:CaveNetworks)Result+=TEXT(" | ")+N->Status();return Result;}
+    if(IsCaveOverview()){FString Result=InputProgressText();for(const auto& N:CaveDomains)Result+=TEXT(" | ")+N->Status();return Result;}
     if(!Failure.IsEmpty())return Failure;if(!Native)return TEXT("No native producer");
     TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);
     return FString::Printf(TEXT("components %d, native producer/presenter %u, ready %d, processing %d, tasks %d, inspected vertices %d"),Components.Num(),Native->GetUniqueID(),Native->IsVoxelWorldReady(),Native->IsProcessingNewState(),Native->GetNumPendingTasks(),Last.Vertices.Num());
@@ -212,7 +215,7 @@ bool FCLNativePreview::Poll(bool)
     if(IsCaveOverview())
     {
         bool Changed=false,Ready=Plan.IsValid();uint32 Hash=0;
-        for(const auto& N:CaveNetworks){Changed|=N->Poll(true);Ready&=N->PublishedPlan()==Plan;Hash=HashCombine(Hash,N->PublishedHash);}
+        for(const auto& N:CaveDomains){Changed|=N->Poll(true);Ready&=N->PublishedPlan()==Plan;Hash=HashCombine(Hash,N->PublishedHash);}
         if(!Ready)return false;const bool Published=VisiblePlan!=Plan||PublishedHash!=Hash;VisiblePlan=Plan;PublishedHash=Hash;return Changed||Published;
     }
     if(!Native||!Failure.IsEmpty())return false;
@@ -228,7 +231,7 @@ const FCLNativePreview::FBuffers& FCLNativePreview::Published()const
     if(IsCaveOverview())
     {
         if(!VisiblePlan||VisiblePlan!=Plan||IsUpdating()||InspectionHash==PublishedHash)return Last;
-        FBuffers Next;for(const auto& N:CaveNetworks){const auto& M=N->Published();const int32 Offset=Next.Vertices.Num();Next.Vertices.Append(M.Vertices);Next.SourcePoints.Append(M.SourcePoints);for(const auto I:M.Triangles)Next.Triangles.Add(Offset+I);}
+        FBuffers Next;for(const auto& N:CaveDomains){const auto& M=N->Published();const int32 Offset=Next.Vertices.Num();Next.Vertices.Append(M.Vertices);Next.SourcePoints.Append(M.SourcePoints);for(const auto I:M.Triangles)Next.Triangles.Add(Offset+I);}
         Last=MoveTemp(Next);InspectionHash=PublishedHash;
 #if WITH_DEV_AUTOMATION_TESTS
         ++Metrics.MeshCopies;Metrics.VerticesCopied+=Last.Vertices.Num();
@@ -240,7 +243,7 @@ const FCLNativePreview::FBuffers& FCLNativePreview::Published()const
     for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())Count+=Proxy->Mesh->Vertices.Num();
     // This bound belongs only to explicit inspection. Native presentation and
     // LOD have no application inspection budget or copying dependency.
-    if(Count>1000000){Last=FBuffers();InspectionHash=PublishedHash;return Last;}
+    if(Count>(CaveInspection?16000000:1000000)){Last=FBuffers();InspectionHash=PublishedHash;return Last;}
 #if WITH_DEV_AUTOMATION_TESTS
     const double CopyStart=FPlatformTime::Seconds();
 #endif
@@ -279,7 +282,9 @@ bool FCLNativePreview::PickSection(const FVector& A,const FVector& B,FVector& P)
 
 #if WITH_DEV_AUTOMATION_TESTS
 TArray<uint32> FCLNativePreview::CaveWorldIdentities()const
-{TArray<uint32> Ids;for(const auto& N:CaveNetworks)Ids.Add(N->WorldIdentity());return Ids;}
+{TArray<uint32> Ids;for(const auto& N:CaveDomains)Ids.Add(N->WorldIdentity());return Ids;}
+TMap<FGuid,uint32> FCLNativePreview::CaveDomainIdentities()const
+{TMap<FGuid,uint32> Ids;for(const auto& N:CaveDomains)Ids.Add(N->CaveDomain,N->WorldIdentity());return Ids;}
 void FCLNativePreview::SetMaterialCoordinatesEnabledForTesting(bool Enabled)
 {MaterialCoordinatesEnabled=Enabled;FString Error;Start(*Native->GetWorld(),Plan,Section,Width,Error,AppliedDraft);}
 bool FCLNativePreview::CheckMaterialCoordinates(FString& Error)const

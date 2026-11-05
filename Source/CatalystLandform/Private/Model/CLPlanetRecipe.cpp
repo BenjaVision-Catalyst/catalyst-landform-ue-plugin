@@ -1037,7 +1037,14 @@ void UCLPlanetRecipeAsset::PostLoad()
     BindGuideLibrary();
 #endif
 }
-UCLPlanetRecipeAsset::UCLPlanetRecipeAsset() { Recipe = FCLPlanetCompiler::RollingPlains(); }
+UCLPlanetRecipeAsset::UCLPlanetRecipeAsset()
+{
+    Recipe=FCLPlanetCompiler::RollingPlains();
+    // UE delta-serializes against the CDO. Keep its historical cave default so
+    // an omitted version-2 property in an existing package still loads as 2.
+    // Fresh factories assign BasePlanet (current profile); knob changes use 3.
+    Recipe.Caves.AlgorithmVersion=2;
+}
 FString UCLPlanetRecipeAsset::GetSummaryText() const
 { return FString::Printf(TEXT("%s: %d guides, %d terrain layers"), *Recipe.Name, Recipe.RadialGuides.Guides.Num(), Recipe.NoiseLayers.Num()); }
 bool UCLPlanetRecipeAsset::ValidatePayload(FString& Error) const

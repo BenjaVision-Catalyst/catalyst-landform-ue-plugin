@@ -1,0 +1,127 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "D632E8C98D4BF4E13C0515BB1FE0882C",
+			"instanceName": "jupiter.local-37552",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-12.24.32",
+	"succeeded": 4,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 24.116188049316406,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "LegacyNativeAssetProfiles",
+			"fullTestPath": "Catalyst.Landform.Caves.LegacyNativeAssetProfiles",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D632E8C98D4BF4E13C0515BB1FE0882C"
+			],
+			"duration": 2.1056821346282959,
+			"dateTime": "2026.11.05-12.24.08",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "MixedGeneratedFamilies",
+			"fullTestPath": "Catalyst.Landform.Caves.MixedGeneratedFamilies",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D632E8C98D4BF4E13C0515BB1FE0882C"
+			],
+			"duration": 10.835470199584961,
+			"dateTime": "2026.11.05-12.24.10",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Mixed seed 176: 9/9 requested cave networks (1 carbonate karst, 8 structural), 61 curved passages, 9 entrances; 67/73 eligible sites; 7 native domains, 0 same-family and 1 cross-family positive-overlap pairs; cross X=6.432 Y=-369.715 Z=409.677",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.24.14"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Actual source-linked mixed library export and fresh package load reproduce the qualified native cave graph exactly.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.24.21"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NewPlanetReference",
+			"fullTestPath": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D632E8C98D4BF4E13C0515BB1FE0882C"
+			],
+			"duration": 0.0075102895498275757,
+			"dateTime": "2026.11.05-12.24.21",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DebugRenderedNavigation",
+			"fullTestPath": "Catalyst.Landform.Watershed.DebugRenderedNavigation",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D632E8C98D4BF4E13C0515BB1FE0882C"
+			],
+			"duration": 11.167526245117188,
+			"dateTime": "2026.11.05-12.24.21",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":180,\"nativeBusyFrames\":180,\"p95Ms\":39.787669,\"maxInputMs\":0.040874,\"waterTriangles\":22102,\"shoreSegments\":4016,\"paths\":218,\"buildSeconds\":0.084549}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.24.28"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

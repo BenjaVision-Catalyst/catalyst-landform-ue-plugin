@@ -56,6 +56,7 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     /** Activation-only diagnostic; the server recipe and production terrain are unchanged. */
     UPROPERTY() bool bCaveInspectionPreview=false;
     UPROPERTY() FGuid CaveInspectionNetwork;
+    UPROPERTY() FGuid CaveInspectionDomain;
     UPROPERTY() double SectionWidthMeters=500;
     UPROPERTY() double SectionReferenceRadiusMeters=1;
 };

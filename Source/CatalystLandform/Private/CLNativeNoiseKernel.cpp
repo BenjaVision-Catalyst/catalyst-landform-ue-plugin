@@ -38,3 +38,28 @@ double FCLNativeNoiseKernel::Sample(const FVector& Position,int32 Seed)const
     const ispc::FVoxelInputBuffer Inputs[]={{&X,true},{&Y,true},{&Z,true},{&One,true},{&One,true},{&Seed,true}};
     void* Outputs[]={&Value};Evaluate(Inputs,Outputs,1);return Value;
 }
+
+void FCLNativeNoiseKernel::SampleBatch(TConstArrayView<FVector> Positions,int32 Seed,TArray<float>& Values)const
+{
+    const int32 N=Positions.Num();Values.SetNumUninitialized(N);if(!N)return;
+    TArray<float> X,Y,Z;X.SetNumUninitialized(N);Y.SetNumUninitialized(N);Z.SetNumUninitialized(N);
+    for(int32 I=0;I<N;++I){X[I]=Positions[I].X;Y[I]=Positions[I].Y;Z[I]=Positions[I].Z;}
+    const float One=1;const ispc::FVoxelInputBuffer Inputs[]={{X.GetData(),false},{Y.GetData(),false},{Z.GetData(),false},{&One,true},{&One,true},{&Seed,true}};
+    void* Outputs[]={Values.GetData()};Evaluate(Inputs,Outputs,N);
+}
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Misc/AutomationTest.h"
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLNativeCaveNoiseBatchTest,"Catalyst.Landform.Caves.NativeNoiseBatchParity",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLNativeCaveNoiseBatchTest::RunTest(const FString&)
+{
+    FString E;const auto Kernel=FCLNativeNoiseKernel::Create(E);if(!Kernel){AddError(E);return false;}
+    // Independent prior scalar binding, including non-SIMD-multiple counts.
+    for(int32 N:{0,1,3,17,512})for(int32 Seed:{-991,0,1729})
+    {
+        TArray<FVector> Points;for(int32 I=0;I<N;++I)Points.Add(FVector(I*.731-1100,I*-.419+44,I*.213+700));
+        TArray<float> Values;Kernel->SampleBatch(Points,Seed,Values);TestEqual(TEXT("Native batch preserves count"),Values.Num(),N);
+        for(int32 I=0;I<N;++I)TestTrue(TEXT("Native SIMD batch preserves the previous scalar noise field"),FMath::Abs(double(Values[I])-Kernel->Sample(Points[I],Seed))<1.e-6);
+    }
+    return true;
+}
+#endif

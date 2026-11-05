@@ -1,0 +1,269 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "F955E18B1F424DC66ADAC5827F340B35",
+			"instanceName": "jupiter.local-37275",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-12.18.25",
+	"succeeded": 7,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 15.420938491821289,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"F955E18B1F424DC66ADAC5827F340B35"
+			],
+			"duration": 3.110891580581665,
+			"dateTime": "2026.11.05-12.18.10",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "EligibilityAndVersions",
+			"fullTestPath": "Catalyst.Landform.Caves.EligibilityAndVersions",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"F955E18B1F424DC66ADAC5827F340B35"
+			],
+			"duration": 0.80031228065490723,
+			"dateTime": "2026.11.05-12.18.13",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "24/24 requested cave networks (0 carbonate karst, 24 structural), 168 curved passages, 24 entrances; 147/439 eligible sites",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.13"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "KnobAndBackground",
+			"fullTestPath": "Catalyst.Landform.Caves.KnobAndBackground",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"F955E18B1F424DC66ADAC5827F340B35"
+			],
+			"duration": 0.79916983842849731,
+			"dateTime": "2026.11.05-12.18.14",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "LegacyNativeAssetProfiles",
+			"fullTestPath": "Catalyst.Landform.Caves.LegacyNativeAssetProfiles",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"F955E18B1F424DC66ADAC5827F340B35"
+			],
+			"duration": 2.0034401416778564,
+			"dateTime": "2026.11.05-12.18.15",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "MixedGeneratedFamilies",
+			"fullTestPath": "Catalyst.Landform.Caves.MixedGeneratedFamilies",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"F955E18B1F424DC66ADAC5827F340B35"
+			],
+			"duration": 7.5629749298095703,
+			"dateTime": "2026.11.05-12.18.17",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Mixed seed 176: 9/9 requested cave networks (1 carbonate karst, 8 structural), 61 curved passages, 9 entrances; 67/73 eligible sites; 7 native domains, 0 same-family and 1 cross-family positive-overlap pairs; cross X=6.432 Y=-369.715 Z=409.677",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.20"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeFieldsAndPersistence",
+			"fullTestPath": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"F955E18B1F424DC66ADAC5827F340B35"
+			],
+			"duration": 1.1354297399520874,
+			"dateTime": "2026.11.05-12.18.24",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 0 field 0.78307 host -33.44012 at X=1410.904 Y=301.252 Z=495.229",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 1 field 0.91359 host -33.07035 at X=1411.800 Y=298.055 Z=495.217",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 2 field 0.78244 host -32.84159 at X=1412.197 Y=294.727 Z=496.232",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 3 field 0.66306 host -32.75691 at X=1412.604 Y=291.416 Z=496.742",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 4 field 0.92897 host -32.66320 at X=1413.456 Y=288.235 Z=495.913",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 5 field 1.28932 host -32.40275 at X=1414.417 Y=285.072 Z=495.230",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 6 field 1.16061 host -32.18294 at X=1414.805 Y=281.934 Z=496.069",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 7 field 0.87031 host -32.15733 at X=1414.694 Y=278.844 Z=497.716",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "24 networks, 1008 cutters; 297 native bulk/sparse points, max residual 0 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-12.18.25"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NewPlanetReference",
+			"fullTestPath": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"F955E18B1F424DC66ADAC5827F340B35"
+			],
+			"duration": 0.0087206251919269562,
+			"dateTime": "2026.11.05-12.18.25",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

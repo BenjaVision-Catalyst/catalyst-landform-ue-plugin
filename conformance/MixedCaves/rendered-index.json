@@ -1,0 +1,97 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "CC142ED4CC4201ACA8EC25997B9765CD",
+			"instanceName": "jupiter.local-28307",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-11.54.17",
+	"succeeded": 2,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 102.67393493652344,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "IntersectingVolumes",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.IntersectingVolumes",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"CC142ED4CC4201ACA8EC25997B9765CD"
+			],
+			"duration": 14.516634941101074,
+			"dateTime": "2026.11.05-11.52.34",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":26.665002,\"normalSurfaceLuma\":191.059265,\"debugSurfaceLuma\":21.840658,\"cyanPixels\":274,\"networks\":5,\"nativeDomains\":2,\"nativeVertices\":56305,\"maxFieldResidualMeters\":0.045816,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-11.52.47"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "MixedFamilies",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.MixedFamilies",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"CC142ED4CC4201ACA8EC25997B9765CD"
+			],
+			"duration": 88.157302856445312,
+			"dateTime": "2026.11.05-11.52.48",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":27.756836,\"normalSurfaceLuma\":189.780358,\"debugSurfaceLuma\":21.839923,\"cyanPixels\":17103,\"networks\":9,\"nativeDomains\":7,\"nativeVertices\":1543660,\"maxFieldResidualMeters\":0.248285,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-11.53.21"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":24,\"nativeDomains\":23,\"nativeVertices\":2183594,\"maxFieldResidualMeters\":0.243303,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-11.54.10"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

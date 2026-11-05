@@ -14,7 +14,7 @@ public:
     struct FBuffers {TArray<FVector> Vertices,SourcePoints;TArray<int32> Triangles;};
     struct FMaterialCoordinates{FLinearColor High,Low;};
     static FMaterialCoordinates MaterialCoordinates(const FVoxelVolumeTransform&,bool Section,double ReferenceMeters);
-    explicit FCLNativePreview(bool InspectCaves=false,FGuid Network={}):CaveInspection(InspectCaves),CaveNetwork(Network){}
+    explicit FCLNativePreview(bool InspectCaves=false,FGuid Network={}):CaveInspection(InspectCaves),CaveDomain(Network){}
     ~FCLNativePreview();
     void SetVisible(bool Visible);
     bool Start(UWorld&,TSharedPtr<const FCLCompiledPlanetRecipe>,bool Section,double Width,FString&,bool Draft=false);
@@ -24,7 +24,7 @@ public:
     bool IsApplyingInput()const;
     TOptional<float> InputProgress()const;
     FString InputProgressText()const;
-    bool IsActive() const{return IsCaveOverview()?!CaveNetworks.IsEmpty():Native.IsValid();}
+    bool IsActive() const{return IsCaveOverview()?!CaveDomains.IsEmpty():Native.IsValid();}
     FString Status()const;
     FBox DisplayBounds()const;
     /** Explicit read-only inspection, outside normal publication/navigation. */
@@ -36,6 +36,7 @@ public:
     bool UsesNativePresentation()const;
 #if WITH_DEV_AUTOMATION_TESTS
     TArray<uint32> CaveWorldIdentities()const;
+    TMap<FGuid,uint32> CaveDomainIdentities()const;
     struct FMetrics{uint64 MeshCopies=0,VerticesCopied=0,Starts=0;double MaxPollMs=0,TotalCopyMs=0;};
     mutable FMetrics Metrics;
     bool CheckMaterialCoordinates(FString& Error)const;
@@ -48,11 +49,11 @@ private:
     TWeakObjectPtr<UVoxelStampComponent> Stamp;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan,Pending,VisiblePlan;
     bool CaveInspection=false;
-    FGuid CaveNetwork;
+    FGuid CaveDomain;
     // All static diagnostic domains are active together. Native VPP owns each
     // domain's field, mesh, LOD and lifecycle; this is not camera-based streaming.
-    TArray<TUniquePtr<FCLNativePreview>> CaveNetworks;
-    bool IsCaveOverview()const{return CaveInspection&&!CaveNetwork.IsValid();}
+    TArray<TUniquePtr<FCLNativePreview>> CaveDomains;
+    bool IsCaveOverview()const{return CaveInspection&&!CaveDomain.IsValid();}
     bool Section=false,PendingSection=false,PendingDraft=false,AppliedDraft=false,AwaitingPublication=false;
 #if WITH_DEV_AUTOMATION_TESTS
     bool MaterialCoordinatesEnabled=true;

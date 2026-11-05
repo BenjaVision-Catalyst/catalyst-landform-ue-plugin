@@ -131,7 +131,12 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
         }
         if((RecipePlan->Volumes||(RecipePlan->Caves&&RecipePlan->Caves->Cutters)||Stamp.Window.bEnabled)&&!Scene)return false; // No framed or volume fallback to a radial actor profile.
     }
-    if(Stamp.bCaveInspectionPreview&&Stamp.CaveInspectionNetwork.IsValid())
+    if(Stamp.bCaveInspectionPreview&&Stamp.CaveInspectionDomain.IsValid())
+    {
+        const auto* Domain=RecipePlan->Caves->InspectionDomains.FindByPredicate([&](const auto& D){return D.Id==Stamp.CaveInspectionDomain;});
+        if(!Domain)return false;InspectionCutters=RecipePlan->Caves->Cutters->Select(Domain->Networks);
+    }
+    else if(Stamp.bCaveInspectionPreview&&Stamp.CaveInspectionNetwork.IsValid())
     {
         InspectionCutters=RecipePlan->Caves->Cutters->Select(Stamp.CaveInspectionNetwork);
         if(!InspectionCutters->Bounds().IsValid)return false;

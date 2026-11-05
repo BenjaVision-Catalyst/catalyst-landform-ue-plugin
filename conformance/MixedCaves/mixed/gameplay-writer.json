@@ -1,0 +1,20 @@
+{
+	"passed": true,
+	"message": "Generated cave contacts, player floor, native mining, placement and compressed sculpt save passed",
+	"coldReader": false,
+	"processID": 37720,
+	"writerPID": 37720,
+	"nativeContacts": 4,
+	"nativeFloorFrames": 1253,
+	"beforeMineCm": -100.63056945800781,
+	"afterMineCm": 139.3531494140625,
+	"afterFillCm": -75.718421936035156,
+	"controlBeforeCm": -491.62216186523438,
+	"controlAfterCm": -179.82760620117188,
+	"controlOffsetCm": 399.14914980966063,
+	"controlIdentityUnchanged": true,
+	"comparedProbes": 0,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 192302,
+	"elapsedSeconds": 215.65353533625603
+}

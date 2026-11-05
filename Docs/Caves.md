@@ -80,11 +80,11 @@ roof and cover checks reject a whole candidate before publication; these checks
 are not a continuous mathematical roof/host certificate.
 
 Enabled caves request at least one complete eligible network at every knob
-position. The eye is the way to request zero. Algorithm 2 resolves density to a requested complete-network count over estimated
+position. The eye is the way to request zero. Algorithms 2 and 3 resolve density to a requested complete-network count over estimated
 eligible physical area, then visits stable occurrence-ranked sites. The automatic
 profile is `6 * Character²` networks per eligible km². Physical area is measured at
 the fitted surface midpoint, using the existing equal-area candidate sampling.
-Counts round upward and retain the enabled minimum. Complete-fit/spacing capacity
+Counts round upward and retain the enabled minimum. Complete-fit capacity (and spacing in legacy profiles)
 can limit a request; readiness reports requested and accepted counts explicitly.
 It never silently stretches caves to fill a planet or fabricates host geology.
 Missing prerequisites or an impossible complete fit produce an explicit error.
@@ -306,3 +306,102 @@ and launcher are committed; the saved fissure review asset is preserved.
 ![A native karst volume, detail view used only by the test](../conformance/KarstCaves/karst/network-detail.png)
 
 ![Inside a generated karst chamber](../conformance/KarstCaves/karst/generated-cave-interior.png)
+
+
+## Mixed families and intersections
+
+A planet can include Structural and Carbonate Karst formations together. Included
+Landforms and demonstrated host geology select the family at each eligible site;
+there is no family selector added to the cave row. Carbonate beds can also be
+fracture-capable. `Examples/MixedCaves.json` is a bounded reference of that case,
+with Carbonate Platform, Continental Rift and Transform Belt included.
+
+New factory planets, typed profiles and knob changes resolve cave algorithm 3.
+The UObject/CDO serialization default remains 2: native packages can omit fields
+matching their old CDO, so changing that default silently reinterpreted saved
+recipes. A native load check demonstrated this for both saved cave assets.
+Freezing that default preserves their profile and disk bytes; newly created
+packages explicitly retain 3. Algorithm 3 removes the previous
+centroid spacing and non-overlapping support reservation. Complete roof/host and
+construction-budget checks still apply. Independent formations may intersect,
+including across families. Native VPP smooth union combines their air volumes
+before planet subtraction, producing one editable void with no internal source
+wall. Formation IDs and geological provenance remain available after a join;
+formation count is not a count of disconnected physical caves. The generator
+does not force every formation to connect. Profiles 1/2 retain their prior
+placement rules until the user resolves the current knob profile.
+
+The debug presenter previously used one native voxel world per formation. That
+would incorrectly show internal surfaces at an intersection. It now groups
+potentially overlapping support boxes using VPP's AABB tree and UE GeometryCore's
+disjoint set, and presents each complete group through one native VPP union.
+Support includes potential entrances so a fixed formation set retains native
+owners when entrances are removed. Removing entrance constraints can admit
+different eligible formations; unchanged domain IDs retain their native owners.
+These are static inspection domains, not a connectivity simulation:
+boxes can overlap while solid rock still separates their cavities. No links are
+invented from a box intersection. Every domain is active together.
+
+Native audit: VPP's `FVoxelVolumeSplineStampRuntime::GetChildren` can supply
+per-segment support bounds. Applying it to every short exact evaluation interval
+in this adapter caused excessive native query splitting over overlapping bounds
+in the large mixed reference. That attempted adaptation is rejected. Inspection
+retains the standard single bound for each combined domain; the existing native
+AABB tree selects spline features within it. Native physical voxel spacing
+follows the narrowest section: a 25 cm cap for
+small sections, up to 50 cm in wide systems, and at least four samples across the
+minimum passage diameter. Acceptance retains the same 0.5 m surface-field error
+bound. Native wall noise is sent to the existing SIMD kernel in batches; a
+separate check compares it against the prior scalar binding.
+
+`FVoxelRenderSubsystem::TryInitializeRootChunks` and `FVoxelRenderTree` use an
+enclosing render domain and can subdivide empty space at fine physical detail.
+Consequently this change retains bounded static domains rather than demanding a
+single fine-resolution whole-planet diagnostic render box. VPP owns all mesh
+production, LOD and presentation. No custom streaming manager or mesh builder is
+introduced. Long chains of overlapping supports can enlarge a diagnostic domain;
+production-scale performance of that case remains unqualified.
+
+The native operator fixture separately checks same-family and cross-family open
+junctions, nearby disconnected cavities with overlapping bounds, and backfill.
+The generated mixed reference must demonstrate real independent positive-air
+field overlap between the two geological families, not merely intersecting graph
+lines or bounding boxes. Rendered
+native vertices are checked against the complete union field to reject internal
+walls.
+
+The [mixed qualification](../conformance/MixedCaves/qualification-mac-arm64.json)
+records 70 passing distinct checks across the regression and focused native
+asset/timing corrections. The actual library package reloads with profile 3 and
+reproduces the qualified passage points, sections and incision. Existing saved
+fissure/karst packages retain profile 2 without becoming dirty. All 23 protected
+workspace edits, 115 component content files and 177 original review content
+files retain their captured hashes.
+
+The 800 m reference contains eight structural formations and one carbonate karst
+formation with a real positive-volume cross-family junction, presented in seven
+native inspection domains. The maximum knob produces 24 formations in 23 domains.
+Every native mesh vertex is checked against the complete union field: maximum
+residual is 0.248285 m at the saved setting and 0.243303 m at maximum. Navigation
+p95 is 27.76 ms, with zero input starts or mesh copies. Timing isolates only the
+few-second sample from the older review editor, then resumes it; competing-editor
+failures and the unchanged 50 ms budget are retained in the record.
+
+Actual native gameplay uses the library's exported recipe. It retains four
+chamber contacts and 1,253 grounded writer frames. Mining changes the wall field
+from -100.63 cm to 139.35 cm air; native placement returns it to -75.72 cm solid.
+The outside control remains solid with unchanged material/geology. Its field
+magnitude changes because a nearer cavity was mined. A 192,302-byte compressed
+native save reloads in an independent process, reproducing all 216 retained
+field/material/geology probes with zero measured field error. This proves the
+recorded chamber and probe set, not full-route traversal or every natural
+junction's player clearance. No new cooked, ACF or multiplayer claim is made.
+
+The larger 2 km reference is retained as an unaccepted workload reproducer; its
+concurrent-editor timing is not an isolated performance comparison. Long chains
+of overlapping support remain a qualification gap. They do not establish a need
+for a custom streaming manager.
+
+![Both geological cave families on one planet](../conformance/MixedCaves/mixed/all-caves.png)
+
+![Native joined-void operator fixture](../conformance/MixedCaves/controlled/joined-detail.png)

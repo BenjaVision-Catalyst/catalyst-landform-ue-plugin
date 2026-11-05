@@ -110,19 +110,23 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Compile(TConstArr
 }
 TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Select(FGuid Network)const
 {
-    auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=Data;Out->SelectedNetwork=Network;return Out;
+    auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=Data;if(Network.IsValid())Out->SelectedNetworks.Add(Network);return Out;
+}
+TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Select(TConstArrayView<FGuid> Networks)const
+{
+    auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=Data;for(const auto Id:Networks)Out->SelectedNetworks.Add(Id);return Out;
 }
 FBox FCLCompiledCaveVolume::Bounds(FGuid Network)const
 {
-    if(!Network.IsValid())Network=SelectedNetwork;FBox B(ForceInit);
-    for(const auto& P:Data->Paths)if(!Network.IsValid()||P.Network==Network)B+=P.Bounds;
-    for(const auto& P:Data->Chambers)if(!Network.IsValid()||P.Source.Network==Network)B+=P.Bounds;
+    FBox B(ForceInit);
+    for(const auto& P:Data->Paths)if((!Network.IsValid()||P.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Network)))B+=P.Bounds;
+    for(const auto& P:Data->Chambers)if((!Network.IsValid()||P.Source.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Source.Network)))B+=P.Bounds;
     return B;
 }
 double FCLCompiledCaveVolume::MinimumHalfWidth(FGuid Network)const
 {
-    if(!Network.IsValid())Network=SelectedNetwork;double M=MAX_dbl;
-    for(const auto& P:Data->Paths)if(!Network.IsValid()||P.Network==Network)M=FMath::Min(M,P.MinimumWidth);
+    double M=MAX_dbl;
+    for(const auto& P:Data->Paths)if((!Network.IsValid()||P.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Network)))M=FMath::Min(M,P.MinimumWidth);
     return M;
 }
 double FCLCompiledCaveVolume::Compose(const FVector3d& P,double Field,FCLSurfaceWeights*)const
@@ -140,7 +144,7 @@ void FCLCompiledCaveVolume::ComposeBatch(TConstArrayView<FVector3d> Positions,TA
     for(int32 Feature:Features)
     {
         const bool Path=Feature<Data->Paths.Num();const auto Network=Path?Data->Paths[Feature].Network:Data->Chambers[Feature-Data->Paths.Num()].Source.Network;
-        if(SelectedNetwork.IsValid()&&SelectedNetwork!=Network)continue;
+        if(!SelectedNetworks.IsEmpty()&&!SelectedNetworks.Contains(Network))continue;
         const auto& Indices=Work[Feature];const int32 N=Indices.Num();FVoxelDoubleVectorBuffer Local,Slot;Local.Allocate(N);TArray<double> Units,SlotUnits;Units.SetNumUninitialized(N);
         const bool Keyhole=Path&&Data->Paths[Feature].Incision>0;if(Keyhole){Slot.Allocate(N);SlotUnits.SetNumUninitialized(N);}
         double Smoothness=0;
@@ -174,13 +178,19 @@ void FCLCompiledCaveVolume::ComposeBatch(TConstArrayView<FVector3d> Positions,TA
         }
         FVoxelFloatBuffer Native;Native.Allocate(N);FVoxelSphereShape Shape;Shape.Radius=1;Shape.Sample(Native.View(),Local);
         FVoxelFloatBuffer Lower;if(Keyhole){Lower.Allocate(N);Shape.Sample(Lower.View(),Slot);}
+        TArray<float> Noise;
+        if(Data->Noise)
+        {
+            TArray<FVector> Points;Points.Reserve(N);for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]/(Units[J]*1.8));
+            Data->Noise->SampleBatch(Points,Path?Data->Paths[Feature].NoiseSeed:Data->Chambers[Feature-Data->Paths.Num()].NoiseSeed,Noise);
+        }
         for(int32 J=0;J<N;++J)
         {
             const int32 I=Indices[J];double Value=double(Native[J])*Units[J];
             if(Keyhole)Value=Blend(Value,double(Lower[J])*SlotUnits[J],Smoothness);
             // Native VPP noise in fixed physical coordinates. Correlated metre-
             // scale wall relief cannot close the protected passage core.
-            if(Data->Noise)Value+=Data->Noise->Sample(Positions[I]/(Units[J]*1.8),Path?Data->Paths[Feature].NoiseSeed:Data->Chambers[Feature-Data->Paths.Num()].NoiseSeed)*Units[J]*.12;
+            if(Data->Noise)Value+=double(Noise[J])*Units[J]*.12;
             Void[I]=Void[I]==MAX_flt?Value:Blend(Void[I],Value,Smoothness);
         }
     }
