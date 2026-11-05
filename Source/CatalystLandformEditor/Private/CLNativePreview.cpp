@@ -3,6 +3,13 @@
 #include "CLSectionGeometry.h"
 #include "CLPlanetStamp.h"
 #include "VoxelLayer.h"
+#include "VoxelLayerStack.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialExpressionPixelNormalWS.h"
+#include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionDotProduct.h"
+#include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionAdd.h"
 #include "VoxelLinearColorMetadata.h"
 #include "VoxelPinValue.h"
 #include "VoxelStampComponent.h"
@@ -16,6 +23,34 @@
 #include "Surface/CLSurfaceLibrary.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
 #include "Engine/World.h"
+
+namespace
+{
+UVoxelMegaMaterial* CaveInspectionMaterial()
+{
+    auto* Mega=UVoxelMegaMaterial::CreateTransient();Mega->bDetectNewSurfaces=false;
+    auto* M=NewObject<UMaterial>(Mega,NAME_None,RF_Transient);M->BlendMode=BLEND_Translucent;M->bDisableDepthTest=true;M->SetShadingModel(MSM_Unlit);
+    M->GetEditorOnlyData()->Opacity.UseConstant=true;M->GetEditorOnlyData()->Opacity.Constant=1;
+    auto* N=NewObject<UMaterialExpressionPixelNormalWS>(M);auto* Direction=NewObject<UMaterialExpressionConstant3Vector>(M);Direction->Constant=FLinearColor(.3,-.4,.85);
+    auto* Dot=NewObject<UMaterialExpressionDotProduct>(M);Dot->A.Expression=N;Dot->B.Expression=Direction;
+    auto* Half=NewObject<UMaterialExpressionMultiply>(M);Half->A.Expression=Dot;Half->ConstB=.45;
+    auto* Shade=NewObject<UMaterialExpressionAdd>(M);Shade->A.Expression=Half;Shade->ConstB=.55;
+    auto* Color=NewObject<UMaterialExpressionConstant3Vector>(M);Color->Constant=FLinearColor(.001,.16,.24);
+    auto* Result=NewObject<UMaterialExpressionMultiply>(M);Result->A.Expression=Shade;Result->B.Expression=Color;
+    for(auto* E:TArray<UMaterialExpression*>{N,Direction,Dot,Half,Shade,Color,Result})M->GetExpressionCollection().AddExpression(E);
+    M->GetEditorOnlyData()->EmissiveColor.Expression=Result;M->PostEditChange();
+    Mega->NonNaniteMaterialType=EVoxelMegaMaterialGenerationType::Custom;Mega->CustomNonNaniteMaterial=M;Mega->CustomLumenMaterial=M;Mega->PostEditChange();
+    return Mega;
+}
+}
+void FCLNativePreview::SetVisible(bool Visible)
+{
+    if(!Native)return;
+    // Hiding the actor also disables its source stamp in VPP. Hide only the
+    // native render components so inspection toggles retain the accepted field.
+    TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);
+    for(auto* C:Components){C->SetVisibility(Visible);C->SetHiddenInGame(!Visible);}
+}
 
 FCLNativePreview::FMaterialCoordinates FCLNativePreview::MaterialCoordinates(const FVoxelVolumeTransform& Transform,bool Flat,double ReferenceMeters)
 {
@@ -46,7 +81,13 @@ bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRec
         Native->DestroyRuntime();Native->SetupForPreview();Native->bEnableNanite=false;Native->bEnableTessellation=false;
         Native->bEnableNavigation=false;Native->bWaitForPCG=false;Native->VoxelSize=50;
         Native->bCreateRuntimeOnBeginPlay=false;Native->bDoubleSidedCollision=true;
-        if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
+        if(CaveInspection)
+        {
+            auto* Stack=NewObject<UVoxelLayerStack>(Native.Get());Stack->HeightLayers.Reset();Stack->VolumeLayers={NewObject<UVoxelVolumeLayer>(Stack)};Native->LayerStack=Stack;UVoxelLayerStack::OnChanged.Broadcast();
+            Native->MegaMaterial=CaveInspectionMaterial();Native->VoxelSize=10;
+            Native->VisibilityCollision.SetCollisionEnabled(ECollisionEnabled::NoCollision);Native->InvokerCollision.SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+        else if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
         auto* Component=NewObject<UVoxelStampComponent>(Native.Get());Component->SetupAttachment(Native->GetRootComponent());Component->RegisterComponent();Stamp=Component;
     }
 #if WITH_DEV_AUTOMATION_TESTS
@@ -59,7 +100,8 @@ bool FCLNativePreview::ApplyPending()
 {
     if(!Pending||AwaitingPublication||Native->IsProcessingNewState())return false;
     Plan=MoveTemp(Pending);
-    if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())Native->MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
+    if(CaveInspection){}
+    else if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())Native->MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
     else if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
     Section=PendingSection;Width=PendingWidth;AppliedDraft=PendingDraft;PublishedHash=0;
     // Scale the stamp through VPP's supported transform, never the voxel world
@@ -68,7 +110,8 @@ bool FCLNativePreview::ApplyPending()
     Stamp->SetRelativeScale3D(Scale);
     FCLPlanetStamp Source;Source.bUseRecipe=true;Source.CompiledRecipe=Plan;Source.Radius=Plan->RadiusMeters*100;
     check(Plan->SourceRecipe);Source.Recipe=*Plan->SourceRecipe;
-    Source.Layer=UVoxelVolumeLayer::Default();Source.Behavior=EVoxelStampBehavior::AffectAll;Source.Smoothness=0;Source.BoundsExtension=.05;
+    Source.bCaveInspectionPreview=CaveInspection;
+    Source.Layer=CaveInspection?Native->LayerStack->VolumeLayers[0].Get():UVoxelVolumeLayer::Default();Source.Behavior=CaveInspection?EVoxelStampBehavior::AffectShape:EVoxelStampBehavior::AffectAll;Source.Smoothness=0;Source.BoundsExtension=.05;
     Source.bSectionPreview=Section;Source.SectionWidthMeters=Width;Source.SectionReferenceRadiusMeters=FCLSectionGeometry::ReferenceSurfaceRadius(*Plan);
     Native->LODQuality.EditorQuality=AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
     auto Coordinates=MaterialCoordinates(StampToDisplay(),Section,Source.SectionReferenceRadiusMeters);
@@ -109,7 +152,8 @@ bool FCLNativePreview::UsesNativePresentation()const
 FString FCLNativePreview::Status()const
 {
     if(!Failure.IsEmpty())return Failure;if(!Native)return TEXT("No native producer");
-    return FString::Printf(TEXT("native producer/presenter %u, ready %d, processing %d, tasks %d, inspected vertices %d"),Native->GetUniqueID(),Native->IsVoxelWorldReady(),Native->IsProcessingNewState(),Native->GetNumPendingTasks(),Last.Vertices.Num());
+    TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);
+    return FString::Printf(TEXT("components %d, native producer/presenter %u, ready %d, processing %d, tasks %d, inspected vertices %d"),Components.Num(),Native->GetUniqueID(),Native->IsVoxelWorldReady(),Native->IsProcessingNewState(),Native->GetNumPendingTasks(),Last.Vertices.Num());
 }
 FBox FCLNativePreview::DisplayBounds()const
 {
@@ -129,7 +173,7 @@ bool FCLNativePreview::Poll(bool)
     if(Pending||AwaitingPublication||!Plan||!Native->IsVoxelWorldReady()||Native->IsProcessingNewState())return false;
     TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);uint32 Hash=0;
     for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())Hash=HashCombine(Hash,PointerHash(Proxy.Get()));
-    if(!Hash||Hash==PublishedHash)return false;
+    if((!Hash&&!CaveInspection)||(Hash==PublishedHash&&VisiblePlan==Plan))return false;
     PublishedHash=Hash;VisiblePlan=Plan;return true;
 }
 const FCLNativePreview::FBuffers& FCLNativePreview::Published()const

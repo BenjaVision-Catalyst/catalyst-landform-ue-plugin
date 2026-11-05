@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "status": "Qualified native connected cave inspection in the editor; no new cooked cave gameplay qualification",
+  "baseRevisions": {
+    "component": "4232f644b73202af49c0dcbc56f2c3dd8d0b6721",
+    "workspace": "1b4c073a1f3daa30a4ccce63f3b5da5f7bd42b8a"
+  },
+  "platform": {
+    "engine": "UE5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "architecture": "macOS arm64",
+    "hardware": "M3 Max, 128 GiB",
+    "configuration": "LandformLabEditor Mac Development",
+    "host": "/private/tmp/landform-background/LandformLab"
+  },
+  "ownership": {
+    "native": "VPP generation, separate native volume layer/stack for inspection, native mesh components/publication/LOD, custom MegaMaterial binding; UE unlit translucent material and mesh-component visibility",
+    "specialization": "Select the actual generated cave air within natural rock and final air after authored backfill; network framing and existing viewport interaction",
+    "demonstratedGaps": [
+      "Tiny cutter wires and the globe camera distance floor did not permit readable network inspection.",
+      "VPP supplies geometry/material/layer execution, not Catalyst cave provenance or which network the designer wants framed."
+    ],
+    "nativeAudit": [
+      "UVoxelLayerStack with one unique UVoxelVolumeLayer isolates the diagnostic AVoxelWorld from the terrain in the same preview scene. Native stack change notification is used.",
+      "UVoxelMegaMaterial custom NonNaniteMaterial uses the native PostEditChange publication path. Native generation/LOD/presentation is retained.",
+      "Use native empty-distance sentinel when composing raw cutter air; a large finite sentinel loses small distances in float blending.",
+      "Hiding a VPP actor also disables its source stamp. Only native mesh components are hidden; the source and world are retained."
+    ],
+    "noAlternativeMesher": true,
+    "noCustomStreamingManager": true,
+    "noRecipeSchemaChange": true
+  },
+  "behavior": {
+    "geometry": "Actual generated cave air intersected with natural solid and final air; entrances clipped at surface, backfill respected, unrelated excavations excluded",
+    "navigation": "Enable indicator to frame a network obliquely; left orbit, middle pan, wheel zoom; F/Frame restores globe; click cyan handle to frame a network. Accepted input edits reframe a focused network.",
+    "publication": "Diagnostic input follows the accepted native terrain publication; stale diagnostic hidden during authoring replacement; native camera/LOD updates do not hide the network or start input.",
+    "appearance": "Dim native terrain lighting; shaded cyan cave-air solid through surface; no saved diagnostic material asset",
+    "inspectionNativeVoxelSizeCm": 10,
+    "terrainNativeVoxelSizeCm": 50,
+    "scope": "Existing bounded structural fissure family; no new cave generator families"
+  },
+  "validation": {
+    "checks": 56,
+    "failed": 0,
+    "notRun": 0,
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Caves.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Caves.DimmedNativeDebugAndNavigation": "Success",
+      "Catalyst.Landform.Caves.EligibilityAndVersions": "Success",
+      "Catalyst.Landform.Caves.InspectionVolume": "Success",
+      "Catalyst.Landform.Caves.KnobAndBackground": "Success",
+      "Catalyst.Landform.Caves.NativeFieldsAndPersistence": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii": "Success",
+      "Catalyst.Landform.PlanetBuilder.Navigation": "Success",
+      "Catalyst.Landform.PlanetLayers.CalibratedRange": "Success",
+      "Catalyst.Landform.PlanetLayers.CompositionAndSeeds": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.PlanetLayers.NativePersistenceAndLegacy": "Success",
+      "Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean": "Success",
+      "Catalyst.Landform.PlanetLayers.VariationPublication": "Success",
+      "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": "Success",
+      "Catalyst.Landform.Provinces.DefinitionsAndEvidence": "Success",
+      "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": "Success",
+      "Catalyst.Landform.Provinces.PackagedLibrary": "Success",
+      "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+      "Catalyst.Landform.Regions.StructureAndPalette": "Success",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections": "Success",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.MetricBasinAndFoldContacts": "Success",
+      "Catalyst.Landform.Rock.MetricBedDistribution": "Success",
+      "Catalyst.Landform.Rock.MetricScaleAndCompactHistory": "Success",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+      "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering": "Success",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": "Success",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts": "Success",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": "Success",
+      "Catalyst.Landform.Volumes.NativePreview": "Success",
+      "Catalyst.Landform.Volumes.NativeSectionDomain": "Success",
+      "Catalyst.Landform.Watershed.DebugRenderedNavigation": "Success"
+    },
+    "nativeRendering": {
+      "frames": 90,
+      "p95Ms": 23.117587,
+      "normalSurfaceLuma": 212.354797,
+      "debugSurfaceLuma": 25.697595,
+      "cyanPixels": 4436,
+      "networks": 2,
+      "cutters": 10,
+      "entrances": 2,
+      "nativeVoidVertices": 4605,
+      "nativeZeroSetResidualMeters": 0.368828
+    },
+    "assertions": [
+      "Shared/native inspection fields agree; ordinary surface has no false zero sheet.",
+      "Actual cavity is negative; exterior is excluded; backfill removes highlighted air; unrelated authored excavation is excluded.",
+      "Native mesh vertices have maximum sampled cave-field residual below 0.5 m at this native LOD.",
+      "Native connected cave volume is visibly cyan through dimmed terrain and lighting restores on disable.",
+      "Ninety navigation frames keep the native diagnostic present, start no new stamp/recipe input and copy no mesh.",
+      "A live recipe edit removes surface entrances, reuses both native world owners, publishes both plans and reframes the network.",
+      "Saved user asset cold-loads and roundtrips its own payload; it is not overwritten by the portable fixture."
+    ],
+    "preservation": {
+      "root-protected": {
+        "files": 28,
+        "changed": 0
+      },
+      "plugin-content-protected": {
+        "files": 115,
+        "changed": 0
+      },
+      "review-protected": {
+        "files": 179,
+        "changed": 0
+      }
+    },
+    "sourceSha256": {
+      "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "cde8126fa644415f64594ca4ab782ba4c510a48be71495888fa40c6248aa142f",
+      "Source/CatalystLandform/Private/Scene/CLScene.cpp": "640ef3d3cd471576a669460ead86b2641f9b5e7c148f020161f1df4bcf79e490",
+      "Source/CatalystLandform/Public/CLPlanetStamp.h": "6f1c35b1a33799c7384973b58f3b0f84b3bf51c8e90eb9e95179991a436bb100",
+      "Source/CatalystLandform/Public/Scene/CLScene.h": "1355c84149ee29cbbc80516b23af9dfd43b618c80b729809569df02a30669482",
+      "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "a85cb67407c219cceb860d25be1f105fd73d7e7e3bfe1496ff91391fa57b03da",
+      "Source/CatalystLandformEditor/Private/CLNativePreview.h": "89ac0752a63447fa0b64cba0a4ecbba1e955591f2529cdbe266de667ee96eb78",
+      "Source/CatalystLandformEditor/Private/CLPlanetNavigation.cpp": "65690d0eee662c58ea9fa5cbc6e18dd80724e5ff212299c0a326e2b88e5decad",
+      "Source/CatalystLandformEditor/Private/CLPlanetNavigation.h": "8bc67347ac89e5c055fc9f97f25c22fa14a92ffb9b29eb4de0a9d331b5546bba",
+      "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "38d2c1d3d60fb0d30433f2c0ea8940d0c249c5594eab4cd3704c4854c39e536c",
+      "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "910a4786ccdf523863f945a397e850a735d49307fc82c323ea5f10337511bd38",
+      "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "0910378a26c2ce27ac641f011c48f747b0a72997e16c1d85eafb55ef39c4dfc4",
+      "Source/CatalystLandformTests/Private/CLCaveTests.cpp": "a2bf5ded98c9f0d874a6c7729bdb7c2be0f5fd9d6ec687593abb4f84b26e10a0"
+    }
+  },
+  "limits": [
+    "Editor inspection proof, not a new cooked cave mining/walking/collision/sculpt-save qualification.",
+    "Cave formation remains the first bounded structural fissure family. Karst, lava tubes, larger caverns and host-specific clipping are separate work.",
+    "Native LOD triangulates the cave field; this is not an exact analytic surface mesh.",
+    "Performance is for the frozen bounded recipe/view on the recorded host."
+  ]
+}

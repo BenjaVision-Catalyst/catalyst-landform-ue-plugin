@@ -1,5 +1,6 @@
 #include "CLPlanetPreview.h"
 #include "CLWatershedDebug.h"
+#include "Scene/CLScene.h"
 #include "Misc/ScopeExit.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -287,28 +288,49 @@ public:
             {Line(P.Curve.Points[I-1].OutVal,P.Curve.Points[I].OutVal,C,P.Channel?2:1);}
         }
     }
+    FBox CaveBounds(FGuid Id) const
+    {
+        FBox B(ForceInit);const auto P=NativePreview?NativePreview->PublishedPlan():nullptr;
+        if(P&&P->Caves&&P->Caves->Cutters)for(const auto& O:P->Caves->Cutters->Operations)
+        {const int32 I=int32(&O-P->Caves->Cutters->Operations.GetData());if(P->Caves->Segments[I].Network==Id)B+=O.Bounds;}
+        if(B.IsValid){const double Scale=100000/P->RadiusMeters;return FBox(B.Min*Scale,B.Max*Scale);}return B;
+    }
+    bool FocusCave(FGuid Id={})
+    {
+        const auto P=NativePreview?NativePreview->PublishedPlan():nullptr;if(!P||!P->Caves||!P->Caves->Cutters)return false;
+        if(!Id.IsValid())
+        {
+            double Best=-DBL_MAX;for(const auto& S:P->Caves->Segments){const double Score=FVector::DotProduct(S.A.GetSafeNormal(),GetViewLocation().GetSafeNormal());if(Score>Best){Best=Score;Id=S.Network;}}
+        }
+        const FBox B=CaveBounds(Id);if(!B.IsValid)return false;
+        Navigation.Focus(B);const auto Radial=B.GetCenter().GetSafeNormal();const auto Tangent=FVector::CrossProduct(Radial,FMath::Abs(Radial.Z)<.8?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal();const auto D=(Radial+Tangent*.65).GetSafeNormal();Navigation.Yaw=D.Rotation().Yaw;Navigation.Elevation=FMath::Clamp(D.Rotation().Pitch,-85.,85.);Apply();return true;
+    }
+    FGuid PickCave(FVector2D Normalized)const
+    {
+        const auto P=NativePreview?NativePreview->PublishedPlan():nullptr;if(!P||!P->Caves||!bHasProjection)return {};
+        const FVector2D Pixel=FVector2D(ViewRect.Min)+Normalized*FVector2D(ViewRect.Size());double Best=14*14;FGuid Id;
+        for(const auto& S:P->Caves->Segments)
+        {
+            FVector2D A,B;const double Scale=100000/P->RadiusMeters;
+            if(!Project(S.A*Scale,A)||!Project(S.B*Scale,B))continue;
+            const FVector2D AB=B-A;const double T=FMath::Clamp(FVector2D::DotProduct(Pixel-A,AB)/FMath::Max(.001,AB.SizeSquared()),0.,1.);
+            const double Distance=(Pixel-(A+AB*T)).SizeSquared();if(Distance<Best){Best=Distance;Id=S.Network;}
+        }return Id;
+    }
     void DrawCaves(FPrimitiveDrawInterface* PDI)
     {
         LastCaveSegments=0;if(!bCaveOverlay||!NativePreview)return;
-        const auto Published=NativePreview->PublishedPlan();if(!Published||!Published->Caves||!Published->Caves->Cutters)return;
-        const double Scale=100000/Published->RadiusMeters;
-        for(const auto& O:Published->Caves->Cutters->Operations)
+        const auto P=NativePreview->PublishedPlan();if(!P||!P->Caves)return;
+        // Small native point handles locate networks in the whole-planet view.
+        // The connected void itself is presented by the isolated native VPP layer.
+        TSet<FGuid> Seen;for(const auto& S:P->Caves->Segments)
         {
-            const FVector Centre=O.Source.CenterMeters*Scale;
-            if(FVector::DotProduct(Centre.GetSafeNormal(),GetViewLocation()-Centre)<=0)continue;
-            const FLinearColor Color=Published->Caves->Segments[LastIndex(O,*Published->Caves->Cutters)].Entrance?FLinearColor(1,.65,.1):FLinearColor(.05,.95,1);
-            const FMatrix M=O.Transform.ToMatrixNoScale();
-            // UE's capsule helper circularizes nonuniform scale. Native circle/arc
-            // primitives retain this cutter's ellipsoidal cross section instead.
-            const FVector X=M.GetUnitAxis(EAxis::X)*O.Source.Scale.X,Y=M.GetUnitAxis(EAxis::Y)*O.Source.Scale.Y,Z=M.GetUnitAxis(EAxis::Z)*O.Source.Scale.Z;
-            const FVector Along=M.GetUnitAxis(EAxis::Z)*O.Source.HalfLengthMeters*Scale;
-            const double R=O.Source.RadiusMeters*Scale;
-            for(double Sign:{-1.,1.}){const FVector End=Centre+Along*Sign;DrawCircle(PDI,End,X,Y,Color,R,12,SDPG_Foreground,1.2,0,true);DrawArc(PDI,End,X,Z*Sign,0,180,R,6,Color,SDPG_Foreground);DrawArc(PDI,End,Y,Z*Sign,0,180,R,6,Color,SDPG_Foreground);}
-            for(const FVector Axis:{X,-X,Y,-Y})PDI->DrawLine(Centre-Along+Axis*R,Centre+Along+Axis*R,Color,SDPG_Foreground,1.2,0,true);
-            PDI->DrawLine(Centre-Along,Centre+Along,Color,SDPG_Foreground,2.5,0,true);++LastCaveSegments;
+            if(Seen.Contains(S.Network))continue;Seen.Add(S.Network);
+            const FVector Centre=CaveBounds(S.Network).GetCenter();FVector2D Pixel;if(!Project(Centre,Pixel))continue;
+            if(!Navigation.FocusBounds.IsSet())PDI->DrawPoint(Centre,FLinearColor(.02,.85,1),9,SDPG_Foreground);
+            ++LastCaveSegments;
         }
     }
-    int32 LastIndex(const FCLCompiledVolumes::FOperation& O,const FCLCompiledVolumes& V)const{return int32(&O-V.Operations.GetData());}
     void DrawPlacements(FPrimitiveDrawInterface* PDI)
     {
         if(bInspectRegions&&Plan&&Plan->GeneratedRegions)return;
@@ -427,7 +449,7 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
 }
 SCLPlanetPreview::~SCLPlanetPreview()
 {
-    NativePreview.Reset();if(Client)Client->Viewport=nullptr;
+    CavePreview.Reset();NativePreview.Reset();if(Client)Client->Viewport=nullptr;
 #if WITH_DEV_AUTOMATION_TESTS
     if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());
 #endif
@@ -466,7 +488,7 @@ void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->Navigation.Orbit
 #endif
 void SCLPlanetPreview::Cancel()
 {
-    NativePreview.Reset();PendingDebugPlan.Reset();DisplayedDebugPlan.Reset();PendingWatershedDebug.Reset();
+    CavePreview.Reset();CaveInput.Reset();NativePreview.Reset();PendingDebugPlan.Reset();DisplayedDebugPlan.Reset();PendingWatershedDebug.Reset();
     if(Client){Client->NativePreview=nullptr;Client->WatershedDebug.Reset();Client->DebugPlan.Reset();}
     if(DebugWater)DebugWater->SetVisibility(false);
 }
@@ -487,7 +509,7 @@ void SCLPlanetPreview::SelectGeneratedRegion(FGuid Id)
     Client->SelectedRegion=G&&G->Cells.ContainsByPredicate([&](const auto& C){return C.Id==Id;})?Id:FGuid();Client->Invalidate();OnRegionSelected.ExecuteIfBound(Client->SelectedRegion);
 }
 FGuid SCLPlanetPreview::GeneratedSelection() const{return Client->SelectedRegion;}
-void SCLPlanetPreview::Frame(){if(Client){Client->Navigation.Zoom=1;Client->Navigation.Pivot=FVector::ZeroVector;Client->Navigation.Pan=FVector2D::ZeroVector;Client->Apply();}}
+void SCLPlanetPreview::Frame(){if(Client){Client->Navigation.ResetFrame();Client->Apply();}}
 void SCLPlanetPreview::Dolly(double Steps){Client->Dolly(Steps);}
 void SCLPlanetPreview::SetGuides(const FCLRadialGuideSet& Guides,bool Visible){Client->Guides=Guides;Client->bGuides=Visible;UpdateOcean();Client->UpdateIndicators();Client->Invalidate();}
 void SCLPlanetPreview::SetOceanVisible(bool Visible){bOceanVisible=Visible;UpdateOcean();}
@@ -506,7 +528,7 @@ const TArray<TArray<FVector2D>>& SCLPlanetPreview::Rings()const{return Client->R
 void SCLPlanetPreview::Pump()
 {
     if(NativePreview&&NativePreview->Poll(true)){++AppliedBuilds;bLastPublishedDraft=NativePreview->IsDraft();Client->Invalidate();}
-    UpdateWatershedDebug();
+    UpdateWatershedDebug();UpdateCaveVolume();
 }
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
@@ -546,7 +568,8 @@ FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPoin
     const FKey Key=E.GetEffectingButton();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
     if(DragAxis!=EAxisList::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;bPressCanPick=CanPick();
-    if(bPressCanPick&&Key==EKeys::LeftMouseButton&&bWalkPicking)
+    if(bPressCanPick&&Key==EKeys::LeftMouseButton&&Client->bCaveOverlay)ClickCave=Client->PickCave(PointerPosition(G,E));
+    else if(bPressCanPick&&Key==EKeys::LeftMouseButton&&bWalkPicking)
     {
         ClickWalkLocation=FVector::ZeroVector;Client->CursorDirection(PointerPosition(G,E),ClickWalkLocation);ClickWalkPoint=Client->LastPickPoint;
     }
@@ -610,7 +633,7 @@ FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E
         const bool Resize=Client->Mode==ECLGlobePlacementMode::Resize;
         CancelPlacementDrag();if(Changed)OnPlacementCommitted.ExecuteIfBound(Target,Resize);
     }
-    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag&&bPressCanPick&&CanPick()){if(bWalkPicking){SetWalkLocation(ClickWalkLocation);WalkSurfacePoint=ClickWalkPoint;}else if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
+    else if(Button==EKeys::LeftMouseButton&&!bOrbitDrag&&bPressCanPick&&CanPick()){if(Client->bCaveOverlay){if(ClickCave.IsValid())Client->FocusCave(ClickCave);}else if(bWalkPicking){SetWalkLocation(ClickWalkLocation);WalkSurfacePoint=ClickWalkPoint;}else if(IsInspectingRegions())SelectGeneratedRegion(ClickGeneratedRegion);else Select(ClickSelection);}
     Button=FKey();return FReply::Handled().ReleaseMouseCapture();
 }
 void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();CancelPlacementDrag();}
@@ -618,6 +641,7 @@ FReply SCLPlanetPreview::OnPreviewKeyDown(const FGeometry&,const FKeyEvent& E)
 {
     if(E.GetKey()==EKeys::Escape){const bool WasDragging=DragAxis!=EAxisList::None;CancelPlacementDrag();if(!WasDragging){if(IsInspectingRegions())SelectGeneratedRegion(FGuid());else Select({});}Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     if(E.IsControlDown()||E.IsCommandDown()||E.IsAltDown())return FReply::Unhandled();
+    if(E.GetKey()==EKeys::F){Frame();return FReply::Handled();}
     if(E.GetKey()==EKeys::SpaceBar)SetPlacementMode(Client->Mode==ECLGlobePlacementMode::Move?ECLGlobePlacementMode::Rotate:Client->Mode==ECLGlobePlacementMode::Rotate?ECLGlobePlacementMode::Resize:ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::W)SetPlacementMode(ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::E)SetPlacementMode(ECLGlobePlacementMode::Rotate);else if(E.GetKey()==EKeys::R)SetPlacementMode(ECLGlobePlacementMode::Resize);else return FReply::Unhandled();return FReply::Handled();
 }
 FReply SCLPlanetPreview::OnMouseWheel(const FGeometry&,const FPointerEvent& E){Client->Dolly(E.GetWheelDelta());return FReply::Handled();}
@@ -1455,8 +1479,30 @@ void SCLPlanetPreview::UpdateWatershedDebug()
     }
     if(DebugWater)DebugWater->SetVisibility(Client->CanDrawWatershed());
 }
+void SCLPlanetPreview::UpdateCaveVolume()
+{
+    const auto P=NativePreview?NativePreview->PublishedPlan():nullptr;
+    const bool Show=Client->bCaveOverlay&&P&&P==Client->Plan&&P->Caves&&P->Caves->Cutters;
+    if(!Show)
+    {
+        if(CavePreview)CavePreview->SetVisible(false);
+        if(Client->bCaveOverlay&&P&&P==Client->Plan&&Client->Navigation.FocusBounds.IsSet())Frame();
+        return;
+    }
+    if(!CavePreview)CavePreview=MakeUnique<FCLNativePreview>(true);
+    if(CaveInput!=P)
+    {
+        if(Client->Navigation.FocusBounds.IsSet())bPendingCaveFocus=true;
+        CavePreview->SetVisible(false);FString Error;
+        if(CavePreview->Start(*Scene->GetWorld(),P,false,500,Error))CaveInput=P;
+        else UE_LOG(LogTemp,Error,TEXT("Native cave inspection: %s"),*Error);
+    }
+    const bool Published=CavePreview->Poll(true);const bool Ready=CavePreview->PublishedPlan()==P;
+    CavePreview->SetVisible(Ready);if(Published)Client->Invalidate();
+    if(Ready&&bPendingCaveFocus){bPendingCaveFocus=false;Client->FocusCave();}
+}
 void SCLPlanetPreview::SetCaveOverlay(bool Enabled)
-{Client->bCaveOverlay=Enabled;static_cast<FCLGlobeScene*>(Scene.Get())->SetCaveInspection(Enabled);Scene->UpdateCaptureContents();Client->Invalidate();}
+{bPendingCaveFocus=Enabled&&!Client->bCaveOverlay;Client->bCaveOverlay=Enabled;UpdateCaveVolume();static_cast<FCLGlobeScene*>(Scene.Get())->SetCaveInspection(Enabled);Scene->UpdateCaptureContents();Client->Invalidate();}
 bool SCLPlanetPreview::IsCaveOverlayEnabled()const{return Client->bCaveOverlay;}
 void SCLPlanetPreview::SetWatershedOverlay(bool Enabled)
 {Client->bWatershedOverlay=Enabled;UpdateWatershedDebug();UpdateOcean();Client->Invalidate();}
@@ -1564,12 +1610,12 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString&)
     FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/Caves.json")));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}const auto R=A->Recipe;
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native fissure cave inspection"))).ClientSize(FVector2D(1000,800))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
-    struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0;double Start=FPlatformTime::Seconds(),Last=0,OffLuma=0,DimLuma=0;TArray<double> Times;TArray<FColor> Off;uint32 World=0,Starts=0;uint64 Copies=0;int32 Cyan=0;};
+    struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0;double Start=FPlatformTime::Seconds(),Last=0,OffLuma=0,DimLuma=0,Residual=0;TArray<double> Times;TArray<FColor> Off;uint32 World=0,InspectionWorld=0,Starts=0;uint64 Copies=0;int32 Cyan=0;};
     const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(R,E);if(!Prepared){AddError(E);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}State->Evaluation.Request(R,Prepared);
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State]
     {
         auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
-        if(Now-S.Start>180){AddError(W->NativePreviewStatus());return Close();}
+        if(Now-S.Start>180){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
         const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/caves");IFileManager::Get().MakeDirectory(*Dir,true);
         auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
         {
@@ -1583,23 +1629,51 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString&)
         }
         if(S.Phase==1)
         {
-            if(W->IsUpdating())return false;TestTrue(TEXT("VPP is the sole cave terrain presenter"),W->NativePreview->UsesNativePresentation()&&!W->Mesh);
-            const FVector D=S.Plan->Caves->Segments[0].A.GetSafeNormal();W->Client->Navigation.Yaw=FMath::RadiansToDegrees(FMath::Atan2(D.Y,D.X));W->Client->Navigation.Elevation=FMath::Clamp(FMath::RadiansToDegrees(FMath::Asin(D.Z)),-85.,85.);W->Client->Navigation.Zoom=.8;W->Client->Apply();
-            Capture(TEXT("surface"),S.Off);W->SetCaveOverlay(true);TArray<FColor> Dim;Capture(TEXT("debug"),Dim);int32 Samples=0;
-            for(int32 I=0;I<FMath::Min(S.Off.Num(),Dim.Num());++I){const auto A=S.Off[I],B=Dim[I];if(A.R>110&&A.G>100&&A.B>70){S.OffLuma+=(A.R+A.G+A.B)/3.;S.DimLuma+=(B.R+B.G+B.B)/3.;++Samples;}S.Cyan+=B.G>115&&B.B>115&&B.R<B.G*.65;}
-            if(Samples){S.OffLuma/=Samples;S.DimLuma/=Samples;}TestTrue(TEXT("Cave inspection visibly dims the existing native planet"),Samples>1000&&S.DimLuma<S.OffLuma*.7);TestTrue(TEXT("Underground cave geometry is visibly highlighted through the surface"),S.Cyan>10&&W->Client->LastCaveSegments>0);
-            W->SetCaveOverlay(false);TArray<FColor> Restored;Capture(TEXT("restored"),Restored);double RestoreError=0;int32 RestoreSamples=0;for(int32 I=0;I<FMath::Min(S.Off.Num(),Restored.Num());++I)if(S.Off[I].R>110&&S.Off[I].G>100&&S.Off[I].B>70){RestoreError+=FMath::Abs(int(S.Off[I].R)-int(Restored[I].R))+FMath::Abs(int(S.Off[I].G)-int(Restored[I].G))+FMath::Abs(int(S.Off[I].B)-int(Restored[I].B));++RestoreSamples;}TestTrue(TEXT("Disabling cave debug restores the rendered native surface"),RestoreSamples>1000&&RestoreError/(3*RestoreSamples)<5);W->SetCaveOverlay(true);
-            S.World=W->NativePreview->WorldIdentity();S.Starts=S.Evaluation.Started;S.Copies=W->NativePreview->Metrics.MeshCopies;S.Last=Now;S.Phase=2;return false;
+            if(W->IsUpdating())return false;TestTrue(TEXT("VPP presents the planet"),W->NativePreview->UsesNativePresentation()&&!W->Mesh);
+            W->SetCaveOverlay(true);S.Phase=2;return false;
         }
         if(S.Phase==2)
         {
-            S.Times.Add((Now-S.Last)*1000);S.Last=Now;W->OrbitForTesting(FVector2D(.12,.03));W->Dolly(S.Frames%2?.008:-.008);
+            if(!W->CavePreview||W->CavePreview->IsUpdating()||W->bPendingCaveFocus)return false;
+            if(!W->CavePreview->UsesNativePresentation())return false;
+            TestTrue(TEXT("Native isolated layer presents the connected cave void"),W->CavePreview->UsesNativePresentation());
+            TestTrue(TEXT("Inspection is paired with terrain publication"),W->CavePreview->PublishedPlan()==W->NativePreview->PublishedPlan());
+            TestTrue(TEXT("Indicator automatically frames a real network"),W->Client->Navigation.FocusBounds.IsSet());
+            // Capture identical framing, allowing a native material shader to finish.
+            if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling())return false;
+            W->SetCaveOverlay(false);Capture(TEXT("surface"),S.Off);W->SetCaveOverlay(true);TArray<FColor> Dim;Capture(TEXT("debug"),Dim);int32 Samples=0;
+            for(int32 I=0;I<FMath::Min(S.Off.Num(),Dim.Num());++I){const auto A=S.Off[I],B=Dim[I];if(A.R>110&&A.G>100&&A.B>70&&!(B.G>115&&B.B>115&&B.R<B.G*.65)){S.OffLuma+=(A.R+A.G+A.B)/3.;S.DimLuma+=(B.R+B.G+B.B)/3.;++Samples;}S.Cyan+=B.G>115&&B.B>115&&B.R<B.G*.65;}
+            if(Samples){S.OffLuma/=Samples;S.DimLuma/=Samples;}TestTrue(TEXT("Inspection dims the native planet"),Samples>1000&&S.DimLuma<S.OffLuma*.7);TestTrue(TEXT("Connected cave volume is readable in close-up"),S.Cyan>600);
+            const auto& Mesh=W->CavePreview->Published();TestTrue(TEXT("VPP generated actual volume triangles"),Mesh.Vertices.Num()>100&&Mesh.Triangles.Num()>300);
+            // Read native vertices for verification only; no copied mesh is presented.
+            TArray<FVector> Body;for(const auto& P:Mesh.SourcePoints)Body.Add(P*.01);TArray<FCLSceneShapeSample> Fields;FString Error;FCLScene::FromPlanet(S.Plan,Error)->SampleCaveVoid({Body},Fields,Error);S.Residual=0;for(const auto& F:Fields)S.Residual=FMath::Max(S.Residual,FMath::Abs(F.FieldMeters));TestTrue(TEXT("Native inspection vertices follow the actual cave zero set"),S.Residual<.5);
+            W->SetCaveOverlay(false);TArray<FColor> Restored;Capture(TEXT("restored"),Restored);double RestoreError=0;for(int32 I=0;I<FMath::Min(S.Off.Num(),Restored.Num());++I)RestoreError+=FMath::Abs(int(S.Off[I].R)-int(Restored[I].R))+FMath::Abs(int(S.Off[I].G)-int(Restored[I].G))+FMath::Abs(int(S.Off[I].B)-int(Restored[I].B));TestTrue(TEXT("Disabling inspection restores native surface"),RestoreError/(3*Restored.Num())<5);W->SetCaveOverlay(true);
+            S.World=W->NativePreview->WorldIdentity();S.InspectionWorld=W->CavePreview->WorldIdentity();S.Starts=S.Evaluation.Started;S.Copies=W->CavePreview->Metrics.MeshCopies;S.Last=Now;S.Phase=3;return false;
+        }
+        if(S.Phase==3)
+        {
+            S.Times.Add((Now-S.Last)*1000);S.Last=Now;W->OrbitForTesting(FVector2D(.3,.08));W->Dolly(S.Frames%2?.008:-.008);
             if(auto* V=W->Client->Viewport){V->Invalidate();V->Draw(false);}
-            TestTrue(TEXT("Cave indicators remain visible during native navigation/LOD"),W->Client->LastCaveSegments>0);if(++S.Frames<90)return false;
+            TestTrue(TEXT("Cave volume remains native during navigation/LOD"),W->CavePreview->UsesNativePresentation());TestFalse(TEXT("Camera motion has no authoring progress"),W->IsApplyingInput());if(++S.Frames<90)return false;
             S.Times.RemoveAt(0);S.Times.Sort();const double P95=S.Times[FMath::Min(S.Times.Num()-1,int32(S.Times.Num()*.95))];TestTrue(TEXT("Bounded cave navigation p95 stays below 50 ms"),P95<50);
-            TestEqual(TEXT("Debug navigation keeps the VPP world"),W->NativePreview->WorldIdentity(),S.World);TestEqual(TEXT("Debug navigation does not copy terrain meshes"),W->NativePreview->Metrics.MeshCopies,S.Copies);TestEqual(TEXT("Debug navigation schedules no cave generation"),S.Evaluation.Started,S.Starts);
-            TArray<FColor> Pixels;Capture(TEXT("navigation"),Pixels);W->SetCaveOverlay(false);Capture(TEXT("off-after-navigation"),Pixels);TestEqual(TEXT("Turning off debug removes all cave indicators"),W->Client->LastCaveSegments,0);
-            const FString Metrics=FString::Printf(TEXT("{\"frames\":90,\"p95Ms\":%.6f,\"normalSurfaceLuma\":%.6f,\"debugSurfaceLuma\":%.6f,\"cyanPixels\":%d,\"networks\":%d,\"cutters\":%d,\"entrances\":%d}\n"),P95,S.OffLuma,S.DimLuma,S.Cyan,S.Plan->Caves->Networks,S.Plan->Caves->Segments.Num(),S.Plan->Caves->Entrances);FFileHelper::SaveStringToFile(Metrics,*(Dir/TEXT("native-review.json")));AddInfo(Metrics);return Close();
+            TestEqual(TEXT("Navigation keeps the terrain VPP world"),W->NativePreview->WorldIdentity(),S.World);TestEqual(TEXT("Navigation does not copy inspection meshes"),W->CavePreview->Metrics.MeshCopies,S.Copies);TestEqual(TEXT("Navigation schedules no cave generation"),S.Evaluation.Started,S.Starts);TestEqual(TEXT("Navigation schedules no inspection input"),W->CavePreview->Metrics.Starts,1);
+            TArray<FColor> Pixels;Capture(TEXT("navigation"),Pixels);W->Frame();Capture(TEXT("overview"),Pixels);
+            TestFalse(TEXT("F/Frame returns to whole planet"),W->Client->Navigation.FocusBounds.IsSet());
+            // Project the visible handle, exercise the same picker used by a click.
+            const auto& Segment=S.Plan->Caves->Segments[0];W->Client->Navigation.Yaw=Segment.A.Rotation().Yaw;W->Client->Navigation.Elevation=Segment.A.Rotation().Pitch;W->Client->Apply();Capture(TEXT("overview-pick"),Pixels);
+            FVector2D Pixel;const FVector Mid=(Segment.A+Segment.B)*(.5*100000/S.Plan->RadiusMeters);if(TestTrue(TEXT("Network projects in whole-planet view"),W->Client->Project(Mid,Pixel))){const auto N=(Pixel-FVector2D(W->Client->ViewRect.Min))/FVector2D(W->Client->ViewRect.Size());TestTrue(TEXT("Click locates actual network"),W->Client->PickCave(N)==Segment.Network);TestTrue(TEXT("Click frames network bounds"),W->Client->FocusCave(Segment.Network));}
+            W->SetCaveOverlay(false);Capture(TEXT("off-after-navigation"),Pixels);TestEqual(TEXT("Off removes overview handles"),W->Client->LastCaveSegments,0);
+            const FString Metrics=FString::Printf(TEXT("{\"frames\":90,\"p95Ms\":%.6f,\"normalSurfaceLuma\":%.6f,\"debugSurfaceLuma\":%.6f,\"cyanPixels\":%d,\"networks\":%d,\"cutters\":%d,\"entrances\":%d,\"nativeVoidVertices\":%d,\"nativeZeroSetResidualMeters\":%.6f}\n"),P95,S.OffLuma,S.DimLuma,S.Cyan,S.Plan->Caves->Networks,S.Plan->Caves->Segments.Num(),S.Plan->Caves->Entrances,W->CavePreview->Published().Vertices.Num(),S.Residual);FFileHelper::SaveStringToFile(Metrics,*(Dir/TEXT("native-review.json")));AddInfo(Metrics);
+            auto Changed=*S.Plan->SourceRecipe;Changed.Caves.bSurfaceEntrances=false;FString Error;const auto Prepared=S.Evaluation.Prepare(Changed,Error);if(!Prepared){AddError(Error);return Close();}S.Evaluation.Request(Changed,Prepared);W->SetCaveOverlay(true);S.Phase=4;return false;
+        }
+        if(S.Phase==4)
+        {
+            if(auto Done=S.Evaluation.Pump()){if(!Done->Plan){AddError(Done->Error);return Close();}S.Plan=Done->Plan;W->Rebuild(S.Plan);S.Phase=5;}return false;
+        }
+        if(S.Phase==5)
+        {
+            if(W->NativePreview->IsUpdating()||W->CavePreview->IsUpdating()||W->CavePreview->PublishedPlan()!=S.Plan||W->bPendingCaveFocus)return false;
+            TestTrue(TEXT("Edited cave recipe publishes to both native roles"),W->NativePreview->PublishedPlan()==S.Plan&&W->CavePreview->UsesNativePresentation());TestEqual(TEXT("Input edit retains native terrain owner"),W->NativePreview->WorldIdentity(),S.World);TestEqual(TEXT("Input edit retains native inspection owner"),W->CavePreview->WorldIdentity(),S.InspectionWorld);TestEqual(TEXT("Inspection receives exactly one input per accepted plan"),W->CavePreview->Metrics.Starts,uint64(2));TestEqual(TEXT("Edited recipe removes entrances"),S.Plan->Caves->Entrances,0);TestTrue(TEXT("Edited network is reframed"),W->Client->Navigation.FocusBounds.IsSet());TArray<FColor> Pixels;Capture(TEXT("edited-network"),Pixels);return Close();
         }
         return Close();
     }));return true;

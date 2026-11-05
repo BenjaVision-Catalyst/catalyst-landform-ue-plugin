@@ -28,6 +28,8 @@ public:
     /** No Euclidean-distance/Lipschitz bound is claimed by the radial provider. */
     bool HasConservativeStepBound() const { return false; }
     bool SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSample>& Out, FString& Error) const;
+    /** Negative inside generated cave air within the original solid, after authored backfill. */
+    bool SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error)const;
     bool SampleGeology(const FCLSceneQuery& Query,TArray<FCLRockSample>& Out,FString& Error)const;
     bool SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurfaceSample>& Out, FString& Error) const;
 

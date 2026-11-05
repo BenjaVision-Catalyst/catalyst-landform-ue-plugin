@@ -60,6 +60,28 @@ bool FCLCaveFieldTest::RunTest(const FString&)
     TArray<FCLSceneSurfaceSample> Backfill;FS->SampleSurfaces({MakeArrayView(Points.GetData(),1)},Backfill,E);TestTrue(TEXT("Explicit backfill material composes over the natural cave void"),Backfill[0].Weights.ContainsByPredicate([](const auto& W){return W.Id==TEXT("Soil")&&W.Weight>.99;}));
     AddInfo(FString::Printf(TEXT("%d networks, %d cutters; %d native bulk/sparse points, max residual %.9g cm"),P->Caves->Networks,P->Caves->Segments.Num(),Count,Worst));return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveInspectionFieldTest,"Catalyst.Landform.Caves.InspectionVolume",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLCaveInspectionFieldTest::RunTest(const FString&)
+{
+    FString E;const auto R=CaveRecipe(E);const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves||!P->Caves->Cutters){AddError(E);return false;}
+    const auto S=FCLScene::FromPlanet(P,E);const auto& Segment=P->Caves->Segments[0];const FVector Centre=(Segment.A+Segment.B)*.5;
+    TArray<FVector> Points={Centre};
+    // Include an unrelated natural surface exactly on its zero set. Negating
+    // the final solid alone would create a false sheet over the entire globe.
+    const FVector D=-Centre.GetSafeNormal();Points.Add(D*(P->RadiusMeters+P->SampleHeightMeters(D)));Points.Add(Centre.GetSafeNormal()*(P->RadiusMeters+P->SampleHeightMeters(Centre)+20));
+    TArray<FCLSceneShapeSample> Void;TestTrue(TEXT("Cave void samples"),S->SampleCaveVoid({Points},Void,E));
+    TestTrue(TEXT("Generated underground air is inside inspection volume"),Void[0].FieldMeters<0);
+    TestTrue(TEXT("No diagnostic sheet over unrelated terrain"),Void[1].FieldMeters>0);
+    TestTrue(TEXT("Exterior entrance cutter is clipped by the real surface"),Void[2].FieldMeters>0);
+    FCLPlanetStamp Stamp;Stamp.bUseRecipe=true;Stamp.Recipe=R;Stamp.CompiledRecipe=P;Stamp.Radius=R.RadiusMeters*100;Stamp.bApplyOnVoid=true;Stamp.bCaveInspectionPreview=true;
+    const auto Native=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr,FVoxelStampRef::New(Stamp),nullptr));if(!TestTrue(TEXT("Inspection uses actual native stamp"),Native&&Native->Scene))return false;
+    FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.CaveInspection"));const auto Table=FVoxelSurfaceTypeTable::Get();FVoxelQuery Q(0,FVoxelLayers::Empty(),*Table,Dependencies);
+    TVoxelArray<float> Fields;Fields.Init(FVoxelUtilities::NaNf(),Points.Num());TVoxelArray<FVoxelSurfaceTypeBlend> Materials;Materials.SetNum(Points.Num());FVoxelDoubleVectorBuffer XYZ;XYZ.Allocate(Points.Num());for(int32 I=0;I<Points.Num();++I)XYZ.Set(I,Points[I]*100);
+    Native->Apply(FVoxelVolumeSparseQuery::Create(Q,Fields,Materials,FVoxelMetadataMap(),XYZ,true,{}),FVoxelVolumeTransform());for(int32 I=0;I<Points.Num();++I)TestEqual(TEXT("Native inspection field equals shared scene"),Fields[I],float(Void[I].FieldMeters*100));
+    auto Filled=R;Filled.Volumes.bEnabled=true;FCLSolidOperation O;O.Id=FGuid(1,2,3,4);O.Name=TEXT("Inspection backfill");O.CenterMeters=Centre;O.RadiusMeters=5;Filled.Volumes.Operations={O};const auto FP=FCLPlanetCompiler::Compile(Filled,E);if(!FP){AddError(E);return false;}FCLScene::FromPlanet(FP,E)->SampleCaveVoid({Points},Void,E);TestTrue(TEXT("Backfill removes the filled cave from inspection"),Void[0].FieldMeters>0);
+    O.Composition=ECLSolidComposition::Subtract;O.CenterMeters=Points[1]-D*2;Filled.Volumes.Operations={O};const auto EP=FCLPlanetCompiler::Compile(Filled,E);if(!EP){AddError(E);return false;}FCLScene::FromPlanet(EP,E)->SampleCaveVoid({Points},Void,E);TestTrue(TEXT("Unrelated authored excavation is not mislabelled generated cave"),Void[1].FieldMeters>0);
+    return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveProgressionTest,"Catalyst.Landform.Caves.KnobAndBackground",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLCaveProgressionTest::RunTest(const FString&)
 {

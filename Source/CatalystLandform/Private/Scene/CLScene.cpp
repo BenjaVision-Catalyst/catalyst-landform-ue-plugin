@@ -1,4 +1,5 @@
 #include "Scene/CLScene.h"
+#include "VoxelMinimal.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLSphericalPatches.h"
 
@@ -84,6 +85,30 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
         {
             if(RadialPlan->Volumes)RadialPlan->Volumes->ComposeBatch(Positions,Fields);
             for(int32 I=0;I<Count;++I)if(Out[Start+I].State==ECLSceneSampleState::Known)Out[Start+I].FieldMeters=Fields[I];
+        }
+    }
+    return true;
+}
+
+bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error)const
+{
+    Out.Reset();if(!ValidateQuery(Query,Error))return false;Out.SetNum(Query.PositionsMeters.Num());
+    for(int32 Start=0;Start<Out.Num();Start+=SampleBatchSize)
+    {
+        const int32 Count=FMath::Min(SampleBatchSize,Out.Num()-Start);TArray<FVector> Positions;
+        for(int32 I=0;I<Count;++I)Positions.Add(IsFinitePosition(Query.PositionsMeters[Start+I])?Query.PositionsMeters[Start+I]:FVector::ZeroVector);
+        TArray<double> H,Natural;RadialPlan->SampleHeightsMeters(Positions,H);RadialPlan->SampleRadialFields(Positions,H,Natural);
+        TArray<double> Air;Air.Init(-1.,Count);auto Cut=Natural;
+        if(RadialPlan->Caves&&RadialPlan->Caves->Cutters){Air.Init(FVoxelUtilities::NaNf(),Count);RadialPlan->Caves->Cutters->ComposeBatch(Positions,Air);RadialPlan->Caves->Cutters->ComposeBatch(Positions,Cut);}
+        auto Final=Cut;if(RadialPlan->Volumes)RadialPlan->Volumes->ComposeBatch(Positions,Final);
+        for(int32 I=0;I<Count;++I)
+        {
+            auto& S=Out[Start+I];if(!IsFinitePosition(Query.PositionsMeters[Start+I]))continue;
+            S.State=ECLSceneSampleState::Known;
+            // Intersection of original solid, generated cave air and final air.
+            // This closes entrance cutters at the real surface, respects backfill,
+            // and excludes unrelated authored excavations outside the cave network.
+            S.FieldMeters=FMath::Max3(Natural[I],-Air[I],-Final[I]);
         }
     }
     return true;

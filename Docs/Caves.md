@@ -18,14 +18,19 @@ switches cave inspection on independently of the eye. No additional tab, preview
 checkbox, selector or settings panel is introduced. **Landforms → Include** remains
 the sole default choice of available regional Landforms.
 
-Cave inspection dims the existing native preview lighting and shows cyan cave
-outlines/axes through the surface; entrance cutters are amber. The back hemisphere
-is culled so front-side networks remain readable. Zoom in to inspect physical
-apertures and short branches; the highlighted centreline has a fixed screen-pixel
-width so a small fissure remains discoverable at globe scale. Turning inspection
-off restores normal lighting. These display preferences never alter the recipe,
-regenerate terrain, extract a terrain mesh or schedule cave work during navigation.
+Cave inspection dims the existing native preview lighting and presents the actual
+connected cave void in shaded cyan through the surface. Enabling it frames a
+network automatically. Left drag orbits, middle drag pans and the wheel zooms
+around that network. **F** or the existing **Frame** control returns to the whole
+planet; click a cyan network handle to inspect another. Turning inspection off
+restores normal lighting. These display preferences never alter the saved recipe.
 The debug view is currently a globe diagnostic.
+
+The volume is the intersection of generated cave air, the original rock and the
+final air after authored earthworks. Entrance cutters stop at the actual surface,
+backfill removes filled portions, and unrelated excavations are not highlighted.
+This replaces the initial tiny capsule outlines/axes, which did not make the
+connected passages readable or permit useful close-up inspection.
 
 ## Native ownership and feature audit
 
@@ -37,13 +42,23 @@ planetary placement policy. This first straight-segment family lowers into the
 existing `FCLCompiledVolumes` path. That path already uses VPP's sphere kernel,
 subtraction blend and conservative AABB index. Its previously qualified capsule
 coordinate specialization is reused; no spline-distance implementation, voxel
-mesher, separate presenter, scheduler or streaming manager is added.
+mesher, alternative presentation platform, scheduler or streaming manager is added.
 
-Native UE lighting provides dimming. UE's `DrawWireCapsule` circularizes nonuniform
-cross sections and draws some caps at world depth, which does not represent these
-elliptical underground cutters faithfully. Native circle/arc and foreground line
-primitives instead use the actual cutter transforms and dimensions. They are
-read-only diagnostics derived from the same native cutter list.
+Native UE lighting provides dimming. VPP's native volume layers and layer stack
+isolate an additional diagnostic `AVoxelWorld` from the terrain in the same preview
+scene. It presents the same accepted cave field using VPP's meshing, component
+publication and LOD, with collision disabled. A native custom MegaMaterial uses
+UE translucency, disabled depth testing and normal-based emissive shading to show
+the solid cave-air volume through the dim planet. No diagnostic UAsset is saved.
+
+The demonstrated gap is an application inspection view: VPP supplies field
+execution, isolated layers, native mesh presentation and custom material binding;
+it does not know which generated air belongs to Catalyst's cave recipe or which
+network the designer wants framed. Catalyst supplies that field selection,
+publication pairing and camera focus. The existing terrain owner remains intact.
+The inspection owner is retained while enabled/disabled and receives input only
+when the accepted terrain plan changes. Camera motion starts no recipe or stamp
+input, and extracts no mesh. Its VPP LOD updates remain native.
 
 The structural prior follows the distinction in [NPS open and closed faults](https://home.nps.gov/grba/learn/nature/geologic-faults-and-earth-movement.htm)
 and [USGS cave fractures](https://www.usgs.gov/media/images/cave-fractures): structural
@@ -111,7 +126,8 @@ positions. Height-only fallback refuses a cave volume scene.
 The existing `FCLRecipeEvaluation` worker owns generation, measured candidate
 progress, cancellation, latest-result publication and shutdown. No second queue or
 worker is added. Native VPP publication owns visible terrain; debug always reads
-that published plan, retaining the preceding pair during pending authoring or LOD.
+that published plan. A stale diagnostic is hidden while an authoring replacement
+publishes; ordinary native camera/LOD updates retain the diagnostic.
 
 The recipe stores the parameters and host declarations, not a camera-derived cave
 mesh. Reload recreates deterministic native cuts. [The native qualification](../conformance/Caves/qualification-mac-arm64.json)
@@ -127,3 +143,21 @@ The next geological step is selective host/formation support and one eligible ca
 family at a time. Karst needs soluble formations and an explicit water-flow/level
 approximation; lava tubes need suitable flow history and geometry. A broad province
 label cannot stand in for those inputs.
+
+
+## Connected inspection qualification — 5 November 2026
+
+The [native editor qualification](../conformance/CaveInspection/qualification-mac-arm64.json)
+passes 56 checks, including cave fields, clipping/backfill, native rendered volume,
+live input replacement, navigation and affected geology/volume/editor regressions.
+The frozen 65 recipe has two networks, ten cutters and two entrances. The recorded
+native view contains 4,605 inspection vertices; the maximum sampled cave-field
+residual is 0.369 m at this native LOD. The 90-frame close-up navigation p95 is
+23.12 ms; movement starts no new stamp/recipe input and copies no mesh.
+
+![Native cave-air volume through the dimmed surface](../conformance/CaveInspection/debug.png)
+
+The user's saved review asset, including its own knob/settings changes, is retained.
+This qualification uses the portable frozen recipe for repeatability and separately
+roundtrips the saved native asset's own payload. It adds no cooked cave gameplay,
+mining, collision or sculpt-save claim.

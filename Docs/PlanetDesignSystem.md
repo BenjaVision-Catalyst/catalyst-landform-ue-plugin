@@ -1958,3 +1958,17 @@ and draws the actual native cutter geometry through the surface without replacin
 the terrain presenter. Debug follows native publication and survives navigation.
 The [qualification](../conformance/Caves/qualification-mac-arm64.json) separates
 field/recipe/editor evidence from the remaining cooked gameplay qualification.
+
+
+## Connected cave inspection — 5 November 2026
+
+The initial cutter-wire diagnostic was insufficient for reading a cave network.
+The [connected cave inspection](Caves.md#connected-inspection-qualification--5-november-2026)
+now presents the actual cave-air volume through native VPP's own mesh components,
+in a unique native volume layer/stack with a custom native MegaMaterial. Surface
+clipping and authored backfill use the shared scene field; no alternative mesher
+or streaming manager is introduced. Enabling the existing indicator frames a
+network, ordinary orbit/pan/zoom inspects it, and F/Frame returns to the globe for
+clicking another network. Both native preview owners survive accepted cave edits.
+The 56-check native editor qualification retains the existing fissure-family scope
+and leaves cooked cave gameplay qualification explicit.

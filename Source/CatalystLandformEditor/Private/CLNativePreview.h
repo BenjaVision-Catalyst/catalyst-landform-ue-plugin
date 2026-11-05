@@ -5,7 +5,7 @@
 #include "VoxelStampTransform.h"
 class UVoxelStampComponent;
 struct FCLCompiledPlanetRecipe;
-/** One persistent native VPP producer and presenter per Designer viewport.
+/** One persistent native VPP producer/presenter for each terrain or inspection role.
  * Pending recipe input coalesces; generation, materials, collision and LOD stay native. */
 class FCLNativePreview
 {
@@ -14,7 +14,9 @@ public:
     struct FBuffers {TArray<FVector> Vertices,SourcePoints;TArray<int32> Triangles;};
     struct FMaterialCoordinates{FLinearColor High,Low;};
     static FMaterialCoordinates MaterialCoordinates(const FVoxelVolumeTransform&,bool Section,double ReferenceMeters);
+    explicit FCLNativePreview(bool InspectCaves=false):CaveInspection(InspectCaves){}
     ~FCLNativePreview();
+    void SetVisible(bool Visible);
     bool Start(UWorld&,TSharedPtr<const FCLCompiledPlanetRecipe>,bool Section,double Width,FString&,bool Draft=false);
     void Reset();
     bool Poll(bool Grid=false);
@@ -44,6 +46,7 @@ private:
     TStrongObjectPtr<AVoxelWorld> Native;
     TWeakObjectPtr<UVoxelStampComponent> Stamp;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan,Pending,VisiblePlan;
+    bool CaveInspection=false;
     bool Section=false,PendingSection=false,PendingDraft=false,AppliedDraft=false,AwaitingPublication=false;
 #if WITH_DEV_AUTOMATION_TESTS
     bool MaterialCoordinatesEnabled=true;

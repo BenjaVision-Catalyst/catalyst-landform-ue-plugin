@@ -127,6 +127,11 @@ private:
     friend class FCLPreviewPrecisionTest;
 #endif
     void Pump();
+    void UpdateCaveVolume();
+    bool bPendingCaveFocus=false;
+    TSharedPtr<const FCLCompiledPlanetRecipe> CaveInput;
+    FGuid ClickCave;
+    TUniquePtr<FCLNativePreview> CavePreview;
     void UpdateOcean();
     void UpdateWatershedDebug();
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;

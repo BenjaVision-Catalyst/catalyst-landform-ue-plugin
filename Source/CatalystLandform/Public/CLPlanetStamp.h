@@ -52,6 +52,8 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     UPROPERTY() FCLSceneWindow Window;
     /** Transient native flat-section sampling domain, never part of the planet recipe. */
     UPROPERTY() bool bSectionPreview=false;
+    /** Activation-only diagnostic; the server recipe and production terrain are unchanged. */
+    UPROPERTY() bool bCaveInspectionPreview=false;
     UPROPERTY() double SectionWidthMeters=500;
     UPROPERTY() double SectionReferenceRadiusMeters=1;
 };

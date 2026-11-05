@@ -76,6 +76,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
         SamplingFrame=Stamp.Window.Frame();
     }
     if(Stamp.bSectionPreview&&(!FMath::IsFinite(Stamp.SectionWidthMeters)||Stamp.SectionWidthMeters<1||!FMath::IsFinite(Stamp.SectionReferenceRadiusMeters)||Stamp.SectionReferenceRadiusMeters<=0))return false;
+    if(Stamp.bCaveInspectionPreview&&(Stamp.bSectionPreview||Stamp.Window.bEnabled||!Stamp.bUseRecipe))return false;
     Extent = Stamp.Radius;
     if (Stamp.bUseRecipe)
     {
@@ -89,6 +90,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
         }
         Extent += FMath::Max(FMath::Abs(RecipePlan->MinimumHeightMeters), FMath::Abs(RecipePlan->MaximumHeightMeters)) * 100;
     }
+    if(Stamp.bCaveInspectionPreview&&(!RecipePlan||!RecipePlan->Caves||!RecipePlan->Caves->Cutters))return false;
     for (const FCLSphericalHeightmapPlacement& Placement : Stamp.Placements)
     {
         UVoxelHeightmap* Heightmap = Placement.Source.Heightmap;
@@ -140,6 +142,8 @@ FVector FCLPlanetStampRuntime::SectionToBodyMeters(const FVector& P,double Refer
 }
 FVoxelBox FCLPlanetStampRuntime::GetLocalBounds() const
 {
+    if(Stamp.bCaveInspectionPreview&&RecipePlan&&RecipePlan->Caves&&RecipePlan->Caves->Cutters)
+    {FBox3d Bounds(EForceInit::ForceInit);for(const auto& O:RecipePlan->Caves->Cutters->Operations)Bounds+=O.Bounds;return FVoxelBox(Bounds.Min*100,Bounds.Max*100);}
     if(Stamp.Window.bEnabled)return FVoxelBox(Stamp.Window.BoundsCm());
     if(Stamp.bSectionPreview){const double H=Stamp.SectionWidthMeters*50.;return FVoxelBox(FVector(-H,-H,0),FVector(H,H,Extent));}
     return FVoxelBox(-Extent,Extent);
@@ -236,7 +240,7 @@ FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Quer
             }
             TArray<FCLSceneShapeSample> Samples;
             FString Error;
-            const bool bSampled = Scene->SampleShape({BodyPositions}, Samples, Error);
+            const bool bSampled = Stamp.bCaveInspectionPreview?Scene->SampleCaveVoid({BodyPositions},Samples,Error):Scene->SampleShape({BodyPositions}, Samples, Error);
             checkf(bSampled, TEXT("Compiled point scene query failed: %s"), *Error);
             for (int32 I = 0; I < Count; ++I)
             {
