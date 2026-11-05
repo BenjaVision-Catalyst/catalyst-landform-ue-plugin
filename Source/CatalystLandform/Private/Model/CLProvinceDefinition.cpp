@@ -22,6 +22,9 @@ FCLProvinceGeology FCLProvinceGeology::Sample(const FCLCompiledPlanetRecipe& Bas
         Out.Set(ECLGeologicalEvidence::Extension,S.Extension>=.02);
         Out.Set(ECLGeologicalEvidence::Shear,S.Shear>=.02);
     }
+    // Only an explicitly typed complete carbonate succession establishes this
+    // evidence. Generic palettes leave it unknown, including for older recipes.
+    if(Base.Rock&&Base.Rock->HasCarbonateSequence())Out.Set(ECLGeologicalEvidence::CarbonateSequence,true);
     // Generic strength/erosion palettes, height and basin shape do not establish
     // lithology, age, deposition, eruption history, metamorphism or an ice crust.
     return Out;

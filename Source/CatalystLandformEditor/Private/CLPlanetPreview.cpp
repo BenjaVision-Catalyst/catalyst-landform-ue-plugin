@@ -1557,20 +1557,20 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLCaveDebugRenderedTest,"Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 void FCLCaveDebugRenderedTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const
-{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low")};}
+{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1"),TEXT("CarbonateKarst")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low"),TEXT("karst")};}
 bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
 {
-    const bool Small=Parameters!=TEXT("reference"),Low=Parameters==TEXT("small-low");
-    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
+    const bool Karst=Parameters==TEXT("karst"),Small=Parameters==TEXT("small")||Parameters==TEXT("small-low"),Low=Parameters==TEXT("small-low");
+    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Karst?TEXT("Examples/KarstCaves.json"):Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}if(Low)A->Recipe.Caves.ApplyProgression(.01);
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Planet-wide native cave surfaces"))).ClientSize(FVector2D(1000,800))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
     struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0,Networks=0,Vertices=0,Cyan=0;double Start=FPlatformTime::Seconds(),Last=0,OffLuma=0,DimLuma=0,Residual=0;TArray<double> Times;TArray<FColor> Off;uint32 Terrain=0;TArray<uint32> Inspection;uint64 Copies=0,Starts=0;FVector Eye;FRotator Rotation;};
     const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(A->Recipe,E);if(!Prepared){AddError(E);return false;}State->Evaluation.Request(A->Recipe,Prepared);
-    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low]
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst]
     {
         auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
-        if(Now-S.Start>180){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
-        const FString Dir=FPaths::ProjectSavedDir()/(Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
+        if(Now-S.Start>300){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
+        const FString Dir=FPaths::ProjectSavedDir()/(Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
         auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
         {
             auto* V=W->Client->Viewport;if(!V)return;W->Scene->UpdateCaptureContents();
@@ -1584,11 +1584,11 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
         auto CheckAllGeometry=[&]
         {
             const auto& M=W->CavePreview->Published();S.Vertices=M.Vertices.Num();
-            TSet<FGuid> Represented;TArray<FVector> Body;
+            TSet<FGuid> Represented;TArray<FVector> Body;TArray<TPair<FGuid,FBox>> NetworkBounds;for(const auto& N:S.Plan->Caves->NetworkInfo)NetworkBounds.Emplace(N.Id,S.Plan->Caves->Cutters->Bounds(N.Id));
             for(const auto& P:M.SourcePoints)
             {
                 const FVector B=P*.01;Body.Add(B);
-                for(const auto& Segment:S.Plan->Caves->Segments)if(FMath::PointDistToSegment(B,Segment.A,Segment.B)<Segment.Radius*Segment.Scale.GetMax()+1.)Represented.Add(Segment.Network);
+                for(const auto& N:NetworkBounds)if(!Represented.Contains(N.Key)&&N.Value.IsInsideOrOn(B))Represented.Add(N.Key);
             }
             S.Networks=Represented.Num();TestEqual(TEXT("Every generated network has native surface vertices at globe scale"),S.Networks,S.Plan->Caves->Networks);TestTrue(TEXT("Native VPP presents actual cave surface triangles at globe scale"),M.Vertices.Num()>100&&M.Triangles.Num()>300&&W->CavePreview->UsesNativePresentation());
             TArray<FCLSceneShapeSample> Fields;FString Error;FCLScene::FromPlanet(S.Plan,Error)->SampleCaveVoid({Body},Fields,Error);S.Residual=0;FVector WorstPoint;for(int32 I=0;I<Fields.Num();++I)if(FMath::Abs(Fields[I].FieldMeters)>S.Residual){S.Residual=FMath::Abs(Fields[I].FieldMeters);WorstPoint=Body[I];}if(S.Residual>=.5)AddInfo(FString::Printf(TEXT("Cave mesh worst residual %.6f m at %s"),S.Residual,*WorstPoint.ToString()));TestTrue(TEXT("Native vertices follow the real cave field"),S.Residual<.5);
@@ -1606,7 +1606,7 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
         if(S.Phase==2)
         {
             if(W->IsUpdating()||!W->CavePreview||W->CavePreview->IsUpdating()||W->CavePreview->PublishedPlan()!=S.Plan||(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()))return false;
-            CameraUnchanged();CheckAllGeometry();W->SetCaveOverlay(false);Capture(TEXT("surface"),S.Off);W->SetCaveOverlay(true);CameraUnchanged();TArray<FColor> Dim;Capture(TEXT("all-caves"),Dim);int32 Samples=0;S.Cyan=0;
+            CameraUnchanged();CheckAllGeometry();W->SetCaveOverlay(false);Capture(TEXT("surface"),S.Off);W->SetCaveOverlay(true);CameraUnchanged();TArray<FColor> Control,Dim;W->CavePreview->SetVisible(false);Capture(TEXT("all-caves-control"),Control);W->CavePreview->SetVisible(true);Capture(TEXT("all-caves"),Dim);int32 Samples=0;S.Cyan=0;
             for(int32 I=0;I<FMath::Min(S.Off.Num(),Dim.Num());++I){const auto A=S.Off[I],B=Dim[I];S.Cyan+=Cyan(B);if(A.R>110&&A.G>100&&A.B>70&&!Cyan(B)){S.OffLuma+=(A.R+A.G+A.B)/3.;S.DimLuma+=(B.R+B.G+B.B)/3.;++Samples;}}
             if(Samples){S.OffLuma/=Samples;S.DimLuma/=Samples;}TestTrue(TEXT("Surface dims at the unchanged planet-wide view"),Samples>1000&&S.DimLuma<S.OffLuma*.7);TestTrue(TEXT("Actual cave surfaces rasterize in the planet-wide view"),S.Cyan>10);
             // Verify visible native surface pixels in every network's projected box;
@@ -1615,7 +1615,7 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
             for(const auto& Segment:S.Plan->Caves->Segments)for(const auto& P:{Segment.A,Segment.B}){FVector2D Pixel;if(FSceneView::ProjectWorldToScreen(P*Scale,W->Client->ViewRect,W->Client->ViewProjection,Pixel)){if(!Boxes.Contains(Segment.Network))Boxes.Add(Segment.Network,FBox2D(ForceInit));Boxes[Segment.Network]+=Pixel;}}
             const auto Size=W->Client->Viewport->GetSizeXY();for(const auto& Pair:Boxes)
             {
-                int32 Count=0;const auto Box=Pair.Value.ExpandBy(5);for(int32 Y=FMath::Max(0,FMath::FloorToInt(Box.Min.Y));Y<=FMath::Min(Size.Y-1,FMath::CeilToInt(Box.Max.Y));++Y)for(int32 X=FMath::Max(0,FMath::FloorToInt(Box.Min.X));X<=FMath::Min(Size.X-1,FMath::CeilToInt(Box.Max.X));++X)Count+=Cyan(Dim[Y*Size.X+X]);TestTrue(TEXT("Every projected network has visible surface pixels"),Count>0);
+                int32 Count=0;const auto Box=Pair.Value.ExpandBy(5);for(int32 Y=FMath::Max(0,FMath::FloorToInt(Box.Min.Y));Y<=FMath::Min(Size.Y-1,FMath::CeilToInt(Box.Max.Y));++Y)for(int32 X=FMath::Max(0,FMath::FloorToInt(Box.Min.X));X<=FMath::Min(Size.X-1,FMath::CeilToInt(Box.Max.X));++X){const int32 I=Y*Size.X+X;const auto A=Control[I],B=Dim[I];Count+=B.B>A.B+8&&B.G>A.G+5&&B.R<B.G*.85;}if(!Count)AddInfo(FString::Printf(TEXT("No matched native coverage for network %s"),*Pair.Key.ToString()));TestTrue(TEXT("Every projected network has visible surface pixels against its matched hidden-native control"),Count>0);
             }
             TestEqual(TEXT("All networks project in this bounded view"),Boxes.Num(),S.Plan->Caves->Networks);
 

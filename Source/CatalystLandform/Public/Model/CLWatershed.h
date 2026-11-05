@@ -39,6 +39,8 @@ class CATALYSTLANDFORM_API FCLCompiledWatershed final
 public:
     static TSharedPtr<const FCLCompiledWatershed> Compile(const FCLWatershedSettings&,const FCLCompiledPlanetRecipe&,FString& Error);
     double MapHeight(const FVector& Direction,double NativeHeight) const;
+    /** Reuse the retained native analysis tree to locate a drainage cell. */
+    int32 FindCell(const FVector& Direction) const;
     const TArray<FCLWatershedCell>& GetCells() const {return Cells;}
     const TArray<FCLWatershedChannel>& GetChannels() const {return Channels;}
     const TArray<FCLWatershedChannel>& GetDrainageLinks() const {return DrainageLinks;}

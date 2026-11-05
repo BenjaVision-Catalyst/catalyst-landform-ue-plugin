@@ -472,7 +472,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=CompileRun?CompileRun->Prepared->Figure:MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
     };
 
-    const bool TypedHosts=Recipe.Rock.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Unknown||U.FracturePotential!=0;});
+    const bool TypedHosts=Recipe.Rock.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Unknown||U.FracturePotential!=0||U.DissolutionPotential!=0;});
     if(Recipe.SchemaVersion<23&&TypedHosts&&!CompilingCaveBase){Error=TEXT("Typed cave-host rock requires recipe schema 23");return nullptr;}
     if(Recipe.SchemaVersion==23||Recipe.Caves.bEnabled)
     {
@@ -553,7 +553,27 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Min||!Max){Error=TEXT("Rock Character requires the planet surface guides");return nullptr;}
         FCLCompileProgress::Report(ECLCompileStage::Geology);
         const auto Rock=FCLCompiledRock::Compile(Recipe.Rock,Recipe.Seed,Recipe.RadiusMeters,Recipe.RadiusMeters+Min->HeightMeters,Recipe.RadiusMeters+Max->HeightMeters,Core->Surfaces.Get(),Core->Tectonics,Error,Core->Continents);if(!Rock)return nullptr;
-        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);Out->Rock=Rock;return RetainInput(Out);
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);Out->Rock=Rock;
+        if(!FCLCompileProgress::IsPreparing()&&Rock->HasCarbonateSequence()&&Core->GeneratedRegions&&Recipe.RegionGeneration.AlgorithmVersion==3)
+        {
+            // Province placeholders have no physical relief/material, so their
+            // selection can safely wait for canonical Rock evidence. Reuse the
+            // same classifier and captured native neutral child; no second
+            // terrain generation or mutable UObject access on the worker.
+            const bool HasCarbonate=Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&P.Suitability.Province.Type==ECLProvinceType::CarbonatePlatform;});
+            if(HasCarbonate)
+            {
+                if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&!P.Suitability.Province.bPlaceholder;}))
+                {Error=TEXT("Carbonate evidence reconciliation currently requires neutral province placeholders; physical regional forms need geology-before-relief ordering");return nullptr;}
+                auto Inputs=*Core->GeneratedRegions;
+                const auto* Neutral=Inputs.Fields.FindByPredicate([](const auto& F){return F.IsValid();});
+                if(!Neutral){Error=TEXT("Province reconciliation requires the captured native neutral field");return nullptr;}
+                const auto NativeNeutral=*Neutral;for(auto& F:Inputs.Fields)if(!F)F=NativeNeutral;
+                auto PlacementBase=*Out;PlacementBase.GeneratedRegions.Reset();
+                Out->GeneratedRegions=FCLCompiledRegionGeneration::Compile(Recipe,PlacementBase,nullptr,Error,&Inputs);if(!Out->GeneratedRegions)return nullptr;
+            }
+        }
+        return RetainInput(Out);
     }
     if(Recipe.MeasuredTerrain.IsActive()||!Recipe.MeasuredTerrain.Digest.IsEmpty()||Recipe.MeasuredTerrain.Revision!=1)
     {
@@ -1011,7 +1031,7 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
 }
 void UCLPlanetRecipeAsset::PostLoad()
 {
-    Super::PostLoad();Recipe.MigrateLegacyGuides();if(Recipe.SchemaVersion>=2&&Recipe.SchemaVersion<9)Recipe.SchemaVersion=9;Version.SchemaVersion=Recipe.SchemaVersion;
+    Super::PostLoad();Recipe.MigrateLegacyGuides();Recipe.Caves.UpgradeAbundanceProfile();if(Recipe.SchemaVersion>=2&&Recipe.SchemaVersion<9)Recipe.SchemaVersion=9;Version.SchemaVersion=Recipe.SchemaVersion;
     FString Error;SynchronizeRadialGuides(Error);
 #if WITH_EDITOR
     BindGuideLibrary();
@@ -1089,6 +1109,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     FText Reason;
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
+    Candidate.Caves.UpgradeAbundanceProfile();
     if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
     if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 9) Candidate.SchemaVersion = 9;
     Modify();PaletteSources.Reset();LandformSources.Reset(); RadialGuideLibrary=nullptr;RadialGuideSetId.Invalidate();Recipe = MoveTemp(Candidate);

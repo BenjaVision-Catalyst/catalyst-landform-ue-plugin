@@ -28,6 +28,8 @@ namespace
 {
 UVoxelMegaMaterial* CaveInspectionMaterial()
 {
+    static TWeakObjectPtr<UVoxelMegaMaterial> Shared;
+    if(Shared.IsValid())return Shared.Get();
     auto* Mega=UVoxelMegaMaterial::CreateTransient();Mega->bDetectNewSurfaces=false;
     auto* M=NewObject<UMaterial>(Mega,NAME_None,RF_Transient);M->BlendMode=BLEND_Translucent;M->bDisableDepthTest=true;M->SetShadingModel(MSM_Unlit);
     M->GetEditorOnlyData()->Opacity.UseConstant=true;M->GetEditorOnlyData()->Opacity.Constant=1;
@@ -40,7 +42,7 @@ UVoxelMegaMaterial* CaveInspectionMaterial()
     for(auto* E:TArray<UMaterialExpression*>{N,Direction,Dot,Half,Shade,Color,Result})M->GetExpressionCollection().AddExpression(E);
     M->GetEditorOnlyData()->EmissiveColor.Expression=Result;M->PostEditChange();
     Mega->NonNaniteMaterialType=EVoxelMegaMaterialGenerationType::Custom;Mega->CustomNonNaniteMaterial=M;Mega->CustomLumenMaterial=M;Mega->PostEditChange();
-    return Mega;
+    Shared=Mega;return Mega;
 }
 }
 void FCLNativePreview::SetVisible(bool Visible)
@@ -103,6 +105,7 @@ bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRec
         {
             auto* Stack=NewObject<UVoxelLayerStack>(Native.Get());Stack->HeightLayers.Reset();Stack->VolumeLayers={NewObject<UVoxelVolumeLayer>(Stack)};Native->LayerStack=Stack;UVoxelLayerStack::OnChanged.Broadcast();
             Native->MegaMaterial=CaveInspectionMaterial();Native->VoxelSize=10;
+            Native->RenderChunkSize=EVoxelRenderChunkSize::Size128;
             Native->VisibilityCollision.SetCollisionEnabled(ECollisionEnabled::NoCollision);Native->InvokerCollision.SetCollisionEnabled(ECollisionEnabled::NoCollision);
         }
         else if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;

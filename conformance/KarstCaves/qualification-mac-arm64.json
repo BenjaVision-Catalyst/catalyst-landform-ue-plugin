@@ -1,0 +1,367 @@
+{
+  "qualification": "Carbonate karst, complete-network abundance and native cave editing",
+  "date": "2026-11-05",
+  "platform": {
+    "engine": "UE 5.7.4 CL 51494982",
+    "voxel": "VPP 2.0p8",
+    "host": "macOS arm64, M3 Max 128 GiB",
+    "project": "/private/tmp/landform-background/LandformLab/LandformLab.uproject"
+  },
+  "scope": {
+    "families": [
+      "structural fissure",
+      "carbonate karst"
+    ],
+    "presentation": "All generated native cave surfaces through a dimmed globe; no camera/focus change or camera streaming",
+    "nativeOwners": [
+      "VPP spline/shape/blend/noise/index operators",
+      "UE curve evaluation and bounds",
+      "VPP generation/mesh/LOD/moving collision invokers",
+      "VPP sculpt modifiers and compressed saves"
+    ],
+    "customSpecializations": [
+      "declared geological host capability and selected-province evidence",
+      "receiver-confluence routing and canonical bedding placement",
+      "connected passage/chamber morphology and physical development profile",
+      "native operator adaptation and static complete-support reservations"
+    ]
+  },
+  "evidence": {
+    "passingDistinctChecks": 63,
+    "fullRegression": {
+      "checks": 63,
+      "success": 62,
+      "failed": 1,
+      "failure": "Two fixed-brightness pixel assertions in the structural overview; native geometry/field/navigation checks passed. Replaced with the existing matched hidden-native image control."
+    },
+    "targetedCoverageCorrection": {
+      "checks": 1,
+      "success": 1,
+      "runtimeChanged": false
+    },
+    "tests": [
+      "Catalyst.Landform.Background.NativeFieldParity",
+      "Catalyst.Landform.Background.NativeInputInvalidation",
+      "Catalyst.Landform.Background.ResponsiveDesigner",
+      "Catalyst.Landform.Caves.AbundanceUpgradeAndScale",
+      "Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts",
+      "Catalyst.Landform.Caves.ConnectedVolumetricMorphology",
+      "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+      "Catalyst.Landform.Caves.EligibilityAndVersions",
+      "Catalyst.Landform.Caves.InspectionVolume",
+      "Catalyst.Landform.Caves.KnobAndBackground",
+      "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CarbonateKarst",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Reference2km",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m1",
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Saved500m100",
+      "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "Catalyst.Landform.Designer.AuthoringBoundaries",
+      "Catalyst.Landform.Designer.NavigationResponsiveness",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness",
+      "Catalyst.Landform.NativeGeneration.NativePreviewRadii",
+      "Catalyst.Landform.PlanetBuilder.Navigation",
+      "Catalyst.Landform.PlanetLayers.CalibratedRange",
+      "Catalyst.Landform.PlanetLayers.CompositionAndSeeds",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo",
+      "Catalyst.Landform.PlanetLayers.NativePersistenceAndLegacy",
+      "Catalyst.Landform.PlanetLayers.RenderedRangeAndOcean",
+      "Catalyst.Landform.PlanetLayers.VariationPublication",
+      "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",
+      "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
+      "Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+      "Catalyst.Landform.Provinces.PackagedLibrary",
+      "Catalyst.Landform.Regions.BlendAndNativeParity",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides",
+      "Catalyst.Landform.Regions.StructureAndPalette",
+      "Catalyst.Landform.Rock.CharacterPaletteAndDefaults",
+      "Catalyst.Landform.Rock.ControlsVersionsAndHeight",
+      "Catalyst.Landform.Rock.DepositionalExcavationFixture",
+      "Catalyst.Landform.Rock.DesignerControlsAndUndo",
+      "Catalyst.Landform.Rock.FiniteHistoryAndPlateSections",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw",
+      "Catalyst.Landform.Rock.FoldingExcavationFixture",
+      "Catalyst.Landform.Rock.MetricBasinAndFoldContacts",
+      "Catalyst.Landform.Rock.MetricBedDistribution",
+      "Catalyst.Landform.Rock.MetricScaleAndCompactHistory",
+      "Catalyst.Landform.Rock.NativePropertiesAndSurfaces",
+      "Catalyst.Landform.Rock.NativeRenderedReview",
+      "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections",
+      "Catalyst.Landform.Rock.VolumeAndCaveCoherence",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots",
+      "Catalyst.Landform.TerrainTypes.GuideIntervals",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring",
+      "Catalyst.Landform.TerrainTypes.MixedLayerIsolation",
+      "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots",
+      "Catalyst.Landform.TerrainTypes.StampIsolation",
+      "Catalyst.Landform.TerrainTypes.VPPAndUndo",
+      "Catalyst.Landform.Volumes.AnalyticAndOrdering",
+      "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors",
+      "Catalyst.Landform.Volumes.IndexAndSmoothContacts",
+      "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials",
+      "Catalyst.Landform.Volumes.NativePreview",
+      "Catalyst.Landform.Volumes.NativeSectionDomain",
+      "Catalyst.Landform.Watershed.DebugRenderedNavigation"
+    ],
+    "views": {
+      "karst": {
+        "frames": 90,
+        "p95Ms": 20.751543,
+        "normalSurfaceLuma": 192.335071,
+        "debugSurfaceLuma": 23.136722,
+        "cyanPixels": 1636,
+        "networks": 21,
+        "nativeNetworks": 21,
+        "nativeVertices": 3190841,
+        "maxFieldResidualMeters": 0.253886,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      },
+      "500m-100": {
+        "frames": 90,
+        "p95Ms": 18.231001,
+        "normalSurfaceLuma": 191.03521,
+        "debugSurfaceLuma": 22.014435,
+        "cyanPixels": 1654,
+        "networks": 3,
+        "nativeNetworks": 3,
+        "nativeVertices": 190453,
+        "maxFieldResidualMeters": 0.143169,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      },
+      "500m-1": {
+        "frames": 90,
+        "p95Ms": 17.773833,
+        "normalSurfaceLuma": 188.285396,
+        "debugSurfaceLuma": 21.00406,
+        "cyanPixels": 154,
+        "networks": 1,
+        "nativeNetworks": 1,
+        "nativeVertices": 13195,
+        "maxFieldResidualMeters": 0.097412,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      },
+      "2km-structural": {
+        "frames": 90,
+        "p95Ms": 19.271918,
+        "normalSurfaceLuma": 186.128699,
+        "debugSurfaceLuma": 21.812905,
+        "cyanPixels": 280,
+        "networks": 24,
+        "nativeNetworks": 24,
+        "nativeVertices": 791424,
+        "maxFieldResidualMeters": 0.155408,
+        "cameraMovedByToggle": false,
+        "inputStartsDuringNavigation": 0,
+        "meshCopiesDuringNavigation": 0
+      }
+    },
+    "maximumKnob": {
+      "karst": {
+        "character": 100,
+        "networks": 22,
+        "nativeNetworks": 22,
+        "nativeVertices": 4618490,
+        "maxFieldResidualMeters": 0.266266,
+        "cameraMovedByInput": false
+      },
+      "500m-100": {
+        "character": 100,
+        "networks": 3,
+        "nativeNetworks": 3,
+        "nativeVertices": 516833,
+        "maxFieldResidualMeters": 0.186377,
+        "cameraMovedByInput": false
+      },
+      "500m-1": {
+        "character": 100,
+        "networks": 3,
+        "nativeNetworks": 3,
+        "nativeVertices": 516833,
+        "maxFieldResidualMeters": 0.186377,
+        "cameraMovedByInput": false
+      },
+      "2km-structural": {
+        "character": 100,
+        "networks": 56,
+        "nativeNetworks": 56,
+        "nativeVertices": 12291340,
+        "maxFieldResidualMeters": 0.329816,
+        "cameraMovedByInput": false
+      }
+    },
+    "nativeGameplay": {
+      "karst": {
+        "writer": {
+          "passed": true,
+          "message": "Generated cave contacts, player floor, native mining, placement and compressed sculpt save passed",
+          "coldReader": false,
+          "processID": 64271,
+          "writerPID": 64271,
+          "nativeContacts": 4,
+          "nativeFloorFrames": 1791,
+          "beforeMineCm": -82.48710632324219,
+          "afterMineCm": 139.89451599121094,
+          "afterFillCm": -75.83049774169922,
+          "controlBeforeCm": -4741.640625,
+          "controlAfterCm": -180.11415100097656,
+          "controlOffsetCm": 399.7209047829293,
+          "controlIdentityUnchanged": true,
+          "comparedProbes": 0,
+          "maximumReloadErrorCm": 0,
+          "saveBytes": 213675,
+          "elapsedSeconds": 159.48607362434268
+        },
+        "independentReader": {
+          "passed": true,
+          "message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+          "coldReader": true,
+          "processID": 64358,
+          "writerPID": 64271,
+          "nativeContacts": 4,
+          "nativeFloorFrames": 429,
+          "beforeMineCm": 0,
+          "afterMineCm": 0,
+          "afterFillCm": 0,
+          "controlBeforeCm": 0,
+          "controlAfterCm": 0,
+          "controlOffsetCm": 152279.19982616836,
+          "controlIdentityUnchanged": false,
+          "comparedProbes": 216,
+          "maximumReloadErrorCm": 0,
+          "saveBytes": 213675,
+          "elapsedSeconds": 154.05951216816902
+        }
+      },
+      "structural": {
+        "writer": {
+          "passed": true,
+          "message": "Generated cave contacts, player floor, native mining, placement and compressed sculpt save passed",
+          "coldReader": false,
+          "processID": 64455,
+          "writerPID": 64455,
+          "nativeContacts": 4,
+          "nativeFloorFrames": 1802,
+          "beforeMineCm": -95.01304626464844,
+          "afterMineCm": 137.3940887451172,
+          "afterFillCm": -73.97444152832031,
+          "controlBeforeCm": -473.77508544921875,
+          "controlAfterCm": -473.77508544921875,
+          "controlOffsetCm": 399.75694426238977,
+          "controlIdentityUnchanged": true,
+          "comparedProbes": 0,
+          "maximumReloadErrorCm": 0,
+          "saveBytes": 172208,
+          "elapsedSeconds": 131.62967853993177
+        },
+        "independentReader": {
+          "passed": true,
+          "message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+          "coldReader": true,
+          "processID": 64551,
+          "writerPID": 64455,
+          "nativeContacts": 4,
+          "nativeFloorFrames": 461,
+          "beforeMineCm": 0,
+          "afterMineCm": 0,
+          "afterFillCm": 0,
+          "controlBeforeCm": 0,
+          "controlAfterCm": 0,
+          "controlOffsetCm": 30433.16211778687,
+          "controlIdentityUnchanged": false,
+          "comparedProbes": 98,
+          "maximumReloadErrorCm": 0,
+          "saveBytes": 172208,
+          "elapsedSeconds": 120.51639408618212
+        }
+      }
+    },
+    "preservation": {
+      "workspace": {
+        "files": 23,
+        "changed": 0,
+        "manifestSHA256": "b1e6e753c4f496675b26aadb972d6378290d63f5bfb14f5aaf37c0a8d668447f"
+      },
+      "content": {
+        "files": 115,
+        "changed": 0,
+        "manifestSHA256": "ba9ec8b63a5d554bbc0174d34f2603c4f50be5fe3af0b95f164a85c63abf3c78"
+      },
+      "review": {
+        "files": 176,
+        "changed": 0,
+        "manifestSHA256": "57e851a7658d65753150a97ba162fe6caa4d93386281e35e213aee4a4c83c779"
+      }
+    },
+    "componentSourceSHA256": {
+      "Source/CatalystLandform/Private/Model/CLCaves.cpp": "11db370a237402ad60b2f0827b372b60791080a62f0052d47eee18402d1d3aa6",
+      "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "157c3827c91c1d2a59f73b33239601abf2a91578c06bc2dfd9296c1401170134",
+      "Source/CatalystLandform/Private/Model/CLProvinceDefinition.cpp": "f21cd7ea6eb1e3e1fc6b4a76eccf9f2071c8b391ffe449f31d15aeedd30d6efc",
+      "Source/CatalystLandform/Private/Model/CLRockLayer.cpp": "40d4d69a880e1195e971dfe19e4a21b47f9b7438dc90c5e7034f6e4f89424390",
+      "Source/CatalystLandform/Private/Model/CLWatershed.cpp": "7e0f6b664ad9afbca39fe85254c9ec05dd8924e7d8ef4acf0cff018d8e6ba561",
+      "Source/CatalystLandform/Private/Scene/CLCaveVolume.cpp": "a4436290ab90ac2ee6757f49eae02fa9800629c0b28895c9a26b1012ad27a36a",
+      "Source/CatalystLandform/Public/Model/CLCaves.h": "89ae1dd7dceb421d59f043b31e4c2071b3a8b82b2a32631ccc942e8a46efeaae",
+      "Source/CatalystLandform/Public/Model/CLRockLayer.h": "cb88188e7364c814220ce1a09dd4b60f663bf5ea0cb3703b98996b4adf4091ff",
+      "Source/CatalystLandform/Public/Model/CLWatershed.h": "5627c8ac20e83e8fd653a98aa451f6e48d046832c298b20ed25ec94c505e00b1",
+      "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "18c3d8310dd1053d01b4a328d80d1e1543732e90c1a6d5e0eed4d40fcbdb2cd2",
+      "Source/CatalystLandform/Private/Model/CLCaveKarst.cpp": "e7ab22288911675cfa2307c83d1eead638b5f188480e6457435230b1da7a0ca4",
+      "Source/CatalystLandform/Private/Model/CLCaveKarst.h": "dcdc36e5474d1ea715bc227872e3032d653fbc595cf61c79b93bfc578e974d42",
+      "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "8c1ef688fddc1abdf5fe910a522de2fb3ad92c9f227030642b5766b8a221fa69",
+      "Source/CatalystLandformTests/Private/CLCaveTests.cpp": "0e95f2e79a9f5f75a2f41a2635435ed83cdad7fb42a7733f32e49ef75de2d724",
+      "Source/CatalystLandformTests/Private/CLKarstTests.cpp": "c7d085062559831e60381ab711cc995e255e462ec2ab60392a044c4d6519cc3f",
+      "Source/CatalystLandform/Private/Scene/CLScene.cpp": "cc8870b103e8484843060f9a2260e34c2e06235a3b23db65b6c91f721b6c582c"
+    },
+    "hostOnlyDiagnostics": [
+      "Source/CatalystLandformTests/Private/CLCaveTests.cpp: retained pre-existing diagnostic probe logging; acceptance assertions equal"
+    ],
+    "labSourceSHA256": {
+      "Source/LandformLab/Private/CLGeneratedCaveProof.cpp": "7c8f086432f36f0d6d6fa08e637240215eb77c06793f6f25202c738c48afc022"
+    },
+    "fixturesSHA256": {
+      "Examples/Caves.json": "e4f9fd15271c28e66a610e13fee9c3c688d35dba2db0f52eb85ebd54d5ba10ff",
+      "Examples/CavesSmall.json": "ba01d6674e66004da955f0bc91f7dd903f44ac772bb041f7ae5c9b695e7a85b9",
+      "Examples/KarstCaves.json": "79542a8f6b2fba5638578cb71918096a7663ab24cb3aab26ea0b633a48d987aa"
+    },
+    "libraryAssetSHA256": {
+      "DA_KarstCaves": "d12a7841b134dcb6c762e68ed7bb92965b01ce972c245bf473946e2cd0990cd8"
+    },
+    "automatic500mAbundance": {
+      "knob0": 1,
+      "knob1": 1,
+      "knob25": 1,
+      "knob50": 1,
+      "knob75": 2,
+      "knob100": 3,
+      "savedAssetLoadedWithoutMovingKnob": 3
+    },
+    "nativeKeyCorrection": {
+      "pointMeters": [
+        1433.651,
+        202.126,
+        241.025
+      ],
+      "beforeMaximum2cmFieldStepMeters": 0.714259,
+      "afterMaximum2cmFieldStepMeters": 0.034061,
+      "fullIntersectionMaximumDifferenceMeters": 3.815e-06
+    },
+    "nonMaterialWarning": "One UE connectivity-probe timeout to google.com/generate_204 during an otherwise passing Rock test."
+  },
+  "limits": [
+    "Bounded editor and standalone native qualification on 500 m and 2 km procedural recipes; no new cooked, full-planet production-scale, ACF-specific cave or route-by-route traversal qualification.",
+    "Carbonate karst requires a complete finite carbonate palette with positive declared dissolution capability and existing Watershed; selective mixed insoluble beds, evaporite and marble karst remain open.",
+    "Neutral province placeholders reconcile after Rock; physical regional forms require separate geology-before-relief ordering.",
+    "No groundwater/chemistry simulation, sink/spring discharge transfer, cave water surfaces, speleothem growth or lava-flow history.",
+    "Placement uses sampled cover/host checks and conservative support reservations; complete-fit capacity can be below requested compatible-area density.",
+    "Native adapter budgets: 16384 candidates, 4096 passages, 2048 chamber lobes and 65536 cubic intervals; complete builds refuse overflow. These are adapter limits, not VPP capability limits.",
+    "Pinned exported native nearest-key ABI; platform/plugin upgrades require qualification.",
+    "Native field values are not a promise of Euclidean distance to the nearest surface. Sculpting can change magnitudes outside a brush while preserving occupancy and geology. Writer-only control/mining fields in raw cold-reader reports are not performed there; every retained probe is compared instead.",
+    "Physical-scale passages may be subpixel in the globe overview; ordinary navigation reveals their surfaces. No size inflation or focus/select behavior is added.",
+    "Full native readbacks are test-only; recorded 90-frame navigation performs no input starts or mesh copies."
+  ]
+}

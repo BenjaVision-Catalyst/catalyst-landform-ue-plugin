@@ -1,0 +1,381 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "8D5D29146A41D5425463B0B083BDB2F3",
+			"instanceName": "jupiter.local-47981",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-09.18.11",
+	"succeeded": 0,
+	"succeededWithWarnings": 0,
+	"failed": 1,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 9.7862892150878906,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "CarbonateKarstVolumesAndHosts",
+			"fullTestPath": "Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts",
+			"tags": [],
+			"state": "Fail",
+			"deviceInstance": [
+				"8D5D29146A41D5425463B0B083BDB2F3"
+			],
+			"duration": 9.7862892150878906,
+			"dateTime": "2026.11.05-09.18.01",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogStreaming: FlushAsyncLoading(318): 1 QueuedPackages, 0 AsyncPackages",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.01"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "21/70 requested cave networks (21 carbonate karst, 0 structural), 105 curved passages, 21 entrances; 439/439 eligible sites; complete-fit capacity reached",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Karst minimum chord clearance 0.308899 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Inspection full/pruned max error 3.81469727e-06 at X=1435.966 Y=114.582 Z=285.418: original -63.9185715 air 1.68133163 final 1.68132782 inspection -1.68133163",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Native segment union has no closest-key field jump at the reproduced karst corner' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit axis X=1.000 Y=0.000 Z=0.000 max step 0.694472 fields 0.6766 0.6702 0.6637 0.6571 0.6504 0.6436 0.6366 0.6296 0.6224 0.6152 0.6079 0.6005 0.5931 -0.1013 -0.1091 -0.1166 -0.1240 -0.1311 -0.1381 -0.1448 -0.1512",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Native segment union has no closest-key field jump at the reproduced karst corner' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit axis X=0.000 Y=1.000 Z=0.000 max step 0.658874 fields -0.1020 -0.0895 -0.0789 -0.0707 -0.0652 -0.0623 -0.0618 -0.0636 -0.0670 0.5919 0.6079 0.6176 0.6200 0.6163 0.6088 0.6010 0.5933 0.5857 0.5783 0.5709 0.5638",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Native segment union has no closest-key field jump at the reproduced karst corner' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit axis X=0.000 Y=0.000 Z=1.000 max step 0.714259 fields -0.2688 -0.2541 -0.2424 -0.2325 -0.2223 -0.2085 -0.1894 -0.1650 -0.1365 -0.1064 0.6079 0.6278 0.6474 0.6666 0.6854 0.7037 0.7215 0.7389 0.7561 0.7735 0.7912",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit noise-free pair -0.653381 0.124634",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.651000 segment 1 key 1.84259951 center X=1434.714 Y=199.842 Z=238.218 along X=-0.122 Y=0.988 Z=-0.095 normalized X=0.855 Y=-0.146 Z=1.135",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.651000 segment 2 key 2.00000000 center X=1434.560 Y=201.613 Z=237.619 along X=0.011 Y=0.704 Z=-0.710 normalized X=0.793 Y=-0.169 Z=-1.146",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.711000 segment 1 key 1.92668486 center X=1434.591 Y=200.971 Z=237.994 along X=-0.080 Y=0.940 Z=-0.331 normalized X=0.921 Y=-0.113 Z=0.083",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.711000 segment 2 key 2.00000000 center X=1434.560 Y=201.613 Z=237.619 along X=0.011 Y=0.704 Z=-0.710 normalized X=0.789 Y=-0.136 Z=-1.146",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit individual passage 16-17 incision 0.000 fields -0.653381 0.124634",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.651000 segment 1 key 1.70063460 center X=1438.351 Y=202.020 Z=243.644 along X=-0.071 Y=0.983 Z=0.168 normalized X=-0.653 Y=-3.270 Z=-0.001",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.651000 segment 2 key 2.00000000 center X=1438.140 Y=206.871 Z=243.585 along X=0.064 Y=0.781 Z=-0.621 normalized X=-1.162 Y=-3.920 Z=-1.668",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.711000 segment 1 key 1.70044613 center X=1438.351 Y=202.015 Z=243.644 along X=-0.071 Y=0.983 Z=0.168 normalized X=-0.656 Y=-3.232 Z=-0.001",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CAVE_SEGMENT_AUDIT x 1433.711000 segment 2 key 2.00000000 center X=1438.140 Y=206.871 Z=243.585 along X=0.064 Y=0.781 Z=-0.621 normalized X=-1.168 Y=-3.880 Z=-1.666",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit individual passage 16-17 incision 0.000 fields -3.595642 -3.538452",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit point global air -0.607849 nearest network 43415645000006C1000000490000014A air -0.607849",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 15-16 incision 0.520 controls X=1431.791 Y=110.135 Z=307.560 ; X=1433.697 Y=128.824 Z=290.721 ; X=1435.375 Y=146.726 Z=272.737 ; X=1436.570 Y=164.651 Z=254.682 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 16-17 incision 0.000 controls X=1436.570 Y=164.651 Z=254.682 ; X=1437.191 Y=182.926 Z=237.136 ; X=1434.560 Y=201.613 Z=237.619 ; X=1437.480 Y=200.989 Z=218.910 ; X=1437.412 Y=218.558 Z=200.542 ; X=1436.754 Y=236.703 Z=182.696 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 16-18 incision 0.715 controls X=1436.570 Y=164.651 Z=254.682 ; X=1438.822 Y=145.991 Z=253.711 ; X=1437.375 Y=128.050 Z=271.991 ; X=1435.496 Y=110.092 Z=289.894 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 16-17 incision 0.000 controls X=1436.570 Y=164.651 Z=254.682 ; X=1439.404 Y=186.176 Z=240.823 ; X=1438.140 Y=206.871 Z=243.585 ; X=1441.061 Y=206.247 Z=224.876 ; X=1439.625 Y=221.808 Z=204.229 ; X=1436.754 Y=236.703 Z=182.696 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 15-19 incision 0.000 controls X=1431.791 Y=110.135 Z=307.560 ; X=1443.098 Y=111.440 Z=310.443 ; X=1454.439 Y=112.632 Z=313.211 ; X=1465.839 Y=113.625 Z=315.782 ; X=1477.307 Y=114.391 Z=318.124 ; X=1488.833 Y=114.958 Z=320.267 ; X=1500.393 Y=115.412 Z=322.296 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Karst 21 networks, 105 curved passages, 42 keyholes, 63 chamber lobes, 1316 route probes; minimum clearance 0.3089 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.18.11"
+				}
+			],
+			"warnings": 0,
+			"errors": 3,
+			"artifacts": []
+		}
+	]
+}

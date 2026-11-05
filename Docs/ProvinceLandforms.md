@@ -140,3 +140,13 @@ The default Landforms build page is one native **Include → Landforms** checkli
 Automatic placement chooses only enabled entries from that selection. Existing
 manual composition, region tuning and inspection controls remain under the same
 native Advanced reveal; geological prerequisite authoring stays in source assets.
+
+
+Carbonate cave qualification now establishes `CarbonateSequence` only from a
+finite Rock history whose entire explicit palette is carbonate. This unlocks the
+included Carbonate Platform definition; positive dissolution capability and the
+retained Watershed context are additional cave prerequisites. Other unprovided
+history remains unknown. See [Caves](Caves.md) for the conservative host rule and
+current morphology limits. Province ownership does not clip a cave at an arbitrary
+regional boundary; the complete sampled route must retain its actual host and
+formation evidence.

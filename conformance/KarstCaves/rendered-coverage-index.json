@@ -1,0 +1,69 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "C3E1E156D4438F26487419A2E93F2452",
+			"instanceName": "jupiter.local-60081",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-09.36.19",
+	"succeeded": 1,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 151.29214477539062,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "Reference2km",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.Reference2km",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"C3E1E156D4438F26487419A2E93F2452"
+			],
+			"duration": 151.29214477539062,
+			"dateTime": "2026.11.05-09.33.48",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"p95Ms\":19.271918,\"normalSurfaceLuma\":186.128699,\"debugSurfaceLuma\":21.812905,\"cyanPixels\":280,\"networks\":24,\"nativeNetworks\":24,\"nativeVertices\":791424,\"maxFieldResidualMeters\":0.155408,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.34.05"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":56,\"nativeNetworks\":56,\"nativeVertices\":12291340,\"maxFieldResidualMeters\":0.329816,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.36.17"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

@@ -2009,3 +2009,36 @@ minimums, native mesh/field conformance, visual anatomy and actual underground
 editing/persistence are separate acceptance gates. The 64-operation authored-edit
 proof limit no longer constrains natural cave construction. Exact results and
 remaining geological/cooked limits are recorded in the cave qualification.
+
+
+## Carbonate karst and cave abundance checkpoint
+
+The second underground family uses included Carbonate Platform Landforms,
+explicit soluble carbonate hosts, canonical Rock bedding and retained Watershed
+receivers/confluences. Native VPP interval/shape/blend/noise/index operators produce
+connected negative spaces, including rounded conduits, keyhole passages, junction
+chambers and optional recharge shafts. No groundwater or chemistry solver,
+sink/spring flow transfer, flooded-cave presentation or lava history is claimed.
+
+The existing cave row remains eye + indicator + one knob + reseed, with native
+advanced properties expanded in place. Algorithm 2 requests complete networks from
+physical compatible area rather than losing small-planet abundance to sparse
+Bernoulli draws. Enabled layers retain a minimum complete cave; impossible fit
+refuses explicitly. Legacy automatic density upgrades in memory; authored sizes,
+seeds, custom density and saved asset bytes remain intact.
+
+Neutral province reclassification now receives compiled Rock evidence. Physical
+regional forms still need the separate geology-before-relief ordering described
+in [Caves](Caves.md). The winding-curve precision and larger native debug workload
+corrections are recorded there, together with exact approximation and fit limits.
+The separate `DA_KarstCaves` native library asset and `Open Karst Review.command`
+provide interactive review in the qualified UE5.7 host.
+
+
+The [karst qualification](../conformance/KarstCaves/qualification-mac-arm64.json)
+records 63 passing distinct native/editor checks and independent native sculpt
+writer/readers for both families. The saved 500 m case develops from one to three
+networks; the karst reference displays 21 at its saved setting and 22 at maximum.
+All native surfaces remain visible together without camera changes. Native
+mining, backfill and cold reload retain geology, with zero measured field error
+across 216 karst and 98 structural probes. Existing local edits/assets are preserved.

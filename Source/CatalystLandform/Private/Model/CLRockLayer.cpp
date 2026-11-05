@@ -33,7 +33,7 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
     TSet<FGuid> Ids;
     for(const auto& U:L.Units)
     {
-        if(!U.Id.IsValid()||Ids.Contains(U.Id)||U.Name.IsNone()||!In(U.MiningResistance,0,1)||!In(U.Erodibility,0,1)||uint8(U.Lithology)>uint8(ECLRockLithology::Ice)||!In(U.FracturePotential,0,1)||(U.Lithology==ECLRockLithology::Unknown&&U.FracturePotential>0))
+        if(!U.Id.IsValid()||Ids.Contains(U.Id)||U.Name.IsNone()||!In(U.MiningResistance,0,1)||!In(U.Erodibility,0,1)||uint8(U.Lithology)>uint8(ECLRockLithology::Ice)||!In(U.FracturePotential,0,1)||!In(U.DissolutionPotential,0,1)||(U.DissolutionPotential>0&&U.Lithology!=ECLRockLithology::Carbonate)||(U.Lithology==ECLRockLithology::Unknown&&U.FracturePotential>0))
         {Error=TEXT("Rock units require unique identities, names and normalized resistance/erodibility");return nullptr;}Ids.Add(U.Id);
         const int32 Index=Surfaces?Surfaces->Find(U.SurfaceId,U.SurfaceRevision):INDEX_NONE;
         if(Index==INDEX_NONE){Error=TEXT("Rock unit requires a resolved native client surface: ")+U.SurfaceId.ToString();return nullptr;}Out->SurfaceIndices.Add(Index);
@@ -254,6 +254,10 @@ void FCLCompiledRock::ApplySurfaces(const FVector3d& P,FCLSurfaceWeights& W)cons
     const auto C=Classify(P);for(double& V:W.Values)V=0;W.Values[SurfaceIndices[C.Unit]]+=C.Alpha;W.Values[SurfaceIndices[C.Other]]+=1-C.Alpha;
 }
 
+bool FCLCompiledRock::HasCarbonateSequence()const
+{return Layer.AlgorithmVersion>=3&&Layer.Units.Num()==3&&!Layer.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Carbonate;});}
+bool FCLCompiledRock::HasKarstHosts()const
+{return HasCarbonateSequence()&&!Layer.Units.ContainsByPredicate([](const auto& U){return U.DissolutionPotential<=0;});}
 bool FCLCompiledRock::HasFractureHosts()const
 {return Layer.Units.Num()==3&&Layer.Units.ContainsByPredicate([](const auto& U){return U.Lithology==ECLRockLithology::Ice;})==false&&Layer.Units.ContainsByPredicate([](const auto& U){return U.Lithology==ECLRockLithology::Unknown||U.FracturePotential<=0;})==false;}
 double FCLCompiledRock::FracturePotential()const

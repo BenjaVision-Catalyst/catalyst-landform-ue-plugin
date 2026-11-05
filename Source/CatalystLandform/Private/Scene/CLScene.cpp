@@ -97,10 +97,31 @@ bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSam
     {
         const int32 Count=FMath::Min(SampleBatchSize,Out.Num()-Start);TArray<FVector> Positions;
         for(int32 I=0;I<Count;++I)Positions.Add(IsFinitePosition(Query.PositionsMeters[Start+I])?Query.PositionsMeters[Start+I]:FVector::ZeroVector);
-        TArray<double> H,Natural;RadialPlan->SampleHeightsMeters(Positions,H);RadialPlan->SampleRadialFields(Positions,H,Natural);
-        TArray<double> Air;Air.Init(-1.,Count);auto Cut=Natural;
+        TArray<double> Air;Air.Init(FVoxelUtilities::NaNf(),Count);
         const auto* AirCutters=SelectedCutters?SelectedCutters:(RadialPlan->Caves?RadialPlan->Caves->Cutters.Get():nullptr);
-        if(AirCutters){Air.Init(FVoxelUtilities::NaNf(),Count);AirCutters->ComposeBatch(Positions,Air);}
+        if(AirCutters)AirCutters->ComposeBatch(Positions,Air);else Air.Init(-1.,Count);
+        TArray<double> H,Natural;
+        const bool BoundedSurface=RadialPlan->SurfaceRange.IsValid()||(RadialPlan->WatershedSurface&&RadialPlan->WatershedSurface->SurfaceRange.IsValid());
+        if(AirCutters&&!RadialPlan->Volumes&&BoundedSurface)
+        {
+            // Exact max-intersection pruning using the same native sphere node.
+            // The calibrated surface and conditioned valleys are bounded below
+            // by MinimumHeightMeters. A larger-radius natural sphere can only
+            // decrease this field, so it cannot beat -Air at these points.
+            H.Init(RadialPlan->MinimumHeightMeters,Count);RadialPlan->SampleRadialFields(Positions,H,Natural);
+            TArray<FVector> Needed;TArray<int32> Indices;
+            for(int32 I=0;I<Count;++I)if(Natural[I]>-Air[I]){Needed.Add(Positions[I]);Indices.Add(I);}
+            if(!Needed.IsEmpty())
+            {
+                TArray<double> Height,Field;RadialPlan->SampleHeightsMeters(Needed,Height);RadialPlan->SampleRadialFields(Needed,Height,Field);
+                for(int32 I=0;I<Indices.Num();++I)Natural[Indices[I]]=Field[I];
+            }
+            for(int32 I=0;I<Count;++I)if(IsFinitePosition(Query.PositionsMeters[Start+I])){Out[Start+I].State=ECLSceneSampleState::Known;Out[Start+I].FieldMeters=FMath::Max(Natural[I],-Air[I]);}
+            continue;
+        }
+        RadialPlan->SampleHeightsMeters(Positions,H);RadialPlan->SampleRadialFields(Positions,H,Natural);
+        auto Cut=Natural;
+
         if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)RadialPlan->Caves->Cutters->ComposeBatch(Positions,Cut);
         auto Final=Cut;if(RadialPlan->Volumes)RadialPlan->Volumes->ComposeBatch(Positions,Final);
         for(int32 I=0;I<Count;++I)

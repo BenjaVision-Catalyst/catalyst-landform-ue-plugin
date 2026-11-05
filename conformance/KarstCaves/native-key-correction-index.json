@@ -1,0 +1,609 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "A3E544A5804063FB922966B58D1BBBEF",
+			"instanceName": "jupiter.local-51864",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.05-09.20.46",
+	"succeeded": 4,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 13.500402450561523,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "AbundanceUpgradeAndScale",
+			"fullTestPath": "Catalyst.Landform.Caves.AbundanceUpgradeAndScale",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"A3E544A5804063FB922966B58D1BBBEF"
+			],
+			"duration": 1.4680635929107666,
+			"dateTime": "2026.11.05-09.20.32",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "500 m knob 0: 1/1 requested cave networks (0 carbonate karst, 1 structural), 5 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.33"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "500 m knob 1: 1/1 requested cave networks (0 carbonate karst, 1 structural), 5 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.33"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "500 m knob 25: 1/1 requested cave networks (0 carbonate karst, 1 structural), 6 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.33"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "500 m knob 50: 1/1 requested cave networks (0 carbonate karst, 1 structural), 6 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.33"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "500 m knob 75: 2/2 requested cave networks (0 carbonate karst, 2 structural), 18 curved passages, 2 entrances; 8/28 eligible sites",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.33"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "500 m knob 100: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.33"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "CarbonateKarstVolumesAndHosts",
+			"fullTestPath": "Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"A3E544A5804063FB922966B58D1BBBEF"
+			],
+			"duration": 9.6994132995605469,
+			"dateTime": "2026.11.05-09.20.34",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "21/70 requested cave networks (21 carbonate karst, 0 structural), 105 curved passages, 21 entrances; 439/439 eligible sites; complete-fit capacity reached",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.35"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Karst minimum chord clearance 0.310059 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.35"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Inspection full/pruned max error 3.69548798e-06 at X=-1354.938 Y=-528.131 Z=-248.823: original -68.6398163 air 1.7880286 final 1.7880249 inspection -1.7880286",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit axis X=1.000 Y=0.000 Z=0.000 max step 0.006437 fields -0.1623 -0.1687 -0.1750 -0.1811 -0.1869 -0.1926 -0.1981 -0.2035 -0.2086 -0.2135 -0.2182 -0.2227 -0.2270 -0.2310 -0.2349 -0.2385 -0.2419 -0.2450 -0.2480 -0.2507 -0.2531",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit axis X=0.000 Y=1.000 Z=0.000 max step 0.034061 fields -0.2826 -0.2725 -0.2399 -0.2058 -0.1816 -0.1643 -0.1610 -0.1744 -0.1976 -0.2153 -0.2182 -0.2178 -0.2268 -0.2438 -0.2576 -0.2557 -0.2360 -0.2070 -0.1737 -0.1502 -0.1474",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit axis X=0.000 Y=0.000 Z=1.000 max step 0.019356 fields -0.3477 -0.3330 -0.3173 -0.3013 -0.2858 -0.2712 -0.2579 -0.2461 -0.2358 -0.2267 -0.2182 -0.2092 -0.1985 -0.1854 -0.1697 -0.1520 -0.1329 -0.1136 -0.0948 -0.0775 -0.0621",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit noise-free pair 0.157898 0.172302",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit individual passage 16-17 incision 0.000 fields 0.157898 0.172302",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit individual passage 16-17 incision 0.000 fields -3.518005 -3.461304",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit point global air 0.218201 nearest network 43415645000006C1000000490000014A air 0.218201",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 15-16 incision 0.520 controls X=1431.791 Y=110.135 Z=307.560 ; X=1433.697 Y=128.824 Z=290.721 ; X=1435.375 Y=146.726 Z=272.737 ; X=1436.570 Y=164.651 Z=254.682 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 16-17 incision 0.000 controls X=1436.570 Y=164.651 Z=254.682 ; X=1437.191 Y=182.926 Z=237.136 ; X=1434.560 Y=201.613 Z=237.619 ; X=1437.480 Y=200.989 Z=218.910 ; X=1437.412 Y=218.558 Z=200.542 ; X=1436.754 Y=236.703 Z=182.696 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 16-18 incision 0.715 controls X=1436.570 Y=164.651 Z=254.682 ; X=1438.822 Y=145.991 Z=253.711 ; X=1437.375 Y=128.050 Z=271.991 ; X=1435.496 Y=110.092 Z=289.894 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 16-17 incision 0.000 controls X=1436.570 Y=164.651 Z=254.682 ; X=1439.404 Y=186.176 Z=240.823 ; X=1438.140 Y=206.871 Z=243.585 ; X=1441.061 Y=206.247 Z=224.876 ; X=1439.625 Y=221.808 Z=204.229 ; X=1436.754 Y=236.703 Z=182.696 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Audit path 15-19 incision 0.000 controls X=1431.791 Y=110.135 Z=307.560 ; X=1443.098 Y=111.440 Z=310.443 ; X=1454.439 Y=112.632 Z=313.211 ; X=1465.839 Y=113.625 Z=315.782 ; X=1477.307 Y=114.391 Z=318.124 ; X=1488.833 Y=114.958 Z=320.267 ; X=1500.393 Y=115.412 Z=322.296 ; ",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.36"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Karst 21 networks, 105 curved passages, 42 keyholes, 63 chamber lobes, 1316 route probes; minimum clearance 0.3101 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.43"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "ConnectedVolumetricMorphology",
+			"fullTestPath": "Catalyst.Landform.Caves.ConnectedVolumetricMorphology",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"A3E544A5804063FB922966B58D1BBBEF"
+			],
+			"duration": 1.4628579616546631,
+			"dateTime": "2026.11.05-09.20.43",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 1 seed 73: 1 networks, 6 nodes, 5 curved passages, 3 chamber lobes; minimum route clearance 0.669 m; width ratio 2.081; curve deviation 1.425 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 1 seed 74: 1 networks, 6 nodes, 5 curved passages, 3 chamber lobes; minimum route clearance 0.731 m; width ratio 2.000; curve deviation 1.145 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 1 seed 75: 1 networks, 6 nodes, 5 curved passages, 3 chamber lobes; minimum route clearance 0.783 m; width ratio 2.212; curve deviation 1.155 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 1 seed 76: 1 networks, 6 nodes, 5 curved passages, 3 chamber lobes; minimum route clearance 0.747 m; width ratio 2.341; curve deviation 1.468 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 50 seed 73: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.302 m; width ratio 2.177; curve deviation 3.455 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 50 seed 74: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.404 m; width ratio 2.023; curve deviation 2.743 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 50 seed 75: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.467 m; width ratio 2.298; curve deviation 2.781 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 50 seed 76: 1 networks, 7 nodes, 6 curved passages, 9 chamber lobes; minimum route clearance 1.408 m; width ratio 2.290; curve deviation 3.552 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 100 seed 73: 3 networks, 24 nodes, 27 curved passages, 27 chamber lobes; minimum route clearance 1.502 m; width ratio 2.388; curve deviation 6.719 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 100 seed 74: 3 networks, 24 nodes, 27 curved passages, 27 chamber lobes; minimum route clearance 1.655 m; width ratio 2.719; curve deviation 6.232 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 100 seed 75: 4 networks, 32 nodes, 36 curved passages, 36 chamber lobes; minimum route clearance 1.703 m; width ratio 2.748; curve deviation 6.455 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "knob 100 seed 76: 4 networks, 32 nodes, 36 curved passages, 36 chamber lobes; minimum route clearance 1.450 m; width ratio 3.047; curve deviation 6.142 m",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeFieldsAndPersistence",
+			"fullTestPath": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"A3E544A5804063FB922966B58D1BBBEF"
+			],
+			"duration": 0.87006723880767822,
+			"dateTime": "2026.11.05-09.20.45",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 0 field 0.78307 host -33.44012 at X=1410.904 Y=301.252 Z=495.229",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 1 field 0.91359 host -33.07035 at X=1411.800 Y=298.055 Z=495.217",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 2 field 0.78244 host -32.84159 at X=1412.197 Y=294.727 Z=496.232",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 3 field 0.66306 host -32.75691 at X=1412.604 Y=291.416 Z=496.742",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 4 field 0.92897 host -32.66320 at X=1413.456 Y=288.235 Z=495.913",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 5 field 1.28932 host -32.40275 at X=1414.417 Y=285.072 Z=495.230",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 6 field 1.16061 host -32.18294 at X=1414.805 Y=281.934 Z=496.069",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "probe 7 field 0.87031 host -32.15733 at X=1414.694 Y=278.844 Z=497.716",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "24 networks, 1008 cutters; 297 native bulk/sparse points, max residual 0 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.05-09.20.46"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

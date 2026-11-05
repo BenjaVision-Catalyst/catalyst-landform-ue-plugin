@@ -182,6 +182,15 @@ bool FCLCompiledWatershed::Route(double Sea,const TSet<int32>& Closed,FString& E
     for(int32 K=FloodOrder.Num()-1;K>=0;--K){auto& C=Cells[FloodOrder[K]];if(C.Receiver>=0){auto& D=Cells[C.Receiver];D.AccumulatedAreaSquareMeters+=C.AccumulatedAreaSquareMeters;D.DischargeCubicMetersPerSecond+=C.DischargeCubicMetersPerSecond;}else {TerminalDischarge+=C.DischargeCubicMetersPerSecond;if(C.bOcean)OceanExport+=C.DischargeCubicMetersPerSecond;else ClosedInput+=C.DischargeCubicMetersPerSecond;}}
     return true;
 }
+int32 FCLCompiledWatershed::FindCell(const FVector& Direction)const
+{
+    if(!Spatial||Direction.ContainsNaN()||Direction.IsNearlyZero())return INDEX_NONE;
+    double T;int32 Id;FVector3d B;const auto D=Direction.GetSafeNormal();
+    if(!Spatial->Tree.FindNearestHitTriangle(FWatertightRay3d(FRay3d(FVector3d::Zero(),D)),T,Id,B))return INDEX_NONE;
+    const auto F=Spatial->Mesh.GetTriangle(Id);int32 Best=F[0];
+    for(int32 K=1;K<3;++K)if(FVector::DotProduct(D,Cells[F[K]].Direction)>FVector::DotProduct(D,Cells[Best].Direction))Best=F[K];
+    return Best;
+}
 double FCLCompiledWatershed::MapHeight(const FVector& Direction,double Height) const
 {
     if((ShapeCells.IsEmpty()?Channels.IsEmpty():ConditionedReaches==0)||Direction.ContainsNaN()||Direction.IsNearlyZero())return Height;

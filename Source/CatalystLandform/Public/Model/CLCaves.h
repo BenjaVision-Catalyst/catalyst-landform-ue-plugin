@@ -4,22 +4,24 @@
 #include "CLCaves.generated.h"
 struct FCLCompiledPlanetRecipe;
 
-/** Structurally controlled underground spaces; dissolution and lava history have separate prerequisites. */
+/** Geology-conditioned underground spaces; native VPP owns their solid/air field. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLCaveSettings
 {
     GENERATED_BODY()
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=2;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="10")) double NetworksPerSquareKilometer=.4;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="10")) double NetworksPerSquareKilometer=1.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(Units="m",ClampMin="1",ClampMax="500")) double LengthMeters=87.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(Units="m",ClampMin="0.1",ClampMax="10")) double RadiusMeters=2.15;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(Units="m",ClampMin="1",ClampMax="100")) double MinimumCoverMeters=5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(Units="m",ClampMin="1",ClampMax="500")) double DepthMeters=26;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Branching=.575;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bSurfaceEntrances=true;
+    /** Upgrade only the former automatic density; preserve authored dimensions and custom density. */
+    void UpgradeAbundanceProfile();
     void ApplyProgression(double Value);
     bool Validate(FString& Error)const;
 };
@@ -36,6 +38,8 @@ struct CATALYSTLANDFORM_API FCLCavePassage
     TArray<FVector> Points;
     /** Half width / half height at each curve control point, in metres. */
     TArray<FVector2D> Sections;
+    /** Lower narrow vadose slot relative to the upper half height; zero for round/oval conduits. */
+    double Incision=0;
     bool Entrance=false;
 };
 struct CATALYSTLANDFORM_API FCLCaveChamber
@@ -72,7 +76,10 @@ public:
     TArray<FCLCavePassage> Passages;
     TArray<FCLCaveChamber> Chambers;
     TSharedPtr<const FCLCompiledCaveVolume> Cutters;
-    int32 Candidates=0,EligibleCandidates=0,Networks=0,Entrances=0;
+    enum class EFamily:uint8 {Structural,CarbonateKarst};
+    struct FNetwork {FGuid Id;EFamily Family=EFamily::Structural;int32 RechargeCell=INDEX_NONE,ReceivingCell=INDEX_NONE;double InceptionRadiusMeters=0;};
+    TArray<FNetwork> NetworkInfo;
+    int32 Candidates=0,EligibleCandidates=0,RequestedNetworks=0,Networks=0,Entrances=0;
     FString Readiness;
     static TSharedPtr<const FCLCompiledCaves> Compile(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32 PlanetSeed,FString& Error);
 };

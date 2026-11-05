@@ -21,6 +21,8 @@ struct CATALYSTLANDFORM_API FCLRockUnit
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName Name;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) ECLRockLithology Lithology=ECLRockLithology::Unknown;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double FracturePotential=0;
+    /** Declared soluble-host capability; the first dissolution family accepts carbonate only. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double DissolutionPotential=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FName SurfaceId=TEXT("Rock");
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 SurfaceRevision=2;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double MiningResistance=.8;
@@ -140,6 +142,8 @@ public:
     /** Conservative first profile: no selective host clipping is claimed. */
     bool HasFractureHosts()const;
     double FracturePotential()const;
+    bool HasCarbonateSequence()const;
+    bool HasKarstHosts()const;
     FLinearColor Properties(const FVector3d& BodyMeters)const;
     void ApplySurfaces(const FVector3d& BodyMeters,FCLSurfaceWeights&)const;
     const FCLRockFolding& GetFolding() const {return Folding;}
