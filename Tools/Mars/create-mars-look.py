@@ -20,7 +20,7 @@ shader=(component/'SourceArt/Surfaces/Appearance.hlsl').read_text()+'\n'+(compon
 # Body-relative DF arithmetic and normalized-preview metadata reuse the qualified adapter.
 code='''
 CLTexturedAppearanceShader S;float3 C,NN;float R;
-FDFVector3 Body=DFSubtract(Parameters.AbsoluteWorldPosition,GetPrimitiveData(Parameters).ActorWorldPosition);if(MappingHigh.a>.5)Body=CLPreviewBodyPosition(Parameters.AbsoluteWorldPosition,MappingHigh,MappingLow);
+FDFVector3 Body=DFSubtract(Parameters.AbsoluteWorldPosition,GetPrimitiveData(Parameters).ActorWorldPosition);if(MappingHigh.a>.5)Body=CLPreviewBodyPosition(DFSubtract(Parameters.AbsoluteWorldPosition,GetPrimitiveData(Parameters).ActorWorldPosition),MappingHigh,MappingLow);
 S.ShadeCanonical(Body,N,Geometry,CLTint,CLDetail,CLTextureDetail,CLBaseColor,CLNormal,CLRoughness,C,R,NN);
 float3 B=normalize(DFDemote(Body));float2 UV=float2(frac(atan2(-B.y,B.x)/6.28318530718+1),acos(clamp(B.z,-1,1))/3.14159265359);
 float2 Dx=ddx(UV),Dy=ddy(UV);Dx.x-=round(Dx.x);Dy.x-=round(Dy.x);

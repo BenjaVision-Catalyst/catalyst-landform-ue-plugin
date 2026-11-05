@@ -1787,7 +1787,8 @@ void OpenPlanetRecipe()
     if (!GEditor) return;
     const auto* Planet = GEditor->GetSelectedActors()->GetTop<ACLPlanet>();
     auto* Asset = Planet && Planet->RecipeAsset ? Planet->RecipeAsset.Get() :
-        LoadObject<UCLPlanetRecipeAsset>(nullptr, TEXT("/Game/LandformDesigner/DA_PlanetStructure.DA_PlanetStructure"));
+        nullptr;
+    if(!Asset)Asset=Cast<UCLPlanetRecipeAsset>(FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get().CreateAssetWithDialog(UCLPlanetRecipeAsset::StaticClass(),NewObject<UCLPlanetRecipeFactory>()));
     if (Asset) GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Asset);
 }
 void OpenLandformDesigner()

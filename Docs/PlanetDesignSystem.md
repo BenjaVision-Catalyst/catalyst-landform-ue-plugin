@@ -2082,3 +2082,31 @@ The native UObject default remains frozen at 2 for package compatibility; only n
 profiles and explicit knob changes resolve 4. Separate morphology review assets
 preserve authored older recipes. Sediment provenance, mineral growth, groundwater
 history and full-route/cooked qualification remain open.
+
+## Clean example checkpoint — 6 November 2026
+
+`Landform/Projects/LandformExamples` is the user-facing World Builder/library
+host, with five planet recipes and one selection/flight/walking level. Lab and
+TGCGameplayProof remain separate qualification hosts; all pre-existing edited
+Lab content stays in place. The package disposition and ownership boundary are
+recorded with the workspace example. Native generation, layers/stamps, LOD,
+Nanite meshes and collision invokers remain VPP-owned.
+
+[The native baseline record](../conformance/example-project-mac-arm64.json)
+contains five cooked planet journeys with return/revisit, three editor checks
+(including ordinary keyboard input and 120 GPU coordinate witnesses), three
+native qualification-host checks and 20 compatibility-tool checks. The small
+asteroid exposed a surface-normal tolerance defect, corrected using native UE
+normalized tangents. Native actor-origin material coordinates and explicit cook
+labels close the demonstrated presentation/packaging gaps.
+
+The user has clarified that descent must use the existing curve-to-flat
+presentation progressively, reversing on ascent. The current qualified example
+is still canonical spherical presentation; that integration is pending and is
+not covered by the five native baseline journeys. Reuse the existing bounded
+adapter and camera/interaction contracts without moving canonical gameplay
+actors or replacing VPP generation/streaming. See
+[the example boundary](ExampleProject.md).
+
+Cave morphology remains failed visual acceptance/deferred, with caves disabled
+in starter recipes. Earlier physics evidence does not establish cave appearance.

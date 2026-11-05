@@ -1,10 +1,12 @@
 # Catalyst Landform for Unreal Engine
 
 Catalyst Landform presents server-defined planetary terrain through Voxel Plugin.
-The runtime provides a spherical volume shape, geodesic placement of flat height
-data, and radial character movement alongside explicit Foundation/Connect/VPP
-dependencies. The first local recipe compiler and Designer section preview are
-implemented; backend delivery and the full Designer remain future work.
+World Builder includes planet, terrain, stamp, surface and radial-guide asset
+editors around the recipe compiler. The runtime provides spherical geology,
+geodesic heightmap placement and radial movement using native VPP generation,
+LOD, layers, meshing and collision. Foundation/Connect/VPP remain explicit
+dependencies. The clean workspace example supplies five starter planets and one
+globe-to-ground level; cave morphology remains failed/deferred.
 
 The [persistent-world native proof](Docs/PlanetDesignSystem.md#persistent-native-world-checkpoint)
 reuses native VPP generation, LOD and moving collision invokers, with full-scene
@@ -36,10 +38,12 @@ Euclidean signed distance field; SDF export needs separate qualification.
 movement and parallel transports the capsule's heading as local up changes.
 Characters using VPP collision must also use VPP's character/base handling.
 
-The development host is `Landform/Projects/LandformLab` in catalyst-workspace.
-Its staging script copies this repository into the project's ignored Plugins
-directory alongside the current Connect plugin and Foundation runtime/editor. Edit this
-repository, close the lab editor, stage the plugins, then rebuild the host.
+The user-facing host is `Landform/Projects/LandformExamples` in catalyst-workspace:
+World Builder asset editors, five starter planets and one globe-to-ground level.
+`Landform/Projects/LandformLab` remains the qualification/research host. Shared
+staging lives in `Landform/Tools`; generated plugin copies are ignored. The
+qualification test module loads explicitly in Lab, not automatically in every
+consumer editor. See [the cleanup boundary](Docs/ExampleProject.md).
 
 Runtime code uses the CL prefix. Editor and automation modules contain authoring
 and compiler checks respectively. Module registration owns no connections or world

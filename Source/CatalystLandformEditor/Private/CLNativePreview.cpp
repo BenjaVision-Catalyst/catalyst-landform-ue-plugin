@@ -1,4 +1,5 @@
 #include "CLNativePreview.h"
+#include "Surface/CLNativeMaterialCoordinates.h"
 #include "Misc/ScopeExit.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanetStamp.h"
@@ -57,10 +58,8 @@ void FCLNativePreview::SetVisible(bool Visible)
 
 FCLNativePreview::FMaterialCoordinates FCLNativePreview::MaterialCoordinates(const FVoxelVolumeTransform& Transform,bool Flat,double ReferenceMeters)
 {
-    check(Transform.Position.IsNearlyZero()&&Transform.Rotation.IsIdentity()&&Transform.Scale.X==Transform.Scale.Y);
-    const FVector3d Value(1./double(Transform.Scale.X),1./double(Transform.Scale.Z),ReferenceMeters*100.);
-    const FVector3f High(Value);const FVector3f Low(Value-FVector3d(High));
-    return {FLinearColor(High.X,High.Y,High.Z,Flat?2:1),FLinearColor(Low.X,Low.Y,Low.Z,0)};
+    const auto Coordinates=FCLNativeMaterialCoordinates::Make(Transform,Flat,ReferenceMeters);
+    return {Coordinates.High,Coordinates.Low};
 }
 FVoxelVolumeTransform FCLNativePreview::StampToDisplay()const
 {

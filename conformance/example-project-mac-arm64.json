@@ -1,0 +1,177 @@
+{
+  "date": "2026-11-06",
+  "status": "passed-canonical-baseline",
+  "scope": "Canonical spherical baseline only; altitude-driven curve-to-flat integration is pending. Clean World Builder/library example; five separate cooked native journeys, each landing, walking, returning and revisiting. No multiplayer or performance qualification.",
+  "platform": {
+    "engine": "5.7.4 CL51494982",
+    "vpp": "2.0p8",
+    "architecture": "Mac arm64",
+    "gpu": "Apple M3 Max",
+    "os": "macOS 26.6.1"
+  },
+  "sourceBase": {
+    "component": "4e85c4e17746bda013321cf3c7f76bd6180d36eb",
+    "workspace": "ce48e5d5baeb466468b57b3e36abe7a461160603"
+  },
+  "radiusConvention": "Current recipe/sky-envelope RadiusMeters, not physical surface reference radius",
+  "editor": {
+    "passed": 3,
+    "tests": [
+      "Catalyst.Landform.Examples.Library",
+      "Catalyst.Landform.Examples.WalkingPreview",
+      "Catalyst.Landform.NativeMaterials.PreviewCoordinateGPU"
+    ],
+    "ordinaryWInputVerified": true,
+    "walkingReturnPositionVerified": true,
+    "sourceRecipeUnchanged": true,
+    "gpuCoordinateWitnesses": 120,
+    "maxGpuPositionErrorCm": 0.0224930848926,
+    "maxGpuTilePhaseErrorCm": 0.0225007534027,
+    "warnings": 1,
+    "warning": "macOS audio-device sample-rate query warning during PIE; tests passed and audio is outside this terrain proof."
+  },
+  "qualificationHost": {
+    "passed": 3,
+    "explicitTestsModuleLoadingVerified": true,
+    "tests": [
+      "Catalyst.Landform.Coordinates.Admission",
+      "Catalyst.Landform.NativeGeneration.KernelAndVersioning",
+      "Catalyst.Landform.Surfaces.NormalScale"
+    ]
+  },
+  "compatibilityTools": {
+    "existingTestSuites": 4,
+    "testsPassed": 20,
+    "unmanagedPluginProtectionPassed": true,
+    "managedLocalEditProtectionPassed": true,
+    "backwardCompatibleCliAndImportedApi": true,
+    "nativeMaterialHookPreflightPassed": true
+  },
+  "cooked": {
+    "passed": true,
+    "binarySha256": "8f71b3aa88d16650df2425757e008578b6fd553585c47f357044fd5c96b56fbe",
+    "bundle": "com.benjavision.LandformExamples",
+    "planets": [
+      {
+        "passed": true,
+        "returnedAndRevisited": true,
+        "nativeGalleryPickTargets": 5,
+        "planet": "100m",
+        "status": "",
+        "groundFrames": 360,
+        "nativeGroundContacts": 357,
+        "walkDistanceCm": 1157.5079768852,
+        "handoffCanonicalErrorCm": 0,
+        "seconds": 40.145471166819334,
+        "exitCode": 0
+      },
+      {
+        "passed": true,
+        "returnedAndRevisited": true,
+        "nativeGalleryPickTargets": 5,
+        "planet": "asteroid",
+        "status": "",
+        "groundFrames": 360,
+        "nativeGroundContacts": 360,
+        "walkDistanceCm": 1166.4093515588872,
+        "handoffCanonicalErrorCm": 0,
+        "seconds": 36.77990533411503,
+        "exitCode": 0
+      },
+      {
+        "passed": true,
+        "returnedAndRevisited": true,
+        "nativeGalleryPickTargets": 5,
+        "planet": "1km",
+        "status": "",
+        "groundFrames": 360,
+        "nativeGroundContacts": 357,
+        "walkDistanceCm": 1158.7226817380144,
+        "handoffCanonicalErrorCm": 2.9103830456733704e-11,
+        "seconds": 57.22104229405522,
+        "exitCode": 0
+      },
+      {
+        "passed": true,
+        "returnedAndRevisited": true,
+        "nativeGalleryPickTargets": 5,
+        "planet": "10km",
+        "status": "",
+        "groundFrames": 360,
+        "nativeGroundContacts": 357,
+        "walkDistanceCm": 1159.9926068099637,
+        "handoffCanonicalErrorCm": 2.3283064365386963e-10,
+        "seconds": 68.9665153324604,
+        "exitCode": 0
+      },
+      {
+        "passed": true,
+        "returnedAndRevisited": true,
+        "nativeGalleryPickTargets": 5,
+        "planet": "mars",
+        "status": "",
+        "groundFrames": 354,
+        "nativeGroundContacts": 351,
+        "walkDistanceCm": 1154.169045955307,
+        "handoffCanonicalErrorCm": 3.332000937312528e-08,
+        "seconds": 38.59761033579707,
+        "exitCode": 0
+      }
+    ]
+  },
+  "content": {
+    "newSourcePackages": 8,
+    "newSourcePackageSha256": {
+      "Content/Planets/DA_Asteroid.uasset": "bd8f427d01203a8b59e0718a0771e63097c89ffdeade1fbad44e588e098ded2b",
+      "Content/Planets/DA_Mars.uasset": "43e35c2d6d86fe83ea5289b6edd13663b98f240f7b77890cd0799ac4bcf0fb2f",
+      "Content/Planets/DA_Planet100m.uasset": "30cfda7aa42a094c6fe2ce21bb2b89133c07905d34c7703ce6c7d3f40eb7eff1",
+      "Content/Planets/DA_Planet10km.uasset": "c9b1cacfb916a71e7108c2b8e4402da62f8f299ad1cf52bb49cdc2d6853de574",
+      "Content/Planets/DA_Planet1km.uasset": "9b738651b4b44574f13854918b3d97c64e0d2474829fa3c31be7c4b947c32955",
+      "Content/WorldBuilder/DA_Planets.uasset": "dd377878f80006637b72aeff8dc406d2ed6af0f01869a49ec1db482351e563c2",
+      "Content/WorldBuilder/PAL_Landform.uasset": "e9944f9e29f5cab3aabc07913b121cedb8f15ed50658f84960cf89193b13ec48",
+      "Content/WorldBuilder/PlanetShowcase.umap": "f54716d46566d9a6bc13780936508f2f9cfe63d7e9b6fdd16ac92df7d4486807"
+    },
+    "preCleanupAuditPackages": 286,
+    "existingPluginPackages": 115,
+    "labPackagesRetainedForQualification": 171,
+    "allLabContentFilesPreserved": 181,
+    "preExistingTrackedLocalEditsPreserved": 23,
+    "ownedExistingAssetUpdates": [
+      "Measured/M_MarsSurface.uasset",
+      "Surfaces/M_Surface.uasset"
+    ],
+    "otherExistingPluginAssetsUnchanged": 113,
+    "TGCGameplayProof": "Retained separately for actual ACF + VPP compatibility; not a base dependency"
+  },
+  "nativeOwnership": [
+    "VPP generation, layers/stamps, LOD, Nanite rendering and moving collision invokers",
+    "UE camera transforms and per-view HiddenActors",
+    "Landform existing spherical recipe/geology/radial-gravity specializations; no custom streaming manager"
+  ],
+  "demonstratedCorrections": [
+    "Removed Lab-only default planet asset dependency from the editor entry point",
+    "Bound the existing walking-preview handoff in the clean host",
+    "Used native stamp scale and existing high/low metadata with native UE actor-origin coordinates",
+    "Fixed scale-sensitive Landform surface normals by normalizing tangents before their cross product",
+    "Explicitly rooted the path-loaded catalog with native PrimaryAssetLabel",
+    "Matched native material paths across camera handoff, disabled ordinary debug grid and display-globe inter-shadowing",
+    "Initial camera pitch accounts for geometric horizon depression on small planets"
+  ],
+  "failedControlsRetained": [
+    "Missing cooked catalog before explicit native label fix",
+    "Small asteroid rejected because surface normals became zero before the scale repair",
+    "Standalone editor-binary -game harness rejected: VPP LevelEditor assumption and UE MainFrame ensure; final checks use real editor PIE and actual cooked app"
+  ],
+  "pendingPresentationRequirement": "Reuse the existing curve-to-flat adapter during approach and reverse on departure; preserve canonical native physics and fixed gameplay frames. This baseline does not qualify that integration.",
+  "caves": {
+    "visualAcceptance": "failed-deferred",
+    "enabledInStarterSet": false,
+    "morphologyImplementationChanged": false
+  },
+  "evidence": {
+    "rawRunDirectory": "/private/tmp/landform-cleanup",
+    "packagedApp": "/private/tmp/landform-cleanup/Package/Mac/LandformExamples.app",
+    "screenshots": "Docs/Qualification",
+    "readyEditorLauncher": "scripts/launch.command"
+  }
+}

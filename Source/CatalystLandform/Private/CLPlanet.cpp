@@ -1,4 +1,5 @@
 #include "CLPlanet.h"
+#include "Surface/CLNativeMaterialCoordinates.h"
 #include "Surface/CLSurfaceLibrary.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
 #include "Components/ArrowComponent.h"
@@ -126,6 +127,16 @@ void ACLPlanet::RebuildTerrain()
         Actor->SnapToSurface();
         FCLSphericalHeightmapPlacement Placement;
         if (Actor->BuildPlacement(Placement)) Stamp.Placements.Add(Placement);
+    }
+    const double DisplayScale=DisplayRadiusMeters>0?DisplayRadiusMeters/RadiusMeters:1.;
+    if(!FMath::IsFinite(DisplayRadiusMeters)||DisplayRadiusMeters<0||!FMath::IsFinite(DisplayScale)||DisplayScale<=0||(DisplayRadiusMeters>0&&SamplingWindow.bEnabled))
+    {RecipeStatus=TEXT("Display scaling requires a finite positive scale and canonical body coordinates");return;}
+    if(DisplayRadiusMeters>0){TerrainStamp->SetRelativeScale3D(FVector(DisplayScale));bDisplayScaleApplied=true;}
+    else if(bDisplayScaleApplied){TerrainStamp->SetRelativeScale3D(FVector::OneVector);bDisplayScaleApplied=false;}
+    if(DisplayRadiusMeters>0)
+    {
+        const auto Transform=FVoxelVolumeTransform::Create(TerrainStamp->GetRelativeTransform(),FTransform::Identity,FVoxelBox(-1,1),0);
+        if(!FCLNativeMaterialCoordinates::Make(Transform,false,RadiusMeters).Apply(Stamp,RecipeStatus))return;
     }
     TerrainStamp->SetStamp(Stamp);
     SamplingRuntime = StaticCastSharedPtr<FCLPlanetStampRuntime>(

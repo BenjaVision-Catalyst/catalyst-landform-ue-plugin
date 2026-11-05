@@ -160,7 +160,11 @@ void CLSurfaceProbe(const FVector& Direction,TArray<FVector>& D)
 }
 FVector CLSurfaceNormal(TConstArrayView<FVector> D,TConstArrayView<double> H,double Radius,int32 K)
 {
-    auto Point=[&](int32 J){return D[K+J]*(Radius+H[K+J]);};auto N=FVector::CrossProduct(Point(1)-Point(2),Point(3)-Point(4)).GetSafeNormal();
+    auto Point=[&](int32 J){return D[K+J]*(Radius+H[K+J]);};
+    // Normalize the tangents first: the cross product is an area in m², and
+    // UE's default safe-normal tolerance otherwise rejects valid small bodies.
+    const FVector DX=(Point(1)-Point(2)).GetSafeNormal(),DY=(Point(3)-Point(4)).GetSafeNormal();
+    auto N=FVector::CrossProduct(DX,DY).GetSafeNormal();
     if(FVector::DotProduct(N,D[K])<0)N*=-1;return N;
 }
 void FCLCompiledPlanetRecipe::SampleSurfaceWeights(TConstArrayView<FVector> Directions,TArray<FCLSurfaceWeights>& Out) const

@@ -35,6 +35,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet", meta=(DisplayName="Radius", Units="m", ClampMin="10"))
     double RadiusMeters = 100;
 
+    /** Zero presents physical size; a positive display radius uses native stamp scaling.
+     * This is actor presentation, never a change to the recipe or its physical units. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Presentation",meta=(Units="m",ClampMin="0"))
+    double DisplayRadiusMeters=0;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Planet")
     TObjectPtr<UVoxelStampComponent> TerrainStamp;
 
@@ -76,6 +81,7 @@ public:
 
 private:
     bool bRebuilding = false;
+    bool bDisplayScaleApplied = false;
     bool bRuntimeRecipeApplied = false;
     TSharedPtr<const FCLPlanetStampRuntime> SamplingRuntime;
 #if WITH_EDITOR

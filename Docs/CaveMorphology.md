@@ -1,5 +1,10 @@
 # Cave morphology profile 4
 
+**Status — 6 November 2026: failed visual acceptance and deferred.** The user
+rejected the box-like cuts as less cave-like. Native physics/save evidence below
+does not establish acceptable cave appearance. Caves stay off in the starter
+planet set; no further morphology work is part of this cleanup.
+
 Profiles 1–3 qualified connected negative space and native presentation, but their
 shared oval sections and ellipsoidal junction lobes failed the visual target. Their
 passing tests did not establish natural morphology. Profile 4 develops the two

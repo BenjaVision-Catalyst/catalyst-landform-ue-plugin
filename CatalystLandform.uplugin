@@ -54,7 +54,7 @@
     {
       "Name": "CatalystLandformTests",
       "Type": "Editor",
-      "LoadingPhase": "PostEngineInit"
+      "LoadingPhase": "None"
     }
   ]
 }

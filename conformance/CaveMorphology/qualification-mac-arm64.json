@@ -377,5 +377,10 @@
       "/Game/LandformDesigner/Caves/DA_KarstMorphology",
       "/Game/LandformDesigner/Caves/DA_CaveMorphology"
     ]
+  },
+  "appearanceAcceptance": {
+    "date": "2026-11-06",
+    "status": "failed-deferred",
+    "reason": "User rejected box-like cuts; native correctness does not qualify natural cave appearance."
   }
 }
