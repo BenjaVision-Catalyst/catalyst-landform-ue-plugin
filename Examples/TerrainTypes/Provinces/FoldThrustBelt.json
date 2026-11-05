@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000006",
+  "name": "Fold and thrust belt",
+  "description": "Province placeholder. Compressed sedimentary successions, not a generic high-relief mountain preset. Require sedimentary units as well as deformation context.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0.5,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "FoldThrustBelt",
+      "bPlaceholder": true,
+      "requirements": [
+        "ContinentalCrust",
+        "Compression",
+        "SedimentaryCover"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Structural ridges",
+        "Folded valleys",
+        "Thrust escarpments"
+      ],
+      "subsurfacePotential": [
+        "Formation-dependent karst",
+        "Fissure"
+      ]
+    }
+  }
+}

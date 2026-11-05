@@ -569,7 +569,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     const auto Raw=CompileUnmapped(Recipe,Error,Library,LocalRegion,SurfacePatch,SurfaceLibraryOverride);if(!Raw)return nullptr;
     if(Recipe.SchemaVersion<17||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface)return RetainInput(Raw);
     const bool TectonicShape=Raw->Tectonics&&Raw->Tectonics->HasEffect();
-    const bool HasShape=(Raw->Continents&&Raw->Continents->HasEffect())||TectonicShape||!Recipe.NoiseLayers.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||Recipe.RegionGeneration.bEnabled;
+    const bool RegionalShape=Recipe.RegionGeneration.bEnabled&&(Recipe.RegionGeneration.AlgorithmVersion<3||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&!P.Suitability.Province.bPlaceholder&&P.NoiseLayers.ContainsByPredicate([](const auto& L){return L.bEnabled;});}));
+    const bool HasShape=(Raw->Continents&&Raw->Continents->HasEffect())||TectonicShape||!Recipe.NoiseLayers.IsEmpty()||!Recipe.BaseStructure.IsEmpty()||!Recipe.TerrainRegions.IsEmpty()||RegionalShape;
     if(!HasShape)return RetainInput(Raw); // A newly created, empty planet is a perfect sphere.
     const auto* Low=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
     const auto* High=Raw->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C505200000001000000000000000B",
+  "name": "Basaltic volcanic province",
+  "description": "Province placeholder. Separate shield, distributed-field and flood-basalt subprofiles. Require suitable mafic flow units/history, not a dark surface material or plate boundary.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "BasalticVolcanic",
+      "bPlaceholder": true,
+      "requirements": [
+        "MaficFlowHistory"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Shield landscapes",
+        "Distributed lava fields",
+        "Flood-basalt plateaus"
+      ],
+      "subsurfacePotential": [
+        "Lava tubes",
+        "Skylights"
+      ]
+    }
+  }
+}

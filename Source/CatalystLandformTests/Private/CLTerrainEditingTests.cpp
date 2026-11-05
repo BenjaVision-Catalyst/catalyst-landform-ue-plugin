@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "CLTerrainEditing.h"
+#include "Model/CLStampDistribution.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/ScopeExit.h"
@@ -236,7 +237,7 @@ bool FCLMixedLayerIsolationTest::RunTest(const FString&)
     TestTrue(TEXT("All-off state is a flat guide-midpoint landscape"),Empty&&Empty->Layers.IsEmpty()&&FMath::IsNearlyEqual(Empty->BaseHeightMeters,-550.,1.e-6));
     Edit.Enable(0,true);Edit.Enable(1,true);Edit.Context.RadiusMeters=10000;
     TestFalse(TEXT("Oversized full stack reports its real placement budget"),Edit.CompilePreview(Error).IsValid());
-    TestTrue(TEXT("Budget diagnostic includes requested count and actionable density"),Error.Contains(TEXT("needs"))&&Error.Contains(TEXT("256"))&&Error.Contains(TEXT("/km2")));
+    TestTrue(*(FString(TEXT("Budget diagnostic includes requested count and actionable density: "))+Error),Error.Contains(TEXT("needs"))&&Error.Contains(FString::Printf(TEXT("limit %d"),FCLStampDistributionSettings::MaximumPlacements))&&Error.Contains(TEXT("/km2")));
     FString Before,After;Asset->ExportJsonString(Before,Error);
     Edit.SetSolo(1);const auto LargeSolo=Edit.CompilePreview(Error);
     TestTrue(TEXT("Noise Solo never compiles over-budget upstream stamps"),LargeSolo&&LargeSolo->Layers.Num()==1&&LargeSolo->GetDistributedStampCount()==0);

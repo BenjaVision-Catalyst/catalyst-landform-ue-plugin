@@ -22,7 +22,7 @@ bool FCLLandformSuitability::Validate(FString& Error) const
        !Range(PreferredElevation,-4,4)||!Range(PreferredSlopeDegrees,0,90)||!Range(PreferredScale,.001,8)||
        (bUsePreferences&&(LowerElevationGuide.IsNone()||UpperElevationGuide.IsNone())))
     {Error=TEXT("Landform placement preferences require finite, ordered ranges, valid guide names, affinities -1..1 and weight 0.01..100");return false;}
-    return true;
+    return Province.Validate(Error);
 }
 FVector FCLCompiledRegionGeneration::Signature(const FVector& D) const
 {
@@ -93,16 +93,18 @@ void FCLCompiledRegionGeneration::Blend(TConstArrayView<FVector> Directions,TArr
 bool FCLCompiledRegionGeneration::ValidateSettings(const FCLRegionGenerationSettings& Settings,FString& Error)
 {
     auto Fail=[&](const FString& E){Error=E;return false;};
-    if((Settings.AlgorithmVersion!=1&&Settings.AlgorithmVersion!=2)||Settings.RegionCount<8||Settings.RegionCount>128||Settings.Palette.Num()>32||Settings.Overrides.Num()>128||
+    if((Settings.AlgorithmVersion<1||Settings.AlgorithmVersion>3)||Settings.RegionCount<8||Settings.RegionCount>128||Settings.Palette.Num()>(Settings.AlgorithmVersion==3?31:32)||Settings.Overrides.Num()>128||
        !FMath::IsFinite(Settings.StructureGuidance)||Settings.StructureGuidance<0||Settings.StructureGuidance>1||
        !FMath::IsFinite(Settings.BlendFraction)||Settings.BlendFraction<.05||Settings.BlendFraction>1||
        !FMath::IsFinite(Settings.ReliefStrength)||Settings.ReliefStrength<0||Settings.ReliefStrength>1)
-        return Fail(TEXT("Region generation requires algorithm 1 or 2, 8..128 cells, at most 32 palette entries/128 overrides and finite guidance, blend and strength values"));
+        return Fail(TEXT("Region generation requires algorithm 1..3, 8..128 cells, at most 32 palette entries (31 in geological mode)/128 overrides and finite guidance, blend and strength values"));
     TSet<FGuid> Ids;
     for(const auto& Entry:Settings.Palette)
     {
         if(!Entry.Id.IsValid()||Ids.Contains(Entry.Id)||Entry.Name.TrimStartAndEnd().IsEmpty()||(Entry.AlgorithmVersion!=1&&Entry.AlgorithmVersion!=2)||!Entry.SurfaceStack.Validate(Error)||!Entry.Suitability.Validate(Error)||!FCLPlanetCompiler::ValidateNoiseLayers(Entry.NoiseLayers,Error))
             return Fail(Error.IsEmpty()?TEXT("Palette entries require unique IDs, names and valid source snapshots"):Error);
+        if(Entry.Suitability.Province.IsActive()&&Settings.AlgorithmVersion!=3)return Fail(TEXT("Province Landforms require geological region algorithm 3"));
+        if(Entry.Suitability.Province.bPlaceholder&&(!Entry.NoiseLayers.IsEmpty()||Entry.SurfaceStack.IsActive()))return Fail(TEXT("Province placeholders cannot replace base relief or material"));
         Ids.Add(Entry.Id);
     }
     if(Settings.bEnabled&&!Settings.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled;}))return Fail(TEXT("Select at least one enabled Landform for generated regions"));
@@ -117,6 +119,8 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     for(const auto& Entry:Settings.Palette)if(Entry.bEnabled)Out->Palette.Add(Entry);
     Out->Palette.Sort([](const auto& A,const auto& B){return A.Id.ToString(EGuidFormats::Digits)<B.Id.ToString(EGuidFormats::Digits);});
     if(Out->Palette.IsEmpty())return Fail(TEXT("Select at least one enabled Landform for generated regions"));
+    const int32 BasePalette=Settings.AlgorithmVersion==3?Out->Palette.Num():INDEX_NONE;
+    if(BasePalette>=0){auto& Neutral=Out->Palette.AddDefaulted_GetRef();Neutral.Id=FGuid();Neutral.Name=TEXT("Base geology");}
     if(FCLCompileProgress::IsPreparing())
     {
         // Resolve every possible native child on the game thread. An unused
@@ -158,9 +162,9 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     const double Epsilon=FMath::Clamp(FMath::Sqrt(4*UE_DOUBLE_PI/Settings.RegionCount)*.06,.003,.04);TArray<FVector> Samples;
     for(const auto& Cell:Out->Cells){const FVector X=Cell.Frame.GetAxisX(),Y=Cell.Frame.GetAxisY(),N=Cell.Centre;Samples.Append({N,(N+X*Epsilon).GetSafeNormal(),(N-X*Epsilon).GetSafeNormal(),(N+Y*Epsilon).GetSafeNormal(),(N-Y*Epsilon).GetSafeNormal()});}
     TArray<double> Heights;Base.SampleHeightsMeters(Samples,Heights);
-    struct FBaseSample {double Height,Slope;FVector Signature;};
+    struct FBaseSample {double Height,Slope;FVector Signature;FCLProvinceGeology Geology;};
     TArray<TArray<FBaseSample>> Character;Character.SetNum(Out->Cells.Num());
-    if(Settings.AlgorithmVersion==2)
+    if(Settings.AlgorithmVersion>=2)
     {
         // Equal-area sphere samples follow actual cell ownership, not a disc
         // approximation around the site. Fixed 128 samples/cell on average;
@@ -184,7 +188,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
                 const int32 K=J*5;const FVector PX=D[K+1]*(Base.RadiusMeters+H[K+1]),NX=D[K+2]*(Base.RadiusMeters+H[K+2]),PY=D[K+3]*(Base.RadiusMeters+H[K+3]),NY=D[K+4]*(Base.RadiusMeters+H[K+4]);
                 const FVector Normal=FVector::CrossProduct(PX-NX,PY-NY).GetSafeNormal();
                 const double Slope=FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FMath::Abs(FVector::DotProduct(Normal,D[K])),0.,1.)));
-                Character[Out->Owner(D[K])].Add({H[K],Slope,Out->Signature(D[K])});
+                Character[Out->Owner(D[K])].Add({H[K],Slope,Out->Signature(D[K]),Settings.AlgorithmVersion==3?FCLProvinceGeology::Sample(Base,D[K]):FCLProvinceGeology()});
             }
         }
         for(int32 I=0;I<Out->Cells.Num();++I)
@@ -206,6 +210,25 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
             Cell.Scale=2*FMath::Sqrt(Cell.SolidAngle)*(Base.RadiusMeters+Base.BaseHeightMeters)/Base.RadiusMeters;
         }
     }
+    struct FEligibility {bool Allowed=true;int32 Positive=0,Unknown=0;FString Reason;};
+    TArray<TArray<FEligibility>> Eligibility;
+    if(Settings.AlgorithmVersion==3)
+    {
+        Eligibility.SetNum(Out->Cells.Num());
+        for(int32 I=0;I<Out->Cells.Num();++I)
+        {
+            Eligibility[I].SetNum(Out->Palette.Num());
+            for(int32 P=0;P<Out->Palette.Num();++P)
+            {
+                const auto& Definition=Out->Palette[P].Suitability.Province;if(!Definition.IsActive())continue;
+                auto& Fit=Eligibility[I][P];FString Missing;
+                for(const auto& Sample:Character[I])
+                {FString Why;const auto Match=Definition.Match(Sample.Geology,&Why);Fit.Positive+=Match==ECLProvinceMatch::Eligible;Fit.Unknown+=Match==ECLProvinceMatch::Unknown;if(Missing.IsEmpty()&&Match!=ECLProvinceMatch::Eligible)Missing=Why;}
+                Fit.Allowed=double(Fit.Positive)/Character[I].Num()+1.e-12>=Definition.MinimumCoverage;
+                Fit.Reason=FString::Printf(TEXT("Geological prerequisites: %d/%d positive area samples, %d unknown; required %.0f%% coverage. %s"),Fit.Positive,Character[I].Num(),Fit.Unknown,100*Definition.MinimumCoverage,Fit.Allowed?TEXT("Compatible base geology."):*Missing);
+            }
+        }
+    }
     TSet<FGuid> OverrideIds;
     for(const auto& Override:Settings.Overrides)
     {
@@ -215,12 +238,13 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     {
         auto& Cell=Out->Cells[I];if(Settings.AlgorithmVersion==1){Cell.HeightMeters=Heights[I*5];const double Span=2*Epsilon*(Base.RadiusMeters+Base.BaseHeightMeters);
         Cell.SlopeDegrees=FMath::RadiansToDegrees(FMath::Atan(FMath::Sqrt(FMath::Square((Heights[I*5+1]-Heights[I*5+2])/Span)+FMath::Square((Heights[I*5+3]-Heights[I*5+4])/Span))));}
-        if(Out->Palette.Num()==1){Cell.PaletteIndex=0;Cell.Score=1;Cell.Reason=TEXT("Only selected Landform; used in every region. Placement preferences do not exclude regions.");}
+        if(Out->Palette.Num()==1&&Settings.AlgorithmVersion!=3){Cell.PaletteIndex=0;Cell.Score=1;Cell.Reason=TEXT("Only selected Landform; used in every region. Placement preferences do not exclude regions.");}
         else
         {
             double Best=-1;
             for(int32 P=0;P<Out->Palette.Num();++P)
             {
+                if(P==BasePalette||(Settings.AlgorithmVersion==3&&!Eligibility[I][P].Allowed))continue;
                 const auto& Entry=Out->Palette[P];const auto& S=Entry.Suitability;double Score=1;
                 if(S.bUsePreferences)
                 {
@@ -254,15 +278,28 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
                 const double Choice=Score*(.9+.2*RandomRegion(Seed^MixRegion(uint32(I))^MixRegion(Entry.Id.A)^MixRegion(Entry.Id.B)^MixRegion(Entry.Id.C)^MixRegion(Entry.Id.D)));
                 if(Choice>Best){Best=Choice;Cell.PaletteIndex=P;Cell.Score=Score;}
             }
+            if(Settings.AlgorithmVersion==3&&Cell.PaletteIndex<0){Cell.PaletteIndex=BasePalette;Cell.Score=0;}
             Cell.Reason=FString::Printf(TEXT("Best seeded suitability match (score %.3f). Uplift %.2f, basin %.2f, structural edge %.2f; base slope %.1f°, region scale %.2f × radius. %s"),Cell.Score,Cell.Uplift,Cell.Basin,Cell.StructuralEdge,Cell.SlopeDegrees,Cell.Scale,Out->Palette[Cell.PaletteIndex].Suitability.bUsePreferences?TEXT("Named elevation guides and placement preferences applied."):TEXT("Neutral placement preferences."));
         }
-        if(Settings.AlgorithmVersion==2)
+        if(Settings.AlgorithmVersion==3&&Cell.PaletteIndex<0){Cell.PaletteIndex=BasePalette;Cell.Score=0;}
+        if(Settings.AlgorithmVersion>=2)
         {
             const double Low=(Base.RadiusMeters+Cell.MinimumBaseHeightMeters)/Base.RadiusMeters,High=(Base.RadiusMeters+Cell.MaximumBaseHeightMeters)/Base.RadiusMeters;
             Cell.Reason=FString::Printf(TEXT("Area suitability: %s (score %.3f), %d equal-area samples. Sampled base radial height %.3f–%.3f × radius; slope median %.1f°, 90th percentile %.1f°. Mean uplift %.2f, basin %.2f, edge %.2f. %s"),*Out->Palette[Cell.PaletteIndex].Name,Cell.Score,Cell.CharacterSampleCount,Low,High,Cell.MedianSlopeDegrees,Cell.UpperSlopeDegrees,Cell.Uplift,Cell.Basin,Cell.StructuralEdge,Out->Palette.Num()==1?TEXT("Only selected source fills every region."):TEXT("Joint elevation, slope and structural fit averaged across the cell."));
         }
+        if(Settings.AlgorithmVersion==3)
+        {
+            if(Cell.PaletteIndex==BasePalette)
+            {
+                Cell.PaletteIndex=BasePalette;Cell.Score=0;Cell.Reason=TEXT("Base geology retained: no selected Landform meets its geological prerequisites.");
+                for(int32 P=0;P<FMath::Min(4,BasePalette);++P)Cell.Reason+=TEXT(" ")+Out->Palette[P].Name+TEXT(": ")+Eligibility[I][P].Reason;
+            }
+            else Cell.Reason+=TEXT(" ")+Eligibility[I][Cell.PaletteIndex].Reason;
+        }
         if(const auto* Override=Settings.Overrides.FindByPredicate([&](const auto& O){return O.RegionId==Cell.Id;}))
-        {Cell.PaletteIndex=Out->Palette.IndexOfByPredicate([&](const auto& P){return P.Id==Override->LandformId;});Cell.bOverride=true;Cell.Reason=FString::Printf(TEXT("Editorial assignment: %s. Automatic evaluation: %s"),*Out->Palette[Cell.PaletteIndex].Name,*Cell.Reason);}
+        {const int32 Assigned=Out->Palette.IndexOfByPredicate([&](const auto& P){return P.Id==Override->LandformId;});
+            if(Settings.AlgorithmVersion==3&&!Eligibility[I][Assigned].Allowed)return Fail(TEXT("Editorial province assignment is incompatible or lacks base geology: ")+Out->Palette[Assigned].Name+TEXT(". ")+Eligibility[I][Assigned].Reason);
+            Cell.PaletteIndex=Assigned;Cell.bOverride=true;Cell.Reason=FString::Printf(TEXT("Editorial assignment: %s. Automatic evaluation: %s"),*Out->Palette[Cell.PaletteIndex].Name,*Cell.Reason);}
     }
     Out->Fields.SetNum(Out->Palette.Num());
     for(int32 P=0;P<Out->Palette.Num();++P)if(Out->Cells.ContainsByPredicate([&](const auto& C){return C.PaletteIndex==P;}))
@@ -314,7 +351,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
 bool UCLPlanetRecipeAsset::AddPaletteSource(UCLTerrainTypeAsset* Source,FString& Error)
 {
     if(!Source||Source->TerrainType.Coordinates!=ECLTerrainCoordinates::SphericalSurface||!Source->TerrainType.Validate(Error)){if(Error.IsEmpty())Error=TEXT("Select a valid spherical-surface Landform");return false;}
-    auto Candidate=Recipe;Candidate.SchemaVersion=FMath::Max(12,Candidate.SchemaVersion);if(Candidate.RegionGeneration.Palette.IsEmpty()){Candidate.RegionGeneration.bEnabled=true;Candidate.RegionGeneration.AlgorithmVersion=2;}auto* Entry=Candidate.RegionGeneration.Palette.FindByPredicate([&](const auto& P){return P.Id==Source->TerrainType.Id;});
+    auto Candidate=Recipe;Candidate.SchemaVersion=FMath::Max(12,Candidate.SchemaVersion);if(Candidate.RegionGeneration.Palette.IsEmpty()){Candidate.RegionGeneration.bEnabled=true;Candidate.RegionGeneration.AlgorithmVersion=2;}if(Source->TerrainType.PlacementSuitability.Province.IsActive())Candidate.RegionGeneration.AlgorithmVersion=3;auto* Entry=Candidate.RegionGeneration.Palette.FindByPredicate([&](const auto& P){return P.Id==Source->TerrainType.Id;});
     if(!Entry){if(Candidate.RegionGeneration.Palette.Num()>=32){Error=TEXT("The palette supports at most 32 Landforms");return false;}Entry=&Candidate.RegionGeneration.Palette.AddDefaulted_GetRef();}
     Entry->Id=Source->TerrainType.Id;Entry->Name=Source->TerrainType.Name;Entry->AlgorithmVersion=Source->TerrainType.AlgorithmVersion;Entry->Suitability=Source->TerrainType.PlacementSuitability;Entry->NoiseLayers=Source->TerrainType.NoiseLayers;Entry->SurfaceStack=Source->TerrainType.SurfaceStack;
     if(Entry->SurfaceStack.IsActive()){Candidate.SchemaVersion=FMath::Max(13,Candidate.SchemaVersion);if(!Candidate.SurfaceStack.IsActive()){Candidate.SurfaceStack.DefaultSurfaceId=Entry->SurfaceStack.DefaultSurfaceId;Candidate.SurfaceStack.DefaultSurfaceRevision=Entry->SurfaceStack.DefaultSurfaceRevision;}}

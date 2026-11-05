@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000009",
+  "name": "Transform and shear belt",
+  "description": "Province placeholder. Strike-slip deformation context from the existing finite plate belts. Shear does not by itself establish open permeability, deposition or hydrothermal activity.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "TransformBelt",
+      "bPlaceholder": true,
+      "requirements": [
+        "Shear"
+      ],
+      "minimumCoverage": 0.35,
+      "regionalForms": [
+        "Shear valleys",
+        "Offset ridges",
+        "Pull-apart settings"
+      ],
+      "subsurfacePotential": [
+        "Open-fracture caves"
+      ]
+    }
+  }
+}

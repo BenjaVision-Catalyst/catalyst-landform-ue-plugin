@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000010",
+  "name": "Impact province",
+  "description": "Province placeholder. Planetary extension: require an impact record and affected units. A round depression is not impact evidence.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "ImpactProvince",
+      "bPlaceholder": true,
+      "requirements": [
+        "ImpactHistory"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Impact basins",
+        "Crater fields",
+        "Ejecta terrain",
+        "Impact-melt units"
+      ],
+      "subsurfacePotential": [
+        "Fracture and collapse potential"
+      ]
+    }
+  }
+}

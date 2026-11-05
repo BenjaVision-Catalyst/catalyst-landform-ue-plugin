@@ -1,5 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "Model/CLProvinceDefinition.h"
 #include "CLLandformSuitability.generated.h"
 
 /** Optional placement preferences; no planet guide values, radius or placements. */
@@ -19,5 +20,6 @@ struct CATALYSTLANDFORM_API FCLLandformSuitability
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="bUsePreferences",Units="deg")) FVector2D PreferredSlopeDegrees=FVector2D(0,90);
     /** Approximate region diameter / outer planet radius; independent of planet size. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="bUsePreferences")) FVector2D PreferredScale=FVector2D(.01,4);
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLProvinceDefinition Province;
     bool Validate(FString& Error) const;
 };

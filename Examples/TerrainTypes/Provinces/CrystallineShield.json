@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000001",
+  "name": "Crystalline shield",
+  "description": "Province placeholder. Ancient exposed crystalline basement. Define age, exposure and intrusive/metamorphic units from base geology; strength and elevation alone do not identify a shield.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "CrystallineShield",
+      "bPlaceholder": true,
+      "requirements": [
+        "ContinentalCrust",
+        "CrystallineBasement",
+        "AncientBasement"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Exposed basement",
+        "Weathered uplands",
+        "Jointed outcrops"
+      ],
+      "subsurfacePotential": [
+        "Fissure",
+        "Talus"
+      ]
+    }
+  }
+}

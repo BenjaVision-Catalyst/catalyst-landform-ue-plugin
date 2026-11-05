@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C505200000001000000000000000D",
+  "name": "Plutonic and intrusive province",
+  "description": "Province placeholder. Intrusive bodies, dikes and sills with explicit host contacts. Surface expression follows emplacement, uplift and exposure history.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "IntrusiveProvince",
+      "bPlaceholder": true,
+      "requirements": [
+        "IntrusionHistory"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Exposed batholiths",
+        "Jointed granite terrain",
+        "Intrusive contacts"
+      ],
+      "subsurfacePotential": [
+        "Fissure",
+        "Weathering openings"
+      ]
+    }
+  }
+}

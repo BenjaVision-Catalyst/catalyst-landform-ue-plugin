@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C505200000001000000000000000A",
+  "name": "Volcanic arc province",
+  "description": "Province placeholder. Continental and island arc variants. A convergent belt alone is not a volcanic record; require declared arc and eruption history.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "VolcanicArc",
+      "bPlaceholder": true,
+      "requirements": [
+        "SubductionHistory",
+        "VolcanicHistory"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Volcanic centres",
+        "Arc ridges",
+        "Volcaniclastic basins"
+      ],
+      "subsurfacePotential": [
+        "Flow-dependent lava tubes",
+        "Context-dependent hypogene"
+      ]
+    }
+  }
+}

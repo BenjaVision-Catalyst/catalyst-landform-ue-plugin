@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000011",
+  "name": "Icy-crust province",
+  "description": "Province placeholder. Planetary extension for an actual ice-dominated crust. This differs from a glacier over rock or ice lining a rock cave; a cold climate is insufficient.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "IcyCrust",
+      "bPlaceholder": true,
+      "requirements": [
+        "IceCrust"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Ice-dominated crust",
+        "Fractured ice terrain",
+        "Icy depositional units"
+      ],
+      "subsurfacePotential": [
+        "Ice-hosted cavities"
+      ]
+    }
+  }
+}

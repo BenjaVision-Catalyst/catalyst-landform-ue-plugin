@@ -114,6 +114,10 @@ bool FCLTerrainEditing::PreviewRecipe(FCLPlanetRecipe& Recipe,FBox2D& Region,FSt
 {
     Recipe = Context;Recipe.Watershed=FCLWatershedSettings();
     auto Visible = Asset->TerrainType;
+    if(Visible.PlacementSuitability.Province.IsActive()&&!Visible.Validate(OutError))return false;
+    // The source editor previews only this Landform's relief definition. Its
+    // geological eligibility is evaluated when applied through a planet palette.
+    Visible.PlacementSuitability.Province=FCLProvinceDefinition();
     if (Visible.NoiseLayers.IsValidIndex(Solo) && Visible.NoiseLayers[Solo].bEnabled)
     {
         if (Visible.NoiseLayers[Solo].Operation == ECLTerrainOperation::Terrace)

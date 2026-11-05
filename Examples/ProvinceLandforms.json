@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "status": "Province placeholders: definitions and placement prerequisites; no regional relief or cave generators",
+  "assetRoot": "/CatalystLandform/TerrainTypes/Provinces",
+  "profiles": [
+    {
+      "type": "CrystallineShield",
+      "name": "Crystalline shield",
+      "source": "Examples/TerrainTypes/Provinces/CrystallineShield.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_CrystallineShield",
+      "id": "434C5052000000010000000000000001"
+    },
+    {
+      "type": "ContinentalPlatform",
+      "name": "Covered continental platform",
+      "source": "Examples/TerrainTypes/Provinces/ContinentalPlatform.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_ContinentalPlatform",
+      "id": "434C5052000000010000000000000002"
+    },
+    {
+      "type": "ClasticBasin",
+      "name": "Clastic sedimentary basin",
+      "source": "Examples/TerrainTypes/Provinces/ClasticBasin.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_ClasticBasin",
+      "id": "434C5052000000010000000000000003"
+    },
+    {
+      "type": "CarbonatePlatform",
+      "name": "Carbonate platform and reef province",
+      "source": "Examples/TerrainTypes/Provinces/CarbonatePlatform.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_CarbonatePlatform",
+      "id": "434C5052000000010000000000000004"
+    },
+    {
+      "type": "EvaporiteBasin",
+      "name": "Evaporite basin",
+      "source": "Examples/TerrainTypes/Provinces/EvaporiteBasin.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_EvaporiteBasin",
+      "id": "434C5052000000010000000000000005"
+    },
+    {
+      "type": "FoldThrustBelt",
+      "name": "Fold and thrust belt",
+      "source": "Examples/TerrainTypes/Provinces/FoldThrustBelt.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_FoldThrustBelt",
+      "id": "434C5052000000010000000000000006"
+    },
+    {
+      "type": "MetamorphicCore",
+      "name": "Metamorphic mountain core",
+      "source": "Examples/TerrainTypes/Provinces/MetamorphicCore.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_MetamorphicCore",
+      "id": "434C5052000000010000000000000007"
+    },
+    {
+      "type": "ContinentalRift",
+      "name": "Continental rift and fault-block province",
+      "source": "Examples/TerrainTypes/Provinces/ContinentalRift.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_ContinentalRift",
+      "id": "434C5052000000010000000000000008"
+    },
+    {
+      "type": "TransformBelt",
+      "name": "Transform and shear belt",
+      "source": "Examples/TerrainTypes/Provinces/TransformBelt.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_TransformBelt",
+      "id": "434C5052000000010000000000000009"
+    },
+    {
+      "type": "VolcanicArc",
+      "name": "Volcanic arc province",
+      "source": "Examples/TerrainTypes/Provinces/VolcanicArc.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_VolcanicArc",
+      "id": "434C505200000001000000000000000A"
+    },
+    {
+      "type": "BasalticVolcanic",
+      "name": "Basaltic volcanic province",
+      "source": "Examples/TerrainTypes/Provinces/BasalticVolcanic.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_BasalticVolcanic",
+      "id": "434C505200000001000000000000000B"
+    },
+    {
+      "type": "SilicicVolcanic",
+      "name": "Silicic volcanic province",
+      "source": "Examples/TerrainTypes/Provinces/SilicicVolcanic.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_SilicicVolcanic",
+      "id": "434C505200000001000000000000000C"
+    },
+    {
+      "type": "IntrusiveProvince",
+      "name": "Plutonic and intrusive province",
+      "source": "Examples/TerrainTypes/Provinces/IntrusiveProvince.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_IntrusiveProvince",
+      "id": "434C505200000001000000000000000D"
+    },
+    {
+      "type": "PassiveMargin",
+      "name": "Passive continental margin",
+      "source": "Examples/TerrainTypes/Provinces/PassiveMargin.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_PassiveMargin",
+      "id": "434C505200000001000000000000000E"
+    },
+    {
+      "type": "OceanicCrust",
+      "name": "Oceanic crust province",
+      "source": "Examples/TerrainTypes/Provinces/OceanicCrust.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_OceanicCrust",
+      "id": "434C505200000001000000000000000F"
+    },
+    {
+      "type": "ImpactProvince",
+      "name": "Impact province",
+      "source": "Examples/TerrainTypes/Provinces/ImpactProvince.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_ImpactProvince",
+      "id": "434C5052000000010000000000000010"
+    },
+    {
+      "type": "IcyCrust",
+      "name": "Icy-crust province",
+      "source": "Examples/TerrainTypes/Provinces/IcyCrust.json",
+      "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_IcyCrust",
+      "id": "434C5052000000010000000000000011"
+    }
+  ]
+}

@@ -651,6 +651,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLRockDesignerTest;
     friend class FCLSurfaceDesignerTest;
     friend class FCLWatershedDesignerTest;
+    friend class FCLProvinceEditorTest;
     friend class FCLAuthoringLayoutTest;
     friend class FCLBackgroundDesignerTest;
     friend class FCLNavigationResponsivenessTest;
@@ -1523,40 +1524,39 @@ public:
         }
         else if(Page==2)
         {
-            auto& S=B.EditCategory(TEXT("EditorialStructure"),FText::FromString(TEXT("Structure")));S.SetSortOrder(0);
+            auto& C=B.EditCategory(TEXT("TerrainComposition"),FText::FromString(TEXT("Landforms")));C.SetSortOrder(0);auto& S=C;
             InspectorRow(S,TEXT("Add"),SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})]);
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})],true);
             Add(S,TEXT("BaseStructure"),true);S.SetShowAdvanced(false);
-            auto& C=B.EditCategory(TEXT("TerrainComposition"),FText::FromString(TEXT("Landforms")));C.SetSortOrder(1);
             InspectorRow(C,TEXT("Base terrain"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::TerrainMenu)
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{const FString& Name=RecipeAsset()->Recipe.TerrainTypeName;return FText::FromString(Name.IsEmpty()?TEXT("None"):Name);})]);
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{const FString& Name=RecipeAsset()->Recipe.TerrainTypeName;return FText::FromString(Name.IsEmpty()?TEXT("None"):Name);})],true);
             InspectorRow(C,TEXT("Base source"),SNew(SButton).Text(FText::FromString(TEXT("Edit"))).IsEnabled_Lambda([this]{return TerrainSource.IsValid();})
-                .OnClicked_Lambda([this]{if(TerrainSource)CLOpenTerrainDesigner(TerrainSource.Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();}));
+                .OnClicked_Lambda([this]{if(TerrainSource)CLOpenTerrainDesigner(TerrainSource.Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();}),true);
             InspectorRow(C,TEXT("Add Landform"),SNew(SComboButton).OnGetMenuContent_Lambda([this]{return TerrainSourceMenu(FGuid(),true);})
-                .ButtonContent()[InspectorLabel(TEXT("Landform"))]);
+                .ButtonContent()[InspectorLabel(TEXT("Landform"))],true);
             InspectorRow(C,TEXT("Selection"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::GlobeSelectionMenu)
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(Globe?Globe->SelectionName():TEXT("None"));})]);
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(Globe?Globe->SelectionName():TEXT("None"));})],true);
             auto Modes=SNew(SHorizontalBox);
             for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
                 Modes->AddSlot().AutoWidth()[SNew(SButton).Text(FText::FromString(Mode==ECLGlobePlacementMode::Move?TEXT("Move"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate"):TEXT("Scale")))
                     .OnClicked_Lambda([this,Mode]{if(Globe)Globe->SetPlacementMode(Mode);return FReply::Handled();})];
-            InspectorRow(C,TEXT("Transform"),Modes);
+            InspectorRow(C,TEXT("Transform"),Modes,true);
             InspectorRow(C,TEXT("Source"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return Globe&&!Globe->Selection().bStructure&&RecipeAsset()->LandformSources.Contains(Globe->Selection().Id);})
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Edit"))).OnClicked_Lambda([this]{if(auto* Source=RecipeAsset()->LandformSources.Find(Globe->Selection().Id))CLOpenTerrainDesigner(Source->Get(),&RecipeAsset()->Recipe.RadialGuides);return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);});return FReply::Handled();})]);
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);});return FReply::Handled();})],true);
             InspectorRow(C,TEXT("Landform"),SNew(SButton).Text(FText::FromString(TEXT("Remove")))
                 .IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
-                .OnClicked_Lambda([this]{const auto Id=Globe->Selection().Id;const FScopedTransaction Tx(FText::FromString(TEXT("Remove Landform")));auto* A=RecipeAsset();A->Modify();A->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});A->LandformSources.Remove(Id);Globe->Select({});A->MarkPackageDirty();A->PostEditChange();return FReply::Handled();}));
+                .OnClicked_Lambda([this]{const auto Id=Globe->Selection().Id;const FScopedTransaction Tx(FText::FromString(TEXT("Remove Landform")));auto* A=RecipeAsset();A->Modify();A->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});A->LandformSources.Remove(Id);Globe->Select({});A->MarkPackageDirty();A->PostEditChange();return FReply::Handled();}),true);
             InspectorRow(C,TEXT("Structure"),SNew(SComboButton).IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
                 .OnGetMenuContent_Lambda([this]{return StructureMenu(Globe->Selection().Id);})
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{if(Globe){const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Globe->Selection().Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}}return FText::FromString(TEXT("Planet frame"));})]);
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{if(Globe){const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Globe->Selection().Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}}return FText::FromString(TEXT("Planet frame"));})],true);
             RegionProperties=Property(TEXT("TerrainRegions"));C.AddProperty(RegionProperties,EPropertyLocation::Advanced);Add(C,TEXT("NoiseLayers"),true);C.SetShowAdvanced(false);
-            auto& G=B.EditCategory(TEXT("RegionalDistribution"),FText::FromString(TEXT("Distribution")));G.SetSortOrder(2);
-            const auto Settings=Property(TEXT("RegionGeneration"));G.AddProperty(Settings->GetChildHandle(TEXT("bEnabled")));
-            InspectorRow(G,TEXT("Palette"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::PaletteMenu).ButtonContent()[InspectorLabel(TEXT("Landforms"))]);
-            G.AddProperty(Settings->GetChildHandle(TEXT("ReliefStrength")));
+            auto& G=C;
+            const auto Settings=Property(TEXT("RegionGeneration"));G.AddProperty(Settings->GetChildHandle(TEXT("bEnabled")),EPropertyLocation::Advanced);
+            InspectorRow(G,TEXT("Include"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::PaletteMenu).ButtonContent()[InspectorLabel(TEXT("Landforms"))]);
+            G.AddProperty(Settings->GetChildHandle(TEXT("ReliefStrength")),EPropertyLocation::Advanced);
             for(const TCHAR* Name:{TEXT("RegionCount"),TEXT("Seed"),TEXT("StructureGuidance"),TEXT("BlendFraction"),TEXT("Overrides")})G.AddProperty(Settings->GetChildHandle(FName(Name)),EPropertyLocation::Advanced);
             InspectorRow(G,TEXT("Region"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::RegionMenu)
                 .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return GenerationPanel->SelectionText();})],true);
@@ -1564,7 +1564,7 @@ public:
                 +SHorizontalBox::Slot().FillWidth(1)[SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::OverrideMenu).ButtonContent()[InspectorLabel(TEXT("Landform"))]]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Clear"))).OnClicked_Lambda([this]{GenerationPanel->ClearOverrides();return FReply::Handled();})],true);G.SetShowAdvanced(false);
             if(RecipeAsset()->Recipe.SchemaVersion>=18)
-            {auto& V=B.EditCategory(TEXT("SolidForms"),FText::FromString(TEXT("Solid forms")));V.SetSortOrder(3);Add(V,TEXT("Volumes"));}
+            {Add(C,TEXT("Volumes"),true);}
         }
         else if(Page==3)
         {auto& C=B.EditCategory(TEXT("GroundMaterials"),FText::FromString(TEXT("Surface")));Add(C,TEXT("SurfaceStack"));}
@@ -2914,6 +2914,58 @@ bool FCLSurfaceRenderedTest::RunTest(const FString&)
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Globe,Section,Window,Content));return true;
+}
+}
+#endif
+
+
+#if WITH_DEV_AUTOMATION_TESTS
+namespace {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLProvinceEditorTest,"Catalyst.Landform.Provinces.NativeDesignerAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLProvinceEditorTest::RunTest(const FString&)
+{
+    auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ProvincePlacement"));if(!TestNotNull(TEXT("Owned province review planet exists"),Review))return false;TestEqual(TEXT("Review retains all native source links"),Review->PaletteSources.Num(),17);
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLProvinceEditor_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));A->Recipe=Review->Recipe;
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_CarbonatePlatform"));if(!TestNotNull(TEXT("Province source exists"),Source))return false;
+    const auto SourceBefore=Source->TerrainType;const bool DirtyBefore=Source->GetOutermost()->IsDirty();FCLTerrainEditing Edit;Edit.Open(Source);FCLPlanetRecipe Preview;FBox2D Bounds;FString Error;
+    if(!TestTrue(TEXT("Province source retains its existing isolated native preview"),Edit.PreviewRecipe(Preview,Bounds,Error))){AddError(Error);return false;}
+    TestTrue(TEXT("Isolated preview preserves original province metadata"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&SourceBefore,&Source->TerrainType,0));TestEqual(TEXT("Isolated preview does not dirty the source"),Source->GetOutermost()->IsDirty(),DirtyBefore);
+    const auto Before=A->Recipe;auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=2;
+    class FReview final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;FCLPlanetRecipe Before;
+        int32 Frame=-1;double Start=FPlatformTime::Seconds(),Last=0;TArray<double> Times;uint32 Evaluations=0,Owner=0;uint64 Copies=0;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A,FCLPlanetRecipe R):Test(T),Editor(E),Asset(A),Before(MoveTemp(R)){}
+        bool Update()override
+        {
+            auto Close=[&]{Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};const double Now=FPlatformTime::Seconds();
+            if(Now-Start>150){Test->AddError(Editor->Status);return Close();}
+            if(Frame<0)
+            {
+                if(Editor->EvaluationUpdating())return false;
+                if(!Test->TestTrue(TEXT("Province selection uses the existing background worker"),Editor->LastEvaluationWasWorker))return Close();
+                const auto P=Editor->AcceptedSurfacePlan;if(!Test->TestTrue(TEXT("Published review contains the 17 profiles plus neutral base"),P&&P->GeneratedRegions&&P->GeneratedRegions->Palette.Num()==18))return Close();
+                Editor->Globe->SetRegionInspection(true);Evaluations=Editor->Evaluation.Started;auto* N=Editor->Globe->NativeForTesting();if(!Test->TestNotNull(TEXT("VPP presents the province review"),N))return Close();if(N->PublishedPlan()!=P||N->IsUpdating())return false;Owner=N->WorldIdentity();Copies=N->Metrics.MeshCopies;Frame=0;Last=Now;return false;
+            }
+            Times.Add((Now-Last)*1000);Last=Now;
+            Editor->Globe->OrbitForTesting(FVector2D(.8,.1));Editor->Globe->Dolly(Frame%2?.01:-.01);
+            Test->TestFalse(TEXT("Province inspection navigation has no authoring progress"),Editor->AuthoringUpdating());
+            if(++Frame<90)return false;
+            Times.RemoveAt(0);Times.Sort();const double P95=Times[FMath::Min(Times.Num()-1,int32(Times.Num()*.95))];Test->TestTrue(TEXT("Bounded province inspection p95 is below 50 ms"),P95<50);
+            Test->TestEqual(TEXT("Navigation does not reclassify provinces"),Editor->Evaluation.Started,Evaluations);Test->TestEqual(TEXT("Navigation retains native owner"),Editor->Globe->NativeForTesting()->WorldIdentity(),Owner);Test->TestEqual(TEXT("Navigation extracts no terrain mesh"),Editor->Globe->NativeForTesting()->Metrics.MeshCopies,Copies);
+            Test->TestTrue(TEXT("Opening/inspecting province placeholders never edits the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&Asset->Recipe,0));
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/provinces");IFileManager::Get().MakeDirectory(*Dir,true);TArray<FColor> Pixels;FIntVector Size;
+            Test->TestTrue(TEXT("Native province review renders"),FSlateApplication::Get().TakeScreenshot(Editor->Globe.ToSharedRef(),Pixels,Size));if(!Pixels.IsEmpty()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/TEXT("globe.png")));}
+            const auto View=Editor->PlanetInspectors[2].ToSharedRef();FString Text;TFunction<void(TSharedRef<SWidget>)> Collect=[&](TSharedRef<SWidget> W){if(!W->GetVisibility().IsVisible())return;if(W->GetType()==FName(TEXT("STextBlock")))Text+=StaticCastSharedRef<STextBlock>(W)->GetText().ToString()+TEXT(";");auto* Children=W->GetChildren();for(int32 I=0;I<Children->Num();++I)Collect(Children->GetChildAt(I));};Collect(View);
+            Test->TestTrue(TEXT("Landform build UI provides the native inclusion chooser"),Text.Contains(TEXT("Include")));
+            for(const TCHAR* Forbidden:{TEXT("Base terrain"),TEXT("Region count"),TEXT("Structure guidance"),TEXT("Relief strength"),TEXT("Transform"),TEXT("Solid forms")})Test->TestFalse(FString(TEXT("Default build UI excludes "))+Forbidden,Text.Contains(Forbidden));
+            Pixels.Reset();Test->TestTrue(TEXT("Simple native Landform build UI renders"),FSlateApplication::Get().TakeScreenshot(View,Pixels,Size));if(!Pixels.IsEmpty()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/TEXT("landforms.png")));}
+            const auto G=Editor->AcceptedSurfacePlan->GeneratedRegions;FString Counts;int32 Assigned=0;for(int32 I=0;I<G->Palette.Num();++I){int32 Count=0;for(const auto& C:G->Cells)Count+=C.PaletteIndex==I;if(G->Palette[I].Id.IsValid())Assigned+=Count;if(!Counts.IsEmpty())Counts+=TEXT(",");Counts+=FString::Printf(TEXT("\"%s\":%d"),*G->Palette[I].Name,Count);}
+            const FString JSON=FString::Printf(TEXT("{\"frames\":90,\"p95Ms\":%.6f,\"assignedRegions\":%d,\"retainedBaseRegions\":%d,\"counts\":{%s}}\n"),P95,Assigned,G->Cells.Num()-Assigned,*Counts);FFileHelper::SaveStringToFile(JSON,*(Dir/TEXT("native-review.json")));Test->AddInfo(JSON);return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Before));return true;
 }
 }
 #endif

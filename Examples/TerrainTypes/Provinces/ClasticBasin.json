@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000003",
+  "name": "Clastic sedimentary basin",
+  "description": "Province placeholder. A basin-fill profile containing sandstone, siltstone, shale and conglomerate sequences. A geometric low is insufficient evidence of deposition.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0.5,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "ClasticBasin",
+      "bPlaceholder": true,
+      "requirements": [
+        "ContinentalCrust",
+        "ClasticSequence"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Layered hills",
+        "Escarpments",
+        "Valleys",
+        "Depositional lowlands"
+      ],
+      "subsurfacePotential": [
+        "Fracture openings",
+        "Weathering shelters"
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000002",
+  "name": "Covered continental platform",
+  "description": "Province placeholder. Sedimentary cover above older continental basement. Preserve the shared succession and its contacts; deformation and erosion history determine local expression.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "ContinentalPlatform",
+      "bPlaceholder": true,
+      "requirements": [
+        "ContinentalCrust",
+        "SedimentaryCover"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Broad plains",
+        "Layered plateaus",
+        "Escarpments"
+      ],
+      "subsurfacePotential": [
+        "Formation-dependent karst",
+        "Fissure"
+      ]
+    }
+  }
+}

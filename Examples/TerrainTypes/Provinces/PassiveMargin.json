@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C505200000001000000000000000E",
+  "name": "Passive continental margin",
+  "description": "Province placeholder. A margin profile requiring geological history. Being near sea level or far from an active belt does not prove a passive margin.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "PassiveMargin",
+      "bPlaceholder": true,
+      "requirements": [
+        "PassiveMarginHistory"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Coastal plains",
+        "Continental shelves",
+        "Continental slopes"
+      ],
+      "subsurfacePotential": [
+        "Coastal erosion",
+        "Formation-dependent karst"
+      ]
+    }
+  }
+}

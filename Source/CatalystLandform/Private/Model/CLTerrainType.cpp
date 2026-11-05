@@ -6,16 +6,16 @@
 
 #if WITH_EDITOR
 void UCLTerrainTypeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
-{ if(TerrainType.SurfaceStack.IsActive())TerrainType.SchemaVersion=FMath::Max(8,TerrainType.SchemaVersion); if(TerrainType.PlacementSuitability.bUsePreferences)TerrainType.SchemaVersion=FMath::Max(7,TerrainType.SchemaVersion);Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnTerrainChanged.Broadcast(); }
+{ if(TerrainType.PlacementSuitability.Province.IsActive())TerrainType.SchemaVersion=FMath::Max(9,TerrainType.SchemaVersion); if(TerrainType.SurfaceStack.IsActive())TerrainType.SchemaVersion=FMath::Max(8,TerrainType.SchemaVersion); if(TerrainType.PlacementSuitability.bUsePreferences)TerrainType.SchemaVersion=FMath::Max(7,TerrainType.SchemaVersion);Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnTerrainChanged.Broadcast(); }
 void UCLTerrainTypeAsset::PostEditUndo()
 { Super::PostEditUndo(); OnTerrainChanged.Broadcast(); }
 #endif
 
 bool FCLTerrainType::Validate(FString& Error) const
 {
-    if ((SchemaVersion < 1 || SchemaVersion > 8) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
+    if ((SchemaVersion < 1 || SchemaVersion > 9) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
         (SchemaVersion == 1 && AlgorithmVersion != 1) || !Id.IsValid() || Name.TrimStartAndEnd().IsEmpty())
-    { Error = TEXT("Terrain type requires schema 1..8, a supported algorithm, a valid ID and a nonempty name"); return false; }
+    { Error = TEXT("Terrain type requires schema 1..9, a supported algorithm, a valid ID and a nonempty name"); return false; }
     if (SchemaVersion < 3 && NoiseLayers.ContainsByPredicate([](const auto& L) { return L.Operation != ECLTerrainOperation::Noise; }))
     { Error = TEXT("Terracing requires terrain type schema 3"); return false; }
     if(SchemaVersion<4 && NoiseLayers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution;}))
@@ -29,11 +29,14 @@ bool FCLTerrainType::Validate(FString& Error) const
     if(SurfaceStack.IsActive()&&SchemaVersion<8){Error=TEXT("Surface rules require terrain schema 8");return false;}
     if(!PlacementSuitability.Validate(Error))return false;
     if(PlacementSuitability.bUsePreferences && SchemaVersion<7){Error=TEXT("Placement preferences require terrain schema 7");return false;}
+    if(PlacementSuitability.Province.IsActive()&&SchemaVersion<9){Error=TEXT("Province Landforms require terrain schema 9");return false;}
+    if(PlacementSuitability.Province.bPlaceholder&&(!NoiseLayers.IsEmpty()||SurfaceStack.IsActive())){Error=TEXT("Province placeholders retain base terrain and materials; define their relief before adding generation operations");return false;}
     return FCLPlanetCompiler::ValidateNoiseLayers(NoiseLayers, Error);
 }
 bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion) const
 {
     if (!Validate(Error)) return false;
+    if(PlacementSuitability.Province.IsActive()){Error=TEXT("Province Landforms overlay base geology through the regional palette; they cannot replace the planet's base terrain");return false;}
     FCLPlanetRecipe Candidate = Recipe;
     Candidate.SchemaVersion = FMath::Max(9,Candidate.SchemaVersion); Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
     Candidate.NoiseLayers = NoiseLayers;Candidate.SurfaceStack=SurfaceStack;if(SurfaceStack.IsActive())Candidate.SchemaVersion=FMath::Max(13,Candidate.SchemaVersion);
@@ -64,6 +67,7 @@ bool UCLTerrainTypeAsset::ApplyToRecipe(UCLPlanetRecipeAsset* Asset, FString& Er
 bool FCLTerrainType::ApplyToRegion(FCLPlanetRecipe& Recipe, const FGuid& RegionId, FString& Error) const
 {
     if(!Validate(Error))return false;
+    if(PlacementSuitability.Province.IsActive()){Error=TEXT("Province Landforms require geology-based generated-region placement");return false;}
     if(Coordinates==ECLTerrainCoordinates::Sphere || Recipe.Coordinates!=Coordinates)
     {Error=TEXT("Region assembly requires a local terrain definition and local planet patch");return false;}
     auto Candidate=Recipe;auto* Region=Candidate.TerrainRegions.FindByPredicate([&](const auto& R){return R.Id==RegionId;});
@@ -114,13 +118,13 @@ bool UCLTerrainTypeAsset::ImportTerrainTypeJson(const FString& Json, FString& Er
     { Error = TEXT("Invalid terrain type JSON object"); return false; }
     if (!CLModelJson::CheckFields(*Object, *FCLTerrainType::StaticStruct(), Error, TEXT("TerrainType"))) return false;
     double Schema = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8))
-    { Error = TEXT("Terrain type requires schemaVersion 1..8"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9))
+    { Error = TEXT("Terrain type requires schemaVersion 1..9"); return false; }
     FCLTerrainType Candidate; FText Reason;
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!Candidate.Validate(Error)) return false;
-    Candidate.SchemaVersion = Candidate.SurfaceStack.IsActive()?8:Candidate.PlacementSuitability.bUsePreferences?7:Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface?6:5;
+    Candidate.SchemaVersion = Candidate.PlacementSuitability.Province.IsActive()?9:Candidate.SurfaceStack.IsActive()?8:Candidate.PlacementSuitability.bUsePreferences?7:Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface?6:5;
     Modify(); TerrainType = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

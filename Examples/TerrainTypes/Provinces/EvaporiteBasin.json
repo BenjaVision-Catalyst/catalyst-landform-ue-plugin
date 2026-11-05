@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000005",
+  "name": "Evaporite basin",
+  "description": "Province placeholder. Gypsum- and salt-bearing basin formations. Solubility, cover and preservation conditions must come from declared geology.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0.5,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "EvaporiteBasin",
+      "bPlaceholder": true,
+      "requirements": [
+        "EvaporiteSequence"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Evaporitic flats",
+        "Solution depressions",
+        "Subsidence terrain"
+      ],
+      "subsurfacePotential": [
+        "Dissolution",
+        "Collapse"
+      ]
+    }
+  }
+}

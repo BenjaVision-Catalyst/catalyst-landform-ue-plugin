@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "status": "Qualified neutral province catalogue and opt-in geological placement; regional forms and caves remain definitions",
+  "platform": {
+    "os": "macOS arm64",
+    "hardware": "Apple M3 Max, 128 GiB",
+    "engine": "UE 5.7.4 CL 51494982",
+    "vpp": "2.0p8",
+    "host": "/private/tmp/landform-background/LandformLab",
+    "configuration": "LandformLabEditor Mac Development arm64"
+  },
+  "baseRevisions": {
+    "component": "2ccaffac6243916e7cbed8040848f2d5dc21f76c",
+    "workspace": "651d397e09ad23fd522a9737a6cbd5724bac9f6e"
+  },
+  "nativeOwnership": {
+    "generation": "Existing VPP native generation, layers/stamps, material, LOD, collision and edit/save paths unchanged",
+    "applicationSpecialization": "Province definition/evidence contract and hard prerequisite filter inside existing region characterization/ranking; exposes shear from existing finite plate deformation",
+    "audit": "VPP FVoxelVolumeLayer, FVoxelVolumeGraphStamp and typed metadata already own composition/graph execution/transport. Inspected interfaces do not supply Catalyst province classification or missing formation/history data. No custom mesher, preview renderer, streaming manager or cave generator added."
+  },
+  "deliverables": {
+    "nativeSources": 17,
+    "newNativeReviewPlanets": 1,
+    "catalogue": "Examples/ProvinceLandforms.json",
+    "portableReview": "Examples/ProvincePlacement.json",
+    "sourceAssetRoot": "/CatalystLandform/TerrainTypes/Provinces",
+    "reviewAsset": "/Game/LandformDesigner/Provinces/DA_ProvincePlacement",
+    "terrainSchema": 9,
+    "provinceDefinitionVersion": 1,
+    "geologicalRegionAlgorithm": 3,
+    "defaultUI": "One native Include -> Landforms checklist; prior manual tuning/inspection remains under native Advanced",
+    "selection": "Only enabled selected sources can win. No compatible source retains base geology, including a one-source palette. Overrides cannot bypass prerequisites. Legacy modes 1/2 retain prior behavior."
+  },
+  "validation": {
+    "uniqueChecks": 24,
+    "succeeded": 24,
+    "failed": 0,
+    "notRun": 0,
+    "testStates": {
+      "Catalyst.Landform.Background.NativeFieldParity": "Success",
+      "Catalyst.Landform.Background.NativeInputInvalidation": "Success",
+      "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+      "Catalyst.Landform.Designer.AuthoringBoundaries": "Success",
+      "Catalyst.Landform.Designer.NavigationResponsiveness": "Success",
+      "Catalyst.Landform.Designer.PropertyScrollResponsiveness": "Success",
+      "Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo": "Success",
+      "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": "Success",
+      "Catalyst.Landform.Provinces.DefinitionsAndEvidence": "Success",
+      "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": "Success",
+      "Catalyst.Landform.Provinces.PackagedLibrary": "Success",
+      "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+      "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+      "Catalyst.Landform.Regions.StructureAndPalette": "Success",
+      "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+      "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+      "Catalyst.Landform.TectonicCharacter.ZeroAndChannelTiming": "Success",
+      "Catalyst.Landform.TerrainTypes.AuthoringSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.GuideIntervals": "Success",
+      "Catalyst.Landform.TerrainTypes.LayerAuthoring": "Success",
+      "Catalyst.Landform.TerrainTypes.MixedLayerIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.ProfilesAndSnapshots": "Success",
+      "Catalyst.Landform.TerrainTypes.StampIsolation": "Success",
+      "Catalyst.Landform.TerrainTypes.VPPAndUndo": "Success"
+    },
+    "report": "final-index.json",
+    "nativeReview": {
+      "frames": 90,
+      "p95Ms": 12.135588,
+      "assignedRegions": 29,
+      "retainedBaseRegions": 3,
+      "counts": {
+        "Crystalline shield": 0,
+        "Covered continental platform": 0,
+        "Clastic sedimentary basin": 0,
+        "Carbonate platform and reef province": 0,
+        "Evaporite basin": 0,
+        "Fold and thrust belt": 0,
+        "Metamorphic mountain core": 0,
+        "Continental rift and fault-block province": 2,
+        "Transform and shear belt": 12,
+        "Volcanic arc province": 0,
+        "Basaltic volcanic province": 0,
+        "Silicic volcanic province": 0,
+        "Plutonic and intrusive province": 0,
+        "Passive continental margin": 0,
+        "Oceanic crust province": 15,
+        "Impact province": 0,
+        "Icy-crust province": 0,
+        "Base geology": 3
+      }
+    },
+    "neutrality": {
+      "sphereHeightProbes": 256,
+      "maxFinalHeightDeltaMeters": 0,
+      "surfaceWeights": "Exact equality at all 256 probes across every native surface slot",
+      "rockUnits": "Exact UnitId equality at all 256 probes four metres below the final natural surface",
+      "unsupportedChemistry": "Generic rock never reports carbonate evidence"
+    },
+    "otherCases": [
+      "Unknown and contradictory evidence for all 17 definitions",
+      "No base geology leaves every region unchanged",
+      "One unsupported carbonate source leaves all cells unchanged",
+      "Disabled sources cannot win placement",
+      "Manual incompatible province assignment rejected",
+      "Legacy selector rejects province snapshots",
+      "Portable recipe roundtrip retains prerequisites without live links",
+      "Cold process reload compares all 17 binary assets with portable definitions",
+      "Review retains 17 actual source links",
+      "Isolated source preview preserves source payload and package dirtiness",
+      "90-frame navigation retains native VPP owner, no terrain mesh copies, no new classification task, no authoring progress",
+      "Native minimal UI capture and existing geology layout/Undo/background/scroll/region/rock regressions"
+    ],
+    "correctedDuringQualification": [
+      "No-match selection summary dereferenced an unassigned palette index; assigns the neutral base before summary construction",
+      "Duplicate-prerequisite test used an element of the array while appending; copies it before mutation",
+      "Full-catalogue test incorrectly required an unmatched cell on a specific base; missing-evidence and single-source cases independently enforce retention",
+      "Legacy MixedLayerIsolation assertion assumed 256 placements; native limit is already 1024. Assertion now references MaximumPlacements and includes the actual error. No production budget changed."
+    ],
+    "build": "build-final.log: Succeeded",
+    "assets": "assets-verified.log: PROVINCE_ASSETS_READY; 17 native Landform assets and source-linked review",
+    "runtimeLimits": "Editor and native field qualification; no new cooked gameplay or multiplayer claim"
+  },
+  "readiness": {
+    "availableEvidence": [
+      "Continental/oceanic proxy from upstream continentalness",
+      "Compression, extension, shear from existing finite warped plate belts"
+    ],
+    "currentlyResolvableProfiles": [
+      "OceanicCrust",
+      "ContinentalRift",
+      "TransformBelt"
+    ],
+    "unknown": [
+      "Basement composition and age",
+      "Specific sedimentary formations including carbonate/evaporite",
+      "Metamorphic/volcanic/subduction/intrusive/passive-margin history",
+      "Impacts",
+      "Ice crust"
+    ],
+    "policy": "Versioned proxies: continentalness >=0.6 continental, <=0.4 oceanic; structural positive >=0.02; rift/shear coverage 0.35, other profiles 0.6. Not calibrated geological history. Most definitions intentionally remain ineligible. Cell-wide coverage is not a local 3D host mask.",
+    "next": "Upstream formation identity/host properties before regional lithology/relief or cave construction"
+  },
+  "preservation": {
+    "root-protected.json": {
+      "files": 184,
+      "changed": 0,
+      "snapshotSha256": "51e74e98509728297e15c5efc42ee2106172f1013d399be61b97182d088b8d61"
+    },
+    "review-protected.json": {
+      "files": 177,
+      "changed": 0,
+      "snapshotSha256": "ce8bb7e15487ddfa2fee1a562fc686d8e75a2825d99db5987c6a453cfe4c517d"
+    },
+    "plugin-content-protected.json": {
+      "files": 98,
+      "changed": 0,
+      "snapshotSha256": "203ef4d4a071b97a969b4c1948d916bc653f4244effd91d5793b580290452107"
+    }
+  },
+  "sourceSha256": {
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "c912c15308781cfddd54b7349a05e28d8ff0fab23288d23d930d593c83002eba",
+    "Source/CatalystLandform/Private/Model/CLProvinceDefinition.cpp": "cbb73681b86d3dcdc20653c55f81a67c7539af734618a54c5fd0378fab8763ef",
+    "Source/CatalystLandform/Private/Model/CLRegionGeneration.cpp": "837862eee5a2388395431f9dd1577db7f370efc7a925949444ba4a75ebb2aa27",
+    "Source/CatalystLandform/Private/Model/CLTectonics.cpp": "23a9190123d8a03dcca6956a792fb7dc096d04a1c92456ea67c16669d52f9d98",
+    "Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "2494a9b4eea033c2ebe069eff6012ec1b386286e55bbfaa7c6a1e1b6abd0b76c",
+    "Source/CatalystLandform/Public/Model/CLLandformSuitability.h": "790a3ef4228839aa961986a713b5986f31c8d2bdacfb316b31124957bf2ebc03",
+    "Source/CatalystLandform/Public/Model/CLProvinceDefinition.h": "dd5adb862315a198a26f500897ccd0fc37048f41802898b3f9cab095450416f0",
+    "Source/CatalystLandform/Public/Model/CLTectonics.h": "f57111f1fe9c0df40cad85838859f5b5d120cc115d3d3d7bdc2ec2be008e70c9",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "8a681a7a617a7f607a300d677810f04fe03d091fb28860e90598146eea9217e6",
+    "Source/CatalystLandformEditor/Private/CLRegionGenerationPanel.cpp": "e7e5b646ab7e6fb34fdfcef81d59dd9721e26ab1c99efbb4014f7431b979f5d2",
+    "Source/CatalystLandformEditor/Private/CLTerrainEditing.cpp": "8f45f00e408dfaf4ac476f222d26605b3b4c0b0a0fb3dbd1c847b0b36397f31b",
+    "Source/CatalystLandformTests/Private/CLProvinceTests.cpp": "0d7e125c96b5b04992cf3ddfeaf83f721acdb2ea8e109e7d27b3fe66963e5279",
+    "Source/CatalystLandformTests/Private/CLTerrainEditingTests.cpp": "f139192337ab03073cce4624fc90864b4a592d8353005db41ee0b77ca2d3ec70"
+  },
+  "assetSha256": {
+    "Content/TerrainTypes/Provinces/DA_Province_BasalticVolcanic.uasset": "6f31dce117353ded835581ecbca42d6a8eb2b28ecdfec691a5f1152df8c068ff",
+    "Content/TerrainTypes/Provinces/DA_Province_CarbonatePlatform.uasset": "0a592bd3aa8190ea0fe1fe5ef1206268cfd3916450ed75f6ccce9d7fb7e25008",
+    "Content/TerrainTypes/Provinces/DA_Province_ClasticBasin.uasset": "0c043d532003ea2668f41c0f4d7df4a796e218af43bb70cafca8b868f39ed61e",
+    "Content/TerrainTypes/Provinces/DA_Province_ContinentalPlatform.uasset": "f15090ee27027400d9b2febb368d2f9e8a5457d94dabeac29a9fe3f821c80f09",
+    "Content/TerrainTypes/Provinces/DA_Province_ContinentalRift.uasset": "518db6b7c4c17891a8e956363e2fb389726942771ba292b16c2199e57be168c7",
+    "Content/TerrainTypes/Provinces/DA_Province_CrystallineShield.uasset": "97c03ea1305480a75260adde45dd590341006383ac47e515275fa2d06925e160",
+    "Content/TerrainTypes/Provinces/DA_Province_EvaporiteBasin.uasset": "c705e867d656d6788c63e4d6db47f6156f937cb28ce4bbe4b7b87aef31050bb6",
+    "Content/TerrainTypes/Provinces/DA_Province_FoldThrustBelt.uasset": "d10262c42ec0984c57263bc5decbf1577bf8d11b10b486f1b3f5c1b93edf2ae1",
+    "Content/TerrainTypes/Provinces/DA_Province_IcyCrust.uasset": "d560e8d3d150cfbd63c57a8efcf456d0b01964e23f314f42bc21034eeab0131c",
+    "Content/TerrainTypes/Provinces/DA_Province_ImpactProvince.uasset": "c68b59ac8dc4d156b490595a0209f89d6b0254a5e8962e132afaf5ab2c1de4ad",
+    "Content/TerrainTypes/Provinces/DA_Province_IntrusiveProvince.uasset": "0ea4c63075ad1b3b06b61c8693f18da436ebd9670b0e1c8e67da33402f35bb2e",
+    "Content/TerrainTypes/Provinces/DA_Province_MetamorphicCore.uasset": "41d3514cb3ca6641e8ab36f65222e3d374af63ffa5d52003dffde903b711d181",
+    "Content/TerrainTypes/Provinces/DA_Province_OceanicCrust.uasset": "15acacf5e7dacbda8b7d7e7f8b381c984b3c5f470b8620a1b0b220f04dec9434",
+    "Content/TerrainTypes/Provinces/DA_Province_PassiveMargin.uasset": "ff7e9e75f4a2c3c55d4c2a0a549250a7c9dc6d19e23b9165907dc1b6b570ed08",
+    "Content/TerrainTypes/Provinces/DA_Province_SilicicVolcanic.uasset": "beacbd5f2a126f939694d4d75828e51c88a3dd477e1d9f734f2283cca35ccaa6",
+    "Content/TerrainTypes/Provinces/DA_Province_TransformBelt.uasset": "723b542779f340f9561bc6cb266d12074986eafce7fb0d6035359510737e7012",
+    "Content/TerrainTypes/Provinces/DA_Province_VolcanicArc.uasset": "f478d215cfed68dae537ee78b107c044e103894a21d877c1fa5e332f88c78c04"
+  },
+  "reviewAssetSha256": "568d34c3a6b5fcdd1cfbe110bfc5756d4bd800c7b1f50c1fe9cb19f36d97b027",
+  "definitionSha256": {
+    "Examples/TerrainTypes/Provinces/BasalticVolcanic.json": "a01ffaf199755be5b44caef710c13823593e3a579688b83b8ec89dd9e435cad6",
+    "Examples/TerrainTypes/Provinces/CarbonatePlatform.json": "62911fdf120035a6bd33665b02c3750796bcb8e5e5d8d805051f34a8f36767eb",
+    "Examples/TerrainTypes/Provinces/ClasticBasin.json": "6c0f21a2895ef9c067197268caf8c6d0bf32fe49916bd8ae305f5f50a7c724f9",
+    "Examples/TerrainTypes/Provinces/ContinentalPlatform.json": "c74b59668a6d76a69766dcca7f5ba302499112da14fe31860a7a5db2ad493422",
+    "Examples/TerrainTypes/Provinces/ContinentalRift.json": "ebe55b2580c4581f287dd9429b55eaa0598f5fc5e16e391275f35d7b8df27007",
+    "Examples/TerrainTypes/Provinces/CrystallineShield.json": "5c082e69fd805924b92fe16956fe89bcb723f70d121b28e3332bd7255ee4f1da",
+    "Examples/TerrainTypes/Provinces/EvaporiteBasin.json": "2e45313cb5f92514d53da074a16989ea31caf17c3f335aef77710217afce8c7d",
+    "Examples/TerrainTypes/Provinces/FoldThrustBelt.json": "bdd1da5405bed24b29acdab7eb4834873ed313a3714792e383255d79698a8f88",
+    "Examples/TerrainTypes/Provinces/IcyCrust.json": "3b3d28cf12f5ad1bacfce5812c2e83233a4b4215e5e96fb6eecb0502904ec7ad",
+    "Examples/TerrainTypes/Provinces/ImpactProvince.json": "a0235acbc5823f13527c636c7450c93878e728004b093d5da5668c16018fddab",
+    "Examples/TerrainTypes/Provinces/IntrusiveProvince.json": "2b6c75ecd054a50ded8260fc2ba94e2850ad1ddc35ae14fbb9ca3cf90225e482",
+    "Examples/TerrainTypes/Provinces/MetamorphicCore.json": "dc4926cbc56a20d19b89b28eae48b73e88ff8913799cc8275344dd18ef8d866d",
+    "Examples/TerrainTypes/Provinces/OceanicCrust.json": "379cd8443626c5d5b9fd078ec55a18932aeb083e1e281796f8095dee7f150c18",
+    "Examples/TerrainTypes/Provinces/PassiveMargin.json": "9993edf1b76f03a1df532643106233d3cdbe4befb620cf3930286b0c53be3eb8",
+    "Examples/TerrainTypes/Provinces/SilicicVolcanic.json": "f26f95b1bb7c6d96a414a18c52348a028308d283e0233e863cde69159876b4d6",
+    "Examples/TerrainTypes/Provinces/TransformBelt.json": "54ab3093787d8a681aacb5a1cd583d5f857653f578769340aaa5b02f3820a095",
+    "Examples/TerrainTypes/Provinces/VolcanicArc.json": "eb9724d85cf1fe00643eb515abc768b1e43d9eab1f9d85ec23ad192eeb3fb9fe"
+  },
+  "artifactRoot": "/private/tmp/landform-provinces",
+  "artifacts": {
+    "globe.png": "92185ca1c0a86f969a1152dbc4e547b17c5c50131fa06ae5ff7df4748930caa9",
+    "landforms.png": "39b621ca32488a7e95808c88c1ca27291bdddd8ecb6e2a09f087289d8ab603c9",
+    "native-review.json": "7ee3665467276111f911c2fe08a660a5a2cf95708948e0a1fd6cc3635a428799",
+    "final-index.json": "7466526bfa928bc7436db0cce62519b944d3898936f5eef8c10427e3f667e002"
+  }
+}

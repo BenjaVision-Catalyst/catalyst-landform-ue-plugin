@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 9,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000007",
+  "name": "Metamorphic mountain core",
+  "description": "Province placeholder. Uplifted metamorphic formations including schist, gneiss, quartzite and locally marble. Rock identity and inherited structure govern subsequent processes.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0.5,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 1,
+      "type": "MetamorphicCore",
+      "bPlaceholder": true,
+      "requirements": [
+        "ContinentalCrust",
+        "MetamorphicSequence"
+      ],
+      "minimumCoverage": 0.6,
+      "regionalForms": [
+        "Exposed mountain cores",
+        "Foliated ridges",
+        "Eroded massifs"
+      ],
+      "subsurfacePotential": [
+        "Marble karst",
+        "Fissure",
+        "Talus"
+      ]
+    }
+  }
+}

@@ -223,11 +223,15 @@ rectangular stamps in every cell. Detail stamps remain PCG candidates conditione
 on those constraints, with their accepted deterministic placements shared by the
 Designer and native planet.
 
-Preserve palette semantics: one selected Landform fills every generated Landform
-region over the common base. Report unsuitable combinations without silently
-substituting another source. With several selected Landforms, use contextual
-suitability and deterministic variation, provide an explanation and allow manual
-overrides. Do not silently introduce unselected terrain types.
+Legacy region algorithms 1 and 2 preserve palette semantics: one selected ordinary
+Landform fills every generated region over the common base. Report unsuitable
+combinations without silently substituting another source. With several selected
+Landforms, use contextual suitability and deterministic variation, provide an
+explanation and allow manual overrides. Geological province sources explicitly
+select algorithm 3: required positive base-geology evidence precedes soft ranking,
+and an unmatched region retains the base. A single selected province or manual
+assignment cannot bypass that gate. Do not silently introduce unselected terrain
+types. See [province Landforms](ProvinceLandforms.md).
 
 ## Preset assembly and editorial controls
 
@@ -1918,3 +1922,21 @@ hydrology limitations remain explicit. The
 [qualification](../conformance/WatershedDebug/qualification-mac-arm64.json) records
 native geometry validity, distinct lake levels, shore accuracy, route topology,
 rendering, navigation and accepted-plan replacement, plus preserved local inputs.
+
+
+## Province Landform definitions — 5 November 2026
+
+Seventeen native Landform assets now carry province prerequisites, intended regional
+forms and future underground potential. They are neutral placeholders applied over
+base geology. The opt-in regional geological gate reuses existing characterization,
+background evaluation and VPP generation. Missing geological history remains unknown;
+no carbonate, evaporite, volcanism or ice is invented from terrain appearance.
+[The contract and readiness limits](ProvinceLandforms.md) distinguish the three
+currently resolvable structural/oceanic profiles from definitions awaiting real
+formation/history data. The next step is upstream formation identity before local
+province relief and host-dependent cave generation.
+
+The default Landforms build page is one native **Include → Landforms** checklist.
+Automatic placement chooses only enabled entries from that selection. Existing
+manual composition, region tuning and inspection controls remain under the same
+native Advanced reveal; geological prerequisite authoring stays in source assets.
