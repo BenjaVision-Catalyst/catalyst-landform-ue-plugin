@@ -1,6 +1,7 @@
 #include "Model/CLRockLayer.h"
 #include "Model/CLCompileProgress.h"
 #include "Model/CLTectonics.h"
+#include "Model/CLRegionGeneration.h"
 #include "Model/CLContinents.h"
 #include "Surface/CLSurfaceCompiler.h"
 #include "CLNativeNoiseKernel.h"
@@ -150,16 +151,19 @@ FCLCompiledRock::FPoint FCLCompiledRock::Classify(const FVector3d& P)const
     }
     return Out;
 }
+TSharedPtr<const FCLCompiledRock> FCLCompiledRock::WithProvinceDeformation(TSharedPtr<const FCLCompiledRegionGeneration> P)const
+{auto Out=MakeShared<FCLCompiledRock>(*this);Out->Province=MoveTemp(P);return Out;}
 double FCLCompiledRock::DeformationMeters(const FVector3d& D,double* Extension) const
 {
     if(Extension)*Extension=0;
-    if(!Tectonics)return 0;
+    const double Regional=Province?Province->ProvinceDeformationMeters(D):0;
+    if(!Tectonics)return Regional;
     const double Wavelength=Layer.AlgorithmVersion>=4?(Folding.WavelengthMeters>0?Folding.WavelengthMeters/FMath::Max(Folding.ReferenceRadiusMeters,1.e-6):1.):Layer.FoldWavelengthRadiusFraction;
     const auto S=Tectonics->SampleRockDeformation(D,Wavelength,Phase*2*PI,Layer.FaultZoneRadiusFraction);
     if(Extension)*Extension=S.Extension;
     if(Layer.AlgorithmVersion>=4)
-        return Layer.TectonicResponse*S.UpliftMeters+Radius*(FMath::Tan(FMath::DegreesToRadians(Layer.DipDegrees))*S.Tilt+Layer.FaultThrowRadiusFraction*S.Fault)+Folding.AmplitudeMeters(S.Compression)*S.FoldWave;
-    return Layer.TectonicResponse*S.UpliftMeters+
+        return Regional+Layer.TectonicResponse*S.UpliftMeters+Radius*(FMath::Tan(FMath::DegreesToRadians(Layer.DipDegrees))*S.Tilt+Layer.FaultThrowRadiusFraction*S.Fault)+Folding.AmplitudeMeters(S.Compression)*S.FoldWave;
+    return Regional+Layer.TectonicResponse*S.UpliftMeters+
         Radius*(FMath::Tan(FMath::DegreesToRadians(Layer.DipDegrees))*S.Tilt+
         Layer.FoldAmplitudeRadiusFraction*S.Fold+Layer.FaultThrowRadiusFraction*S.Fault);
 }

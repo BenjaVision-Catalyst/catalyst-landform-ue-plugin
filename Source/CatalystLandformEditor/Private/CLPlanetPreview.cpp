@@ -440,6 +440,7 @@ void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TS
     if(!Framed){Framed=true;Frame();}Client->Apply();
 }
 #if WITH_DEV_AUTOMATION_TESTS
+void SCLPlanetPreview::FrameDirectionForTesting(FVector D,double Zoom){const auto R=D.Rotation();Client->Navigation.Yaw=R.Yaw;Client->Navigation.Elevation=R.Pitch;Client->Navigation.Zoom=Zoom;Client->Apply();}
 void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->Navigation.Orbit(Delta);Client->Apply();}
 #endif
 void SCLPlanetPreview::Cancel()

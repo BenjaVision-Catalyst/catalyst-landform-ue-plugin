@@ -1,4 +1,5 @@
 #pragma once
+class FCLCompiledRegionGeneration;
 #include "CoreMinimal.h"
 #include "Scene/CLSceneQuery.h"
 #include "Curves/RichCurve.h"
@@ -156,6 +157,7 @@ public:
     FCLRockBedStatistics ThicknessStatistics() const;
     uint64 HistoryBytes() const {return MetricUppers.GetAllocatedSize()+MetricUnits.GetAllocatedSize()+Beds.GetAllocatedSize();}
     static constexpr int32 MaximumMetricBeds=4194304;
+    TSharedPtr<const FCLCompiledRock> WithProvinceDeformation(TSharedPtr<const FCLCompiledRegionGeneration>)const;
     /** Restored pre-deformation radius; also used for geological section inspection. */
     double RestoredRadiusMeters(const FVector3d&) const;
     static const TCHAR* PropertiesAssetPath();
@@ -175,6 +177,7 @@ private:
     TArray<int32> SurfaceIndices;
     TSharedPtr<const FCLNativeNoiseKernel> NativeNoise;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
+    TSharedPtr<const FCLCompiledRegionGeneration> Province;
     TSharedPtr<const FCLCompiledContinents> Crust;
     FQuat Frame=FQuat::Identity;
     FGuid Namespace;

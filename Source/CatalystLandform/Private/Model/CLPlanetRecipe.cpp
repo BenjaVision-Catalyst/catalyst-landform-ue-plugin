@@ -541,6 +541,41 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         }
         return RetainInput(Out);
     }
+    if(Recipe.RegionGeneration.bEnabled&&Recipe.RegionGeneration.AlgorithmVersion==4)
+    {
+        if(Recipe.AlgorithmVersion!=2||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||Recipe.MeasuredTerrain.IsActive()||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch)||!Recipe.Volumes.GeologicalUnits.IsEmpty()||(Recipe.Rock.bEnabled&&Recipe.SchemaVersion!=20))
+        {Error=TEXT("Geology-first provinces require a whole native procedural sphere and the canonical Rock geological source");return nullptr;}
+        if(!FCLCompiledRegionGeneration::ValidateSettings(Recipe.RegionGeneration,Error))return nullptr;
+        // Resolve the unmodified base and Rock before any physical province is
+        // assigned. The old neutral-placeholder path and native CDOs are frozen.
+        auto Base=Recipe;Base.RegionGeneration=FCLRegionGenerationSettings();Base.Rock=FCLRockLayer();Base.SchemaVersion=18;Base.Volumes=FCLVolumeSettings();
+        const auto Core=Compile(Base,Error,Library,nullptr,SurfacePatch,SurfaceLibraryOverride);if(!Core)return nullptr;
+        const auto* Min=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});
+        const auto* Max=Core->Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});
+        if(!Min||!Max){Error=TEXT("Physical provinces require SurfaceMin and SurfaceMax");return nullptr;}
+        auto Geology=MakeShared<FCLCompiledPlanetRecipe>(*Core);
+        if(Recipe.Rock.bEnabled)
+        {
+            Geology->Rock=FCLCompiledRock::Compile(Recipe.Rock,Recipe.Seed,Recipe.RadiusMeters,Recipe.RadiusMeters+Min->HeightMeters,Recipe.RadiusMeters+Max->HeightMeters,Core->Surfaces.Get(),Core->Tectonics,Error,Core->Continents);
+            if(!Geology->Rock)return nullptr;
+        }
+        const auto Generated=FCLCompiledRegionGeneration::Compile(Recipe,*Geology,Library,Error);if(!Generated)return nullptr;
+        if(FCLCompileProgress::IsPreparing())return RetainInput(Geology);
+        // A neutral/no-eligible selection must retain the exact prior field.
+        if(!Generated->HasPhysicalRelief())
+        {Geology->GeneratedRegions=Generated;return RetainInput(Geology);}
+        auto Raw=MakeShared<FCLCompiledPlanetRecipe>(*(Core->UnmappedSurface?Core->UnmappedSurface:Core));
+        Raw->GeneratedRegions=Generated;Raw->Rock=Geology->Rock?Geology->Rock->WithProvinceDeformation(Generated):nullptr;
+        double Low=0,High=0;for(const auto& Field:Generated->Fields)if(Field){Low=FMath::Min(Low,Field->MinimumHeightMeters-Generated->NeutralHeight);High=FMath::Max(High,Field->MaximumHeightMeters-Generated->NeutralHeight);}
+        const double Displacement=Generated->MaximumProvinceDisplacementMeters();
+        Raw->MinimumHeightMeters=FMath::Max(-Raw->RadiusMeters,Raw->MinimumHeightMeters+Low*Generated->Strength-Displacement);
+        Raw->MaximumHeightMeters=FMath::Min(0.,Raw->MaximumHeightMeters+High*Generated->Strength+Displacement);
+        FCLCompileProgress::Report(ECLCompileStage::Elevation);
+        const auto Range=FCLSurfaceRange::Compile(*Raw,Min->HeightMeters,Max->HeightMeters,Error);if(!Range)return nullptr;
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Raw);Out->UnmappedSurface=Raw;Out->SurfaceRange=Range;
+        Out->MinimumHeightMeters=Range->TargetMin;Out->MaximumHeightMeters=Range->TargetMax;
+        return RetainInput(Out);
+    }
     if(Recipe.SchemaVersion==20||Recipe.Rock.bEnabled)
     {
         if(Recipe.SchemaVersion!=20||Recipe.MeasuredTerrain.IsActive()||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch)||!Recipe.Volumes.GeologicalUnits.IsEmpty())

@@ -41,6 +41,11 @@ public:
     TArray<FCLGeneratedRegionBoundary> Boundaries;
     TArray<FCLGeneratedRegionJunction> Junctions;
     TArray<FCLCompiledPlanetFeature> Structure;
+    TArray<TSharedPtr<const FCLCompiledRiftLandform>> Rifts;
+    bool bHasPhysicalRelief=false,bHasProvinceDeformation=false;
+    bool HasPhysicalRelief()const;
+    double ProvinceDeformationMeters(const FVector& Direction)const;
+    double MaximumProvinceDisplacementMeters()const;
     double Guidance=0,Band=0,Strength=1,NeutralHeight=0;
     FVector Signature(const FVector& Direction) const;
     double Cost(int32 Cell,const FVector& Direction,const FVector& Signature) const;

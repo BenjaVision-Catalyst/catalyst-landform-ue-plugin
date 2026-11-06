@@ -9,6 +9,7 @@
 #include "CLTerrainDesigner.h"
 #include "CLSurfacePreview.h"
 #include "CLTerrainEditing.h"
+#include "CLRiftLandformEditor.h"
 #include "CLNoiseLayerStack.h"
 #include "CLRegionGenerationPanel.h"
 #include "IDetailsView.h"
@@ -652,6 +653,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLSurfaceDesignerTest;
     friend class FCLWatershedDesignerTest;
     friend class FCLProvinceEditorTest;
+    friend class FCLRiftDesignerTest;
     friend class FCLCaveDesignerTest;
     friend class FCLAuthoringLayoutTest;
     friend class FCLBackgroundDesignerTest;
@@ -837,7 +839,7 @@ public:
         {return P.Property.GetFName()!=GET_MEMBER_NAME_CHECKED(FCLPlanetRecipe,RadialGuides);}));
         Changed = Asset->OnRecipeChanged.AddSP(this, &FCLRecipeToolkit::Refresh);
         auto Left=FTabManager::NewStack()->SetSizeCoefficient(.34)->AddTab(TerrainEditing?NoiseTab:PlanetTab,ETabState::OpenedTab);
-        if(TerrainEditing)Left->AddTab(SurfaceTab,ETabState::OpenedTab);
+        if(TerrainEditing&&!TerrainEditing->Asset->TerrainType.Rift.IsActive())Left->AddTab(SurfaceTab,ETabState::OpenedTab);
         if(TerrainEditing)Left->AddTab(DetailsTabId,ETabState::OpenedTab)->AddTab(ValidationTabId,ETabState::OpenedTab);
         Left->SetForegroundTab(TerrainEditing?NoiseTab:PlanetTab);
         const auto Layout = FTabManager::NewLayout(TerrainEditing ? "CLTerrainDesigner_v2" : "CLRecipeDesigner_v4")->AddArea(
@@ -952,13 +954,14 @@ public:
         Manager->RegisterTabSpawner(SectionTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnSection));
         if (!TerrainEditing) Manager->RegisterTabSpawner(PlanetTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnPlanet)).SetDisplayName(FText::FromString(TEXT("Planet")));
         if(TerrainEditing)Manager->RegisterTabSpawner(SurfaceTab,FOnSpawnTab::CreateSP(this,&FCLRecipeToolkit::SpawnSurfaces)).SetDisplayName(FText::FromString(TEXT("Surface layers")));
-        Manager->RegisterTabSpawner(NoiseTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnNoise)).SetDisplayName(FText::FromString(TEXT("Terrain layers")));
+        Manager->RegisterTabSpawner(NoiseTab, FOnSpawnTab::CreateSP(this, &FCLRecipeToolkit::SpawnNoise)).SetDisplayName(FText::FromString(TerrainEditing&&TerrainEditing->Asset->TerrainType.Rift.IsActive()?TEXT("Landform"):TEXT("Terrain layers")));
     }
     virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& Manager) override
     { Manager->UnregisterTabSpawner(SectionTab); Manager->UnregisterTabSpawner(NoiseTab);if(TerrainEditing)Manager->UnregisterTabSpawner(SurfaceTab); if (!TerrainEditing) Manager->UnregisterTabSpawner(PlanetTab); FCFModelEditorToolkit::UnregisterTabSpawners(Manager); }
     TSharedRef<SDockTab> SpawnNoise(const FSpawnTabArgs&)
     {
         if (!TerrainEditing) return SNew(SDockTab)[SNew(STextBlock).Text(FText::FromString(TEXT("Use Edit source to author a reusable terrain type.")))];
+        if(TerrainEditing->Asset->TerrainType.Rift.IsActive())return SNew(SDockTab)[CLMakeRiftLandformEditor(TerrainEditing->Asset)];
         return SNew(SDockTab)[SAssignNew(NoiseStack, SCLNoiseLayerStack).Session(TerrainEditing)
             .OnPreviewChanged(FSimpleDelegate::CreateSP(this, &FCLRecipeToolkit::Refresh))];
     }
@@ -1176,7 +1179,7 @@ public:
         if (Preview) Preview->Client->RadialGuides = Asset->Recipe.RadialGuides;
         if (TerrainEditing) TerrainEditing->Context = Asset->Recipe;
         FCLPlanetRecipe Input=Asset->Recipe;TOptional<FBox2D> Region;
-        if(TerrainEditing){FBox2D Bounds;if(!TerrainEditing->PreviewRecipe(Input,Bounds,Status,PendingAreaWidth>0?PendingAreaWidth:500)){Evaluation.Cancel();if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(false);}bPreviewInvalid=true;InspectorError=Status;return;}Region=Bounds;}
+        if(TerrainEditing){FBox2D Bounds;if(!TerrainEditing->PreviewRecipe(Input,Bounds,Status,PendingAreaWidth>0?PendingAreaWidth:500)){Evaluation.Cancel();if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(false);}bPreviewInvalid=true;InspectorError=Status;return;}if(!TerrainEditing->Asset->TerrainType.Rift.IsActive())Region=Bounds;}
         const bool Same=RequestedRecipe.IsSet()&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&RequestedRecipe.GetValue(),&Input,0)&&Region.IsSet()==RequestedRegion.IsSet()&&(!Region.IsSet()||(Region->Min==RequestedRegion->Min&&Region->Max==RequestedRegion->Max));
         if(!Same)
         {
@@ -1217,20 +1220,21 @@ public:
                 FString::Printf(TEXT("%s | radius %.0f m | %d broad features | %d editorial Landforms | %d generated regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Asset->Recipe.BaseStructure.Num(), Asset->Recipe.TerrainRegions.Num(), Plan->GeneratedRegions?Plan->GeneratedRegions->Cells.Num():0);
             if (Preview)
             {
-                if(!TerrainEditing && bGlobe){Preview->CancelPendingBuild();Preview->Client->Plan=Plan;}
-                else if (TerrainEditing || !Plan->Regions.IsEmpty() || !Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
-                if(Globe && !TerrainEditing){if(bGlobe)Globe->Rebuild(Plan,AcceptedWatershedDebug);else Globe->Cancel();}
+                if(UsesGlobePreview()){Preview->CancelPendingBuild();Preview->Client->Plan=Plan;}
+                else if ((TerrainEditing&&!TerrainEditing->Asset->TerrainType.Rift.IsActive()) || !Plan->Regions.IsEmpty() || !Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
+                if(Globe && (!TerrainEditing||TerrainEditing->Asset->TerrainType.Rift.IsActive())){if(bGlobe){Globe->Rebuild(Plan,AcceptedWatershedDebug);if(TerrainEditing)Globe->SetRegionInspection(false);}else Globe->Cancel();}
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
     }
-    bool EvaluationUpdating()const{return Evaluation.IsBusy()||(!TerrainEditing&&bGlobe?Globe&&Globe->IsUpdating():Preview&&Preview->IsUpdating());}
-    bool AuthoringUpdating()const{return Evaluation.IsBusy()||(!TerrainEditing&&bGlobe?Globe&&Globe->IsApplyingInput():Preview&&Preview->IsApplyingInput());}
+    bool UsesGlobePreview()const{return bGlobe&&(!TerrainEditing||TerrainEditing->Asset->TerrainType.Rift.IsActive());}
+    bool EvaluationUpdating()const{return Evaluation.IsBusy()||(UsesGlobePreview()?Globe&&Globe->IsUpdating():Preview&&Preview->IsUpdating());}
+    bool AuthoringUpdating()const{return Evaluation.IsBusy()||(UsesGlobePreview()?Globe&&Globe->IsApplyingInput():Preview&&Preview->IsApplyingInput());}
     TOptional<float> EvaluationFraction()const
-    {return Evaluation.IsBusy()?Evaluation.Fraction():!TerrainEditing&&bGlobe?(Globe?Globe->InputProgress():TOptional<float>()):(Preview?Preview->InputProgress():TOptional<float>());}
+    {return Evaluation.IsBusy()?Evaluation.Fraction():UsesGlobePreview()?(Globe?Globe->InputProgress():TOptional<float>()):(Preview?Preview->InputProgress():TOptional<float>());}
     FText EvaluationCaption()const
     {
-        if(!Evaluation.IsBusy())return FText::FromString(!TerrainEditing&&bGlobe?Globe->InputProgressText():Preview->InputProgressText());
+        if(!Evaluation.IsBusy())return FText::FromString(UsesGlobePreview()?Globe->InputProgressText():Preview->InputProgressText());
         FString Caption;switch(Evaluation.Stage())
         {
         case ECLCompileStage::Preparing:Caption=TEXT("Preparing terrain…");break;
@@ -1253,19 +1257,19 @@ public:
     TSharedRef<SWidget> BuildViewport()
     {
         TSharedRef<SWidget> GlobeWidget = SNullWidget::NullWidget;
-        if (!TerrainEditing)
+        if (!TerrainEditing||TerrainEditing->Asset->TerrainType.Rift.IsActive())
             GlobeWidget = SAssignNew(Globe,SCLPlanetPreview)
                 .OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateSP(this,&FCLRecipeToolkit::CommitGlobePlacement))
                 .OnRegionSelected(FOnCLGlobeRegionSelected::CreateLambda([this](FGuid Id){if(GenerationPanel)GenerationPanel->SelectRegion(Id);}))
                 .Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
         const auto Content=SNew(SOverlay)
-                + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})]
+                + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return UsesGlobePreview()?EVisibility::Collapsed:EVisibility::Visible;})]
                 + SOverlay::Slot()[GlobeWidget]
                 + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(12)
                     [SNew(SBorder).BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder")).Padding(8).Visibility_Lambda([this]{return AuthoringUpdating()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
                         [SNew(SVerticalBox)+SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(this,&FCLRecipeToolkit::EvaluationCaption)]
                             +SVerticalBox::Slot().AutoHeight().Padding(0,4,0,0)[SNew(SBox).WidthOverride(200)[SNew(SProgressBar).Percent_Lambda([this]{return TOptional<float>(EvaluationFraction().Get(0.f));}).Visibility_Lambda([this]{return EvaluationFraction().IsSet()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})]]]]
-                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession).Globe(Globe).UseGlobe_Lambda([this]{return !TerrainEditing&&bGlobe;})
+                + SOverlay::Slot()[SAssignNew(Annotations, SCLHeightAnnotations).Client(Preview->Client).Session(RadialGuidesSession).Globe(Globe).UseGlobe_Lambda([this]{return UsesGlobePreview();})
                     .Visibility_Lambda([this] { return TerrainEditing ? EVisibility::HitTestInvisible : EVisibility::SelfHitTestInvisible; })]
                 + SOverlay::Slot().VAlign(VAlign_Top).Padding(12)[SNew(SBorder).Padding(10)
                     .Visibility_Lambda([this] { return bPreviewInvalid ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
@@ -1745,7 +1749,7 @@ public:
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SCheckBox).IsChecked_Lambda([this] { return !Preview || Preview->Client->bGuides ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; }).OnCheckStateChanged_Lambda([this](ECheckBoxState State)
                     { Preview->Client->bGuides = State == ECheckBoxState::Checked; Preview->Client->Invalidate();if(Globe)Globe->SetGuides(RecipeAsset()->Recipe.RadialGuides,Preview->Client->bGuides); })[SNew(STextBlock).Text(FText::FromString(TEXT("Radial Guides")))]]]
             + SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
-                .Visibility_Lambda([this]{return !TerrainEditing&&bGlobe?EVisibility::Collapsed:EVisibility::Visible;})
+                .Visibility_Lambda([this]{return UsesGlobePreview()?EVisibility::Collapsed:EVisibility::Visible;})
                 + SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(200)[SNew(STextBlock).Text(this, &FCLRecipeToolkit::AreaCaption)]]
                 + SHorizontalBox::Slot().AutoWidth().Padding(12, 0)[SNew(STextBlock).Text(FText::FromString(TEXT("100 m")))]
                 + SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider)
@@ -1766,7 +1770,7 @@ public:
                 {
                     FString Legend = RadialGuidesSession->Gesture ? TEXT("Release to update terrain | Esc to cancel") :
                         TEXT("Left drag: orbit | Middle drag: pan cropped view | Right drag or wheel: zoom");
-                    if(!TerrainEditing&&bGlobe&&!RadialGuidesSession->Gesture)Legend=Globe->PlacementHint()+TEXT(" | Middle drag: pan | Right drag / wheel: zoom | Drag guides: radius");
+                    if(UsesGlobePreview()&&!RadialGuidesSession->Gesture)Legend=Globe->PlacementHint()+TEXT(" | Middle drag: pan | Right drag / wheel: zoom | Drag guides: radius");
                     else if (!TerrainEditing) Legend += TEXT(" | + beside Core: add Radial Guide");
                     if (AuthoringUpdating()) Legend = TEXT("Updating terrain preview… | ") + Legend;
                     if (Preview && Preview->Client->Plan && Preview->Client->Plan->Coordinates == ECLTerrainCoordinates::Sphere && Preview->Client->AreaWidthMeters / FMath::Sqrt(2.0) >=
@@ -3044,6 +3048,75 @@ bool FCLCaveDesignerTest::RunTest(const FString&)
     E->LayerVisibility[4]->SimulateClick();TestFalse(TEXT("Eye disables the cave producer"),A->Recipe.Caves.bEnabled);TestTrue(TEXT("Eye preserves the independent debug preference"),E->Globe->IsCaveOverlayEnabled());GEditor->UndoTransaction();
     auto W=A->Recipe.Watershed;W.bEnabled=false;TestTrue(TEXT("Watershed edits preserve the enclosing cave schema"),E->CommitWatershed(W));TestEqual(TEXT("Cave schema survives other geology edits"),A->Recipe.SchemaVersion,23);
     E->LayerIndicators[4]->ToggleCheckedState();TestFalse(TEXT("Debug mode switches off independently"),E->Globe->IsCaveOverlayEnabled());A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;
+}
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+namespace {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRiftDesignerTest,"Catalyst.Landform.Rift.NativeDesigner",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRiftDesignerTest::RunTest(const FString&)
+{
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainTypes/Provinces/ContinentalRift.json")));
+    TStrongObjectPtr<UCLTerrainTypeAsset> A(NewObject<UCLTerrainTypeAsset>(CreatePackage(*(TEXT("/Temp/CLRiftDesigner_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));
+    if(!A->ImportTerrainTypeJson(Json,Error)){AddError(Error);return false;}A->TerrainType.Rift.Character=0;
+    auto Editor=MakeShared<FCLRecipeToolkit>();Editor->OpenTerrain(A.Get(),nullptr,EToolkitMode::Standalone,nullptr);
+    class FReview:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLTerrainTypeAsset> A;
+        double Start=FPlatformTime::Seconds(),Ready=0;int32 Stage=0,Frame=0;uint32 Owner=0,Evaluations=0;uint64 Copies=0;
+        TArray<double> Times;double Last=0;FVector Focus;TArray<FString> Rows;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLTerrainTypeAsset* Asset):Test(T),E(In),A(Asset){}
+        bool Update()override
+        {
+            const double Now=FPlatformTime::Seconds();auto Close=[&]{A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
+            if(Now-Start>180){Test->AddError(E->Status+TEXT(" ")+E->InspectorError);return Close();}
+            if(!E->AcceptedSurfacePlan||(Stage<3&&E->EvaluationUpdating())){Ready=0;return false;}
+            auto* Native=E->Globe?E->Globe->NativeForTesting():nullptr;
+            if(!Native||(Stage<3&&(Native->PublishedPlan()!=E->AcceptedSurfacePlan||Native->IsUpdating()))){Ready=0;return false;}
+            if(Stage<3){if(!Ready){Ready=Now;return false;}if(Now-Ready<.5)return false;}
+            if(Stage<3)
+            {
+                if(!Owner)
+                {
+                    Owner=Native->WorldIdentity();Test->TestTrue(TEXT("Rift source uses the existing native globe"),E->UsesGlobePreview()&&Native->UsesNativePresentation());Test->TestFalse(TEXT("Rift source has no redundant noise-stack editor"),E->NoiseStack.IsValid());
+                    auto Tab=E->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLNoiseLayers")));int32 Sliders=0;
+                    TFunction<void(TSharedRef<SWidget>)> Count=[&](auto W){Sliders+=W->GetType()==FName(TEXT("SSlider"));auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)Count(C->GetChildAt(I));};if(Tab)Count(Tab->GetContent());
+                    Test->TestEqual(TEXT("The normal source panel contains exactly one Character slider"),Sliders,1);
+                    auto P=E->AcceptedSurfacePlan;double Best=0;
+                    for(int32 I=0;I<4096;++I){const double Z=1-2*(I+.5)/4096,Angle=I*2.399963229728653;FVector D(FMath::Cos(Angle)*FMath::Sqrt(1-Z*Z),FMath::Sin(Angle)*FMath::Sqrt(1-Z*Z),Z);double V=FMath::Abs(P->GeneratedRegions->ProvinceDeformationMeters(D));if(V>Best){Best=V;Focus=D;}}
+                    Test->TestTrue(TEXT("The source reference contains eligible rift relief"),Best>.01);
+                    E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Preview->Client->bGuides=false;E->Globe->FrameDirectionForTesting(Focus,.35);Ready=0;return false;
+                }
+                Test->TestEqual(TEXT("Character changes retain the native preview owner"),Native->WorldIdentity(),Owner);
+                const auto& Mesh=Native->Published();double Residual=0;auto P=E->AcceptedSurfacePlan;
+                Test->TestEqual(TEXT("The published immutable source retains the current Character"),P->SourceRecipe->RegionGeneration.Palette[0].Rift.Character,A->TerrainType.Rift.Character);
+                const uint32 Geometry=FCrc::MemCrc32(Mesh.SourcePoints.GetData(),Mesh.SourcePoints.Num()*sizeof(FVector));
+                for(const auto& Point:Mesh.SourcePoints){const FVector M=Point*.01;const double R=M.Length();Residual=FMath::Max(Residual,FMath::Abs(R-P->RadiusMeters-P->SampleHeightMeters(M.GetSafeNormal())));}
+                Rows.Add(FString::Printf(TEXT("{\"character\":%.2f,\"geometryCrc\":%u,\"vertices\":%d,\"maxSurfaceResidualMeters\":%.9g}"),A->TerrainType.Rift.Character,Geometry,Mesh.SourcePoints.Num(),Residual));
+                Test->TestTrue(TEXT("Native VPP publishes actual rift geometry"),Mesh.SourcePoints.Num()>100);
+                auto Capture=[&](TSharedRef<SWidget> Widget,const FString& Name){TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native rift review renders"),FSlateApplication::Get().TakeScreenshot(Widget,Pixels,Size));if(Pixels.Num()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification/rift")/Name));}};
+                const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/rift");IFileManager::Get().MakeDirectory(*Dir,true);
+                Capture(E->Globe.ToSharedRef(),FString::Printf(TEXT("globe-%d.png"),Stage));auto Tab=E->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLNoiseLayers")));if(Tab)Capture(Tab->GetContent(),FString::Printf(TEXT("controls-%d.png"),Stage));
+                if(++Stage<3)
+                {
+                    A->Modify();A->TerrainType.Rift.Character=Stage*.5;
+                    FProperty* Property=FindFProperty<FProperty>(FCLRiftLandform::StaticStruct(),GET_MEMBER_NAME_CHECKED(FCLRiftLandform,Character));FPropertyChangedEvent Event(Property,EPropertyChangeType::ValueSet);A->PostEditChangeProperty(Event);Ready=0;return false;
+                }
+                Evaluations=E->Evaluation.Started;Copies=Native->Metrics.MeshCopies;Last=Now;return false;
+            }
+            Times.Add((Now-Last)*1000);Last=Now;E->Globe->OrbitForTesting(FVector2D(.5,.1));E->Globe->Dolly(Frame%2?.01:-.01);
+            Test->TestFalse(TEXT("Navigation does not show authoring progress"),E->AuthoringUpdating());
+            if(++Frame<60)return false;
+            Test->TestEqual(TEXT("Navigation starts no recipe evaluations"),E->Evaluation.Started,Evaluations);Test->TestEqual(TEXT("Navigation copies no mesh"),Native->Metrics.MeshCopies,Copies);Test->TestEqual(TEXT("Navigation retains the native owner"),Native->WorldIdentity(),Owner);
+            Times.RemoveAt(0);Times.Sort();const double P95=Times[FMath::Min(Times.Num()-1,int32(Times.Num()*.95))];
+            Test->TestTrue(TEXT("Native navigation p95 stays below 50 ms"),P95<50);
+            FString JSON=TEXT("{\"frames\":60,\"navigationP95Ms\":")+LexToString(P95)+TEXT(",\"cases\":[")+FString::Join(Rows,TEXT(","))+TEXT("]}\n");
+            FFileHelper::SaveStringToFile(JSON,*(FPaths::ProjectSavedDir()/TEXT("Verification/rift/native-review.json")));Test->AddInfo(JSON);return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Editor,A.Get()));return true;
 }
 }
 #endif

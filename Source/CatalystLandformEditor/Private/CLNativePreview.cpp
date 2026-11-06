@@ -3,6 +3,7 @@
 #include "Misc/ScopeExit.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanetStamp.h"
+#include "Model/CLRegionGeneration.h"
 #include "VoxelLayer.h"
 #include "VoxelLayerStack.h"
 #include "Materials/Material.h"
@@ -123,7 +124,18 @@ bool FCLNativePreview::ApplyPending()
     if(CaveInspection){}
     else if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())Native->MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
     else if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
-    Section=PendingSection;Width=PendingWidth;AppliedDraft=PendingDraft;PublishedHash=0;
+    Section=PendingSection;Width=PendingWidth;AppliedDraft=PendingDraft;PublishedHash=0;InspectionHash=0;
+    // The generic 50 cm display voxel can sample away metre-scale fault scarps.
+    // Lower only the native minimum cell size; native camera LOD stays in charge.
+    if(!CaveInspection)
+    {
+        Native->VoxelSize=50;
+        if(Plan->GeneratedRegions&&Plan->GeneratedRegions->bHasProvinceDeformation)
+        {
+            double WidthMeters=MAX_dbl;for(const auto& Rift:Plan->GeneratedRegions->Rifts)if(Rift)WidthMeters=FMath::Min(WidthMeters,Rift->ScarpWidthMeters());
+            Native->VoxelSize=FMath::Clamp(FMath::FloorToInt(WidthMeters*.25*100000./Plan->RadiusMeters),1,50);
+        }
+    }
     // Scale the stamp through VPP's supported transform, never the voxel world
     // or the produced mesh. Native LOD sees the same geometry the viewport sees.
     const FVector Scale=Section?FVector(1000./Width,1000./Width,1000./Plan->RadiusMeters):FVector(1000./Plan->RadiusMeters);

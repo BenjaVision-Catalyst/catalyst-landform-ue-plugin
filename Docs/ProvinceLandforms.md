@@ -1,8 +1,9 @@
 # Geological province Landforms
 
 Seventeen native Landform assets define geological province families and the base
-geology required to place them. They are neutral placeholders: selecting them adds
-no relief, replaces no rock unit or material, and creates no caves. This establishes
+geology required to place them. Continental Rift now adds local fault-block relief and matching Rock
+deformation; the other sixteen remain neutral placeholders. The catalogue
+creates no caves. This establishes
 the regional definitions before developing their terrain and underground forms.
 
 ## Native ownership and demonstrated gap
@@ -64,6 +65,15 @@ Carbonate/evaporite dissolution, suitable lava-flow tubes and ice-hosted cavitie
 require their host medium and formative processes. A province's potential tag alone
 will never justify excavating a cave or guarantee one at every location.
 
+## Physical province checkpoint — 6 November 2026
+
+[Continental Rift](ContinentalRiftLandform.md) now has a physical fault-block
+surface and matching restored Rock coordinates. Its source uses schema 10 and
+explicit region mode 4; the other sixteen sources retain neutral schema 9.
+The placement description below records the original mode-3 placeholder contract.
+Mode 4 adds geology-first ordering and local physical host gating, while retaining
+Include-only selection. Old snapshots are not silently migrated.
+
 ## Placement contract
 
 Terrain schema 9 adds `PlacementSuitability.Province`: type, placeholder flag,
@@ -71,7 +81,8 @@ required evidence, minimum area coverage, intended forms and underground potenti
 All supplied assets use the existing native spherical algorithm 2, no noise layers
 and no surface-stack override. Validation rejects a placeholder carrying either.
 
-Adding or refreshing a province source selects region algorithm 3. It reuses mode
+Adding or refreshing a neutral province source selects region algorithm 3, unless
+the recipe already uses mode 4. Physical Rift selects mode 4. Mode 3 reuses mode
 2's equal-area characterization, sites, deterministic ranking and native child
 fields. Each sampled point must positively satisfy every prerequisite; its share
 of the cell must meet the profile's coverage. Only then do existing soft terrain
@@ -84,8 +95,9 @@ and is not offered as a source asset. Mode 3 supports 31 authored sources plus t
 neutral entry within the existing 32-entry native scratch limit. A single province
 is still gated. Manual cell assignment cannot bypass that gate. Global replacement
 and direct geometric-region application reject province assets; use the regional
-palette. Opening a source's isolated relief preview strips metadata only from a
-validated local preview copy and leaves the original asset intact.
+palette. Opening a neutral source's isolated relief preview strips metadata only from a
+validated local preview copy and leaves the original asset intact. Physical Rift
+retains metadata and previews through the existing native globe with geological context.
 
 Legacy region algorithms 1 and 2 retain the one-source-fills-all contract for
 ordinary Landforms. Mode 3 is explicit and versioned; existing recipes are not
@@ -120,7 +132,7 @@ Enable **Show Plugin Content** in the Content Browser and open
 `CatalystLandform Content/TerrainTypes/Provinces`. The seventeen
 `DA_Province_*` assets use the existing Landform editor. Their native Details expose
 `Terrain Type → Placement Suitability → Province`; expand that property for the
-definition. Neutral previews are expected until regional forms are implemented.
+definition. Neutral previews are expected for the sixteen placeholders. Rift opens its Character editor and contextual native globe; see the physical checkpoint above.
 
 Open `/Game/LandformDesigner/Provinces/DA_ProvincePlacement` in LandformLab to
 inspect a planet with all seventeen selected. Its Landforms page uses the existing
@@ -130,9 +142,9 @@ reclassify regions. [Tools/create-province-landforms.py](../Tools/create-provinc
 creates missing source/review assets through native Unreal asset APIs and leaves
 existing assets intact.
 
-The next bounded geological task is to give upstream Rock real formation identities
-and host properties, then qualify one province's local expression against those
-fields. Carbonate/evaporite cave placement should wait for those actual units.
+The next regional task is to review the Rift expression, then implement another
+province against positive upstream evidence. Formation-specific carbonate/evaporite
+placement continues to require actual host identities, not an artistic surface label.
 The [qualification record](../conformance/Provinces/qualification-mac-arm64.json)
 records the native checks and their limits.
 

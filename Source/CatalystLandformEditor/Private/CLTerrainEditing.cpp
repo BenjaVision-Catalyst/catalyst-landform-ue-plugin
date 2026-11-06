@@ -1,12 +1,20 @@
 #include "CLTerrainEditing.h"
 #include "ScopedTransaction.h"
 #include "Stamps/CLStampLibrary.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/FileHelper.h"
+#include "JsonObjectConverter.h"
 
 void FCLTerrainEditing::Open(UCLTerrainTypeAsset* InAsset, const FCLPlanetRecipe* InContext)
 {
     Asset = InAsset; Asset->SetFlags(RF_Transactional);
     Context = InContext ? *InContext : FCLPlanetCompiler::RollingPlains();
     if (!InContext) { Context.RadiusMeters = 1000; Context.RadialGuides = FCLRadialGuidePresets::Defaults()[2]; }
+    if(!InContext&&Asset->TerrainType.Rift.IsActive())
+    {
+        FString Json;const FString Path=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/ContinentalRiftProvince.json");
+        if(FFileHelper::LoadFileToString(Json,*Path))FJsonObjectConverter::JsonObjectStringToUStruct(Json,&Context,0,0);
+    }
     Selected = Asset->TerrainType.NoiseLayers.IsEmpty() ? INDEX_NONE : 0; Solo = INDEX_NONE; SoloName = NAME_None;
 }
 void FCLTerrainEditing::Reconcile()
@@ -115,6 +123,12 @@ bool FCLTerrainEditing::PreviewRecipe(FCLPlanetRecipe& Recipe,FBox2D& Region,FSt
     Recipe = Context;Recipe.Watershed=FCLWatershedSettings();
     auto Visible = Asset->TerrainType;
     if(Visible.PlacementSuitability.Province.IsActive()&&!Visible.Validate(OutError))return false;
+    if(Visible.Rift.IsActive())
+    {
+        FCLLandformPaletteEntry P;P.Id=Visible.Id;P.Name=Visible.Name;P.AlgorithmVersion=Visible.AlgorithmVersion;P.Suitability=Visible.PlacementSuitability;P.Rift=Visible.Rift;
+        Recipe.RegionGeneration.bEnabled=true;Recipe.RegionGeneration.AlgorithmVersion=4;Recipe.RegionGeneration.Palette={P};Recipe.RegionGeneration.Overrides.Reset();
+        Region=FBox2D(FVector2D(-500,-500),FVector2D(500,500));return true;
+    }
     // The source editor previews only this Landform's relief definition. Its
     // geological eligibility is evaluated when applied through a planet palette.
     Visible.PlacementSuitability.Province=FCLProvinceDefinition();
@@ -150,5 +164,5 @@ bool FCLTerrainEditing::PreviewRecipe(FCLPlanetRecipe& Recipe,FBox2D& Region,FSt
 
 TSharedPtr<const FCLCompiledPlanetRecipe> FCLTerrainEditing::CompilePreview(FString& OutError,double Width)const
 {
-    FCLPlanetRecipe Recipe;FBox2D Region;if(!PreviewRecipe(Recipe,Region,OutError,Width))return nullptr;return FCLPlanetCompiler::Compile(Recipe,OutError,nullptr,&Region);
+    FCLPlanetRecipe Recipe;FBox2D Region;if(!PreviewRecipe(Recipe,Region,OutError,Width))return nullptr;return FCLPlanetCompiler::Compile(Recipe,OutError,nullptr,Asset->TerrainType.Rift.IsActive()?nullptr:&Region);
 }

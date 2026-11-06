@@ -168,42 +168,53 @@ FVector FCLCompiledTectonics::WarpDirection(const FVector& D) const
     return (D+NoiseRotation.UnrotateVector(VectorNoise(2.8)*Warp+VectorNoise(7.3)*(AlgorithmVersion>=6?Warp*.10:AlgorithmVersion>=4?Controls.BoundaryWarp*.21:.08))).GetSafeNormal();
 }
 
+void FCLCompiledTectonics::VisitBelts(const FState& S,const FVector& D,double StateWeight,TFunctionRef<void(const FCLPlateBeltSample&)> Visitor)const
+{
+    const FVector Warped=WarpDirection(D);
+    const double Broad=FMath::PerlinNoise3D(NoiseRotation.RotateVector(D)*5.7+NoiseOffset);
+    const double Width=Controls.BeltWidth*(1.05+.55*Broad);if(Width<=0)return;
+    for(const auto& E:S.Boundaries)
+    {
+        if(FVector::DotProduct(Warped,E.Mid)<E.CapCos)continue;
+        const double Plane=FVector::DotProduct(Warped,E.Normal),Across=FMath::Asin(FMath::Clamp(Plane,-1.,1.));
+        const FVector Projected=(Warped-E.Normal*Plane).GetSafeNormal();
+        double EndDistance=0;
+        if(FVector::DotProduct(Projected,E.Mid)<E.HalfCos)EndDistance=FMath::Min((Projected-E.Start).SizeSquared(),(Projected-E.End).SizeSquared());
+        const double Q=(Across*Across+EndDistance)/(Width*Width);if(Q>=9)continue;
+        const double Envelope=FMath::Exp(-Q*1.4)*(1-Smooth((Q-4)/5));
+        const FVector Relative=FVector::CrossProduct(S.Plates[E.A].AngularVelocity-S.Plates[E.B].AngularVelocity,Projected);
+        const double Con=-FVector::DotProduct(Relative,E.Normal)*Controls.Motion;
+        FCLPlateBeltSample B;B.BoundaryId=E.Id;B.StateWeight=StateWeight;B.AcrossRadians=Across;B.WidthRadians=Width;B.Envelope=Envelope;
+        B.CompressionDrive=FMath::Max(0.,Con)*Controls.CollisionStrength*Controls.Relief;
+        B.ExtensionDrive=FMath::Max(0.,-Con)*Controls.RiftStrength*Controls.Relief;
+        B.ExtensionWeight=FMath::Tanh(B.ExtensionDrive*Envelope);
+        B.ShearDrive=FMath::Abs(FVector::DotProduct(Relative,FVector::CrossProduct(E.Normal,Projected).GetSafeNormal()))*Controls.Motion*Controls.TransformStrength*Controls.Relief;
+        B.AlongRadians=FMath::Atan2(FVector::DotProduct(Projected,FVector::CrossProduct(E.Normal,E.Mid)),FVector::DotProduct(Projected,E.Mid));Visitor(B);
+    }
+}
+void FCLCompiledTectonics::VisitExtensionBelts(const FVector& Direction,TFunctionRef<void(const FCLPlateBeltSample&)> Visitor)const
+{
+    if(Direction.ContainsNaN()||Direction.IsNearlyZero())return;
+    const FVector D=Direction.GetSafeNormal();
+    VisitBelts(Lower,D,Upper.Plates.IsEmpty()?1:1-Controls.PlateTransition,Visitor);
+    if(!Upper.Plates.IsEmpty())VisitBelts(Upper,D,Controls.PlateTransition,Visitor);
+}
 FCLRockDeformation FCLCompiledTectonics::SampleRockDeformation(const FVector& Direction,double Wavelength,double Phase,double FaultWidth) const
 {
     FCLRockDeformation Out;
     if(Direction.ContainsNaN()||Direction.IsNearlyZero()||!FMath::IsFinite(Wavelength)||Wavelength<=0||!FMath::IsFinite(Phase)||!FMath::IsFinite(FaultWidth)||FaultWidth<=0)return Out;
-    const FVector D=Direction.GetSafeNormal(),Warped=WarpDirection(D);
-    const double Broad=FMath::PerlinNoise3D(NoiseRotation.RotateVector(D)*5.7+NoiseOffset);
-    const double Width=Controls.BeltWidth*(1.05+.55*Broad);
-    if(Width<=0)return Out;
+    const FVector D=Direction.GetSafeNormal();
     auto State=[&](const FState& S)
     {
         FCLRockDeformation V;
-        for(const auto& E:S.Boundaries)
+        VisitBelts(S,D,1,[&](const FCLPlateBeltSample& B)
         {
-            if(FVector::DotProduct(Warped,E.Mid)<E.CapCos)continue;
-            const double Plane=FVector::DotProduct(Warped,E.Normal),Across=FMath::Asin(FMath::Clamp(Plane,-1.,1.));
-            const FVector Projected=(Warped-E.Normal*Plane).GetSafeNormal();
-            double EndDistance=0;
-            if(FVector::DotProduct(Projected,E.Mid)<E.HalfCos)EndDistance=FMath::Min((Projected-E.Start).SizeSquared(),(Projected-E.End).SizeSquared());
-            // Same warped boundary, finite segment and belt envelope as terrain.
-            const double Q=(Across*Across+EndDistance)/(Width*Width);
-            if(Q>=9)continue;
-            const double Envelope=FMath::Exp(-Q*1.4)*(1-Smooth((Q-4)/5));
-            const FVector Relative=FVector::CrossProduct(S.Plates[E.A].AngularVelocity-S.Plates[E.B].AngularVelocity,Projected);
-            const double Con=-FVector::DotProduct(Relative,E.Normal)*Controls.Motion;
-            const double Compression=FMath::Max(0.,Con)*Controls.CollisionStrength*Controls.Relief;
-            const double Extension=FMath::Max(0.,-Con)*Controls.RiftStrength*Controls.Relief;
-            const double Along=FMath::Atan2(FVector::DotProduct(Projected,FVector::CrossProduct(E.Normal,E.Mid)),FVector::DotProduct(Projected,E.Mid));
+            const double Compression=B.CompressionDrive,Extension=B.ExtensionDrive,Envelope=B.Envelope,Across=B.AcrossRadians,Along=B.AlongRadians;
             V.Fold+=Compression*Envelope*FMath::Cos(2*PI*Across/Wavelength+Phase+.35*FMath::Sin(Along*3));
             V.Tilt+=(Compression-Extension)*Envelope*Across;
-            V.Shear+=FMath::Abs(FVector::DotProduct(Relative,FVector::CrossProduct(E.Normal,Projected).GetSafeNormal()))*Controls.Motion*Controls.TransformStrength*Controls.Relief*Envelope;
-            V.Extension+=Extension*Envelope;
-            V.Compression+=Compression*Envelope;
-            // Reverse/normal throw has the sign of the local plate drive. The
-            // finite transition is an authored damage-zone width, not a global plane.
+            V.Shear+=B.ShearDrive*Envelope;V.Extension+=Extension*Envelope;V.Compression+=Compression*Envelope;
             V.Fault+=(Compression-Extension)*Envelope*.5*FMath::Tanh(Across/FaultWidth);
-        }
+        });
         return V;
     };
     const auto L=State(Lower),H=Upper.Plates.IsEmpty()?L:State(Upper);

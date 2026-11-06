@@ -31,7 +31,7 @@ void SCLRegionGenerationPanel::Construct(const FArguments& Args)
             .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto S=Asset->Recipe.RegionGeneration;S.bEnabled=V==ECheckBoxState::Checked;Commit(S,FText::FromString(TEXT("Enable structure-guided regions")));})
             [SNew(STextBlock).Text(FText::FromString(TEXT("Generate regions from structure")))]]
         +SVerticalBox::Slot().AutoHeight().Padding(0,4)[SNew(SCheckBox)
-            .IsEnabled_Lambda([this]{return Asset->Recipe.RegionGeneration.AlgorithmVersion!=3;})
+            .IsEnabled_Lambda([this]{return Asset->Recipe.RegionGeneration.AlgorithmVersion<3;})
             .ToolTipText(FText::FromString(TEXT("Province Landforms use area-based geological placement")))
             .IsChecked_Lambda([this]{return Asset->Recipe.RegionGeneration.AlgorithmVersion>=2?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
             .OnCheckStateChanged_Lambda([this](ECheckBoxState V){auto S=Asset->Recipe.RegionGeneration;S.AlgorithmVersion=V==ECheckBoxState::Checked?2:1;Commit(S,FText::FromString(TEXT("Change regional terrain evaluation")));})
@@ -63,7 +63,7 @@ void SCLRegionGenerationPanel::Construct(const FArguments& Args)
         .OnCheckStateChanged_Lambda([this](ECheckBoxState V){OnInspection.ExecuteIfBound(V==ECheckBoxState::Checked);})[SNew(STextBlock).Text(FText::FromString(TEXT("Inspect generated regions on globe")))]];
     Controls->AddSlot().AutoHeight()[SNew(SComboButton).OnGetMenuContent(this,&SCLRegionGenerationPanel::RegionMenu)
         .ButtonContent()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{const auto* C=Cell();return FText::FromString(C?FString::Printf(TEXT("Region %d — %s"),Plan->Cells.IndexOfByPredicate([&](const auto& V){return V.Id==Selected;})+1,*Plan->Palette[C->PaletteIndex].Name):TEXT("Choose a region or click its surface"));})]];
-    Controls->AddSlot().AutoHeight().Padding(0,6)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{const auto* C=Cell();return FText::FromString(C?C->Reason:(Asset->Recipe.RegionGeneration.AlgorithmVersion==3?TEXT("Province placement requires compatible base geology; unmatched regions retain the base."):TEXT("One selected Landform fills every region. Multiple selections are matched to the base structure using their placement preferences.")));})];
+    Controls->AddSlot().AutoHeight().Padding(0,6)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{const auto* C=Cell();return FText::FromString(C?C->Reason:(Asset->Recipe.RegionGeneration.AlgorithmVersion>=3?TEXT("Province placement requires compatible base geology; unmatched regions retain the base."):TEXT("One selected Landform fills every region. Multiple selections are matched to the base structure using their placement preferences.")));})];
     Controls->AddSlot().AutoHeight()[SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
         +SWrapBox::Slot()[SNew(SComboButton).IsEnabled_Lambda([this]{return Cell()!=nullptr;}).OnGetMenuContent(this,&SCLRegionGenerationPanel::OverrideMenu)
             .ButtonContent()[SNew(STextBlock).Text(FText::FromString(TEXT("Assign this region…")))]]

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Model/CLRiftLandform.h"
 #include "CoreMinimal.h"
 #include "Model/CFModelAsset.h"
 #include "Model/CLRadialGuides.h"
@@ -135,6 +136,7 @@ struct CATALYSTLANDFORM_API FCLLandformPaletteEntry
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=true;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=2;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLLandformSuitability Suitability;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLRiftLandform Rift;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) TArray<FCLNoiseLayer> NoiseLayers;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLSurfaceStack SurfaceStack;
 };

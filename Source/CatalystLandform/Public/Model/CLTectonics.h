@@ -16,6 +16,14 @@ struct CATALYSTLANDFORM_API FCLGeologicalSample
     ECLGeologicalSetting Setting=ECLGeologicalSetting::Interior;
 };
 
+/** Finite warped belt query in body coordinates; not a second plate solver. */
+struct CATALYSTLANDFORM_API FCLPlateBeltSample
+{
+    FGuid BoundaryId;
+    double AcrossRadians=0,AlongRadians=0,WidthRadians=0,Envelope=0;
+    double CompressionDrive=0,ExtensionDrive=0,ExtensionWeight=0,ShearDrive=0,StateWeight=1;
+};
+
 /** Local kinematic bedding response in the existing finite plate belts.
  * Fold and Fault are bounded weights; Tilt is an angular offset. No terrain output. */
 struct CATALYSTLANDFORM_API FCLRockDeformation
@@ -90,6 +98,7 @@ public:
     double Continentalness(const FVector& UnitDirection) const;
     double SampleDeltaMeters(const FVector& UnitDirection) const;
     FCLRockDeformation SampleRockDeformation(const FVector& UnitDirection,double WavelengthRadians,double PhaseRadians,double FaultWidthRadians) const;
+    void VisitExtensionBelts(const FVector& Direction,TFunctionRef<void(const FCLPlateBeltSample&)> Visitor)const;
     /** Effective shape contribution, independent of the authored enabled checkbox. */
     bool HasEffect() const;
     /** Algorithm 3 only. Invalid inputs preserve Out. */
@@ -97,6 +106,7 @@ public:
     static double CrustBaseFraction(double Continentalness);
     static TSharedPtr<const FCLCompiledTectonics> Compile(const FCLTectonicPreset& Preset,int32 Seed,double SpanMeters,FString& Error,bool Layered=false,TSharedPtr<const FCLCompiledContinents> Crust=nullptr,bool Calibrated=false);
 private:
+    void VisitBelts(const FState&,const FVector& Direction,double StateWeight,TFunctionRef<void(const FCLPlateBeltSample&)> Visitor)const;
     bool bLayered=false,bCalibrated=false;
     TSharedPtr<const FCLCompiledContinents> SharedCrust;
     int32 AlgorithmVersion=2;

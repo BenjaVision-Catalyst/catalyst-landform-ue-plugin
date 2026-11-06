@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-06",
+  "status": "Bounded physical Rift field, native source editor and cooked walk qualified; artistic acceptance remains reviewable",
+  "baseRevisions": {
+    "component": "9da24b06a49842c316256bfa0bb32e3e19bca86a",
+    "workspace": "68681fd76a2b44046ba1492721723e755a8ecd6f"
+  },
+  "platform": {
+    "os": "macOS 26.6.1 arm64",
+    "hardware": "Apple M3 Max, 128 GiB",
+    "engine": "UE 5.7.4 CL 51494982",
+    "vpp": "2.0p8",
+    "labHost": "/private/tmp/landform-cleanup/LandformLab",
+    "cookedHost": "/private/tmp/landform-approach/LandformExamples",
+    "userFacingHost": "Landform/Projects/LandformExamples"
+  },
+  "deliverables": {
+    "physicalProvinces": 1,
+    "neutralPlaceholders": 16,
+    "source": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_ContinentalRift",
+    "sourceSha256": "22512119ef1692a31b11532c6b28b80b49920313e5e32696de33a811e8ea66ef",
+    "review": "/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview",
+    "portableReview": "Examples/ContinentalRiftProvince.json",
+    "terrainSourceSchema": 10,
+    "riftProfile": 1,
+    "regionMode": 4,
+    "sourceUI": "One Character row, native reseed and disclosure; seed/ranges directly beneath it. Planet build stays Include checklist."
+  },
+  "nativeAudit": {
+    "reuse": "Existing spherical recipe stamp, VPP volume layer, native meshes/Nanite/materials, camera LOD and moving collision invoker. Existing UE Details/transactions and latest-only background publisher.",
+    "specialization": "Geological local host gating and one finite fault-block displacement shared by surface and restored Rock coordinates. VPP composition/graph/spline/metadata facilities do not provide Catalyst province semantics or shared geological restoration.",
+    "previewGap": "Fixed 50 cm display-space minimum could under-resolve narrow scarps. Native minimum now follows one quarter physical scarp width, clamped 1..50 cm in normalized display units; native camera LOD still owns refinement. New input invalidates only the read-only mesh-inspection cache.",
+    "excluded": "No custom streaming/origin/LOD/collision manager, copied presentation meshes or new cave morphology."
+  },
+  "validation": {
+    "nativeChecks": 54,
+    "nativeFailed": 0,
+    "nativeWarnings": 0,
+    "nativeIndex": "native-index.json",
+    "exampleEditorChecks": 2,
+    "exampleEditorFailed": 0,
+    "exampleEditorWarnings": 1,
+    "exampleEditorWarningScope": "Unattended AudioUnit sample-rate query; both test states Success.",
+    "nativeAssetReadback": "Independent native commandlet reloaded Rift profile 1, mode 4, Character 0.6 and enabled Rock.",
+    "field": {
+      "samples": 4096,
+      "activePhysicalSamples": 175,
+      "incompatibleHostSamples": 3790,
+      "maxDisplacementMeters": 17.5100977,
+      "restorationResidualMeters": 4.54747350886e-13,
+      "backgroundResidualMeters": 0,
+      "nativeInputsReused": 3,
+      "characterPositions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ],
+      "physicalSpacingMeters": [
+        500,
+        100
+      ],
+      "scaleReferenceRadiiMeters": [
+        1500,
+        3000,
+        6000
+      ],
+      "mixedTypedHostRegions": {
+        "carbonate": 31,
+        "rift": 1
+      },
+      "reseedDifferenceSumMeters": 1.520069,
+      "chartTieResidualMeters": 5.60025942065e-08
+    },
+    "nativePreview": {
+      "frames": 60,
+      "navigationP95Ms": 32.321792,
+      "cases": [
+        {
+          "character": 0.0,
+          "geometryCrc": 678853915,
+          "vertices": 431975,
+          "maxSurfaceResidualMeters": 0.433040469
+        },
+        {
+          "character": 0.5,
+          "geometryCrc": 1959445667,
+          "vertices": 431975,
+          "maxSurfaceResidualMeters": 0.433040469
+        },
+        {
+          "character": 1.0,
+          "geometryCrc": 3617560011,
+          "vertices": 431975,
+          "maxSurfaceResidualMeters": 0.433040469
+        }
+      ]
+    },
+    "cookedRift": "cooked-rift.json",
+    "cookedStarterControl": "cooked-control.json"
+  },
+  "preservation": {
+    "protected": {
+      "baselineFiles": 23,
+      "changedExisting": []
+    },
+    "lab-content": {
+      "baselineFiles": 180,
+      "changedExisting": []
+    },
+    "examples-content": {
+      "baselineFiles": 8,
+      "changedExisting": []
+    },
+    "component-content": {
+      "baselineFiles": 116,
+      "changedExisting": [
+        "TerrainTypes/Provinces/DA_Province_ContinentalRift.uasset"
+      ]
+    }
+  },
+  "controlsAndCorrections": [
+    {
+      "record": "initial-preview-control.json",
+      "finding": "Original review used a 0.5-second settle delay in every navigation frame; its approximately 553 ms p95 was harness delay. Settle now applies only to the three authoring cases. Close fixed-view/native-width checks replace that control."
+    },
+    {
+      "record": "exact-endpoint-control.json",
+      "finding": "Cooked native report passed; Python runner rejected max ascent 0.9999999985085285 because of exact equality. Assertion now accepts absolute 1e-7 endpoint roundoff, with unchanged production presentation."
+    },
+    {
+      "retainedLog": "/private/tmp/landform-rift/read-review-stdout.log",
+      "finding": "One optional readback command exited during engine bootstrap (game-directory resolution and trace-thread fault), before loading project. Explicit -project and qualified -notracethreading commandlet succeeded; no product change."
+    }
+  ],
+  "limits": [
+    "Artistic geological appearance requires human review; screenshots are evidence, not acceptance.",
+    "No erosion, basin sediment fill or physically reconstructed fault history.",
+    "The native fixed close-view mesh residual is about 0.433 m; this is camera-LOD evidence, not a global accuracy promise.",
+    "No large-planet performance qualification; spacing itself remains physical metres.",
+    "Existing saved source snapshots remain frozen until explicitly refreshed.",
+    "The five starter planets and all pre-existing Lab assets remain byte-identical.",
+    "Cave visual acceptance remains failed/deferred.",
+    "Legacy cave/volume tests in the selected Rock group protect compatibility, not cave visual acceptance."
+  ],
+  "rawEvidenceRoot": "/private/tmp/landform-rift"
+}

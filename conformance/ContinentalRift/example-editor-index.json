@@ -1,0 +1,72 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "5FE32FE0024086780011D8BDDCAF3803",
+			"instanceName": "jupiter.local-87384",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.06-04.05.32",
+	"succeeded": 1,
+	"succeededWithWarnings": 1,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 15.767589569091797,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "Library",
+			"fullTestPath": "Catalyst.Landform.Examples.Library",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"5FE32FE0024086780011D8BDDCAF3803"
+			],
+			"duration": 9.3890590667724609,
+			"dateTime": "2026.11.06-04.05.17",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "WalkingPreview",
+			"fullTestPath": "Catalyst.Landform.Examples.WalkingPreview",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"5FE32FE0024086780011D8BDDCAF3803"
+			],
+			"duration": 6.3785309791564941,
+			"dateTime": "2026.11.06-04.05.26",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogAudioMixerAudioUnit: Error querying Sample Rate: 2003332927",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-04.05.26"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

@@ -2113,3 +2113,19 @@ chart/lighting limits and qualifications that remain separate.
 
 Cave morphology remains failed visual acceptance/deferred, with caves disabled
 in starter recipes. Earlier physics evidence does not establish cave appearance.
+
+
+## Regional expression checkpoint — 6 November 2026
+
+[Continental Rift](ContinentalRiftLandform.md) is the first physical province.
+Character varies metre spacing, throw, scarp width, asymmetry and segmentation;
+local continental/extension evidence gates the shared surface/Rock displacement.
+Explicit region mode 4 resolves canonical Rock before assignment. Native VPP
+retains all voxel generation, presentation, LOD and collision responsibilities.
+Existing native source/region defaults and saved snapshots remain frozen.
+
+The user-facing source has one standard Character row with directly expandable
+settings. Planet Builder retains the Include-only Landforms page. The clean
+five-planet library remains unchanged; a separate Lab recipe owns qualification.
+The other sixteen provinces remain placeholders. Cave appearance remains failed
+and deferred; no new cave work is included in this milestone.

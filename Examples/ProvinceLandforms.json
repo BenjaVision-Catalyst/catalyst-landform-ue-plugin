@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "Province placeholders: definitions and placement prerequisites; no regional relief or cave generators",
+  "status": "17 geological province definitions: Continental Rift has a physical surface/deformation profile; the other 16 remain neutral placeholders.",
   "assetRoot": "/CatalystLandform/TerrainTypes/Provinces",
   "profiles": [
     {

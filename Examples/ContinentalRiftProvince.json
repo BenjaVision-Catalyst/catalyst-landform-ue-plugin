@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 22,
+  "algorithmVersion": 2,
+  "name": "Continental rift and fault-block province",
+  "radiusMeters": 2000,
+  "baseSurfaceNormalized": 0.45,
+  "seed": 1729,
+  "coordinates": "SphericalSurface",
+  "terrainPatch": {
+    "anchor": {
+      "x": 0,
+      "y": 0,
+      "z": 1
+    },
+    "tangentX": {
+      "x": 1,
+      "y": 0,
+      "z": 0
+    },
+    "halfWidthMeters": 750,
+    "transitionMeters": 100
+  },
+  "radialGuides": {
+    "id": "434C5753000000010000000000000002",
+    "name": "Watershed physical reference guides",
+    "guides": [
+      {
+        "name": "SurfaceMin",
+        "normalizedHeight": 0.6837457774785507,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      },
+      {
+        "name": "SurfaceMax",
+        "normalizedHeight": 0.7934276940217209,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      },
+      {
+        "name": "OceanHeight",
+        "normalizedHeight": 0.7488113211906008,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      },
+      {
+        "name": "AtmosphereMax",
+        "normalizedHeight": 0.9,
+        "color": {
+          "r": 0.699999988079071,
+          "g": 0.699999988079071,
+          "b": 0.699999988079071,
+          "a": 1
+        }
+      }
+    ]
+  },
+  "terrainTypeId": "00000000000000000000000000000000",
+  "terrainTypeName": "",
+  "noiseLayers": [],
+  "terrainRegions": [],
+  "tectonics": {
+    "bEnabled": true,
+    "algorithmVersion": 6,
+    "activity": 0.45,
+    "seed": -164894091,
+    "lowerGuide": "SurfaceMin",
+    "upperGuide": "SurfaceMax",
+    "bOverridePlateCount": false,
+    "plateCount": 4,
+    "plateTransition": 0.5320990727609822,
+    "bOverrideMotion": false,
+    "motion": 0.7697220135236664,
+    "bOverrideRelief": false,
+    "relief": 0.43812500000000004,
+    "beltWidthDegrees": 14.734375,
+    "crustThickness": 0.023841649519890262,
+    "boundaryWarp": 0.23011297376093293,
+    "roughness": 0.1,
+    "collisionStrength": 0.380375,
+    "riftStrength": 1.0950374999999999,
+    "transformStrength": 0.9,
+    "interiorRelief": 0.04994936342592593,
+    "interiorFrequency": 2.3,
+    "foldStrength": 0.07178812922614577,
+    "arcStrength": 0.41265965439519153,
+    "trenchStrength": 0.05319754210286752,
+    "setting": "Collision",
+    "foundationOrientation": {
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    },
+    "motionDirection": 1,
+    "continentalExtent": 1
+  },
+  "continents": {
+    "algorithmVersion": 3,
+    "bEnabled": true,
+    "strength": 0.6,
+    "seed": 0,
+    "lowerGuide": "SurfaceMin",
+    "upperGuide": "SurfaceMax",
+    "orientation": {
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    },
+    "bOverrideExtent": false,
+    "extent": 1.2660557245006987,
+    "bOverrideRelief": false,
+    "relief": 0.7851851851851852,
+    "bCoastalMargin": false,
+    "domainCount": 3,
+    "domainTransition": 0.5371415744818052,
+    "elongation": 2.1688,
+    "fragmentation": 0.22768595041322315,
+    "coastWarp": 0.272069970845481,
+    "interiorRoughness": 0.02481748615632913,
+    "coastSharpness": 1.211111111111111
+  },
+  "baseStructure": [],
+  "regionGeneration": {
+    "bEnabled": true,
+    "algorithmVersion": 4,
+    "regionCount": 32,
+    "seed": 73,
+    "structureGuidance": 0.8,
+    "blendFraction": 0.55,
+    "reliefStrength": 1,
+    "palette": [
+      {
+        "id": "434C5052000000010000000000000008",
+        "name": "Continental rift and fault-block province",
+        "bEnabled": true,
+        "algorithmVersion": 2,
+        "suitability": {
+          "bUsePreferences": true,
+          "selectionWeight": 1,
+          "upliftAffinity": 0,
+          "basinAffinity": 0,
+          "province": {
+            "algorithmVersion": 1,
+            "type": "ContinentalRift",
+            "bPlaceholder": false,
+            "requirements": [
+              "ContinentalCrust",
+              "Extension"
+            ],
+            "minimumCoverage": 0.35,
+            "regionalForms": [
+              "Fault-block ranges",
+              "Rift valleys",
+              "Escarpments"
+            ],
+            "subsurfacePotential": [
+              "Fissure",
+              "Formation-dependent caves"
+            ]
+          }
+        },
+        "rift": {
+          "algorithmVersion": 1,
+          "character": 0.6,
+          "seed": 37,
+          "minimumSpacingMeters": 100,
+          "maximumSpacingMeters": 500,
+          "minimumThrowMeters": 5,
+          "maximumThrowMeters": 80,
+          "minimumScarpWidthMeters": 2,
+          "maximumScarpWidthMeters": 15
+        },
+        "noiseLayers": []
+      }
+    ],
+    "overrides": []
+  },
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "Rock",
+    "defaultSurfaceRevision": 2,
+    "layers": [
+      {
+        "name": "Scree on slopes",
+        "bEnabled": true,
+        "surfaceId": "Scree",
+        "surfaceRevision": 2,
+        "slopeDegrees": {
+          "x": 18,
+          "y": 46
+        },
+        "slopeFeatherDegrees": 7,
+        "bUseHeightRange": false,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "None",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "None",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "heightFeatherRadiusFraction": 0.005,
+        "strength": 1,
+        "noiseAmount": 0.25,
+        "noiseWavelengthMeters": 55,
+        "noiseSeed": 31
+      },
+      {
+        "name": "Soil on gentle ground",
+        "bEnabled": true,
+        "surfaceId": "Soil",
+        "surfaceRevision": 2,
+        "slopeDegrees": {
+          "x": 0,
+          "y": 14
+        },
+        "slopeFeatherDegrees": 5,
+        "bUseHeightRange": true,
+        "lowerHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMin",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": -50
+        },
+        "upperHeight": {
+          "mode": "Height",
+          "guide": "SurfaceMax",
+          "upperGuide": "None",
+          "fraction": 0,
+          "offsetMeters": 0
+        },
+        "heightFeatherRadiusFraction": 0.015,
+        "strength": 1,
+        "noiseAmount": 0.15,
+        "noiseWavelengthMeters": 85,
+        "noiseSeed": 31
+      }
+    ]
+  },
+  "measuredTerrain": {
+    "id": "None",
+    "revision": 1,
+    "digest": ""
+  },
+  "rock": {
+    "algorithmVersion": 5,
+    "bEnabled": true,
+    "character": 0.55,
+    "seed": 0,
+    "orientation": {
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    },
+    "bedThicknessRadiusFraction": 0.04990661443148686,
+    "interbedFraction": 0.39,
+    "dipDegrees": 4.444444444444445,
+    "foldAmplitudeRadiusFraction": 0.006,
+    "foldWavelengthRadiusFraction": 0.42777777777777776,
+    "tectonicResponse": 0.32592592592592595,
+    "faultThrowRadiusFraction": 0.001056000000000001,
+    "faultZoneRadiusFraction": 0.006,
+    "crustDepthRadiusFraction": 0.15,
+    "contactFeatherFraction": 0.015,
+    "units": [
+      {
+        "id": "434C524B000000010000000000000001",
+        "name": "Competent unit",
+        "surfaceId": "Rock",
+        "surfaceRevision": 2,
+        "miningResistance": 0.85,
+        "erodibility": 0.15000000000000002
+      },
+      {
+        "id": "434C524B000000010000000000000002",
+        "name": "Mixed unit",
+        "surfaceId": "Scree",
+        "surfaceRevision": 2,
+        "miningResistance": 0.55,
+        "erodibility": 0.44999999999999996
+      },
+      {
+        "id": "434C524B000000010000000000000003",
+        "name": "Weak interbed",
+        "surfaceId": "Soil",
+        "surfaceRevision": 2,
+        "miningResistance": 0.25,
+        "erodibility": 0.75
+      }
+    ],
+    "youngerCoverRadiusFraction": 0.004224,
+    "depositionalVariation": 0.5793002915451896,
+    "foldViscosityContrast": 64,
+    "foldShorteningStrain": 0.08,
+    "foldCompetentUnit": "434C524B000000010000000000000001",
+    "bedDistribution": {
+      "minimumMeters": 1,
+      "thinTailUpperMeters": 2,
+      "peakMeters": 3,
+      "spreadMeters": 0.85,
+      "thickTailLowerMeters": 6,
+      "maximumMeters": 10,
+      "thinBedPercent": 1,
+      "thickBedPercent": 5
+    }
+  },
+  "volumes": {
+    "bEnabled": false,
+    "algorithmVersion": 1,
+    "heightPolicy": "BaseTerrainOnly",
+    "operations": [],
+    "geologicalUnits": []
+  },
+  "watershed": {
+    "algorithmVersion": 1,
+    "bEnabled": false,
+    "character": 0.5,
+    "analysisSubdivisions": 7,
+    "maximumCells": 65538,
+    "incisionMeters": 4.875,
+    "valleyWidthMeters": 67.5,
+    "channelAreaSquareMeters": 6750,
+    "minimumChannelSlope": 1e-05,
+    "referenceRainMetersPerYear": 1,
+    "runoffFraction": 0.65,
+    "closedBasinDirections": []
+  }
+}
