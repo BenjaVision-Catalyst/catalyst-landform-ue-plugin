@@ -1,0 +1,25 @@
+#ifndef CL_WORLD_ANCHORED_PRESENTATION_USH
+#define CL_WORLD_ANCHORED_PRESENTATION_USH
+#include "/Plugin/CatalystLandform/Public/CLWorldAnchor.ush"
+// Packet 9150: current/previous world anchors are split high/low. The native
+// source world can be translated without re-encoding geometry or collision.
+float3 CLWorldAnchoredSource(FPrimitiveSceneData P,FDFVector3 World,bool Previous)
+{
+    float3 High=Previous?P.CustomPrimitiveData[5].xyz:P.CustomPrimitiveData[3].xyz;
+    float3 Low=Previous?P.CustomPrimitiveData[6].xyz:P.CustomPrimitiveData[4].xyz;
+    return CLWorldAnchorRelative(High,Low,World);
+}
+float3 CLWorldAnchoredOffset(FPrimitiveSceneData P,FDFVector3 World,bool Previous)
+{
+    if(P.CustomPrimitiveData[2].w!=9150)return 0;
+    float4 F=Previous?P.CustomPrimitiveData[1]:P.CustomPrimitiveData[0];
+    float3 Source=CLWorldAnchoredSource(P,World,Previous);
+    return CLAnchoredPosition(P.CustomPrimitiveData[2].x,normalize(F.xyz),F.w,Source)-Source;
+}
+float3 CLWorldAnchoredSurfaceNormal(FPrimitiveSceneData P,FDFVector3 World,float3 N)
+{
+    if(P.CustomPrimitiveData[2].w!=9150)return N;
+    float4 F=P.CustomPrimitiveData[0];
+    return CLAnchoredNormal(P.CustomPrimitiveData[2].x,normalize(F.xyz),F.w,CLWorldAnchoredSource(P,World,false),N);
+}
+#endif

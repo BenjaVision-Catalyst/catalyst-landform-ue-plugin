@@ -1,5 +1,5 @@
 #include "/Engine/Public/Platform.ush"
-#include "/Plugin/CatalystLandform/Public/CLAnchoredScene.ush"
+#include "/Plugin/CatalystLandform/Public/CLWorldAnchor.ush"
 struct FCLAnchoredQuery {float4 SourceCurvature,AnchorRadius,OriginHighScale,OriginLow,BodyFromLocal,Normal,ProjectionOrigin;};
 struct FCLAnchoredResult {float4 Position,Normal,Phase,MacroPhase;};
 StructuredBuffer<FCLAnchoredQuery> Inputs;
@@ -11,6 +11,14 @@ void MainCS(uint3 Index:SV_DispatchThreadID)
     if(Index.x>=NumQueries)return;
     FCLAnchoredQuery Q=Inputs[Index.x];FCLAnchoredResult R;
     float3 A=normalize(Q.AnchorRadius.xyz);
+    // World packet qualification: split source and anchor, before any float demotion.
+    if(Q.ProjectionOrigin.w==9150)
+    {
+        float3 Source=CLWorldAnchorRelative(Q.OriginHighScale.xyz,Q.OriginLow.xyz,MakeDFVector3(Q.SourceCurvature.xyz,Q.BodyFromLocal.xyz));
+        R.Position=float4(CLAnchoredPosition(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Source),1);
+        R.Normal=float4(CLAnchoredNormal(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Source,normalize(Q.Normal.xyz)),1);
+        R.Phase=R.MacroPhase=0;Outputs[Index.x]=R;return;
+    }
     R.Position=float4(CLAnchoredPosition(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Q.SourceCurvature.xyz-Q.ProjectionOrigin.xyz)+Q.ProjectionOrigin.xyz,1);
     R.Normal=float4(CLAnchoredNormal(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Q.SourceCurvature.xyz-Q.ProjectionOrigin.xyz,normalize(Q.Normal.xyz)),1);
     FDFVector3 P=CLCanonicalPosition(Q.OriginHighScale.xyz,Q.OriginLow.xyz,Q.BodyFromLocal,Q.SourceCurvature.xyz);

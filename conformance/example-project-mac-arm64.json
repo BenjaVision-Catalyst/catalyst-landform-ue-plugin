@@ -162,7 +162,6 @@
     "Small asteroid rejected because surface normals became zero before the scale repair",
     "Standalone editor-binary -game harness rejected: VPP LevelEditor assumption and UE MainFrame ensure; final checks use real editor PIE and actual cooked app"
   ],
-  "pendingPresentationRequirement": "Reuse the existing curve-to-flat adapter during approach and reverse on departure; preserve canonical native physics and fixed gameplay frames. This baseline does not qualify that integration.",
   "caves": {
     "visualAcceptance": "failed-deferred",
     "enabledInStarterSet": false,
@@ -173,5 +172,7 @@
     "packagedApp": "/private/tmp/landform-cleanup/Package/Mac/LandformExamples.app",
     "screenshots": "Docs/Qualification",
     "readyEditorLauncher": "scripts/launch.command"
-  }
+  },
+  "historicalPresentationRequirement": "Reuse the existing curve-to-flat adapter during approach and reverse on departure; preserve canonical native physics and fixed gameplay frames. This baseline does not qualify that integration.",
+  "presentationFollowUpRecord": "example-approach-mac-arm64.json"
 }

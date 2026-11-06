@@ -52,7 +52,7 @@ TSharedPtr<FCLAnchoredGPUReadback> FCLAnchoredGPUReadback::TryStart(
         for(const FVector4f V:{Q.SourceCurvature,Q.AnchorRadius,Q.OriginHighScale,Q.OriginLow,Q.BodyFromLocal,Q.Normal,Q.ProjectionOrigin})
             for(int32 I=0;I<4;++I)if(!FMath::IsFinite(V[I])){Error=TEXT("Anchored GPU inputs must be finite");return nullptr;}
         if(Q.OriginHighScale.W<=0||Q.AnchorRadius.W<=0||Q.SourceCurvature.W<0||Q.SourceCurvature.W>1||
-            FMath::Abs(Q.BodyFromLocal.SizeSquared()-1)>1.e-5||FVector3f(Q.AnchorRadius).IsNearlyZero()||FVector3f(Q.Normal).IsNearlyZero())
+            (Q.ProjectionOrigin.W!=9150&&FMath::Abs(Q.BodyFromLocal.SizeSquared()-1)>1.e-5)||FVector3f(Q.AnchorRadius).IsNearlyZero()||FVector3f(Q.Normal).IsNearlyZero())
         {Error=TEXT("Anchored GPU inputs require a positive radius/tile and rigid unit frame");return nullptr;}
     }
     static_assert(sizeof(FCLAnchoredGPUInput)==112&&sizeof(FCLAnchoredGPUOutput)==64);

@@ -5,7 +5,7 @@
 
 bool CLHasProjection(FPrimitiveSceneData P)
 {
-    return P.CustomPrimitiveData[2].w == 9137.0f || P.CustomPrimitiveData[2].w == 9140.0f;
+    return P.CustomPrimitiveData[2].w == 9137.0f || P.CustomPrimitiveData[2].w == 9140.0f || P.CustomPrimitiveData[2].w == 9150.0f;
 }
 FCLProjectionFrame CLNaniteFrame(float4 Data)
 {
@@ -24,6 +24,17 @@ void CLNaniteProjectBox(FPrimitiveSceneData P, FInstanceSceneData I, inout float
     // Prototype contract: planet at world origin, uniformly scaled static VPP instances.
     const float4x4 L2W = DFHackToFloat(I.LocalToWorld);
     const float4x4 W2L = DFHackToFloat(I.WorldToLocal);
+    if(Packet.w==9150)
+    {
+        const float3 Origin=P.CustomPrimitiveData[3].xyz+P.CustomPrimitiveData[4].xyz;
+        const float3 OldOrigin=P.CustomPrimitiveData[5].xyz+P.CustomPrimitiveData[6].xyz;
+        const float3 World=mul(float4(Center,1),L2W).xyz;
+        const float3 E=mul(Extent,abs((float3x3)L2W))*Packet.y;
+        const float3 C0=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[0].xyz),P.CustomPrimitiveData[0].w,World-Origin)+Origin;
+        const float3 C1=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[1].xyz),P.CustomPrimitiveData[1].w,World-OldOrigin)+OldOrigin;
+        const float3 Low=min(C0,C1)-E,High=max(C0,C1)+E;
+        Center=mul(float4((Low+High)*.5,1),W2L).xyz;Extent=mul((High-Low)*.5,abs((float3x3)W2L));return;
+    }
     if(Packet.w==9140)
     {
         const float3 Root=DFDemote(P.ActorWorldPosition);
@@ -53,6 +64,13 @@ void CLNaniteProjectNode(FPrimitiveSceneData P, FInstanceSceneData I, inout FNod
     const float4 Packet = P.CustomPrimitiveData[2];
     const float4x4 L2W = DFHackToFloat(I.LocalToWorld);
     const float4x4 W2L = DFHackToFloat(I.WorldToLocal);
+    if(Packet.w==9150)
+    {
+        const float3 Origin=P.CustomPrimitiveData[3].xyz+P.CustomPrimitiveData[4].xyz;
+        const float3 Source=mul(float4(B.Sphere.xyz,1),L2W).xyz;
+        const float3 Target=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[0].xyz),P.CustomPrimitiveData[0].w,Source-Origin)+Origin;
+        B.Sphere.xyz=mul(float4(Target,1),W2L).xyz;B.Sphere.w*=Packet.y;B.MeshMinDeformScale*=Packet.y;B.NodeMaxDeformScale*=Packet.y;return;
+    }
     if(Packet.w==9140)
     {
         const float3 Root=DFDemote(P.ActorWorldPosition),Origin=P.CustomPrimitiveData[3].xyz;

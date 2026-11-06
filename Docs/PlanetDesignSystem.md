@@ -2100,13 +2100,16 @@ asteroid exposed a surface-normal tolerance defect, corrected using native UE
 normalized tangents. Native actor-origin material coordinates and explicit cook
 labels close the demonstrated presentation/packaging gaps.
 
-The user has clarified that descent must use the existing curve-to-flat
-presentation progressively, reversing on ascent. The current qualified example
-is still canonical spherical presentation; that integration is pending and is
-not covered by the five native baseline journeys. Reuse the existing bounded
-adapter and camera/interaction contracts without moving canonical gameplay
-actors or replacing VPP generation/streaming. See
-[the example boundary](ExampleProject.md).
+The approach now reuses the existing curve-to-flat map, native VPP material
+post-processing and the promoted native render binding. UE's native camera
+modifier matches terrain/camera presentation after physics, without moving
+canonical gameplay actors or replacing generation, LOD or collision. The blend
+reverses on departure. [The separate approach record](../conformance/example-approach-mac-arm64.json)
+records five cooked return/revisit journeys, a spherical render control and
+CPU/GPU checks. The earlier spherical baseline remains historical evidence.
+Translated world-anchor transport and Mars binding capacity close demonstrated
+adapter gaps; [the example boundary](ExampleProject.md) records exact ownership,
+chart/lighting limits and qualifications that remain separate.
 
 Cave morphology remains failed visual acceptance/deferred, with caves disabled
 in starter recipes. Earlier physics evidence does not establish cave appearance.

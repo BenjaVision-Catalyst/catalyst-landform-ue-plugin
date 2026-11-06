@@ -1,0 +1,8 @@
+#ifndef CL_WORLD_ANCHOR_USH
+#define CL_WORLD_ANCHOR_USH
+#include "/Plugin/CatalystLandform/Public/CLAnchoredScene.ush"
+float3 CLWorldAnchorRelative(float3 High,float3 Low,FDFVector3 World)
+{
+    return DFDemote(DFSubtract(World,MakeDFVector3(High,Low)));
+}
+#endif
