@@ -15,6 +15,49 @@ FVector BeddingUp(const FCLCompiledPlanetRecipe& Base,FVector Point)
 void CLDevelopCaveMorphology(const FCLCaveSettings& S,const FCLCompiledPlanetRecipe& Base,const FCLCompiledCaves::FNetwork& Info,TArray<FCLCompiledCaves::FNode>& Nodes,TArray<FCLCavePassage>& Paths,TArray<FCLCaveChamber>& Chambers,TArray<FCLCaveInfill>& Infills)
 {
     const bool Karst=Info.Family==FCLCompiledCaves::EFamily::CarbonateKarst;
+    if(Karst&&S.AlgorithmVersion>=5)
+    {
+        // One declared dry-karst construction, rather than cycling unrelated
+        // section labels along every network. Routing and host evidence stay
+        // with the existing geological builder.
+        FRandomStream Shape(int32(GetTypeHash(Info.Id)^0x4B415235));
+        for(auto& P:Paths)
+        {
+            P.Form=P.EndForm=P.Entrance?ECLCaveForm::Phreatic:ECLCaveForm::KarstPassage;
+            P.Development=S.Character;P.Incision=0;
+            const double Phase=Shape.FRandRange(-PI,PI);
+            for(int32 I=0;I<P.Points.Num();++I)
+            {
+                const double T=double(I)/(P.Points.Num()-1),Envelope=FMath::Square(FMath::Sin(PI*T));
+                // Broad correlated changes form constrictions and enlargements;
+                // the protected graph core and endpoint sections remain shared.
+                if(!P.Entrance)
+                {
+                    const double Throat=(Nodes[P.From].Chamber?1-FMath::SmoothStep(0.,.3,T):0)+
+                        (Nodes[P.To].Chamber?FMath::SmoothStep(.7,1.,T):0);
+                    P.Sections[I].X*=1+.20*Throat+Envelope*.20*FMath::Sin(2.4*PI*T+Phase);
+                    P.Sections[I].Y*=1+.12*Throat+Envelope*.13*FMath::Cos(1.7*PI*T+Phase);
+                }
+                P.BeddingUps.Add(BeddingUp(Base,P.Points[I]));
+            }
+        }
+        Chambers.Reset();Infills.Reset();
+        for(int32 I=0;I<Nodes.Num();++I)
+        {
+            if(!Nodes[I].Chamber||Nodes[I].Portal)continue;
+            const auto* P=Paths.FindByPredicate([&](const auto& V){return !V.Entrance&&(V.From==I||V.To==I);});
+            if(!P)continue;
+            const FVector Along=(P->Points.Last()-P->Points[0]).GetSafeNormal();
+            FCLCaveChamber C;C.Network=Info.Id;C.Node=I;C.Center=Nodes[I].Position;
+            C.Rotation=FRotationMatrix::MakeFromXZ(Along,BeddingUp(Base,C.Center)).ToQuat();
+            C.HalfExtents=S.RadiusMeters*FVector(Shape.FRandRange(3.4,4.4),Shape.FRandRange(2.0,2.7),Shape.FRandRange(1.7,2.2));
+            // Enlargement develops mostly above the shared route floor, rather
+            // than dropping a spherical bowl beneath elevated passage mouths.
+            C.Center+=C.Rotation.GetAxisZ()*(C.HalfExtents.Z*.95-Nodes[I].Section.Y*1.20);
+            C.Form=ECLCaveForm::KarstChamber;Chambers.Add(C);
+        }
+        return;
+    }
     FRandomStream Random(int32(GetTypeHash(Info.Id)^0x4D4F5250));int32 Route=0;
     for(auto& P:Paths)
     {

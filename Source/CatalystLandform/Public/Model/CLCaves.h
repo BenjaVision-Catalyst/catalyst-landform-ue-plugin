@@ -9,7 +9,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLCaveSettings
 {
     GENERATED_BODY()
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=4;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
@@ -31,7 +31,7 @@ class FCLNativeNoiseKernel;
 class FCLCaveVolumeData;
 
 /** Geological section families, lowered through native VPP shape kernels. */
-enum class ECLCaveForm:uint8 {LegacyOval,JointCleft,BeddingSlot,Phreatic,Keyhole,Canyon,FractureHall,KarstHall,RoofScar};
+enum class ECLCaveForm:uint8 {LegacyOval,JointCleft,BeddingSlot,Phreatic,Keyhole,Canyon,FractureHall,KarstHall,RoofScar,KarstPassage,KarstChamber};
 
 /** A passage's correlated sections and curve are geological construction data, not a mesh. */
 struct CATALYSTLANDFORM_API FCLCavePassage

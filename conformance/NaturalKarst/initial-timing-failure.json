@@ -1,0 +1,177 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "987C7DFD884B655495DC4CA4A18143FD",
+			"instanceName": "jupiter.local-12445",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.06-22.20.32",
+	"succeeded": 0,
+	"succeededWithWarnings": 0,
+	"failed": 1,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 71.656227111816406,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "NaturalKarst",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.NaturalKarst",
+			"tags": [],
+			"state": "Fail",
+			"deviceInstance": [
+				"987C7DFD884B655495DC4CA4A18143FD"
+			],
+			"duration": 71.656227111816406,
+			"dateTime": "2026.11.06-22.19.20",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogStreaming: FlushAsyncLoading(320): 1 QueuedPackages, 0 AsyncPackages",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.20"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogStreaming: FlushAsyncLoading(321): 1 QueuedPackages, 0 AsyncPackages",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.23"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogStreaming: FlushAsyncLoading(324): 1 QueuedPackages, 0 AsyncPackages",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.23"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteWPO took 6.9ms",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteDisplacement took 8.3ms",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteMaterialSelection took 6.2ms",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.25"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CL_CAVE_NAV_BEGIN",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.48"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "LogTemp: CL_CAVE_NAV_END",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.53"
+				},
+				{
+					"event":
+					{
+						"type": "Error",
+						"message": "Expected 'Planet-wide navigation p95 is below 50 ms' to be true.",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "Unknown",
+					"lineNumber": 0,
+					"timestamp": "2026.11.06-22.19.53"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":59.896503,\"normalSurfaceLuma\":188.577955,\"debugSurfaceLuma\":18.947127,\"cyanPixels\":4497,\"networks\":5,\"nativeDomains\":5,\"nativeVertices\":381185,\"maxFieldResidualMeters\":0.379046,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.19.57"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":9,\"nativeDomains\":9,\"nativeVertices\":495263,\"maxFieldResidualMeters\":0.272210,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.20.28"
+				}
+			],
+			"warnings": 0,
+			"errors": 1,
+			"artifacts": []
+		}
+	]
+}

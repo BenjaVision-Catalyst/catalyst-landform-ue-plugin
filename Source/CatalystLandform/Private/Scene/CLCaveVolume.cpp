@@ -43,8 +43,47 @@ double Blend(double A,double B,double Smoothness)
 }
 namespace
 {
-void SampleSection(ECLCaveForm Form,const FVoxelDoubleVectorBuffer& P,double Development,FVoxelFloatBuffer& Out)
+// Geological anatomy is lowered through native sphere and smooth-union kernels.
+// The broad vault, incised floor and unequal side recesses are distinct volumes;
+// small native wall noise below is only the final surface detail.
+void SampleNaturalKarst(ECLCaveForm Form,const FVoxelDoubleVectorBuffer& P,TConstArrayView<double> Phases,int32 Seed,double Development,FVoxelFloatBuffer& Out)
 {
+    const bool Room=Form==ECLCaveForm::KarstChamber;
+    const double Phase=double(uint32(Seed)&65535)/65536.*2*PI;
+    const int32 N=P.Num();
+    FVoxelDoubleVectorBuffer Vault,Floor,Left,Right;Vault.Allocate(N);Floor.Allocate(N);Left.Allocate(N);Right.Allocate(N);
+    for(int32 I=0;I<N;++I)
+    {
+        const auto V=P[I];
+        const double Side=Room?V.Y:V.X,Up=Room?V.Z:V.Y,Along=Room?V.X:V.Z;
+        const double T=Room?.5:Phases[I],Envelope=Room?1:FMath::Square(FMath::Sin(PI*T));
+        const double Asymmetry=Envelope*(.08*FMath::Sin(2.2*PI*T+Phase)+.04*FMath::Cos(4.1*PI*T-Phase));
+        const double W=1+Envelope*.12*FMath::Sin(1.6*PI*T+Phase);
+        const double H=1+Envelope*.08*FMath::Cos(2.3*PI*T+Phase*.7);
+        const double X=(Side-Asymmetry*(.6+.2*Up))/W;
+        const double Y=Up/H;
+        // A broad eroded vault and lower bedrock channel. Neither the floor nor
+        // the ceiling is a clipped cube face; longitudinal narrowing is smooth.
+        Vault.Set(I,FVector(X/(Room?.98:.90),(Y-(Room?.16:.35))/(Room?.92:.70),Along));
+        Floor.Set(I,FVector((X+.08*Envelope)/(Room?.84:.50),(Y+(Room?.40:.52))/(Room?.55:.68),Along/(Room?.96:1.)));
+        Left.Set(I,FVector((X+(Room?.48:.58))/(Room?.58:.45),(Y-(Room?.03:.28))/(Room?.69:.37),(Along+(Room?.22:0))/(Room?.80:1.)));
+        Right.Set(I,FVector((X-(Room?.51:.52))/(Room?.46:.34),(Y-(Room?.18:.42))/(Room?.61:.32),(Along-(Room?.30:0))/(Room?.68:1.)));
+    }
+    FVoxelSphereShape Sphere;Sphere.Radius=1;
+    Sphere.Sample(Out.View(),Vault);
+    FVoxelFloatBuffer Part;Part.Allocate(N);
+    for(const auto* Lobe:{&Floor,&Left,&Right})
+    {
+        Sphere.Sample(Part.View(),*Lobe);
+        for(int32 I=0;I<N;++I)
+            Out.Set(I,FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),Out[I],Part[I]*.55f,
+                EVoxelVolumeBlendMode::Additive,true,Room?.075f:.045f,nullptr));
+    }
+}
+void SampleSection(ECLCaveForm Form,const FVoxelDoubleVectorBuffer& P,double Development,FVoxelFloatBuffer& Out,TConstArrayView<double> Phases={},int32 Seed=0)
+{
+    if(Form==ECLCaveForm::KarstPassage||Form==ECLCaveForm::KarstChamber)
+    {SampleNaturalKarst(Form,P,Phases,Seed,Development,Out);return;}
     const int32 N=P.Num();FVoxelDoubleVectorBuffer Main,Extra;Main.Allocate(N);Extra.Allocate(N);
     const bool Room=Form==ECLCaveForm::FractureHall||Form==ECLCaveForm::KarstHall||Form==ECLCaveForm::RoofScar;
     for(int32 I=0;I<N;++I)
@@ -226,7 +265,8 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
         if(Modern)
         {
             const auto Form=Path?Data->Paths[Feature].Form:Data->Chambers[Feature-Data->Paths.Num()].Source.Form;
-            SampleSection(Form,Local,Path?Data->Paths[Feature].Development:0,Native);
+            SampleSection(Form,Local,Path?Data->Paths[Feature].Development:0,Native,Phases,
+                Path?Data->Paths[Feature].NoiseSeed:Data->Chambers[Feature-Data->Paths.Num()].NoiseSeed);
             if(Path&&Data->Paths[Feature].EndForm!=Form)
             {
                 FVoxelFloatBuffer Other;Other.Allocate(N);SampleSection(Data->Paths[Feature].EndForm,Local,Data->Paths[Feature].Development,Other);

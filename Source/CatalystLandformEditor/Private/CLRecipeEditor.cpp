@@ -2123,7 +2123,7 @@ bool FCLPlanetGuideFactoryTest::RunTest(const FString&)
     FString Error;TestTrue(TEXT("Selected set resolves"),A->SynchronizeRadialGuides(Error));
     TestEqual(TEXT("Resolved set has the referenced identity"),A->Recipe.RadialGuides.Id,A->RadialGuideSetId);
     TestTrue(TEXT("New planets contain no terrain layers or regions"),A->Recipe.NoiseLayers.IsEmpty()&&A->Recipe.TerrainRegions.IsEmpty());
-    TestEqual(TEXT("Fresh factory planets explicitly use intersecting caves"),A->Recipe.Caves.AlgorithmVersion,4);
+    TestEqual(TEXT("Fresh factory planets explicitly use intersecting caves"),A->Recipe.Caves.AlgorithmVersion,5);
     return true;
 }
 #endif

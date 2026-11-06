@@ -1,0 +1,109 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "11442D7AE54F11ABF4C0B3B646255046",
+			"instanceName": "jupiter.local-25156",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.06-22.43.23",
+	"succeeded": 2,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 194.25886535644531,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "MorphKarst",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.MorphKarst",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"11442D7AE54F11ABF4C0B3B646255046"
+			],
+			"duration": 153.55604553222656,
+			"dateTime": "2026.11.06-22.40.08",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":21.599501,\"normalSurfaceLuma\":188.915300,\"debugSurfaceLuma\":18.993739,\"cyanPixels\":5201,\"networks\":5,\"nativeDomains\":5,\"nativeVertices\":1872571,\"maxFieldResidualMeters\":0.402143,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.41.48"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":9,\"nativeDomains\":9,\"nativeVertices\":535759,\"maxFieldResidualMeters\":0.350818,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.42.40"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NaturalKarst",
+			"fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.NaturalKarst",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"11442D7AE54F11ABF4C0B3B646255046"
+			],
+			"duration": 40.702816009521484,
+			"dateTime": "2026.11.06-22.42.42",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"frames\":90,\"warmupFrames\":30,\"p95Ms\":24.308458,\"normalSurfaceLuma\":188.775022,\"debugSurfaceLuma\":18.973936,\"cyanPixels\":4617,\"networks\":5,\"nativeDomains\":5,\"nativeVertices\":408464,\"maxFieldResidualMeters\":0.418065,\"cameraMovedByToggle\":false,\"inputStartsDuringNavigation\":0,\"meshCopiesDuringNavigation\":0}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.43.00"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "{\"character\":100,\"networks\":9,\"nativeDomains\":9,\"nativeVertices\":535759,\"maxFieldResidualMeters\":0.350818,\"cameraMovedByInput\":false}\n",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.06-22.43.21"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

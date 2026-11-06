@@ -1,6 +1,7 @@
 # Generated cave volumes
 
-Current section/room development is documented in [Cave morphology profile 4](CaveMorphology.md).
+Current one-family development is documented in [Dry carbonate karst, profile 5](NaturalKarst.md).
+[Profile 4](CaveMorphology.md) remains the failed-appearance historical checkpoint.
 Earlier milestones below retain their historical scope; connected volume tests
 alone did not qualify natural cave appearance.
 
@@ -82,7 +83,7 @@ roof and cover checks reject a whole candidate before publication; these checks
 are not a continuous mathematical roof/host certificate.
 
 Enabled caves request at least one complete eligible network at every knob
-position. The eye is the way to request zero. Algorithms 2–4 resolve density to a requested complete-network count over estimated
+position. The eye is the way to request zero. Algorithms 2–5 resolve density to a requested complete-network count over estimated
 eligible physical area, then visits stable occurrence-ranked sites. The automatic
 profile is `6 * Character²` networks per eligible km². Physical area is measured at
 the fitted surface midpoint, using the existing equal-area candidate sampling.
