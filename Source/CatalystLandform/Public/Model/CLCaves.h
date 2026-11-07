@@ -87,13 +87,15 @@ public:
     static TSharedPtr<const FCLCompiledCaveVolume> Compile(TConstArrayView<FCLCavePassage>,TConstArrayView<FCLCaveChamber>,TSharedPtr<const FCLNativeNoiseKernel>,int32 Seed,FString& Error,TConstArrayView<FCLCaveInfill> Infills={});
     double Compose(const FVector3d& P,double Field,FCLSurfaceWeights* Weights=nullptr)const;
     void ComposeBatch(TConstArrayView<FVector3d>,TArrayView<double>)const;
+    /** Opt-in delivery prototype: identical ordered field with query-local floor reuse. */
+    void ComposeBatchOptimized(TConstArrayView<FVector3d>,TArrayView<double>)const;
     TSharedPtr<const FCLCompiledCaveVolume> Select(FGuid Network)const;
     TSharedPtr<const FCLCompiledCaveVolume> Select(TConstArrayView<FGuid> Networks)const;
     FBox Bounds(FGuid Network=FGuid())const;
     double MinimumHalfWidth(FGuid Network=FGuid())const;
     FVector GeologicalPosition(const FVector& Position)const;
 private:
-    void ComposeBatchInternal(TConstArrayView<FVector3d>,TArrayView<double>,bool IncludeInfills)const;
+    void ComposeBatchInternal(TConstArrayView<FVector3d>,TArrayView<double>,bool IncludeInfills,bool Optimized=false)const;
     TSharedPtr<const FCLCaveVolumeData> Data;
     TSet<FGuid> SelectedNetworks;
 };

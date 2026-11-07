@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-07",
+  "engine": {
+    "MajorVersion": 5,
+    "MinorVersion": 7,
+    "PatchVersion": 4,
+    "Changelist": 51494982,
+    "CompatibleChangelist": 47537391,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.7"
+  },
+  "voxelVersion": "2.0p8",
+  "machine": {
+    "cpu": "Apple M3 Max",
+    "logicalCPUs": 16,
+    "memoryBytes": 137438953472,
+    "os": "macOS 26.6.1",
+    "osBuild": "25G76",
+    "gpuCores": 40
+  },
+  "componentBaseline": "fa53800310effe13a481c947f60336c05e56c1df",
+  "workspaceBaseline": "45c956f86c38e38d9fbf0313dfe93fc94286166e",
+  "requestedViewport": [
+    1280,
+    800
+  ],
+  "voxelSizeCm": 20,
+  "nativeLODQuality": 2,
+  "requestedWorkers": 8,
+  "nativeBackgroundWorkers": 6,
+  "scalabilityGroups": 3,
+  "screenPercentageCVar": 0,
+  "dynamicResolutionOperationMode": 0,
+  "note": "Editor standalone; automatic engine screen-percentage setting retained. Two serial native trials per backend and scenario. Synthetic render-only object workload.",
+  "recipeSHA256": "b1fabd3e410836a613b56d070eb4d9ce65f721ddc86ebdaf845aa7925e2bc292",
+  "nativeGraphSHA256": "16d0cbccff75eecd7fcad2930050b4b9fb36d6d43b06e42d2b14251fc8ad8167"
+}

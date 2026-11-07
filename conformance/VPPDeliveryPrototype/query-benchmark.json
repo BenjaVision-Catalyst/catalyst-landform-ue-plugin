@@ -1,0 +1,224 @@
+{
+  "profile": 7,
+  "bulkGridEdge": 17,
+  "stepCm": 20,
+  "centers": 24,
+  "runs": [
+    {
+      "scenario": "fine_bulk",
+      "backend": "legacy",
+      "round": 0,
+      "points": 117912,
+      "seconds": 1.5109326243400574,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "cpp",
+      "round": 0,
+      "points": 117912,
+      "seconds": 1.3369811661541462,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "graph",
+      "round": 0,
+      "points": 117912,
+      "seconds": 1.3331648744642735,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "cpp",
+      "round": 1,
+      "points": 117912,
+      "seconds": 1.3371015824377537,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "graph",
+      "round": 1,
+      "points": 117912,
+      "seconds": 1.3524916656315327,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "legacy",
+      "round": 1,
+      "points": 117912,
+      "seconds": 1.5083260834217072,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "graph",
+      "round": 2,
+      "points": 117912,
+      "seconds": 1.3494770415127277,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "legacy",
+      "round": 2,
+      "points": 117912,
+      "seconds": 1.5102925412356853,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "fine_bulk",
+      "backend": "cpp",
+      "round": 2,
+      "points": 117912,
+      "seconds": 1.338518001139164,
+      "checksum": 66067602.64244692
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "legacy",
+      "round": 0,
+      "points": 117912,
+      "seconds": 1.48859179392457,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "cpp",
+      "round": 0,
+      "points": 117912,
+      "seconds": 1.383210252970457,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "graph",
+      "round": 0,
+      "points": 117912,
+      "seconds": 1.3756128326058388,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "cpp",
+      "round": 1,
+      "points": 117912,
+      "seconds": 1.3729462511837482,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "graph",
+      "round": 1,
+      "points": 117912,
+      "seconds": 1.3737598732113838,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "legacy",
+      "round": 1,
+      "points": 117912,
+      "seconds": 1.4906036257743835,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "graph",
+      "round": 2,
+      "points": 117912,
+      "seconds": 1.3667792491614819,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "legacy",
+      "round": 2,
+      "points": 117912,
+      "seconds": 1.4729187078773975,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "coarse_bulk",
+      "backend": "cpp",
+      "round": 2,
+      "points": 117912,
+      "seconds": 1.3545975014567375,
+      "checksum": -247921800.62143448
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "legacy",
+      "round": 0,
+      "points": 8192,
+      "seconds": 0.10562004148960114,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "cpp",
+      "round": 0,
+      "points": 8192,
+      "seconds": 0.10779012739658356,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "graph",
+      "round": 0,
+      "points": 8192,
+      "seconds": 0.10729975253343582,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "cpp",
+      "round": 1,
+      "points": 8192,
+      "seconds": 0.10549300163984299,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "graph",
+      "round": 1,
+      "points": 8192,
+      "seconds": 0.10628770664334297,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "legacy",
+      "round": 1,
+      "points": 8192,
+      "seconds": 0.1053900420665741,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "graph",
+      "round": 2,
+      "points": 8192,
+      "seconds": 0.10432645678520203,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "legacy",
+      "round": 2,
+      "points": 8192,
+      "seconds": 0.10450612381100655,
+      "checksum": 58313.261278449645
+    },
+    {
+      "scenario": "scattered_attributes",
+      "backend": "cpp",
+      "round": 2,
+      "points": 8192,
+      "seconds": 0.1052202507853508,
+      "checksum": 58313.261278449645
+    }
+  ]
+}

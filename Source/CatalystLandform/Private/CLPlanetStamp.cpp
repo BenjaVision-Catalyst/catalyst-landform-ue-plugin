@@ -1,4 +1,7 @@
+#include "VoxelQuery.h"
 #include "CLPlanetStamp.h"
+#include "CLDeliveryPrototype.h"
+#include "Misc/ScopeExit.h"
 #include "VoxelLinearColorMetadata.h"
 #include "UObject/StrongObjectPtr.h"
 #include "CLPlanetShape.h"
@@ -206,6 +209,8 @@ void FCLPlanetStampRuntime::ApplySources(const FVoxelQuery& Query, const FVoxelD
 
 FVoxelFloatBuffer FCLPlanetStampRuntime::SampleDistances(const FVoxelQuery& Query, const FVoxelDoubleVectorBuffer& Positions) const
 {
+    const uint64 Started=Stamp.DeliveryCounters?FPlatformTime::Cycles64():0;
+    ON_SCOPE_EXIT {if(Stamp.DeliveryCounters)Stamp.DeliveryCounters->Record(Positions.Num(),Positions.Num(),Query.LOD,FPlatformTime::Cycles64()-Started);};
     if(Stamp.bSectionPreview)
     {
         FVoxelFloatBuffer Distances;Distances.Allocate(Positions.Num());

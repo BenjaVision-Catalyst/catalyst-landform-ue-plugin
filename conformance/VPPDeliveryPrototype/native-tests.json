@@ -1,0 +1,950 @@
+{
+  "devices": [
+    {
+      "deviceName": "jupiter.local",
+      "instance": "B14F7BD91349973736C53CB706325971",
+      "instanceName": "jupiter.local-46229",
+      "platform": "MacEditor",
+      "oSVersion": "macOS 26.6.1 25G76",
+      "model": "Default",
+      "gPU": "Apple M3 Max",
+      "cPUModel": "Apple M3 Max",
+      "rAMInGB": 128,
+      "renderMode": "SM6",
+      "rHI": "Metal Bindless (SM6)",
+      "appInstanceLog": ""
+    }
+  ],
+  "reportCreatedOn": "2026.11.07-07.03.32",
+  "succeeded": 29,
+  "succeededWithWarnings": 0,
+  "failed": 0,
+  "notRun": 0,
+  "inProcess": 0,
+  "totalDuration": 207.46343994140625,
+  "comparisonExported": false,
+  "comparisonExportDirectory": "",
+  "tests": [
+    {
+      "testDisplayName": "FloorsAndScale",
+      "fullTestPath": "Catalyst.Landform.Caves.BeddedKarst.FloorsAndScale",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 2.3570046424865723,
+      "dateTime": "2026.11.07-07.00.03",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "BEDDED_KARST 4 networks; 20 passages; 4 rooms; widths 12.54..35.23 m; 224 floor probes; maximum floor offset 0.0993 m; 6 piers, 22 blocks and 7 broken wall remnants",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.00.06"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativePackage",
+      "fullTestPath": "Catalyst.Landform.Caves.BeddedKarst.NativePackage",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 4.610061168670654,
+      "dateTime": "2026.11.07-07.00.06",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "Parity",
+      "fullTestPath": "Catalyst.Landform.Caves.DeliveryPrototype.Parity",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 40.77836608886719,
+      "dateTime": "2026.11.07-07.00.10",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "DELIVERY_PARITY points=12775 bitDifferences=0 maxErrorCm=0; native sparse=2048 bulk=4913; same compiled geology",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.00.16"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "GenerationAndProvenance",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.GenerationAndProvenance",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 4.999191761016846,
+      "dateTime": "2026.11.07-07.00.51",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "MORPHOLOGY 8 structural, 1 karst; 61 passages, 27 chamber/scar volumes, 18 transported blocks, 54 source-geology probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.00.56"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeBreakthroughFixture",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.NativeBreakthroughFixture",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.18105070292949677,
+      "dateTime": "2026.11.07-07.00.56",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeLibrary",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.NativeLibrary",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 20.499256134033203,
+      "dateTime": "2026.11.07-07.00.56",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeSectionAnatomy",
+      "fullTestPath": "Catalyst.Landform.Caves.Morphology.NativeSectionAnatomy",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.04628575220704079,
+      "dateTime": "2026.11.07-07.01.17",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "BackgroundAndFrozenStructural",
+      "fullTestPath": "Catalyst.Landform.Caves.NaturalKarst.BackgroundAndFrozenStructural",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 24.094331741333008,
+      "dateTime": "2026.11.07-07.01.17",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ConstructionAndVersions",
+      "fullTestPath": "Catalyst.Landform.Caves.NaturalKarst.ConstructionAndVersions",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 12.846330642700195,
+      "dateTime": "2026.11.07-07.01.41",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "NATURAL_KARST 5 networks, 25 passages, 5 rooms; 960 core probes, minimum 0.694290 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.01.54"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "EnabledMinimumAndReseed",
+      "fullTestPath": "Catalyst.Landform.Caves.NaturalKarst.EnabledMinimumAndReseed",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 28.28531265258789,
+      "dateTime": "2026.11.07-07.01.54",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeFieldAnatomy",
+      "fullTestPath": "Catalyst.Landform.Caves.NaturalKarst.NativeFieldAnatomy",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.09265804290771484,
+      "dateTime": "2026.11.07-07.02.22",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativePackage",
+      "fullTestPath": "Catalyst.Landform.Caves.NaturalKarst.NativePackage",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 13.783515930175781,
+      "dateTime": "2026.11.07-07.02.22",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativePackage",
+      "fullTestPath": "Catalyst.Landform.Caves.OrganicKarst.NativePackage",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 22.203372955322266,
+      "dateTime": "2026.11.07-07.02.36",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ReliefAndOpenings",
+      "fullTestPath": "Catalyst.Landform.Caves.OrganicKarst.ReliefAndOpenings",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 3.5997116565704346,
+      "dateTime": "2026.11.07-07.02.59",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "ORGANIC_KARST 4 networks, 20 passages, 4 rooms, 115 native solid features; 206 floor probes; relief -1.269..1.375 m; maximum grade 0.248; mean opening asymmetry 8.281 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.02"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "AbundanceUpgradeAndScale",
+      "fullTestPath": "Catalyst.Landform.Caves.AbundanceUpgradeAndScale",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 1.4543758630752563,
+      "dateTime": "2026.11.07-07.03.02",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 0: 1/1 requested cave networks (0 carbonate karst, 1 structural), 5 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.04"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 1: 1/1 requested cave networks (0 carbonate karst, 1 structural), 5 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.04"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 25: 1/1 requested cave networks (0 carbonate karst, 1 structural), 6 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.04"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 50: 1/1 requested cave networks (0 carbonate karst, 1 structural), 6 curved passages, 1 entrances; 8/28 eligible sites; enabled-layer minimum applied",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.04"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 75: 2/2 requested cave networks (0 carbonate karst, 2 structural), 18 curved passages, 2 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.04"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "500 m knob 100: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.04"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "CarbonateKarstVolumesAndHosts",
+      "fullTestPath": "Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 9.632952690124512,
+      "dateTime": "2026.11.07-07.03.04",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "21/70 requested cave networks (21 carbonate karst, 0 structural), 105 curved passages, 21 entrances; 439/439 eligible sites; complete-fit capacity reached",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Karst minimum chord clearance 0.310059 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Inspection full/pruned max error 3.69548798e-06 at X=-1354.938 Y=-528.131 Z=-248.823: original -68.6398163 air 1.7880286 final 1.7880249 inspection -1.7880286",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.06"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Reproduced corner axis X=1.000 Y=0.000 Z=0.000 maximum 2 cm field step 0.006437 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.06"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Reproduced corner axis X=0.000 Y=1.000 Z=0.000 maximum 2 cm field step 0.034061 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.06"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Reproduced corner axis X=0.000 Y=0.000 Z=1.000 maximum 2 cm field step 0.019356 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.06"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Karst 21 networks, 105 curved passages, 42 keyholes, 63 chamber lobes, 1316 route probes; minimum clearance 0.3101 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.13"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "ConnectedVolumetricMorphology",
+      "fullTestPath": "Catalyst.Landform.Caves.ConnectedVolumetricMorphology",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 1.4748674631118774,
+      "dateTime": "2026.11.07-07.03.13",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 73: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.415 m; width ratio 1.750; curve deviation 0.664 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 74: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.459 m; width ratio 1.750; curve deviation 0.605 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 75: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.466 m; width ratio 1.750; curve deviation 0.624 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 1 seed 76: 1 networks, 6 nodes, 5 curved passages, 1 chamber lobes; minimum route clearance 0.470 m; width ratio 1.750; curve deviation 0.605 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 73: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.796 m; width ratio 1.750; curve deviation 1.274 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 74: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.883 m; width ratio 1.750; curve deviation 1.160 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 75: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.895 m; width ratio 1.750; curve deviation 1.197 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 50 seed 76: 1 networks, 7 nodes, 6 curved passages, 1 chamber lobes; minimum route clearance 0.898 m; width ratio 1.750; curve deviation 1.161 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 73: 3 networks, 24 nodes, 27 curved passages, 36 chamber lobes; minimum route clearance 1.011 m; width ratio 2.041; curve deviation 1.911 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 74: 3 networks, 24 nodes, 27 curved passages, 36 chamber lobes; minimum route clearance 1.123 m; width ratio 2.044; curve deviation 1.728 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 75: 4 networks, 32 nodes, 36 curved passages, 48 chamber lobes; minimum route clearance 1.168 m; width ratio 2.014; curve deviation 1.902 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "knob 100 seed 76: 4 networks, 32 nodes, 36 curved passages, 48 chamber lobes; minimum route clearance 1.023 m; width ratio 2.321; curve deviation 1.880 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.15"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "DesignerControlsAndUndo",
+      "fullTestPath": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 1.981099247932434,
+      "dateTime": "2026.11.07-07.03.15",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "EligibilityAndVersions",
+      "fullTestPath": "Catalyst.Landform.Caves.EligibilityAndVersions",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.619308352470398,
+      "dateTime": "2026.11.07-07.03.17",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24/24 requested cave networks (0 carbonate karst, 24 structural), 168 curved passages, 24 entrances; 147/439 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.17"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "InspectionVolume",
+      "fullTestPath": "Catalyst.Landform.Caves.InspectionVolume",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.43232518434524536,
+      "dateTime": "2026.11.07-07.03.18",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "IntersectingNativeVolumes",
+      "fullTestPath": "Catalyst.Landform.Caves.IntersectingNativeVolumes",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 1.6239112615585327,
+      "dateTime": "2026.11.07-07.03.18",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Five source formations retained; four share one support domain; same-family and cross-family intersections remain open; separate solid barrier remains intact.",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.20"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "KnobAndBackground",
+      "fullTestPath": "Catalyst.Landform.Caves.KnobAndBackground",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.6208624243736267,
+      "dateTime": "2026.11.07-07.03.20",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "LegacyNativeAssetProfiles",
+      "fullTestPath": "Catalyst.Landform.Caves.LegacyNativeAssetProfiles",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 1.5074515342712402,
+      "dateTime": "2026.11.07-07.03.20",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "MixedGeneratedFamilies",
+      "fullTestPath": "Catalyst.Landform.Caves.MixedGeneratedFamilies",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 5.658196449279785,
+      "dateTime": "2026.11.07-07.03.22",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Mixed seed 176: 9/9 requested cave networks (1 carbonate karst, 8 structural), 61 curved passages, 9 entrances; 67/73 eligible sites; 7 native domains, 0 same-family and 1 cross-family positive-overlap pairs; cross X=6.432 Y=-369.715 Z=409.677",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.24"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeFieldsAndPersistence",
+      "fullTestPath": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.8837003111839294,
+      "dateTime": "2026.11.07-07.03.28",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 networks, 1008 cutters; 297 native bulk/sparse points, max residual 0 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.28"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NativeNoiseBatchParity",
+      "fullTestPath": "Catalyst.Landform.Caves.NativeNoiseBatchParity",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.008303668349981308,
+      "dateTime": "2026.11.07-07.03.28",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "SmallPlanetMinimumAndScale",
+      "fullTestPath": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 3.167022943496704,
+      "dateTime": "2026.11.07-07.03.28",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 73: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 74: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 75: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 76: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 77: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 78: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 9/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 79: 4/4 requested cave networks (0 carbonate karst, 4 structural), 36 curved passages, 4 entrances; 10/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 80: 3/3 requested cave networks (0 carbonate karst, 3 structural), 27 curved passages, 3 entrances; 8/28 eligible sites",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.07-07.03.31"
+        }
+      ],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "NewPlanetReference",
+      "fullTestPath": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.007112834602594376,
+      "dateTime": "2026.11.07-07.03.32",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    },
+    {
+      "testDisplayName": "SerializationAndSnapshot",
+      "fullTestPath": "Catalyst.Landform.Recipes.SerializationAndSnapshot",
+      "tags": [],
+      "state": "Success",
+      "deviceInstance": [
+        "B14F7BD91349973736C53CB706325971"
+      ],
+      "duration": 0.015506956726312637,
+      "dateTime": "2026.11.07-07.03.32",
+      "entries": [],
+      "warnings": 0,
+      "errors": 0,
+      "artifacts": []
+    }
+  ]
+}

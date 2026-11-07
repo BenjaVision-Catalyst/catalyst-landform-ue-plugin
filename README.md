@@ -812,3 +812,13 @@ a continental knob gesture adopts the new version without rewriting saved worlds
 material/property layer, stable beds through caves and mining, and native VPP
 sculpt save/load qualification. See the linked native audit, scoped proof and
 [portable example](Examples/RockCharacter.json).
+
+
+## Native cave delivery prototype
+
+The [VPP delivery comparison](Docs/VPPDeliveryPrototype.md) measures an actual
+native graph with custom nodes against an optimized C++ stamp runtime and the
+published evaluator. The frozen cave family, geology and edits use one immutable
+snapshot; VPP retains generation, rendering, collision and sculpt ownership.
+The prototype is selected by diagnostic launch arguments and preserves the
+existing designer UI and production default.

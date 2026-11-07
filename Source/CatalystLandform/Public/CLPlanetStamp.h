@@ -12,6 +12,7 @@ class FCLCompiledCaveVolume;
 
 class FCLScene;
 class FCLRockMetadataBinding;
+struct FCLDeliveryCounters;
 
 /** Immutable placement copied from an authoring actor; all distances are cm. */
 USTRUCT()
@@ -49,6 +50,8 @@ struct CATALYSTLANDFORM_API FCLPlanetStamp final : public FVoxelVolumeStamp
     /** Activation-only immutable plan for Recipe, retained through native transform refreshes.
      * Serialized/standalone stamps without this snapshot compile in their loading context. */
     TSharedPtr<const FCLCompiledPlanetRecipe> CompiledRecipe;
+    /** Optional diagnostic counters; absent in ordinary UI/production stamps. */
+    TSharedPtr<FCLDeliveryCounters> DeliveryCounters;
     UPROPERTY() TArray<FCLSphericalHeightmapPlacement> Placements;
     UPROPERTY() FCLSceneWindow Window;
     /** Transient native flat-section sampling domain, never part of the planet recipe. */

@@ -25,6 +25,7 @@ public:
     {
         FGuid Network;FVector Origin,Across;int32 NoiseSeed=0,PassageId=0,GeometryProfile=0;double FloorReliefScale=0;TSharedPtr<FSplineCurves> Curve;
         TVoxelArray<FVoxelSplineSegment> Segments;
+        TVoxelArray<ispc::FSegment> NativeSegments;
         TSharedPtr<TArray<FVector2D>> Sections;
         TSharedPtr<TArray<double>> FloorRadii;TSharedPtr<const FCLCompiledRock> FloorRock;
         bool RampedFloor=false;FVector FloorStartDirection,FloorForward;double FloorAngle=0,RampStart=0,RampEnd=0;
@@ -32,6 +33,7 @@ public:
         ECLCaveForm Form=ECLCaveForm::LegacyOval,EndForm=ECLCaveForm::LegacyOval;TSharedPtr<TArray<FVector>> BeddingUps;
     };
     struct FChamber {FCLCaveChamber Source;FBox Bounds;int32 NoiseSeed=0;};
+    TArray<FVoxelFastBox> FeatureBounds;
     TArray<FPath> Paths;
     TArray<FChamber> Chambers;
     TArray<FCLCaveInfill> Infills;TSharedPtr<const FVoxelAABBTree> InfillIndex;
@@ -294,13 +296,13 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Compile(TConstArr
             // cubic interval separately and native-union its actual volume.
             // This matches VPP's per-segment bounds granularity and removes
             // closest-key switching discontinuities at folded passage corners.
-            auto Part=C;Part.Segments.Add(Segment);
+            auto Part=C;Part.Segments.Add(Segment);Part.NativeSegments.Add(Segment.Segment);
             const auto Chord=(Segment.PositionB.OutVal-Segment.PositionA.OutVal).GetSafeNormal();
             const auto Radial=(C.Origin+(Segment.PositionA.OutVal+Segment.PositionB.OutVal)*.5).GetSafeNormal();
             Part.Across=FVector::CrossProduct(Radial,Chord).GetSafeNormal();
             if(Part.Across.IsNearlyZero()){FVector Other;Chord.FindBestAxisVectors(Part.Across,Other);}
             Part.Bounds=FBox(FVector(Segment.Bounds.Min)+C.Origin,FVector(Segment.Bounds.Max)+C.Origin).ExpandBy(C.MaximumWidth*(P.Form==ECLCaveForm::LegacyOval?1.5:2.25)+1);
-            D->Paths.Add(MoveTemp(Part));Elements.Add(FVoxelBox(D->Paths.Last().Bounds),D->Paths.Num()-1);
+            D->Paths.Add(MoveTemp(Part));D->FeatureBounds.Add(FVoxelFastBox(FVoxelBox(D->Paths.Last().Bounds)));Elements.Add(FVoxelBox(D->Paths.Last().Bounds),D->Paths.Num()-1);
         }
     }
     for(const auto& C:Chambers)
@@ -308,7 +310,7 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Compile(TConstArr
         if(C.Form==ECLCaveForm::BeddedChamber&&(!C.FloorRock||!FMath::IsFinite(C.FloorRadius))){Error=TEXT("Bedded chamber requires its canonical rock floor datum");return nullptr;}
         auto& V=D->Chambers.AddDefaulted_GetRef();V.Source=C;V.NoiseSeed=Seed^GetTypeHash(C.Network)^0x4348414D^ChamberCounts.FindOrAdd(C.Network)++;
         V.Bounds=FBox(-C.HalfExtents,C.HalfExtents).TransformBy(FTransform(C.Rotation,C.Center).ToMatrixWithScale()).ExpandBy(C.HalfExtents.GetMin()*.6+1);
-        Elements.Add(FVoxelBox(V.Bounds),D->Paths.Num()+D->Chambers.Num()-1);
+        D->FeatureBounds.Add(FVoxelFastBox(FVoxelBox(V.Bounds)));Elements.Add(FVoxelBox(V.Bounds),D->Paths.Num()+D->Chambers.Num()-1);
     }
     FVoxelAABBTree::FElementArray Blocks;
     for(const auto& B:Infills){const int32 I=D->Infills.Add(B);const auto Box=FBox(-B.HalfExtents,B.HalfExtents).TransformBy(FTransform(B.Rotation,B.Center)).ExpandBy(B.HalfExtents.GetMax()*.5+1);Blocks.Add(FVoxelBox(Box),I);}
@@ -341,21 +343,55 @@ double FCLCompiledCaveVolume::Compose(const FVector3d& P,double Field,FCLSurface
 {ComposeBatch(MakeArrayView(&P,1),MakeArrayView(&Field,1));return Field;}
 void FCLCompiledCaveVolume::ComposeBatch(TConstArrayView<FVector3d> Positions,TArrayView<double> Fields)const
 {ComposeBatchInternal(Positions,Fields,true);}
-void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Positions,TArrayView<double> Fields,bool IncludeInfills)const
+void FCLCompiledCaveVolume::ComposeBatchOptimized(TConstArrayView<FVector3d> Positions,TArrayView<double> Fields)const
+{ComposeBatchInternal(Positions,Fields,true,true);}
+void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Positions,TArrayView<double> Fields,bool IncludeInfills,bool Optimized)const
 {
     check(Positions.Num()==Fields.Num());if(!Data->Index)return;
     // Native AABB index selects feature/query pairs. No 64-bit operation mask:
     // one real network is no longer squeezed into the authored-edit proof limit.
     TMap<int32,TArray<int32>> Work;
+    if(Optimized&&!Positions.IsEmpty())
+    {
+        // Match native BVH element and point bounds, including its outward
+        // float rounding. One broad traversal replaces N repeated traversals.
+        TArray<FVoxelFastBox> PointBounds;PointBounds.Reserve(Positions.Num());
+        for(const auto& P:Positions)PointBounds.Emplace(FVoxelBox(P,P));
+        auto Batch=PointBounds[0];for(int32 I=1;I<PointBounds.Num();++I)Batch=Batch.UnionWith(PointBounds[I]);
+        const auto BatchMin=Batch.GetMin(),BatchMax=Batch.GetMax();
+        TArray<int32> Candidates;Data->Index->Intersects(Batch,[&](int32 Feature){Candidates.Add(Feature);return false;});
+        int32 SampleHits=0;
+        if(Candidates.Num()>32)for(const int32 I:{0,Positions.Num()/2,Positions.Num()-1})Data->Index->Intersects(PointBounds[I],[&](int32){++SampleHits;return false;});
+        // Scattered sparse/PCG queries keep native point traversal. Coherent
+        // grid packets amortize traversal while retaining the exact pair set.
+        if(Positions.Num()<8||Candidates.Num()>32+SampleHits*2/3)
+        {
+            for(int32 I=0;I<Positions.Num();++I)Data->Index->Intersects(PointBounds[I],[&](int32 Feature){Work.FindOrAdd(Feature).Add(I);return false;});
+        }
+        else for(const int32 Feature:Candidates)
+        {
+            const auto& Bounds=Data->FeatureBounds[Feature];const auto Min=Bounds.GetMin(),Max=Bounds.GetMax();
+            const bool Contains=Min.X<=BatchMin.X&&Min.Y<=BatchMin.Y&&Min.Z<=BatchMin.Z&&Max.X>=BatchMax.X&&Max.Y>=BatchMax.Y&&Max.Z>=BatchMax.Z;
+            TArray<int32> Indices;Indices.Reserve(Positions.Num());
+            for(int32 I=0;I<Positions.Num();++I)if(Contains||PointBounds[I].Intersects(Bounds))Indices.Add(I);
+            if(!Indices.IsEmpty())Work.Add(Feature,MoveTemp(Indices));
+        }
+    }
+    else
+    {
     for(int32 I=0;I<Positions.Num();++I)Data->Index->Intersects(FVoxelFastBox(FVoxelBox(Positions[I],Positions[I])),[&](int32 Feature)
     {Work.FindOrAdd(Feature).Add(I);return false;});
+    }
     TArray<int32> Features;Work.GetKeys(Features);Features.Sort();
+    if(Optimized&&Features.IsEmpty())
+    {for(double& Field:Fields)if(!FMath::IsFinite(Field))Field=-1.e6;return;}
     TArray<double> Void;Void.Init(MAX_flt,Positions.Num());
     // Cached across overlapping native features in this batch. All floor
     // coordinates use the same immutable planetary rock field.
     TArray<double> Restored;Restored.Init(MAX_dbl,Positions.Num());
     TMap<int32,TArray<double>> BeddedVoids;TMap<int32,FGuid> BeddedOwners;TMap<int32,double> BeddedSmoothness;
     TMap<FGuid,TArray<double>> BeddedFloors,JoinedVoids;
+    TMap<double,TArray<double>> RollingByScale;
     for(int32 Feature:Features)
     {
         const bool Path=Feature<Data->Paths.Num();const auto Network=Path?Data->Paths[Feature].Network:Data->Chambers[Feature-Data->Paths.Num()].Source.Network;
@@ -372,8 +408,10 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
         {
             const auto& C=Data->Paths[Feature];TArray<float> X,Y,Z,Keys;X.SetNumUninitialized(N);Y.SetNumUninitialized(N);Z.SetNumUninitialized(N);Keys.SetNumUninitialized(N);
             for(int32 J=0;J<N;++J){const auto P=Positions[Indices[J]]-C.Origin;X[J]=P.X;Y[J]=P.Y;Z[J]=P.Z;}
-            TVoxelArray<ispc::FSegment> Segments;for(const auto& S:C.Segments)Segments.Add(S.Segment);
-            ispc::VoxelSplineStamp_FindNearest3D(Keys.GetData(),X.GetData(),Y.GetData(),Z.GetData(),N,Segments.GetData(),Segments.Num());
+            TVoxelArray<ispc::FSegment> Segments;
+            if(!Optimized)for(const auto& S:C.Segments)Segments.Add(S.Segment);
+            const auto& NativeSegments=Optimized?C.NativeSegments:Segments;
+            ispc::VoxelSplineStamp_FindNearest3D(Keys.GetData(),X.GetData(),Y.GetData(),Z.GetData(),N,NativeSegments.GetData(),NativeSegments.Num());
             for(int32 J=0;J<N;++J)
             {
                 const double Key=FMath::Clamp(double(Keys[J]),0.,double(C.Sections->Num()-1));const int32 A=FMath::Min(int32(Key),C.Sections->Num()-2);
@@ -464,14 +502,30 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
         FVoxelFloatBuffer Floor;
         if(Bedded)
         {
-            TArray<float> Relief;TArray<FVector> Points;Points.Reserve(N);for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]/6.);
-            if(Data->Noise)Data->Noise->SampleBatch(Points,Data->Seed^0x464C4F52,Relief);
-            TArray<double> Rolling;
+            TArray<float> Relief;TArray<FVector> Points;
+            if(!Optimized||!Organic)
+            {
+                Points.Reserve(N);for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]/6.);
+                if(Data->Noise)Data->Noise->SampleBatch(Points,Data->Seed^0x464C4F52,Relief);
+            }
+            TArray<double> Rolling;const TArray<double>* SharedRolling=nullptr;
             if(Organic&&Data->Noise)
             {
-                Points.Reset();for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]);
                 const double Scale=Path?Data->Paths[Feature].FloorReliefScale:Data->Chambers[Feature-Data->Paths.Num()].Source.FloorReliefScale;
-                CLSampleCaveFloorRelief(Points,*Data->Noise,Data->Seed,Scale,Rolling);
+                // Native noise is not bit-invariant to regrouping partial
+                // packets. Reuse only identical complete input packets; partial
+                // feature requests retain their original native batch exactly.
+                if(Optimized&&N==Positions.Num())
+                {
+                    auto& Cached=RollingByScale.FindOrAdd(Scale);
+                    if(Cached.IsEmpty())CLSampleCaveFloorRelief(Positions,*Data->Noise,Data->Seed,Scale,Cached);
+                    SharedRolling=&Cached;
+                }
+                else
+                {
+                    Points.Reset();for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]);
+                    CLSampleCaveFloorRelief(Points,*Data->Noise,Data->Seed,Scale,Rolling);
+                }
             }
             FVoxelDoubleVectorBuffer FloorPoints;FloorPoints.Allocate(N);Floor.Allocate(N);
             for(int32 J=0;J<N;++J)
@@ -480,7 +534,7 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
                 // the margins. The chamber's central crossing shares its datum.
                 const auto Q=Local[J];const double Edge=Path?FMath::Abs(Q.X):FVector2D(Q.X,Q.Y).Length();
                 const double Bank=FMath::Min(Path?.6:1.2,Units[J]*.10)*FMath::Square(FMath::SmoothStep(Path?.5:.55,.95,Edge));
-                FloorPoints.Set(J,FVector(0,0,-FloorHeights[J]+Bank+(Organic?(Rolling.IsEmpty()?0:Rolling[J]):(Relief.IsEmpty()?0:Relief[J]*.16))));
+                FloorPoints.Set(J,FVector(0,0,-FloorHeights[J]+Bank+(Organic?(SharedRolling?(*SharedRolling)[Indices[J]]:(Rolling.IsEmpty()?0:Rolling[J])):(Relief.IsEmpty()?0:Relief[J]*.16))));
             }
             FVoxelPlaneShape Plane;Plane.Size=FVector2D(2.e6);Plane.Height=1;Plane.Sample(Floor.View(),FloorPoints);
         }

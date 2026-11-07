@@ -1,0 +1,57 @@
+{
+  "case": "Partial feature floor-noise cache regrouping",
+  "originalMismatchCm": 0.000762939453125,
+  "originalMismatchProbeIndices": [
+    37,
+    83
+  ],
+  "diagnosticPacketSizes": [
+    1,
+    3,
+    17,
+    134
+  ],
+  "originalScalarDifferences": 0,
+  "originalLargerPacketDifferences": 2,
+  "withoutFloorCacheDifferences": 0,
+  "fix": "Reuse floor relief only for identical complete packets; retain original partial native batches.",
+  "nativeRegressionPacketSizes": [
+    1,
+    3,
+    6
+  ],
+  "correctedNativeRegressionResult": "Success",
+  "nativeProbeWorldCm": [
+    [
+      1471.6788181437457,
+      -30385.591934679534,
+      41571.080206995364
+    ],
+    [
+      1431.6754070914849,
+      -31393.149152772316,
+      40805.29881468118
+    ],
+    [
+      1392.4156070158617,
+      -32394.79452627032,
+      40007.68464175345
+    ],
+    [
+      -29396.559598480173,
+      -248.8002032302682,
+      -42287.52979992962
+    ],
+    [
+      -29862.527544405548,
+      1167.289491534085,
+      -41947.720729407505
+    ],
+    [
+      -30321.26476849565,
+      2627.4153045625803,
+      -41558.44761834656
+    ]
+  ],
+  "timingPolicy": "All measurements preceding this correction are excluded from the final comparison."
+}

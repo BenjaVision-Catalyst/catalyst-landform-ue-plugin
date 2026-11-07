@@ -4,7 +4,9 @@
 Audited baseline: Landform `63430b2203e4b27668ac6955d68bb5781aeca636`, workspace
 `8485fffc9d241461bf0f1f5a092f6548bac65a08`, UE 5.7.4 / VPP 2.0p8.
 Existing UI, saved morphology, geological identity and native VPP ownership are
-constraints. No generation or engine code changes form part of this report.
+constraints. The subsequent [delivery prototype comparison](VPPDeliveryPrototype.md)
+measures native graph/custom-node and optimized C++ stamp delivery around the
+same frozen cave family. No generation or engine code changes form part of this report.
 
 ## Finding
 
