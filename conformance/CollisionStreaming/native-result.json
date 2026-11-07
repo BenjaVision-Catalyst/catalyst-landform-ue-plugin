@@ -1,0 +1,414 @@
+{
+  "passed": true,
+  "breakthrough": false,
+  "wallBlockedBefore": false,
+  "connectionOpenAfter": false,
+  "airBrushCentreBeforeCm": 0,
+  "throughDistanceCm": 0,
+  "throughGroundedFrames": 0,
+  "message": "Held forward input at 600 cm/s over 100 m, with production native collision admission",
+  "coldReader": false,
+  "processID": 56991,
+  "writerPID": 56991,
+  "nativeContacts": 3,
+  "collisionInvokerRadiusCm": 2500,
+  "stage": 0,
+  "nativeBreakdownProbes": 0,
+  "walkDistanceCm": 0,
+  "walkGroundedFrames": 0,
+  "nativeFloorFrames": 155,
+  "beforeMineCm": 0,
+  "afterMineCm": 0,
+  "afterFillCm": 0,
+  "controlBeforeCm": 0,
+  "controlAfterCm": 0,
+  "controlOffsetCm": 0,
+  "controlIdentityUnchanged": false,
+  "comparedProbes": 0,
+  "maximumReloadErrorCm": 0,
+  "saveBytes": 0,
+  "elapsedSeconds": 66.17159274965525,
+  "processCPUSecondsTotal": 439.694722,
+  "streamingCPUSeconds": 239.71543099999997,
+  "streamingSeconds": 32.708680249750614,
+  "streamingFrameMs": {
+    "samples": 3134,
+    "mean": 10.436676333265542,
+    "p50": 8.375748991966248,
+    "p95": 17.263121902942657,
+    "p99": 17.443500459194183,
+    "max": 28.915416449308395
+  },
+  "streamingGameThreadMs": {
+    "samples": 3134,
+    "mean": 1.1998714233327232,
+    "p50": 1.1360416412353516,
+    "p95": 1.3398749828338623,
+    "p99": 2.4794583320617676,
+    "max": 16.807790756225586
+  },
+  "streamingRenderThreadMs": {
+    "samples": 3134,
+    "mean": 10.431534616522676,
+    "p50": 8.341833114624023,
+    "p95": 17.280208587646484,
+    "p99": 17.407541275024414,
+    "max": 29.10966682434082
+  },
+  "streamingGpuMs": {
+    "samples": 3134,
+    "mean": 9.145153016898004,
+    "p50": 9.028249740600586,
+    "p95": 10.634666442871094,
+    "p99": 11.145125389099121,
+    "max": 36.22483444213867
+  },
+  "peakNativePendingTasks": 526,
+  "nativeStateBusyFrames": 3118,
+  "deliveryCounters": {
+    "calls": 77192,
+    "points": 59134277,
+    "heightPoints": 59134277,
+    "aggregateEvaluatorSeconds": 325.29750645833343,
+    "pointsByNativeLOD": [
+      27664467,
+      10881443,
+      7199560,
+      5619532,
+      4356181,
+      2981214,
+      394985,
+      27445,
+      8493,
+      957,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "recipeSHA1": "509BE02E15EBFB65084A7BB594459372B149A653",
+  "voxelSizeCm": 20,
+  "nativeLODQuality": 2,
+  "deliveryBackend": "cpp",
+  "readySeconds": 33.462924871593714,
+  "referenceWalkComplete": false,
+  "routeDistanceMeters": 100.04045488272212,
+  "routeFrames": 3135,
+  "routeGroundedFrames": 3135,
+  "eyeHeightMeters": 1.609581395044483,
+  "nativeBackgroundWorkers": 6,
+  "nativeOwnerStable": true,
+  "floorAppearedAfterNativeSettlement": false,
+  "failureNativeFields": [],
+  "failureNearbyColliders": [],
+  "nativeCollisionWaitFrames": 1647,
+  "nativeCollisionWaitSeconds": 16.038410671055317,
+  "entranceMovingFrames": 1487,
+  "entranceMovingGroundedFrames": 1487,
+  "entranceProof": true,
+  "minimumFootFieldMeters": 0.02294921875,
+  "peakSpeedCmPerSecond": 600.0000000004939,
+  "framesMissingNativeFootChunks": 0,
+  "entranceSamples": [
+    {
+      "distanceMeters": 0,
+      "footFieldMeters": 0.03338623046875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=42988.663 Y=32450.303 Z=24758.148",
+      "movementMode": 1,
+      "pendingTasks": 0
+    },
+    {
+      "distanceMeters": 5.309164590838027,
+      "footFieldMeters": 0.04339599609375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=42831.166 Y=32745.157 Z=24346.197",
+      "movementMode": 1,
+      "pendingTasks": 4
+    },
+    {
+      "distanceMeters": 11.59828530072459,
+      "footFieldMeters": 0.0435791015625,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=42612.211 Y=33059.313 Z=23847.843",
+      "movementMode": 1,
+      "pendingTasks": 79
+    },
+    {
+      "distanceMeters": 17.892414643915167,
+      "footFieldMeters": 0.0355224609375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=42399.022 Y=33380.509 Z=23350.723",
+      "movementMode": 1,
+      "pendingTasks": 31
+    },
+    {
+      "distanceMeters": 24.198798554552244,
+      "footFieldMeters": 0.04071044921875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=42177.909 Y=33693.614 Z=22850.677",
+      "movementMode": 1,
+      "pendingTasks": 196
+    },
+    {
+      "distanceMeters": 30.518101883576296,
+      "footFieldMeters": 0.06134033203125,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41952.429 Y=34001.911 Z=22349.291",
+      "movementMode": 1,
+      "pendingTasks": 114
+    },
+    {
+      "distanceMeters": 35.68225597304166,
+      "footFieldMeters": 0.0535888671875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41744.275 Y=34226.047 Z=21933.382",
+      "movementMode": 1,
+      "pendingTasks": 64
+    },
+    {
+      "distanceMeters": 35.68225597304166,
+      "footFieldMeters": 0.0535888671875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41744.275 Y=34226.047 Z=21933.382",
+      "movementMode": 1,
+      "pendingTasks": 19
+    },
+    {
+      "distanceMeters": 35.68225597304166,
+      "footFieldMeters": 0.0535888671875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41744.275 Y=34226.047 Z=21933.382",
+      "movementMode": 1,
+      "pendingTasks": 362
+    },
+    {
+      "distanceMeters": 41.052305290091375,
+      "footFieldMeters": 0.047607421875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41539.065 Y=34472.870 Z=21503.281",
+      "movementMode": 1,
+      "pendingTasks": 266
+    },
+    {
+      "distanceMeters": 47.423767763076214,
+      "footFieldMeters": 0.0438232421875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41296.539 Y=34767.138 Z=20992.979",
+      "movementMode": 1,
+      "pendingTasks": 175
+    },
+    {
+      "distanceMeters": 51.714117173537865,
+      "footFieldMeters": 0.05169677734375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41120.241 Y=34948.818 Z=20647.053",
+      "movementMode": 1,
+      "pendingTasks": 147
+    },
+    {
+      "distanceMeters": 51.714117173537865,
+      "footFieldMeters": 0.05169677734375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41120.241 Y=34948.818 Z=20647.053",
+      "movementMode": 1,
+      "pendingTasks": 94
+    },
+    {
+      "distanceMeters": 51.714117173537865,
+      "footFieldMeters": 0.05169677734375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41120.241 Y=34948.818 Z=20647.053",
+      "movementMode": 1,
+      "pendingTasks": 41
+    },
+    {
+      "distanceMeters": 51.85028404897573,
+      "footFieldMeters": 0.0496826171875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=41114.392 Y=34954.264 Z=20636.028",
+      "movementMode": 1,
+      "pendingTasks": 321
+    },
+    {
+      "distanceMeters": 58.046873242653874,
+      "footFieldMeters": 0.067138671875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=40834.336 Y=35182.166 Z=20133.643",
+      "movementMode": 1,
+      "pendingTasks": 260
+    },
+    {
+      "distanceMeters": 64.53537325974517,
+      "footFieldMeters": 0.0323486328125,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=40542.731 Y=35422.188 Z=19608.430",
+      "movementMode": 1,
+      "pendingTasks": 157
+    },
+    {
+      "distanceMeters": 67.43665913039261,
+      "footFieldMeters": 0.0257568359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=40445.198 Y=35571.110 Z=19379.465",
+      "movementMode": 1,
+      "pendingTasks": 133
+    },
+    {
+      "distanceMeters": 67.43665913039261,
+      "footFieldMeters": 0.0257568359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=40445.198 Y=35571.110 Z=19379.465",
+      "movementMode": 1,
+      "pendingTasks": 74
+    },
+    {
+      "distanceMeters": 67.43665913039261,
+      "footFieldMeters": 0.0257568359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=40445.198 Y=35571.110 Z=19379.465",
+      "movementMode": 1,
+      "pendingTasks": 14
+    },
+    {
+      "distanceMeters": 69.25934210490337,
+      "footFieldMeters": 0.0294189453125,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=40382.576 Y=35663.203 Z=19235.191",
+      "movementMode": 1,
+      "pendingTasks": 362
+    },
+    {
+      "distanceMeters": 75.54018297343944,
+      "footFieldMeters": 0.0570068359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=40136.816 Y=35944.012 Z=18731.582",
+      "movementMode": 1,
+      "pendingTasks": 253
+    },
+    {
+      "distanceMeters": 81.99686834690495,
+      "footFieldMeters": 0.0721435546875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39845.051 Y=36182.340 Z=18207.496",
+      "movementMode": 1,
+      "pendingTasks": 208
+    },
+    {
+      "distanceMeters": 82.04800600615248,
+      "footFieldMeters": 0.0726318359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39842.463 Y=36183.820 Z=18203.341",
+      "movementMode": 1,
+      "pendingTasks": 142
+    },
+    {
+      "distanceMeters": 82.04800600615248,
+      "footFieldMeters": 0.0726318359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39842.463 Y=36183.820 Z=18203.341",
+      "movementMode": 1,
+      "pendingTasks": 103
+    },
+    {
+      "distanceMeters": 82.04800600615248,
+      "footFieldMeters": 0.0726318359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39842.463 Y=36183.820 Z=18203.341",
+      "movementMode": 1,
+      "pendingTasks": 34
+    },
+    {
+      "distanceMeters": 82.04800600615248,
+      "footFieldMeters": 0.0726318359375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39842.463 Y=36183.820 Z=18203.341",
+      "movementMode": 1,
+      "pendingTasks": 1
+    },
+    {
+      "distanceMeters": 86.49052917353484,
+      "footFieldMeters": 0.07220458984375,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39608.896 Y=36298.082 Z=17843.213",
+      "movementMode": 1,
+      "pendingTasks": 303
+    },
+    {
+      "distanceMeters": 92.83402839546152,
+      "footFieldMeters": 0.0382080078125,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39336.422 Y=36550.823 Z=17330.353",
+      "movementMode": 1,
+      "pendingTasks": 189
+    },
+    {
+      "distanceMeters": 96.4225427609494,
+      "footFieldMeters": 0.04315185546875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39185.541 Y=36698.597 Z=17040.289",
+      "movementMode": 1,
+      "pendingTasks": 137
+    },
+    {
+      "distanceMeters": 96.4225427609494,
+      "footFieldMeters": 0.04315185546875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39185.541 Y=36698.597 Z=17040.289",
+      "movementMode": 1,
+      "pendingTasks": 64
+    },
+    {
+      "distanceMeters": 96.4225427609494,
+      "footFieldMeters": 0.04315185546875,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39185.541 Y=36698.597 Z=17040.289",
+      "movementMode": 1,
+      "pendingTasks": 14
+    },
+    {
+      "distanceMeters": 97.02596518158393,
+      "footFieldMeters": 0.04400634765625,
+      "grounded": true,
+      "nativeFootChunks": true,
+      "positionCm": "X=39158.909 Y=36721.769 Z=16991.350",
+      "movementMode": 1,
+      "pendingTasks": 304
+    }
+  ]
+}

@@ -243,6 +243,9 @@ steady query cost; merely wrapping the field in a graph does not expose its
 internal contributions to VPP's spatial traversal or reduce mesh rendering cost.
 The existing production default remains unchanged while this remains a prototype.
 
+The subsequent [collision investigation](CollisionStreaming.md) captures the
+computed-data versus active-physics gap during five native movement holds.
+
 ## Remaining architecture gaps
 
 Both prototypes still present broad whole-planet bounds. The packet optimization

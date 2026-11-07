@@ -1,0 +1,68 @@
+{
+  "heldSnapshots": 20,
+  "allHeldSnapshotsHaveGeneratedFloor": true,
+  "allHeldSnapshotsHaveComputedFloorChunk": true,
+  "allHeldSnapshotsMissPhysicsFloor": true,
+  "allHeldSnapshotsAwaitStateCompletion": true,
+  "everyResumePublishesPendingState": true,
+  "episodes": [
+    {
+      "oldStateAtHold": 14,
+      "pendingStateAtHold": 15,
+      "renderedStateAtResume": 15,
+      "holdWallSeconds": 2.241073999553919,
+      "guardSecondsAtResume": 2.2246319614350796,
+      "floorAlreadyComputedAtHold": true,
+      "noPhysicsAtHold": true,
+      "walkablePhysicsAtResume": true
+    },
+    {
+      "oldStateAtHold": 15,
+      "pendingStateAtHold": 16,
+      "renderedStateAtResume": 16,
+      "holdWallSeconds": 3.248007208108902,
+      "guardSecondsAtResume": 5.470065169036388,
+      "floorAlreadyComputedAtHold": true,
+      "noPhysicsAtHold": true,
+      "walkablePhysicsAtResume": true
+    },
+    {
+      "oldStateAtHold": 16,
+      "pendingStateAtHold": 17,
+      "renderedStateAtResume": 17,
+      "holdWallSeconds": 3.116532623767853,
+      "guardSecondsAtResume": 8.58205870911479,
+      "floorAlreadyComputedAtHold": true,
+      "noPhysicsAtHold": true,
+      "walkablePhysicsAtResume": true
+    },
+    {
+      "oldStateAtHold": 17,
+      "pendingStateAtHold": 18,
+      "renderedStateAtResume": 18,
+      "holdWallSeconds": 4.2505317479372025,
+      "guardSecondsAtResume": 12.827101670205593,
+      "floorAlreadyComputedAtHold": true,
+      "noPhysicsAtHold": true,
+      "walkablePhysicsAtResume": true
+    },
+    {
+      "oldStateAtHold": 18,
+      "pendingStateAtHold": 19,
+      "renderedStateAtResume": 19,
+      "holdWallSeconds": 3.2168914191424847,
+      "guardSecondsAtResume": 16.038410671055317,
+      "floorAlreadyComputedAtHold": true,
+      "noPhysicsAtHold": true,
+      "walkablePhysicsAtResume": true
+    }
+  ],
+  "publicationIntervalsWallSeconds": [
+    5.9150856249034405,
+    5.701681166887283,
+    6.709281541407108,
+    5.59134041890502
+  ],
+  "nominalForwardLeadSeconds": 4.166666666666667,
+  "allPublicationIntervalsExceedNominalForwardLead": true
+}

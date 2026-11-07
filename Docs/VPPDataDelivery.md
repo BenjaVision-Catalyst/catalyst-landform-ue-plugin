@@ -8,6 +8,9 @@ constraints. The subsequent [delivery prototype comparison](VPPDeliveryPrototype
 measures native graph/custom-node and optimized C++ stamp delivery around the
 same frozen cave family. No generation or engine code changes form part of this report.
 
+The subsequent [collision investigation](CollisionStreaming.md) identifies why
+computed collision data can still leave our movement guard waiting for physics.
+
 ## Finding
 
 Landform already returns one composed 3D field to VPP. It does not maintain a

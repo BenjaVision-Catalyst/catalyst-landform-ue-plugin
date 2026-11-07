@@ -1,0 +1,38 @@
+{
+  "dateSydney": "2026-11-07",
+  "baselineWorkspace": "9f885500ad0c91674586890fee7ed09074c496e4",
+  "baselineComponent": "712ddd456785de793a9e398595522ee0cd2b086b",
+  "engine": "UE5.7.4 CL51494982 macOS arm64",
+  "vpp": "Installed 2.0p8 source; exact hashes below",
+  "backend": "cpp",
+  "voxelSizeCm": 20,
+  "collisionChunkVoxels": 32,
+  "collisionChunkSideCm": 640,
+  "collisionInvokerRadiusCm": 2500,
+  "maxWalkSpeedCmPerSecond": 600,
+  "nativeWaitForVoxelWorld": true,
+  "visibilityCollision": false,
+  "waitForPCG": false,
+  "navigation": false,
+  "instrumentation": "Read-only observer; no timing comparison inferred",
+  "vendorSourceSHA256": {
+    "Source/Voxel/Private/Collision/VoxelCollisionInvoker.cpp": "bce1ccb7844d0bf966d72324b534c9d9e47c7197dc49a6ccdaee891b464cb054",
+    "Source/Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp": "1eb55af30bdcceb0ef9c8d054b4cf86c52400f47c6a6d0caae6e673f90e4977b",
+    "Source/Voxel/Public/Collision/VoxelCollisionInvoker.h": "cdf6f87bf43eafb6c326df69b1d151a99b2fad458dfaa2685724851787d71e77",
+    "Source/Voxel/Private/VoxelRuntime.cpp": "7ff21ac79b3609a28869585f65a9922bcb60a54ef6a9fafd698ab5a030f145e1",
+    "Source/Voxel/Private/VoxelState.cpp": "70cf3c0b0094110b2dae746d1039f0f6fdac9c3b65536e2fe16150dd96b9af05",
+    "Source/Voxel/Public/VoxelRuntime.h": "06dd80dadfb7416f641d8475661aa3310bcca317f793d2d05e369434599ad81b",
+    "Source/Voxel/Public/VoxelWorld.h": "0ba1507e66185b2b5719934827a6fba69dc4044f3b54701b119cf773a6a12306",
+    "Source/Voxel/Private/Render/VoxelRenderTree.cpp": "6d6ef6278d9a66b8437f9a88725fa4f7fb4d35b6be9a8a9f347a78ffc2c27bae"
+  },
+  "publishedGuardSHA256": "ac8eb7744a45b129dc08ca995de127b911cb569cb4497fff29b7b83ef3fdb312",
+  "isolatedHostRestoredTo278PublishedSourceHashes": true,
+  "restoredNativeBuild": "Succeeded",
+  "baselineSourceChanges": [
+    "Source/LandformLab/Private/CLGeneratedCaveProof.cpp"
+  ],
+  "observerSourcesAdded": [
+    "Source/LandformLab/Private/CLCollisionResearch.cpp",
+    "Source/LandformLab/Private/CLCollisionResearch.h"
+  ]
+}
