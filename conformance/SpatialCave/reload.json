@@ -1,0 +1,101 @@
+{
+	"passed": true,
+	"breakthrough": false,
+	"wallBlockedBefore": false,
+	"connectionOpenAfter": false,
+	"airBrushCentreBeforeCm": 0,
+	"throughDistanceCm": 0,
+	"throughGroundedFrames": 0,
+	"message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+	"coldReader": true,
+	"processID": 7935,
+	"writerPID": 7837,
+	"nativeContacts": 4,
+	"collisionInvokerRadiusCm": 2500,
+	"stage": 8,
+	"nativeBreakdownProbes": 0,
+	"walkDistanceCm": 250.23720292050544,
+	"walkGroundedFrames": 94,
+	"nativeFloorFrames": 395,
+	"beforeMineCm": 0,
+	"afterMineCm": 0,
+	"afterFillCm": 0,
+	"controlBeforeCm": 0,
+	"controlAfterCm": 0,
+	"controlOffsetCm": 50614.915836117718,
+	"controlIdentityUnchanged": false,
+	"comparedProbes": 14,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 147435,
+	"elapsedSeconds": 21.498170208185911,
+	"processCPUSecondsTotal": 116.26983799999999,
+	"streamingFrameMs":
+	{
+		"samples": 0
+	},
+	"streamingGameThreadMs":
+	{
+		"samples": 0
+	},
+	"streamingRenderThreadMs":
+	{
+		"samples": 0
+	},
+	"streamingGpuMs":
+	{
+		"samples": 0
+	},
+	"peakNativePendingTasks": 0,
+	"nativeStateBusyFrames": 0,
+	"deliveryCounters":
+	{
+		"calls": 26134,
+		"points": 29077905,
+		"heightPoints": 12573930,
+		"aggregateEvaluatorSeconds": 79.453954750000022,
+		"pointsByNativeLOD": [
+			10624381,
+			2760244,
+			4974741,
+			3992127,
+			3466353,
+			2955525,
+			272367,
+			24007,
+			7584,
+			576,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0
+		]
+	},
+	"recipeSHA1": "9EC76375572CD895766CAAC8433D3D1C8440A1A5",
+	"voxelSizeCm": 20,
+	"nativeLODQuality": 2,
+	"deliveryBackend": "cpp",
+	"readySeconds": 0,
+	"referenceWalkWallSeconds": 0,
+	"referenceWalkCPUSeconds": 0,
+	"referenceWalkComplete": false,
+	"routeDistanceMeters": 0,
+	"routeFrames": 0,
+	"routeGroundedFrames": 0,
+	"eyeHeightMeters": 1.5871481507031115,
+	"nativeBackgroundWorkers": 6,
+	"nativeOwnerStable": true,
+	"floorAppearedAfterNativeSettlement": false,
+	"failureNativeFields": [],
+	"failureNearbyColliders": [],
+	"nativeCollisionWaitFrames": 0,
+	"nativeCollisionWaitSeconds": 0,
+	"entranceMovingFrames": 0,
+	"entranceMovingGroundedFrames": 0,
+	"entranceProof": false,
+	"minimumFootFieldMeters": 1.7976931348623157e+308,
+	"peakSpeedCmPerSecond": 0,
+	"framesMissingNativeFootChunks": 0,
+	"entranceSamples": []
+}

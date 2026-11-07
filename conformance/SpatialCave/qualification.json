@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-07",
+  "platform": "Mac arm64, Apple M3 Max, 128 GB, macOS 26.6.1",
+  "engine": "UE 5.7.4",
+  "vpp": "installed 2.0p8",
+  "pluginBase": "e05add5c362c14cc65165654b5ab395418f48c1e",
+  "profile": 8,
+  "tests": 17,
+  "allNativeTestsPassed": true,
+  "nativeSourceCount": 282,
+  "preservedBaselineNativeSources": 272,
+  "voxelSizeCm": 20,
+  "collisionRadiusCm": 2500,
+  "nativeGameLODQuality": 2,
+  "requestedWorkers": 8,
+  "reportedBackgroundWorkers": 6,
+  "screenPercentage": 100,
+  "viewport": [
+    1280,
+    800
+  ],
+  "dynamicResolution": false,
+  "reviewRuns": [
+    "walk-250.json",
+    "walk-600.json"
+  ],
+  "nativeReload": "reload.json",
+  "fixedHeadroom": "headroom-100.json",
+  "scope": "One fixed spatial passage/chamber composition. Native shape/collision/sculpt/save owners retained. Not a surveyed reconstruction or planet-wide family qualification.",
+  "testErrors": 0,
+  "testWarnings": 1,
+  "warningScope": "UE connectivity HTTP timeout during historical profile-7 relief test",
+  "reviewAssetColdLoad": true,
+  "reviewAssetSHA256": "efb9e2cab666ddd5cbc62a9eb060586c243b6ec18febf373e76dcfaf1145f997"
+}

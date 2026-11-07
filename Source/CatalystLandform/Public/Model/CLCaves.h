@@ -29,6 +29,7 @@ struct CATALYSTLANDFORM_API FCLCaveSettings
 /** Placement data and native cutters share one immutable result. No preview-only cave geometry. */
 class FCLNativeNoiseKernel;
 class FCLCaveVolumeData;
+class FCLSpatialCave;
 class FCLCompiledRock;
 
 /** Geological section families, lowered through native VPP shape kernels. */
@@ -85,6 +86,7 @@ class CATALYSTLANDFORM_API FCLCompiledCaveVolume
 {
 public:
     static TSharedPtr<const FCLCompiledCaveVolume> Compile(TConstArrayView<FCLCavePassage>,TConstArrayView<FCLCaveChamber>,TSharedPtr<const FCLNativeNoiseKernel>,int32 Seed,FString& Error,TConstArrayView<FCLCaveInfill> Infills={});
+    static TSharedPtr<const FCLCompiledCaveVolume> CompileSpatial(TSharedPtr<const FCLSpatialCave>,FGuid Network);
     double Compose(const FVector3d& P,double Field,FCLSurfaceWeights* Weights=nullptr)const;
     void ComposeBatch(TConstArrayView<FVector3d>,TArrayView<double>)const;
     /** Opt-in delivery prototype: identical ordered field with query-local floor reuse. */
@@ -97,6 +99,8 @@ public:
 private:
     void ComposeBatchInternal(TConstArrayView<FVector3d>,TArrayView<double>,bool IncludeInfills,bool Optimized=false)const;
     TSharedPtr<const FCLCaveVolumeData> Data;
+    TSharedPtr<const FCLSpatialCave> Spatial;
+    FGuid SpatialNetwork;
     TSet<FGuid> SelectedNetworks;
 };
 
@@ -112,6 +116,7 @@ public:
     TArray<FCLCaveChamber> Chambers;
     TArray<FCLCaveInfill> Infills;
     TSharedPtr<const FCLCompiledCaveVolume> Cutters;
+    TSharedPtr<const FCLSpatialCave> Spatial;
     enum class EFamily:uint8 {Structural,CarbonateKarst};
     struct FNetwork {FGuid Id;EFamily Family=EFamily::Structural;int32 RechargeCell=INDEX_NONE,ReceivingCell=INDEX_NONE;double InceptionRadiusMeters=0;FBox InspectionBounds=FBox(ForceInit);FGuid Landform;FVector OriginDirection=FVector::ZeroVector;};
     TArray<FNetwork> NetworkInfo;

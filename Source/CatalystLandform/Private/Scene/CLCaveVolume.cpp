@@ -1,4 +1,5 @@
 #include "Model/CLCaves.h"
+#include "Model/CLSpatialCave.h"
 #include "Model/CLCaveFloor.h"
 #include "CLNativeNoiseKernel.h"
 #include "Spline/VoxelSplineStamp.h"
@@ -318,16 +319,19 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Compile(TConstArr
     if(Elements.Num()>0)D->Index=FVoxelAABBTree::Create(MoveTemp(Elements));
     auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=D;return Out;
 }
+TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::CompileSpatial(TSharedPtr<const FCLSpatialCave> Cave,FGuid Network)
+{auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Spatial=Cave;Out->SpatialNetwork=Network;return Out;}
 TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Select(FGuid Network)const
 {
-    auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=Data;if(Network.IsValid())Out->SelectedNetworks.Add(Network);return Out;
+    auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=Data;Out->Spatial=Spatial;Out->SpatialNetwork=SpatialNetwork;if(Network.IsValid())Out->SelectedNetworks.Add(Network);return Out;
 }
 TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Select(TConstArrayView<FGuid> Networks)const
 {
-    auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=Data;for(const auto Id:Networks)Out->SelectedNetworks.Add(Id);return Out;
+    auto Out=MakeShared<FCLCompiledCaveVolume>();Out->Data=Data;Out->Spatial=Spatial;Out->SpatialNetwork=SpatialNetwork;for(const auto Id:Networks)Out->SelectedNetworks.Add(Id);return Out;
 }
 FBox FCLCompiledCaveVolume::Bounds(FGuid Network)const
 {
+    if(Spatial)return (!Network.IsValid()||Network==SpatialNetwork)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(SpatialNetwork))?Spatial->Bounds():FBox(ForceInit);
     FBox B(ForceInit);
     for(const auto& P:Data->Paths)if((!Network.IsValid()||P.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Network)))B+=P.Bounds;
     for(const auto& P:Data->Chambers)if((!Network.IsValid()||P.Source.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Source.Network)))B+=P.Bounds;
@@ -335,6 +339,7 @@ FBox FCLCompiledCaveVolume::Bounds(FGuid Network)const
 }
 double FCLCompiledCaveVolume::MinimumHalfWidth(FGuid Network)const
 {
+    if(Spatial)return 2.;
     double M=MAX_dbl;
     for(const auto& P:Data->Paths)if((!Network.IsValid()||P.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Network)))M=FMath::Min(M,P.MinimumWidth);
     return M;
@@ -347,7 +352,14 @@ void FCLCompiledCaveVolume::ComposeBatchOptimized(TConstArrayView<FVector3d> Pos
 {ComposeBatchInternal(Positions,Fields,true,true);}
 void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Positions,TArrayView<double> Fields,bool IncludeInfills,bool Optimized)const
 {
-    check(Positions.Num()==Fields.Num());if(!Data->Index)return;
+    check(Positions.Num()==Fields.Num());
+    if(Spatial)
+    {
+        if(!SelectedNetworks.IsEmpty()&&!SelectedNetworks.Contains(SpatialNetwork))
+        {for(double& Field:Fields)if(!FMath::IsFinite(Field))Field=-1.e6;return;}
+        TArray<double> Air;Spatial->Sample(Positions,Air);for(int32 I=0;I<Fields.Num();++I)Fields[I]=FMath::IsFinite(Fields[I])?FMath::Max(Fields[I],Air[I]):Air[I];return;
+    }
+    if(!Data->Index)return;
     // Native AABB index selects feature/query pairs. No 64-bit operation mask:
     // one real network is no longer squeezed into the authored-edit proof limit.
     TMap<int32,TArray<int32>> Work;
@@ -613,6 +625,7 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
 
 FVector FCLCompiledCaveVolume::GeologicalPosition(const FVector& Position)const
 {
+    if(Spatial)return Position;
     if(!Data->InfillIndex)return Position;
     FVector Source=Position;bool Found=false;TArray<int32> Hits;
     Data->InfillIndex->Intersects(FVoxelFastBox(FVoxelBox(Position,Position)),[&](int32 I){Hits.Add(I);return false;});Hits.Sort([](int32 A,int32 B){return A>B;});

@@ -298,3 +298,7 @@ VPP recommends [Unreal Insights](https://docs.voxelplugin.com/2.0p8%20-%20v2/tec
 for tracing generation tasks and distinguishing worker work from game/render
 thread hitches. The existing callback benchmark, movement guard counter and GPU
 fixture measure different parts of this system and should remain separate.
+
+The opt-in [spatial cave prototype](SpatialCavePrototype.md) follows this diagnosis
+with a different passage/chamber field and native walking qualification. Its
+measurements do not claim identical geometry to the frozen spline family.

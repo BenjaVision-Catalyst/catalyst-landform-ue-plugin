@@ -1,5 +1,6 @@
 #include "VoxelQuery.h"
 #include "CLDeliveryPrototype.h"
+#include "Model/CLSpatialCave.h"
 #include "CLPlanet.h"
 #include "VoxelStampComponent.h"
 #include "VoxelStampUtilities.h"
@@ -24,24 +25,29 @@ bool FCLDeliveryBinding::IsValid() const
     if(!Source||!Source->Scene||!Source->RecipePlan||!Source->Sources.IsEmpty())return false;
     const auto& S=Source->Stamp;const auto& P=*Source->RecipePlan;
     return !S.Window.bEnabled&&!S.bSectionPreview&&!S.bCaveInspectionPreview&&!S.bPlanarSources&&
-        P.Caves&&P.Caves->Cutters&&P.Rock&&P.Surfaces&&P.SourceRecipe&&P.SourceRecipe->Caves.AlgorithmVersion==7;
+        P.Caves&&P.Caves->Cutters&&P.Rock&&P.Surfaces&&P.SourceRecipe&&(P.SourceRecipe->Caves.AlgorithmVersion==7||P.SourceRecipe->Caves.AlgorithmVersion==8);
 }
 FVoxelFloatBuffer FCLDeliveryBinding::Distances(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const
 {
-    check(IsValid());const auto& P=*Source->RecipePlan;const uint64 Started=FPlatformTime::Cycles64();
+    check(IsValid());const auto& P=*Source->RecipePlan;int32 HeightCount=0;const uint64 Started=FPlatformTime::Cycles64();
     FVoxelFloatBuffer Result;Result.Allocate(Positions.Num());
     for(int32 Start=0;Start<Positions.Num();Start+=512)
     {
         const int32 N=FMath::Min(512,Positions.Num()-Start);TArray<FVector> Points;Points.Reserve(N);
         for(int32 I=0;I<N;++I)Points.Add(Source->SamplingFrame.NativeToBodyMeters(Positions[Start+I]));
-        TArray<double> Heights,Fields;P.SampleHeightsMeters(Points,Heights);P.SampleRadialFields(Points,Heights,Fields);
+        TArray<double> Heights,Fields;
+        if(P.Caves->Spatial){int32 H=0;P.Caves->Spatial->SamplePlanet(P,Points,Fields,&H);HeightCount+=H;}
+        else
+        {
+        HeightCount+=N;P.SampleHeightsMeters(Points,Heights);P.SampleRadialFields(Points,Heights,Fields);
         // Keep the native ordered blend, including its zero-smooth floating-point
         // interpolation. Algebraic max/height pruning is not bit-identical to it.
         P.Caves->Cutters->ComposeBatchOptimized(Points,Fields);
         if(P.Volumes)P.Volumes->ComposeBatch(Points,Fields);
+        }
         for(int32 I=0;I<N;++I)Result.Set(Start+I,Fields[I]*100.);
     }
-    if(Counters)Counters->Record(Positions.Num(),Positions.Num(),Query.LOD,FPlatformTime::Cycles64()-Started);
+    if(Counters)Counters->Record(Positions.Num(),HeightCount,Query.LOD,FPlatformTime::Cycles64()-Started);
     return Result;
 }
 
@@ -128,7 +134,7 @@ bool CLDeliveryPrototype::Install(ACLPlanet& Planet,const FString& Backend,UVoxe
     if(Backend!=TEXT("cpp")&&Backend!=TEXT("graph")){Error=TEXT("Unknown delivery backend");return false;}
     FCLDeliveryBinding B;B.Snapshot=FGuid::NewGuid();B.Source=Planet.GetSamplingRuntime();B.Counters=Stats;
     if(!B.IsValid())
-    {Error=TEXT("Delivery prototype requires an unframed profile-7 rock planet");return false;}
+    {Error=TEXT("Delivery prototype requires an unframed profile-7 or profile-8 rock planet");return false;}
     auto Copy=[&](FVoxelVolumeStamp& S)
     {
         // Copy every native base setting on the game thread, without copying

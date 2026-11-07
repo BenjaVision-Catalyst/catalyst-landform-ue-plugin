@@ -1,0 +1,308 @@
+{
+	"passed": true,
+	"breakthrough": false,
+	"wallBlockedBefore": false,
+	"connectionOpenAfter": false,
+	"airBrushCentreBeforeCm": 0,
+	"throughDistanceCm": 0,
+	"throughGroundedFrames": 0,
+	"message": "Completed fixed render-only ecosystem proxy levels",
+	"coldReader": false,
+	"processID": 12187,
+	"writerPID": 12187,
+	"nativeContacts": 2,
+	"collisionInvokerRadiusCm": 2500,
+	"stage": 0,
+	"nativeBreakdownProbes": 0,
+	"walkDistanceCm": 0,
+	"walkGroundedFrames": 0,
+	"nativeFloorFrames": 106,
+	"beforeMineCm": 0,
+	"afterMineCm": 0,
+	"afterFillCm": 0,
+	"controlBeforeCm": 0,
+	"controlAfterCm": 0,
+	"controlOffsetCm": 0,
+	"controlIdentityUnchanged": false,
+	"comparedProbes": 0,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 0,
+	"elapsedSeconds": 101.2950947098434,
+	"processCPUSecondsTotal": 256.400644,
+	"streamingFrameMs":
+	{
+		"samples": 0
+	},
+	"streamingGameThreadMs":
+	{
+		"samples": 0
+	},
+	"streamingRenderThreadMs":
+	{
+		"samples": 0
+	},
+	"streamingGpuMs":
+	{
+		"samples": 0
+	},
+	"peakNativePendingTasks": 0,
+	"nativeStateBusyFrames": 0,
+	"deliveryCounters":
+	{
+		"calls": 27323,
+		"points": 31243513,
+		"heightPoints": 11878748,
+		"aggregateEvaluatorSeconds": 85.558092666666681,
+		"pointsByNativeLOD": [
+			12310215,
+			4380598,
+			4521765,
+			3310974,
+			3445822,
+			2970183,
+			271647,
+			24101,
+			7632,
+			576,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0
+		]
+	},
+	"recipeSHA1": "9EC76375572CD895766CAAC8433D3D1C8440A1A5",
+	"voxelSizeCm": 20,
+	"nativeLODQuality": 2,
+	"deliveryBackend": "cpp",
+	"readySeconds": 21.223002210259438,
+	"headroom": [
+		{
+			"fixture": "render-only native ISM sphere lattice, forced LOD0; no PCG, ecology, object collision or animation",
+			"relativeTransformsSHA1": "D81AD8B542205E939273D4459333E51EB4C246F4",
+			"camera": "50827.541235,-498.440449,1395.633247|80.427231,179.438147,0.000000|1.000000,1.000000,1.000000",
+			"instances": 0,
+			"assetLOD0TrianglesPerInstance": 960,
+			"potentialLOD0Triangles": 0,
+			"measuredSeconds": 15.016400042921305,
+			"processCPUSeconds": 28.217551000000014,
+			"processResidentBytes": 2742353920,
+			"peakNativePendingTasks": 0,
+			"nativeStateBusyFrames": 0,
+			"frameMs":
+			{
+				"samples": 1303,
+				"mean": 11.524481997637226,
+				"p50": 8.6587928235530853,
+				"p95": 17.24754273891449,
+				"p99": 17.424751073122025,
+				"max": 24.91745725274086
+			},
+			"gameThreadMs":
+			{
+				"samples": 1303,
+				"mean": 0.94098116463180326,
+				"p50": 0.93612498044967651,
+				"p95": 1.0952500104904175,
+				"p99": 1.1773333549499512,
+				"max": 1.265041708946228
+			},
+			"renderThreadMs":
+			{
+				"samples": 1303,
+				"mean": 11.520317022743722,
+				"p50": 8.7127504348754883,
+				"p95": 17.316207885742188,
+				"p99": 17.440208435058594,
+				"max": 24.965583801269531
+			},
+			"gpuMs":
+			{
+				"samples": 1303,
+				"mean": 10.720581790985552,
+				"p50": 10.69225025177002,
+				"p95": 11.475083351135254,
+				"p99": 11.751791954040527,
+				"max": 13.509041786193848
+			}
+		},
+		{
+			"fixture": "render-only native ISM sphere lattice, forced LOD0; no PCG, ecology, object collision or animation",
+			"relativeTransformsSHA1": "D81AD8B542205E939273D4459333E51EB4C246F4",
+			"camera": "50827.541235,-498.440449,1395.633247|80.427231,179.438147,0.000000|1.000000,1.000000,1.000000",
+			"instances": 1024,
+			"assetLOD0TrianglesPerInstance": 960,
+			"potentialLOD0Triangles": 983040,
+			"measuredSeconds": 15.001507624983788,
+			"processCPUSeconds": 27.497156000000018,
+			"processResidentBytes": 2747334656,
+			"peakNativePendingTasks": 0,
+			"nativeStateBusyFrames": 0,
+			"frameMs":
+			{
+				"samples": 1233,
+				"mean": 12.16667285075733,
+				"p50": 12.162122875452042,
+				"p95": 13.340834528207779,
+				"p99": 13.893000781536102,
+				"max": 16.010455787181854
+			},
+			"gameThreadMs":
+			{
+				"samples": 1233,
+				"mean": 0.85818363115831975,
+				"p50": 0.85320836305618286,
+				"p95": 0.96683335304260254,
+				"p99": 1.018208384513855,
+				"max": 1.1310833692550659
+			},
+			"renderThreadMs":
+			{
+				"samples": 1233,
+				"mean": 12.163236986208233,
+				"p50": 12.147292137145996,
+				"p95": 13.327166557312012,
+				"p99": 13.864500045776367,
+				"max": 16.104000091552734
+			},
+			"gpuMs":
+			{
+				"samples": 1233,
+				"mean": 11.37176620641184,
+				"p50": 11.344374656677246,
+				"p95": 12.11241626739502,
+				"p99": 12.475000381469727,
+				"max": 14.053166389465332
+			}
+		},
+		{
+			"fixture": "render-only native ISM sphere lattice, forced LOD0; no PCG, ecology, object collision or animation",
+			"relativeTransformsSHA1": "D81AD8B542205E939273D4459333E51EB4C246F4",
+			"camera": "50827.541235,-498.440449,1395.633247|80.427231,179.438147,0.000000|1.000000,1.000000,1.000000",
+			"instances": 4096,
+			"assetLOD0TrianglesPerInstance": 960,
+			"potentialLOD0Triangles": 3932160,
+			"measuredSeconds": 15.00679737329483,
+			"processCPUSeconds": 25.966982999999971,
+			"processResidentBytes": 2719678464,
+			"peakNativePendingTasks": 0,
+			"nativeStateBusyFrames": 0,
+			"frameMs":
+			{
+				"samples": 1120,
+				"mean": 13.398926226156098,
+				"p50": 13.385042548179626,
+				"p95": 14.579541981220245,
+				"p99": 15.235252678394318,
+				"max": 16.823459416627884
+			},
+			"gameThreadMs":
+			{
+				"samples": 1120,
+				"mean": 0.89023344452892028,
+				"p50": 0.88604164123535156,
+				"p95": 1.0018333196640015,
+				"p99": 1.0577499866485596,
+				"max": 1.1472916603088379
+			},
+			"renderThreadMs":
+			{
+				"samples": 1120,
+				"mean": 13.395349633693694,
+				"p50": 13.388125419616699,
+				"p95": 14.608541488647461,
+				"p99": 15.337750434875488,
+				"max": 16.879709243774414
+			},
+			"gpuMs":
+			{
+				"samples": 1120,
+				"mean": 12.605757449354444,
+				"p50": 12.545249938964844,
+				"p95": 13.287458419799805,
+				"p99": 13.570249557495117,
+				"max": 15.170916557312012
+			}
+		},
+		{
+			"fixture": "render-only native ISM sphere lattice, forced LOD0; no PCG, ecology, object collision or animation",
+			"relativeTransformsSHA1": "D81AD8B542205E939273D4459333E51EB4C246F4",
+			"camera": "50827.541235,-498.440449,1395.633247|80.427231,179.438147,0.000000|1.000000,1.000000,1.000000",
+			"instances": 16384,
+			"assetLOD0TrianglesPerInstance": 960,
+			"potentialLOD0Triangles": 15728640,
+			"measuredSeconds": 15.013380501419306,
+			"processCPUSeconds": 21.136806000000036,
+			"processResidentBytes": 2729574400,
+			"peakNativePendingTasks": 0,
+			"nativeStateBusyFrames": 0,
+			"frameMs":
+			{
+				"samples": 855,
+				"mean": 17.559509358385153,
+				"p50": 17.538417130708694,
+				"p95": 18.874999135732651,
+				"p99": 19.493542611598969,
+				"max": 20.330708473920822
+			},
+			"gameThreadMs":
+			{
+				"samples": 855,
+				"mean": 1.0200990266270107,
+				"p50": 1.0134999752044678,
+				"p95": 1.1668332815170288,
+				"p99": 1.2257499694824219,
+				"max": 1.2407499551773071
+			},
+			"renderThreadMs":
+			{
+				"samples": 855,
+				"mean": 17.555748326039453,
+				"p50": 17.545291900634766,
+				"p95": 18.794750213623047,
+				"p99": 19.409416198730469,
+				"max": 20.275041580200195
+			},
+			"gpuMs":
+			{
+				"samples": 855,
+				"mean": 16.742519426624678,
+				"p50": 16.676542282104492,
+				"p95": 17.399457931518555,
+				"p99": 17.708333969116211,
+				"max": 18.925708770751953
+			}
+		}
+	],
+	"referenceMovingFrameMs":
+	{
+		"samples": 0
+	},
+	"referenceMovingGpuMs":
+	{
+		"samples": 0
+	},
+	"referenceWalkSpeedCmPerSecond": 600,
+	"referenceWalkWallSeconds": 0,
+	"referenceWalkCPUSeconds": 0,
+	"referenceWalkComplete": false,
+	"routeDistanceMeters": 0,
+	"routeFrames": 0,
+	"routeGroundedFrames": 0,
+	"eyeHeightMeters": 1.6199393150748276,
+	"nativeBackgroundWorkers": 6,
+	"nativeOwnerStable": true,
+	"floorAppearedAfterNativeSettlement": false,
+	"failureNativeFields": [],
+	"failureNearbyColliders": [],
+	"nativeCollisionWaitFrames": 0,
+	"nativeCollisionWaitSeconds": 0,
+	"entranceMovingFrames": 0,
+	"entranceMovingGroundedFrames": 0,
+	"entranceProof": false,
+	"minimumFootFieldMeters": 1.7976931348623157e+308,
+	"peakSpeedCmPerSecond": 0,
+	"framesMissingNativeFootChunks": 0,
+	"entranceSamples": []
+}

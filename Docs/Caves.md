@@ -1,6 +1,8 @@
 # Generated cave volumes
 
-Current one-family development is documented in [Organic carbonate karst, profile 7](OrganicKarst.md).
+The opt-in [spatial passage/chamber prototype, profile 8](SpatialCavePrototype.md)
+replaces swept sections for the next morphology review. Existing UI defaults
+remain [Organic carbonate karst, profile 7](OrganicKarst.md).
 [Profile 6](BeddedKarst.md) failed visual review for regular openings and flat floors;
 its manual entrance fall is reproduced and addressed in the profile-7 record.
 [Profile 5](NaturalKarst.md) failed human visual review after manual exploration.

@@ -1,0 +1,27 @@
+{
+	"floorProbes": 251,
+	"floorReliefMeters": 3.018463134765625,
+	"maximumRouteGrade": 0.09185791015625,
+	"minimumHeadClearanceFieldMeters": 1.1052777031117971,
+	"beddingInverseErrorMeters": 7.2830630415410269e-14,
+	"heightPoints": 0,
+	"fieldProbes": 6673,
+	"pruningMaxErrorMeters": 0,
+	"deliveryMaxErrorCm": 0,
+	"openingWidthsMeters": [
+		25.75,
+		40.75,
+		22.75,
+		32,
+		57,
+		79.75
+	],
+	"ceilingHeightsMeters": [
+		9,
+		9.5,
+		10.75,
+		12.75,
+		22,
+		32.75
+	]
+}

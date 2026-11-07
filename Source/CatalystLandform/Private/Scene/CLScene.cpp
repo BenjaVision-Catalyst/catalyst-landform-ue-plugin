@@ -1,4 +1,5 @@
 #include "Scene/CLScene.h"
+#include "Model/CLSpatialCave.h"
 #include "VoxelMinimal.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLSphericalPatches.h"
@@ -68,8 +69,10 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
             Positions.Add(IsFinitePosition(P) ? P : FVector3d::ZeroVector);
         }
         TArray<double> Heights;
-        RadialPlan->SampleHeightsMeters(Positions, Heights);
-        TArray<double> Fields;RadialPlan->SampleRadialFields(Positions,Heights,Fields);
+        TArray<double> Fields;
+        if(RadialPlan->Caves&&RadialPlan->Caves->Spatial)
+        {RadialPlan->Caves->Spatial->SamplePlanet(*RadialPlan,Positions,Fields);Heights.Init(0,Count);}
+        else {RadialPlan->SampleHeightsMeters(Positions, Heights);RadialPlan->SampleRadialFields(Positions,Heights,Fields);}
         for (int32 I = 0; I < Count; ++I)
         {
             const FVector3d& P = Query.PositionsMeters[Start + I];
@@ -80,10 +83,10 @@ bool FCLScene::SampleShape(const FCLSceneQuery& Query, TArray<FCLSceneShapeSampl
             Sample.FieldMeters = Fields[I];
             Sample.State = ECLSceneSampleState::Known;
         }
-        if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)RadialPlan->Caves->Cutters->ComposeBatch(Positions,Fields);
+        if(RadialPlan->Caves&&RadialPlan->Caves->Cutters&&!RadialPlan->Caves->Spatial)RadialPlan->Caves->Cutters->ComposeBatch(Positions,Fields);
         if(RadialPlan->Volumes||RadialPlan->Caves)
         {
-            if(RadialPlan->Volumes)RadialPlan->Volumes->ComposeBatch(Positions,Fields);
+            if(RadialPlan->Volumes&&!(RadialPlan->Caves&&RadialPlan->Caves->Spatial))RadialPlan->Volumes->ComposeBatch(Positions,Fields);
             for(int32 I=0;I<Count;++I)if(Out[Start+I].State==ECLSceneSampleState::Known)Out[Start+I].FieldMeters=Fields[I];
         }
     }
