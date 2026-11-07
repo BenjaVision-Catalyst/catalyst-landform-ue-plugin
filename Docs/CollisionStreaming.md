@@ -8,16 +8,19 @@ engine or VPP fix is included in this research change.
 
 ## Finding
 
-The root failure is in our integration: we do not keep active collision ahead of
-the character. We feed VPP expensive field work, configure a fixed spatial lead
-without a publication-latency budget, and stop the character when coverage runs
-out. The captured mechanism is the normal distinction between computed data and
-physics publication of a completed native state. It is not evidence that VPP's
-collision system needs to be replaced or patched.
+The primary work explosion is in our cave compiler: short spline intervals use
+passage-wide padded bounds, so even probes in discarded solid-rock chunks fan
+out into dozens of expensive cave feature evaluations. VPP's coarse solid-rock
+rejection is working; our provider makes establishing that fact expensive.
+The follow-up below quantifies the overlap and evaluation cost.
 
-Retained profiling identifies our height and cave evaluation as the leading
-measured generation cost. We need to make our workload and advance requests fit
-VPP's native state contract.
+The resulting generation time delays native state publication. Our integration
+does not keep active collision ahead of the character: we configure a fixed
+spatial lead without a publication-latency budget and stop movement when coverage
+runs out. The captured wait is the distinction between computed data and physics
+publication of a completed native state. It is not evidence that VPP's collision
+system needs to be replaced or patched.
+
 This is a movement hold while the application continues ticking, distinct from
 a game-thread hitch. It is not evidence that Chaos is spending the whole pause
 cooking collision. The previously reported “collision holds” are the guard's
@@ -67,6 +70,80 @@ task's type; it establishes the state-publication dependency.
 retain the evidence. `HasCollision` checks computed keys, which can represent
 empty chunks; the separate generated-floor crossing is therefore necessary.
 Nearby component counts alone are not treated as proof of an active floor.
+
+## Follow-up: the actual work explosion
+
+The publication witness above located the end of the wait. It did not identify
+why a small underground neighbourhood was expensive. A subsequent native
+coarse-selection replay identifies the concrete problem in our cave compiler.
+
+The frozen family has 20 passages and four chambers. Our compiler reparameterizes
+those passages into **1,626 separate cubic-interval features**. At
+`CLCaveVolume.cpp`, each interval's centreline bounds are expanded by
+`C.MaximumWidth * 2.25 + 1` for these passage forms. `MaximumWidth` is the widest
+section of the entire passage, not the local interval. The largest expansion is
+**40.63 m on every side**, despite targeting short intervals around 4 m.
+
+We then evaluate the full section, spline-nearest point, floor and noise work
+for the feature/point pairs returned by these bounds. A spatial index cannot
+reject features whose overly broad boxes genuinely overlap its query.
+
+A reconstruction of the compiler's bounds, using the same native spline and
+AABB APIs and matching the compiled whole-cave bounds, counts the following:
+
+| Site | Requested collision chunks | Average feature candidates per coarse probe | Average candidates on rock chunks that will be skipped | Feature/point pairs on those skipped rock chunks |
+| --- | ---: | ---: | ---: | ---: |
+| Entrance | 454 | 15.4 | 12.7 | 2,941,296 |
+| Deep passage | 456 | 97.8 | 96.4 | 31,319,239 |
+| Chamber | 452 | 97.5 | 101.8 | 17,069,063 |
+
+The deep passage is 84.13 m below the body-only exterior surface. The exterior is
+outside its 25 m collision sphere. This is not an exterior-surface workload
+being mistaken for a deep cave.
+
+**VPP's solid-rock culling is working.** Its volume cell generator samples a
+coarse grid first, rejects regions far from an interface, then selects fine
+regions around possible surfaces. At the deep passage it skips 244 rock chunks
+and selects 4,211,776 fine sample positions out of a possible 21,275,136: about
+80% of the full fine grid is avoided. Our supplier has already paid for 606,936
+coarse probes before making that decision possible.
+
+In the phase-timed single-threaded replay, those coarse probes take 13.21 s:
+11.32 s in our cave composition and 1.88 s in terrain height/radial evaluation.
+Rock chunks that VPP skips still consume 7.00 s, including 5.99 s of cave work.
+At the chamber, cave composition similarly accounts for about 86% of coarse
+callback time. An earlier direct-binding replay produced identical field extrema,
+checksums and selection masks but different timings; these are diagnostic CPU
+measurements, not live walking latency or a speedup comparison.
+
+There are two further integration costs:
+
+- `FCLDeliveryBinding::Distances` unconditionally evaluates the terrain height
+  and body field before caves for every point. Rock is not a cheap classified
+  region in our provider.
+- Both delivery prototypes expose a broad planet bound and the same opaque
+  evaluator. They discard bulk region/spacing information into point packets.
+  The graph wrapper cannot optimize the internal primitive work that it cannot
+  see. Changing delivery wrappers did not fix this execution model.
+
+The collision sphere also does not bound all work in a native state: render LOD
+requests are separate. The retained first C++ entrance trial has 61,078,703 shape
+points, including 32,706,239 at LODs above zero; invoker collision uses LOD0.
+Navigation is disabled in that host. Camera-driven rendering work therefore also
+participates in the shared-state deadline.
+
+The primary correction is to our **cave execution plan**: derive conservative
+local support bounds instead of passage-wide padding on every interval, prune
+whole groups and noncompetitive segments before expensive section/floor/noise
+evaluation, and share passage-level work. Add cheap conservative rock/air
+classification using a query-aware field plan. Preserve the actual cavity,
+junction floor, geology and edit semantics when changing support or evaluation
+order; simply shrinking a box without proving support can clip geometry.
+
+The earlier 8–11% callback gain did not address this multiplicative work. Radius
+and movement-guard adjustments are secondary to correcting it.
+
+[Chunk-work replay, overlap counts and diagnostic source](../conformance/CollisionStreaming/chunk-work/README.md)
 
 ## Our integration mistakes
 

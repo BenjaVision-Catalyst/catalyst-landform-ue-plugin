@@ -1,0 +1,42 @@
+{
+  "passages": 20,
+  "cubicIntervalFeatures": 1626,
+  "chambers": 4,
+  "maxIntervalBoundsExpansionMeters": 40.628714144866876,
+  "wholeBoundsMatch": true,
+  "sites": [
+    {
+      "site": "entrance-start",
+      "points": 604274,
+      "candidateFeaturePointPairs": 9307100,
+      "averageCandidatesPerPoint": 15.402118906323953,
+      "maxCandidatesPerPoint": 31,
+      "skippedRockPoints": 231594,
+      "skippedRockFeaturePointPairs": 2941296,
+      "averageCandidatesOnSkippedRock": 12.70022539444027,
+      "maxCandidatesOnSkippedRock": 31
+    },
+    {
+      "site": "longest-passage-middle",
+      "points": 606936,
+      "candidateFeaturePointPairs": 59365653,
+      "averageCandidatesPerPoint": 97.8120477282613,
+      "maxCandidatesPerPoint": 102,
+      "skippedRockPoints": 324764,
+      "skippedRockFeaturePointPairs": 31319239,
+      "averageCandidatesOnSkippedRock": 96.43691726915544,
+      "maxCandidatesOnSkippedRock": 102
+    },
+    {
+      "site": "chamber-floor",
+      "points": 601612,
+      "candidateFeaturePointPairs": 58649459,
+      "averageCandidatesPerPoint": 97.48718276896072,
+      "maxCandidatesPerPoint": 120,
+      "skippedRockPoints": 167706,
+      "skippedRockFeaturePointPairs": 17069063,
+      "averageCandidatesOnSkippedRock": 101.77967991604355,
+      "maxCandidatesOnSkippedRock": 120
+    }
+  ]
+}
