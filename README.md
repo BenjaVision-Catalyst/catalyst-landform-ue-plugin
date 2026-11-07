@@ -11,6 +11,11 @@ uses Mammoth passage and Carlsbad chamber references after profiles 4–6 failed
 visual review. It also addresses the reported manual entrance fall through
 native collision admission.
 
+The [VPP data-delivery gap analysis](Docs/VPPDataDelivery.md) distinguishes the
+current functional proofs from generation and streaming performance, and proposes
+bounded native composition with explicit ecosystem headroom. It is a research
+checkpoint; the recommended delivery changes are not implemented.
+
 The [persistent-world native proof](Docs/PlanetDesignSystem.md#persistent-native-world-checkpoint)
 reuses native VPP generation, LOD and moving collision invokers, with full-scene
 and fixed-coverage journeys plus separate live UE origin translations. The original

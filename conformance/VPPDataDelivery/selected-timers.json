@@ -1,0 +1,289 @@
+[
+  {
+    "name": "FVoxelMesher::CreateMesh ChunkSize=32",
+    "count": 8317,
+    "inclusiveSeconds": 455.050927,
+    "exclusiveSeconds": 0.00515,
+    "maxSeconds": 3.023795
+  },
+  {
+    "name": "CreateColliderRef",
+    "count": 1428,
+    "inclusiveSeconds": 154.344715,
+    "exclusiveSeconds": 0.006031,
+    "maxSeconds": 3.023994
+  },
+  {
+    "name": "FGlobalComponentRecreateRenderStateContext::FGlobalComponentRecreateRenderStateContext",
+    "count": 37,
+    "inclusiveSeconds": 0.044748,
+    "exclusiveSeconds": 0.000388,
+    "maxSeconds": 0.018197
+  },
+  {
+    "name": "FVoxelCollisionInvokerView",
+    "count": 717,
+    "inclusiveSeconds": 0.023334,
+    "exclusiveSeconds": 0.009965,
+    "maxSeconds": 0.000538
+  },
+  {
+    "name": "HasStamps",
+    "count": 101387,
+    "inclusiveSeconds": 0.020713,
+    "exclusiveSeconds": 0.011274,
+    "maxSeconds": 0.000857
+  },
+  {
+    "name": "CollisionCylinder",
+    "count": 7878,
+    "inclusiveSeconds": 0.01194,
+    "exclusiveSeconds": 0.009662,
+    "maxSeconds": 5.9e-05
+  },
+  {
+    "name": "HasCollision",
+    "count": 12587,
+    "inclusiveSeconds": 0.008334,
+    "exclusiveSeconds": 0.008334,
+    "maxSeconds": 1.2e-05
+  },
+  {
+    "name": "SetCollider",
+    "count": 395,
+    "inclusiveSeconds": 0.00455,
+    "exclusiveSeconds": 0.000684,
+    "maxSeconds": 0.00041
+  },
+  {
+    "name": "Invalidate FVoxelCollisionInvokerView",
+    "count": 538,
+    "inclusiveSeconds": 0.004476,
+    "exclusiveSeconds": 5.5e-05,
+    "maxSeconds": 2.8e-05
+  },
+  {
+    "name": "SurfaceCollisionInvoker",
+    "count": 4711,
+    "inclusiveSeconds": 0.004199,
+    "exclusiveSeconds": 0.004199,
+    "maxSeconds": 2.5e-05
+  },
+  {
+    "name": "Destroy FVoxelState",
+    "count": 18,
+    "inclusiveSeconds": 0.00149,
+    "exclusiveSeconds": 4e-05,
+    "maxSeconds": 0.000271
+  },
+  {
+    "name": "UNavCollision::GetCookedData",
+    "count": 28,
+    "inclusiveSeconds": 0.001451,
+    "exclusiveSeconds": 3.2e-05,
+    "maxSeconds": 0.000229
+  },
+  {
+    "name": "VoxelCollisionComponent",
+    "count": 4351,
+    "inclusiveSeconds": 0.001397,
+    "exclusiveSeconds": 0.001178,
+    "maxSeconds": 3.7e-05
+  },
+  {
+    "name": "FVoxelState",
+    "count": 21,
+    "inclusiveSeconds": 0.001256,
+    "exclusiveSeconds": 0.00029,
+    "maxSeconds": 0.000447
+  },
+  {
+    "name": "~FVoxelState",
+    "count": 19,
+    "inclusiveSeconds": 0.000964,
+    "exclusiveSeconds": 2e-06,
+    "maxSeconds": 0.000171
+  },
+  {
+    "name": "Construct FVoxelState",
+    "count": 20,
+    "inclusiveSeconds": 0.000916,
+    "exclusiveSeconds": 0.000104,
+    "maxSeconds": 6.9e-05
+  },
+  {
+    "name": "VoxelInvokerCollisionSubsystem",
+    "count": 19,
+    "inclusiveSeconds": 0.000872,
+    "exclusiveSeconds": 0.000581,
+    "maxSeconds": 0.000166
+  },
+  {
+    "name": "ClearCollider",
+    "count": 284,
+    "inclusiveSeconds": 0.000602,
+    "exclusiveSeconds": 0.000181,
+    "maxSeconds": 1.4e-05
+  },
+  {
+    "name": "FGlobalComponentRecreateRenderStateContext::~FGlobalComponentRecreateRenderStateContext",
+    "count": 37,
+    "inclusiveSeconds": 0.000406,
+    "exclusiveSeconds": 0.000378,
+    "maxSeconds": 9.3e-05
+  },
+  {
+    "name": "CollisionComponent0",
+    "count": 6,
+    "inclusiveSeconds": 9e-05,
+    "exclusiveSeconds": 9e-06,
+    "maxSeconds": 7.3e-05
+  },
+  {
+    "name": "SetStamp",
+    "count": 3,
+    "inclusiveSeconds": 6.7e-05,
+    "exclusiveSeconds": 2.6e-05,
+    "maxSeconds": 3.1e-05
+  },
+  {
+    "name": "ResolveStampRuntime",
+    "count": 6,
+    "inclusiveSeconds": 6.2e-05,
+    "exclusiveSeconds": 1e-06,
+    "maxSeconds": 6.2e-05
+  },
+  {
+    "name": "NavCollision",
+    "count": 56,
+    "inclusiveSeconds": 5e-05,
+    "exclusiveSeconds": 5e-05,
+    "maxSeconds": 2e-06
+  },
+  {
+    "name": "UpdateStamp",
+    "count": 4,
+    "inclusiveSeconds": 3.5e-05,
+    "exclusiveSeconds": 6e-06,
+    "maxSeconds": 1.2e-05
+  },
+  {
+    "name": "CollisionCapsule",
+    "count": 5,
+    "inclusiveSeconds": 2.6e-05,
+    "exclusiveSeconds": 2.6e-05,
+    "maxSeconds": 1.9e-05
+  },
+  {
+    "name": "FVoxelLayerTrackerStamps",
+    "count": 2,
+    "inclusiveSeconds": 2.5e-05,
+    "exclusiveSeconds": 2.4e-05,
+    "maxSeconds": 1.5e-05
+  },
+  {
+    "name": "ApplyComponentChangesToStamp",
+    "count": 16,
+    "inclusiveSeconds": 2e-05,
+    "exclusiveSeconds": 7e-06,
+    "maxSeconds": 1.3e-05
+  },
+  {
+    "name": "UpdateStampsIfNeeded",
+    "count": 2,
+    "inclusiveSeconds": 1.2e-05,
+    "exclusiveSeconds": 2e-06,
+    "maxSeconds": 9e-06
+  },
+  {
+    "name": "NotifyStampsChanged",
+    "count": 1,
+    "inclusiveSeconds": 9e-06,
+    "exclusiveSeconds": 1e-06,
+    "maxSeconds": 9e-06
+  },
+  {
+    "name": "VoxelStampComponent",
+    "count": 4,
+    "inclusiveSeconds": 8e-06,
+    "exclusiveSeconds": 4e-06,
+    "maxSeconds": 3e-06
+  },
+  {
+    "name": "Stamps.Num = 0",
+    "count": 1,
+    "inclusiveSeconds": 8e-06,
+    "exclusiveSeconds": 4e-06,
+    "maxSeconds": 8e-06
+  },
+  {
+    "name": "VoxelCollisionInvokerComponent",
+    "count": 2,
+    "inclusiveSeconds": 2e-06,
+    "exclusiveSeconds": 2e-06,
+    "maxSeconds": 1e-06
+  },
+  {
+    "name": "UVoxelStampComponent OnObjectPropertyChanged",
+    "count": 70,
+    "inclusiveSeconds": 2e-06,
+    "exclusiveSeconds": 2e-06,
+    "maxSeconds": 0.0
+  },
+  {
+    "name": "Stamps.Num = 1",
+    "count": 1,
+    "inclusiveSeconds": 2e-06,
+    "exclusiveSeconds": 2e-06,
+    "maxSeconds": 2e-06
+  },
+  {
+    "name": "Destroy CollisionComponents",
+    "count": 20,
+    "inclusiveSeconds": 2e-06,
+    "exclusiveSeconds": 2e-06,
+    "maxSeconds": 0.0
+  },
+  {
+    "name": "VoxelCollisionBakerRootComponent",
+    "count": 1,
+    "inclusiveSeconds": 1e-06,
+    "exclusiveSeconds": 1e-06,
+    "maxSeconds": 1e-06
+  },
+  {
+    "name": "PhysicsCollisionHandler",
+    "count": 2,
+    "inclusiveSeconds": 1e-06,
+    "exclusiveSeconds": 1e-06,
+    "maxSeconds": 1e-06
+  },
+  {
+    "name": "Destroy StaticMeshCollisionComponents",
+    "count": 20,
+    "inclusiveSeconds": 1e-06,
+    "exclusiveSeconds": 1e-06,
+    "maxSeconds": 0.0
+  },
+  {
+    "name": "VoxelCollisionBakerData",
+    "count": 1,
+    "inclusiveSeconds": 0.0,
+    "exclusiveSeconds": 0.0,
+    "maxSeconds": 0.0
+  },
+  {
+    "name": "TVoxelArray<TSharedRef<FVoxelFutureStampTree>> resize 4 -> 22",
+    "count": 2,
+    "inclusiveSeconds": 0.0,
+    "exclusiveSeconds": 0.0,
+    "maxSeconds": 0.0
+  },
+  {
+    "name": "TVoxelArray<TVoxelMapElement<UE::Math::TIntVector3<int>  TVoxelObjectPtr<UVoxelCollisionComponent>>> resize 1 -> 452",
+    "count": 1,
+    "inclusiveSeconds": 0.0,
+    "exclusiveSeconds": 0.0,
+    "maxSeconds": 0.0
+  }
+]

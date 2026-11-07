@@ -1,0 +1,216 @@
+{
+  "dateSydney": "2026-11-07",
+  "status": "Research and recommended target; no implementation/performance gain claimed",
+  "componentBase": "63430b2203e4b27668ac6955d68bb5781aeca636",
+  "workspaceBase": "8485fffc9d241461bf0f1f5a092f6548bac65a08",
+  "platform": "macOS arm64, UE5.7.4 CL51494982, VPP2.0p8",
+  "primaryDocs": [
+    {
+      "id": "stamps",
+      "url": "https://docs.voxelplugin.com/knowledgebase/working-with-stamps/",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "bounds",
+      "url": "https://docs.voxelplugin.com/knowledgebase/working-with-stamps/bounds-ranges-and-voids",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "buffers",
+      "url": "https://docs.voxelplugin.com/technical-information/buffers-and-uniforms",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "custom-nodes",
+      "url": "https://docs.voxelplugin.com/technical-information/adding-custom-nodes-using-c%2B%2B",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "generation-profiling",
+      "url": "https://docs.voxelplugin.com/technical-information/profiling-and-debugging/generation-performance",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "metadata",
+      "url": "https://docs.voxelplugin.com/knowledgebase/materials/working-with-metadata",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "collision",
+      "url": "https://docs.voxelplugin.com/knowledgebase/blueprints/collision-navmesh-and-invokers",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "pcg-configuration",
+      "url": "https://docs.voxelplugin.com/knowledgebase/foliage/configuring-pcg",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "pcg-sampling",
+      "url": "https://docs.voxelplugin.com/knowledgebase/foliage/using-pcg-on-voxel-terrains",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "voxel-pcg",
+      "url": "https://docs.voxelplugin.com/knowledgebase/foliage/voxel-pcg-graphs",
+      "retrievedSydney": "2026-11-07"
+    },
+    {
+      "id": "instancing-general",
+      "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/instanced-static-mesh-component-in-unreal-engine",
+      "retrievedSydney": "2026-11-07"
+    }
+  ],
+  "componentAudit": [
+    {
+      "path": "Source/CatalystLandform/Public/Scene/CLScene.h",
+      "sha256": "35d260945f532f614888190252a74762dc9260d24f0de664dac3740ad3064641",
+      "scope": "FCLScene: signed implicit, no conservative step bound"
+    },
+    {
+      "path": "Source/CatalystLandform/Public/Scene/CLSceneQuery.h",
+      "sha256": "dd37b7dbf05a762259d8d2c4ae8ba479ce492982f861f3c4a827c3d77b8bb569",
+      "scope": "FCLSceneQuery: positions and zero-only footprint, no LOD"
+    },
+    {
+      "path": "Source/CatalystLandform/Public/CLPlanetStamp.h",
+      "sha256": "f9427405c829e022e4eb5fa49e576aa8f4df9e0a0fee6d9628c04ec44773eb25",
+      "scope": "Runtime overrides; no GetChildren/ShouldFullyInvalidate override"
+    },
+    {
+      "path": "Source/CatalystLandform/Private/CLPlanetStamp.cpp",
+      "sha256": "138413f567a21524e01214a5ec9140f713217b49e725086296571ebf40131487",
+      "scope": "GetLocalBounds, SampleDistances, Apply and selected output paths"
+    },
+    {
+      "path": "Source/CatalystLandform/Private/Scene/CLScene.cpp",
+      "sha256": "ae79d29a1a01fdfe1c0a4f96308595acc91cb5c21e9a991fa7c9e4f162ced985",
+      "scope": "SampleShape eager surface then caves; SampleCaveVoid bounded pruning"
+    },
+    {
+      "path": "Source/CatalystLandform/Private/Scene/CLCaveVolume.cpp",
+      "sha256": "5fcf029871fe1e4fdcf24b7b181d30eb686b2d653ff6fb7ffc501ba2530f61a0",
+      "scope": "Compile per-interval bounds; ComposeBatchInternal repeated work; provenance"
+    },
+    {
+      "path": "Source/CatalystLandform/Private/CLPlanet.cpp",
+      "sha256": "78b1a880edfc2f97c144d3731513e490be93a7f08cf4bcda5676e17204da24e6",
+      "scope": "RebuildTerrain: compiled snapshot and one native terrain stamp"
+    },
+    {
+      "path": "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp",
+      "sha256": "ac8eb7744a45b129dc08ca995de127b911cb569cb4497fff29b7b83ef3fdb312",
+      "scope": "Native collision admission; wait is a guard counter"
+    },
+    {
+      "path": "Source/CatalystLandform/Private/CLNativeNoiseKernel.cpp",
+      "sha256": "413671820038fdabead397bf41355faeb941e870d016604c2f11370180e1bb0f",
+      "scope": "Pinned node ABI check and native batch binding"
+    },
+    {
+      "path": "Source/CatalystLandform/Private/PCG/CLSphereStampPoints.cpp",
+      "sha256": "589e6d405648f0bcc612b854198195c17f79fe845060c679431ac8be512a7d15",
+      "scope": "Terrain stamp distribution, not ecosystem pipeline"
+    }
+  ],
+  "pinnedVendorAudit": [
+    {
+      "path": "Source/Voxel/Public/VoxelStampRuntime.h",
+      "sha256": "b95d26d063bd1e2aeb4ea58697e3cd0ad5af85f68f9ef365b63a2ad70544b61f",
+      "scope": "GetChildren default and ShouldFullyInvalidate default"
+    },
+    {
+      "path": "Source/Voxel/Public/VoxelStampQuery.h",
+      "sha256": "39e809d5ccc12243697a81303a461ca6e2bcc2a01d252992fe7dde902864d7a5",
+      "scope": "Bulk grids and sparse requested outputs; dependency interface"
+    },
+    {
+      "path": "Source/Voxel/Public/VoxelQuery.h",
+      "sha256": "3315bfe40e4331038b27482af218c2fcc200e233948df1964049cab6ed2413d4",
+      "scope": "LOD and dependency collector"
+    },
+    {
+      "path": "Source/Voxel/Private/VoxelStampTree.cpp",
+      "sha256": "65c5bc9866b74f0b277c936744ce53c962170dc2e3867bb420310901f87d50a2",
+      "scope": "Spatial stamp traversal and grouped children"
+    },
+    {
+      "path": "Source/Voxel/Private/VoxelVolumeLayer.cpp",
+      "sha256": "20ffdc80ef50952425810220fa9823ad8d58d7d35238abefe06cf1fce4f01535",
+      "scope": "SampleStampsImpl splits/clips native queries by child bounds"
+    },
+    {
+      "path": "Source/Voxel/Private/Spline/VoxelVolumeSplineStamp.cpp",
+      "sha256": "b3e3e34c9d3426ca355f05a977c2806c90235ad7b5a124804da76e5097b42d3e",
+      "scope": "GetChildren and local ShouldFullyInvalidate implementation"
+    },
+    {
+      "path": "Source/Voxel/Private/Graphs/VoxelVolumeGraphStamp.cpp",
+      "sha256": "f23782eea90b5f0456c6676f7319f145fc05c979616a611eed99e453552c1e73",
+      "scope": "Native graph evaluator and parameter/query bridge"
+    },
+    {
+      "path": "Source/Voxel/Private/VoxelRuntime.cpp",
+      "sha256": "7ff21ac79b3609a28869585f65a9922bcb60a54ef6a9fafd698ab5a030f145e1",
+      "scope": "Completed native state publication"
+    },
+    {
+      "path": "Source/Voxel/Private/VoxelState.cpp",
+      "sha256": "70cf3c0b0094110b2dae746d1039f0f6fdac9c3b65536e2fe16150dd96b9af05",
+      "scope": "IsReadyToRender task context barrier"
+    },
+    {
+      "path": "Source/Voxel/Private/Collision/VoxelInvokerCollisionSubsystem.cpp",
+      "sha256": "1eb55af30bdcceb0ef9c8d054b4cf86c52400f47c6a6d0caae6e673f90e4977b",
+      "scope": "Native collider creation and publication; mesh material sampling"
+    },
+    {
+      "path": "Source/Voxel/Private/VoxelMesher.cpp",
+      "sha256": "2ab6a6f76e5f1acb4a35d0f2e4ccc50bf31a1e7ee4be69a737024e6acebc8f3f",
+      "scope": "Shape, surface and optional metadata query phases"
+    }
+  ],
+  "ue57HeaderAudit": [
+    {
+      "path": "Plugins/PCG/Source/PCG/Public/PCGGraph.h",
+      "sha256": "bf6bf86ef90b8bd47ba2d1665efeea9bca83bdf5f5fc94f94e4a93f1959ccaed"
+    },
+    {
+      "path": "Plugins/PCG/Source/PCG/Public/PCGComponent.h",
+      "sha256": "9f7d51c66241824ce109fd7705d3e5bb75cdb569190a2f816674c45448579587"
+    }
+  ],
+  "ownershipReferences": [
+    "Ecosystems/catalyst-ecosystem/README.md",
+    "Ecosystems/catalyst-ecosystem-ue-plugin/README.md",
+    "Simulation/catalyst-simulator/docs/Component-Boundaries.md"
+  ],
+  "priorDiagnostic": {
+    "localArtifacts": "/private/tmp/landform-collision-diagnosis",
+    "retainedSummaries": [
+      "walking-sample-summary.json",
+      "command.json",
+      "apply-summary.json",
+      "entrance-result.json",
+      "selected-timers.json",
+      "generation-sample-summary.json"
+    ],
+    "scope": "Published binary, one 100m entrance route plus startup; trace and five-second worker samples",
+    "sampling": "Six active Background Worker # threads; standby threads excluded; inclusive categories overlap",
+    "measurementLimits": [
+      "Profiling overhead; not an untraced speed comparison",
+      "Native task totals aggregate across threads",
+      "19.395898s earlier untraced result counts movement-guard holds, not cooking",
+      "No A/B comparison of proposed backends",
+      "No ecosystem workload qualification"
+    ]
+  },
+  "denseMemoryIllustration": {
+    "solidRadiusMeters": 600,
+    "spacingMeters": 0.2,
+    "bytesPerSample": 4,
+    "sampleCountApprox": 113097335529,
+    "decimalGigabytesApprox": 452.389342,
+    "note": "Dense sphere thought experiment, not VPP actual sparse storage"
+  }
+}

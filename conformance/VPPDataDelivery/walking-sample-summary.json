@@ -1,0 +1,29 @@
+{
+  "sample": "walking-sample.txt",
+  "backgroundThreadSamples": 15300,
+  "inclusiveSamples": {
+    "stamp_distance": 14890,
+    "scene_shape": 14859,
+    "terrain_height": 7832,
+    "cave_field": 6315,
+    "native_collider": 11090,
+    "chaos_cook": 5,
+    "floor_relief": 656,
+    "restored_rock": 0,
+    "surface_query": 259,
+    "geology_position": 1
+  },
+  "percentOfBackgroundSamples": {
+    "stamp_distance": 97.32,
+    "scene_shape": 97.12,
+    "terrain_height": 51.19,
+    "cave_field": 41.27,
+    "native_collider": 72.48,
+    "chaos_cook": 0.03,
+    "floor_relief": 4.29,
+    "restored_rock": 0.0,
+    "surface_query": 1.69,
+    "geology_position": 0.01
+  },
+  "note": "Inclusive stack samples overlap between ancestor/child categories; these are sampling proportions, not exact wall times."
+}

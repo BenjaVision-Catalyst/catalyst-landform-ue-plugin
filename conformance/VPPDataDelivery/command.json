@@ -1,0 +1,22 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "-project=/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode",
+  "-game",
+  "-CLCaveReviewWorkers=8",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-CLNaniteProjectionShaders",
+  "-ResX=1280",
+  "-ResY=800",
+  "-windowed",
+  "-CLCaveEntranceProof",
+  "-CLCaveRecipe=/private/tmp/landform-natural-karst/LandformLab/Plugins/CatalystLandform/Examples/OrganicKarst.json",
+  "-CLReport=/private/tmp/landform-collision-diagnosis/entrance-result.json",
+  "-abslog=/private/tmp/landform-collision-diagnosis/entrance-native.log",
+  "-trace=cpu,frame,voxel,task,bookmark",
+  "-tracefile=/private/tmp/landform-collision-diagnosis/entrance.utrace"
+]

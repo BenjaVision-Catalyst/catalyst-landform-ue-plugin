@@ -1,0 +1,7 @@
+{
+  "applyCalls": 76931,
+  "applyPointVisits": 58947475,
+  "applyAggregateInclusiveSeconds": 453.399237,
+  "applyAggregateExclusiveSeconds": 445.572966,
+  "meaning": "Aggregate across threads and all matching native stamp Apply scopes in this profiled 100m process; not elapsed wall time or one stamp only."
+}

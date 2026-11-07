@@ -1,0 +1,29 @@
+{
+  "sample": "generation-sample.txt",
+  "backgroundThreadSamples": 3480,
+  "inclusiveSamples": {
+    "stamp_distance": 3392,
+    "scene_shape": 3385,
+    "terrain_height": 1715,
+    "cave_field": 1507,
+    "native_collider": 3476,
+    "chaos_cook": 4,
+    "floor_relief": 142,
+    "restored_rock": 0,
+    "surface_query": 64,
+    "geology_position": 0
+  },
+  "percentOfBackgroundSamples": {
+    "stamp_distance": 97.47,
+    "scene_shape": 97.27,
+    "terrain_height": 49.28,
+    "cave_field": 43.3,
+    "native_collider": 99.89,
+    "chaos_cook": 0.11,
+    "floor_relief": 4.08,
+    "restored_rock": 0.0,
+    "surface_query": 1.84,
+    "geology_position": 0.0
+  },
+  "note": "Inclusive stack samples overlap between ancestor/child categories; these are sampling proportions, not exact wall times."
+}

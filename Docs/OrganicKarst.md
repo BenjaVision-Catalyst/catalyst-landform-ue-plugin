@@ -80,6 +80,10 @@ resolution, 25 m moving invoker and six native background workers. Earlier
 profile walking reviews retain quality 4. Editor navigation keeps its existing
 native settings and the 50 ms gate.
 
+The subsequent [VPP data-delivery review](VPPDataDelivery.md) treats the recorded
+streaming holds as an unresolved performance gap. Passing walking and settled
+editor checks does not qualify generation latency or ecosystem headroom.
+
 ## Qualification
 
 Native geometry, walking, save/reload and actual image evidence are recorded
