@@ -7,7 +7,8 @@ geodesic heightmap placement and radial movement using native VPP generation,
 LOD, layers, meshing and collision. Foundation/Connect/VPP remain explicit
 dependencies. The clean workspace example supplies five starter planets and one
 globe-to-ground level. Cave profile 4 failed visual acceptance; the separate
-[one-family profile 5 candidate](Docs/NaturalKarst.md) is now available for review.
+[one-family profile 6](Docs/BeddedKarst.md) uses Mammoth passage and Carlsbad
+chamber references. Profile 5 also failed human visual review.
 
 The [persistent-world native proof](Docs/PlanetDesignSystem.md#persistent-native-world-checkpoint)
 reuses native VPP generation, LOD and moving collision invokers, with full-scene

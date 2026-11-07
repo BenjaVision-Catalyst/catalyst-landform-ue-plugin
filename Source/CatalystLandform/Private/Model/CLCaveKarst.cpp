@@ -44,7 +44,7 @@ bool CLBuildKarst(const FCLCaveSettings& S,const FCLCompiledPlanetRecipe& Base,F
     for(const auto* Route:{&Trunk,&Branch})for(int32 I:*Route)
     {
         const auto Q=Cells[I].Direction;const auto Column=Base.Rock->SampleColumn(Q);if(!Column.bValid)return false;
-        Limit=FMath::Min(Limit,Base.RadiusMeters+Base.SampleHeightMeters(Q)-Column.DeformationMeters-S.MinimumCoverMeters-R*7-S.DepthMeters*.45);
+        Limit=FMath::Min(Limit,Base.RadiusMeters+Base.SampleHeightMeters(Q)-Column.DeformationMeters-S.MinimumCoverMeters-R*(S.AlgorithmVersion>=6?14:7)-S.DepthMeters*.45);
     }
     int32 Begin=0,End=Base.Rock->GetOlderBedCount();
     while(Begin<End){const int32 Mid=(Begin+End)/2;if(Base.Rock->GetBed(Mid).UpperMeters<=Limit)Begin=Mid+1;else End=Mid;}

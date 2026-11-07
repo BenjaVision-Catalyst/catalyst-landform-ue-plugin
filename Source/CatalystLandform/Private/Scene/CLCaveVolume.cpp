@@ -4,6 +4,8 @@
 #include "Spline/VoxelSplineMetadata.h"
 #include "Components/SplineComponent.h"
 #include "Shape/VoxelSphereShape.h"
+#include "Shape/VoxelPlaneShape.h"
+#include "Model/CLRockLayer.h"
 #include "Shape/VoxelCubeShape.h"
 #include "VoxelBlendModeUtilities.h"
 #include "VoxelAABBTree.h"
@@ -20,9 +22,11 @@ class FCLCaveVolumeData
 public:
     struct FPath
     {
-        FGuid Network;FVector Origin,Across;int32 NoiseSeed=0;TSharedPtr<FSplineCurves> Curve;
+        FGuid Network;FVector Origin,Across;int32 NoiseSeed=0,PassageId=0;TSharedPtr<FSplineCurves> Curve;
         TVoxelArray<FVoxelSplineSegment> Segments;
         TSharedPtr<TArray<FVector2D>> Sections;
+        TSharedPtr<TArray<double>> FloorRadii;TSharedPtr<const FCLCompiledRock> FloorRock;
+        bool RampedFloor=false;FVector FloorStartDirection,FloorForward;double FloorAngle=0,RampStart=0,RampEnd=0;
         FBox Bounds;double MinimumWidth=0,MaximumWidth=0,Incision=0,Development=0;
         ECLCaveForm Form=ECLCaveForm::LegacyOval,EndForm=ECLCaveForm::LegacyOval;TSharedPtr<TArray<FVector>> BeddingUps;
     };
@@ -80,8 +84,85 @@ void SampleNaturalKarst(ECLCaveForm Form,const FVoxelDoubleVectorBuffer& P,TCons
                 EVoxelVolumeBlendMode::Additive,true,Room?.075f:.045f,nullptr));
     }
 }
+// Profile 6 has a broad bedrock floor independent of its vault. Passage
+// ceilings follow bedding with low shoulders, rather than a circular pipe.
+void SampleBeddedKarst(ECLCaveForm Form,const FVoxelDoubleVectorBuffer& P,TConstArrayView<double> Phases,int32 Seed,FVoxelFloatBuffer& Out)
+{
+    const bool Room=Form==ECLCaveForm::BeddedChamber;const int32 N=P.Num();
+    FVoxelDoubleVectorBuffer Main,Left,Right,Roof;Main.Allocate(N);Left.Allocate(N);Right.Allocate(N);Roof.Allocate(N);
+    const double Phase=(uint32(Seed)&65535)*(2*PI/65536.);
+    for(int32 I=0;I<N;++I)
+    {
+        const auto V=P[I];const double X=Room?V.Y:V.X,Y=Room?V.Z:V.Y,Z=Room?V.X:V.Z;
+        const double T=Room?.5:Phases[I],E=Room?1:FMath::Square(FMath::Sin(PI*T));
+        // Unequal wall shoulders and broad changes of plan, correlated along a
+        // reach. Bedding ledges are subordinate to the main passage anatomy.
+        const double Width=1+E*.10*FMath::Sin(T*7+Phase);
+        const double Ledge=0; // Actual broken bed remnants below supply the wall shelves.
+        const double Side=(X-E*.07*FMath::Sin(T*6+Phase))/(Width*(1+Ledge));
+        if(Room)
+        {
+            Main.Set(I,FVector(Z/.95,Side/.94,(Y-.65)/1.50));
+            Left.Set(I,FVector((Z+.40)/.62,(Side+.45)/.66,(Y+.15)/1.85));
+            Right.Set(I,FVector((Z-.42)/.58,(Side-.40)/.61,(Y+.35)/2.1));
+        }
+        else Main.Set(I,FVector(Side/1.03,(Y+2.2)/4.2,Z));
+        Roof.Set(I,FVector(0,0,Y-(Room?2.05:1.23+E*.06*FMath::Cos(T*5+Phase))-.035*FMath::Sin(X*3+Phase)));
+    }
+    FVoxelSphereShape Sphere;Sphere.Radius=1;Sphere.Sample(Out.View(),Main);
+    FVoxelFloatBuffer Part;Part.Allocate(N);
+    if(Room)for(const auto* Lobe:{&Left,&Right})
+    {
+        Sphere.Sample(Part.View(),*Lobe);
+        for(int32 I=0;I<N;++I)Out.Set(I,FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),Out[I],Part[I]*.65f,EVoxelVolumeBlendMode::Additive,true,.04,nullptr));
+    }
+    FVoxelPlaneShape Plane;Plane.Size=FVector2D(2.e6);Plane.Height=1;Plane.Sample(Part.View(),Roof);
+    for(int32 I=0;I<N;++I)Out.Set(I,FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),Out[I],Part[I],EVoxelVolumeBlendMode::Intersect,true,.055,nullptr));
+}
+void SampleInfill(const FCLCaveInfill& B,const FVoxelDoubleVectorBuffer& P,FVoxelFloatBuffer& Values,const FCLNativeNoiseKernel* Noise=nullptr,int32 Seed=0)
+{
+    auto Weather=[&]
+    {
+        if(!Noise||(!B.BedrockPier&&!B.BeddedRemnant&&!B.BeddedBreakdown))return;
+        TArray<FVector> Points;for(int32 I=0;I<P.Num();++I)Points.Add((B.Rotation.RotateVector(P[I])+B.Center)/(B.BedrockPier?2.8:1.6));
+        TArray<float> Relief;Noise->SampleBatch(Points,Seed^GetTypeHash(B.Network)^GetTypeHash(B.Center),Relief);
+        for(int32 I=0;I<P.Num();++I)Values.Set(I,Values[I]+Relief[I]*(B.BedrockPier?.22f:B.BeddedBreakdown?float(FMath::Min(.12,B.HalfExtents.GetMin()*.14)):.12f));
+    };
+    if(!B.BedrockPier)
+    {
+        FVoxelCubeShape Cube;Cube.Size=B.HalfExtents*2;Cube.Roundness=B.BeddedRemnant?.35:B.BeddedBreakdown?.20:.025;Cube.Sample(Values.View(),P);
+        if(B.BeddedBreakdown)
+        {
+            // Two unequal native joint planes fracture the transported block's
+            // corners. Legacy breakdown keeps its original cube operator.
+            const double Phase=(uint32(GetTypeHash(B.Center))&65535)*(2*PI/65536.);
+            FVoxelPlaneShape Plane;Plane.Size=FVector2D(2.e6);Plane.Height=1;
+            FVoxelDoubleVectorBuffer Cut;Cut.Allocate(P.Num());FVoxelFloatBuffer Part;Part.Allocate(P.Num());
+            for(int32 K=0;K<2;++K)
+            {
+                const FVector Normal=FVector(K?-.7:1.,K?.8:.5,K?.9:.7).GetSafeNormal();
+                const double Offset=.82+.08*FMath::Sin(Phase+K*1.7);
+                for(int32 I=0;I<P.Num();++I)Cut.Set(I,FVector(0,0,(FVector::DotProduct(P[I]/B.HalfExtents,Normal)-Offset)*B.HalfExtents.GetMin()));
+                Plane.Sample(Part.View(),Cut);
+                for(int32 I=0;I<P.Num();++I)Values.Set(I,FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),Values[I],Part[I],EVoxelVolumeBlendMode::Intersect,true,.04,nullptr));
+            }
+        }
+        Weather();return;
+    }
+    FVoxelDoubleVectorBuffer Local;Local.Allocate(P.Num());
+    for(int32 I=0;I<P.Num();++I)
+    {
+        const auto Q=P[I]/B.HalfExtents;
+        const double W=.78+.14*Q.Z*Q.Z+.045*FMath::Sin(Q.Z*13);
+        Local.Set(I,FVector((Q.X+.12*Q.Z)/W,Q.Y/(W*.95),Q.Z/1.4));
+    }
+    FVoxelSphereShape Sphere;Sphere.Radius=1;Sphere.Sample(Values.View(),Local);
+    for(int32 I=0;I<P.Num();++I)Values.Set(I,Values[I]*B.HalfExtents.GetMin());Weather();
+}
 void SampleSection(ECLCaveForm Form,const FVoxelDoubleVectorBuffer& P,double Development,FVoxelFloatBuffer& Out,TConstArrayView<double> Phases={},int32 Seed=0)
 {
+    if(Form==ECLCaveForm::BeddedPassage||Form==ECLCaveForm::BeddedChamber)
+    {SampleBeddedKarst(Form,P,Phases,Seed,Out);return;}
     if(Form==ECLCaveForm::KarstPassage||Form==ECLCaveForm::KarstChamber)
     {SampleNaturalKarst(Form,P,Phases,Seed,Development,Out);return;}
     const int32 N=P.Num();FVoxelDoubleVectorBuffer Main,Extra;Main.Allocate(N);Extra.Allocate(N);
@@ -115,10 +196,22 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Compile(TConstArr
 {
     auto D=MakeShared<FCLCaveVolumeData>();D->Noise=Noise;D->Seed=Seed;
     FVoxelAABBTree::FElementArray Elements;TMap<FGuid,int32> PathCounts,ChamberCounts;
+    int32 PassageId=0;
     for(const auto& P:Passages)
     {
         if(P.Points.Num()<2||P.Points.Num()!=P.Sections.Num()||!FMath::IsFinite(P.Incision)||P.Incision<0||P.Incision>2) {Error=TEXT("Cave passage requires matching curve controls and sections");return nullptr;}
-        FCLCaveVolumeData::FPath C;C.Curve=MakeShared<FSplineCurves>();C.Network=P.Network;C.Origin=P.Points[0];C.Sections=MakeShared<TArray<FVector2D>>();*C.Sections=P.Sections;C.MinimumWidth=MAX_dbl;C.MaximumWidth=0;C.Incision=P.Incision;C.Form=P.Form;C.EndForm=P.EndForm;C.Development=P.Development;C.BeddingUps=MakeShared<TArray<FVector>>();
+        FCLCaveVolumeData::FPath C;C.PassageId=PassageId++;C.Curve=MakeShared<FSplineCurves>();C.Network=P.Network;C.Origin=P.Points[0];C.Sections=MakeShared<TArray<FVector2D>>();*C.Sections=P.Sections;C.MinimumWidth=MAX_dbl;C.MaximumWidth=0;C.Incision=P.Incision;C.Form=P.Form;C.EndForm=P.EndForm;C.Development=P.Development;C.BeddingUps=MakeShared<TArray<FVector>>();
+        if(P.Form==ECLCaveForm::BeddedPassage&&(!P.FloorRock||P.FloorRadii.Num()!=P.Points.Num()||P.FloorRadii.ContainsByPredicate([](double V){return !FMath::IsFinite(V)||V<=0;}))){Error=TEXT("Bedded passage requires its canonical rock and complete floor datum");return nullptr;}
+        C.FloorRock=P.FloorRock;C.FloorRadii=MakeShared<TArray<double>>();
+        C.RampedFloor=P.Entrance&&P.Form==ECLCaveForm::BeddedPassage;
+        if(C.RampedFloor)
+        {
+            C.FloorStartDirection=P.Points[0].GetSafeNormal();const auto EndDirection=P.Points.Last().GetSafeNormal();
+            C.FloorAngle=FMath::Acos(FMath::Clamp(FVector::DotProduct(C.FloorStartDirection,EndDirection),-1.,1.));
+            C.FloorForward=(EndDirection-C.FloorStartDirection*FMath::Cos(C.FloorAngle)).GetSafeNormal();
+            C.RampStart=P.Points[0].Length()-P.FloorOffsetMeters;C.RampEnd=P.Points.Last().Length()-P.FloorOffsetMeters;
+            if(C.FloorAngle<1.e-5){Error=TEXT("Walk-in floor needs a finite angular reach");return nullptr;}
+        }
         C.NoiseSeed=Seed^GetTypeHash(P.Network)^PathCounts.FindOrAdd(P.Network)++;
         C.Across=FVector::CrossProduct(C.Origin.GetSafeNormal(),(P.Points.Last()-P.Points[0]).GetSafeNormal()).GetSafeNormal();
         if(C.Across.IsNearlyZero())C.Across=FVector::CrossProduct(FVector::XAxisVector,(P.Points.Last()-P.Points[0]).GetSafeNormal()).GetSafeNormal();
@@ -151,7 +244,7 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Compile(TConstArr
                 const float At=C.Curve->Position.Points.Num();const auto Section=FMath::Lerp(P.Sections[I],P.Sections[I+1],double(K)/Steps);
                 C.Curve->Position.Points.Emplace(At,Original->Position.Eval(Key),Tangent,Tangent,CIM_CurveUser);
                 C.Curve->Rotation.Points.Emplace(At,FQuat::Identity,FQuat::Identity,FQuat::Identity,CIM_Linear);
-                C.Curve->Scale.Points.Emplace(At,FVector(Section.X,Section.Y,1),FVector::ZeroVector,FVector::ZeroVector,CIM_Linear);C.Sections->Add(Section);if(!P.BeddingUps.IsEmpty())C.BeddingUps->Add(FMath::Lerp(P.BeddingUps[I],P.BeddingUps[I+1],double(K)/Steps).GetSafeNormal());
+                C.Curve->Scale.Points.Emplace(At,FVector(Section.X,Section.Y,1),FVector::ZeroVector,FVector::ZeroVector,CIM_Linear);C.Sections->Add(Section);if(!P.FloorRadii.IsEmpty())C.FloorRadii->Add(FMath::Lerp(P.FloorRadii[I],P.FloorRadii[I+1],double(K)/Steps));if(!P.BeddingUps.IsEmpty())C.BeddingUps->Add(FMath::Lerp(P.BeddingUps[I],P.BeddingUps[I+1],double(K)/Steps).GetSafeNormal());
             }
         }
         const auto Segments=FVoxelSplineSegment::Create(*C.Curve,FVoxelSplineMetadataRuntime());
@@ -174,6 +267,7 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Compile(TConstArr
     }
     for(const auto& C:Chambers)
     {
+        if(C.Form==ECLCaveForm::BeddedChamber&&(!C.FloorRock||!FMath::IsFinite(C.FloorRadius))){Error=TEXT("Bedded chamber requires its canonical rock floor datum");return nullptr;}
         auto& V=D->Chambers.AddDefaulted_GetRef();V.Source=C;V.NoiseSeed=Seed^GetTypeHash(C.Network)^0x4348414D^ChamberCounts.FindOrAdd(C.Network)++;
         V.Bounds=FBox(-C.HalfExtents,C.HalfExtents).TransformBy(FTransform(C.Rotation,C.Center).ToMatrixWithScale()).ExpandBy(C.HalfExtents.GetMin()*.6+1);
         Elements.Add(FVoxelBox(V.Bounds),D->Paths.Num()+D->Chambers.Num()-1);
@@ -219,12 +313,19 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
     {Work.FindOrAdd(Feature).Add(I);return false;});
     TArray<int32> Features;Work.GetKeys(Features);Features.Sort();
     TArray<double> Void;Void.Init(MAX_flt,Positions.Num());
+    // Cached across overlapping native features in this batch. All floor
+    // coordinates use the same immutable planetary rock field.
+    TArray<double> Restored;Restored.Init(MAX_dbl,Positions.Num());
+    TMap<int32,TArray<double>> BeddedVoids;TMap<int32,FGuid> BeddedOwners;TMap<int32,double> BeddedSmoothness;
+    TMap<FGuid,TArray<double>> BeddedFloors,JoinedVoids;
     for(int32 Feature:Features)
     {
         const bool Path=Feature<Data->Paths.Num();const auto Network=Path?Data->Paths[Feature].Network:Data->Chambers[Feature-Data->Paths.Num()].Source.Network;
         if(!SelectedNetworks.IsEmpty()&&!SelectedNetworks.Contains(Network))continue;
         const auto& Indices=Work[Feature];const int32 N=Indices.Num();FVoxelDoubleVectorBuffer Local,Slot;Local.Allocate(N);TArray<double> Units,SlotUnits,Phases;Units.SetNumUninitialized(N);Phases.SetNumZeroed(N);
         const bool Modern=Path?Data->Paths[Feature].Form!=ECLCaveForm::LegacyOval:Data->Chambers[Feature-Data->Paths.Num()].Source.Form!=ECLCaveForm::LegacyOval;
+        const bool Bedded=Path?Data->Paths[Feature].Form==ECLCaveForm::BeddedPassage:Data->Chambers[Feature-Data->Paths.Num()].Source.Form==ECLCaveForm::BeddedChamber;
+        TArray<double> FloorHeights;if(Bedded)FloorHeights.SetNumUninitialized(N);
         const bool Keyhole=!Modern&&Path&&Data->Paths[Feature].Incision>0;if(Keyhole){Slot.Allocate(N);SlotUnits.SetNumUninitialized(N);}
         double Smoothness=0;
         if(Path)
@@ -246,7 +347,32 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
                 const auto Up=FVector::CrossProduct(Along,Across).GetSafeNormal();Phases[J]=Key/(C.Sections->Num()-1);
                 const auto Delta=Positions[Indices[J]]-Center;const double U=FMath::Min(S.X,S.Y);Units[J]=U;
                 const double Side=FVector::DotProduct(Delta,Across),Height=FVector::DotProduct(Delta,Up),End=FVector::DotProduct(Delta,Along);
-                Local.Set(J,FVector(Side/S.X,Height/S.Y,End/U));
+                double Vertical=Height;
+                if(Bedded)
+                {
+                    const int32 Index=Indices[J];
+                    if(C.RampedFloor)
+                    {
+                        // The declared walk-in floor is a continuous radial
+                        // grade, independent of the nearest cubic interval.
+                        const auto D=Positions[Index].GetSafeNormal();
+                        const double Angle=FMath::Atan2(FVector::DotProduct(D,C.FloorForward),FVector::DotProduct(D,C.FloorStartDirection));
+                        const double Den=FMath::Sin(C.FloorAngle)*FMath::Cos(Angle)+(1-FMath::Cos(C.FloorAngle))*FMath::Sin(Angle);
+                        const double T=FMath::Clamp(FMath::Sin(Angle)/FMath::Max(Den,1.e-6),0.,1.);
+                        Vertical=Positions[Index].Length()-FMath::Lerp(C.RampStart,C.RampEnd,T*T*(2-T));
+                    }
+                    else
+                    {
+                    if(Restored[Index]==MAX_dbl)Restored[Index]=C.FloorRock->RestoredRadiusMeters(Positions[Index]);
+                    const double Reach=FVector::Distance(C.Curve->Position.Points[A].OutVal,C.Curve->Position.Points[A+1].OutVal);
+                    const double Grade=((*C.FloorRadii)[A+1]-(*C.FloorRadii)[A])/FMath::Max(Reach,.001);
+                    // Native endpoint caps keep the floor's grade; a clamped
+                    // nearest key must not turn each ramp interval into a step.
+                    Vertical=Restored[Index]-(FMath::Lerp((*C.FloorRadii)[A],(*C.FloorRadii)[A+1],Key-A)+End*Grade);
+                    }
+                    FloorHeights[J]=Vertical;
+                }
+                Local.Set(J,FVector(Side/S.X,Vertical/S.Y,End/U));
 
                 if(Keyhole)
                 {
@@ -259,7 +385,9 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
         else
         {
             const auto& C=Data->Chambers[Feature-Data->Paths.Num()].Source;const double U=C.HalfExtents.GetMin();Smoothness=U*(Modern?.04:.3);
-            for(int32 J=0;J<N;++J){const auto P=C.Rotation.UnrotateVector(Positions[Indices[J]]-C.Center);Local.Set(J,P/C.HalfExtents);Units[J]=U;}
+            for(int32 J=0;J<N;++J){const auto P=C.Rotation.UnrotateVector(Positions[Indices[J]]-C.Center);auto Q=P/C.HalfExtents;
+                if(Bedded){const int32 Index=Indices[J];if(Restored[Index]==MAX_dbl)Restored[Index]=C.FloorRock->RestoredRadiusMeters(Positions[Index]);FloorHeights[J]=Restored[Index]-C.FloorRadius;Q.Z=FloorHeights[J]/C.HalfExtents.Z;}
+                Local.Set(J,Q);Units[J]=U;}
         }
         FVoxelFloatBuffer Native;Native.Allocate(N);FVoxelSphereShape Shape;Shape.Radius=1;
         if(Modern)
@@ -269,7 +397,7 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
                 Path?Data->Paths[Feature].NoiseSeed:Data->Chambers[Feature-Data->Paths.Num()].NoiseSeed);
             if(Path&&Data->Paths[Feature].EndForm!=Form)
             {
-                FVoxelFloatBuffer Other;Other.Allocate(N);SampleSection(Data->Paths[Feature].EndForm,Local,Data->Paths[Feature].Development,Other);
+                FVoxelFloatBuffer Other;Other.Allocate(N);SampleSection(Data->Paths[Feature].EndForm,Local,Data->Paths[Feature].Development,Other,Phases,Data->Paths[Feature].NoiseSeed);
                 for(int32 J=0;J<N;++J){const double T=Phases[J]*Phases[J]*(3-2*Phases[J]);Native.Set(J,FMath::Lerp(Native[J],Other[J],float(T)));}
             }
         }
@@ -280,11 +408,43 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
         {
             TArray<FVector> Points;Points.Reserve(N);for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]/(Modern?FMath::Clamp(Units[J]*.45,.3,1.):Units[J]*1.8));
             Data->Noise->SampleBatch(Points,Path?Data->Paths[Feature].NoiseSeed:Data->Chambers[Feature-Data->Paths.Num()].NoiseSeed,Noise);
-            if(Modern&&!Path&&Data->Chambers[Feature-Data->Paths.Num()].Source.Form!=ECLCaveForm::RoofScar)
+            if(Modern&&((!Path&&Data->Chambers[Feature-Data->Paths.Num()].Source.Form!=ECLCaveForm::RoofScar)||(Bedded&&Path)))
             {
-                Points.Reset();for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]/FMath::Clamp(Units[J]*.6,2.,5.));
-                Data->Noise->SampleBatch(Points,Data->Chambers[Feature-Data->Paths.Num()].NoiseSeed^0x52454C49,RoomRelief);
+                Points.Reset();for(int32 J=0;J<N;++J)
+                {
+                    // A wavelength changing with the nearest section scales
+                    // planet-centred coordinates and creates squeezed ridges.
+                    // Keep it fixed over one complete bedded passage.
+                    const double Wavelength=Bedded&&Path?FMath::Clamp(Data->Paths[Feature].MinimumWidth*.6,2.,5.):FMath::Clamp(Units[J]*.6,2.,5.);
+                    Points.Add(Positions[Indices[J]]/Wavelength);
+                }
+                Data->Noise->SampleBatch(Points,(Path?Data->Paths[Feature].NoiseSeed:Data->Chambers[Feature-Data->Paths.Num()].NoiseSeed)^0x52454C49,RoomRelief);
             }
+        }
+        FVoxelFloatBuffer Floor;
+        if(Bedded)
+        {
+            TArray<float> Relief;TArray<FVector> Points;Points.Reserve(N);for(int32 J=0;J<N;++J)Points.Add(Positions[Indices[J]]/6.);
+            if(Data->Noise)Data->Noise->SampleBatch(Points,Data->Seed^0x464C4F52,Relief);
+            FVoxelDoubleVectorBuffer FloorPoints;FloorPoints.Allocate(N);Floor.Allocate(N);
+            for(int32 J=0;J<N;++J)
+            {
+                // A broad clear walking floor meets low bedrock shoulders at
+                // the margins. The chamber's central crossing shares its datum.
+                const auto Q=Local[J];const double Edge=Path?FMath::Abs(Q.X):FVector2D(Q.X,Q.Y).Length();
+                const double Bank=FMath::Min(Path?.6:1.2,Units[J]*.10)*FMath::Square(FMath::SmoothStep(Path?.5:.55,.95,Edge));
+                FloorPoints.Set(J,FVector(0,0,-FloorHeights[J]+Bank+(Relief.IsEmpty()?0:Relief[J]*.16)));
+            }
+            FVoxelPlaneShape Plane;Plane.Size=FVector2D(2.e6);Plane.Height=1;Plane.Sample(Floor.View(),FloorPoints);
+        }
+        TArray<double>* NetworkVoid=nullptr;TArray<double>* NetworkFloor=nullptr;
+        if(Bedded)
+        {
+            const int32 Group=Path?Data->Paths[Feature].PassageId:Feature;
+            NetworkVoid=&BeddedVoids.FindOrAdd(Group);NetworkFloor=&BeddedFloors.FindOrAdd(Network);
+            if(NetworkVoid->IsEmpty())NetworkVoid->Init(MAX_flt,Positions.Num());
+            if(NetworkFloor->IsEmpty())NetworkFloor->Init(MAX_flt,Positions.Num());
+            BeddedOwners.Add(Group,Network);BeddedSmoothness.Add(Group,Smoothness);
         }
         for(int32 J=0;J<N;++J)
         {
@@ -292,9 +452,40 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
             if(Keyhole)Value=Blend(Value,double(Lower[J])*SlotUnits[J],Smoothness);
             // Native VPP noise in fixed physical coordinates. Correlated metre-
             // scale wall relief cannot close the protected passage core.
-            if(Data->Noise)Value+=double(Noise[J])*(Modern?FMath::Min(.08,Units[J]*.025):Units[J]*.12);
-            if(!RoomRelief.IsEmpty())Value+=RoomRelief[J]*FMath::Min(.7,Units[J]*.08);
-            Void[I]=Void[I]==MAX_flt?Value:Blend(Void[I],Value,Smoothness);
+            if(Data->Noise)Value+=double(Noise[J])*(Bedded?.08:Modern?FMath::Min(.08,Units[J]*.025):Units[J]*.12);
+            if(!RoomRelief.IsEmpty())Value+=RoomRelief[J]*(Bedded&&Path?.11:FMath::Min(.7,Units[J]*.08));
+            const double BodyValue=Value;
+            if(Bedded)Value=FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),float(Value),Floor[J],EVoxelVolumeBlendMode::Intersect,true,.12,nullptr);
+            if(Bedded)
+            {
+                auto& V=(*NetworkVoid)[I];V=V==MAX_flt?Value:Blend(V,Value,0);
+                // A distant interval's conservative AABB is not floor support.
+                if(BodyValue<Smoothness*2)(*NetworkFloor)[I]=FMath::Min((*NetworkFloor)[I],double(Floor[J]));
+            }
+            else Void[I]=Void[I]==MAX_flt?Value:Blend(Void[I],Value,Smoothness);
+        }
+    }
+    // Clamp the shared floor once after native passage/room unions. Repeated
+    // overlapping cubic intervals must not erode the floor downward at a mouth.
+    // Native hard union joins intervals of one continuous passage exactly.
+    // Smooth only complete passages and rooms, avoiding count-dependent roof
+    // corrugation where short native intervals overlap.
+    TArray<int32> Groups;BeddedVoids.GetKeys(Groups);Groups.Sort();
+    for(int32 Group:Groups)
+    {
+        auto& Joined=JoinedVoids.FindOrAdd(BeddedOwners[Group]);if(Joined.IsEmpty())Joined.Init(MAX_flt,Positions.Num());
+        const auto& Values=BeddedVoids[Group];for(int32 I=0;I<Values.Num();++I)if(Values[I]!=MAX_flt)
+            Joined[I]=Joined[I]==MAX_flt?Values[I]:Blend(Joined[I],Values[I],BeddedSmoothness[Group]);
+    }
+    TArray<FGuid> FloorNetworks;JoinedVoids.GetKeys(FloorNetworks);FloorNetworks.Sort();
+    for(const auto Network:FloorNetworks)
+    {
+        const auto& Values=JoinedVoids[Network];const auto& Floors=BeddedFloors[Network];
+        for(int32 I=0;I<Positions.Num();++I)
+        {
+            const double V=Values[I];if(V==MAX_flt)continue;
+            const double Clipped=Floors[I]==MAX_flt?V:FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),float(V),float(Floors[I]),EVoxelVolumeBlendMode::Intersect,true,0,nullptr);
+            Void[I]=Void[I]==MAX_flt?Clipped:Blend(Void[I],Clipped,0);
         }
     }
     if(IncludeInfills&&Data->InfillIndex)
@@ -306,7 +497,7 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
         {
             const auto& Block=Data->Infills[B];const auto& Indices=Blocks[B];FVoxelDoubleVectorBuffer P;P.Allocate(Indices.Num());
             for(int32 J=0;J<Indices.Num();++J)P.Set(J,Block.Rotation.UnrotateVector(Positions[Indices[J]]-Block.Center));
-            FVoxelFloatBuffer Values;Values.Allocate(Indices.Num());FVoxelCubeShape Cube;Cube.Size=Block.HalfExtents*2;Cube.Roundness=.025;Cube.Sample(Values.View(),P);
+            FVoxelFloatBuffer Values;Values.Allocate(Indices.Num());SampleInfill(Block,P,Values,Data->Noise.Get(),Data->Seed);
             for(int32 J=0;J<Indices.Num();++J)Void[Indices[J]]=FVoxelBlendModeUtilities::ComputeDistance(FVoxelVolumeTransform(),float(Void[Indices[J]]),Values[J],EVoxelVolumeBlendMode::Subtractive,true,0,nullptr);
         }
     }
@@ -327,10 +518,11 @@ FVector FCLCompiledCaveVolume::GeologicalPosition(const FVector& Position)const
     for(int32 I:Hits)
     {
         const auto& B=Data->Infills[I];if(!SelectedNetworks.IsEmpty()&&!SelectedNetworks.Contains(B.Network))continue;
-        FVoxelDoubleVectorBuffer P;P.Allocate(1);P.Set(0,B.Rotation.UnrotateVector(Position-B.Center));FVoxelFloatBuffer D;D.Allocate(1);FVoxelCubeShape Cube;Cube.Size=B.HalfExtents*2;Cube.Roundness=.025;Cube.Sample(D.View(),P);
+        FVoxelDoubleVectorBuffer P;P.Allocate(1);P.Set(0,B.Rotation.UnrotateVector(Position-B.Center));FVoxelFloatBuffer D;D.Allocate(1);SampleInfill(B,P,D,Data->Noise.Get(),Data->Seed);
         if(D[0]>0)continue;
+        if(B.BedrockPier||B.BeddedRemnant)return Position;
         double Air=FVoxelUtilities::NaNf();ComposeBatchInternal(MakeArrayView(&Position,1),MakeArrayView(&Air,1),false);if(Air<=0)continue;
-        Source=B.SourceCenter+B.SourceRotation.RotateVector(B.Rotation.UnrotateVector(Position-B.Center));Found=true;break;
+        Source=B.BedrockPier?Position:B.SourceCenter+B.SourceRotation.RotateVector(B.Rotation.UnrotateVector(Position-B.Center));Found=true;break;
     }
     return Found?Source:Position;
 }

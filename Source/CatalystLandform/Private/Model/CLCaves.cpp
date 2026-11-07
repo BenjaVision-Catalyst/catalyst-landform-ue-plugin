@@ -20,7 +20,7 @@ void FCLCaveSettings::UpgradeAbundanceProfile()
 void FCLCaveSettings::ApplyProgression(double Value)
 {
     Character=FMath::Clamp(Value,0.,1.);
-    AlgorithmVersion=5;NetworksPerSquareKilometer=6*Character*Character;
+    AlgorithmVersion=6;NetworksPerSquareKilometer=6*Character*Character;
     LengthMeters=FMath::Lerp(35.,140.,Character);
     RadiusMeters=FMath::Lerp(1.1,3.2,Character);
     DepthMeters=FMath::Lerp(10.,42.,Character);
@@ -29,8 +29,8 @@ void FCLCaveSettings::ApplyProgression(double Value)
 bool FCLCaveSettings::Validate(FString& Error)const
 {
     auto In=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
-    if((AlgorithmVersion<1||AlgorithmVersion>5)||!In(Character,0,1)||!In(NetworksPerSquareKilometer,0,10)||!In(LengthMeters,1,500)||!In(RadiusMeters,.1,10)||!In(MinimumCoverMeters,1,100)||!In(DepthMeters,1,500)||!In(Branching,0,1))
-    {Error=TEXT("Caves require algorithm 1..5 and finite bounded physical density, dimensions, cover and branching");return false;}return true;
+    if((AlgorithmVersion<1||AlgorithmVersion>6)||!In(Character,0,1)||!In(NetworksPerSquareKilometer,0,10)||!In(LengthMeters,1,500)||!In(RadiusMeters,.1,10)||!In(MinimumCoverMeters,1,100)||!In(DepthMeters,1,500)||!In(Branching,0,1))
+    {Error=TEXT("Caves require algorithm 1..6 and finite bounded physical density, dimensions, cover and branching");return false;}return true;
 }
 TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettings& Settings,const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {
@@ -64,7 +64,7 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
     auto Drive=[&](FVector D,ECLProvinceType Type){const auto V=Base.Tectonics->SampleRockDeformation(D,1,0,1);return Type==ECLProvinceType::ContinentalRift?V.Extension:V.Shear;};
     struct FCandidate {int32 Index;FVector Direction;ECLProvinceType Type;double Occurrence,Phase,Depth,Width,Branch,Entrance;};
     TArray<FCandidate> Eligible;
-    TArray<FVector> AcceptedCenters;TArray<FBox> ReservedBounds;
+    TArray<FVector> AcceptedCenters;TArray<FBox> ReservedBounds;TArray<EFamily> ReservedFamilies;
     auto Place=[&](const FCandidate& C)->bool
     {
         FRandomStream ShapeRandom(int32(HashCombineFast(uint32(Seed)^uint32(S.Seed),uint32(C.Index+1))));
@@ -207,6 +207,19 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
         // Domain support is independent of the visibility of surface entrances.
         // In version 3 overlaps are allowed; the same native union defines both
         // gameplay and inspection. Prior versions retain their frozen placement.
+        if(S.AlgorithmVersion>=6&&Infills.ContainsByPredicate([](const auto& B){return B.BeddedRemnant;}))
+        {
+            const auto Bare=FCLCompiledCaveVolume::Compile(Paths,Chambers,Base.NativePerlin,Seed^S.Seed,Error);if(!Bare)return false;
+            Infills.RemoveAll([&](const auto& B)
+            {
+                if(!B.BeddedRemnant)return false;bool Supported=false,Exposed=false;
+                for(const FVector Axis:{B.Rotation.GetAxisX()*B.HalfExtents.X*.85,B.Rotation.GetAxisY()*B.HalfExtents.Y*.85,B.Rotation.GetAxisZ()*B.HalfExtents.Z*.85})for(double Sign:{-1.,1.})
+                {
+                    const double Field=Bare->Compose(B.Center+Axis*Sign,-1000);Supported|=Field<-.2;Exposed|=Field>.2;
+                }
+                return !Supported||!Exposed;
+            });
+        }
         const auto Potential=FCLCompiledCaveVolume::Compile(Paths,Chambers,Base.NativePerlin,Seed^S.Seed,Error,Infills);if(!Potential)return false;
         Info.InspectionBounds=Potential->Bounds();
         if(!S.bSurfaceEntrances){Paths.RemoveAll([](const auto& P){return P.Entrance;});check(Nodes.Last().Portal);Nodes.Pop();}
@@ -221,9 +234,10 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
             const FVector Q((K&1)?InteriorBound.Max.X:InteriorBound.Min.X,(K&2)?InteriorBound.Max.Y:InteriorBound.Min.Y,(K&4)?InteriorBound.Max.Z:InteriorBound.Min.Z);
             const auto V=Q.GetSafeNormal();Bound+=V*(Base.RadiusMeters+Base.SampleHeightMeters(V)+S.RadiusMeters*2);
         }
-        if(S.AlgorithmVersion<3)for(const auto& Accepted:ReservedBounds)if(Accepted.Intersect(Bound))return false;
-        if(Out->Passages.Num()+Paths.Num()>4096||Out->Chambers.Num()+Chambers.Num()>2048)
-        {Error=TEXT("Cave construction exceeds 4096 native spline passages or 2048 chamber lobes; no partial networks were published");return false;}
+        for(int32 I=0;I<ReservedBounds.Num();++I)
+            if((S.AlgorithmVersion<3||(S.AlgorithmVersion>=6&&(Info.Family==EFamily::CarbonateKarst||ReservedFamilies[I]==EFamily::CarbonateKarst)))&&ReservedBounds[I].Intersect(Bound))return false;
+        if(Out->Passages.Num()+Paths.Num()>4096||Out->Chambers.Num()+Chambers.Num()>2048||Out->Infills.Num()+Infills.Num()>65536)
+        {Error=TEXT("Cave construction exceeds 4096 native spline passages or 2048 chamber lobes or 65536 solid features; no partial networks were published");return false;}
         const auto Id=Info.Id;
         const int32 Offset=Out->Nodes.Num();Out->Nodes.Append(Nodes);
         for(auto& P:Paths)
@@ -238,7 +252,7 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
         }
         for(auto& Chamber:Chambers){Chamber.Node+=Offset;Out->Chambers.Add(MoveTemp(Chamber));}
         Out->Infills.Append(Infills);
-        Out->NetworkInfo.Add(Info);AcceptedCenters.Add(D*Reference);ReservedBounds.Add(Bound);++Out->Networks;return true;
+        Out->NetworkInfo.Add(Info);AcceptedCenters.Add(D*Reference);ReservedBounds.Add(Bound);ReservedFamilies.Add(Info.Family);++Out->Networks;return true;
     };
     for(int32 I=0;I<Out->Candidates;++I)
     {

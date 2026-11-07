@@ -1,0 +1,28 @@
+{
+  "status": "aborted, not passing",
+  "cause": "Startup ExecCmds applied the native worker change after terrain work was queued; game thread sampled in FScheduler::RestartWorkers",
+  "command": [
+    "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+    "-project=/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+    "/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode",
+    "-game",
+    "-ExecCmds=voxel.SetNumWorkerThreads 8",
+    "-unattended",
+    "-nosplash",
+    "-nosound",
+    "-notracethreading",
+    "-nohighdpi",
+    "-CLNaniteProjectionShaders",
+    "-ResX=1280",
+    "-ResY=800",
+    "-windowed",
+    "-CLCaveReferenceReview",
+    "-CLCaveSlot=Landform_BeddedKarst_Qualification",
+    "-CLCaveRecipe=/private/tmp/landform-natural-karst/LandformLab/Plugins/CatalystLandform/Examples/BeddedKarst.json",
+    "-CLReport=/private/tmp/landform-reference-karst/review-3/result.json",
+    "-abslog=/private/tmp/landform-reference-karst/review-3/native.log"
+  ],
+  "localLog": "/private/tmp/landform-reference-karst/review-3/native.log",
+  "localSample": "/private/tmp/landform-reference-karst/review-3/startup-sample.txt",
+  "cleanup": "Normal quit and controller process cleanup; no saved result. No engine or VPP source was changed."
+}

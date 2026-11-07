@@ -1,6 +1,7 @@
 # Generated cave volumes
 
-Current one-family development is documented in [Dry carbonate karst, profile 5](NaturalKarst.md).
+Current one-family development is documented in [Bedded carbonate karst, profile 6](BeddedKarst.md).
+[Profile 5](NaturalKarst.md) failed human visual review after manual exploration.
 [Profile 4](CaveMorphology.md) remains the failed-appearance historical checkpoint.
 Earlier milestones below retain their historical scope; connected volume tests
 alone did not qualify natural cave appearance.
@@ -69,7 +70,8 @@ A future ABI/platform change requires requalification.
 The old 64-operation mask belongs to the authored-edit qualification profile. It
 cannot accommodate meaningful natural networks. Generated caves now use VPP's
 native AABB tree directly with a separate bounded natural-feature collection:
-4,096 passages and 2,048 chamber/scar volumes, in addition to the existing 16,384 placement
+4,096 passages, 2,048 chamber/scar volumes and 65,536 solid features, in addition
+to the existing 16,384 placement
 candidate limit. Overflow refuses the complete build. Authored edits retain their
 existing order and limits. These are bridge budgets, not VPP feature limits.
 
@@ -83,11 +85,11 @@ roof and cover checks reject a whole candidate before publication; these checks
 are not a continuous mathematical roof/host certificate.
 
 Enabled caves request at least one complete eligible network at every knob
-position. The eye is the way to request zero. Algorithms 2–5 resolve density to a requested complete-network count over estimated
+position. The eye is the way to request zero. Algorithms 2–6 resolve density to a requested complete-network count over estimated
 eligible physical area, then visits stable occurrence-ranked sites. The automatic
 profile is `6 * Character²` networks per eligible km². Physical area is measured at
 the fitted surface midpoint, using the existing equal-area candidate sampling.
-Counts round upward and retain the enabled minimum. Complete-fit capacity (and spacing in legacy profiles)
+Counts round upward and retain the enabled minimum. Complete-fit capacity (and spacing in legacy profiles and the new bedded-karst family)
 can limit a request; readiness reports requested and accepted counts explicitly.
 It never silently stretches caves to fill a planet or fabricates host geology.
 Missing prerequisites or an impossible complete fit produce an explicit error.

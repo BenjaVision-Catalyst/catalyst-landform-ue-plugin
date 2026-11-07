@@ -1,7 +1,10 @@
 # Dry carbonate karst, profile 5
 
-Status: development candidate for visual review. Profile 4 failed visual
-acceptance; its native qualifications did not establish natural appearance.
+Status: failed human visual review on 7 November 2026 after native manual
+exploration. Rounded passages, a gutter floor and lumpy surfaces still did not
+meet the natural-cave target. Current work is [profile 6](BeddedKarst.md).
+Profile 4 also failed visual acceptance; native qualification did not establish
+natural appearance. This document retains the historical profile-5 checkpoint.
 This milestone changes one family, dry carbonate karst. Structural caves keep
 profile 4's construction. It introduces no product UI controls.
 
@@ -60,7 +63,8 @@ approximations.
 
 ## Compatibility and review
 
-Typed/factory settings and an explicit Character edit select algorithm 5.
+At this historical checkpoint, typed/factory settings and an explicit Character
+edit selected algorithm 5. New explicit edits now select profile 6.
 Saved algorithms 1–4 keep their previous geometry. The UObject/CDO's historical
 version 2 remains frozen because native delta packages may omit default-valued
 properties. New enum values are appended; old values are not renumbered.

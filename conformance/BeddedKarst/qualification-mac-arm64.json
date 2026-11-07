@@ -1,0 +1,368 @@
+{
+  "dateUTC": "2026-11-07T02:36:29.324246+00:00",
+  "status": "Reference-driven development candidate; human artistic acceptance remains separate",
+  "componentBase": "b589b4f03ca8d2c43596d206a1e629f4b367180b",
+  "workspaceBase": "2d8d8238af85c4ac79d1c31f6a8b5a97a4188ae6",
+  "platform": {
+    "os": "macOS arm64",
+    "host": "M3 Max, 16 physical cores, 128 GB",
+    "engine": "Unreal 5.7.4, CL 51494982",
+    "vpp": "2.0p8",
+    "reviewWorkers": "8 engine workers, 6 background, applied through VPP API before terrain creation",
+    "editorNavigationWorkers": "unchanged default, 2 background",
+    "voxelSizeCm": 20,
+    "movingCollisionInvokerMeters": 25
+  },
+  "scope": "One dry carbonate family. Mammoth broad passages and Carlsbad chamber spaces are anatomy/scale references, not reconstructed surveys. No secondary calcite growth. Existing UI and native VPP terrain ownership retained. Saved algorithms 1\u20135 remain frozen.",
+  "fieldEvidence": [
+    "BEDDED_KARST 4 networks; 20 passages; 4 rooms; widths 12.54..35.23 m; 224 floor probes; maximum floor offset 0.0993 m; 6 piers, 22 blocks and 7 broken wall remnants"
+  ],
+  "editor": [
+    {
+      "name": "Catalyst.Landform.Caves.BeddedKarst.FloorsAndScale",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.BeddedKarst.NativePackage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.GenerationAndProvenance",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.NativeBreakthroughFixture",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.NativeLibrary",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.NativeSectionAnatomy",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.BackgroundAndFrozenStructural",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.ConstructionAndVersions",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.EnabledMinimumAndReseed",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.NativeFieldAnatomy",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.NativePackage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AbundanceUpgradeAndScale",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ConnectedVolumetricMorphology",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.EligibilityAndVersions",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.InspectionVolume",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.IntersectingNativeVolumes",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.KnobAndBackground",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.LegacyNativeAssetProfiles",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.MixedGeneratedFamilies",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NativeNoiseBatchParity",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Recipes.SerializationAndSnapshot",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "focusedAfterFinalRefinement": [
+    {
+      "name": "Catalyst.Landform.Caves.BeddedKarst.FloorsAndScale",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.BeddedKarst.NativePackage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "focusedCasesAreSubsetOfEditor": true,
+  "rendered": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.BeddedKarst",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "previousRevisionPairedControl": {
+    "tests": [
+      {
+        "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.BeddedKarst",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.NaturalKarst",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      }
+    ],
+    "note": "Bedded6 and frozen5 ran sequentially before the final new6-only macro-noise and breakdown refinements. Frozen5 uses unchanged code; current Bedded6 metrics are in native-review.json."
+  },
+  "warnings": {
+    "editorCount": 3,
+    "renderedCount": 0,
+    "events": [
+      "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+      "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+      "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204"
+    ]
+  },
+  "walkAndSculpt": {
+    "passed": true,
+    "breakthrough": false,
+    "wallBlockedBefore": false,
+    "connectionOpenAfter": false,
+    "airBrushCentreBeforeCm": 0,
+    "throughDistanceCm": 0,
+    "throughGroundedFrames": 0,
+    "message": "Generated cave contacts, player floor, native mining, placement and compressed sculpt save passed",
+    "coldReader": false,
+    "processID": 9941,
+    "writerPID": 9941,
+    "nativeContacts": 4,
+    "collisionInvokerRadiusCm": 2500,
+    "stage": 7,
+    "nativeBreakdownProbes": 21,
+    "walkDistanceCm": 0,
+    "walkGroundedFrames": 0,
+    "nativeFloorFrames": 16218,
+    "beforeMineCm": -98.06976318359375,
+    "afterMineCm": 136.715576171875,
+    "afterFillCm": -77.95084381103516,
+    "controlBeforeCm": -487.6579284667969,
+    "controlAfterCm": -180.75172424316406,
+    "controlOffsetCm": 399.9999999999989,
+    "controlIdentityUnchanged": true,
+    "comparedProbes": 0,
+    "maximumReloadErrorCm": 0,
+    "saveBytes": 247030,
+    "elapsedSeconds": 345.6941845007241,
+    "referenceWalkComplete": true,
+    "routeDistanceMeters": 78.76174087770747,
+    "routeFrames": 2076,
+    "routeGroundedFrames": 2076,
+    "eyeHeightMeters": 1.6223855333439385,
+    "nativeBackgroundWorkers": 6,
+    "nativeOwnerStable": true
+  },
+  "coldReader": {
+    "passed": true,
+    "breakthrough": false,
+    "wallBlockedBefore": false,
+    "connectionOpenAfter": false,
+    "airBrushCentreBeforeCm": 0,
+    "throughDistanceCm": 0,
+    "throughGroundedFrames": 0,
+    "message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+    "coldReader": true,
+    "processID": 10055,
+    "writerPID": 9941,
+    "nativeContacts": 4,
+    "collisionInvokerRadiusCm": 2500,
+    "stage": 8,
+    "nativeBreakdownProbes": 0,
+    "walkDistanceCm": 250.794882240959,
+    "walkGroundedFrames": 80,
+    "nativeFloorFrames": 838,
+    "beforeMineCm": 0,
+    "afterMineCm": 0,
+    "afterFillCm": 0,
+    "controlBeforeCm": 0,
+    "controlAfterCm": 0,
+    "controlOffsetCm": 51259.619528491865,
+    "controlIdentityUnchanged": false,
+    "comparedProbes": 136,
+    "maximumReloadErrorCm": 0,
+    "saveBytes": 247030,
+    "elapsedSeconds": 141.59143962711096,
+    "referenceWalkComplete": false,
+    "routeDistanceMeters": 0,
+    "routeFrames": 0,
+    "routeGroundedFrames": 0,
+    "eyeHeightMeters": 1.6237098530354523,
+    "nativeBackgroundWorkers": 6,
+    "nativeOwnerStable": true
+  },
+  "priorVisualCandidate": {
+    "record": "attempts/regular-blocks-writer.json",
+    "status": "Native walkthrough/edit/save passed; regular loose-block faces and insufficient upward framing prompted further refinement."
+  },
+  "retainedAttempts": [
+    "attempts/regular-blocks-writer.json",
+    "attempts/two-background-workers-timeout.json",
+    "attempts/late-worker-startup.json",
+    "attempts/large-room-mining-target.json"
+  ],
+  "localEvidence": "/private/tmp/landform-reference-karst",
+  "verificationLimits": [
+    "Finite floor, cover, rock-attachment and route probes are not continuous geological certificates.",
+    "The automatic reference route crosses one passage-to-room approach, not every edge of every network.",
+    "No new cooked, mobile, ACF or multiplayer qualification.",
+    "Default two-background-worker standalone startup/LOD was too slow for the 900-second combined review.",
+    "Previously recorded VPP invalidation-hash ensure remains unresolved; absence in a run is not a vendor fix."
+  ],
+  "reproduce": {
+    "editor": "Automation RunTests Catalyst.Landform.Caves.BeddedKarst.FloorsAndScale+Catalyst.Landform.Caves.BeddedKarst.NativePackage+Catalyst.Landform.Caves.Morphology.GenerationAndProvenance+Catalyst.Landform.Caves.Morphology.NativeBreakthroughFixture+Catalyst.Landform.Caves.Morphology.NativeLibrary+Catalyst.Landform.Caves.Morphology.NativeSectionAnatomy+Catalyst.Landform.Caves.NaturalKarst.BackgroundAndFrozenStructural+Catalyst.Landform.Caves.NaturalKarst.ConstructionAndVersions+Catalyst.Landform.Caves.NaturalKarst.EnabledMinimumAndReseed+Catalyst.Landform.Caves.NaturalKarst.NativeFieldAnatomy+Catalyst.Landform.Caves.NaturalKarst.NativePackage+Catalyst.Landform.Caves.AbundanceUpgradeAndScale+Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts+Catalyst.Landform.Caves.ConnectedVolumetricMorphology+Catalyst.Landform.Caves.DesignerControlsAndUndo+Catalyst.Landform.Caves.EligibilityAndVersions+Catalyst.Landform.Caves.InspectionVolume+Catalyst.Landform.Caves.IntersectingNativeVolumes+Catalyst.Landform.Caves.KnobAndBackground+Catalyst.Landform.Caves.LegacyNativeAssetProfiles+Catalyst.Landform.Caves.MixedGeneratedFamilies+Catalyst.Landform.Caves.NativeFieldsAndPersistence+Catalyst.Landform.Caves.NativeNoiseBatchParity+Catalyst.Landform.Caves.SmallPlanetMinimumAndScale+Catalyst.Landform.PlanetBuilder.NewPlanetReference+Catalyst.Landform.Recipes.SerializationAndSnapshot",
+    "rendered": "Automation RunTests Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.BeddedKarst",
+    "previousRevisionControl": "Automation RunTests Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.NaturalKarst",
+    "writerCommand": [
+      "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+      "-project=/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+      "/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode",
+      "-game",
+      "-CLCaveReviewWorkers=8",
+      "-unattended",
+      "-nosplash",
+      "-nosound",
+      "-notracethreading",
+      "-nohighdpi",
+      "-CLNaniteProjectionShaders",
+      "-ResX=1280",
+      "-ResY=800",
+      "-windowed",
+      "-CLCaveReferenceReview",
+      "-CLCaveSlot=Landform_BeddedKarst_Final",
+      "-CLCaveRecipe=/private/tmp/landform-natural-karst/LandformLab/Plugins/CatalystLandform/Examples/BeddedKarst.json",
+      "-CLReport=/private/tmp/landform-reference-karst/review-7/result.json",
+      "-abslog=/private/tmp/landform-reference-karst/review-7/native.log"
+    ],
+    "readerCommand": [
+      "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+      "-project=/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+      "/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode",
+      "-game",
+      "-CLCaveReviewWorkers=8",
+      "-unattended",
+      "-nosplash",
+      "-nosound",
+      "-notracethreading",
+      "-nohighdpi",
+      "-CLNaniteProjectionShaders",
+      "-ResX=1280",
+      "-ResY=800",
+      "-windowed",
+      "-CLCaveWalk",
+      "-CLCaveLoad",
+      "-CLCaveSlot=Landform_BeddedKarst_Final",
+      "-CLReport=/private/tmp/landform-reference-karst/reader-7/result.json",
+      "-abslog=/private/tmp/landform-reference-karst/reader-7/native.log"
+    ]
+  }
+}

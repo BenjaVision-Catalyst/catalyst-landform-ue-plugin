@@ -61,7 +61,7 @@ bool FCLCaveMorphologyTest::RunTest(const FString&)
         for(int32 I=-10;I<=10;++I)Cross.Add(Center+Axis*(I*Chamber.HalfExtents.Y/10.));
         Field.Init(-1000.,Cross.Num());C->Cutters->ComposeBatch(Cross,Field);int32 Open=0;for(double V:Field)Open+=V>.1;
         TestTrue(TEXT("Chambers have substantial interior area across their width"),Open>=17&&Chamber.HalfExtents.Y>Settings.RadiusMeters*1.2);
-        if(Character==1.)TestTrue(TEXT("Developed networks include a loop and multiple levels"),FirstEdges-FirstNodes+1>=1);
+        if(Character==1.)TestTrue(TEXT("Developed networks include a reconnecting route"),FirstEdges-FirstNodes+1>=1);
         if(Seed==73){TestTrue(TEXT("Knob changes network topology"),FirstEdges>PreviousEdges);PreviousEdges=FirstEdges;}
         Layouts.Add(GetTypeHash(C->Passages[0].Points[2]));
         AddInfo(FString::Printf(TEXT("knob %.0f seed %d: %d networks, %d nodes, %d curved passages, %d chamber lobes; minimum route clearance %.3f m; width ratio %.3f; curve deviation %.3f m"),Character*100,Seed,C->Networks,C->Nodes.Num(),C->Passages.Num(),C->Chambers.Num(),MinimumClearance,Widest/Narrowest,CurveDeviation));
