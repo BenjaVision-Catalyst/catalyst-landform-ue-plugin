@@ -302,3 +302,7 @@ fixture measure different parts of this system and should remain separate.
 The opt-in [spatial cave prototype](SpatialCavePrototype.md) follows this diagnosis
 with a different passage/chamber field and native walking qualification. Its
 measurements do not claim identical geometry to the frozen spline family.
+
+The [free-walking correction](CaveWalkingFix.md) fixes the movement guard's
+distant-probe false stops and sizes the spatial prototype's native lead
+against observed publication latency.

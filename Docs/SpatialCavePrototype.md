@@ -6,6 +6,10 @@ spatial passage/chamber composition. It follows the
 The existing UI, profile-7 defaults, canonical geology, ordered authored edits,
 and native VPP terrain, LOD, collision, sculpting and persistence remain in place.
 
+The subsequent [free-walking fix](CaveWalkingFix.md) replaces the distant
+admission probe, adds native foot readiness and qualifies a 32 m collision lead
+on a broader route. The original measurements below retain their captured scope.
+
 ## Shape and reference comparison
 
 [Mammoth's Broadway passage](https://www.nps.gov/maca/learn/nature/images/Broadway-001-by-Jackie-Wheet.jpeg)

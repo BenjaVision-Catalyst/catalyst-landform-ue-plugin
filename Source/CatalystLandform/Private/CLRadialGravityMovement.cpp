@@ -54,10 +54,31 @@ bool UCLRadialGravityMovement::CanMoveOverNativeCollision(float DeltaTime) const
             Center-LocalUp*(Half+MaxStepHeight*2.),ECC_Visibility,Params)&&IsWalkable(Hit);
     };
     FHitResult Current;if(!HasWalkingFloor(Here,Current)||Current.GetActor()!=CollisionWorld)return true;
-    const double LookAhead=FMath::Clamp(GetMaxSpeed()*double(DeltaTime)+CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius()*2.,150.,300.);
-    FHitResult Next;
-    // A native "computed chunk" may still await publication to physics. Keep
-    // the last genuinely supported walking pose until the next native floor
-    // exists. No replacement floor, gravity change or position correction.
-    return HasWalkingFloor(Here+Ahead*LookAhead,Next);
+    // Check the capsule's possible movement in this frame, not a distant
+    // point beyond a wall, corner or intended turn. Resolve blocking geometry
+    // with the same native slide projection used by CharacterMovement.
+    const double FrameTime=FMath::Max(0.,double(DeltaTime));
+    const FVector Momentum=FVector::VectorPlaneProject(Velocity,Up)*FrameTime;
+    const FVector Desired=Ahead*(FMath::Max(double(GetMaxSpeed()),Velocity.Length())*FrameTime);
+    const auto* Capsule=CharacterOwner->GetCapsuleComponent();
+    auto HasSupportedStep=[&](const FVector& Delta)
+    {
+        if(Delta.IsNearlyZero())return true;
+        FVector Destination=Here+Delta;FHitResult Blocking,Next;
+        if(HasWalkingFloor(Destination,Next))return true;
+        if(GetWorld()->SweepSingleByChannel(Blocking,Here,Destination,UpdatedComponent->GetComponentQuat(),ECC_Visibility,
+            FCollisionShape::MakeCapsule(Capsule->GetScaledCapsuleRadius(),Half),Params))
+        {
+            // Capsule perching can still touch the old chunk after its centre
+            // leaves published support. Do not accept that as a safe new step.
+            if(Blocking.bStartPenetrating)return false;
+            const FVector Slide=ComputeSlideVector(Delta,1.-Blocking.Time,Blocking.Normal,Blocking);
+            Destination=Here+Delta*FMath::Max(0.,double(Blocking.Time)-.001)+Slide;
+            if(FVector::DistSquared(Here,Destination)<1.)return true; // Ordinary wall contact.
+        }
+        return HasWalkingFloor(Destination,Next);
+    };
+    // Turning input does not immediately cancel existing momentum. Both ends
+    // must retain real centre support; native movement owns sliding and steps.
+    return HasSupportedStep(Desired)&&(Momentum.Equals(Desired,.01)||HasSupportedStep(Momentum));
 }

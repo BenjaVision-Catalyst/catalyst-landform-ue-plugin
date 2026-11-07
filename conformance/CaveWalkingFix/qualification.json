@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-07",
+  "pluginBase": "7aa075f",
+  "nativeSources": 282,
+  "unchangedNativeSources": 278,
+  "changedNativeSources": [
+    "Plugins/CatalystLandform/Source/CatalystLandform/Private/CLRadialGravityMovement.cpp",
+    "Source/LandformLab/Private/CLGeneratedCaveProof.cpp",
+    "Source/LandformLab/Private/CLPlanetProof.cpp",
+    "Source/LandformLab/Public/CLPlanetProof.h"
+  ],
+  "geometryAndGeologySourcesUnchanged": true,
+  "voxelSizeCm": 20,
+  "prototypeCollisionRadiusCm": 3200,
+  "footNativeRadiusCm": 100,
+  "coreNativeTests": 7,
+  "realInput": "W 14s, D 3s, W 8s, A 3s, S 4s through native window keyboard input",
+  "scope": "Current spatial prototype free walking. Historical spline entrance is a grounding safety control and retains generation-related waits."
+}
