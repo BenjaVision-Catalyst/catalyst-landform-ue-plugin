@@ -1901,7 +1901,7 @@ void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLRadialGuideSet
 UCLPlanetRecipeFactory::UCLPlanetRecipeFactory()
 { SupportedClass = UCLPlanetRecipeAsset::StaticClass(); bCreateNew = true; bEditAfterNew = true; }
 UObject* UCLPlanetRecipeFactory::FactoryCreateNew(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject*, FFeedbackContext*)
-{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();A->Recipe.SurfaceStack=FCLSurfaceStack::MakeDefault();
+{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();A->Recipe.Caves.AlgorithmVersion=7;A->Recipe.SurfaceStack=FCLSurfaceStack::MakeDefault();
     FCLRadialGuideSession Session;Session.Open(A);FString Error;if(!A->SetRadialGuideSet(Session.Library.Get(),A->Recipe.RadialGuides.Id,Error))Session.Changed();return A; }
 TSoftClassPtr<UObject> UCLRecipeAssetDefinition::GetAssetClass() const { return UCLPlanetRecipeAsset::StaticClass(); }
 EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& Args) const
@@ -2123,7 +2123,7 @@ bool FCLPlanetGuideFactoryTest::RunTest(const FString&)
     FString Error;TestTrue(TEXT("Selected set resolves"),A->SynchronizeRadialGuides(Error));
     TestEqual(TEXT("Resolved set has the referenced identity"),A->Recipe.RadialGuides.Id,A->RadialGuideSetId);
     TestTrue(TEXT("New planets contain no terrain layers or regions"),A->Recipe.NoiseLayers.IsEmpty()&&A->Recipe.TerrainRegions.IsEmpty());
-    TestEqual(TEXT("Fresh factory planets explicitly use the current cave family"),A->Recipe.Caves.AlgorithmVersion,6);
+    TestEqual(TEXT("Fresh factory planets explicitly use the current cave family"),A->Recipe.Caves.AlgorithmVersion,7);
     return true;
 }
 #endif

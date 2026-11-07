@@ -6,6 +6,12 @@ rounded swept sections, a gutter floor and lumpy walls still dominated its
 appearance. Passing its field and native integration tests did not qualify its
 natural appearance. Saved profiles 1–5 remain frozen.
 
+On subsequent manual review, this candidate failed the visual target: openings
+remained regular and floors too flat. The user also fell through the entrance
+floor while walking forward. Its recorded internal passage walk was not an
+entrance qualification. See [profile 7](OrganicKarst.md) for the direct reference
+comparison and native collision admission.
+
 ## Shape and scale
 
 The existing watershed receiver/confluence graph, positively soluble carbonate

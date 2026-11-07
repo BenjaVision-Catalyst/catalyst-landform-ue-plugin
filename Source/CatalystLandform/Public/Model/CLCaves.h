@@ -9,7 +9,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLCaveSettings
 {
     GENERATED_BODY()
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=6;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=7;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
@@ -49,6 +49,8 @@ struct CATALYSTLANDFORM_API FCLCavePassage
     TArray<FVector> BeddingUps;
     double Development=0;
     /** Profile 6: restored bedding floor at each control, independent of roof size. */
+    int32 GeometryProfile=0;
+    double FloorReliefScale=0;
     TArray<double> FloorRadii;
     double FloorOffsetMeters=0;
     TSharedPtr<const FCLCompiledRock> FloorRock;
@@ -60,6 +62,8 @@ struct CATALYSTLANDFORM_API FCLCaveChamber
     FVector Center,HalfExtents;
     FQuat Rotation;
     ECLCaveForm Form=ECLCaveForm::LegacyOval;
+    int32 GeometryProfile=0;
+    double FloorReliefScale=0;
     double FloorRadius=0;
     TSharedPtr<const FCLCompiledRock> FloorRock;
 };
@@ -72,6 +76,7 @@ struct CATALYSTLANDFORM_API FCLCaveInfill
     /** In-place bedrock remnant; its provenance transform is identity. */
     bool BedrockPier=false;
     bool BeddedRemnant=false;
+    FVector WallOutward=FVector::ZeroVector;
     bool BeddedBreakdown=false;
 };
 

@@ -73,7 +73,7 @@ bool FCLNaturalKarstMinimumTest::RunTest(const FString&)
     for(double V:{.01,.5,1.})
     {
         auto R=Original;R.Caves.ApplyProgression(V);const auto P=FCLPlanetCompiler::Compile(R,E);if(!P){AddError(E);return false;}
-        TestEqual(TEXT("Explicit Character authoring selects profile 6"),R.Caves.AlgorithmVersion,6);
+        TestEqual(TEXT("Explicit Character authoring selects profile 7"),R.Caves.AlgorithmVersion,7);
         TestTrue(TEXT("Enabled Character 1 retains at least one complete eligible cave"),P->Caves->Networks>=1);
     }
     auto R=Original;const auto A=FCLPlanetCompiler::Compile(R,E);++R.Caves.Seed;const auto B=FCLPlanetCompiler::Compile(R,E);if(!A||!B){AddError(E);return false;}
@@ -94,7 +94,7 @@ bool FCLNaturalKarstBackgroundTest::RunTest(const FString&)
     TArray<double> A,B;A.Init(-100,Points.Num());B=A;Direct->Caves->Cutters->ComposeBatch(Points,A);Worker->Caves->Cutters->ComposeBatch(Points,B);
     for(int32 I=0;I<Points.Num();++I)TestTrue(TEXT("Native shape is identical through background evaluation"),FMath::Abs(A[I]-B[I])<1.e-6);
     auto Fissure=KarstRecipe(E,TEXT("FissureMorphology"));Fissure.Caves.AlgorithmVersion=4;
-    const auto Old=FCLPlanetCompiler::Compile(Fissure,E);Fissure.Caves.AlgorithmVersion=6;const auto Fresh=FCLPlanetCompiler::Compile(Fissure,E);
+    const auto Old=FCLPlanetCompiler::Compile(Fissure,E);Fissure.Caves.AlgorithmVersion=7;const auto Fresh=FCLPlanetCompiler::Compile(Fissure,E);
     if(!Old||!Fresh){AddError(E);return false;}
     TestEqual(TEXT("The structural family retains its network topology"),Old->Caves->Passages.Num(),Fresh->Caves->Passages.Num());
     for(int32 I=0;I<Old->Caves->Passages.Num();++I)

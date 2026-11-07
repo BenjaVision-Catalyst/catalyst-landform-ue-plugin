@@ -20,7 +20,7 @@ void FCLCaveSettings::UpgradeAbundanceProfile()
 void FCLCaveSettings::ApplyProgression(double Value)
 {
     Character=FMath::Clamp(Value,0.,1.);
-    AlgorithmVersion=6;NetworksPerSquareKilometer=6*Character*Character;
+    AlgorithmVersion=7;NetworksPerSquareKilometer=6*Character*Character;
     LengthMeters=FMath::Lerp(35.,140.,Character);
     RadiusMeters=FMath::Lerp(1.1,3.2,Character);
     DepthMeters=FMath::Lerp(10.,42.,Character);
@@ -29,8 +29,8 @@ void FCLCaveSettings::ApplyProgression(double Value)
 bool FCLCaveSettings::Validate(FString& Error)const
 {
     auto In=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
-    if((AlgorithmVersion<1||AlgorithmVersion>6)||!In(Character,0,1)||!In(NetworksPerSquareKilometer,0,10)||!In(LengthMeters,1,500)||!In(RadiusMeters,.1,10)||!In(MinimumCoverMeters,1,100)||!In(DepthMeters,1,500)||!In(Branching,0,1))
-    {Error=TEXT("Caves require algorithm 1..6 and finite bounded physical density, dimensions, cover and branching");return false;}return true;
+    if((AlgorithmVersion<1||AlgorithmVersion>7)||!In(Character,0,1)||!In(NetworksPerSquareKilometer,0,10)||!In(LengthMeters,1,500)||!In(RadiusMeters,.1,10)||!In(MinimumCoverMeters,1,100)||!In(DepthMeters,1,500)||!In(Branching,0,1))
+    {Error=TEXT("Caves require algorithm 1..7 and finite bounded physical density, dimensions, cover and branching");return false;}return true;
 }
 TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettings& Settings,const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {
@@ -210,6 +210,17 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
         if(S.AlgorithmVersion>=6&&Infills.ContainsByPredicate([](const auto& B){return B.BeddedRemnant;}))
         {
             const auto Bare=FCLCompiledCaveVolume::Compile(Paths,Chambers,Base.NativePerlin,Seed^S.Seed,Error);if(!Bare)return false;
+            if(S.AlgorithmVersion>=7)for(auto& B:Infills)if(B.BeddedRemnant&&!B.WallOutward.IsNearlyZero())
+            {
+                // Fit the real bed remnant to the actual native dissolution
+                // boundary. A guessed oval wall leaves either floating blocks
+                // or fully buried shelves when the opening becomes asymmetric.
+                const FVector Origin=B.Center,Outward=B.WallOutward;
+                double Low=-S.RadiusMeters*2,High=S.RadiusMeters*2;
+                if(Bare->Compose(Origin+Outward*Low,-1000)<=0||Bare->Compose(Origin+Outward*High,-1000)>=0)continue;
+                for(int32 K=0;K<14;++K){const double Mid=(Low+High)*.5;if(Bare->Compose(Origin+Outward*Mid,-1000)>0)Low=Mid;else High=Mid;}
+                B.Center=Origin+Outward*((Low+High)*.5-B.HalfExtents.Y*.30);B.SourceCenter=B.Center;
+            }
             Infills.RemoveAll([&](const auto& B)
             {
                 if(!B.BeddedRemnant)return false;bool Supported=false,Exposed=false;

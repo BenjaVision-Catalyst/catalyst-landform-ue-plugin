@@ -1,6 +1,8 @@
 # Generated cave volumes
 
-Current one-family development is documented in [Bedded carbonate karst, profile 6](BeddedKarst.md).
+Current one-family development is documented in [Organic carbonate karst, profile 7](OrganicKarst.md).
+[Profile 6](BeddedKarst.md) failed visual review for regular openings and flat floors;
+its manual entrance fall is reproduced and addressed in the profile-7 record.
 [Profile 5](NaturalKarst.md) failed human visual review after manual exploration.
 [Profile 4](CaveMorphology.md) remains the failed-appearance historical checkpoint.
 Earlier milestones below retain their historical scope; connected volume tests
@@ -411,3 +413,11 @@ for a custom streaming manager.
 ![Both geological cave families on one planet](../conformance/MixedCaves/mixed/all-caves.png)
 
 ![Native joined-void operator fixture](../conformance/MixedCaves/controlled/joined-detail.png)
+
+
+The current one-family reference is [organic carbonate karst, profile 7](OrganicKarst.md).
+It replaces profile 6's roof clip and low-relief floor with unequal dissolution
+lobes and a shared rolling floor. Saved profiles 1–6 retain their morphology;
+new explicit Character edits select 7. The manual entrance fall also led to
+native collision admission in the existing radial movement adapter, documented
+with the reproduced failure and normal-speed entrance proof.

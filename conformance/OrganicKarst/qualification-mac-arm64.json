@@ -1,0 +1,773 @@
+{
+  "dateUTC": "2026-11-07T04:07:46.147299+00:00",
+  "status": "Reference-driven candidate; human artistic acceptance remains separate",
+  "componentBase": "46b6386523fe3ec3093417b07c2d8c85e7266929",
+  "workspaceBase": "26fb5332765f2b96d2f2054cf9c48a3f5823afdd",
+  "platform": {
+    "os": "macOS arm64",
+    "host": "M3 Max, 16 physical cores, 128 GB",
+    "engine": "Unreal 5.7.4, CL 51494982",
+    "vpp": "2.0p8",
+    "gameReviewWorkers": "8 engine workers, 6 background, before terrain creation",
+    "editorNavigationWorkers": "unchanged default, 2 background",
+    "gameLODQuality": 2,
+    "historicalProfile6GameLODQuality": 4,
+    "voxelSizeCm": 20,
+    "movingCollisionInvokerMeters": 25
+  },
+  "scope": "One dry carbonate family. Mammoth passages and Carlsbad chamber anatomy/scale are references, not reconstructed surveys. No secondary calcite growth. Existing UI and native VPP ownership retained; no engine or VPP source changes. Saved algorithms 1\u20136 retain morphology.",
+  "harnessRevisions": {
+    "entranceAndWriter": "6c358ae1e0beb72fb828e2fad91bd3456ca6dd06b652783599d2b3efdf5ad024",
+    "coldReaderAndPublished": "ce7469c9b160680b21adccb699dff3665708da126660f6a7f634bcc5698cbcc0",
+    "delta": "Only cold-reader contact admission changed after writer: a broad-passage cold load requires actual floor and grounded walking, not four small-room wall/ceiling hits within30m. The reader still performs all saved field/material/geology comparisons. The previous failed result is retained in attempts/cold-reader-small-room-assumption.json."
+  },
+  "fieldEvidence": [
+    "BEDDED_KARST 4 networks; 20 passages; 4 rooms; widths 12.54..35.23 m; 224 floor probes; maximum floor offset 0.0993 m; 6 piers, 22 blocks and 7 broken wall remnants",
+    "ORGANIC_KARST 4 networks, 20 passages, 4 rooms, 115 native solid features; 206 floor probes; relief -1.269..1.375 m; maximum grade 0.248; mean opening asymmetry 8.281 m"
+  ],
+  "editor": [
+    {
+      "name": "Catalyst.Landform.Caves.BeddedKarst.FloorsAndScale",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.BeddedKarst.NativePackage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.GenerationAndProvenance",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.NativeBreakthroughFixture",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.NativeLibrary",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Morphology.NativeSectionAnatomy",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.BackgroundAndFrozenStructural",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.ConstructionAndVersions",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.EnabledMinimumAndReseed",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.NativeFieldAnatomy",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NaturalKarst.NativePackage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.OrganicKarst.NativePackage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.OrganicKarst.ReliefAndOpenings",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AbundanceUpgradeAndScale",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ConnectedVolumetricMorphology",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.EligibilityAndVersions",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.InspectionVolume",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.IntersectingNativeVolumes",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.KnobAndBackground",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.LegacyNativeAssetProfiles",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.MixedGeneratedFamilies",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NativeNoiseBatchParity",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Recipes.SerializationAndSnapshot",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "rendered": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.OrganicKarst",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "warnings": {
+    "count": 3,
+    "events": [
+      "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+      "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+      "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204"
+    ]
+  },
+  "entranceWalk": {
+    "passed": true,
+    "breakthrough": false,
+    "wallBlockedBefore": false,
+    "connectionOpenAfter": false,
+    "airBrushCentreBeforeCm": 0,
+    "throughDistanceCm": 0,
+    "throughGroundedFrames": 0,
+    "message": "Held forward input at 600 cm/s over 100 m, with production native collision admission",
+    "coldReader": false,
+    "processID": 59141,
+    "writerPID": 59141,
+    "nativeContacts": 3,
+    "collisionInvokerRadiusCm": 2500,
+    "stage": 0,
+    "nativeBreakdownProbes": 0,
+    "walkDistanceCm": 0,
+    "walkGroundedFrames": 0,
+    "nativeFloorFrames": 169,
+    "beforeMineCm": 0,
+    "afterMineCm": 0,
+    "afterFillCm": 0,
+    "controlBeforeCm": 0,
+    "controlAfterCm": 0,
+    "controlOffsetCm": 0,
+    "controlIdentityUnchanged": false,
+    "comparedProbes": 0,
+    "maximumReloadErrorCm": 0,
+    "saveBytes": 0,
+    "elapsedSeconds": 70.94273137301207,
+    "referenceWalkComplete": false,
+    "routeDistanceMeters": 100.02996835018841,
+    "routeFrames": 3592,
+    "routeGroundedFrames": 3592,
+    "eyeHeightMeters": 1.6076848565226722,
+    "nativeBackgroundWorkers": 6,
+    "nativeOwnerStable": true,
+    "floorAppearedAfterNativeSettlement": false,
+    "failureNativeFields": [],
+    "failureNearbyColliders": [],
+    "nativeCollisionWaitFrames": 2050,
+    "nativeCollisionWaitSeconds": 19.395898293703794,
+    "entranceMovingFrames": 1540,
+    "entranceMovingGroundedFrames": 1540,
+    "entranceProof": true,
+    "minimumFootFieldMeters": 0.02362060546875,
+    "peakSpeedCmPerSecond": 600.0000000005058,
+    "framesMissingNativeFootChunks": 0,
+    "entranceSamples": [
+      {
+        "distanceMeters": 0,
+        "footFieldMeters": 0.03338623046875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=42988.663 Y=32450.303 Z=24758.148",
+        "movementMode": 1,
+        "pendingTasks": 0
+      },
+      {
+        "distanceMeters": 5.305770695489042,
+        "footFieldMeters": 0.0426025390625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=42831.232 Y=32744.934 Z=24346.447",
+        "movementMode": 1,
+        "pendingTasks": 4
+      },
+      {
+        "distanceMeters": 11.646154164349355,
+        "footFieldMeters": 0.0450439453125,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=42610.672 Y=33061.853 Z=23844.083",
+        "movementMode": 1,
+        "pendingTasks": 126
+      },
+      {
+        "distanceMeters": 17.989858003273994,
+        "footFieldMeters": 0.0347900390625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=42395.956 Y=33385.748 Z=23343.092",
+        "movementMode": 1,
+        "pendingTasks": 68
+      },
+      {
+        "distanceMeters": 24.248364594164773,
+        "footFieldMeters": 0.042236328125,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=42176.320 Y=33696.263 Z=22846.774",
+        "movementMode": 1,
+        "pendingTasks": 31
+      },
+      {
+        "distanceMeters": 30.624439221538747,
+        "footFieldMeters": 0.0604248046875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41947.906 Y=34006.256 Z=22340.661",
+        "movementMode": 1,
+        "pendingTasks": 295
+      },
+      {
+        "distanceMeters": 35.677807120693586,
+        "footFieldMeters": 0.0533447265625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41744.425 Y=34225.851 Z=21933.709",
+        "movementMode": 1,
+        "pendingTasks": 241
+      },
+      {
+        "distanceMeters": 35.677807120693586,
+        "footFieldMeters": 0.0533447265625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41744.425 Y=34225.851 Z=21933.709",
+        "movementMode": 1,
+        "pendingTasks": 181
+      },
+      {
+        "distanceMeters": 35.677807120693586,
+        "footFieldMeters": 0.0533447265625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41744.425 Y=34225.851 Z=21933.709",
+        "movementMode": 1,
+        "pendingTasks": 137
+      },
+      {
+        "distanceMeters": 35.677807120693586,
+        "footFieldMeters": 0.0533447265625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41744.425 Y=34225.851 Z=21933.709",
+        "movementMode": 1,
+        "pendingTasks": 114
+      },
+      {
+        "distanceMeters": 35.677807120693586,
+        "footFieldMeters": 0.0533447265625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41744.425 Y=34225.851 Z=21933.709",
+        "movementMode": 1,
+        "pendingTasks": 44
+      },
+      {
+        "distanceMeters": 36.802776230246565,
+        "footFieldMeters": 0.05670166015625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41699.165 Y=34274.810 Z=21843.102",
+        "movementMode": 1,
+        "pendingTasks": 182
+      },
+      {
+        "distanceMeters": 43.13540485923581,
+        "footFieldMeters": 0.04766845703125,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41459.150 Y=34568.403 Z=21336.242",
+        "movementMode": 1,
+        "pendingTasks": 106
+      },
+      {
+        "distanceMeters": 49.40125949852907,
+        "footFieldMeters": 0.05450439453125,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41220.226 Y=34857.248 Z=20834.336",
+        "movementMode": 1,
+        "pendingTasks": 53
+      },
+      {
+        "distanceMeters": 52.022235277719865,
+        "footFieldMeters": 0.0499267578125,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41107.216 Y=34961.475 Z=20622.090",
+        "movementMode": 1,
+        "pendingTasks": 19
+      },
+      {
+        "distanceMeters": 52.82763598820056,
+        "footFieldMeters": 0.048583984375,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=41074.052 Y=34995.558 Z=20557.090",
+        "movementMode": 1,
+        "pendingTasks": 313
+      },
+      {
+        "distanceMeters": 59.457983624207635,
+        "footFieldMeters": 0.06488037109375,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40763.573 Y=35224.053 Z=20018.893",
+        "movementMode": 1,
+        "pendingTasks": 264
+      },
+      {
+        "distanceMeters": 65.82042100234955,
+        "footFieldMeters": 0.0289306640625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40497.449 Y=35485.879 Z=19506.359",
+        "movementMode": 1,
+        "pendingTasks": 155
+      },
+      {
+        "distanceMeters": 67.39244728383485,
+        "footFieldMeters": 0.0267333984375,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40446.693 Y=35568.886 Z=19382.928",
+        "movementMode": 1,
+        "pendingTasks": 135
+      },
+      {
+        "distanceMeters": 67.39244728383485,
+        "footFieldMeters": 0.0267333984375,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40446.693 Y=35568.886 Z=19382.928",
+        "movementMode": 1,
+        "pendingTasks": 86
+      },
+      {
+        "distanceMeters": 67.39244728383485,
+        "footFieldMeters": 0.0267333984375,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40446.693 Y=35568.886 Z=19382.928",
+        "movementMode": 1,
+        "pendingTasks": 56
+      },
+      {
+        "distanceMeters": 67.39244728383485,
+        "footFieldMeters": 0.0267333984375,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40446.693 Y=35568.886 Z=19382.928",
+        "movementMode": 1,
+        "pendingTasks": 1
+      },
+      {
+        "distanceMeters": 71.71335852581666,
+        "footFieldMeters": 0.035888671875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40297.083 Y=35785.875 Z=19040.600",
+        "movementMode": 1,
+        "pendingTasks": 338
+      },
+      {
+        "distanceMeters": 78.10045103648065,
+        "footFieldMeters": 0.04937744140625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=40022.689 Y=36040.799 Z=18523.815",
+        "movementMode": 1,
+        "pendingTasks": 233
+      },
+      {
+        "distanceMeters": 82.05718843980439,
+        "footFieldMeters": 0.07196044921875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39841.939 Y=36184.039 Z=18202.562",
+        "movementMode": 1,
+        "pendingTasks": 203
+      },
+      {
+        "distanceMeters": 82.05718843980439,
+        "footFieldMeters": 0.07196044921875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39841.939 Y=36184.039 Z=18202.562",
+        "movementMode": 1,
+        "pendingTasks": 139
+      },
+      {
+        "distanceMeters": 82.05718843980439,
+        "footFieldMeters": 0.07196044921875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39841.939 Y=36184.039 Z=18202.562",
+        "movementMode": 1,
+        "pendingTasks": 104
+      },
+      {
+        "distanceMeters": 82.05718843980439,
+        "footFieldMeters": 0.07196044921875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39841.939 Y=36184.039 Z=18202.562",
+        "movementMode": 1,
+        "pendingTasks": 37
+      },
+      {
+        "distanceMeters": 82.05718843980439,
+        "footFieldMeters": 0.07196044921875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39841.939 Y=36184.039 Z=18202.562",
+        "movementMode": 1,
+        "pendingTasks": 2
+      },
+      {
+        "distanceMeters": 84.22933840096329,
+        "footFieldMeters": 0.07244873046875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39728.689 Y=36241.492 Z=18026.354",
+        "movementMode": 1,
+        "pendingTasks": 328
+      },
+      {
+        "distanceMeters": 90.77542095208264,
+        "footFieldMeters": 0.04412841796875,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39418.116 Y=36459.885 Z=17495.892",
+        "movementMode": 1,
+        "pendingTasks": 252
+      },
+      {
+        "distanceMeters": 96.36822707225976,
+        "footFieldMeters": 0.04400634765625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39187.950 Y=36696.574 Z=17044.659",
+        "movementMode": 1,
+        "pendingTasks": 170
+      },
+      {
+        "distanceMeters": 96.36822707225976,
+        "footFieldMeters": 0.04400634765625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39187.950 Y=36696.574 Z=17044.659",
+        "movementMode": 1,
+        "pendingTasks": 110
+      },
+      {
+        "distanceMeters": 96.36822707225976,
+        "footFieldMeters": 0.04400634765625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39187.950 Y=36696.574 Z=17044.659",
+        "movementMode": 1,
+        "pendingTasks": 64
+      },
+      {
+        "distanceMeters": 96.36822707225976,
+        "footFieldMeters": 0.04400634765625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39187.950 Y=36696.574 Z=17044.659",
+        "movementMode": 1,
+        "pendingTasks": 31
+      },
+      {
+        "distanceMeters": 96.36822707225976,
+        "footFieldMeters": 0.04400634765625,
+        "grounded": true,
+        "nativeFootChunks": true,
+        "positionCm": "X=39187.950 Y=36696.574 Z=17044.659",
+        "movementMode": 1,
+        "pendingTasks": 1
+      }
+    ]
+  },
+  "walkAndSculpt": {
+    "passed": true,
+    "breakthrough": false,
+    "wallBlockedBefore": false,
+    "connectionOpenAfter": false,
+    "airBrushCentreBeforeCm": 0,
+    "throughDistanceCm": 0,
+    "throughGroundedFrames": 0,
+    "message": "Generated cave contacts, player floor, native mining, placement and compressed sculpt save passed",
+    "coldReader": false,
+    "processID": 59205,
+    "writerPID": 59205,
+    "nativeContacts": 3,
+    "collisionInvokerRadiusCm": 2500,
+    "stage": 7,
+    "nativeBreakdownProbes": 19,
+    "walkDistanceCm": 0,
+    "walkGroundedFrames": 0,
+    "nativeFloorFrames": 20801,
+    "beforeMineCm": -96.45843505859375,
+    "afterMineCm": 138.02011108398438,
+    "afterFillCm": -74.86370849609375,
+    "controlBeforeCm": -478.14178466796875,
+    "controlAfterCm": -478.14178466796875,
+    "controlOffsetCm": 399.9999999999979,
+    "controlIdentityUnchanged": true,
+    "comparedProbes": 0,
+    "maximumReloadErrorCm": 0,
+    "saveBytes": 245307,
+    "elapsedSeconds": 344.6623085029423,
+    "referenceWalkComplete": true,
+    "routeDistanceMeters": 79.1370660666342,
+    "routeFrames": 5810,
+    "routeGroundedFrames": 5810,
+    "eyeHeightMeters": 1.619392228264023,
+    "nativeBackgroundWorkers": 6,
+    "nativeOwnerStable": true,
+    "floorAppearedAfterNativeSettlement": false,
+    "failureNativeFields": [],
+    "failureNearbyColliders": [],
+    "nativeCollisionWaitFrames": 3617,
+    "nativeCollisionWaitSeconds": 45.29160341247916,
+    "entranceMovingFrames": 0,
+    "entranceMovingGroundedFrames": 0,
+    "entranceProof": false,
+    "minimumFootFieldMeters": 1.7976931348623157e+308,
+    "peakSpeedCmPerSecond": 0,
+    "framesMissingNativeFootChunks": 0,
+    "entranceSamples": []
+  },
+  "coldReader": {
+    "passed": true,
+    "breakthrough": false,
+    "wallBlockedBefore": false,
+    "connectionOpenAfter": false,
+    "airBrushCentreBeforeCm": 0,
+    "throughDistanceCm": 0,
+    "throughGroundedFrames": 0,
+    "message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+    "coldReader": true,
+    "processID": 63508,
+    "writerPID": 59205,
+    "nativeContacts": 3,
+    "collisionInvokerRadiusCm": 2500,
+    "stage": 8,
+    "nativeBreakdownProbes": 0,
+    "walkDistanceCm": 250.19392639197153,
+    "walkGroundedFrames": 99,
+    "nativeFloorFrames": 763,
+    "beforeMineCm": 0,
+    "afterMineCm": 0,
+    "afterFillCm": 0,
+    "controlBeforeCm": 0,
+    "controlAfterCm": 0,
+    "controlOffsetCm": 51356.87592912004,
+    "controlIdentityUnchanged": false,
+    "comparedProbes": 134,
+    "maximumReloadErrorCm": 0,
+    "saveBytes": 245307,
+    "elapsedSeconds": 90.2811917886138,
+    "referenceWalkComplete": false,
+    "routeDistanceMeters": 0,
+    "routeFrames": 0,
+    "routeGroundedFrames": 0,
+    "eyeHeightMeters": 1.6198613937992905,
+    "nativeBackgroundWorkers": 6,
+    "nativeOwnerStable": true,
+    "floorAppearedAfterNativeSettlement": false,
+    "failureNativeFields": [],
+    "failureNearbyColliders": [],
+    "nativeCollisionWaitFrames": 0,
+    "nativeCollisionWaitSeconds": 0,
+    "entranceMovingFrames": 0,
+    "entranceMovingGroundedFrames": 0,
+    "entranceProof": false,
+    "minimumFootFieldMeters": 1.7976931348623157e+308,
+    "peakSpeedCmPerSecond": 0,
+    "framesMissingNativeFootChunks": 0,
+    "entranceSamples": []
+  },
+  "entranceDiagnosis": {
+    "baseline": "entrance-diagnosis/published-profile6-fall.json",
+    "settledWitness": "entrance-diagnosis/profile6-settled-floor-witness.json",
+    "sameGeometryWithAdmission": "entrance-diagnosis/profile6-production-admission.json",
+    "finding": "Published profile6 normal-input entrance walk fell about42m from spawn. Native field agreed with canonical solid and absent physics collider appeared at the same frozen position after native settlement. Production admission passes the same6 geometry and quality4 before new7/quality2 is tested.",
+    "rejectedExperiments": "Native ComputeInline foot footprint, moving invoker anchor and conservative support-distance-bound trials all still fell. Those experimental changes were removed. The diagnostic uses GetNewestState; the earlier GetState ensure was ours.",
+    "localEvidence": "/private/tmp/landform-organic-karst"
+  },
+  "verificationLimits": [
+    "The entrance proof holds forward input for one 100m route; it is not all-network, jumping, ledge or multiplayer qualification.",
+    "The new family still waits visibly for native streamed collision. Entrance wait seconds are reported separately; no uninterrupted-walking claim.",
+    "Finite floor, opening, bed attachment and route probes are not continuous clearance/geological certificates.",
+    "Rendered normal-eye captures show the pristine field before native mining/placement.",
+    "No new cooked, mobile or ACF qualification.",
+    "Previously recorded VPP invalidation-hash ensure remains unresolved; absence here is not a vendor fix."
+  ],
+  "reproduce": {
+    "editor": "Automation RunTests Catalyst.Landform.Caves.BeddedKarst.FloorsAndScale+Catalyst.Landform.Caves.BeddedKarst.NativePackage+Catalyst.Landform.Caves.Morphology.GenerationAndProvenance+Catalyst.Landform.Caves.Morphology.NativeBreakthroughFixture+Catalyst.Landform.Caves.Morphology.NativeLibrary+Catalyst.Landform.Caves.Morphology.NativeSectionAnatomy+Catalyst.Landform.Caves.NaturalKarst.BackgroundAndFrozenStructural+Catalyst.Landform.Caves.NaturalKarst.ConstructionAndVersions+Catalyst.Landform.Caves.NaturalKarst.EnabledMinimumAndReseed+Catalyst.Landform.Caves.NaturalKarst.NativeFieldAnatomy+Catalyst.Landform.Caves.NaturalKarst.NativePackage+Catalyst.Landform.Caves.OrganicKarst.NativePackage+Catalyst.Landform.Caves.OrganicKarst.ReliefAndOpenings+Catalyst.Landform.Caves.AbundanceUpgradeAndScale+Catalyst.Landform.Caves.CarbonateKarstVolumesAndHosts+Catalyst.Landform.Caves.ConnectedVolumetricMorphology+Catalyst.Landform.Caves.DesignerControlsAndUndo+Catalyst.Landform.Caves.EligibilityAndVersions+Catalyst.Landform.Caves.InspectionVolume+Catalyst.Landform.Caves.IntersectingNativeVolumes+Catalyst.Landform.Caves.KnobAndBackground+Catalyst.Landform.Caves.LegacyNativeAssetProfiles+Catalyst.Landform.Caves.MixedGeneratedFamilies+Catalyst.Landform.Caves.NativeFieldsAndPersistence+Catalyst.Landform.Caves.NativeNoiseBatchParity+Catalyst.Landform.Caves.SmallPlanetMinimumAndScale+Catalyst.Landform.PlanetBuilder.NewPlanetReference+Catalyst.Landform.Recipes.SerializationAndSnapshot",
+    "rendered": "Automation RunTests Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.OrganicKarst",
+    "entranceCommand": [
+      "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+      "-project=/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+      "/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode",
+      "-game",
+      "-CLCaveReviewWorkers=8",
+      "-unattended",
+      "-nosplash",
+      "-nosound",
+      "-notracethreading",
+      "-nohighdpi",
+      "-CLNaniteProjectionShaders",
+      "-ResX=1280",
+      "-ResY=800",
+      "-windowed",
+      "-CLCaveEntranceProof",
+      "-CLCaveRecipe=/private/tmp/landform-natural-karst/LandformLab/Plugins/CatalystLandform/Examples/OrganicKarst.json",
+      "-CLReport=/private/tmp/landform-organic-karst/entrance-organic1/result.json",
+      "-abslog=/private/tmp/landform-organic-karst/entrance-organic1/native.log"
+    ],
+    "writerCommand": [
+      "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+      "-project=/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+      "/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode",
+      "-game",
+      "-CLCaveReviewWorkers=8",
+      "-unattended",
+      "-nosplash",
+      "-nosound",
+      "-notracethreading",
+      "-nohighdpi",
+      "-CLNaniteProjectionShaders",
+      "-ResX=1280",
+      "-ResY=800",
+      "-windowed",
+      "-CLCaveReferenceReview",
+      "-CLCaveSlot=Landform_OrganicKarst_Review",
+      "-CLCaveRecipe=/private/tmp/landform-natural-karst/LandformLab/Plugins/CatalystLandform/Examples/OrganicKarst.json",
+      "-CLReport=/private/tmp/landform-organic-karst/review-organic1/result.json",
+      "-abslog=/private/tmp/landform-organic-karst/review-organic1/native.log"
+    ],
+    "readerCommand": [
+      "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+      "-project=/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+      "/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode",
+      "-game",
+      "-CLCaveReviewWorkers=8",
+      "-unattended",
+      "-nosplash",
+      "-nosound",
+      "-notracethreading",
+      "-nohighdpi",
+      "-CLNaniteProjectionShaders",
+      "-ResX=1280",
+      "-ResY=800",
+      "-windowed",
+      "-CLCaveLoad",
+      "-CLCaveWalk",
+      "-CLCaveSlot=Landform_OrganicKarst_Review",
+      "-CLCaveRecipe=/private/tmp/landform-natural-karst/LandformLab/Plugins/CatalystLandform/Examples/OrganicKarst.json",
+      "-CLReport=/private/tmp/landform-organic-karst/reader-organic2/result.json",
+      "-abslog=/private/tmp/landform-organic-karst/reader-organic2/native.log"
+    ]
+  },
+  "localEvidence": "/private/tmp/landform-organic-karst"
+}

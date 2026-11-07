@@ -1,3 +1,5 @@
+#include "Model/CLCaveFloor.h"
+#include "CLNativeNoiseKernel.h"
 #include "CLCaveMorphology.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Math/RotationMatrix.h"
@@ -23,6 +25,7 @@ void CLDevelopCaveMorphology(const FCLCaveSettings& S,const FCLCompiledPlanetRec
         const double R=S.RadiusMeters,Eye=FMath::Min(1.6,R*.65);
         for(auto& P:Paths)
         {
+            P.GeometryProfile=S.AlgorithmVersion;P.FloorReliefScale=S.AlgorithmVersion>=7?FMath::Min(1.,R*.22):0;
             P.Form=P.EndForm=ECLCaveForm::BeddedPassage;P.Incision=0;P.Development=S.Character;
             const double Phase=Shape.FRandRange(-PI,PI);
             // Replace the recharge shaft with a gently rising walk-in branch.
@@ -77,6 +80,7 @@ void CLDevelopCaveMorphology(const FCLCaveSettings& S,const FCLCompiledPlanetRec
             FCLCaveChamber C;C.Network=Info.Id;C.Node=I;C.Rotation=Frame;
             C.HalfExtents=R*FVector(Shape.FRandRange(7.5,9.0),Shape.FRandRange(4.7,5.6),Shape.FRandRange(2.6,3.3));
             C.Center=Center+Up*(C.HalfExtents.Z-Eye);C.Form=ECLCaveForm::BeddedChamber;
+            C.GeometryProfile=S.AlgorithmVersion;C.FloorReliefScale=S.AlgorithmVersion>=7?FMath::Min(1.,R*.22):0;
             C.FloorRadius=Base.Rock->RestoredRadiusMeters(Center)-Eye;C.FloorRock=Base.Rock;Chambers.Add(C);
             // Native solid bedrock buttresses provide foreground/middle-distance
             // scale. Keep the central passage mouths and crossing unobstructed.
@@ -122,9 +126,13 @@ void CLDevelopCaveMorphology(const FCLCaveSettings& S,const FCLCompiledPlanetRec
                 if(Beds.IsEmpty())continue;
                 for(double Sign:{-1.,1.})
                 {
-                    if(Wall.FRand()<.2)continue;const auto Bed=Base.Rock->GetBed(Beds[Wall.RandRange(0,Beds.Num()-1)]);
+                    if(Wall.FRand()<.2)continue;
+                    const int32 Pieces=S.AlgorithmVersion>=7?FMath::Min(3,Beds.Num()):1;
+                    for(int32 Piece=0;Piece<Pieces;++Piece)
+                    {
+                    const auto Bed=Base.Rock->GetBed(Beds[Wall.RandRange(0,Beds.Num()-1)]);
                     const double Mid=(Bed.LowerMeters+Bed.UpperMeters)*.5-Info.InceptionRadiusMeters;
-                    FCLCaveInfill B;B.Network=Info.Id;B.BeddedRemnant=true;
+                    FCLCaveInfill B;B.Network=Info.Id;B.BeddedRemnant=true;B.WallOutward=S.AlgorithmVersion>=7?Frame.GetAxisY()*Sign:FVector::ZeroVector;
                     B.HalfExtents=FVector(Wall.FRandRange(1.5,3.5),Wall.FRandRange(.6,1.5),FMath::Clamp((Bed.UpperMeters-Bed.LowerMeters)*Wall.FRandRange(.15,.28),.25,.9));
                     const double Level=FMath::Clamp((Mid+Eye)/(P.Sections[K].Y*1.23),0.,1.);
                     const double Side=P.Sections[K].X*(.87-.18*Level)+B.HalfExtents.Y*.3;
@@ -132,8 +140,14 @@ void CLDevelopCaveMorphology(const FCLCaveSettings& S,const FCLCompiledPlanetRec
                     const FVector D=B.Center.GetSafeNormal();B.Center=D*((Bed.LowerMeters+Bed.UpperMeters)*.5+Base.Rock->SampleColumn(D).DeformationMeters);
                     B.Rotation=Frame*FRotator(Wall.FRandRange(-4,4),Wall.FRandRange(-9,9),Wall.FRandRange(-8,8)).Quaternion();
                     B.SourceCenter=B.Center;B.SourceRotation=B.Rotation;Infills.Add(B);
+                    }
                 }
             }
+        }
+        if(S.AlgorithmVersion>=7)for(auto& B:Infills)if(!B.BeddedRemnant)
+        {
+            B.Center+=B.Center.GetSafeNormal()*CLCaveFloorRelief(B.Center,*Base.NativePerlin,Base.SourceRecipe->Seed^S.Seed,FMath::Min(1.,R*.22));
+            if(B.BedrockPier)B.SourceCenter=B.Center;
         }
         // Solid features belong at the margins. Reserve half the passage
         // width plus capsule clearance throughout the actual graph crossing.

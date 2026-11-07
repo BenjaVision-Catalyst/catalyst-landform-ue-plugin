@@ -1,0 +1,140 @@
+{
+	"passed": false,
+	"breakthrough": false,
+	"wallBlockedBefore": false,
+	"connectionOpenAfter": false,
+	"airBrushCentreBeforeCm": 0,
+	"throughDistanceCm": 0,
+	"throughGroundedFrames": 0,
+	"message": "Normal-speed entrance walking penetrated the procedural rock floor; retained settled collision witness",
+	"coldReader": false,
+	"processID": 42842,
+	"writerPID": 42842,
+	"nativeContacts": 3,
+	"collisionInvokerRadiusCm": 2500,
+	"stage": 0,
+	"nativeBreakdownProbes": 0,
+	"walkDistanceCm": 0,
+	"walkGroundedFrames": 0,
+	"nativeFloorFrames": 172,
+	"beforeMineCm": 0,
+	"afterMineCm": 0,
+	"afterFillCm": 0,
+	"controlBeforeCm": 0,
+	"controlAfterCm": 0,
+	"controlOffsetCm": 0,
+	"controlIdentityUnchanged": false,
+	"comparedProbes": 0,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 0,
+	"elapsedSeconds": 81.052884917706251,
+	"referenceWalkComplete": false,
+	"routeDistanceMeters": 42.357135630245338,
+	"routeFrames": 611,
+	"routeGroundedFrames": 578,
+	"eyeHeightMeters": 580.41684442922929,
+	"nativeBackgroundWorkers": 6,
+	"nativeOwnerStable": true,
+	"floorAppearedAfterNativeSettlement": true,
+	"failureNativeFields": [
+		{
+			"positionCm": "X=41219.427 Y=34271.246 Z=21298.293",
+			"nativeFieldCm": -282.49569702148438
+		},
+		{
+			"positionCm": "X=41362.347 Y=34390.075 Z=21372.140",
+			"nativeFieldCm": -80.221939086914062
+		},
+		{
+			"positionCm": "X=41505.267 Y=34508.904 Z=21445.988",
+			"nativeFieldCm": 123.58131408691406
+		}
+	],
+	"failureNearbyColliders": [
+		{
+			"name": "VoxelCollisionComponent_14",
+			"bounds": "IsValid=true, Min=(X=41600.154 Y=33920.076 Z=21120.100), Max=(X=42250.387 Y=34570.000 Z=21770.000)",
+			"collisionMode": 3,
+			"registered": true,
+			"physicsState": true
+		}
+	],
+	"entranceProof": true,
+	"minimumFootFieldMeters": -0.80224609375,
+	"peakSpeedCmPerSecond": 866.70303082795544,
+	"framesMissingNativeFootChunks": 1,
+	"entranceSamples": [
+		{
+			"distanceMeters": 0,
+			"footFieldMeters": 0.03570556640625,
+			"grounded": true,
+			"nativeFootChunks": true,
+			"positionCm": "X=43009.230 Y=32465.829 Z=24769.993",
+			"movementMode": 1,
+			"pendingTasks": 0
+		},
+		{
+			"distanceMeters": 5.3947180483573778,
+			"footFieldMeters": 0.04022216796875,
+			"grounded": true,
+			"nativeFootChunks": true,
+			"positionCm": "X=42827.529 Y=32742.381 Z=24344.126",
+			"movementMode": 1,
+			"pendingTasks": 3
+		},
+		{
+			"distanceMeters": 11.771433437794816,
+			"footFieldMeters": 0.041015625,
+			"grounded": true,
+			"nativeFootChunks": true,
+			"positionCm": "X=42608.158 Y=33064.229 Z=23839.316",
+			"movementMode": 1,
+			"pendingTasks": 362
+		},
+		{
+			"distanceMeters": 18.146690637457422,
+			"footFieldMeters": 0.03863525390625,
+			"grounded": true,
+			"nativeFootChunks": true,
+			"positionCm": "X=42383.935 Y=33380.445 Z=23333.241",
+			"movementMode": 1,
+			"pendingTasks": 228
+		},
+		{
+			"distanceMeters": 24.411274109802889,
+			"footFieldMeters": 0.0408935546875,
+			"grounded": true,
+			"nativeFootChunks": true,
+			"positionCm": "X=42162.379 Y=33689.790 Z=22835.601",
+			"movementMode": 1,
+			"pendingTasks": 68
+		},
+		{
+			"distanceMeters": 30.755661869386923,
+			"footFieldMeters": 0.04412841796875,
+			"grounded": true,
+			"nativeFootChunks": true,
+			"positionCm": "X=41926.654 Y=33989.820 Z=22328.727",
+			"movementMode": 1,
+			"pendingTasks": 834
+		},
+		{
+			"distanceMeters": 37.124566071785708,
+			"footFieldMeters": 0.04388427734375,
+			"grounded": true,
+			"nativeFootChunks": true,
+			"positionCm": "X=41681.640 Y=34280.923 Z=21817.991",
+			"movementMode": 1,
+			"pendingTasks": 770
+		},
+		{
+			"distanceMeters": 42.357135630245338,
+			"footFieldMeters": -0.80224609375,
+			"grounded": false,
+			"nativeFootChunks": true,
+			"positionCm": "X=41430.949 Y=34447.113 Z=21407.587",
+			"movementMode": 3,
+			"pendingTasks": 737
+		}
+	]
+}
