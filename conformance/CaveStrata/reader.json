@@ -1,0 +1,145 @@
+{
+	"passed": true,
+	"breakthrough": false,
+	"wallBlockedBefore": false,
+	"connectionOpenAfter": false,
+	"airBrushCentreBeforeCm": 0,
+	"throughDistanceCm": 0,
+	"throughGroundedFrames": 0,
+	"message": "Fresh process restored generated cave geometry, native sculpt edits and geological identity",
+	"coldReader": true,
+	"processID": 85812,
+	"writerPID": 85708,
+	"nativeContacts": 4,
+	"collisionInvokerRadiusCm": 3200,
+	"stage": 8,
+	"nativeBreakdownProbes": 0,
+	"walkDistanceCm": 254.94722095048286,
+	"walkGroundedFrames": 29,
+	"nativeFloorFrames": 285,
+	"beforeMineCm": 0,
+	"afterMineCm": 0,
+	"afterFillCm": 0,
+	"controlBeforeCm": 0,
+	"controlAfterCm": 0,
+	"controlOffsetCm": 50614.814332619506,
+	"controlIdentityUnchanged": false,
+	"comparedProbes": 14,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 149268,
+	"elapsedSeconds": 14.031257748603821,
+	"processCPUSecondsTotal": 53.164247000000003,
+	"streamingFrameMs":
+	{
+		"samples": 0
+	},
+	"streamingGameThreadMs":
+	{
+		"samples": 0
+	},
+	"streamingRenderThreadMs":
+	{
+		"samples": 0
+	},
+	"streamingGpuMs":
+	{
+		"samples": 0
+	},
+	"peakNativePendingTasks": 0,
+	"nativeStateBusyFrames": 0,
+	"deliveryCounters":
+	{
+		"calls": 27409,
+		"points": 30487562,
+		"heightPoints": 12573928,
+		"aggregateEvaluatorSeconds": 11.470686375000003,
+		"pointsByNativeLOD": [
+			12017024,
+			2769819,
+			4979905,
+			3994402,
+			3466353,
+			2955525,
+			272367,
+			24007,
+			7584,
+			576,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0
+		]
+	},
+	"recipeSHA1": "733A373B8E502EDFFED3743CCFA1274001C73B03",
+	"voxelSizeCm": 20,
+	"nativeLODQuality": 2,
+	"deliveryBackend": "cpp",
+	"readySeconds": 0,
+	"referenceMovingFrameMs":
+	{
+		"samples": 0
+	},
+	"referenceMovingGpuMs":
+	{
+		"samples": 0
+	},
+	"referenceWalkSpeedCmPerSecond": 3000,
+	"surfaceNodes": 131838,
+	"surfaceExactLeaves": 482,
+	"surfaceBytes": 23203488,
+	"surfaceInterpolatedPoints": 12572180,
+	"surfaceExactPoints": 1748,
+	"beddingNodes": 10941,
+	"beddingExactLeaves": 0,
+	"beddingBytes": 1925616,
+	"beddingValidationErrorMeters": 2.499717784393285e-05,
+	"fieldStageSeconds":
+	{
+		"bedding": 0.72568404166666678,
+		"noise": 0.35901908333333343,
+		"morphology": 1.404382916666667,
+		"planet": 8.7152000833333361
+	},
+	"maximumStreamingPublicationSeconds": 0,
+	"roamProof": false,
+	"maximumStoppedUnderInputSeconds": 0,
+	"legacyProbeRejectedFrames": 0,
+	"legacyProbeRejectedWhileMoving": 0,
+	"roamWitnesses": [],
+	"referenceWalkWallSeconds": 0,
+	"referenceWalkCPUSeconds": 0,
+	"referenceWalkComplete": false,
+	"routeDistanceMeters": 0,
+	"routeFrames": 0,
+	"routeGroundedFrames": 0,
+	"eyeHeightMeters": 1.5866859694525324,
+	"nativeBackgroundWorkers": 6,
+	"nativeColliderBytes": 19610772,
+	"nativeCollisionComponents": 169,
+	"wallContactFrames": 0,
+	"renderProxyInstances": 0,
+	"renderProxyFixture": "optional camera-attached native ISM sphere lattice; no ecology, PCG, object collision or animation",
+	"streamingProcessCPUSeconds": 0,
+	"streamingWallSeconds": 0,
+	"processResidentBytes": 2795339776,
+	"nativeFloorDemandInvokers": 0,
+	"nativeDemandInvokers": 2,
+	"movingCollisionDemandOnly": true,
+	"streamingPublications": 0,
+	"nativeFootAnchorEnabled": true,
+	"nativeOwnerStable": true,
+	"floorAppearedAfterNativeSettlement": false,
+	"failureNativeFields": [],
+	"failureNearbyColliders": [],
+	"nativeCollisionWaitFrames": 0,
+	"nativeCollisionWaitSeconds": 0,
+	"entranceMovingFrames": 0,
+	"entranceMovingGroundedFrames": 0,
+	"entranceProof": false,
+	"minimumFootFieldMeters": 1.7976931348623157e+308,
+	"peakSpeedCmPerSecond": 0,
+	"framesMissingNativeFootChunks": 0,
+	"entranceSamples": []
+}

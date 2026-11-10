@@ -40,8 +40,10 @@ across the floor. The pristine native captures below precede mining or backfill.
 
 ![Independent chamber roof and retained mass](../conformance/SpatialCave/chamber.png)
 
-The reference comparison still requires human visual review. The current
-limestone material and review lighting are retained. Sediment transport,
+The user accepted this composition's cave appearance on 11 November, while
+requesting the missing strata appearance. The original captures use one uniform
+Rock surface and the existing review lighting. The [strata follow-up](CaveStrata.md) restores the earlier three-surface
+rock-bed palette on this same composition. Sediment transport,
 fracture evolution, sulfuric-acid chemistry, collapse simulation and speleothem
 growth are not implemented. The visible forms are an authored procedural prior,
 with a real carbonate site and bedding datum from the canonical geological plan.
@@ -157,3 +159,13 @@ compressed save reload and rendering measurements. The review defaults to 600
 cm/s; `--walk-speed 250` repeats the slower shape-review route. The qualified
 host is UE 5.7.4 / installed VPP 2.0p8, Mac arm64. The source manifest, commands,
 results and capture checksums are in [the evidence](../conformance/SpatialCave/README.md).
+
+## Strata review — 11 November 2026
+
+The user accepted the current cave appearance and requested the previously
+generated rock strata. Geological beds were present, but all three carbonate
+units used the same native Rock surface. [The material-binding correction](CaveStrata.md)
+restores their distinct existing appearances without changing the cave field,
+physical beds, geological properties or existing UI defaults. This acceptance
+concerns the displayed composition; procedural family parameterization, entrances
+and multi-site placement remain open.

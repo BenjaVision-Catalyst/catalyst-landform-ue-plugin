@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-11",
+  "platform": "Mac arm64, UE 5.7.4, VPP 2.0p8, M3 Max 128 GB",
+  "componentBaseCommit": "ea1d2b1cb5fadde0cf23f0f03a0794f8c8eaeba3",
+  "workspaceBaseCommit": "7d81bcff6812396e17567c664d6fa18723039dbf",
+  "nativeTests": [
+    {
+      "fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.CoarseWork",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.CompiledBedding",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.WorkerPackets",
+      "state": "Success",
+      "warnings": 1,
+      "errors": 0
+    }
+  ],
+  "geometryMetricsUnchanged": true,
+  "matchingNativeSourceFiles": 289,
+  "recipeSHA256": "af322f71cfae6acdd965dd6238f7faf9079cd90dc9f435274eacb53cfa1d7765",
+  "sourceChanges": "Only two fixture surface IDs; no C++, shader or native asset changes",
+  "visualCheck": "Native passage, threshold and chamber captures show distinct bedding appearances; user review of restored palette remains open"
+}

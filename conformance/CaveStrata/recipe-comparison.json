@@ -1,0 +1,18 @@
+{
+  "baseCommit": "ea1d2b1cb5fadde0cf23f0f03a0794f8c8eaeba3",
+  "onlyChanges": [
+    {
+      "unitId": "434C524B000000010000000000000002",
+      "before": "Rock",
+      "after": "Scree"
+    },
+    {
+      "unitId": "434C524B000000010000000000000003",
+      "before": "Rock",
+      "after": "Soil"
+    }
+  ],
+  "geometryAndOtherRecipeValuesUnchanged": true,
+  "restoredFrom": "Examples/RockBedsExcavation.json",
+  "restoredRecipeSHA256": "af322f71cfae6acdd965dd6238f7faf9079cd90dc9f435274eacb53cfa1d7765"
+}

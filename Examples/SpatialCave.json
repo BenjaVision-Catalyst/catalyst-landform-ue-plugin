@@ -283,7 +283,7 @@
       {
         "id": "434C524B000000010000000000000002",
         "name": "Dolostone succession",
-        "surfaceId": "Rock",
+        "surfaceId": "Scree",
         "surfaceRevision": 2,
         "miningResistance": 0.55,
         "erodibility": 0.44999999999999996,
@@ -294,7 +294,7 @@
       {
         "id": "434C524B000000010000000000000003",
         "name": "Carbonate interbeds",
-        "surfaceId": "Rock",
+        "surfaceId": "Soil",
         "surfaceRevision": 2,
         "miningResistance": 0.25,
         "erodibility": 0.75,

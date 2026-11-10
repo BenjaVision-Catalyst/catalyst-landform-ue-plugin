@@ -1,0 +1,189 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "3FCF81BAF44D81A6953E5FAC54999C4C",
+			"instanceName": "jupiter.local-85455",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.10-20.43.54",
+	"succeeded": 1,
+	"succeededWithWarnings": 3,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 68.122703552246094,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "CoarseWork",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.CoarseWork",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"3FCF81BAF44D81A6953E5FAC54999C4C"
+			],
+			"duration": 14.021481513977051,
+			"dateTime": "2026.11.10-20.42.46",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CHUNK_AUDIT passage chunks=454 rock=294 skipRock=278 mixed=159 fine=3609856 coarse=0.098s discardedRock=0.060s",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.42.59"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CHUNK_AUDIT chamber chunks=459 rock=141 skipRock=116 mixed=185 fine=3806592 coarse=0.101s discardedRock=0.025s",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.43.00"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "CompiledBedding",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.CompiledBedding",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"3FCF81BAF44D81A6953E5FAC54999C4C"
+			],
+			"duration": 19.493282318115234,
+			"dateTime": "2026.11.10-20.43.00",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.43.03"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BEDDING points=314896 nodes=10941 exact=0 error=0.000066612m fieldError=0.000047851m reference=0.833s compiled=0.054s",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.43.19"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "GeometryAndDelivery",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"3FCF81BAF44D81A6953E5FAC54999C4C"
+			],
+			"duration": 20.825832366943359,
+			"dateTime": "2026.11.10-20.43.19",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.43.22"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SPATIAL_CAVE floors=251 relief=3.018m grade=0.092 clearance=1.105m fieldProbes=6673 terrainNeeded=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.43.40"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "WorkerPackets",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.WorkerPackets",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"3FCF81BAF44D81A6953E5FAC54999C4C"
+			],
+			"duration": 13.782106399536133,
+			"dateTime": "2026.11.10-20.43.40",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.43.43"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SPATIAL_WORKER_PACKETS points=24576 concurrentWorkers=8 maxError=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-20.43.54"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}
