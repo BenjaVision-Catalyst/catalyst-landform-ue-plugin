@@ -13,6 +13,7 @@ parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--manual-settings', action='store_true', help='Use the manual launcher render/timing settings')
 parser.add_argument('--delivery', choices=['legacy', 'cpp', 'graph'], default='cpp')
 parser.add_argument('--walk-speed', type=float, default=3000, help='Review speed in cm/s, 100..3000')
+parser.add_argument('--render-proxy', type=int, choices=[0,1024,4096,16384], default=0, help='Optional render-only native ISM load during walking')
 parser.add_argument('--slot', default='LandformSpatialCaveQualification')
 args = parser.parse_args()
 project, output = args.project.resolve(), args.output.resolve()
@@ -25,7 +26,7 @@ if args.phase == 'geometry':
     command += ['-ExecCmds=Automation RunTests Catalyst.Landform.Caves.SpatialPrototype', '-TestExit=Automation Test Queue Empty', '-ReportExportPath=' + str(output / 'automation'), '-CLSpatialReport=' + str(output / 'geometry.json'), '-CLSpatialWorkReport=' + str(output / 'work.json')]
 else:
     command.insert(2, '/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode')
-    command += ['-game', '-CLCaveReviewWorkers=8', '-ResX=1280', '-ResY=800', '-windowed', '-CLDelivery=' + args.delivery, '-CLCaveRecipe=' + str(project.parent / 'Plugins/CatalystLandform/Examples/SpatialCave.json'), '-CLReport=' + str(output / 'result.json'), '-CLCaveSlot=' + args.slot, '-CLCaveWalkSpeed=' + str(args.walk_speed), '-ExecCmds=r.VSync 0,t.MaxFPS 0,t.IdleWhenNotForeground 0,r.ScreenPercentage 100,r.DynamicRes.OperationMode 0,sg.ResolutionQuality,sg.ShadowQuality,sg.GlobalIlluminationQuality,sg.ViewDistanceQuality']
+    command += ['-game', '-CLCaveReviewWorkers=8', '-ResX=1280', '-ResY=800', '-windowed', '-CLDelivery=' + args.delivery, '-CLCaveRecipe=' + str(project.parent / 'Plugins/CatalystLandform/Examples/SpatialCave.json'), '-CLReport=' + str(output / 'result.json'), '-CLCaveSlot=' + args.slot, '-CLCaveWalkSpeed=' + str(args.walk_speed), '-CLCaveRenderProxy=' + str(args.render_proxy), '-ExecCmds=r.VSync 0,t.MaxFPS 0,t.IdleWhenNotForeground 0,r.ScreenPercentage 100,r.DynamicRes.OperationMode 0,sg.ResolutionQuality,sg.ShadowQuality,sg.GlobalIlluminationQuality,sg.ViewDistanceQuality']
     command += {'review': ['-CLCaveReferenceReview'], 'wall': ['-CLCaveWallProof'], 'chamber': ['-CLCaveChamberProof'], 'roam': ['-CLCaveRoamProof'], 'reader': ['-CLCaveLoad', '-CLCaveWalk'], 'headroom': ['-CLHeadroom']}[args.phase]
 if args.manual_settings:
     command = [arg for arg in command if not arg.startswith('-ExecCmds=') and arg != '-unattended']
@@ -50,7 +51,9 @@ else:
         assert report['referenceMovingFrameMs']['max'] < 100 and report['routeDistanceMeters'] >= 300
     if args.phase == 'chamber':
         assert report['routeDistanceMeters'] >= 1000 and report['peakSpeedCmPerSecond'] >= args.walk_speed * .99
-        assert report['nativeFloorDemandStable'] and report['nativeFloorDemandInvokers'] > 0
+        assert report['nativeFloorDemandInvokers'] == 0 and report['collisionInvokerRadiusCm'] == 3200
+        assert report['movingCollisionDemandOnly'] and report['nativeDemandInvokers'] == 2 and report['streamingPublications'] > 5
+        assert report['renderProxyInstances'] == args.render_proxy
     if args.phase == 'wall':
         assert report['nativeCollisionWaitFrames'] == 0 and report['wallContactFrames'] > 10
         assert report['minimumFootFieldMeters'] > -.35 and report['referenceMovingFrameMs']['max'] < 100

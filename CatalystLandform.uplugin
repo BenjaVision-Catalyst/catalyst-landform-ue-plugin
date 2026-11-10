@@ -56,5 +56,10 @@
       "Type": "Editor",
       "LoadingPhase": "None"
     }
-  ]
+  ],
+  "PreBuildSteps": {
+    "Mac": [
+      "python3 \"$(PluginDir)/Tools/build-spatial-ispc.py\""
+    ]
+  }
 }

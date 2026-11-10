@@ -1,0 +1,36 @@
+{
+  "tests": 24,
+  "passed": 24,
+  "errors": 0,
+  "warnings": [
+    "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+    "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+    "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204"
+  ],
+  "testNames": [
+    "Catalyst.Landform.Caves.DeliveryPrototype.Parity",
+    "Catalyst.Landform.Caves.SpatialPrototype.CoarseWork",
+    "Catalyst.Landform.Caves.SpatialPrototype.CompiledBedding",
+    "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery",
+    "Catalyst.Landform.Caves.SpatialPrototype.WorkerPackets",
+    "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+    "Catalyst.Landform.Caves.EligibilityAndVersions",
+    "Catalyst.Landform.Gravity.LiveOriginFrame",
+    "Catalyst.Landform.RuntimeRecipe.AtomicApplication",
+    "Catalyst.Landform.RuntimeRecipe.NativeLayerFrameAtOrigin",
+    "Catalyst.Landform.RuntimeRecipe.NativeReferenceBudgets",
+    "Catalyst.Landform.RuntimeRecipe.RetainedClientResources",
+    "Catalyst.Landform.Scene.NativeBulkSparseParity",
+    "Catalyst.Landform.Watershed.CharacterAndPhysicalResolution",
+    "Catalyst.Landform.Watershed.ContinentalRockIntegration",
+    "Catalyst.Landform.Watershed.DebugGeometry",
+    "Catalyst.Landform.Watershed.DebugRenderedNavigation",
+    "Catalyst.Landform.Watershed.DesignerControlsAndUndo",
+    "Catalyst.Landform.Watershed.FinalTopologyAndRunoff",
+    "Catalyst.Landform.Watershed.NativeRenderedReview",
+    "Catalyst.Landform.Watershed.NativeZeroSetAndClosurePolicies",
+    "Catalyst.Landform.Watershed.OceanLakeAndClosedBasin",
+    "Catalyst.Landform.Watershed.ScopeBoundaries",
+    "Catalyst.Landform.Watershed.VersionsGeologyAndVolumes"
+  ]
+}

@@ -27,8 +27,12 @@ public:
     explicit FCLNativeFigureKernel(const UVoxelShapeFunctionLibrary& In):Library(&In){}
     void Sample(TConstArrayView<FVector> Positions,TConstArrayView<double> Heights,double Radius,TArray<double>& Fields)const
     {
-        FVoxelDoubleVectorBuffer P;P.Allocate(Positions.Num());FVoxelDoubleBuffer R;R.Allocate(Positions.Num());
-        for(int32 I=0;I<Positions.Num();++I){P.Set(I,Positions[I]);R.Set(I,Radius+FMath::Min(Heights[I],0.));}
+        if(Positions.IsEmpty()){Fields.Reset();return;}
+        FVoxelDoubleVectorBuffer P;P.Allocate(Positions.Num());FVoxelDoubleBuffer R;
+        const double FirstRadius=Radius+FMath::Min(Heights[0],0.);bool Uniform=true;
+        for(int32 I=0;I<Positions.Num();++I){P.Set(I,Positions[I]);Uniform&=Radius+FMath::Min(Heights[I],0.)==FirstRadius;}
+        if(Uniform)R=FVoxelDoubleBuffer(FirstRadius);
+        else {R.Allocate(Positions.Num());for(int32 I=0;I<Positions.Num();++I)R.Set(I,Radius+FMath::Min(Heights[I],0.));}
         const auto Values=Library->MakeSphere(P,R);Fields.SetNumUninitialized(Positions.Num());
         for(int32 I=0;I<Positions.Num();++I)Fields[I]=Values[I];
     }
@@ -274,7 +278,7 @@ bool FCLCompiledPlanetRecipe::TerrainPosition(const FVector& Direction, FVector2
 }
 void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
 {
-    if(WatershedSurface){WatershedSurface->SampleHeightsMeters(Directions,Heights);for(int32 I=0;I<Heights.Num();++I)Heights[I]=Watershed->MapHeight(Directions[I],Heights[I]);return;}
+    if(WatershedSurface){WatershedSurface->SampleHeightsMeters(Directions,Heights);Watershed->MapHeights(Directions,Heights);return;}
     if(MeasuredTerrain){MeasuredTerrain->SampleHeights(Directions,Heights);return;}
     if(UnmappedSurface)
     {UnmappedSurface->SampleHeightsMeters(Directions,Heights);SurfaceRange->MapHeights(Directions,Heights);return;}
@@ -1091,9 +1095,11 @@ void UCLPlanetRecipeAsset::CollectValidationMessages(TArray<FCFValidationMessage
     if (!ValidatePayload(Error)) Messages.Add(FCFValidationMessage::Make(ECFValidationSeverity::Error, TEXT("CL.Recipe.Invalid"),
         FText::FromString(Error), FText(), TEXT("/Recipe")));
 }
-bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
+bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json,FString& Error)
+{TSharedPtr<const FCLCompiledPlanetRecipe> Plan;return ImportRecipeJsonPrepared(Json,Error,Plan);}
+bool UCLPlanetRecipeAsset::ImportRecipeJsonPrepared(const FString& Json,FString& Error,TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)
 {
-    Error.Reset();
+    Plan.Reset();Error.Reset();
     if (Json.Len() > 256 * 1024) { Error = TEXT("Recipe JSON exceeds 256 KiB"); return false; }
     TSharedPtr<FJsonObject> Object;
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Object) || !Object)
@@ -1152,7 +1158,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     Candidate.Caves.UpgradeAbundanceProfile();
-    if (!FCLPlanetCompiler::Compile(Candidate, Error)) return false;
+    const auto Accepted=FCLPlanetCompiler::Compile(Candidate,Error);if(!Accepted)return false;
     if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 9) Candidate.SchemaVersion = 9;
     Modify();PaletteSources.Reset();LandformSources.Reset(); RadialGuideLibrary=nullptr;RadialGuideSetId.Invalidate();Recipe = MoveTemp(Candidate);
 #if WITH_EDITOR
@@ -1161,7 +1167,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJson(const FString& Json, FString& Error)
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();
 #endif
-    return true;
+    Plan=Accepted;return true;
 }
 #if WITH_EDITOR
 void UCLPlanetRecipeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)

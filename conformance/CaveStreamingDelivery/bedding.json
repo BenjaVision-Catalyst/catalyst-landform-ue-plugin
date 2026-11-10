@@ -1,0 +1,23 @@
+{
+	"points": 314896,
+	"watershedCoherentPoints": 8192,
+	"watershedTreeQueries": 256,
+	"watershedMaximumErrorMeters": 0,
+	"surfacePoints": 227096,
+	"maximumSurfaceHeightErrorMeters": 0.00045747130690187987,
+	"surfaceNodes": 131838,
+	"surfaceExactLeaves": 482,
+	"surfaceBytes": 23203488,
+	"surfaceInterpolatedPoints": 226978,
+	"surfaceExactPoints": 118,
+	"maximumBeddingErrorMeters": 6.6611585396003647e-05,
+	"maximumFieldErrorMeters": 4.7851179481028794e-05,
+	"signErrorsOutsideTolerance": 0,
+	"nodes": 10941,
+	"exactLeaves": 0,
+	"bytes": 1925616,
+	"maximumCompilerValidationErrorMeters": 2.499717784393285e-05,
+	"wholeRecipeCompileSeconds": 6.8957487940788269,
+	"referenceSeconds": 0.83878229185938835,
+	"compiledSeconds": 0.053741332143545151
+}

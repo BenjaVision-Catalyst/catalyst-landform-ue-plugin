@@ -1,3 +1,5 @@
+Current spatial-family follow-up: [moving-demand delivery and freeze correction](CaveStreamingDeliveryFix.md). Earlier workload/results below remain scoped to their recorded revisions.
+
 # VPP delivery prototype comparison
 
 7 November 2026. Opt-in UE 5.7.4 and VPP 2.0p8 prototype, following

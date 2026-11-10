@@ -196,9 +196,44 @@ double FCLCompiledWatershed::MapHeight(const FVector& Direction,double Height) c
     if((ShapeCells.IsEmpty()?Channels.IsEmpty():ConditionedReaches==0)||Direction.ContainsNaN()||Direction.IsNearlyZero())return Height;
     double T;int32 Id;FVector3d B;
     if(!Spatial->Tree.FindNearestHitTriangle(FWatertightRay3d(FRay3d(FVector3d::Zero(),Direction.GetSafeNormal())),T,Id,B))return Height;
+    return TriangleHeight(Id,B,Height);
+}
+double FCLCompiledWatershed::TriangleHeight(int32 Id,const FVector& B,double Height)const
+{
     const auto F=Spatial->Mesh.GetTriangle(Id);double W=0,Bed=0,Lake=-DBL_MAX;
     for(int32 K=0;K<3;++K){const auto& C=(ShapeCells.IsEmpty()?Cells:ShapeCells)[F[K]];W+=B[K]*C.Influence;Bed+=B[K]*C.BedMeters;if(C.bLake)Lake=FMath::Max(Lake,C.SpillMeters);}
     // Preserve submerged basin floors; the shoreline transition is continuous.
     if(Lake>-DBL_MAX)W*=FMath::Clamp((Height-Lake)/1.,0.,1.);
     return FMath::Lerp(Height,Bed,FMath::Clamp(W,0.,1.));
+}
+
+void FCLCompiledWatershed::MapHeights(TConstArrayView<FVector> Directions,TArray<double>& Heights,int32* TreeQueries)const
+{
+    check(Directions.Num()==Heights.Num());if(TreeQueries)*TreeQueries=0;
+    if(ShapeCells.IsEmpty()?Channels.IsEmpty():ConditionedReaches==0)return;
+    struct FHint {int32 Id=INDEX_NONE;FTriangle3d Triangle;};
+    FHint Hints[8];int32 Recent=0,Next=0,Searches=0;
+    for(int32 I=0;I<Directions.Num();++I)
+    {
+        const auto& D=Directions[I];if(D.ContainsNaN()||D.IsNearlyZero())continue;
+        const FWatertightRay3d Ray(FRay3d(FVector3d::Zero(),D.GetSafeNormal()));
+        int32 Id=INDEX_NONE;FVector3d B;
+        for(int32 Attempt=0;Attempt<8;++Attempt)
+        {
+            const int32 Slot=(Recent+Attempt)&7;if(Hints[Slot].Id==INDEX_NONE)continue;
+            TIntrRay3Triangle3<double,FWatertightRay3d> Query(Ray,Hints[Slot].Triangle);
+            if(!Query.Find())continue;const auto& C=Query.TriangleBaryCoords;
+            // Interior ownership is unique on this immutable spherical mesh.
+            // Native tree ordering remains authoritative on edges/corners.
+            if(C.X<=1.e-10||C.Y<=1.e-10||C.Z<=1.e-10)continue;
+            Id=Hints[Slot].Id;B=C;Recent=Slot;break;
+        }
+        if(Id==INDEX_NONE)
+        {
+            double T;++Searches;if(!Spatial->Tree.FindNearestHitTriangle(Ray,T,Id,B))continue;
+            auto& Hint=Hints[Next];Hint.Id=Id;Spatial->Mesh.GetTriVertices(Id,Hint.Triangle.V[0],Hint.Triangle.V[1],Hint.Triangle.V[2]);Recent=Next;Next=(Next+1)&7;
+        }
+        Heights[I]=TriangleHeight(Id,B,Heights[I]);
+    }
+    if(TreeQueries)*TreeQueries=Searches;
 }

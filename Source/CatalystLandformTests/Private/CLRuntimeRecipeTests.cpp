@@ -20,6 +20,11 @@ bool FCLRuntimeRecipeApplyTest::RunTest(const FString&)
 {
     FString Json,Error;
     FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainSurfaces.json")));
+    auto* Imported=NewObject<UCLPlanetRecipeAsset>();TSharedPtr<const FCLCompiledPlanetRecipe> Prepared;
+    if(!TestTrue(TEXT("Transactional native import returns its accepted preflight"),Imported->ImportRecipeJsonPrepared(Json,Error,Prepared)&&Prepared&&Prepared->SourceRecipe)){AddError(Error);return false;}
+    const auto AcceptedInput=Prepared;
+    TestFalse(TEXT("Rejected prepared import cannot return an older accepted plan"),Imported->ImportRecipeJsonPrepared(TEXT("{}"),Error,Prepared));
+    TestTrue(TEXT("Failed prepared import clears output and retains the accepted recipe"),!Prepared&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Imported->Recipe,AcceptedInput->SourceRecipe.Get(),0));
     const auto Values=UWorld::InitializationValues().AllowAudioPlayback(false).CreatePhysicsScene(true).CreateNavigation(false).CreateAISystem(false).ShouldSimulatePhysics(false);
     UWorld* World=UWorld::CreateWorld(EWorldType::Game,false,TEXT("CLRuntimeRecipeTest"),nullptr,true,ERHIFeatureLevel::Num,&Values);
     GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);

@@ -1,6 +1,6 @@
 # Spatial cave prototype
 
-Follow-up: [chamber collision residency](ChamberCollisionResidency.md) replaces the earlier walking qualification after fresh-session pauses were reproduced.
+Current follow-up: [moving-demand delivery](CaveStreamingDeliveryFix.md) removes the rejected whole-cave residency workaround and qualifies the compiled directional inputs. The [residency experiment](ChamberCollisionResidency.md) is historical.
 
 7 November 2026. Opt-in profile 8 replaces swept passage sections with one
 spatial passage/chamber composition. It follows the

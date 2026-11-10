@@ -1,0 +1,20 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-CLNaniteProjectionShaders",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-TestExit=Automation Test Queue Empty",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Gravity.LiveOriginFrame+Catalyst.Landform.Caves.SpatialPrototype+Catalyst.Landform.Caves.DesignerControlsAndUndo+Catalyst.Landform.Caves.EligibilityAndVersions+Catalyst.Landform.Caves.DeliveryPrototype.Parity+Catalyst.Landform.Scene.NativeBulkSparseParity+Catalyst.Landform.RuntimeRecipe+Catalyst.Landform.Watershed",
+  "-abslog=/private/tmp/landform-streaming-root-cause/final-core/native.log",
+  "-ReportExportPath=/private/tmp/landform-streaming-root-cause/final-core/automation",
+  "-CLBeddingReport=/private/tmp/landform-streaming-root-cause/final-core/bedding.json",
+  "-CLSpatialReport=/private/tmp/landform-streaming-root-cause/final-core/geometry.json",
+  "-CLSampleCacheReport=/private/tmp/landform-streaming-root-cause/final-core/cache.json"
+]

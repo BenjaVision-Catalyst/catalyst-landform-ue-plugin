@@ -1,4 +1,7 @@
 #include "Model/CLSpatialCave.h"
+#include "Async/ParallelFor.h"
+#include "Model/CLSphericalPatches.h"
+#include "Model/CLDirectionalScalarField.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLProvinceDefinition.h"
 #include "Model/CLRegionGeneration.h"
@@ -6,14 +9,20 @@
 #include "CLNativeNoiseKernel.h"
 #include "Polygon2.h"
 #include "Math/RotationMatrix.h"
-#include "Misc/ScopeRWLock.h"
 #include <atomic>
+#if CL_SPATIAL_SIMD
+#include "CLSpatialMorph.generated.h"
+#endif
+#if PLATFORM_MAC && PLATFORM_CPU_ARM_FAMILY && !CL_SPATIAL_SIMD
+#error Mac arm64 Landform requires the spatial SIMD build rules
+#endif
 
 class FCLSpatialCaveData
 {
 public:
     struct FRegion {UE::Geometry::FPolygon2d Polygon;FBox2D Bounds;};
     TArray<FRegion> Regions;
+    TArray<double> VertexX,VertexY;TArray<int32> PolygonStarts,PolygonCounts;
     TSharedPtr<const FCLCompiledRock> Rock;
     TSharedPtr<const FCLNativeNoiseKernel> Noise;
     FVector Origin,X,Y,Up;
@@ -21,15 +30,9 @@ public:
     int32 Seed=0;
     TArray<double> Contacts;
     FBox Bounds;
-    // A compiled composition owns one fixed-size, exact-position cache. Native
-    // collision and render workers share base-field values, never meshes or
-    // sculpted results. Eviction only repeats pure computation.
-    struct FCachedSample {FVector Position=FVector(MAX_dbl);double Air=0;};
-    static constexpr uint32 CacheSize=1<<18;
-    mutable FRWLock CacheLock;
-    mutable TArray<FCachedSample> Cache;
-    mutable std::atomic<uint64> CacheHits{0},CacheMisses{0};
-    uint32 CacheIndex(const FVector& P)const{return GetTypeHash(P)&(CacheSize-1);}
+    FCLDirectionalScalarField Bedding,Surface[6];
+    mutable std::atomic<uint64> SurfaceInterpolated{0},SurfaceExact{0};
+    mutable std::atomic<uint64> EvaluationCycles[4]{};
 
 };
 namespace
@@ -48,10 +51,12 @@ double RoomWeight(double X)
     return FMath::SmoothStep(-24.,18.,X);
 }
 }
-FVector FCLSpatialCave::BeddingPoint(const FVector& P)const
+FVector FCLSpatialCave::BeddingPoint(const FVector& P,bool bCompiled)const
 {
     const auto D=P-Data->Origin;
-    return FVector(FVector::DotProduct(D,Data->X),FVector::DotProduct(D,Data->Y),Data->Rock->RestoredRadiusMeters(P)-Data->Datum);
+    const double Along=FVector::DotProduct(P,Data->Up);
+    const double Restored=bCompiled&&Along>1.e-6?P.Length()-Data->Bedding.Sample(FVector2D(FVector::DotProduct(P,Data->X),FVector::DotProduct(P,Data->Y))*(Data->Datum/Along)):Data->Rock->RestoredRadiusMeters(P);
+    return FVector(FVector::DotProduct(D,Data->X),FVector::DotProduct(D,Data->Y),Restored-Data->Datum);
 }
 FVector FCLSpatialCave::BodyPoint(const FVector& P)const
 {
@@ -73,59 +78,64 @@ double FCLSpatialCave::FloorHeight(double X,double Y)const
     const double Rolling=.55*FMath::Sin(X*.052+Y*.029)+.32*FMath::Cos(Y*.12-X*.018)+.10*FMath::Sin(X*.31+Y*.23);
     return -.012*X-1.4*RoomWeight(X)+Bank+Channel+Rolling;
 }
-TArray<FSphere> FCLSpatialCave::FloorCollisionDemandMeters()const
+void FCLSpatialCave::GetBeddingCompilationStats(int32& Nodes,int32& ExactLeaves,uint64& Bytes,double& Error)const
+{Nodes=Data->Bedding.NumNodes();ExactLeaves=Data->Bedding.NumExactLeaves();Bytes=Data->Bedding.GetAllocatedSize();Error=Data->Bedding.MaximumValidationError();}
+void FCLSpatialCave::GetSurfaceCompilationStats(int32& Nodes,int32& ExactLeaves,uint64& Bytes,uint64& Interpolated,uint64& Exact)const
+{Nodes=ExactLeaves=0;Bytes=0;for(const auto& S:Data->Surface){Nodes+=S.NumNodes();ExactLeaves+=S.NumExactLeaves();Bytes+=S.GetAllocatedSize();}Interpolated=Data->SurfaceInterpolated.load();Exact=Data->SurfaceExact.load();}
+void FCLSpatialCave::SampleSurfaceHeights(const FCLCompiledPlanetRecipe& P,TConstArrayView<FVector> Points,TArray<double>& Heights)const
 {
-    // Cover the composition, not the inspection route or current velocity. Ten
-    // metres conservatively includes footprint warp, undercut and smooth joins.
-    FBox2D Footprint(ForceInit);for(const auto& R:Data->Regions)Footprint+=R.Bounds;
-    Footprint=Footprint.ExpandBy(10.);constexpr double Cell=16.;
-    const double Radius=Cell*UE_SQRT_2*.5+4.;TArray<FSphere> Demand;
-    for(double X=Footprint.Min.X;X<Footprint.Max.X;X+=Cell)
-    for(double Y=Footprint.Min.Y;Y<Footprint.Max.Y;Y+=Cell)
+    Heights.SetNumUninitialized(Points.Num());TArray<FVector> Needed;TArray<int32> Indices;
+    for(int32 I=0;I<Points.Num();++I)
     {
-        const double CX=FMath::Min(X+Cell*.5,Footprint.Max.X),CY=FMath::Min(Y+Cell*.5,Footprint.Max.Y);
-        Demand.Add(FSphere(BodyPoint(FVector(CX,CY,FloorHeight(CX,CY)+1.)),Radius));
+        const FVector& Q=Points[I];const int32 Face=FCLSphericalPatches::Owner(Q);FVector2D UV;
+        if(FCLSphericalPatches::Coordinates(Face,Q,UV)&&Data->Surface[Face].TrySample(UV,Heights[I]))continue;
+        Needed.Add(Q);Indices.Add(I);
     }
-    return Demand;
+    if(!Needed.IsEmpty())
+    {
+        TArray<double> Values;(P.WatershedSurface?P.WatershedSurface.Get():&P)->SampleHeightsMeters(Needed,Values);
+        for(int32 I=0;I<Indices.Num();++I)Heights[Indices[I]]=Values[I];
+    }
+    if(P.WatershedSurface)P.Watershed->MapHeights(Points,Heights);
+    Data->SurfaceInterpolated.fetch_add(Points.Num()-Needed.Num(),std::memory_order_relaxed);Data->SurfaceExact.fetch_add(Needed.Num(),std::memory_order_relaxed);
+}
+void FCLSpatialCave::GetEvaluationSeconds(TArray<double>& Seconds)const
+{
+    Seconds.Reset();for(const auto& Cycles:Data->EvaluationCycles)Seconds.Add(FPlatformTime::ToSeconds64(Cycles.load()));
 }
 FBox FCLSpatialCave::Bounds()const{return Data->Bounds;}
-void FCLSpatialCave::GetSampleCacheStats(uint64& Hits,uint64& Misses,uint64& Bytes)const
-{
-    Hits=Data->CacheHits.load(std::memory_order_relaxed);Misses=Data->CacheMisses.load(std::memory_order_relaxed);
-    FReadScopeLock Lock(Data->CacheLock);Bytes=Data->Cache.GetAllocatedSize();
-}
-void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool bUseCache)const
+void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool bCompiledInputs)const
 {
     Air.SetNumUninitialized(P.Num());TArray<int32> Active;TArray<FVector> Local,NoisePoints;
-    TBitArray<> Cached(false,P.Num());uint64 Hits=0;
-    if(bUseCache)
-    {
-        // One read lease per packet; no lock spans geology/noise evaluation.
-        FReadScopeLock Lock(Data->CacheLock);
-        if(!Data->Cache.IsEmpty())for(int32 I=0;I<P.Num();++I)
-        {
-            const auto& Entry=Data->Cache[Data->CacheIndex(P[I])];
-            if(Entry.Position==P[I]){Air[I]=Entry.Air;Cached[I]=true;++Hits;}
-        }
-    }
     for(int32 I=0;I<P.Num();++I)
     {
-        if(Cached[I])continue;
         // The compiler verifies a broad, finite 3-D support envelope. Outside it
         // the cavity is closed, and a cheap distance lower bound rejects rock.
         const double Outside=FMath::Sqrt(Data->Bounds.ComputeSquaredDistanceToPoint(P[I]));
         if(Outside>0){Air[I]=-Outside-1;continue;}
-        Active.Add(I);Local.Add(BeddingPoint(P[I]));
+        Active.Add(I);
     }
-    Data->CacheHits.fetch_add(Hits,std::memory_order_relaxed);
-    Data->CacheMisses.fetch_add(Active.Num(),std::memory_order_relaxed);
+    uint64 Stage=FPlatformTime::Cycles64();
+    for(int32 I:Active)Local.Add(BeddingPoint(P[I],bCompiledInputs));
+    Data->EvaluationCycles[0].fetch_add(FPlatformTime::Cycles64()-Stage,std::memory_order_relaxed);Stage=FPlatformTime::Cycles64();
     NoisePoints.Reserve(Active.Num()*3);
     // Fixed spatial wavelengths. No nearest-key frame or per-section phase.
     for(const auto& Q:Local)NoisePoints.Add(Q/FVector(16,13,9)+FVector(71,-39,113));
     for(const auto& Q:Local)NoisePoints.Add(Q/FVector(4.2,4.2,2.1)+FVector(-31,51,19));
     for(const auto& Q:Local)NoisePoints.Add(Q/.65+FVector(13,91,-43));
     TArray<float> Noise;Data->Noise->SampleBatch(NoisePoints,Data->Seed,Noise);
+    Data->EvaluationCycles[1].fetch_add(FPlatformTime::Cycles64()-Stage,std::memory_order_relaxed);Stage=FPlatformTime::Cycles64();
     const int32 N=Local.Num();
+#if CL_SPATIAL_SIMD
+    if(bCompiledInputs&&N>0)
+    {
+        TArray<double> X,Y,Z,Values;X.SetNumUninitialized(N);Y.SetNumUninitialized(N);Z.SetNumUninitialized(N);Values.SetNumUninitialized(N);
+        for(int32 I=0;I<N;++I){X[I]=Local[I].X;Y[I]=Local[I].Y;Z[I]=Local[I].Z;}
+        ispc::CLSpatialMorph(X.GetData(),Y.GetData(),Z.GetData(),Noise.GetData(),Data->VertexX.GetData(),Data->VertexY.GetData(),Data->PolygonStarts.GetData(),Data->PolygonCounts.GetData(),Data->Regions.Num(),Data->Contacts.GetData(),Data->Contacts.Num(),Values.GetData(),N);
+        for(int32 I=0;I<N;++I)Air[Active[I]]=Values[I];
+    }
+    else
+#endif
     for(int32 I=0;I<N;++I)
     {
         const auto Q=Local[I];const double Broad=Noise[I],Bed=Noise[N+I],Detail=Noise[2*N+I];
@@ -155,7 +165,7 @@ void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool 
         const double BedRelief=(.25+.30*FMath::Clamp(Broad*2+Bed,0.,1.))*FMath::Exp(-FMath::Square(ContactDistance/.40))+.35*Bed;
         const double Undercut=1.6*FMath::Exp(-FMath::Square((Q.Z-5.8)/2.7));
         double Void=SmoothMin(Plan+BedRelief+Undercut,Roof-Q.Z,5.5);
-        Void=SmoothMin(Void,Q.Z-FloorHeight(Q.X,Q.Y),1.2);
+        const double Floor=FloorHeight(Q.X,Q.Y);Void=SmoothMin(Void,Q.Z-Floor,1.2);
         // A surviving roof pendant has an uneven, undercut base. It is a
         // three-dimensional retained mass, not a floor-to-ceiling cylinder.
         const double Flare=1+FMath::Square((Q.Z-16)/19.);
@@ -166,20 +176,15 @@ void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool 
         const double OutsideMass=-SmoothMin(-MassSide,-MassBase,5.);
         Void=SmoothMin(Void,OutsideMass,1.3);
         // Detail is subordinate to anatomy and fades completely at the floor.
-        const double WallDetail=.14*Detail*FMath::SmoothStep(.3,2.,Q.Z-FloorHeight(Q.X,Q.Y));
+        const double WallDetail=.14*Detail*FMath::SmoothStep(.3,2.,Q.Z-Floor);
         Air[Active[I]]=(Void+WallDetail)*.6;
     }
-    if(bUseCache&&!Active.IsEmpty())
-    {
-        FWriteScopeLock Lock(Data->CacheLock);
-        if(Data->Cache.IsEmpty()){Data->Cache.Reserve(FCLSpatialCaveData::CacheSize);Data->Cache.SetNum(FCLSpatialCaveData::CacheSize);}
-        for(int32 I:Active)
-        {auto& Entry=Data->Cache[Data->CacheIndex(P[I])];Entry.Position=P[I];Entry.Air=Air[I];}
-    }
+    Data->EvaluationCycles[2].fetch_add(FPlatformTime::Cycles64()-Stage,std::memory_order_relaxed);
+
 }
 void FCLSpatialCave::SamplePlanet(const FCLCompiledPlanetRecipe& P,TConstArrayView<FVector> Positions,TArray<double>& Fields,int32* HeightPoints)const
 {
-    Sample(Positions,Fields);
+    Sample(Positions,Fields);const uint64 Stage=FPlatformTime::Cycles64();
     // A smaller natural radius gives an upper bound on the solid/air field.
     // If the cavity already exceeds it, expensive terrain cannot affect max.
     const bool Bounded=P.SurfaceRange.IsValid()||(P.WatershedSurface&&P.WatershedSurface->SurfaceRange.IsValid());
@@ -189,10 +194,11 @@ void FCLSpatialCave::SamplePlanet(const FCLCompiledPlanetRecipe& P,TConstArrayVi
     if(HeightPoints)*HeightPoints=Needed.Num();
     if(!Needed.IsEmpty())
     {
-        TArray<double> Height,Actual;P.SampleHeightsMeters(Needed,Height);P.SampleRadialFields(Needed,Height,Actual);
+        TArray<double> Height,Actual;SampleSurfaceHeights(P,Needed,Height);P.SampleRadialFields(Needed,Height,Actual);
         for(int32 I=0;I<Indices.Num();++I)Fields[Indices[I]]=FMath::Max(Fields[Indices[I]],Actual[I]);
     }
     if(P.Volumes)P.Volumes->ComposeBatch(Positions,Fields);
+    Data->EvaluationCycles[3].fetch_add(FPlatformTime::Cycles64()-Stage,std::memory_order_relaxed);
 }
 TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {
@@ -220,12 +226,42 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompi
     Add({{-112,-7},{-101,-12},{-79,-9},{-63,-14},{-43,-9},{-25,-15},{-4,-12},{13,-15},{14,5},{-10,11},{-29,7},{-44,12},{-66,6},{-89,11},{-109,5}});
     Add({{-18,-14},{0,-30},{25,-40},{54,-31},{71,-12},{67,14},{49,32},{19,39},{-4,25},{-15,8}});
     Add({{-78,4},{-64,3},{-56,14},{-60,23},{-71,25},{-80,15}});
+    for(const auto& Region:Data->Regions)
+    {
+        Data->PolygonStarts.Add(Data->VertexX.Num());Data->PolygonCounts.Add(Region.Polygon.GetVertices().Num());
+        for(const auto& V:Region.Polygon.GetVertices()){Data->VertexX.Add(V.X);Data->VertexY.Add(V.Y);}
+    }
+#if CL_SPATIAL_SIMD
+    UE_LOG(LogTemp,Display,TEXT("LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4"));
+#endif
     auto Cave=MakeShared<FCLSpatialCave>();Cave->Data=Data;
     // Enclose the finite field including warp, undercuts, floor and roof. All
     // boundaries are checked against the actual terrain below; no surface hole.
     Data->Bounds=FBox(ForceInit);
     for(double X:{-135.,0.,95.})for(double Y:{-62.,0.,62.})for(double Z:{-20.,0.,52.})Data->Bounds+=Cave->BodyPoint(FVector(X,Y,Z));
     Data->Bounds=Data->Bounds.ExpandBy(12.);
+    FBox2D Chart(ForceInit);
+    for(int32 Corner=0;Corner<8;++Corner)
+    {
+        const FVector Q(Corner&1?Data->Bounds.Max.X:Data->Bounds.Min.X,Corner&2?Data->Bounds.Max.Y:Data->Bounds.Min.Y,Corner&4?Data->Bounds.Max.Z:Data->Bounds.Min.Z);
+        const double Along=FVector::DotProduct(Q,Data->Up);
+        if(Along<=1.e-6){Error=TEXT("Spatial bedding chart crosses its directional horizon");return nullptr;}
+        Chart+=FVector2D(FVector::DotProduct(Q,Data->X),FVector::DotProduct(Q,Data->Y))*(Data->Datum/Along);
+    }
+    const auto Rock=Data->Rock;const FVector XAxis=Data->X,YAxis=Data->Y,Up=Data->Up;const double Datum=Data->Datum;
+    Data->Bedding.Build(Chart.ExpandBy(1.),[Rock,XAxis,YAxis,Up,Datum](const FVector2D& P)
+    {
+        const FVector Q=(Up+XAxis*(P.X/Datum)+YAxis*(P.Y/Datum)).GetSafeNormal()*Datum;
+        return Q.Length()-Rock->RestoredRadiusMeters(Q);
+    });
+    const auto Surface=Base.WatershedSurface?Base.WatershedSurface:MakeShared<const FCLCompiledPlanetRecipe>(Base);
+    ParallelFor(6,[&](int32 Face)
+    {
+        auto Direction=[Face](const FVector2D& P){return FCLSphericalPatches::Direction(Face,P);};
+        Data->Surface[Face].Build(FBox2D(FVector2D(-1.000001),FVector2D(1.000001)),[Surface,Direction](const FVector2D& P){return Surface->SampleHeightMeters(Direction(P));},
+            [Surface,Direction](TConstArrayView<FVector2D> Points,TArray<double>& Heights)
+            {TArray<FVector> Directions;Directions.Reserve(Points.Num());for(const auto& P:Points)Directions.Add(Direction(P));Surface->SampleHeightsMeters(Directions,Heights);},.00025);
+    });
     for(double X=-125;X<=85;X+=10)for(double Y=-52;Y<=52;Y+=10)
     {
         const auto Point=Cave->BodyPoint(FVector(X,Y,45));const double Roof=Base.RadiusMeters+Base.SampleHeightMeters(Point.GetSafeNormal());

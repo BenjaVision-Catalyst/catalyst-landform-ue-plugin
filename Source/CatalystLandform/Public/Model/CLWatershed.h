@@ -39,6 +39,9 @@ class CATALYSTLANDFORM_API FCLCompiledWatershed final
 public:
     static TSharedPtr<const FCLCompiledWatershed> Compile(const FCLWatershedSettings&,const FCLCompiledPlanetRecipe&,FString& Error);
     double MapHeight(const FVector& Direction,double NativeHeight) const;
+    /** Coherent native query packets reuse exact watertight triangle tests;
+     * strict interior hits only, with the original tree deciding all seams. */
+    void MapHeights(TConstArrayView<FVector> Directions,TArray<double>& Heights,int32* TreeQueries=nullptr)const;
     /** Reuse the retained native analysis tree to locate a drainage cell. */
     int32 FindCell(const FVector& Direction) const;
     const TArray<FCLWatershedCell>& GetCells() const {return Cells;}
@@ -52,6 +55,7 @@ public:
     /** Measured conditioning cut/fill along emitted arcs; not conserved sediment. */
     double MaximumMeasuredCutMeters=0,MaximumMeasuredFillMeters=0;
 private:
+    double TriangleHeight(int32 Id,const FVector& Barycentric,double Height)const;
     bool Route(double SeaHeight,const TSet<int32>& Closed,FString& Error);
     TArray<int32> FloodOrder;
     struct FSpatial;

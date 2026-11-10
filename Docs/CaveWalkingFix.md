@@ -1,3 +1,5 @@
+Current spatial-family follow-up: [moving-demand delivery and freeze correction](CaveStreamingDeliveryFix.md). Earlier workload/results below remain scoped to their recorded revisions.
+
 # Free cave walking without admission pauses
 
 Follow-up: [chamber collision residency](ChamberCollisionResidency.md) replaces the earlier walking qualification after fresh-session pauses were reproduced.

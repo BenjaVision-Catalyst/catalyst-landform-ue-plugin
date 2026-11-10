@@ -63,10 +63,10 @@ bool ACLPlanet::ApplyRecipeJson(const FString& Json, FString& Error)
     // Import owns the strict parser and complete compiler preflight. Do not change
     // the live actor, its retained recipe, or its stamp on a rejected document.
     auto Candidate=TStrongObjectPtr<UCLPlanetRecipeAsset>(NewObject<UCLPlanetRecipeAsset>(this,NAME_None,RF_Transient));
-    if(!Candidate->ImportRecipeJson(Json,Error))return false;
+    TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
+    if(!Candidate->ImportRecipeJsonPrepared(Json,Error,Plan))return false;
     if(SamplingWindow.bEnabled)
     {
-        const auto Plan=FCLPlanetCompiler::Compile(Candidate->Recipe,Error);
         if(!Plan||!FCLScene::FromPlanet(Plan,Error))return false;
         for(TActorIterator<ACLSphericalHeightmapStamp> It(GetWorld());It;++It)
             if(It->Planet==this&&!It->IsActorBeingDestroyed())
@@ -75,11 +75,12 @@ bool ACLPlanet::ApplyRecipeJson(const FString& Json, FString& Error)
     UVoxelMegaMaterial* Material=MegaMaterial;
     if(Candidate->Recipe.SurfaceStack.IsActive())
     {
-        const auto Plan=FCLPlanetCompiler::Compile(Candidate->Recipe,Error);if(!Plan)return false;
+        if(!Plan)return false;
         Material=Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial()?Plan->MeasuredTerrain->GetMaterial():GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous();
         if(!Material){Error=TEXT("Configured client planet material is missing or was not cooked");return false;}
     }
-    RecipeAsset=Candidate.Get();MegaMaterial=Material;bRuntimeRecipeApplied=true;RebuildTerrain();return true;
+    RecipeAsset=Candidate.Get();MegaMaterial=Material;bRuntimeRecipeApplied=true;
+    TGuardValue<TSharedPtr<const FCLCompiledPlanetRecipe>> Applying(ApplyingRecipePlan,Plan);RebuildTerrain();return true;
 }
 
 void ACLPlanet::RebuildTerrain()
@@ -99,7 +100,8 @@ void ACLPlanet::RebuildTerrain()
     if (RecipeAsset)
     {
         if(!RecipeAsset->SynchronizeRadialGuides(RecipeStatus)){RecipeStatus=TEXT("Keeping last valid terrain: ")+RecipeStatus;return;}
-        const auto Plan = FCLPlanetCompiler::Compile(RecipeAsset->Recipe, RecipeStatus);
+        const bool SameInput=ApplyingRecipePlan&&ApplyingRecipePlan->SourceRecipe&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&RecipeAsset->Recipe,ApplyingRecipePlan->SourceRecipe.Get(),0);
+        const auto Plan=SameInput?ApplyingRecipePlan:FCLPlanetCompiler::Compile(RecipeAsset->Recipe,RecipeStatus);
         if (!Plan) { RecipeStatus = TEXT("Keeping last valid terrain: ") + RecipeStatus; return; }
         RadiusMeters = Plan->RadiusMeters;
         if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())MegaMaterial=Plan->MeasuredTerrain->GetMaterial();

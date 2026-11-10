@@ -1,0 +1,17 @@
+{
+  "inputSHA256": "7f9d65d168112a9b5a17b2189399cfe934422686b8346371575a97ef161e39cd",
+  "compiler": "/opt/homebrew/bin/ispc",
+  "version": "Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.31.0 (build commit  @ 20260625, LLVM 22.1.8)",
+  "flags": [
+    "--target=neon-i32x4",
+    "--arch=aarch64",
+    "--target-os=macos",
+    "--pic",
+    "--opt=disable-fma",
+    "-O2"
+  ],
+  "outputs": {
+    "CLSpatialMorph.generated.h": "2e8ed8394063711049440ed929cc0ad07263d3a3871a4628fc0ff66da71d477c",
+    "libCLSpatialMorph.a": "e1f496b40e63f431b4c8ae5c99f275a1fe8746744239f7b9299e568ef1f487fb"
+  }
+}

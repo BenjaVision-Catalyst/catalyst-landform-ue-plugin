@@ -1,0 +1,17 @@
+{
+  "idempotentContentAndTimestamps": true,
+  "artifacts": {
+    "CLSpatialMorph.generated.h": [
+      "2e8ed8394063711049440ed929cc0ad07263d3a3871a4628fc0ff66da71d477c",
+      1794340504396075003
+    ],
+    "libCLSpatialMorph.a": [
+      "e1f496b40e63f431b4c8ae5c99f275a1fe8746744239f7b9299e568ef1f487fb",
+      1794340504422284029
+    ],
+    "artifact.json": [
+      "452191275ecb419e2d5ff9c671d0508514a070cb1f359869cac6376bd88e7172",
+      1794340504424176445
+    ]
+  }
+}

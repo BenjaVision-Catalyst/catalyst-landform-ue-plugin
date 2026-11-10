@@ -1,3 +1,5 @@
+> Withdrawn as a streaming fix on 11 November 2026. These runs preloaded the complete cave floor before walking. The implementation is removed. See [the moving-demand delivery fix](CaveStreamingDeliveryFix.md). The original experiment is retained below as historical evidence.
+
 # Chamber walking without publication waits
 
 11 November 2026. Supersedes the walking claim in [CaveWalkingFix.md](CaveWalkingFix.md)

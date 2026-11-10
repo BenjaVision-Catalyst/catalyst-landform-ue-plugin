@@ -80,6 +80,7 @@ public:
     virtual void BeginPlay() override;
 
 private:
+    TSharedPtr<const FCLCompiledPlanetRecipe> ApplyingRecipePlan;
     bool bRebuilding = false;
     bool bDisplayScaleApplied = false;
     bool bRuntimeRecipeApplied = false;

@@ -367,6 +367,8 @@ public:
     virtual void PostLoad() override;
     /** Transactional local import; Foundation's legacy importer mutates before validating. */
     UFUNCTION(BlueprintCallable, Category="Landform|Recipe") bool ImportRecipeJson(const FString& Json, FString& Error);
+    /** Same transactional import, returning the accepted immutable preflight for immediate activation. */
+    bool ImportRecipeJsonPrepared(const FString& Json,FString& Error,TSharedPtr<const FCLCompiledPlanetRecipe>& Plan);
 #if WITH_EDITOR
     FSimpleMulticastDelegate OnRecipeChanged;
     virtual void PostEditChangeProperty(FPropertyChangedEvent& Event) override;

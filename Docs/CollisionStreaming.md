@@ -1,3 +1,5 @@
+Current spatial-family follow-up: [moving-demand delivery and freeze correction](CaveStreamingDeliveryFix.md). Earlier workload/results below remain scoped to their recorded revisions.
+
 # Why cave walking pauses
 
 7 November 2026. Research against workspace `9f88550`, Landform `712ddd4`,

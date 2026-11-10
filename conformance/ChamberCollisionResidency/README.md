@@ -1,3 +1,5 @@
+> Withdrawn as a streaming fix on 11 November 2026. These runs preloaded the complete cave floor before walking. The implementation is removed. See [the moving-demand delivery fix](../../Docs/CaveStreamingDeliveryFix.md). The original experiment is retained below as historical evidence.
+
 # Chamber collision residency qualification
 
 Physical macOS arm64 / UE5.7.4 / VPP2.0p8. Client checkpoint: 11 November 2026.
