@@ -8,11 +8,11 @@ import subprocess
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--project', type=Path, required=True)
 parser.add_argument('--engine', type=Path, default=Path(os.environ.get('UNREAL_ENGINE_ROOT', '/Users/jupiter/UnrealEngine/UE_5.7')))
-parser.add_argument('--phase', choices=['geometry', 'review', 'reader', 'headroom', 'roam'], required=True)
+parser.add_argument('--phase', choices=['geometry', 'review', 'reader', 'headroom', 'roam', 'chamber', 'wall'], required=True)
 parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--manual-settings', action='store_true', help='Use the manual launcher render/timing settings')
 parser.add_argument('--delivery', choices=['legacy', 'cpp', 'graph'], default='cpp')
-parser.add_argument('--walk-speed', type=float, default=600, help='Review speed in cm/s, 100..600')
+parser.add_argument('--walk-speed', type=float, default=3000, help='Review speed in cm/s, 100..3000')
 parser.add_argument('--slot', default='LandformSpatialCaveQualification')
 args = parser.parse_args()
 project, output = args.project.resolve(), args.output.resolve()
@@ -26,7 +26,7 @@ if args.phase == 'geometry':
 else:
     command.insert(2, '/Engine/Maps/Entry?game=/Script/LandformLab.CLGeneratedCaveProofGameMode')
     command += ['-game', '-CLCaveReviewWorkers=8', '-ResX=1280', '-ResY=800', '-windowed', '-CLDelivery=' + args.delivery, '-CLCaveRecipe=' + str(project.parent / 'Plugins/CatalystLandform/Examples/SpatialCave.json'), '-CLReport=' + str(output / 'result.json'), '-CLCaveSlot=' + args.slot, '-CLCaveWalkSpeed=' + str(args.walk_speed), '-ExecCmds=r.VSync 0,t.MaxFPS 0,t.IdleWhenNotForeground 0,r.ScreenPercentage 100,r.DynamicRes.OperationMode 0,sg.ResolutionQuality,sg.ShadowQuality,sg.GlobalIlluminationQuality,sg.ViewDistanceQuality']
-    command += {'review': ['-CLCaveReferenceReview'], 'roam': ['-CLCaveRoamProof'], 'reader': ['-CLCaveLoad', '-CLCaveWalk'], 'headroom': ['-CLHeadroom']}[args.phase]
+    command += {'review': ['-CLCaveReferenceReview'], 'wall': ['-CLCaveWallProof'], 'chamber': ['-CLCaveChamberProof'], 'roam': ['-CLCaveRoamProof'], 'reader': ['-CLCaveLoad', '-CLCaveWalk'], 'headroom': ['-CLHeadroom']}[args.phase]
 if args.manual_settings:
     command = [arg for arg in command if not arg.startswith('-ExecCmds=') and arg != '-unattended']
 for name in ['result.json', 'geometry.json', 'work.json']:
@@ -44,10 +44,16 @@ else:
     if args.phase == 'review':
         assert report['routeGroundedFrames'] == report['routeFrames'] > 0
         assert report['nativeCollisionWaitSeconds'] <= .25
-    if args.phase == 'roam':
+    if args.phase in ('roam', 'chamber'):
         assert report['routeGroundedFrames'] == report['routeFrames'] > 0
         assert report['nativeCollisionWaitFrames'] == 0 and report['maximumStoppedUnderInputSeconds'] < .1
         assert report['referenceMovingFrameMs']['max'] < 100 and report['routeDistanceMeters'] >= 300
+    if args.phase == 'chamber':
+        assert report['routeDistanceMeters'] >= 1000 and report['peakSpeedCmPerSecond'] >= args.walk_speed * .99
+        assert report['nativeFloorDemandStable'] and report['nativeFloorDemandInvokers'] > 0
+    if args.phase == 'wall':
+        assert report['nativeCollisionWaitFrames'] == 0 and report['wallContactFrames'] > 10
+        assert report['minimumFootFieldMeters'] > -.35 and report['referenceMovingFrameMs']['max'] < 100
     if args.phase == 'reader':
         assert report['comparedProbes'] > 0 and report['maximumReloadErrorCm'] == 0
     if args.phase == 'headroom':

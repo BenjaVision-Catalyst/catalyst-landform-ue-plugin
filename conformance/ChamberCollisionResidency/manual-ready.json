@@ -1,0 +1,11 @@
+{
+	"ready": true,
+	"mode": "manual",
+	"start": "native cave passage",
+	"nativeFloor": true,
+	"processID": 20661,
+	"collisionInvokerRadiusCm": 200,
+	"positionCm": "X=50012.101 Y=-102.761 Z=-10096.644",
+	"walkSpeedCmPerSecond": 3000,
+	"nativeFloorDemandInvokers": 91
+}

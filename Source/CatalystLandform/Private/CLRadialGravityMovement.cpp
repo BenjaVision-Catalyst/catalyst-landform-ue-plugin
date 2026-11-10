@@ -34,7 +34,7 @@ void UCLRadialGravityMovement::ApplyWorldOffset(const FVector& InOffset, bool bW
     Super::ApplyWorldOffset(InOffset, bWorldShift);
     // Movement ticks before its owner. Translate this world-space cache now,
     // before the first movement step can use the previous origin's centre.
-    if (bWorldShift) PlanetCenter += InOffset;
+    if (bWorldShift) {PlanetCenter += InOffset;CollisionWaitProbe += InOffset;}
 }
 
 bool UCLRadialGravityMovement::CanMoveOverNativeCollision(float DeltaTime) const
@@ -47,13 +47,16 @@ bool UCLRadialGravityMovement::CanMoveOverNativeCollision(float DeltaTime) const
     const FVector Ahead=FVector::VectorPlaneProject(Motion,Up).GetSafeNormal();if(Ahead.IsNearlyZero())return true;
     const double Half=CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
     FCollisionQueryParams Params(SCENE_QUERY_STAT(CLRadialCollisionAdmission),false);Params.AddIgnoredActor(CharacterOwner);
-    auto HasWalkingFloor=[&](const FVector& Center,FHitResult& Hit)
+    auto HasPhysicsSurface=[&](const FVector& Center,FHitResult& Hit)
     {
         const FVector LocalUp=(Center-PlanetCenter).GetSafeNormal();
         return GetWorld()->LineTraceSingleByChannel(Hit,Center+LocalUp*MaxStepHeight,
-            Center-LocalUp*(Half+MaxStepHeight*2.),ECC_Visibility,Params)&&IsWalkable(Hit);
+            Center-LocalUp*(Half+MaxStepHeight*2.),ECC_Visibility,Params);
     };
-    FHitResult Current;if(!HasWalkingFloor(Here,Current)||Current.GetActor()!=CollisionWorld)return true;
+    FHitResult Current;if(!HasPhysicsSurface(Here,Current)||!IsWalkable(Current)||Current.GetActor()!=CollisionWorld)return true;
+    // A blocking surface is generated physics even when it is too steep to
+    // walk. Native CharacterMovement owns slope, wall and step resolution;
+    // only a missing surface can be a publication gap.
     // Check the capsule's possible movement in this frame, not a distant
     // point beyond a wall, corner or intended turn. Resolve blocking geometry
     // with the same native slide projection used by CharacterMovement.
@@ -65,18 +68,19 @@ bool UCLRadialGravityMovement::CanMoveOverNativeCollision(float DeltaTime) const
     {
         if(Delta.IsNearlyZero())return true;
         FVector Destination=Here+Delta;FHitResult Blocking,Next;
-        if(HasWalkingFloor(Destination,Next))return true;
+        if(HasPhysicsSurface(Destination,Next))return true;
         if(GetWorld()->SweepSingleByChannel(Blocking,Here,Destination,UpdatedComponent->GetComponentQuat(),ECC_Visibility,
             FCollisionShape::MakeCapsule(Capsule->GetScaledCapsuleRadius(),Half),Params))
         {
             // Capsule perching can still touch the old chunk after its centre
             // leaves published support. Do not accept that as a safe new step.
-            if(Blocking.bStartPenetrating)return false;
+            if(Blocking.bStartPenetrating){CollisionWaitProbe=Destination;return false;}
             const FVector Slide=ComputeSlideVector(Delta,1.-Blocking.Time,Blocking.Normal,Blocking);
             Destination=Here+Delta*FMath::Max(0.,double(Blocking.Time)-.001)+Slide;
             if(FVector::DistSquared(Here,Destination)<1.)return true; // Ordinary wall contact.
         }
-        return HasWalkingFloor(Destination,Next);
+        if(HasPhysicsSurface(Destination,Next))return true;
+        CollisionWaitProbe=Destination;return false;
     };
     // Turning input does not immediately cancel existing momentum. Both ends
     // must retain real centre support; native movement owns sliding and steps.

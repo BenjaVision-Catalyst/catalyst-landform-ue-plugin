@@ -1,0 +1,11 @@
+{
+	"points": 24576,
+	"floorSites": 1821,
+	"nativeFloorDemandInvokers": 91,
+	"hits": 224892,
+	"misses": 108138,
+	"bytes": 8388608,
+	"maximumFieldErrorMeters": 0,
+	"referenceSeconds": 0.060911126434803009,
+	"warmSeconds": 0.0020395852625370026
+}

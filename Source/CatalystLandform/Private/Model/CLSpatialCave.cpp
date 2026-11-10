@@ -6,6 +6,8 @@
 #include "CLNativeNoiseKernel.h"
 #include "Polygon2.h"
 #include "Math/RotationMatrix.h"
+#include "Misc/ScopeRWLock.h"
+#include <atomic>
 
 class FCLSpatialCaveData
 {
@@ -19,6 +21,16 @@ public:
     int32 Seed=0;
     TArray<double> Contacts;
     FBox Bounds;
+    // A compiled composition owns one fixed-size, exact-position cache. Native
+    // collision and render workers share base-field values, never meshes or
+    // sculpted results. Eviction only repeats pure computation.
+    struct FCachedSample {FVector Position=FVector(MAX_dbl);double Air=0;};
+    static constexpr uint32 CacheSize=1<<18;
+    mutable FRWLock CacheLock;
+    mutable TArray<FCachedSample> Cache;
+    mutable std::atomic<uint64> CacheHits{0},CacheMisses{0};
+    uint32 CacheIndex(const FVector& P)const{return GetTypeHash(P)&(CacheSize-1);}
+
 };
 namespace
 {
@@ -61,18 +73,52 @@ double FCLSpatialCave::FloorHeight(double X,double Y)const
     const double Rolling=.55*FMath::Sin(X*.052+Y*.029)+.32*FMath::Cos(Y*.12-X*.018)+.10*FMath::Sin(X*.31+Y*.23);
     return -.012*X-1.4*RoomWeight(X)+Bank+Channel+Rolling;
 }
+TArray<FSphere> FCLSpatialCave::FloorCollisionDemandMeters()const
+{
+    // Cover the composition, not the inspection route or current velocity. Ten
+    // metres conservatively includes footprint warp, undercut and smooth joins.
+    FBox2D Footprint(ForceInit);for(const auto& R:Data->Regions)Footprint+=R.Bounds;
+    Footprint=Footprint.ExpandBy(10.);constexpr double Cell=16.;
+    const double Radius=Cell*UE_SQRT_2*.5+4.;TArray<FSphere> Demand;
+    for(double X=Footprint.Min.X;X<Footprint.Max.X;X+=Cell)
+    for(double Y=Footprint.Min.Y;Y<Footprint.Max.Y;Y+=Cell)
+    {
+        const double CX=FMath::Min(X+Cell*.5,Footprint.Max.X),CY=FMath::Min(Y+Cell*.5,Footprint.Max.Y);
+        Demand.Add(FSphere(BodyPoint(FVector(CX,CY,FloorHeight(CX,CY)+1.)),Radius));
+    }
+    return Demand;
+}
 FBox FCLSpatialCave::Bounds()const{return Data->Bounds;}
-void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air)const
+void FCLSpatialCave::GetSampleCacheStats(uint64& Hits,uint64& Misses,uint64& Bytes)const
+{
+    Hits=Data->CacheHits.load(std::memory_order_relaxed);Misses=Data->CacheMisses.load(std::memory_order_relaxed);
+    FReadScopeLock Lock(Data->CacheLock);Bytes=Data->Cache.GetAllocatedSize();
+}
+void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool bUseCache)const
 {
     Air.SetNumUninitialized(P.Num());TArray<int32> Active;TArray<FVector> Local,NoisePoints;
+    TBitArray<> Cached(false,P.Num());uint64 Hits=0;
+    if(bUseCache)
+    {
+        // One read lease per packet; no lock spans geology/noise evaluation.
+        FReadScopeLock Lock(Data->CacheLock);
+        if(!Data->Cache.IsEmpty())for(int32 I=0;I<P.Num();++I)
+        {
+            const auto& Entry=Data->Cache[Data->CacheIndex(P[I])];
+            if(Entry.Position==P[I]){Air[I]=Entry.Air;Cached[I]=true;++Hits;}
+        }
+    }
     for(int32 I=0;I<P.Num();++I)
     {
+        if(Cached[I])continue;
         // The compiler verifies a broad, finite 3-D support envelope. Outside it
         // the cavity is closed, and a cheap distance lower bound rejects rock.
         const double Outside=FMath::Sqrt(Data->Bounds.ComputeSquaredDistanceToPoint(P[I]));
         if(Outside>0){Air[I]=-Outside-1;continue;}
         Active.Add(I);Local.Add(BeddingPoint(P[I]));
     }
+    Data->CacheHits.fetch_add(Hits,std::memory_order_relaxed);
+    Data->CacheMisses.fetch_add(Active.Num(),std::memory_order_relaxed);
     NoisePoints.Reserve(Active.Num()*3);
     // Fixed spatial wavelengths. No nearest-key frame or per-section phase.
     for(const auto& Q:Local)NoisePoints.Add(Q/FVector(16,13,9)+FVector(71,-39,113));
@@ -122,6 +168,13 @@ void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air)const
         // Detail is subordinate to anatomy and fades completely at the floor.
         const double WallDetail=.14*Detail*FMath::SmoothStep(.3,2.,Q.Z-FloorHeight(Q.X,Q.Y));
         Air[Active[I]]=(Void+WallDetail)*.6;
+    }
+    if(bUseCache&&!Active.IsEmpty())
+    {
+        FWriteScopeLock Lock(Data->CacheLock);
+        if(Data->Cache.IsEmpty()){Data->Cache.Reserve(FCLSpatialCaveData::CacheSize);Data->Cache.SetNum(FCLSpatialCaveData::CacheSize);}
+        for(int32 I:Active)
+        {auto& Entry=Data->Cache[Data->CacheIndex(P[I])];Entry.Position=P[I];Entry.Air=Air[I];}
     }
 }
 void FCLSpatialCave::SamplePlanet(const FCLCompiledPlanetRecipe& P,TConstArrayView<FVector> Positions,TArray<double>& Fields,int32* HeightPoints)const

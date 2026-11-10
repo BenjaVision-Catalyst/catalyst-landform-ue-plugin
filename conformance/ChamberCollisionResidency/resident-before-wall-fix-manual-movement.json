@@ -1,0 +1,10 @@
+{
+	"movingInputFrames": 1651,
+	"groundedInputFrames": 1581,
+	"maximumMovingFrameMs": 55.921375751495361,
+	"maximumFrameMs": 55.921375751495361,
+	"admissionWaitSeconds": 0.067246504127979279,
+	"pendingTasks": 0,
+	"walkSpeedCmPerSecond": 3000,
+	"positionCm": "X=50863.737 Y=1265.591 Z=-528.451"
+}

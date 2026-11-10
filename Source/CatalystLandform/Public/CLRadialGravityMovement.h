@@ -22,6 +22,8 @@ public:
     int32 GetCollisionWaitFrames() const {return CollisionWaitFrames;}
     double GetCollisionWaitSeconds() const {return CollisionWaitSeconds;}
 
+    FVector GetCollisionWaitProbe()const{return CollisionWaitProbe;}
+
     virtual void TickComponent(float DeltaTime, ELevelTick TickType,
         FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -33,4 +35,5 @@ private:
     bool CanMoveOverNativeCollision(float DeltaTime) const;
     int32 CollisionWaitFrames=0;
     double CollisionWaitSeconds=0;
+    mutable FVector CollisionWaitProbe=FVector::ZeroVector;
 };

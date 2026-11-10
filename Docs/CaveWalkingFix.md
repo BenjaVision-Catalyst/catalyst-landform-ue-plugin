@@ -1,5 +1,7 @@
 # Free cave walking without admission pauses
 
+Follow-up: [chamber collision residency](ChamberCollisionResidency.md) replaces the earlier walking qualification after fresh-session pauses were reproduced.
+
 7 November 2026. Follow-up to the [spatial cave prototype](SpatialCavePrototype.md).
 The original centreline test missed pauses during broader chamber exploration.
 Geometry, geology, edits, the existing UI and VPP source are unchanged.

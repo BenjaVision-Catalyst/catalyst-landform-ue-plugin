@@ -1,5 +1,7 @@
 # Spatial cave prototype
 
+Follow-up: [chamber collision residency](ChamberCollisionResidency.md) replaces the earlier walking qualification after fresh-session pauses were reproduced.
+
 7 November 2026. Opt-in profile 8 replaces swept passage sections with one
 spatial passage/chamber composition. It follows the
 [cave work diagnosis](CollisionStreaming.md#follow-up-the-actual-work-explosion).

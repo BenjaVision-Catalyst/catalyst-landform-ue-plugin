@@ -306,3 +306,7 @@ measurements do not claim identical geometry to the frozen spline family.
 The [free-walking correction](CaveWalkingFix.md) fixes the movement guard's
 distant-probe false stops and sizes the spatial prototype's native lead
 against observed publication latency.
+
+The [chamber residency correction](ChamberCollisionResidency.md) retains the later
+69.43 s chamber reproduction and fixes active-floor demand for the finite spatial
+composition, qualified at the requested five-times walking speed.

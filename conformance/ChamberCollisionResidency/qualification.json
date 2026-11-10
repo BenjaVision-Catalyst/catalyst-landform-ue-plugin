@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-11",
+  "componentBase": "d9ea81a6744b3ab9cf2c5054793dc1bc4b267c10",
+  "workspaceBase": "986143ad15b05eb45e5a68f809922223460389bb",
+  "rawWorkerSampleSHA256": "e764c4c394f39508271585e4f05ca1816944357d5ed89c81bbf499ca837063a1",
+  "platform": "macOS arm64, UE5.7.4, VPP2.0p8",
+  "nativeRenderSettings": "Manual launcher; 20 cm voxels, LOD quality 2, eight native workers; no benchmark timing overrides",
+  "vendorSourceChanges": false,
+  "qualificationSpeedCmPerSecond": 3000,
+  "baselineSpeedCmPerSecond": 600,
+  "nativeFloorDemandInvokers": 91,
+  "sampleCacheCapacityBytes": 8388608,
+  "changedNativeSources": [
+    "Plugins/CatalystLandform/Source/CatalystLandform/Private/CLRadialGravityMovement.cpp",
+    "Plugins/CatalystLandform/Source/CatalystLandform/Private/Model/CLSpatialCave.cpp",
+    "Plugins/CatalystLandform/Source/CatalystLandform/Public/CLRadialGravityMovement.h",
+    "Plugins/CatalystLandform/Source/CatalystLandform/Public/Model/CLSpatialCave.h",
+    "Source/LandformLab/Private/CLGeneratedCaveProof.cpp",
+    "Plugins/CatalystLandform/Source/CatalystLandformTests/Private/CLSpatialCaveCacheTests.cpp"
+  ],
+  "unchangedPriorNativeSources": 277
+}
