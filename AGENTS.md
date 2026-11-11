@@ -18,3 +18,10 @@ Any change to cave eligibility, placement, fit or recipe validation must run the
 enabled-minimum regression tests, including missing/unknown geology and small
 planets. Cancellation and invalid input remain normal pipeline validation, not
 geological eligibility rules.
+
+Preview-delivery changes must qualify the rendered CurrentRift scenario, including
+visible cave pixels, native publication/task readiness and native zoom detail.
+Field-only checks do not qualify a usable preview. Keep inspection at VPP's native
+SetupForPreview quality and chunk-size defaults unless a measured comparison
+establishes a specific benefit. Overview accuracy follows native cell size;
+close-up accuracy retains the 0.5 m field budget.

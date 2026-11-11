@@ -174,4 +174,25 @@ bool FCLCaveRiftNaturalTest::RunTest(const FString&)
     Scene->SampleShape({Feet},Field,E);for(const auto& V:Field)TestTrue(TEXT("The actual review terrain supports every sampled walking floor"),V.FieldMeters<0);
     AddInfo(FString::Printf(TEXT("Rift natural family: %d networks, %d chambers, %d passages, %d entrances, grade %.5f, clearance failures %d, foundation failures %d, scalar residual %.9g"),C.Networks,C.Chambers.Num(),C.Passages.Num(),C.Entrances,Grade,BadHead,BadFloor,Error));return !HasAnyErrors();
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveInspectionPruningTest,"Catalyst.Landform.Caves.InspectionExcludesEmptySpace",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLCaveInspectionPruningTest::RunTest(const FString&)
+{
+    const auto* Asset=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview"));if(!TestNotNull(TEXT("Current review"),Asset))return false;
+    auto R=Asset->Recipe;R.Caves.bEnabled=true;FString E;const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves){AddError(E);return false;}
+    TArray<FVector> Points;const FBox Bounds=P->Caves->Cutters->Bounds();FRandomStream Random(417);
+    for(int32 I=0;I<4096;++I)Points.Add(Bounds.Min+(Bounds.Max-Bounds.Min)*FVector(Random.FRand(),Random.FRand(),Random.FRand()));
+    for(const auto& Path:P->Caves->Passages)for(int32 I=0;I<Path.Points.Num();I+=11){Points.Add(Path.Points[I]);Points.Add(Path.Points[I]+Path.Points[I].GetSafeNormal()*20);}
+    TArray<double> Air;Air.Init(FVoxelUtilities::NaNf(),Points.Num());P->Caves->Cutters->ComposeBatch(Points,Air);
+    TArray<double> Height,Original,Lower;P->SampleHeightsMeters(Points,Height);P->SampleRadialFields(Points,Height,Original);Height.Init(P->MinimumHeightMeters,Points.Num());P->SampleRadialFields(Points,Height,Lower);
+    TArray<FCLSceneShapeSample> Field;FCLScene::FromPlanet(P,E)->SampleCaveVoid({Points},Field,E);int32 OldRequests=0,NewRequests=0,Signs=0;double SurfaceError=0;
+    for(int32 I=0;I<Points.Num();++I)
+    {
+        OldRequests+=Lower[I]>-Air[I];NewRequests+=Air[I]>=-2&&Lower[I]>-Air[I];
+        const double Reference=FMath::Max(Original[I],-Air[I]);Signs+=(Reference<0)!=(Field[I].FieldMeters<0);
+        if(Reference<=0||FMath::Abs(Reference)<.5)SurfaceError=FMath::Max(SurfaceError,FMath::Abs(Reference-Field[I].FieldMeters));
+        else TestTrue(TEXT("Excluded space retains a positive cave-distance bound"),Field[I].FieldMeters>0);
+    }
+    TestEqual(TEXT("Pruning preserves every sampled solid/void sign"),Signs,0);TestTrue(TEXT("The cave interior and surface band retain the original field"),SurfaceError<1.e-6);TestTrue(TEXT("Empty-space pruning removes unnecessary terrain queries"),NewRequests<OldRequests);
+    AddInfo(FString::Printf(TEXT("CAVE_INSPECTION_PRUNING points=%d oldTerrainRequests=%d newTerrainRequests=%d signErrors=%d interiorFieldError=%.9g"),Points.Num(),OldRequests,NewRequests,Signs,SurfaceError));return !HasAnyErrors();
+}
 #endif

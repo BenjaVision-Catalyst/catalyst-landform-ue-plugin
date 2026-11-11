@@ -16,6 +16,8 @@
 #include "VoxelPinValue.h"
 #include "VoxelStampComponent.h"
 #include "VoxelMesh.h"
+#include "VoxelRuntime.h"
+#include "VoxelState.h"
 #include "VoxelChunkKey.h"
 #include "Shape/VoxelSphereShape.h"
 #include "Shape/VoxelCubeShape.h"
@@ -105,7 +107,6 @@ bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRec
         {
             auto* Stack=NewObject<UVoxelLayerStack>(Native.Get());Stack->HeightLayers.Reset();Stack->VolumeLayers={NewObject<UVoxelVolumeLayer>(Stack)};Native->LayerStack=Stack;UVoxelLayerStack::OnChanged.Broadcast();
             Native->MegaMaterial=CaveInspectionMaterial();Native->VoxelSize=10;
-            Native->RenderChunkSize=EVoxelRenderChunkSize::Size128;
             Native->VisibilityCollision.SetCollisionEnabled(ECollisionEnabled::NoCollision);Native->InvokerCollision.SetCollisionEnabled(ECollisionEnabled::NoCollision);
         }
         else if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
@@ -159,10 +160,8 @@ bool FCLNativePreview::ApplyPending()
     Source.bCaveInspectionPreview=CaveInspection;Source.CaveInspectionDomain=CaveDomain;
     Source.Layer=CaveInspection?Native->LayerStack->VolumeLayers[0].Get():UVoxelVolumeLayer::Default();Source.Behavior=CaveInspection?EVoxelStampBehavior::AffectShape:EVoxelStampBehavior::AffectAll;Source.Smoothness=0;Source.BoundsExtension=.05;
     Source.bSectionPreview=Section;Source.SectionWidthMeters=Width;Source.SectionReferenceRadiusMeters=FCLSectionGeometry::ReferenceSurfaceRadius(*Plan);
-    // A planet-wide cave diagnostic must retain thin voids even when terrain
-    // overview LOD would sample them away. VPP owns subdivision and meshing;
-    // this higher native quality applies only to the sparse inspection layer.
-    Native->LODQuality.EditorQuality=CaveInspection?FFloatInterval(8192,8192):AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
+    // Inspection retains native SetupForPreview quality and chunk size.
+    if(!CaveInspection)Native->LODQuality.EditorQuality=AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
     auto Coordinates=MaterialCoordinates(StampToDisplay(),Section,Source.SectionReferenceRadiusMeters);
 #if WITH_DEV_AUTOMATION_TESTS
     if(!MaterialCoordinatesEnabled)Coordinates.High.A=0;
@@ -207,7 +206,10 @@ FString FCLNativePreview::Status()const
     if(IsCaveOverview()){FString Result=InputProgressText();for(const auto& N:CaveDomains)Result+=TEXT(" | ")+N->Status();return Result;}
     if(!Failure.IsEmpty())return Failure;if(!Native)return TEXT("No native producer");
     TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);
-    return FString::Printf(TEXT("components %d, native producer/presenter %u, ready %d, processing %d, tasks %d, inspected vertices %d"),Components.Num(),Native->GetUniqueID(),Native->IsVoxelWorldReady(),Native->IsProcessingNewState(),Native->GetNumPendingTasks(),Last.Vertices.Num());
+    int32 MinLOD=MAX_int32,MaxLOD=0;for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy()){MinLOD=FMath::Min(MinLOD,Proxy->Mesh->ChunkLOD);MaxLOD=FMath::Max(MaxLOD,Proxy->Mesh->ChunkLOD);}
+    const auto State=Native->GetRuntime()?Native->GetRuntime()->GetNewestState():nullptr;
+    const FString Config=State?FString::Printf(TEXT(", actor %.1f config editor %d quality %.1f/%.1f game %.1f/%.1f voxel %d chunk %d lod %d/%d"),Native->LODQuality.EditorQuality.Min,State->Config->bIsEditorWorld,State->Config->LODQuality.EditorQuality.Min,State->Config->LODQuality.EditorQuality.Max,State->Config->LODQuality.GameQuality.Min,State->Config->LODQuality.GameQuality.Max,State->Config->VoxelSize,State->Config->RenderChunkSize,MinLOD,MaxLOD):FString();
+    return FString::Printf(TEXT("components %d, native producer/presenter %u, ready %d, processing %d, tasks %d, inspected vertices %d"),Components.Num(),Native->GetUniqueID(),Native->IsVoxelWorldReady(),Native->IsProcessingNewState(),Native->GetNumPendingTasks(),Last.Vertices.Num())+Config;
 }
 FBox FCLNativePreview::DisplayBounds()const
 {
@@ -241,7 +243,7 @@ const FCLNativePreview::FBuffers& FCLNativePreview::Published()const
     if(IsCaveOverview())
     {
         if(!VisiblePlan||VisiblePlan!=Plan||IsUpdating()||InspectionHash==PublishedHash)return Last;
-        FBuffers Next;for(const auto& N:CaveDomains){const auto& M=N->Published();const int32 Offset=Next.Vertices.Num();Next.Vertices.Append(M.Vertices);Next.SourcePoints.Append(M.SourcePoints);for(const auto I:M.Triangles)Next.Triangles.Add(Offset+I);}
+        FBuffers Next;for(const auto& N:CaveDomains){const auto& M=N->Published();const int32 Offset=Next.Vertices.Num();Next.Vertices.Append(M.Vertices);Next.SourcePoints.Append(M.SourcePoints);Next.SourceCellMeters.Append(M.SourceCellMeters);for(const auto I:M.Triangles)Next.Triangles.Add(Offset+I);}
         Last=MoveTemp(Next);InspectionHash=PublishedHash;
 #if WITH_DEV_AUTOMATION_TESTS
         ++Metrics.MeshCopies;Metrics.VerticesCopied+=Last.Vertices.Num();
@@ -267,7 +269,7 @@ const FCLNativePreview::FBuffers& FCLNativePreview::Published()const
         {
             const FVector Display=C->GetComponentTransform().TransformPosition(FVector(V));
             const FVector Source=SourceToDisplay.InverseTransform(Display)*.01;
-            Next.Vertices.Add(Display);Next.SourcePoints.Add((Section?FCLPlanetStampRuntime::SectionToBodyMeters(Source,FCLSectionGeometry::ReferenceSurfaceRadius(*Plan)):Source)*100);
+            Next.SourceCellMeters.Add(float(double(Native->VoxelSize)*(1<<M.ChunkLOD)/100./Stamp->GetComponentScale().GetAbsMax()));Next.Vertices.Add(Display);Next.SourcePoints.Add((Section?FCLPlanetStampRuntime::SectionToBodyMeters(Source,FCLSectionGeometry::ReferenceSurfaceRadius(*Plan)):Source)*100);
         }
         for(int32 I:M.Indices)Next.Triangles.Add(Offset+I);
     }

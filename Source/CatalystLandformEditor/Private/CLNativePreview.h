@@ -11,7 +11,7 @@ class FCLNativePreview
 {
 public:
     // Read-only inspection data extracted from the published native mesh. Never rendered.
-    struct FBuffers {TArray<FVector> Vertices,SourcePoints;TArray<int32> Triangles;};
+    struct FBuffers {TArray<FVector> Vertices,SourcePoints;TArray<float> SourceCellMeters;TArray<int32> Triangles;};
     struct FMaterialCoordinates{FLinearColor High,Low;};
     static FMaterialCoordinates MaterialCoordinates(const FVoxelVolumeTransform&,bool Section,double ReferenceMeters);
     explicit FCLNativePreview(bool InspectCaves=false,FGuid Network={}):CaveInspection(InspectCaves),CaveDomain(Network){}

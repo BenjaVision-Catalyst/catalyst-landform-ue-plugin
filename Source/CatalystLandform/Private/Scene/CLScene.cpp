@@ -107,19 +107,30 @@ bool FCLScene::SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSam
         const bool BoundedSurface=RadialPlan->SurfaceRange.IsValid()||(RadialPlan->WatershedSurface&&RadialPlan->WatershedSurface->SurfaceRange.IsValid());
         if(AirCutters&&!RadialPlan->Volumes&&BoundedSurface)
         {
-            // Exact max-intersection pruning using the same native sphere node.
+            constexpr double ExteriorMargin=2.;
+            // Outside the generated void, -Air is already a positive exclusion
+            // bound. Terrain clipping cannot create a cave there; evaluating
+            // planet geology for those empty-space queries only adds work.
+            // A continuous positive cap joins that bound to terrain clipping.
+            // Every negative value and the actual cave/surface zero set remain
+            // unchanged, without a positive-field jump at an exterior portal.
+            // The same native sphere node bounds the original solid.
             // The calibrated surface and conditioned valleys are bounded below
             // by MinimumHeightMeters. A larger-radius natural sphere can only
             // decrease this field, so it cannot beat -Air at these points.
             H.Init(RadialPlan->MinimumHeightMeters,Count);RadialPlan->SampleRadialFields(Positions,H,Natural);
             TArray<FVector> Needed;TArray<int32> Indices;
-            for(int32 I=0;I<Count;++I)if(Natural[I]>-Air[I]){Needed.Add(Positions[I]);Indices.Add(I);}
+            for(int32 I=0;I<Count;++I)
+            {
+                if(Air[I]<-ExteriorMargin){Natural[I]=-Air[I];continue;}
+                if(Natural[I]>-Air[I]){Needed.Add(Positions[I]);Indices.Add(I);}
+            }
             if(!Needed.IsEmpty())
             {
                 TArray<double> Height,Field;RadialPlan->SampleHeightsMeters(Needed,Height);RadialPlan->SampleRadialFields(Needed,Height,Field);
                 for(int32 I=0;I<Indices.Num();++I)Natural[Indices[I]]=Field[I];
             }
-            for(int32 I=0;I<Count;++I)if(IsFinitePosition(Query.PositionsMeters[Start+I])){Out[Start+I].State=ECLSceneSampleState::Known;Out[Start+I].FieldMeters=FMath::Max(Natural[I],-Air[I]);}
+            for(int32 I=0;I<Count;++I)if(IsFinitePosition(Query.PositionsMeters[Start+I])){Out[Start+I].State=ECLSceneSampleState::Known;Out[Start+I].FieldMeters=FMath::Max(-Air[I],FMath::Min(Natural[I],Air[I]+ExteriorMargin));}
             continue;
         }
         RadialPlan->SampleHeightsMeters(Positions,H);RadialPlan->SampleRadialFields(Positions,H,Natural);

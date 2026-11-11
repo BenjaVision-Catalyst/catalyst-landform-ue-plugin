@@ -1560,21 +1560,25 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
 #include "Testing/CLCaveIntersections.h"
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLCaveDebugRenderedTest,"Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 void FCLCaveDebugRenderedTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const
-{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1"),TEXT("CarbonateKarst"),TEXT("MixedFamilies"),TEXT("IntersectingVolumes"),TEXT("MorphFissure"),TEXT("MorphKarst"),TEXT("MorphMixed"),TEXT("NaturalKarst"),TEXT("BeddedKarst"),TEXT("OrganicKarst")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low"),TEXT("karst"),TEXT("mixed"),TEXT("joined"),TEXT("morph-fissure"),TEXT("morph-karst"),TEXT("morph-mixed"),TEXT("natural-karst"),TEXT("bedded-karst"),TEXT("organic-karst")};}
+{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1"),TEXT("CarbonateKarst"),TEXT("MixedFamilies"),TEXT("IntersectingVolumes"),TEXT("MorphFissure"),TEXT("MorphKarst"),TEXT("MorphMixed"),TEXT("NaturalKarst"),TEXT("BeddedKarst"),TEXT("OrganicKarst"),TEXT("CurrentRift")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low"),TEXT("karst"),TEXT("mixed"),TEXT("joined"),TEXT("morph-fissure"),TEXT("morph-karst"),TEXT("morph-mixed"),TEXT("natural-karst"),TEXT("bedded-karst"),TEXT("organic-karst"),TEXT("current-rift")};}
 bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
 {
+    const bool CurrentRift=Parameters==TEXT("current-rift");
     const bool Organic=Parameters==TEXT("organic-karst"),Bedded=Parameters==TEXT("bedded-karst")||Organic,Natural=Parameters==TEXT("natural-karst")||Bedded,Morph=Parameters.StartsWith(TEXT("morph-"))||Natural;
     const bool Mixed=Parameters==TEXT("mixed"),Joined=Parameters==TEXT("joined"),Karst=Parameters==TEXT("karst"),Small=Parameters==TEXT("small")||Parameters==TEXT("small-low"),Low=Parameters==TEXT("small-low");
     FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Organic?TEXT("Examples/OrganicKarst.json"):Bedded?TEXT("Examples/BeddedKarst.json"):Parameters==TEXT("natural-karst")?TEXT("Examples/NaturalKarst.json"):Morph?(Parameters==TEXT("morph-fissure")?TEXT("Examples/FissureMorphology.json"):Parameters==TEXT("morph-karst")?TEXT("Examples/KarstMorphology.json"):TEXT("Examples/CaveMorphology.json")):(Mixed||Joined)?TEXT("Examples/MixedCaves.json"):Karst?TEXT("Examples/KarstCaves.json"):Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
-    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}if(Low)A->Recipe.Caves.ApplyProgression(.01);
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
+    if(CurrentRift){const auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview"));if(!TestNotNull(TEXT("Current saved Rift"),Review))return false;A->Recipe=Review->Recipe;A->Recipe.Caves.bEnabled=true;}
+    else if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}
+    if(Low)A->Recipe.Caves.ApplyProgression(.01);
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Planet-wide native cave surfaces"))).ClientSize(FVector2D(1000,800))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
-    struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0,Networks=0,Vertices=0,Cyan=0;double Start=FPlatformTime::Seconds(),Last=0,OffLuma=0,DimLuma=0,Residual=0;TArray<double> Times;TArray<FColor> Off;uint32 Terrain=0;TArray<uint32> Inspection;TMap<FGuid,uint32> DomainOwners;uint64 Copies=0,Starts=0;FVector Eye;FRotator Rotation;};
+    struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0,Networks=0,Vertices=0,Cyan=0;double Start=FPlatformTime::Seconds(),Last=0,ReadySince=0,OffLuma=0,DimLuma=0,Residual=0;TArray<double> Times;TArray<FColor> Off;uint32 Terrain=0;TArray<uint32> Inspection;TMap<FGuid,uint32> DomainOwners;uint64 Copies=0,Starts=0;FVector Eye;FRotator Rotation;};
     const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(A->Recipe,E);if(!Prepared){AddError(E);return false;}State->Evaluation.Request(A->Recipe,Prepared);
-    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst,Mixed,Joined,Morph,Natural,Bedded,Organic]
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst,Mixed,Joined,Morph,Natural,Bedded,Organic,CurrentRift]
     {
         auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
-        if(Now-S.Start>300){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
-        const FString Dir=FPaths::ProjectSavedDir()/(Natural?(Organic?TEXT("Verification/organic-karst"):Bedded?TEXT("Verification/bedded-karst"):TEXT("Verification/natural-karst")):Morph?(S.Plan&&S.Plan->Caves&&S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::CarbonateKarst;})?(S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::Structural;})?TEXT("Verification/morph-mixed"):TEXT("Verification/morph-karst")):TEXT("Verification/morph-fissure")):Joined?TEXT("Verification/cave-joined"):Mixed?TEXT("Verification/cave-mixed"):Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
+        if(Now-S.Start>(CurrentRift?90:300)){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
+        const FString Dir=FPaths::ProjectSavedDir()/(CurrentRift?TEXT("Verification/current-rift-caves"):Natural?(Organic?TEXT("Verification/organic-karst"):Bedded?TEXT("Verification/bedded-karst"):TEXT("Verification/natural-karst")):Morph?(S.Plan&&S.Plan->Caves&&S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::CarbonateKarst;})?(S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::Structural;})?TEXT("Verification/morph-mixed"):TEXT("Verification/morph-karst")):TEXT("Verification/morph-fissure")):Joined?TEXT("Verification/cave-joined"):Mixed?TEXT("Verification/cave-mixed"):Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
         auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
         {
             auto* V=W->Client->Viewport;if(!V)return;W->Scene->UpdateCaptureContents();
@@ -1595,7 +1599,8 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
                 for(const auto& N:NetworkBounds)if(!Represented.Contains(N.Key)&&N.Value.IsInsideOrOn(B))Represented.Add(N.Key);
             }
             S.Networks=Represented.Num();TestEqual(TEXT("Every joined diagnostic domain has native union surface vertices at globe scale"),S.Networks,S.Plan->Caves->InspectionDomains.Num());TestTrue(TEXT("Native VPP presents actual cave surface triangles at globe scale"),M.Vertices.Num()>100&&M.Triangles.Num()>300&&W->CavePreview->UsesNativePresentation());
-            TArray<FCLSceneShapeSample> Fields;FString Error;FCLScene::FromPlanet(S.Plan,Error)->SampleCaveVoid({Body},Fields,Error);S.Residual=0;FVector WorstPoint;for(int32 I=0;I<Fields.Num();++I)if(FMath::Abs(Fields[I].FieldMeters)>S.Residual){S.Residual=FMath::Abs(Fields[I].FieldMeters);WorstPoint=Body[I];}if(S.Residual>=.5)AddInfo(FString::Printf(TEXT("Cave mesh worst residual %.6f m at %s"),S.Residual,*WorstPoint.ToString()));TestTrue(TEXT("Native vertices follow the real cave field"),S.Residual<.5);
+            TArray<FCLSceneShapeSample> Fields;FString Error;FCLScene::FromPlanet(S.Plan,Error)->SampleCaveVoid({Body},Fields,Error);S.Residual=0;FVector WorstPoint;for(int32 I=0;I<Fields.Num();++I)if(FMath::Abs(Fields[I].FieldMeters)>S.Residual){S.Residual=FMath::Abs(Fields[I].FieldMeters);WorstPoint=Body[I];}if(S.Residual>=.5)AddInfo(FString::Printf(TEXT("Cave mesh worst residual %.6f m at %s"),S.Residual,*WorstPoint.ToString()));double CellError=0;for(int32 I=0;I<Fields.Num();++I)CellError=FMath::Max(CellError,FMath::Abs(Fields[I].FieldMeters)/FMath::Max(.0001f,M.SourceCellMeters[I]));
+            TestTrue(TEXT("Overview vertices follow the cave field within half a native cell"),CellError<.5);
         };
         if(S.Phase==0)
         {
@@ -1605,11 +1610,12 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
         {
             if(W->IsUpdating())return false;
             // A globe view containing both hemispheres in projection. No network focus.
-            const FVector D=(S.Plan->Caves->Segments[0].A.GetSafeNormal()+S.Plan->Caves->Segments.Last().A.GetSafeNormal()).GetSafeNormal();W->Client->Navigation.Yaw=D.Rotation().Yaw;W->Client->Navigation.Elevation=D.Rotation().Pitch;W->Client->Navigation.Zoom=.8;W->Client->Apply();S.Eye=W->Client->GetViewLocation();S.Rotation=W->Client->GetViewRotation();Capture(TEXT("surface"),S.Off);W->SetCaveOverlay(true);CameraUnchanged();S.Phase=2;return false;
+            const auto& C=*S.Plan->Caves;const FVector D=(C.Segments.IsEmpty()?C.Nodes[0].Position.GetSafeNormal()+C.Nodes.Last().Position.GetSafeNormal():C.Segments[0].A.GetSafeNormal()+C.Segments.Last().A.GetSafeNormal()).GetSafeNormal();W->Client->Navigation.Yaw=D.Rotation().Yaw;W->Client->Navigation.Elevation=D.Rotation().Pitch;W->Client->Navigation.Zoom=.8;W->Client->Apply();S.Eye=W->Client->GetViewLocation();S.Rotation=W->Client->GetViewRotation();Capture(TEXT("surface"),S.Off);S.Last=FPlatformTime::Seconds();W->SetCaveOverlay(true);CameraUnchanged();S.Phase=2;return false;
         }
         if(S.Phase==2)
         {
-            if(W->IsUpdating()||!W->CavePreview||W->CavePreview->IsUpdating()||W->CavePreview->PublishedPlan()!=S.Plan||(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()))return false;
+            if(W->IsUpdating()||!W->CavePreview||W->CavePreview->IsUpdating()||W->CavePreview->PublishedPlan()!=S.Plan||(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling())){S.ReadySince=0;return false;}
+            if(CurrentRift){if(S.ReadySince==0){S.ReadySince=Now;return false;}if(Now-S.ReadySince<1)return false;}
             CameraUnchanged();CheckAllGeometry();W->SetCaveOverlay(false);Capture(TEXT("surface"),S.Off);W->SetCaveOverlay(true);CameraUnchanged();TArray<FColor> Control,Dim;W->CavePreview->SetVisible(false);Capture(TEXT("all-caves-control"),Control);W->CavePreview->SetVisible(true);Capture(TEXT("all-caves"),Dim);int32 Samples=0;S.Cyan=0;
             for(int32 I=0;I<FMath::Min(S.Off.Num(),Dim.Num());++I){const auto A=S.Off[I],B=Dim[I];S.Cyan+=Cyan(B);if(A.R>110&&A.G>100&&A.B>70&&!Cyan(B)){S.OffLuma+=(A.R+A.G+A.B)/3.;S.DimLuma+=(B.R+B.G+B.B)/3.;++Samples;}}
             if(Samples){S.OffLuma/=Samples;S.DimLuma/=Samples;}TestTrue(TEXT("Surface dims at the unchanged planet-wide view"),Samples>1000&&S.DimLuma<S.OffLuma*.7);TestTrue(TEXT("Actual cave surfaces rasterize in the planet-wide view"),S.Cyan>10);
@@ -1622,9 +1628,27 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
                 int32 Count=0;const auto Box=Pair.Value.ExpandBy(5);for(int32 Y=FMath::Max(0,FMath::FloorToInt(Box.Min.Y));Y<=FMath::Min(Size.Y-1,FMath::CeilToInt(Box.Max.Y));++Y)for(int32 X=FMath::Max(0,FMath::FloorToInt(Box.Min.X));X<=FMath::Min(Size.X-1,FMath::CeilToInt(Box.Max.X));++X){const int32 I=Y*Size.X+X;const auto A=Control[I],B=Dim[I];Count+=B.B>A.B+8&&B.G>A.G+5&&B.R<B.G*.85;}if(!Count)AddInfo(FString::Printf(TEXT("No matched native coverage for network %s"),*Pair.Key.ToString()));TestTrue(TEXT("Every projected union domain has visible native surface pixels against its hidden control"),Count>0);
             }
             TestEqual(TEXT("All native union domains project in this bounded view"),Boxes.Num(),S.Plan->Caves->InspectionDomains.Num());
+            if(CurrentRift)
+            {
+                AddInfo(FString::Printf(TEXT("RIFT_CAVE_PREVIEW_READY totalSeconds=%.3f inspectionSeconds=%.3f networks=%d domains=%d nativeVertices=%d cyanPixels=%d overviewResidualMeters=%.6f"),Now-S.Start,Now-S.Last,S.Plan->Caves->Networks,S.Networks,S.Vertices,S.Cyan,S.Residual));
+                AddInfo(W->CavePreview->Status());
+                const auto Q=S.Plan->Caves->Nodes[0].Position;const auto Up=Q.GetSafeNormal();
+                W->Client->SetViewLocation(Q*(100000./S.Plan->RadiusMeters)+Up*4000);W->Client->SetViewRotation((-Up).Rotation());W->Client->Invalidate();S.Last=Now;S.ReadySince=0;S.Phase=20;return false;
+            }
+
 
             W->SetCaveOverlay(false);CameraUnchanged();TArray<FColor> Restored;Capture(TEXT("restored"),Restored);double Difference=0;for(int32 I=0;I<FMath::Min(S.Off.Num(),Restored.Num());++I)Difference+=FMath::Abs(int(S.Off[I].R)-int(Restored[I].R))+FMath::Abs(int(S.Off[I].G)-int(Restored[I].G))+FMath::Abs(int(S.Off[I].B)-int(Restored[I].B));TestTrue(TEXT("Off restores ordinary native surface"),Difference/(3*Restored.Num())<5);
             W->SetCaveOverlay(true);CameraUnchanged();S.Terrain=W->NativePreview->WorldIdentity();S.Inspection=W->CavePreview->CaveWorldIdentities();S.DomainOwners=W->CavePreview->CaveDomainIdentities();TestEqual(TEXT("One native presenter for each overlapping support group"),S.Inspection.Num(),S.Plan->Caves->InspectionDomains.Num());S.Copies=W->CavePreview->Metrics.MeshCopies;S.Starts=W->CavePreview->Metrics.Starts;S.Last=Now;UE_LOG(LogTemp,Display,TEXT("CL_CAVE_NAV_BEGIN"));S.Phase=3;return false;
+        }
+        if(S.Phase==20)
+        {
+            if(W->CavePreview->IsUpdating()){S.ReadySince=0;return false;}
+            if(S.ReadySince==0){S.ReadySince=Now;return false;}if(Now-S.ReadySince<1)return false;
+            const auto& M=W->CavePreview->Published();const auto Q=S.Plan->Caves->Nodes[0].Position;TArray<FVector> Body;float Cell=0;
+            for(int32 I=0;I<M.SourcePoints.Num();++I){const auto P=M.SourcePoints[I]*.01;if(FVector::Distance(P,Q)<25){Body.Add(P);Cell=FMath::Max(Cell,M.SourceCellMeters[I]);}}
+            TArray<FCLSceneShapeSample> Field;FString E;FCLScene::FromPlanet(S.Plan,E)->SampleCaveVoid({Body},Field,E);double Error=0;for(const auto& V:Field)Error=FMath::Max(Error,FMath::Abs(V.FieldMeters));
+            TestTrue(TEXT("Native zoom supplies detailed nearby cave geometry"),Body.Num()>100&&Cell<=1.);TestTrue(TEXT("Close-up cave geometry retains the 0.5 m field budget"),Error<.5);
+            TArray<FColor> Pixels;Capture(TEXT("zoomed-cave"),Pixels);AddInfo(FString::Printf(TEXT("RIFT_CAVE_ZOOM seconds=%.3f vertices=%d maxCellMeters=%.3f maxResidualMeters=%.6f"),Now-S.Last,Body.Num(),Cell,Error));return Close();
         }
         if(S.Phase==3)
         {
