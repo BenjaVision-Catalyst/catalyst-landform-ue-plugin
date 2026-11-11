@@ -29,7 +29,7 @@ public:
     TSharedPtr<const FCLCompiledRock> Rock;
     TSharedPtr<const FCLNativeNoiseKernel> Noise;
     FVector Origin,X,Y,Up;
-    double Datum=0;
+    double Datum=0,Scale=1;
     int32 Seed=0;
     bool bFinalSurfaceCompiled=false;
     TArray<double> Contacts;
@@ -60,17 +60,17 @@ FVector FCLSpatialCave::BeddingPoint(const FVector& P,bool bCompiled)const
     if(Data->Family)return Data->Family->BeddingPoint(P,0,bCompiled);
     const auto D=P-Data->Origin;
     const double Along=FVector::DotProduct(P,Data->Up);
-    const double Restored=bCompiled&&Along>1.e-6?P.Length()-Data->Bedding.Sample(FVector2D(FVector::DotProduct(P,Data->X),FVector::DotProduct(P,Data->Y))*(Data->Datum/Along)):Data->Rock->RestoredRadiusMeters(P);
-    return FVector(FVector::DotProduct(D,Data->X),FVector::DotProduct(D,Data->Y),Restored-Data->Datum);
+    const double Restored=bCompiled&&Data->Rock&&Data->Bedding.NumNodes()>0&&Along>1.e-6?P.Length()-Data->Bedding.Sample(FVector2D(FVector::DotProduct(P,Data->X),FVector::DotProduct(P,Data->Y))*(Data->Datum/Along)):Data->Rock?Data->Rock->RestoredRadiusMeters(P):P.Length();
+    return FVector(FVector::DotProduct(D,Data->X),FVector::DotProduct(D,Data->Y),Restored-Data->Datum)/Data->Scale;
 }
 FVector FCLSpatialCave::BodyPoint(const FVector& P)const
 {
     if(Data->Family)return Data->Family->BodyPoint(P);
     // Invert the same canonical restored coordinate, retaining planetary curvature.
-    FVector Q=Data->Origin+Data->X*P.X+Data->Y*P.Y+Data->Up*P.Z;
+    FVector Q=Data->Origin+(Data->X*P.X+Data->Y*P.Y+Data->Up*P.Z)*Data->Scale;
     for(int32 I=0;I<5;++I)
     {
-        const double Error=Data->Datum+P.Z-Data->Rock->RestoredRadiusMeters(Q);
+        const double Error=Data->Datum+P.Z*Data->Scale-(Data->Rock?Data->Rock->RestoredRadiusMeters(Q):Q.Length());
         Q+=Data->Up*(Error/FMath::Max(.5,FVector::DotProduct(Q.GetSafeNormal(),Data->Up)));
     }
     return Q;
@@ -149,7 +149,7 @@ void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool 
         TArray<double> X,Y,Z,Values;X.SetNumUninitialized(N);Y.SetNumUninitialized(N);Z.SetNumUninitialized(N);Values.SetNumUninitialized(N);
         for(int32 I=0;I<N;++I){X[I]=Local[I].X;Y[I]=Local[I].Y;Z[I]=Local[I].Z;}
         ispc::CLSpatialMorph(X.GetData(),Y.GetData(),Z.GetData(),Noise.GetData(),Data->VertexX.GetData(),Data->VertexY.GetData(),Data->PolygonStarts.GetData(),Data->PolygonCounts.GetData(),Data->Regions.Num(),Data->Contacts.GetData(),Data->Contacts.Num(),Values.GetData(),N);
-        for(int32 I=0;I<N;++I)Air[Active[I]]=Values[I];
+        for(int32 I=0;I<N;++I)Air[Active[I]]=Values[I]*Data->Scale;
     }
     else
 #endif
@@ -194,7 +194,7 @@ void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool 
         Void=SmoothMin(Void,OutsideMass,1.3);
         // Detail is subordinate to anatomy and fades completely at the floor.
         const double WallDetail=.14*Detail*FMath::SmoothStep(.3,2.,Q.Z-Floor);
-        Air[Active[I]]=(Void+WallDetail)*.6;
+        Air[Active[I]]=(Void+WallDetail)*.6*Data->Scale;
     }
     Data->EvaluationCycles[2].fetch_add(FPlatformTime::Cycles64()-Stage,std::memory_order_relaxed);
 
@@ -237,8 +237,45 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompi
         D.FindBestAxisVectors(Data->X,Data->Y);Data->Origin=D*(Data->Datum+Column.DeformationMeters);Found=true;break;
     }
     if(!Found){Error=TEXT("No eligible terrestrial carbonate bedding site for the spatial cave study");return nullptr;}
-    for(int32 I=0;I<Base.Rock->GetOlderBedCount();++I)
-    {const double H=Base.Rock->GetBed(I).UpperMeters-Data->Datum;if(H>=-25&&H<=60)Data->Contacts.Add(H);}
+    return CompileComposition(Base,Data,Seed,Error,true);
+}
+
+TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildApprovedAt(const FCLCompiledPlanetRecipe& Base,int32 Seed,const FVector& Direction,double Scale,FString& Error)
+{
+    auto Data=MakeShared<FCLSpatialCaveData>();Data->Scale=Scale;Data->Up=Direction;
+    Direction.FindBestAxisVectors(Data->X,Data->Y);
+    FRandomStream Random(Seed);const FQuat Turn(Direction,Random.FRandRange(0.,2*UE_DOUBLE_PI));
+    Data->X=Turn.RotateVector(Data->X);Data->Y=Turn.RotateVector(Data->Y);
+    // The approved anatomy is unchanged in its local metre coordinates. Only
+    // placement and uniform small-body fit change; geology cannot veto a cave.
+    Data->Datum=Base.RadiusMeters+Base.MinimumHeightMeters-90*Scale;
+    Data->Origin=Direction*Data->Datum;Data->Seed=Seed^0x53504138;
+    Data->Noise=FCLNativeNoiseKernel::Create(Error);if(!Data->Noise)return nullptr;
+    if(Base.Rock)
+    {
+        const auto Column=Base.Rock->SampleColumn(Direction);
+        if(Column.bValid){Data->Rock=Base.Rock;Data->Datum-=Column.DeformationMeters;}
+    }
+    auto Result=CompileComposition(Base,Data,Seed,Error,false);
+    bool Walkable=Result.IsValid();
+    if(Result)for(const auto& Path:Result->Passages)for(int32 I=1;I<Path.Points.Num();++I)
+    {
+        const auto A=Path.Points[I-1],B=Path.Points[I];
+        const double Run=FVector::VectorPlaneProject(B-A,(A+B).GetSafeNormal()).Length();
+        Walkable&=FMath::Abs(B.Length()-A.Length())<=.5*Run;
+    }
+    // A steep or ill-fitting bed cannot turn the approved walking floor into
+    // a ramp. Retain its anatomy in radial coordinates; canonical rock/strata
+    // queries still use the original geological model.
+    if((!Result||!Walkable)&&Data->Rock){Error.Reset();Data->Rock.Reset();Data->Datum=Data->Origin.Length();Result=CompileComposition(Base,Data,Seed,Error,false);}
+    return Result;
+}
+
+TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::CompileComposition(const FCLCompiledPlanetRecipe& Base,TSharedPtr<FCLSpatialCaveData> Data,int32 Seed,FString& Error,bool PrepareSurface)
+{
+    Data->Bedding=FCLDirectionalScalarField();Data->Contacts.Reset();Data->Regions.Reset();Data->VertexX.Reset();Data->VertexY.Reset();Data->PolygonStarts.Reset();Data->PolygonCounts.Reset();
+    if(Data->Rock)for(int32 I=0;I<Data->Rock->GetOlderBedCount();++I)
+    {const double H=(Data->Rock->GetBed(I).UpperMeters-Data->Datum)/Data->Scale;if(H>=-25&&H<=60)Data->Contacts.Add(H);}
     auto Add=[&](TArray<FVector2D> Points)
     {auto& R=Data->Regions.AddDefaulted_GetRef();R.Bounds=FBox2D(ForceInit);for(const auto& P:Points)R.Bounds+=P;R.Polygon=UE::Geometry::FPolygon2d(Points);};
     Add({{-112,-7},{-101,-12},{-79,-9},{-63,-14},{-43,-9},{-25,-15},{-4,-12},{13,-15},{14,5},{-10,11},{-29,7},{-44,12},{-66,6},{-89,11},{-109,5}});
@@ -257,7 +294,7 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompi
     // boundaries are checked against the actual terrain below; no surface hole.
     Data->Bounds=FBox(ForceInit);
     for(double X:{-135.,0.,95.})for(double Y:{-62.,0.,62.})for(double Z:{-20.,0.,52.})Data->Bounds+=Cave->BodyPoint(FVector(X,Y,Z));
-    Data->Bounds=Data->Bounds.ExpandBy(12.);
+    Data->Bounds=Data->Bounds.ExpandBy(12.*Data->Scale);
     FBox2D Chart(ForceInit);
     for(int32 Corner=0;Corner<8;++Corner)
     {
@@ -267,13 +304,17 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompi
         Chart+=FVector2D(FVector::DotProduct(Q,Data->X),FVector::DotProduct(Q,Data->Y))*(Data->Datum/Along);
     }
     const auto Rock=Data->Rock;const FVector XAxis=Data->X,YAxis=Data->Y,Up=Data->Up;const double Datum=Data->Datum;
-    Data->Bedding.Build(Chart.ExpandBy(1.),[Rock,XAxis,YAxis,Up,Datum](const FVector2D& P)
+    // Keep the frozen fixture's preparation unchanged. Placement batches have
+    // a bounded chart budget; uncertain leaves use the exact same rock query,
+    // so this limits preparation without relaxing geometry tolerances.
+    if(!PrepareSurface)Data->Bedding.SetMaximumDepth(4);
+    if(Rock)Data->Bedding.Build(Chart.ExpandBy(Data->Scale),[Rock,XAxis,YAxis,Up,Datum](const FVector2D& P)
     {
         const FVector Q=(Up+XAxis*(P.X/Datum)+YAxis*(P.Y/Datum)).GetSafeNormal()*Datum;
         return Q.Length()-Rock->RestoredRadiusMeters(Q);
     });
     const auto Surface=Base.WatershedSurface?Base.WatershedSurface:MakeShared<const FCLCompiledPlanetRecipe>(Base);
-    ParallelFor(6,[&](int32 Face)
+    if(PrepareSurface)ParallelFor(6,[&](int32 Face)
     {
         auto Direction=[Face](const FVector2D& P){return FCLSphericalPatches::Direction(Face,P);};
         Data->Surface[Face].Build(FBox2D(FVector2D(-1.000001),FVector2D(1.000001)),[Surface,Direction](const FVector2D& P){return Surface->SampleHeightMeters(Direction(P));},
@@ -282,22 +323,22 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompi
     });
     for(double X=-125;X<=85;X+=10)for(double Y=-52;Y<=52;Y+=10)
     {
-        const auto Point=Cave->BodyPoint(FVector(X,Y,45));const double Roof=Base.RadiusMeters+Base.SampleHeightMeters(Point.GetSafeNormal());
-        if(Roof-Point.Length()<8){Error=TEXT("Spatial study does not fit beneath this terrain; no partial cave published");return nullptr;}
+        const auto Point=Cave->BodyPoint(FVector(X,Y,45));const double Roof=Base.RadiusMeters+(PrepareSurface?Base.SampleHeightMeters(Point.GetSafeNormal()):Base.MinimumHeightMeters);
+        if(Roof-Point.Length()<8*Data->Scale){Error=TEXT("Spatial study does not fit beneath this terrain; no partial cave published");return nullptr;}
     }
     auto Out=MakeShared<FCLCompiledCaves>();Out->Spatial=Cave;const FGuid Id(0x53504138,Seed,1,1);
     Out->Networks=Out->RequestedNetworks=1;Out->EligibleCandidates=1;Out->Candidates=1;
     FCLCompiledCaves::FNetwork Info;Info.Id=Id;Info.Family=FCLCompiledCaves::EFamily::CarbonateKarst;Info.InceptionRadiusMeters=Data->Datum;Info.OriginDirection=Data->Up;Info.InspectionBounds=Data->Bounds;Out->NetworkInfo.Add(Info);
-    const auto RoomPoint=Cave->BodyPoint(FVector(14,-5,2));Out->Nodes.Add({Id,RoomPoint,{30,20},true,false});
-    Out->Nodes.Add({Id,Cave->BodyPoint(FVector(-101,0,2)),{8,6},false,false});
+    const auto RoomPoint=Cave->BodyPoint(FVector(14,-5,Cave->FloorHeight(14,-5)+2));Out->Nodes.Add({Id,RoomPoint,{30,20},true,false});
+    Out->Nodes.Add({Id,Cave->BodyPoint(FVector(-101,0,Cave->FloorHeight(-101,0)+2)),{8*Data->Scale,6*Data->Scale},false,false});
     // These points are traversal/inspection metadata only. They never generate
     // the field and changing them cannot change a wall, roof or floor.
     FCLCavePassage Route;Route.Network=Id;Route.From=0;Route.To=1;Route.Form=Route.EndForm=ECLCaveForm::BeddedPassage;Route.GeometryProfile=8;Route.FloorRock=Base.Rock;
     for(double X=14;X>=-101;X-=5)
     {
-        const double Y=-3+2*FMath::Sin(X*.045);const auto P=Cave->BodyPoint(FVector(X,Y,2));Route.Points.Add(P);Route.Sections.Add({9,7});Route.FloorRadii.Add(Data->Datum+Cave->FloorHeight(X,Y));
+        const double Y=-3+2*FMath::Sin(X*.045);const auto P=Cave->BodyPoint(FVector(X,Y,Cave->FloorHeight(X,Y)+2));Route.Points.Add(P);Route.Sections.Add({9*Data->Scale,7*Data->Scale});Route.FloorRadii.Add(Data->Datum+Data->Scale*Cave->FloorHeight(X,Y));
     }
-    Out->Passages.Add(Route);FCLCaveChamber Room;Room.Network=Id;Room.Node=0;Room.Center=Cave->BodyPoint(FVector(24,0,15));Room.Rotation=FRotationMatrix::MakeFromXZ(Data->X,Data->Up).ToQuat();Room.HalfExtents=FVector(48,40,20);Room.Form=ECLCaveForm::BeddedChamber;Room.GeometryProfile=8;Room.FloorRock=Base.Rock;Room.FloorRadius=Data->Datum;Out->Chambers.Add(Room);
+    Out->Passages.Add(Route);FCLCaveChamber Room;Room.Network=Id;Room.Node=0;Room.Center=Cave->BodyPoint(FVector(24,0,15));Room.Rotation=FRotationMatrix::MakeFromXZ(Data->X,Data->Up).ToQuat();Room.HalfExtents=FVector(48,40,20)*Data->Scale;Room.Form=ECLCaveForm::BeddedChamber;Room.GeometryProfile=8;Room.FloorRock=Base.Rock;Room.FloorRadius=Data->Datum;Out->Chambers.Add(Room);
     Out->Cutters=FCLCompiledCaveVolume::CompileSpatial(Cave,Id);Out->ResolveInspectionDomains();Out->Readiness=TEXT("Spatial prototype: one bedding-controlled passage/chamber composition; no swept geometry");return Out;
 }
 

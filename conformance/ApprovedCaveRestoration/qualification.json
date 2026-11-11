@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-11",
+  "host": "UE 5.7 Mac arm64, LandformLab",
+  "vpp": "Stock source and native preview quality 2 / render chunk size 32",
+  "build": "LandformLabEditor Mac Development: succeeded",
+  "acceptedSIMDKernelUnchanged": true,
+  "acceptedSIMDKernelSHA256": "79903a4dc95a776d70e5254fe2d81b0255f96b2dc2260b5a4e3b5694bf28057a",
+  "hostInputCount": 371,
+  "hostInputMismatches": 0,
+  "finalTests": [
+    {
+      "name": "Catalyst.Landform.Caves.ApprovedPlacement.AnatomyFloorsAndStrata",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ApprovedPlacement.DeterminismAndSelection",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Caves.RiftNaturalFamily",
+      "state": "Success"
+    }
+  ],
+  "earlierPassedChecks": [
+    "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery",
+    "Catalyst.Landform.Caves.EligibilityAndVersions",
+    "Catalyst.Landform.Caves.InspectionExcludesEmptySpace",
+    "Catalyst.Landform.Caves.InspectionVolume",
+    "Catalyst.Landform.Caves.KnobAndBackground",
+    "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale"
+  ],
+  "correctedFailures": [
+    "New shoulder-foundation test used the centreline floor elevation across a sloping floor; now measures the actual floor at each lateral location without changing margins or cave density.",
+    "Actual Rift placement found a 0.57588 grade from geological bedding; placement now retains the approved radial walking floor where bedding exceeds the existing 0.5 grade limit."
+  ],
+  "metrics": [
+    "APPROVED_CAVE seed=176 networks=64 passageWidth=21.75 chamberWidth=78.25 chamberHeight=32.00 floorRelief=3.018 grade=0.0919 scalarResidual=1.92639359e-07",
+    "APPROVED_CAVE seed=731 networks=64 passageWidth=22.25 chamberWidth=75.50 chamberHeight=32.50 floorRelief=3.018 grade=0.0919 scalarResidual=1.92639359e-07",
+    "APPROVED_CAVE seed=2049 networks=64 passageWidth=22.25 chamberWidth=74.75 chamberHeight=33.00 floorRelief=3.018 grade=0.0919 scalarResidual=1.92639376e-07",
+    "RIFT_CAVE_PREVIEW_READY totalSeconds=11.513 inspectionSeconds=3.340 networks=64 domains=5 nativeVertices=4337 cyanPixels=22135 overviewResidualMeters=9.857186",
+    "RIFT_CAVE_ZOOM seconds=36.581 vertices=9036 maxCellMeters=1.000 maxResidualMeters=0.057256",
+    "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+    "Rift natural family: 64 networks, 64 chambers, 64 passages, 0 entrances, grade 0.48201, clearance failures 0, foundation failures 0, scalar residual 7.85181538e-06"
+  ],
+  "limits": [
+    "Native zoom refinement measured 36.581 seconds; no instant zoom claim.",
+    "No new walking-freeze, ecosystem-headroom or multi-level-family acceptance claim.",
+    "Branching/dimensional settings remain serialized but cannot reinstate the rejected morphology; density and seed affect occurrence and placement."
+  ]
+}

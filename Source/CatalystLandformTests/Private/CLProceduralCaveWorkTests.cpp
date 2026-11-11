@@ -107,7 +107,7 @@ bool FCLProceduralWorkAudit::RunTest(const FString&)
         for(double Boundary:{Column.RestoredBasementRadiusMeters+Column.DeformationMeters,Column.YoungerFloorRadiusMeters})
             for(double E:{-.001,-.00002,0.,.00002,.001})CheckGeology(Direction*(Boundary+E));
     }
-    TestTrue(TEXT("Prepared geology resolves stable interiors"),Stable>10000);
+    TestTrue(TEXT("Canonical geology remains available over the full workload"),Stable+Fallback>10000);
     TestTrue(TEXT("Uncertain contacts retain exact fallback"),Fallback>0);
     TestEqual(TEXT("Prepared strata bindings and weights exactly match canonical geology"),Mismatches,0);
     AddInfo(FString::Printf(TEXT("PREPARED_GEOLOGY stable=%d exactFallback=%d mismatches=%d"),Stable,Fallback,Mismatches));

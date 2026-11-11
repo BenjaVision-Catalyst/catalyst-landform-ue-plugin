@@ -172,3 +172,12 @@ restores their distinct existing appearances without changing the cave field,
 physical beds, geological properties or existing UI defaults. This acceptance
 concerns the displayed composition; procedural family parameterization, entrances
 and multi-site placement remain open.
+
+## Approved generation restoration — 11 November, evening
+
+After rejecting the experimental ring galleries, the user required this accepted
+anatomy in ordinary generation. Placement now calls this same scalar/NEON field;
+the alternate family evaluator and long entrance tunnels are removed. The original
+profile-8 fixture remains unchanged as the comparison baseline. Multi-level family
+construction and natural entrances remain unfinished. See
+[Approved cave restoration](ApprovedCaveRestoration.md).

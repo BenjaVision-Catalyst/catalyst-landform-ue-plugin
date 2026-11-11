@@ -33,5 +33,8 @@ public:
     FVector BeddingPoint(const FVector& BodyPosition,bool bCompiled=true)const;
     double FloorHeight(double X,double Y)const;
 private:
+    friend class FCLSpatialCaveFamily;
+    static TSharedPtr<const FCLCompiledCaves> BuildApprovedAt(const FCLCompiledPlanetRecipe&,int32,const FVector&,double,FString&);
+    static TSharedPtr<const FCLCompiledCaves> CompileComposition(const FCLCompiledPlanetRecipe&,TSharedPtr<FCLSpatialCaveData>,int32,FString&,bool);
     TSharedPtr<const FCLSpatialCaveData> Data;
 };

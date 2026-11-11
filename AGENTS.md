@@ -13,7 +13,15 @@ satisfy existence. Acceptance must retain natural passages, varied chambers and
 continuous walkable floors. Check the current review asset as well as synthetic
 inputs, and assert spatial-family identity before accepting a generated result.
 
-Preserve successful existing cave fields. Keep VPP stock and the existing UI.
+The only visually approved anatomy is the profile-8 Mammoth-style passage and
+Carlsbad-style chamber in CLSpatialCave.cpp / CLSpatialMorph.ispc. Generation
+must call that shared evaluator. The ring galleries and long entrance tails were
+rejected; never reintroduce them or substitute another layout on the strength of
+connectivity, clearance, counts or performance tests. Procedural extensions need
+a concrete comparison and user visual acceptance before replacing this anatomy.
+Keep the frozen profile-8 review field available as the comparison baseline.
+
+Keep VPP stock and the existing UI.
 Any change to cave eligibility, placement, fit or recipe validation must run the
 enabled-minimum regression tests, including missing/unknown geology and small
 planets. Cancellation and invalid input remain normal pipeline validation, not

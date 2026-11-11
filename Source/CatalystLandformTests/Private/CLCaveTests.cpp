@@ -157,8 +157,11 @@ bool FCLCaveRiftNaturalTest::RunTest(const FString&)
     if(!TestNotNull(TEXT("Current user review asset"),Asset))return false;
     auto R=Asset->Recipe;R.Caves.bEnabled=true;R.Caves.ApplyProgression(1.);FString E;
     const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves){AddError(E);return false;}const auto& C=*P->Caves;
-    if(!TestTrue(TEXT("Rift uses the established spatial family, never primitive substitute chambers"),C.Spatial&&C.Spatial->IsProceduralFamily()&&C.Chambers.Num()>=4&&C.Passages.Num()>=4))return false;
-    TestTrue(TEXT("Every chamber retains the spatial family morphology"),!C.Chambers.ContainsByPredicate([](const auto& V){return V.GeometryProfile!=9;}));
+    if(!TestTrue(TEXT("Rift uses the established spatial family, never primitive substitute chambers"),C.Spatial&&C.Spatial->IsProceduralFamily()&&C.Chambers.Num()==C.Networks&&C.Passages.Num()==C.Networks))return false;
+    TestTrue(TEXT("Every chamber retains the spatial family morphology"),!C.Chambers.ContainsByPredicate([](const auto& V){return V.GeometryProfile!=8;}));
+    TestEqual(TEXT("The rejected entrance tails are absent"),C.Entrances,0);
+    for(const auto& Room:C.Chambers)TestTrue(TEXT("Approved chamber dimensions are retained"),Room.HalfExtents.Equals(FVector(48,40,20),1.e-6));
+    for(const auto& Path:C.Passages)TestTrue(TEXT("No ring route or appended long entrance"),!Path.Entrance&&Path.GeometryProfile==8&&Path.Points.Num()==24);
     const auto Scene=FCLScene::FromPlanet(P,E);int32 BadHead=0,BadFloor=0;double Grade=0;TArray<FVector> Probes,Feet;
     for(const auto& Path:C.Passages)
     {

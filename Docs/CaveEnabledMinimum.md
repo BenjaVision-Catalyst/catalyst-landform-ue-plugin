@@ -1,3 +1,8 @@
+> **Superseded morphology:** the always-enabled requirement remains binding, but
+> the profile-9 ring family used by the earlier correction was rejected by the user.
+> Generation now uses the approved profile-8 anatomy, without entrance tails.
+> See [Approved cave restoration](ApprovedCaveRestoration.md).
+
 # Enabled caves retain the natural family
 
 Caves ON guarantees generation and retains the established natural cave quality.

@@ -127,6 +127,4 @@ public:
     int32 Candidates=0,EligibleCandidates=0,RequestedNetworks=0,Networks=0,Entrances=0;
     FString Readiness;
     static TSharedPtr<const FCLCompiledCaves> Compile(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32 PlanetSeed,FString& Error);
-private:
-    static TSharedPtr<const FCLCompiledCaves> CompilePreferred(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32,FString&);
 };

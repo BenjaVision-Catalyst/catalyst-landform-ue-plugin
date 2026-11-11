@@ -1,3 +1,10 @@
+> **Retired on 11 November 2026 after user rejection.** The ring-gallery construction
+> described below was introduced in `1f130f4` at 13:44:47 +1100. No visual approval
+> was recorded. `dbc2423` at 19:38:52 routed ordinary incompatible-host recipes into
+> it and added the long entrance passages. Both the construction and its separate
+> evaluator are now removed. The following text and measurements are historical;
+> they do not qualify the restored generation. See [Approved cave restoration](ApprovedCaveRestoration.md).
+
 # Procedural carbonate cave family
 
 **Experimental checkpoint: geometry tested; streaming acceptance fails.** Normal

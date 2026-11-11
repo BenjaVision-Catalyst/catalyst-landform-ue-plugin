@@ -4,11 +4,20 @@
 valid planet recipe. Rock type is never permission to generate. This contract
 supersedes the historical host-rejection policies recorded below.
 
-The [established spatial family, profile 9](ProceduralCaveFamily.md), also supplies enabled caves when preferred geology or placement cannot generate a network. [The correction and qualification](CaveEnabledMinimum.md) retain its natural morphology and floors. Successful saved profiles 1–8 retain their definitions.
+**Current construction:** the [approved profile-8 passage/chamber anatomy](SpatialCavePrototype.md)
+is the only generated morphology. Ordinary planets place instances of that same
+spatial field; saved recipe settings do not select the rejected ring generator.
+The original profile-8 review fixture remains the frozen comparison. VPP and the
+existing UI remain unchanged. See [the restoration record](ApprovedCaveRestoration.md).
+The ring-gallery layout and appended long entrance tunnels have been removed,
+including their separate scalar/SIMD morphology. Multi-level procedural cave
+families and natural surface entrances remain unfinished; neither is replaced by
+an unapproved construction. Density and seed control placement; dimensional and
+branching settings remain serialized but do not rescale or rearrange the accepted
+anatomy. Only uniform small-planet fit reduces its physical scale.
 
-The opt-in [spatial passage/chamber prototype, profile 8](SpatialCavePrototype.md)
-replaces swept sections for the next morphology review. Existing UI defaults
-remain [Organic carbonate karst, profile 7](OrganicKarst.md).
+The remaining profile descriptions below are historical checkpoints, not active
+shape selection.
 [Profile 6](BeddedKarst.md) failed visual review for regular openings and flat floors;
 its manual entrance fall is reproduced and addressed in the profile-7 record.
 [Profile 5](NaturalKarst.md) failed human visual review after manual exploration.
@@ -53,6 +62,9 @@ They must not be implied by this profile or by a broad province label.
 
 ## Native feature reconciliation
 
+The following operator inventory and budgets describe retained historical paths.
+Current generated caves use the shared approved spatial evaluator described above.
+
 VPP 2.0p8 supplies the spline/shape/blend/noise/index operators and remains the
 sole voxel generator, mesher, LOD, collision, sculpt and save platform. Audited:
 `FVoxelVolumeSplineStampRuntime`, `UVoxelSplineStampFunctionLibrary`,
@@ -93,20 +105,18 @@ Geological metadata selects preferred morphology and placement, never eligibilit
 for the feature itself. Missing rock, unknown lithology, zero fracture/dissolution
 potential, unavailable provinces or drainage cannot prevent enabled caves.
 
-Successful existing saved construction is retained. When geological metadata or
-preferred placement cannot supply a complete network, the established spatial
-family supplies the enabled minimum: the same irregular dissolution cells,
-chamber anatomy, galleries, loops and shared rolling floors used by profile 9.
-Missing metadata never selects a simpler shape generator. General-host placement
-uses a radial floor coordinate while canonical rock queries and strata retain the
-original geological source. Small-body fitting scales the same cell anatomy.
+All enabled saved selectors now use the accepted profile-8 anatomy, retaining
+the original frozen fixture when explicitly requested. Ordinary planets place
+independent instances of the same passage/chamber volume. Small bodies uniformly
+scale that anatomy; missing metadata never selects a simpler shape generator.
+Canonical rock queries and strata retain the original geological source.
 
-Surface access is an ordinary family passage with a gradual continuous floor,
-leading outward from an existing chamber to a nearby local surface. It is never
-a stretched chamber or a vertical link to a global lower-bound datum. Preferred
-bedding-controlled networks retain their existing coordinates and geometry.
+The rejected ring galleries and appended long entrance passages have been removed.
+Natural entrance construction and varied interconnected multi-level caves remain
+open work, pending visual comparison and acceptance. Saved entrance and branching
+settings cannot reactivate the rejected implementation.
 
-Density still requests extra preferred networks, with readiness reporting actual
+Density still requests extra approved compositions, with readiness reporting actual
 counts. The minimum guarantees existence, not the full requested abundance or
 visual acceptance of every fitted shape. Authored backfill and sculpting retain
 their later position in scene composition. Invalid input and cancellation retain
