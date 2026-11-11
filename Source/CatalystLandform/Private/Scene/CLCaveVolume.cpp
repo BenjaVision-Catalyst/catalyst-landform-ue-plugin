@@ -340,7 +340,12 @@ FBox FCLCompiledCaveVolume::Bounds(FGuid Network)const
 }
 double FCLCompiledCaveVolume::MinimumHalfWidth(FGuid Network)const
 {
-    if(Spatial)return 2.;
+    if(Spatial)
+    {
+        if(Network.IsValid())return Spatial->MinimumHalfWidth(Network);
+        if(SelectedNetworks.IsEmpty())return Spatial->MinimumHalfWidth();
+        double M=MAX_dbl;for(const auto Id:SelectedNetworks)M=FMath::Min(M,Spatial->MinimumHalfWidth(Id));return M;
+    }
     double M=MAX_dbl;
     for(const auto& P:Data->Paths)if((!Network.IsValid()||P.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Network)))M=FMath::Min(M,P.MinimumWidth);
     if(Data->Paths.IsEmpty())for(const auto& C:Data->Chambers)if((!Network.IsValid()||C.Source.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(C.Source.Network)))M=FMath::Min(M,C.Source.HalfExtents.GetMin());

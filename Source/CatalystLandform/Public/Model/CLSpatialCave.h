@@ -28,13 +28,14 @@ public:
     void SampleSurfaceHeights(const FCLCompiledPlanetRecipe&,TConstArrayView<FVector>,TArray<double>&)const;
     void GetEvaluationSeconds(TArray<double>& Seconds)const;
     FBox Bounds(FGuid Network=FGuid())const;
+    double MinimumHalfWidth(FGuid Network=FGuid())const;
     void GetCellSupportBounds(TArray<FBox>& Out)const;
     FVector BodyPoint(const FVector& BeddingPosition)const;
     FVector BeddingPoint(const FVector& BodyPosition,bool bCompiled=true)const;
     double FloorHeight(double X,double Y)const;
 private:
     friend class FCLSpatialCaveFamily;
-    static TSharedPtr<const FCLCompiledCaves> BuildApprovedAt(const FCLCompiledPlanetRecipe&,int32,const FVector&,double,FString&);
+    static TSharedPtr<const FCLCompiledCaves> BuildNetworkAt(const FCLCompiledPlanetRecipe&,const FCLCaveSettings&,int32,const FVector&,double,FString&,bool FollowBedding=true,int32 RequestedLevels=0);
     static TSharedPtr<const FCLCompiledCaves> CompileComposition(const FCLCompiledPlanetRecipe&,TSharedPtr<FCLSpatialCaveData>,int32,FString&,bool);
     TSharedPtr<const FCLSpatialCaveData> Data;
 };

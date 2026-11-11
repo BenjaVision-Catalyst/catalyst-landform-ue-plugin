@@ -1,0 +1,197 @@
+{
+	"recipe": "/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview",
+	"networks": 25,
+	"networkSizesAndLevels": [
+		{
+			"id": "53504138000006C10000000000000001",
+			"levels": 1,
+			"anatomyScale": 0.92729899406433114
+		},
+		{
+			"id": "53504138000006C1000000000000001F",
+			"levels": 2,
+			"anatomyScale": 0.28623005628585818
+		},
+		{
+			"id": "53504138000006C1000000000000002A",
+			"levels": 2,
+			"anatomyScale": 0.34463587284088137
+		},
+		{
+			"id": "53504138000006C10000000000000048",
+			"levels": 2,
+			"anatomyScale": 0.28898504257202151
+		},
+		{
+			"id": "53504138000006C10000000000000057",
+			"levels": 1,
+			"anatomyScale": 0.71945962429046639
+		},
+		{
+			"id": "53504138000006C10000000000000059",
+			"levels": 3,
+			"anatomyScale": 0.33962550640106204
+		},
+		{
+			"id": "53504138000006C10000000000000067",
+			"levels": 1,
+			"anatomyScale": 0.30384734153747561
+		},
+		{
+			"id": "53504138000006C1000000000000006B",
+			"levels": 2,
+			"anatomyScale": 0.50307592630386355
+		},
+		{
+			"id": "53504138000006C1000000000000006D",
+			"levels": 1,
+			"anatomyScale": 0.86078605175018319
+		},
+		{
+			"id": "53504138000006C10000000000000084",
+			"levels": 3,
+			"anatomyScale": 0.44976130008697512
+		},
+		{
+			"id": "53504138000006C1000000000000008B",
+			"levels": 2,
+			"anatomyScale": 0.69203779220581063
+		},
+		{
+			"id": "53504138000006C100000000000000CD",
+			"levels": 3,
+			"anatomyScale": 0.6761185836791993
+		},
+		{
+			"id": "53504138000006C100000000000000D6",
+			"levels": 1,
+			"anatomyScale": 0.33894261598587039
+		},
+		{
+			"id": "53504138000006C100000000000000D8",
+			"levels": 3,
+			"anatomyScale": 0.3752371954917908
+		},
+		{
+			"id": "53504138000006C100000000000000E1",
+			"levels": 1,
+			"anatomyScale": 0.47825601577758792
+		},
+		{
+			"id": "53504138000006C10000000000000115",
+			"levels": 2,
+			"anatomyScale": 0.67426785945892342
+		},
+		{
+			"id": "53504138000006C10000000000000120",
+			"levels": 2,
+			"anatomyScale": 0.54812791824340823
+		},
+		{
+			"id": "53504138000006C1000000000000012C",
+			"levels": 4,
+			"anatomyScale": 0.50377580404281619
+		},
+		{
+			"id": "53504138000006C10000000000000145",
+			"levels": 1,
+			"anatomyScale": 0.35067155838012698
+		},
+		{
+			"id": "53504138000006C10000000000000191",
+			"levels": 1,
+			"anatomyScale": 0.29609218120574954
+		},
+		{
+			"id": "53504138000006C100000000000001A9",
+			"levels": 1,
+			"anatomyScale": 0.4414189147949219
+		},
+		{
+			"id": "53504138000006C100000000000001B9",
+			"levels": 1,
+			"anatomyScale": 0.37189748764038089
+		},
+		{
+			"id": "53504138000006C100000000000001C7",
+			"levels": 1,
+			"anatomyScale": 0.42317452907562259
+		},
+		{
+			"id": "53504138000006C100000000000001DA",
+			"levels": 1,
+			"anatomyScale": 0.90159544467926034
+		},
+		{
+			"id": "53504138000006C100000000000001E0",
+			"levels": 2,
+			"anatomyScale": 0.33765873193740847
+		}
+	],
+	"views": [
+		{
+			"name": "passage",
+			"eyeMeters": "X=-535.267 Y=-732.043 Z=273.907",
+			"rotation": "P=12.808343 Y=136.145652 R=71.887871",
+			"eyeHeightMeters": 1.6150116920471191,
+			"openingWidthAt3mMeters": 34,
+			"ceilingAboveFloorMeters": 9.25
+		},
+		{
+			"name": "threshold",
+			"eyeMeters": "X=-663.762 Y=-602.203 Z=306.114",
+			"rotation": "P=3.143234 Y=129.035240 R=70.985197",
+			"eyeHeightMeters": 1.5942835807800293,
+			"openingWidthAt3mMeters": 55,
+			"ceilingAboveFloorMeters": 31.25
+		},
+		{
+			"name": "chamber",
+			"eyeMeters": "X=-675.254 Y=-588.029 Z=307.116",
+			"rotation": "P=42.837890 Y=-26.205779 R=-60.849478",
+			"eyeHeightMeters": 1.6066956520080566,
+			"openingWidthAt3mMeters": 64.5,
+			"ceilingAboveFloorMeters": 34.5
+		},
+		{
+			"name": "chamber-side",
+			"eyeMeters": "X=-675.254 Y=-588.029 Z=307.116",
+			"rotation": "P=45.402581 Y=130.154153 R=75.856613",
+			"eyeHeightMeters": 1.6066956520080566,
+			"openingWidthAt3mMeters": 75,
+			"ceilingAboveFloorMeters": 34.5
+		},
+		{
+			"name": "small-chamber",
+			"eyeMeters": "X=-477.246 Y=-743.858 Z=-433.788",
+			"rotation": "P=32.637773 Y=-76.752322 R=-137.656938",
+			"eyeHeightMeters": 1.6254210472106934,
+			"openingWidthAt3mMeters": 17,
+			"ceilingAboveFloorMeters": 8.75
+		},
+		{
+			"name": "large-chamber",
+			"eyeMeters": "X=175.865 Y=-922.857 Z=-133.751",
+			"rotation": "P=-50.199690 Y=17.474547 R=-100.304345",
+			"eyeHeightMeters": 1.6243634223937988,
+			"openingWidthAt3mMeters": 74.5,
+			"ceilingAboveFloorMeters": 25.75
+		},
+		{
+			"name": "upper-level",
+			"eyeMeters": "X=395.116 Y=-460.005 Z=-758.538",
+			"rotation": "P=-16.422481 Y=-164.733220 R=145.635147",
+			"eyeHeightMeters": 1.6230883598327637,
+			"openingWidthAt3mMeters": 46.5,
+			"ceilingAboveFloorMeters": 15.25
+		},
+		{
+			"name": "level-ramp",
+			"eyeMeters": "X=392.177 Y=-179.282 Z=-788.196",
+			"rotation": "P=19.198399 Y=-4.624637 R=-170.486772",
+			"eyeHeightMeters": 1.6376147270202637,
+			"openingWidthAt3mMeters": 25,
+			"ceilingAboveFloorMeters": 6
+		}
+	]
+}

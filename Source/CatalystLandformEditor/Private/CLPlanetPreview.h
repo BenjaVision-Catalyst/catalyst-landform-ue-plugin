@@ -108,6 +108,7 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLWatershedDebugRenderedTest;
     friend class FCLCaveDebugRenderedTest;
+    friend class FCLSpatialFamilyEditorTest;
     friend class FCLNativePreviewTest;
     friend class FCLPreviewMaterialRenderedTest;
     friend class FCLNativePreviewRadiiTest;

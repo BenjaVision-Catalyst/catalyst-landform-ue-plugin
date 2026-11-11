@@ -1,3 +1,6 @@
+> Historical fixed-composition attempt. The user rejected its editor output and
+> does not accept its restoration claims. See the [procedural family rework](SpatialCaveFamilyGeneration.md), which remains subject to visual review.
+
 # Approved cave restoration — 11 November 2026
 
 The user rejected the repeated ring galleries and long straight entrance tunnels.

@@ -1,0 +1,26 @@
+{
+  "componentBase": "8db46ca1755a32f9f56edc3cc267d0cf45ee972c",
+  "engine": "UE 5.7 Mac arm64",
+  "stagedPlugin": "/private/tmp/landform-natural-karst/LandformLab/Plugins/CatalystLandform",
+  "changedSourcesSHA256": {
+    "Source/CatalystLandform/Private/Model/CLSpatialCave.cpp": "7d85d394fdb7dc4f106dfb1d4430c7b44e6e0ba84c86ee4ea545e1661b081833",
+    "Source/CatalystLandform/Private/Model/CLSpatialCaveFamily.cpp": "b7771f0de859f5108314d72b321ad821608523dfb8bfd9b6dff74efa0f41b5b0",
+    "Source/CatalystLandform/Private/Model/CLSpatialCaveFamily.h": "ece7ce467410201e9697e4e33ea0b3c0fd9dd3813eae17a2b5b7d4a26fca400e",
+    "Source/CatalystLandform/Private/Model/CLSpatialMorph.ispc": "6579ac97c6d6df161ec68d106f3f000bc2c13c33fd2be2fdd2acf7303ebac2dd",
+    "Source/CatalystLandform/Private/Scene/CLCaveVolume.cpp": "129ad9eec8c50fb851127a1a754f3d701f35a4591ffaec420bad40d1fb4d9e16",
+    "Source/CatalystLandform/Public/Model/CLCaves.h": "c84fd7d483a854d485e43a3eb08d259c25b471cc608a8bab082cba78c1d9eb7f",
+    "Source/CatalystLandform/Public/Model/CLSpatialCave.h": "1768af7e0b49f5b3163464cac0031840cf071758e9e6468752b237d06f7144e0",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "e812c7372669240af0eff33626b175f19fd165f282d15eb880d504802a32ed92",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "d498afbeeba06970b628fd1e9fb92247de4ec50f90dea4e71eede4b9624a2167",
+    "Source/CatalystLandformTests/Private/CLCaveTests.cpp": "f7193d68fa6bd72c937b8dcee0f93da14674172f600168bcc842cc9851dfb78f",
+    "Source/CatalystLandformTests/Private/CLProceduralCaveTests.cpp": "cf128b1d078cb36ef4ca940f0fb14a67d503b149652992f37f2889677c39f470"
+  },
+  "authoringRecipeSnapshotSHA256": "44a5ccaf5eb20a36d656967aedebb8fd33fb2ee4dcd4403a552e8b25ade82252",
+  "authoringRecipeSnapshot": "/private/tmp/landform-family-review/qualified/editor/recipe.json",
+  "originalApprovedCapturesSHA256": {
+    "passage.png": "c3416b8fb83409ac5922d1b9e843259149368fbdfd77070474b5f358046f92f8",
+    "threshold.png": "1e76ff49474258ee129905ce2255a0ccef38a3662619d548aac3d8b5cab63389",
+    "chamber.png": "8f3e8e3b8b031c1162a30dc6dfaa094266c30a27d2cff022b6209e0a6b47109d",
+    "chamber-side.png": "f2ca7ae411d6087198ad089ca2a60fb00356576e4644fc5a8ef3d78ded2f9b80"
+  }
+}

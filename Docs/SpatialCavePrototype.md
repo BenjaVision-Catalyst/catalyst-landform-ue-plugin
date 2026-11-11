@@ -1,6 +1,6 @@
 # Spatial cave prototype
 
-Current family: [seeded multi-level caves](ProceduralCaveFamily.md). The original
+Current family candidate: [varied spatial cave generation](SpatialCaveFamilyGeneration.md). The original
 profile-8 composition remains the frozen reference below.
 
 Previous delivery follow-up: [moving-demand delivery](CaveStreamingDeliveryFix.md) removes the rejected whole-cave residency workaround and qualifies the compiled directional inputs. The [residency experiment](ChamberCollisionResidency.md) is historical.
@@ -174,6 +174,9 @@ concerns the displayed composition; procedural family parameterization, entrance
 and multi-site placement remain open.
 
 ## Approved generation restoration — 11 November, evening
+
+Historical attempt: the user rejected its editor output. This section records
+what that attempt changed, not visual approval of ordinary generation.
 
 After rejecting the experimental ring galleries, the user required this accepted
 anatomy in ordinary generation. Placement now calls this same scalar/NEON field;

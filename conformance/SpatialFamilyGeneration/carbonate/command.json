@@ -1,0 +1,18 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-abslog=/private/tmp/landform-family-review/carbonate-comparison/native.log",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Caves.ProceduralFamily.EditorInteriors",
+  "-TestExit=Automation Test Queue Empty",
+  "-ReportExportPath=/private/tmp/landform-family-review/carbonate-comparison/automation",
+  "-CLSpatialFamilyEditorOutput=/private/tmp/landform-family-review/carbonate-comparison/editor",
+  "-CLSpatialFamilyEditorRecipe=/private/tmp/landform-family-review/carbonate-family.json"
+]

@@ -1,0 +1,14 @@
+[2026.11.11-11.53.14:908][200]LogAutomationController: CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.450524
+[2026.11.11-11.53.14:908][200]LogAutomationController: RIFT_CAVE_PREVIEW_READY totalSeconds=11.853 inspectionSeconds=5.180 networks=25 domains=23 nativeVertices=21489 cyanPixels=5407 overviewResidualMeters=9.379236
+[2026.11.11-11.53.14:908][200]LogAutomationController: RIFT_CAVE_ZOOM seconds=17.951 vertices=21775 maxCellMeters=1.000 maxResidualMeters=0.158457
+[2026.11.11-11.53.36:291][202]LogAutomationController: SPATIAL_FAMILY seed=176 networks=30 rooms=161 passages=185 levels=5 ramps=24 probes=45162 clearance=0.8675 support=-0.1545 grade=0.2747 scalarResidual=1.46238159e-05
+[2026.11.11-11.53.36:291][202]LogAutomationController: SPATIAL_FAMILY seed=731 networks=24 rooms=186 passages=220 levels=5 ramps=34 probes=53247 clearance=0.8740 support=-0.1587 grade=0.3044 scalarResidual=1.6212135e-05
+[2026.11.11-11.53.36:291][202]LogAutomationController: SPATIAL_FAMILY seed=2049 networks=29 rooms=152 passages=177 levels=5 ramps=25 probes=44763 clearance=0.9709 support=-0.1614 grade=0.2770 scalarResidual=2.63406977e-05
+[2026.11.11-11.55.44:756][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=passage eyeHeight=1.615 widthAt3m=34.00 ceilingAboveFloor=9.25
+[2026.11.11-11.55.44:756][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=threshold eyeHeight=1.594 widthAt3m=55.00 ceilingAboveFloor=31.25
+[2026.11.11-11.55.44:756][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=chamber eyeHeight=1.607 widthAt3m=64.50 ceilingAboveFloor=34.50
+[2026.11.11-11.55.44:756][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=chamber-side eyeHeight=1.607 widthAt3m=75.00 ceilingAboveFloor=34.50
+[2026.11.11-11.55.44:756][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=small-chamber eyeHeight=1.625 widthAt3m=17.00 ceilingAboveFloor=8.75
+[2026.11.11-11.55.44:756][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=large-chamber eyeHeight=1.624 widthAt3m=74.50 ceilingAboveFloor=25.75
+[2026.11.11-11.55.44:756][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=upper-level eyeHeight=1.623 widthAt3m=46.50 ceilingAboveFloor=15.25
+[2026.11.11-11.55.44:757][616]LogAutomationController: SPATIAL_EDITOR_SECTION view=level-ramp eyeHeight=1.638 widthAt3m=25.00 ceilingAboveFloor=6.00

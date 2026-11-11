@@ -1,0 +1,637 @@
+{
+  "visualStatus": "Candidate for user review; automated checks do not establish visual acceptance.",
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cave mesh worst residual 9.379236 m at X=-848.236 Y=303.200 Z=-273.934",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.52.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.450524",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.52.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_PREVIEW_READY totalSeconds=11.853 inspectionSeconds=5.180 networks=25 domains=23 nativeVertices=21489 cyanPixels=5407 overviewResidualMeters=9.379236",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.52.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generating cave surfaces \u00b7 23/23 ready | components 5, native producer/presenter 42668, ready 1, processing 0, tasks 0, inspected vertices 264, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42700, ready 1, processing 0, tasks 0, inspected vertices 1318, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 4/4 | components 7, native producer/presenter 42720, ready 1, processing 0, tasks 0, inspected vertices 1328, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 7, native producer/presenter 42740, ready 1, processing 0, tasks 0, inspected vertices 1391, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 4/4 | components 4, native producer/presenter 42760, ready 1, processing 0, tasks 0, inspected vertices 120, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 6/6 | components 8, native producer/presenter 42780, ready 1, processing 0, tasks 0, inspected vertices 2178, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4 | components 6, native producer/presenter 42800, ready 1, processing 0, tasks 0, inspected vertices 583, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 4/4 | components 7, native producer/presenter 42820, ready 1, processing 0, tasks 0, inspected vertices 1333, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 42840, ready 1, processing 0, tasks 0, inspected vertices 345, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42860, ready 1, processing 0, tasks 0, inspected vertices 2124, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 6, native producer/presenter 42880, ready 1, processing 0, tasks 0, inspected vertices 648, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 42900, ready 1, processing 0, tasks 0, inspected vertices 273, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 6/6 | components 8, native producer/presenter 42920, ready 1, processing 0, tasks 0, inspected vertices 2529, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 4, native producer/presenter 42940, ready 1, processing 0, tasks 0, inspected vertices 200, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 42960, ready 1, processing 0, tasks 0, inspected vertices 1553, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 42980, ready 1, processing 0, tasks 0, inspected vertices 696, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 43000, ready 1, processing 0, tasks 0, inspected vertices 660, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 6, native producer/presenter 43020, ready 1, processing 0, tasks 0, inspected vertices 440, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 4/4 | components 6, native producer/presenter 43040, ready 1, processing 0, tasks 0, inspected vertices 495, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 6, native producer/presenter 43060, ready 1, processing 0, tasks 0, inspected vertices 382, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 7, native producer/presenter 43080, ready 1, processing 0, tasks 0, inspected vertices 542, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 4/4 | components 6, native producer/presenter 43100, ready 1, processing 0, tasks 0, inspected vertices 409, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 43120, ready 1, processing 0, tasks 0, inspected vertices 1678, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.52.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_ZOOM seconds=17.951 vertices=21775 maxCellMeters=1.000 maxResidualMeters=0.158457",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.53.14"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.AnatomyFloorsAndStrata",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_FAMILY seed=176 networks=30 rooms=161 passages=185 levels=5 ramps=24 probes=45162 clearance=0.8675 support=-0.1545 grade=0.2747 scalarResidual=1.46238159e-05",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.53.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_FAMILY seed=731 networks=24 rooms=186 passages=220 levels=5 ramps=34 probes=53247 clearance=0.8740 support=-0.1587 grade=0.3044 scalarResidual=1.6212135e-05",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.53.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_FAMILY seed=2049 networks=29 rooms=152 passages=177 levels=5 ramps=25 probes=44763 clearance=0.9709 support=-0.1614 grade=0.2770 scalarResidual=2.63406977e-05",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.53.36"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.DeterminismAndSelection",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.EditorInteriors",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=passage eyeHeight=1.615 widthAt3m=34.00 ceilingAboveFloor=9.25",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=passage visiblePixels=851671 settledSeconds=24.661 native=components 1801, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=threshold eyeHeight=1.594 widthAt3m=55.00 ceilingAboveFloor=31.25",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=threshold visiblePixels=1027215 settledSeconds=9.816 native=components 1801, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=chamber eyeHeight=1.607 widthAt3m=64.50 ceilingAboveFloor=34.50",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=chamber visiblePixels=815662 settledSeconds=5.003 native=components 1801, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=chamber-side eyeHeight=1.607 widthAt3m=75.00 ceilingAboveFloor=34.50",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=chamber-side visiblePixels=1002709 settledSeconds=5.001 native=components 1801, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=small-chamber eyeHeight=1.625 widthAt3m=17.00 ceilingAboveFloor=8.75",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=small-chamber visiblePixels=706565 settledSeconds=18.330 native=components 1928, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.54.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=large-chamber eyeHeight=1.624 widthAt3m=74.50 ceilingAboveFloor=25.75",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.09"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=large-chamber visiblePixels=951850 settledSeconds=17.614 native=components 1928, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.09"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=upper-level eyeHeight=1.623 widthAt3m=46.50 ceilingAboveFloor=15.25",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=upper-level visiblePixels=858352 settledSeconds=21.005 native=components 1928, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR_SECTION view=level-ramp eyeHeight=1.638 widthAt3m=25.00 ceilingAboveFloor=6.00",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=level-ramp visiblePixels=845707 settledSeconds=13.782 native=components 1928, native producer/presenter 44952, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.44"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.WorkVsSurface",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=0 chunks=192 excessChunks=0 currentFine=220288 uncutFine=220288",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.47"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=1 chunks=196 excessChunks=0 currentFine=213056 uncutFine=213056",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.48"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=2 chunks=196 excessChunks=0 currentFine=610176 uncutFine=610176",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.50"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=3 chunks=200 excessChunks=0 currentFine=962304 uncutFine=962304",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "PREPARED_FINAL_SURFACE probes=41734 maximumErrorMeters=0.000000000",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "PREPARED_GEOLOGY stable=0 exactFallback=83284 mismatches=0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK chamber chunks=59 solid=26 solidRefine=9 caveFine=616128 surfaceFine=0 cave=0.237422 surface=0.172353 discardedRock=0.081970",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK passage chunks=58 solid=15 solidRefine=4 caveFine=983168 surfaceFine=0 cave=0.213849 surface=0.169080 discardedRock=0.042421",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK ramp chunks=66 solid=21 solidRefine=5 caveFine=1007296 surfaceFine=307904 cave=0.420583 surface=0.192071 discardedRock=0.092265",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK surface chunks=59 solid=8 solidRefine=1 caveFine=601344 surfaceFine=601344 cave=0.334462 surface=0.172904 discardedRock=0.039208",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.55.54"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_CAVE floors=251 relief=3.018m grade=0.092 clearance=1.105m fieldProbes=6673 terrainNeeded=0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.56.15"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.56.15"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.EligibilityAndVersions",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "23 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.56.19"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.InspectionExcludesEmptySpace",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_INSPECTION_PRUNING points=6380 oldTerrainRequests=892 newTerrainRequests=0 signErrors=0 interiorFieldError=3.38518391e-09",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.57.30"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.InspectionVolume",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.KnobAndBackground",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-11.58.11"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "23 networks, 14853 cutters; 297 native bulk/sparse points, max residual 0 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.00.52"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.RiftNaturalFamily",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rift natural family: 25 networks, 124 chambers, 143 passages, 0 entrances, grade 0.28366, clearance failures 0, foundation failures 0, scalar residual 1.00341413e-06",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.01.13"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.01.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 73: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.01.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 74: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.01.43"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 75: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.01.48"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 76: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.01.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 77: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.01.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 78: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.02.04"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 79: 7 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.02.08"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 80: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-12.02.14"
+        }
+      ]
+    }
+  ]
+}

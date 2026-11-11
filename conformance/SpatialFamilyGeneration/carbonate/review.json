@@ -1,0 +1,122 @@
+{
+	"recipe": "/private/tmp/landform-family-review/carbonate-family.json",
+	"networks": 10,
+	"networkSizesAndLevels": [
+		{
+			"id": "5350413800000671000000B000000001",
+			"levels": 2,
+			"anatomyScale": 0.29659387351142036
+		},
+		{
+			"id": "5350413800000671000000B000000021",
+			"levels": 1,
+			"anatomyScale": 0.22330119213528105
+		},
+		{
+			"id": "5350413800000671000000B00000002F",
+			"levels": 2,
+			"anatomyScale": 0.48907602547539603
+		},
+		{
+			"id": "5350413800000671000000B00000004D",
+			"levels": 2,
+			"anatomyScale": 0.22484248241848417
+		},
+		{
+			"id": "5350413800000671000000B000000069",
+			"levels": 5,
+			"anatomyScale": 0.18694525481330027
+		},
+		{
+			"id": "5350413800000671000000B000000082",
+			"levels": 1,
+			"anatomyScale": 0.46113488540649422
+		},
+		{
+			"id": "5350413800000671000000B0000000A3",
+			"levels": 2,
+			"anatomyScale": 0.54328237982855909
+		},
+		{
+			"id": "5350413800000671000000B0000000A7",
+			"levels": 4,
+			"anatomyScale": 0.25089774530198844
+		},
+		{
+			"id": "5350413800000671000000B0000000E5",
+			"levels": 3,
+			"anatomyScale": 0.36148359213528641
+		},
+		{
+			"id": "5350413800000671000000B0000000EE",
+			"levels": 1,
+			"anatomyScale": 0.33180936893886992
+		}
+	],
+	"views": [
+		{
+			"name": "passage",
+			"eyeMeters": "X=53.925 Y=502.763 Z=250.263",
+			"rotation": "P=-28.179359 Y=5.597928 R=61.474660",
+			"eyeHeightMeters": 1.6258559226989746,
+			"openingWidthAt3mMeters": 14,
+			"ceilingAboveFloorMeters": 6.25
+		},
+		{
+			"name": "threshold",
+			"eyeMeters": "X=122.578 Y=500.752 Z=222.891",
+			"rotation": "P=-25.828653 Y=-3.831766 R=64.766122",
+			"eyeHeightMeters": 1.6079573631286621,
+			"openingWidthAt3mMeters": 50,
+			"ceilingAboveFloorMeters": 18
+		},
+		{
+			"name": "chamber",
+			"eyeMeters": "X=131.758 Y=500.137 Z=218.438",
+			"rotation": "P=30.829531 Y=-17.428108 R=68.845903",
+			"eyeHeightMeters": 1.6324267387390137,
+			"openingWidthAt3mMeters": 49,
+			"ceilingAboveFloorMeters": 17
+		},
+		{
+			"name": "chamber-side",
+			"eyeMeters": "X=131.758 Y=500.137 Z=218.438",
+			"rotation": "P=-42.041821 Y=36.614170 R=36.721890",
+			"eyeHeightMeters": 1.6324267387390137,
+			"openingWidthAt3mMeters": 52.5,
+			"ceilingAboveFloorMeters": 17
+		},
+		{
+			"name": "small-chamber",
+			"eyeMeters": "X=-417.964 Y=315.532 Z=227.009",
+			"rotation": "P=14.433007 Y=77.704261 R=70.845450",
+			"eyeHeightMeters": 1.6132979393005371,
+			"openingWidthAt3mMeters": 20,
+			"ceilingAboveFloorMeters": 5.75
+		},
+		{
+			"name": "large-chamber",
+			"eyeMeters": "X=131.758 Y=500.137 Z=218.438",
+			"rotation": "P=31.854399 Y=-14.186986 R=70.532151",
+			"eyeHeightMeters": 1.6324267387390137,
+			"openingWidthAt3mMeters": 49,
+			"ceilingAboveFloorMeters": 17
+		},
+		{
+			"name": "upper-level",
+			"eyeMeters": "X=-414.564 Y=354.025 Z=207.115",
+			"rotation": "P=-55.815691 Y=-160.320197 R=-54.236075",
+			"eyeHeightMeters": 1.6236863136291504,
+			"openingWidthAt3mMeters": 14,
+			"ceilingAboveFloorMeters": 6.25
+		},
+		{
+			"name": "level-ramp",
+			"eyeMeters": "X=-404.565 Y=347.163 Z=87.354",
+			"rotation": "P=-20.761550 Y=-142.076710 R=-77.151585",
+			"eyeHeightMeters": 1.6050715446472168,
+			"openingWidthAt3mMeters": 6.5,
+			"ceilingAboveFloorMeters": 6.5
+		}
+	]
+}

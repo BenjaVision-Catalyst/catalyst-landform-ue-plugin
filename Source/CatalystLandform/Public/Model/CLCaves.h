@@ -118,7 +118,7 @@ public:
     TSharedPtr<const FCLCompiledCaveVolume> Cutters;
     TSharedPtr<const FCLSpatialCave> Spatial;
     enum class EFamily:uint8 {Structural,CarbonateKarst,General};
-    struct FNetwork {FGuid Id;EFamily Family=EFamily::Structural;int32 RechargeCell=INDEX_NONE,ReceivingCell=INDEX_NONE;double InceptionRadiusMeters=0;FBox InspectionBounds=FBox(ForceInit);FGuid Landform;FVector OriginDirection=FVector::ZeroVector;};
+    struct FNetwork {FGuid Id;EFamily Family=EFamily::Structural;int32 RechargeCell=INDEX_NONE,ReceivingCell=INDEX_NONE;double InceptionRadiusMeters=0;FBox InspectionBounds=FBox(ForceInit);FGuid Landform;FVector OriginDirection=FVector::ZeroVector;int32 Levels=1;double AnatomyScale=1;};
     TArray<FNetwork> NetworkInfo;
     /** Static query/render support groups, not a claim of physical connectivity. */
     struct FInspectionDomain {FGuid Id;TArray<FGuid> Networks;FBox Bounds=FBox(ForceInit);};

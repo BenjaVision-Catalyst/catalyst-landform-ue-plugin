@@ -10,6 +10,8 @@
 #include "CLSurfacePreview.h"
 #if WITH_DEV_AUTOMATION_TESTS
 #include "ShaderCompiler.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #endif
@@ -1600,7 +1602,7 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
             }
             S.Networks=Represented.Num();TestEqual(TEXT("Every joined diagnostic domain has native union surface vertices at globe scale"),S.Networks,S.Plan->Caves->InspectionDomains.Num());TestTrue(TEXT("Native VPP presents actual cave surface triangles at globe scale"),M.Vertices.Num()>100&&M.Triangles.Num()>300&&W->CavePreview->UsesNativePresentation());
             TArray<FCLSceneShapeSample> Fields;FString Error;FCLScene::FromPlanet(S.Plan,Error)->SampleCaveVoid({Body},Fields,Error);S.Residual=0;FVector WorstPoint;for(int32 I=0;I<Fields.Num();++I)if(FMath::Abs(Fields[I].FieldMeters)>S.Residual){S.Residual=FMath::Abs(Fields[I].FieldMeters);WorstPoint=Body[I];}if(S.Residual>=.5)AddInfo(FString::Printf(TEXT("Cave mesh worst residual %.6f m at %s"),S.Residual,*WorstPoint.ToString()));double CellError=0;for(int32 I=0;I<Fields.Num();++I)CellError=FMath::Max(CellError,FMath::Abs(Fields[I].FieldMeters)/FMath::Max(.0001f,M.SourceCellMeters[I]));
-            TestTrue(TEXT("Overview vertices follow the cave field within half a native cell"),CellError<.5);
+            AddInfo(FString::Printf(TEXT("CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=%.6f"),CellError));TestTrue(TEXT("Overview vertices follow the cave field within half a native cell"),CellError<.5);
         };
         if(S.Phase==0)
         {
@@ -1718,4 +1720,117 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
         return Close();
     }));return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSpatialFamilyEditorTest,"Catalyst.Landform.Caves.ProceduralFamily.EditorInteriors",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
+{
+    const auto* Asset=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview"));
+    if(!TestNotNull(TEXT("Current saved authoring asset"),Asset))return false;
+    FString Error,RecipePath,OutputDir=FPaths::ProjectSavedDir()/TEXT("Verification/spatial-family-editor");
+    auto Recipe=Asset->Recipe;
+    if(FParse::Value(FCommandLine::Get(),TEXT("CLSpatialFamilyEditorRecipe="),RecipePath))
+    {
+        FString Json;TStrongObjectPtr<UCLPlanetRecipeAsset> Imported(NewObject<UCLPlanetRecipeAsset>());
+        if(!FFileHelper::LoadFileToString(Json,*RecipePath)||!Imported->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+        Recipe=Imported->Recipe;
+    }
+    FParse::Value(FCommandLine::Get(),TEXT("CLSpatialFamilyEditorOutput="),OutputDir);
+    IFileManager::Get().MakeDirectory(*OutputDir,true);
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Snapshot(NewObject<UCLPlanetRecipeAsset>());Snapshot->Recipe=Recipe;
+    FString RecipeJson;if(!Snapshot->ExportJsonString(RecipeJson,Error)||!FFileHelper::SaveStringToFile(RecipeJson,*(OutputDir/TEXT("recipe.json")))){AddError(Error);return false;}
+    const auto Plan=FCLPlanetCompiler::Compile(Recipe,Error);
+    if(!Plan||!Plan->Caves||!Plan->Caves->Spatial){AddError(Error);return false;}
+    const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Landform editor: generated cave interiors"))).ClientSize(FVector2D(1280,800))[W];
+    FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();W->Rebuild(Plan);
+    struct FReview {int32 View=-1;double Start=FPlatformTime::Seconds(),Changed=0,Quiet=0;TArray<FTransform> Cameras;TArray<FString> Names;TArray<FVector> Openings;};
+    const auto State=MakeShared<FReview>();
+    const FCLCompiledCaves::FNetwork* Representative=&Plan->Caves->NetworkInfo[0];
+    for(const auto& N:Plan->Caves->NetworkInfo)if(FMath::Abs(N.AnatomyScale-1.)<FMath::Abs(Representative->AnatomyScale-1.))Representative=&N;
+    const FGuid Network=Representative->Id;
+    const FCLCavePassage* Approach=nullptr;double Longest=0;
+    for(const auto& P:Plan->Caves->Passages)if(P.Network==Network&&Plan->Caves->Nodes[P.To].Chamber&&FMath::Abs(P.FloorRadii.Last()-P.FloorRadii[0])<12*Representative->AnatomyScale)
+    {
+        double L=0;for(int32 I=1;I<P.Points.Num();++I)L+=FVector::Distance(P.Points[I],P.Points[I-1]);
+        if(L>Longest){Longest=L;Approach=&P;}
+    }
+    if(!Approach){AddError(TEXT("Generated network has no passage-to-chamber transition"));return false;}
+    auto AddView=[&](FString Name,FVector Eye,FVector Target)
+    {
+        const FVector Up=Eye.GetSafeNormal();State->Cameras.Add(FTransform(FRotationMatrix::MakeFromXZ((Target-Eye).GetSafeNormal(),Up).ToQuat(),Eye-Up*.38));State->Names.Add(Name);
+    };
+    const int32 Mid=Approach->Points.Num()/2,Near=FMath::Max(0,Approach->Points.Num()-6);
+    AddView(TEXT("passage"),Approach->Points[Mid],Approach->Points[FMath::Min(Mid+5,Approach->Points.Num()-1)]);
+    const auto& Node=Plan->Caves->Nodes[Approach->To];
+    AddView(TEXT("threshold"),Approach->Points[Near],Node.Position);
+    const auto* Room=Plan->Caves->Chambers.FindByPredicate([&](const auto& C){return C.Node==Approach->To;});
+    const FVector Along=Room->Rotation.GetAxisX(),Across=Room->Rotation.GetAxisY(),Up=Node.Position.GetSafeNormal();
+    AddView(TEXT("chamber"),Node.Position,Node.Position+Along*30+Up*3);
+    AddView(TEXT("chamber-side"),Node.Position,Node.Position+Across*30+Up*2);
+    for(bool Large:{false,true})
+    {
+        const FCLCaveChamber* Selected=&Plan->Caves->Chambers[0];
+        for(const auto& C:Plan->Caves->Chambers)if(Large?C.HalfExtents.X*C.HalfExtents.Y>Selected->HalfExtents.X*Selected->HalfExtents.Y:C.HalfExtents.X*C.HalfExtents.Y<Selected->HalfExtents.X*Selected->HalfExtents.Y)Selected=&C;
+        const auto& N=Plan->Caves->Nodes[Selected->Node];AddView(Large?TEXT("large-chamber"):TEXT("small-chamber"),N.Position,N.Position+Selected->Rotation.GetAxisX()*(Selected->HalfExtents.X*.7)+N.Position.GetSafeNormal()*3);
+    }
+    // The highest node demonstrates the second physical floor, rather than a
+    // second camera angle of the same fixed composition.
+    const FCLCompiledCaves::FNetwork* Deep=Representative;
+    for(const auto& N:Plan->Caves->NetworkInfo)if(N.Levels>Deep->Levels)Deep=&N;
+    const FCLCompiledCaves::FNode* Upper=nullptr;
+    for(const auto& N:Plan->Caves->Nodes)if(N.Network==Deep->Id&&(!Upper||N.Position.Length()>Upper->Position.Length()))Upper=&N;
+    const int32 UpperIndex=int32(Upper-Plan->Caves->Nodes.GetData());
+    const auto* UpperPath=Plan->Caves->Passages.FindByPredicate([&](const auto& P){return P.From==UpperIndex||P.To==UpperIndex;});
+    const auto UpperTarget=UpperPath->From==UpperIndex?UpperPath->Points[FMath::Min(6,UpperPath->Points.Num()-1)]:UpperPath->Points[FMath::Max(0,UpperPath->Points.Num()-7)];
+    AddView(TEXT("upper-level"),Upper->Position,UpperTarget);
+    const auto* Ramp=Plan->Caves->Passages.FindByPredicate([&](const auto& P){return P.Network==Deep->Id&&FMath::Abs(P.FloorRadii.Last()-P.FloorRadii[0])>12*Deep->AnatomyScale;});
+    if(Ramp){const int32 I=Ramp->Points.Num()/2;AddView(TEXT("level-ramp"),Ramp->Points[I],Ramp->Points[FMath::Min(I+6,Ramp->Points.Num()-1)]);}
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,Plan,State,OutputDir,RecipePath]
+    {
+        auto& S=*State;const double Now=FPlatformTime::Seconds();W->Pump();
+        auto Close=[&]{W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
+        if(Now-S.Start>300){AddError(W->NativePreviewStatus());return Close();}
+        if(S.View<0)
+        {
+            if(W->IsApplyingInput())return false;S.View=0;S.Changed=0;
+        }
+        if(S.Changed==0)
+        {
+            const auto& C=S.Cameras[S.View];W->Client->SetViewLocation(C.GetLocation()*(100000./Plan->RadiusMeters));W->Client->SetViewRotation(C.Rotator());W->Client->StudioScene->AimLights(C.Rotator());W->Client->Invalidate();S.Changed=Now;S.Quiet=0;return false;
+        }
+        if(W->NativePreview->IsUpdating()||(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling())){S.Quiet=0;return false;}
+        if(!S.Quiet){S.Quiet=Now;return false;}if(Now-S.Quiet<3||Now-S.Changed<5)return false;
+        auto* V=W->Client->Viewport;if(!V)return false;
+        TArray<FColor> Pixels;W->Scene->UpdateCaptureContents();
+        for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
+        const FString Dir=OutputDir;IFileManager::Get().MakeDirectory(*Dir,true);
+        TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/(S.Names[S.View]+TEXT(".png"))));
+        const auto Eye=S.Cameras[S.View].GetLocation(),Up=Eye.GetSafeNormal(),Across=S.Cameras[S.View].GetRotation().GetAxisY();
+        const auto& Cutters=*Plan->Caves->Cutters;
+        TestTrue(TEXT("Review camera occupies real generated cave air"),Cutters.Compose(Eye,-1.e6)>0);
+        double Low=-10,High=0;for(double D=-.25;D>=-10;D-=.25)if(Cutters.Compose(Eye+Up*D,-1.e6)<=0){Low=D;High=D+.25;break;}
+        for(int32 K=0;K<18;++K){const double M=(Low+High)*.5;if(Cutters.Compose(Eye+Up*M,-1.e6)>0)High=M;else Low=M;}
+        const double Floor=(Low+High)*.5;TArray<FVector> Probes;
+        for(int32 I=0;I<=400;++I){Probes.Add(Eye+Up*(Floor+3)+Across*(I*.5));Probes.Add(Eye+Up*(Floor+3)-Across*(I*.5));}
+        for(int32 I=0;I<=640;++I)Probes.Add(Eye+Up*(Floor+I*.25));
+        TArray<double> Fields;Fields.Init(-1.e6,Probes.Num());Cutters.ComposeBatch(Probes,Fields);
+        double Width=0,Height=0;for(int32 Side=0;Side<2;++Side)for(int32 I=1;I<=400&&Fields[2*I+Side]>0;++I)Width+=.5;
+        for(int32 I=1;I<=640&&Fields[802+I]>0;++I)Height=I*.25;
+        S.Openings.Add(FVector(-Floor,Width,Height));
+        AddInfo(FString::Printf(TEXT("SPATIAL_EDITOR_SECTION view=%s eyeHeight=%.3f widthAt3m=%.2f ceilingAboveFloor=%.2f"),*S.Names[S.View],-Floor,Width,Height));
+        int32 Visible=0;for(const auto C:Pixels)Visible+=C.R>20||C.G>20||C.B>20;
+        TestTrue(TEXT("Native geological cave interior actually rasterizes"),Visible>Pixels.Num()/4);
+        TestTrue(TEXT("Interior uses the editor's native geological terrain presenter"),W->NativePreview->UsesNativePresentation());
+        AddInfo(FString::Printf(TEXT("SPATIAL_EDITOR view=%s visiblePixels=%d settledSeconds=%.3f native=%s"),*S.Names[S.View],Visible,Now-S.Changed,*W->NativePreviewStatus()));
+        if(++S.View==S.Cameras.Num())
+        {
+            auto Report=MakeShared<FJsonObject>();Report->SetStringField(TEXT("recipe"),RecipePath.IsEmpty()?TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview"):RecipePath);
+            Report->SetNumberField(TEXT("networks"),Plan->Caves->Networks);TArray<TSharedPtr<FJsonValue>> Networks,Views;
+            for(const auto& N:Plan->Caves->NetworkInfo){auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("id"),N.Id.ToString());Row->SetNumberField(TEXT("levels"),N.Levels);Row->SetNumberField(TEXT("anatomyScale"),N.AnatomyScale);Networks.Add(MakeShared<FJsonValueObject>(Row));}
+            for(int32 I=0;I<S.Cameras.Num();++I){auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("name"),S.Names[I]);Row->SetStringField(TEXT("eyeMeters"),S.Cameras[I].GetLocation().ToString());Row->SetStringField(TEXT("rotation"),S.Cameras[I].Rotator().ToString());Row->SetNumberField(TEXT("eyeHeightMeters"),S.Openings[I].X);Row->SetNumberField(TEXT("openingWidthAt3mMeters"),S.Openings[I].Y);Row->SetNumberField(TEXT("ceilingAboveFloorMeters"),S.Openings[I].Z);Views.Add(MakeShared<FJsonValueObject>(Row));}
+            Report->SetArrayField(TEXT("networkSizesAndLevels"),Networks);Report->SetArrayField(TEXT("views"),Views);FString Json;FJsonSerializer::Serialize(Report,TJsonWriterFactory<>::Create(&Json));FFileHelper::SaveStringToFile(Json,*(OutputDir/TEXT("review.json")));return Close();
+        }
+        S.Changed=0;return false;
+    }));return true;
+}
+
 #endif
