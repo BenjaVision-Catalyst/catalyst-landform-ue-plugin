@@ -1,0 +1,11 @@
+[2026.11.11-21.24.38:051][121]LogAutomationController: CAVE_PLACEMENT_INPUT_RESIDUAL metres=1.25644709e-07
+[2026.11.11-21.24.38:051][121]LogAutomationController: CAVE_PLACEMENT networks=16 openings=1 savedCharacter=0.348
+[2026.11.11-21.25.44:939][629]LogAutomationController: CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.457044
+[2026.11.11-21.25.44:939][629]LogAutomationController: RIFT_CAVE_PREVIEW_READY totalSeconds=12.994 inspectionSeconds=5.702 networks=16 domains=12 nativeVertices=8829 cyanPixels=4823 overviewResidualMeters=14.170510
+[2026.11.11-21.25.44:939][629]LogAutomationController: RIFT_CAVE_ZOOM seconds=53.049 vertices=24126 maxCellMeters=0.480 maxResidualMeters=0.177186
+[2026.11.11-21.29.12:345][142]LogAutomationController: SPATIAL_FAMILY seed=176 networks=41 rooms=247 passages=291 levels=5 ramps=44 probes=75798 clearance=0.8412 support=-0.1323 grade=0.4362 scalarResidual=1.53156644e-05
+[2026.11.11-21.29.12:345][142]LogAutomationController: SPATIAL_FAMILY seed=731 networks=47 rooms=271 passages=318 levels=5 ramps=47 probes=82044 clearance=0.9391 support=-0.1350 grade=0.4077 scalarResidual=1.8238659e-05
+[2026.11.11-21.29.12:345][142]LogAutomationController: SPATIAL_FAMILY seed=2049 networks=30 rooms=180 passages=213 levels=5 ramps=33 probes=55827 clearance=0.9422 support=-0.0797 grade=0.4122 scalarResidual=2.2773542e-05
+[2026.11.11-21.30.14:502][534]LogAutomationController: SPATIAL_EDITOR view=entrance-outside visiblePixels=1033607 settledSeconds=41.208 native=components 2067, native producer/presenter 38997, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5
+[2026.11.11-21.30.14:502][534]LogAutomationController: SPATIAL_EDITOR view=entrance-inside visiblePixels=836157 settledSeconds=8.282 native=components 2075, native producer/presenter 38997, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5
+[2026.11.11-21.53.57:724][210]LogAutomationController: CAVE_SURFACE_WALKING exteriorSamples=83

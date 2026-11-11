@@ -1635,7 +1635,9 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
                 AddInfo(FString::Printf(TEXT("RIFT_CAVE_PREVIEW_READY totalSeconds=%.3f inspectionSeconds=%.3f networks=%d domains=%d nativeVertices=%d cyanPixels=%d overviewResidualMeters=%.6f"),Now-S.Start,Now-S.Last,S.Plan->Caves->Networks,S.Networks,S.Vertices,S.Cyan,S.Residual));
                 AddInfo(W->CavePreview->Status());
                 const auto Q=S.Plan->Caves->Nodes[0].Position;const auto Up=Q.GetSafeNormal();
-                W->Client->SetViewLocation(Q*(100000./S.Plan->RadiusMeters)+Up*4000);W->Client->SetViewRotation((-Up).Rotation());W->Client->Invalidate();S.Last=Now;S.ReadySince=0;S.Phase=20;return false;
+                // Use a physical close-up distance. A fixed display-space
+                // offset silently doubles this distance on a 2 km planet.
+                W->Client->SetViewLocation((Q+Up*40)*(100000./S.Plan->RadiusMeters));W->Client->SetViewRotation((-Up).Rotation());W->Client->Invalidate();S.Last=Now;S.ReadySince=0;S.Phase=20;return false;
             }
 
 
@@ -1784,6 +1786,21 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
     AddView(TEXT("upper-level"),Upper->Position,UpperTarget);
     const auto* Ramp=Plan->Caves->Passages.FindByPredicate([&](const auto& P){return P.Network==Deep->Id&&FMath::Abs(P.FloorRadii.Last()-P.FloorRadii[0])>12*Deep->AnatomyScale;});
     if(Ramp){const int32 I=Ramp->Points.Num()/2;AddView(TEXT("level-ramp"),Ramp->Points[I],Ramp->Points[FMath::Min(I+6,Ramp->Points.Num()-1)]);}
+    if(!Plan->Caves->SurfaceOpenings.IsEmpty())
+    {
+        const auto& E=Plan->Caves->SurfaceOpenings[0];const auto U=E.SurfacePoint.GetSafeNormal();FVector X,Y;U.FindBestAxisVectors(X,Y);
+        AddView(TEXT("entrance-outside"),E.SurfacePoint+U*18+X*35,E.SurfacePoint-U*8);
+        const auto Inside=E.SurfacePoint-U*8;
+        AddView(TEXT("entrance-inside"),Plan->Caves->Cutters->Compose(Inside,-1000)>.3?Inside:E.InteriorPoint,E.SurfacePoint+X*35-U*4);
+    }
+    // Placement-only review uses the same editor, native presenter and cameras.
+    // The full anatomy capture remains the default.
+    if(FParse::Param(FCommandLine::Get(),TEXT("CLSpatialFamilyPlacementOnly")))
+    {
+        for(int32 I=State->Names.Num()-1;I>=0;--I)if(!State->Names[I].StartsWith(TEXT("entrance-")))
+        {State->Names.RemoveAt(I);State->Cameras.RemoveAt(I);}
+        if(State->Names.IsEmpty()){AddError(TEXT("No actual surface opening available for placement review"));W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return false;}
+    }
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,Plan,State,OutputDir,RecipePath]
     {
         auto& S=*State;const double Now=FPlatformTime::Seconds();W->Pump();
@@ -1806,6 +1823,8 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
         TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/(S.Names[S.View]+TEXT(".png"))));
         const auto Eye=S.Cameras[S.View].GetLocation(),Up=Eye.GetSafeNormal(),Across=S.Cameras[S.View].GetRotation().GetAxisY();
         const auto& Cutters=*Plan->Caves->Cutters;
+        if(!S.Names[S.View].StartsWith(TEXT("entrance-")))
+        {
         TestTrue(TEXT("Review camera occupies real generated cave air"),Cutters.Compose(Eye,-1.e6)>0);
         double Low=-10,High=0;for(double D=-.25;D>=-10;D-=.25)if(Cutters.Compose(Eye+Up*D,-1.e6)<=0){Low=D;High=D+.25;break;}
         for(int32 K=0;K<18;++K){const double M=(Low+High)*.5;if(Cutters.Compose(Eye+Up*M,-1.e6)>0)High=M;else Low=M;}
@@ -1817,6 +1836,13 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
         for(int32 I=1;I<=640&&Fields[802+I]>0;++I)Height=I*.25;
         S.Openings.Add(FVector(-Floor,Width,Height));
         AddInfo(FString::Printf(TEXT("SPATIAL_EDITOR_SECTION view=%s eyeHeight=%.3f widthAt3m=%.2f ceilingAboveFloor=%.2f"),*S.Names[S.View],-Floor,Width,Height));
+        }
+        else S.Openings.Add(FVector::ZeroVector);
+        if(S.Names[S.View].StartsWith(TEXT("entrance-")))
+        {
+            int32 TerrainPixels=0;for(const auto C:Pixels)TerrainPixels+=FMath::Max3(C.R,C.G,C.B)>80;
+            TestTrue(TEXT("Entrance capture includes lit terrain rather than only background sky"),TerrainPixels>Pixels.Num()/100);
+        }
         int32 Visible=0;for(const auto C:Pixels)Visible+=C.R>20||C.G>20||C.B>20;
         TestTrue(TEXT("Native geological cave interior actually rasterizes"),Visible>Pixels.Num()/4);
         TestTrue(TEXT("Interior uses the editor's native geological terrain presenter"),W->NativePreview->UsesNativePresentation());
@@ -1824,9 +1850,16 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
         if(++S.View==S.Cameras.Num())
         {
             auto Report=MakeShared<FJsonObject>();Report->SetStringField(TEXT("recipe"),RecipePath.IsEmpty()?TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview"):RecipePath);
-            Report->SetNumberField(TEXT("networks"),Plan->Caves->Networks);TArray<TSharedPtr<FJsonValue>> Networks,Views;
-            for(const auto& N:Plan->Caves->NetworkInfo){auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("id"),N.Id.ToString());Row->SetNumberField(TEXT("levels"),N.Levels);Row->SetNumberField(TEXT("anatomyScale"),N.AnatomyScale);Networks.Add(MakeShared<FJsonValueObject>(Row));}
-            for(int32 I=0;I<S.Cameras.Num();++I){auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("name"),S.Names[I]);Row->SetStringField(TEXT("eyeMeters"),S.Cameras[I].GetLocation().ToString());Row->SetStringField(TEXT("rotation"),S.Cameras[I].Rotator().ToString());Row->SetNumberField(TEXT("eyeHeightMeters"),S.Openings[I].X);Row->SetNumberField(TEXT("openingWidthAt3mMeters"),S.Openings[I].Y);Row->SetNumberField(TEXT("ceilingAboveFloorMeters"),S.Openings[I].Z);Views.Add(MakeShared<FJsonValueObject>(Row));}
+            Report->SetNumberField(TEXT("networks"),Plan->Caves->Networks);Report->SetNumberField(TEXT("entrances"),Plan->Caves->Entrances);TArray<TSharedPtr<FJsonValue>> Networks,Views;
+            auto Guides=MakeShared<FJsonObject>();for(const auto& G:Plan->Guides)Guides->SetNumberField(G.Name.ToString(),Plan->RadiusMeters+G.HeightMeters);Report->SetObjectField(TEXT("radialGuidesMeters"),Guides);
+            for(const auto& N:Plan->Caves->NetworkInfo)
+            {
+                auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("id"),N.Id.ToString());Row->SetNumberField(TEXT("levels"),N.Levels);Row->SetNumberField(TEXT("anatomyScale"),N.AnatomyScale);
+                double Low=MAX_dbl,High=0,Sum=0;int32 Count=0;for(const auto& Node:Plan->Caves->Nodes)if(Node.Network==N.Id){const double R=Node.Position.Length();Low=FMath::Min(Low,R);High=FMath::Max(High,R);Sum+=R;++Count;}
+                Row->SetNumberField(TEXT("minimumNodeRadiusMeters"),Low);Row->SetNumberField(TEXT("maximumNodeRadiusMeters"),High);Row->SetNumberField(TEXT("meanNodeRadiusMeters"),Sum/FMath::Max(1,Count));Networks.Add(MakeShared<FJsonValueObject>(Row));
+            }
+            TArray<TSharedPtr<FJsonValue>> Entries;for(const auto& E:Plan->Caves->SurfaceOpenings){auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("network"),E.Network.ToString());Row->SetStringField(TEXT("surfacePointMeters"),E.SurfacePoint.ToString());Row->SetStringField(TEXT("interiorPointMeters"),E.InteriorPoint.ToString());Row->SetNumberField(TEXT("widthMeters"),E.WidthMeters);Entries.Add(MakeShared<FJsonValueObject>(Row));}Report->SetArrayField(TEXT("surfaceOpenings"),Entries);
+            for(int32 I=0;I<S.Cameras.Num();++I){auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("name"),S.Names[I]);Row->SetStringField(TEXT("eyeMeters"),S.Cameras[I].GetLocation().ToString());Row->SetStringField(TEXT("rotation"),S.Cameras[I].Rotator().ToString());Row->SetBoolField(TEXT("sectionMeasurementsAvailable"),!S.Names[I].StartsWith(TEXT("entrance-")));Row->SetNumberField(TEXT("eyeHeightMeters"),S.Openings[I].X);Row->SetNumberField(TEXT("openingWidthAt3mMeters"),S.Openings[I].Y);Row->SetNumberField(TEXT("ceilingAboveFloorMeters"),S.Openings[I].Z);Views.Add(MakeShared<FJsonValueObject>(Row));}
             Report->SetArrayField(TEXT("networkSizesAndLevels"),Networks);Report->SetArrayField(TEXT("views"),Views);FString Json;FJsonSerializer::Serialize(Report,TJsonWriterFactory<>::Create(&Json));FFileHelper::SaveStringToFile(Json,*(OutputDir/TEXT("review.json")));return Close();
         }
         S.Changed=0;return false;

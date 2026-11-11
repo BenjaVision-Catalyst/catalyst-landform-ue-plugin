@@ -3,6 +3,7 @@
 #include "Scene/CLVolumes.h"
 #include "CLCaves.generated.h"
 struct FCLCompiledPlanetRecipe;
+struct FCLRadialGuideSet;
 
 /** Geology-conditioned underground spaces; native VPP owns their solid/air field. */
 USTRUCT(BlueprintType)
@@ -20,6 +21,11 @@ struct CATALYSTLANDFORM_API FCLCaveSettings
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(Units="m",ClampMin="1",ClampMax="500")) double DepthMeters=26;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Branching=.575;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bSurfaceEntrances=true;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FName MinimumGuide=TEXT("CavesMin");
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FName MaximumGuide=TEXT("CavesMax");
+    /** Add missing canonical defaults once to a recipe snapshot, never move authored guides. */
+    void AddDefaultGuides(FCLRadialGuideSet&,double PlanetRadius,double BaseSurface)const;
+    bool ResolvePlacement(const FCLCompiledPlanetRecipe&,double& MinimumRadius,double& MaximumRadius,double& SurfaceClearance,FString& Error)const;
     /** Upgrade only the former automatic density; preserve authored dimensions and custom density. */
     void UpgradeAbundanceProfile();
     void ApplyProgression(double Value);
@@ -115,6 +121,9 @@ public:
     TArray<FCLCavePassage> Passages;
     TArray<FCLCaveChamber> Chambers;
     TArray<FCLCaveInfill> Infills;
+    /** Actual broad terrain intersections of the existing spatial field; no appended cutters. */
+    struct FEntrance {FGuid Network;FVector SurfacePoint,InteriorPoint;double WidthMeters=0;};
+    TArray<FEntrance> SurfaceOpenings;
     TSharedPtr<const FCLCompiledCaveVolume> Cutters;
     TSharedPtr<const FCLSpatialCave> Spatial;
     enum class EFamily:uint8 {Structural,CarbonateKarst,General};

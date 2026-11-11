@@ -1,0 +1,600 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.GuidesAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=1.25644709e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.24.38"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT networks=16 openings=1 savedCharacter=0.348",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.24.38"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cave mesh worst residual 14.170510 m at X=-306.839 Y=-763.632 Z=-250.999",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.24.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.457044",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.24.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_PREVIEW_READY totalSeconds=12.994 inspectionSeconds=5.702 networks=16 domains=12 nativeVertices=8829 cyanPixels=4823 overviewResidualMeters=14.170510",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.24.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generating cave surfaces \u00b7 12/12 ready | components 7, native producer/presenter 40893, ready 1, processing 0, tasks 0, inspected vertices 1272, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 24 chunk 32 lod 5/5 | components 7, native producer/presenter 40925, ready 1, processing 0, tasks 0, inspected vertices 1180, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 4/4 | components 3, native producer/presenter 40945, ready 1, processing 0, tasks 0, inspected vertices 132, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 21 chunk 32 lod 4/4 | components 6, native producer/presenter 40965, ready 1, processing 0, tasks 0, inspected vertices 439, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 24 chunk 32 lod 4/4 | components 6, native producer/presenter 40985, ready 1, processing 0, tasks 0, inspected vertices 366, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 6/6 | components 5, native producer/presenter 41005, ready 1, processing 0, tasks 0, inspected vertices 326, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 16 chunk 32 lod 6/6 | components 4, native producer/presenter 41025, ready 1, processing 0, tasks 0, inspected vertices 531, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41045, ready 1, processing 0, tasks 0, inspected vertices 578, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 5/5 | components 5, native producer/presenter 41065, ready 1, processing 0, tasks 0, inspected vertices 653, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41085, ready 1, processing 0, tasks 0, inspected vertices 960, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41105, ready 1, processing 0, tasks 0, inspected vertices 2114, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 7, native producer/presenter 41125, ready 1, processing 0, tasks 0, inspected vertices 278, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 5/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.24.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_ZOOM seconds=53.049 vertices=24126 maxCellMeters=0.480 maxResidualMeters=0.177186",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.25.44"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.AnatomyFloorsAndStrata",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_FAMILY seed=176 networks=41 rooms=247 passages=291 levels=5 ramps=44 probes=75798 clearance=0.8412 support=-0.1323 grade=0.4362 scalarResidual=1.53156644e-05",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.28.47"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_FAMILY seed=731 networks=47 rooms=271 passages=318 levels=5 ramps=47 probes=82044 clearance=0.9391 support=-0.1350 grade=0.4077 scalarResidual=1.8238659e-05",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.29.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_FAMILY seed=2049 networks=30 rooms=180 passages=213 levels=5 ramps=33 probes=55827 clearance=0.9422 support=-0.0797 grade=0.4122 scalarResidual=2.2773542e-05",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.29.12"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.DeterminismAndSelection",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.EditorInteriors",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=entrance-outside visiblePixels=1033607 settledSeconds=41.208 native=components 2067, native producer/presenter 38997, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_EDITOR view=entrance-inside visiblePixels=836157 settledSeconds=8.282 native=components 2075, native producer/presenter 38997, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 0/5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.14"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.ProceduralFamily.WorkVsSurface",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=0 chunks=200 excessChunks=0 currentFine=0 uncutFine=0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=1 chunks=200 excessChunks=0 currentFine=46144 uncutFine=46144",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=2 chunks=192 excessChunks=0 currentFine=214144 uncutFine=214144",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_FREE_ENVELOPE LOD=3 chunks=188 excessChunks=0 currentFine=662464 uncutFine=662464",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "PREPARED_FINAL_SURFACE probes=41734 maximumErrorMeters=0.000000000",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "PREPARED_GEOLOGY stable=0 exactFallback=97088 mismatches=0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK chamber chunks=60 solid=30 solidRefine=8 caveFine=596160 surfaceFine=0 cave=0.218137 surface=0.183355 discardedRock=0.079545",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK passage chunks=60 solid=18 solidRefine=7 caveFine=1019584 surfaceFine=0 cave=0.216174 surface=0.180720 discardedRock=0.040048",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK ramp chunks=57 solid=28 solidRefine=13 caveFine=702464 surfaceFine=0 cave=0.060880 surface=0.166228 discardedRock=0.016307",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "FAMILY_WORK surface chunks=55 solid=8 solidRefine=2 caveFine=606080 surfaceFine=606080 cave=0.174794 surface=0.163570 discardedRock=0.019097",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.24"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "SPATIAL_CAVE floors=251 relief=3.018m grade=0.092 clearance=1.105m fieldProbes=6673 terrainNeeded=0",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.46"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.30.46"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.EligibilityAndVersions",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "32 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.31.01"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.InspectionExcludesEmptySpace",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_INSPECTION_PRUNING points=5660 oldTerrainRequests=1659 newTerrainRequests=384 signErrors=0 interiorFieldError=2.58750443e-09",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.34.41"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.InspectionVolume",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.KnobAndBackground",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.RiftNaturalFamily",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.50.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rift natural family: 40 networks, 247 chambers, 292 passages, 5 entrances, grade 0.42220, clearance failures 0, foundation failures 0, scalar residual 1.38949223e-05",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.04"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 73: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 74: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 75: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 76: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 77: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 78: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.41"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 79: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.43"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 80: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.51.47"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Designer.DeferredGesture",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "200 guide-only updates: 0.095 ms; mesh rebuilds while dragging: 0; after release: 1",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.52.09"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.RadialGuides.AuthoringAndResize",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.RadialGuides.LegacyAndReferences",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.RadialGuides.Presets",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.RadialGuides.SharedReference",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.RadialGuides.SharedRename",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.RadialGuides.StarterUpgrade",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_SURFACE_WALKING exteriorSamples=83",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.53.41"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "32 networks, 19348 cutters; 297 native bulk/sparse points, max residual 0 cm",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.11-21.53.57"
+        }
+      ]
+    }
+  ]
+}

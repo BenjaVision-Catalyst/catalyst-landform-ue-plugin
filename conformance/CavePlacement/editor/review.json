@@ -1,0 +1,172 @@
+{
+	"recipe": "/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview",
+	"networks": 16,
+	"entrances": 1,
+	"radialGuidesMeters":
+	{
+		"SurfaceMin": 998.36174643005199,
+		"SurfaceMax": 1586.8553880434417,
+		"OceanHeight": 1138.581068786759,
+		"AtmosphereMax": 1800,
+		"CavesMin": 499.18087321502594,
+		"CavesMax": 1581.855388043442
+	},
+	"surfaceOpenings": [
+		{
+			"network": "53504138000006C1000000000000001F",
+			"surfacePointMeters": "X=-117.275 Y=-903.331 Z=590.934",
+			"interiorPointMeters": "X=-59.542 Y=-866.026 Z=614.153",
+			"widthMeters": 6.2970612382888795
+		}
+	],
+	"networkSizesAndLevels": [
+		{
+			"id": "53504138000006C10000000000000001",
+			"levels": 1,
+			"anatomyScale": 0.92729899406433114,
+			"minimumNodeRadiusMeters": 991.96506416062368,
+			"maximumNodeRadiusMeters": 1001.2262258706382,
+			"meanNodeRadiusMeters": 996.59564501563091
+		},
+		{
+			"id": "53504138000006C10000000000000010",
+			"levels": 3,
+			"anatomyScale": 0.47177812337875369,
+			"minimumNodeRadiusMeters": 896.80613566110276,
+			"maximumNodeRadiusMeters": 961.80155433880327,
+			"meanNodeRadiusMeters": 926.3979407786934
+		},
+		{
+			"id": "53504138000006C10000000000000018",
+			"levels": 3,
+			"anatomyScale": 0.54953053474426272,
+			"minimumNodeRadiusMeters": 983.39718111195737,
+			"maximumNodeRadiusMeters": 1066.481126548608,
+			"meanNodeRadiusMeters": 1025.1733913592254
+		},
+		{
+			"id": "53504138000006C1000000000000001F",
+			"levels": 2,
+			"anatomyScale": 0.28623005628585818,
+			"minimumNodeRadiusMeters": 1061.193514602164,
+			"maximumNodeRadiusMeters": 1083.2431147034229,
+			"meanNodeRadiusMeters": 1074.8130840047297
+		},
+		{
+			"id": "53504138000006C10000000000000029",
+			"levels": 1,
+			"anatomyScale": 0.41480067253112796,
+			"minimumNodeRadiusMeters": 999.5521850226861,
+			"maximumNodeRadiusMeters": 1001.5520963955489,
+			"meanNodeRadiusMeters": 1000.3162603350211
+		},
+		{
+			"id": "53504138000006C10000000000000039",
+			"levels": 1,
+			"anatomyScale": 0.46226665258407595,
+			"minimumNodeRadiusMeters": 561.98781572657742,
+			"maximumNodeRadiusMeters": 562.79355390056196,
+			"meanNodeRadiusMeters": 562.5212607470711
+		},
+		{
+			"id": "53504138000006C1000000000000003B",
+			"levels": 3,
+			"anatomyScale": 1.0277285289764406,
+			"minimumNodeRadiusMeters": 829.1408432181845,
+			"maximumNodeRadiusMeters": 949.10448743829272,
+			"meanNodeRadiusMeters": 902.03192229878323
+		},
+		{
+			"id": "53504138000006C1000000000000004C",
+			"levels": 1,
+			"anatomyScale": 0.32243880510330203,
+			"minimumNodeRadiusMeters": 943.72745635498973,
+			"maximumNodeRadiusMeters": 945.97709828518487,
+			"meanNodeRadiusMeters": 944.58842948850543
+		},
+		{
+			"id": "53504138000006C10000000000000052",
+			"levels": 1,
+			"anatomyScale": 1.033598155975342,
+			"minimumNodeRadiusMeters": 1141.466989147124,
+			"maximumNodeRadiusMeters": 1158.1066789392255,
+			"meanNodeRadiusMeters": 1151.4405201506829
+		},
+		{
+			"id": "53504138000006C10000000000000059",
+			"levels": 3,
+			"anatomyScale": 0.33962550640106204,
+			"minimumNodeRadiusMeters": 1006.8121513439578,
+			"maximumNodeRadiusMeters": 1051.6428940053468,
+			"meanNodeRadiusMeters": 1030.8683791835128
+		},
+		{
+			"id": "53504138000006C1000000000000006B",
+			"levels": 2,
+			"anatomyScale": 0.50307592630386355,
+			"minimumNodeRadiusMeters": 935.45845401924623,
+			"maximumNodeRadiusMeters": 978.59020373319379,
+			"meanNodeRadiusMeters": 955.80495207750312
+		},
+		{
+			"id": "53504138000006C1000000000000007D",
+			"levels": 1,
+			"anatomyScale": 0.78509208679199216,
+			"minimumNodeRadiusMeters": 1092.9415987846678,
+			"maximumNodeRadiusMeters": 1103.7165056714973,
+			"meanNodeRadiusMeters": 1096.655912966243
+		},
+		{
+			"id": "53504138000006C10000000000000084",
+			"levels": 3,
+			"anatomyScale": 0.44976130008697512,
+			"minimumNodeRadiusMeters": 1059.7356033744973,
+			"maximumNodeRadiusMeters": 1132.8524695437238,
+			"meanNodeRadiusMeters": 1103.3314081201586
+		},
+		{
+			"id": "53504138000006C10000000000000086",
+			"levels": 2,
+			"anatomyScale": 0.30165633440017703,
+			"minimumNodeRadiusMeters": 855.78949889340004,
+			"maximumNodeRadiusMeters": 881.56090243366839,
+			"meanNodeRadiusMeters": 865.13894491186363
+		},
+		{
+			"id": "53504138000006C1000000000000008B",
+			"levels": 2,
+			"anatomyScale": 0.69203779220581063,
+			"minimumNodeRadiusMeters": 915.39883664004981,
+			"maximumNodeRadiusMeters": 957.46714743384098,
+			"meanNodeRadiusMeters": 929.97728728762286
+		},
+		{
+			"id": "53504138000006C100000000000000AF",
+			"levels": 2,
+			"anatomyScale": 0.54299935579299929,
+			"minimumNodeRadiusMeters": 881.02112562146147,
+			"maximumNodeRadiusMeters": 921.57477311225648,
+			"meanNodeRadiusMeters": 902.88080847030926
+		}
+	],
+	"views": [
+		{
+			"name": "entrance-outside",
+			"eyeMeters": "X=-116.726 Y=-899.106 Z=629.876",
+			"rotation": "P=-86.365545 Y=82.602961 R=180.000000",
+			"sectionMeasurementsAvailable": false,
+			"eyeHeightMeters": 0,
+			"openingWidthAt3mMeters": 0,
+			"ceilingAboveFloorMeters": 0
+		},
+		{
+			"name": "entrance-inside",
+			"eyeMeters": "X=-59.521 Y=-865.716 Z=613.934",
+			"rotation": "P=3.988691 Y=-164.619871 R=54.114724",
+			"sectionMeasurementsAvailable": false,
+			"eyeHeightMeters": 0,
+			"openingWidthAt3mMeters": 0,
+			"ceilingAboveFloorMeters": 0
+		}
+	]
+}

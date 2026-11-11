@@ -12,6 +12,8 @@ FBox FCLSpatialCaveFamily::Bounds(FGuid Id)const
 double FCLSpatialCaveFamily::MinimumHalfWidth(FGuid Id)const
 {double Width=MAX_dbl;for(const auto& N:Networks)if(!Id.IsValid()||N.Id==Id)Width=FMath::Min(Width,N.Cave->MinimumHalfWidth());return Width;}
 void FCLSpatialCaveFamily::CellSupportBounds(TArray<FBox>& Out)const{for(const auto& N:Networks)Out.Add(N.Bounds);}
+void FCLSpatialCaveFamily::InspectionSupportBounds(TArray<FBox>& Out,FGuid Id)const
+{for(const auto& N:Networks)if(!Id.IsValid()||N.Id==Id)N.Cave->GetInspectionSupportBounds(Out);}
 void FCLSpatialCaveFamily::Stats(int32& Levels,int32& Cells,int32& Ramps,int32& Nodes,int32& Exact,uint64& Bytes,double& Error)const
 {
     Levels=Cells=Ramps=Nodes=Exact=0;Bytes=0;Error=0;
@@ -20,8 +22,7 @@ void FCLSpatialCaveFamily::Stats(int32& Levels,int32& Cells,int32& Ramps,int32& 
 void FCLSpatialCaveFamily::Sample(TConstArrayView<FVector> Points,TArray<double>& Air,bool Compiled,const TSet<FGuid>* Selection)const
 {
     Air.Init(-1.e30,Points.Num());
-    // Cull each approved composition before evaluating noise/morphology. A
-    // selected native domain never evaluates another composition's shape.
+    // Cull each spatial network before evaluating noise/morphology.
     for(const auto& N:Networks)
     {
         if(Selection&&!Selection->IsEmpty()&&!Selection->Contains(N.Id))continue;
@@ -32,7 +33,7 @@ void FCLSpatialCaveFamily::Sample(TConstArrayView<FVector> Points,TArray<double>
             // Native cave inspection needs a finite exterior distance for
             // coarse-cell interpolation. Complete-planet evaluation separately
             // excludes these certified empty supports from cave composition.
-            if(Distance>0)Air[I]=FMath::Max(Air[I],-Distance-2*N.Cave->MinimumHalfWidth());
+            if(Distance>0)Air[I]=FMath::Max(Air[I],-N.Cave->ExteriorDistance(Points[I])-2*N.Cave->MinimumHalfWidth());
             else {Active.Add(Points[I]);Indices.Add(I);}
         }
         if(Active.IsEmpty())continue;
@@ -46,6 +47,7 @@ TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLComp
     const double MinimumRadius=Base.RadiusMeters+Base.MinimumHeightMeters;
     const double Reference=Base.RadiusMeters+(Base.MinimumHeightMeters+Base.MaximumHeightMeters)*.5;
     const double Scale=FMath::Min(1.,MinimumRadius/900.);
+    double Low,High,Cover;if(!S.ResolvePlacement(Base,Low,High,Cover,Error))return nullptr;
     const double Area=4*UE_DOUBLE_PI*Reference*Reference/1.e6;
     Out.RequestedNetworks=FMath::Max(1,FMath::CeilToInt(FMath::Min(64.,S.NetworksPerSquareKilometer*Area)));
     Out.Candidates=512;Out.EligibleCandidates=Out.Candidates;
@@ -62,14 +64,18 @@ TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLComp
         FRandomStream SizeRandom(CompositionSeed^0x53495a45);const double SizeDraw=SizeRandom.FRand();
         const double Size=SizeDraw<.18?FMath::Lerp(.28,.55,SizeDraw/.18):SizeDraw<.88?FMath::Lerp(.65,1.35,(SizeDraw-.18)/.7):FMath::Lerp(1.5,2.8,(SizeDraw-.88)/.12);
         const double FittedScale=Scale*Size;
-        bool Crowded=false;for(const auto& N:Family->Networks)Crowded|=FVector::Distance(N.Bounds.GetCenter(),D*N.Bounds.GetCenter().Length())<N.Bounds.GetExtent().Length()+420*FittedScale;
+        const double DepthFraction=((uint32(I)*61u+uint32(Seed)%101u)%101u)/100.;
+        const FVector ProposedCentre=D*FMath::Lerp(Low,High,1-DepthFraction);
+        bool Crowded=false;for(const auto& N:Family->Networks)Crowded|=FVector::Distance(N.Bounds.GetCenter(),ProposedCentre)<N.Bounds.GetExtent().Length()+420*FittedScale;
         if(Crowded)continue;
         // A seeded permutation stratifies depth across candidates. In every
         // complete 100-candidate cycle the full family, including its ordinary
         // single-level members, is present before placement/physical fitting.
         const int32 DepthCode=(uint32(I)*37u+uint32(Seed)%100u)%100u;
         const int32 Levels=DepthCode<34?1:DepthCode<68?2:DepthCode<87?3:DepthCode<96?4:5;
-        const auto C=FCLSpatialCave::BuildNetworkAt(Base,S,CompositionSeed,D,FittedScale,Error,true,Levels);
+        const bool Opening=S.bSurfaceEntrances&&(I%4==0||Out.Entrances==0);
+        auto C=FCLSpatialCave::BuildNetworkAt(Base,S,CompositionSeed,D,FittedScale,Error,true,Levels,DepthFraction,Opening);
+        if(!C&&Opening&&Error.IsEmpty())C=FCLSpatialCave::BuildNetworkAt(Base,S,CompositionSeed,D,FittedScale,Error,true,Levels,DepthFraction,false);
         if(!C){if(!FCLCompileProgress::Check(Error)||!Error.IsEmpty())return nullptr;continue;}
         const FBox CandidateBounds=C->Spatial->Bounds();bool Conflict=false;
         auto CheckFeet=[&](const TArray<FCLCavePassage>& Paths,FGuid Id,const FCLSpatialCave& Other,const FBox& Bounds)
@@ -99,6 +105,7 @@ TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLComp
         const int32 NodeOffset=Out.Nodes.Num();for(auto Node:C->Nodes){Node.Network=N.Id;Out.Nodes.Add(Node);}
         for(auto Passage:C->Passages){Passage.Network=N.Id;Passage.From+=NodeOffset;Passage.To+=NodeOffset;for(int32 K=1;K<Passage.Points.Num();++K)Out.Segments.Add({N.Id,Passage.Points[K-1],Passage.Points[K],Passage.Sections[K].X,FVector::OneVector,false});Out.Passages.Add(MoveTemp(Passage));}
         for(auto Room:C->Chambers){Room.Network=N.Id;Room.Node+=NodeOffset;Out.Chambers.Add(MoveTemp(Room));}
+        for(auto Entry:C->SurfaceOpenings){Entry.Network=N.Id;Out.SurfaceOpenings.Add(Entry);++Out.Entrances;}
         ++Out.Networks;
     }
     if(Family->Networks.IsEmpty()){Error=TEXT("Enabled spatial generation produced no valid family member");return nullptr;}

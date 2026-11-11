@@ -1,0 +1,18 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-abslog=/private/tmp/landform-placement-review/persistence-final/native.log",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Caves.NativeFieldsAndPersistence",
+  "-TestExit=Automation Test Queue Empty",
+  "-ReportExportPath=/private/tmp/landform-placement-review/persistence-final/automation",
+  "-CLSpatialFamilyEditorOutput=/private/tmp/landform-placement-review/persistence-final/editor",
+  "-CLSpatialFamilyPlacementOnly"
+]

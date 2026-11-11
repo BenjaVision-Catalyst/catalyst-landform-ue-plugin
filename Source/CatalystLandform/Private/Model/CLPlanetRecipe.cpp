@@ -103,7 +103,7 @@ void FCLCompiledPlanetRecipe::SampleRadialFields(TConstArrayView<FVector> Positi
 namespace
 {
 const FGuid RecipeAssetVersion(0x434C5250, 0x82B741FA, 0xA3482664, 0xC96741B2);
-FCustomVersionRegistration RegisterRecipeAssetVersion(RecipeAssetVersion, 3, TEXT("CLRecipeOuterSkyRadius"));
+FCustomVersionRegistration RegisterRecipeAssetVersion(RecipeAssetVersion, 4, TEXT("CLRecipeOuterSkyRadius"));
 uint32 Mix(uint32 V)
 {
     V ^= V >> 16; V *= 0x7feb352du; V ^= V >> 15; V *= 0x846ca68bu; return V ^ (V >> 16);
@@ -487,6 +487,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         auto Base=Recipe;Base.SchemaVersion=Recipe.MeasuredTerrain.IsActive()?19:
             Recipe.AlgorithmVersion==1?18:Recipe.SchemaVersion==23?22:Recipe.SchemaVersion;
         Base.Caves=FCLCaveSettings();Base.Volumes=FCLVolumeSettings();
+        Base.Caves.MinimumGuide=Recipe.Caves.MinimumGuide;Base.Caves.MaximumGuide=Recipe.Caves.MaximumGuide;
         TSharedPtr<const FCLCompiledPlanetRecipe> Core;
         {TGuardValue<bool> Scope(CompilingCaveBase,true);Core=Compile(Base,Error,Library,nullptr,INDEX_NONE,SurfaceLibraryOverride);}if(!Core)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);
@@ -789,8 +790,9 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
             return Fail(TEXT("Local evaluation region must be finite, positive and at most 4km per side"));
     }
     TMap<FName, double> Guides;
-    if (!Recipe.RadialGuides.Validate(Error)) return nullptr;
-    for (const FCLRadialGuide& RadialGuide : Recipe.RadialGuides.Guides)
+    auto ResolvedGuides=Recipe.RadialGuides;Recipe.Caves.AddDefaultGuides(ResolvedGuides,Recipe.RadiusMeters,Recipe.BaseSurfaceNormalized);
+    if (!ResolvedGuides.Validate(Error)) return nullptr;
+    for (const FCLRadialGuide& RadialGuide : ResolvedGuides.Guides)
     {
         FCLHeightGuide Guide; Guide.Name = RadialGuide.Name; Guide.Color = RadialGuide.Color;
         Guide.HeightMeters = (RadialGuide.NormalizedHeight - 1) * Recipe.RadiusMeters;
@@ -992,13 +994,14 @@ FCLPlanetRecipe FCLPlanetCompiler::RollingPlains()
     FCLNoiseLayer Detail; Detail.Name = TEXT("Ground detail"); Detail.Seed = 12; Detail.Blend = ECLNoiseBlend::Add;
     Detail.Minimum.OffsetMeters = -.2; Detail.Maximum.OffsetMeters = .2; Detail.WavelengthMeters = 8; Detail.Octaves = 2;
     Recipe.NoiseLayers.Add(Detail);
+    Recipe.Caves.AddDefaultGuides(Recipe.RadialGuides,Recipe.RadiusMeters,Recipe.BaseSurfaceNormalized);
     return Recipe;
 }
 
 FCLPlanetRecipe FCLPlanetCompiler::BasePlanet()
 {
     FCLPlanetRecipe R;R.Name=TEXT("New planet");R.RadiusMeters=1000;R.BaseSurfaceNormalized=.45;R.Seed=1729;
-    R.Coordinates=ECLTerrainCoordinates::SphericalSurface;R.AlgorithmVersion=2;R.RadialGuides=FCLRadialGuidePresets::Defaults()[0];return R;
+    R.Coordinates=ECLTerrainCoordinates::SphericalSurface;R.AlgorithmVersion=2;R.RadialGuides=FCLRadialGuidePresets::Defaults()[0];R.Caves.AddDefaultGuides(R.RadialGuides,R.RadiusMeters,R.BaseSurfaceNormalized);return R;
 }
 
 FCLPlanetRecipe FCLPlanetCompiler::TectonicBase()
@@ -1067,6 +1070,13 @@ void UCLPlanetRecipeAsset::Serialize(FArchive& Ar)
     }
     if(Ar.IsLoading() && Ar.IsPersistent() && !Ar.IsTransacting() && Ar.CustomVer(RecipeAssetVersion)==2 && !HasAnyFlags(RF_ClassDefaultObject))
     {Recipe=FCLPlanetCompiler::RollingPlains();Recipe.SchemaVersion=10;}
+    if(Ar.IsLoading() && Ar.IsPersistent() && !Ar.IsTransacting() && Ar.CustomVer(RecipeAssetVersion)<4 && !HasAnyFlags(RF_ClassDefaultObject))
+    {
+        // Pre-cave-guide packages may omit the old default guide array. Keep
+        // those four defaults until tagged loading supplies the planet radius;
+        // PostLoad then initializes physical cave clearances at that radius.
+        Recipe.RadialGuides=FCLRadialGuidePresets::Defaults()[0];
+    }
     Ar.UsingCustomVersion(RecipeAssetVersion);
     Super::Serialize(Ar);
 }
@@ -1160,6 +1170,7 @@ bool UCLPlanetRecipeAsset::ImportRecipeJsonPrepared(const FString& Json,FString&
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     Candidate.Caves.UpgradeAbundanceProfile();
+    Candidate.Caves.AddDefaultGuides(Candidate.RadialGuides,Candidate.RadiusMeters,Candidate.BaseSurfaceNormalized);
     const auto Accepted=FCLPlanetCompiler::Compile(Candidate,Error);if(!Accepted)return false;
     if (Candidate.SchemaVersion >= 2 && Candidate.SchemaVersion < 9) Candidate.SchemaVersion = 9;
     Modify();PaletteSources.Reset();LandformSources.Reset(); RadialGuideLibrary=nullptr;RadialGuideSetId.Invalidate();Recipe = MoveTemp(Candidate);
@@ -1200,6 +1211,7 @@ void FCLPlanetRecipe::RenameGuideReferences(FName Old,FName New)
     for(auto& P:RegionGeneration.Palette){P.SurfaceStack.RenameGuide(Old,New);Layers(P.NoiseLayers);if(P.Suitability.LowerElevationGuide==Old)P.Suitability.LowerElevationGuide=New;if(P.Suitability.UpperElevationGuide==Old)P.Suitability.UpperElevationGuide=New;}
     if(Continents.LowerGuide==Old)Continents.LowerGuide=New;if(Continents.UpperGuide==Old)Continents.UpperGuide=New;
     if(Tectonics.LowerGuide==Old)Tectonics.LowerGuide=New;if(Tectonics.UpperGuide==Old)Tectonics.UpperGuide=New;
+    if(Caves.MinimumGuide==Old)Caves.MinimumGuide=New;if(Caves.MaximumGuide==Old)Caves.MaximumGuide=New;
     for(auto& F:BaseStructure){if(F.Relief.Guide==Old)F.Relief.Guide=New;if(F.Relief.UpperGuide==Old)F.Relief.UpperGuide=New;}
 }
 bool UCLPlanetRecipeAsset::SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library,FGuid Id,FString& Error)
@@ -1212,6 +1224,7 @@ bool UCLPlanetRecipeAsset::SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library
     if(!Library->FindSet(Id)){Error=TEXT("Radial guide set reference could not be resolved");return false;}
     if(!Library->FindSet(Id)->Validate(Error))return false;
     RadialGuideLibrary=Library;RadialGuideSetId=Id;Recipe.RadialGuides=*Library->FindSet(Id);
+    Recipe.Caves.AddDefaultGuides(Recipe.RadialGuides,Recipe.RadiusMeters,Recipe.BaseSurfaceNormalized);
 #if WITH_EDITOR
     BindGuideLibrary();
 #endif
@@ -1219,19 +1232,25 @@ bool UCLPlanetRecipeAsset::SetRadialGuideSet(UCLRadialGuideLibraryAsset* Library
 }
 bool UCLPlanetRecipeAsset::SynchronizeRadialGuides(FString& Error)
 {
-    Error.Reset();if(!RadialGuideLibrary)return true;
+    Error.Reset();if(!RadialGuideLibrary){Recipe.Caves.AddDefaultGuides(Recipe.RadialGuides,Recipe.RadiusMeters,Recipe.BaseSurfaceNormalized);return true;}
     const auto* Set=RadialGuideLibrary->FindSet(RadialGuideSetId);
     if(!Set){Error=TEXT("Referenced radial guide set is missing from its catalog");return false;}
     if(!Set->Validate(Error))return false;
+    // Older shared catalogs have no cave guides. Retain the planet's defaults
+    // and edits in its resolved snapshot until an explicit catalog edit/selection.
+    auto Resolved=*Set;
+    if(!Set->Guides.ContainsByPredicate([&](const auto& G){return G.Name==Recipe.Caves.MinimumGuide||G.Name==Recipe.Caves.MaximumGuide;}))
+        for(const auto Name:{Recipe.Caves.MinimumGuide,Recipe.Caves.MaximumGuide})if(const auto* G=Recipe.RadialGuides.Guides.FindByPredicate([&](const auto& V){return V.Name==Name;}))Resolved.Guides.Add(*G);
+    Recipe.Caves.AddDefaultGuides(Resolved,Recipe.RadiusMeters,Recipe.BaseSurfaceNormalized);
     // A single label rename also carries named bindings on other referencing planets.
-    if(Recipe.RadialGuides.Id==Set->Id && Recipe.RadialGuides.Guides.Num()==Set->Guides.Num())
+    if(Recipe.RadialGuides.Id==Resolved.Id && Recipe.RadialGuides.Guides.Num()==Resolved.Guides.Num())
     {
         TArray<FName> Old,New;
-        for(const auto& G:Recipe.RadialGuides.Guides)if(!Set->Guides.ContainsByPredicate([&](const auto& V){return V.Name==G.Name;}))Old.Add(G.Name);
-        for(const auto& G:Set->Guides)if(!Recipe.RadialGuides.Guides.ContainsByPredicate([&](const auto& V){return V.Name==G.Name;}))New.Add(G.Name);
+        for(const auto& G:Recipe.RadialGuides.Guides)if(!Resolved.Guides.ContainsByPredicate([&](const auto& V){return V.Name==G.Name;}))Old.Add(G.Name);
+        for(const auto& G:Resolved.Guides)if(!Recipe.RadialGuides.Guides.ContainsByPredicate([&](const auto& V){return V.Name==G.Name;}))New.Add(G.Name);
         if(Old.Num()==1&&New.Num()==1)Recipe.RenameGuideReferences(Old[0],New[0]);
     }
-    Recipe.RadialGuides=*Set;return true;
+    Recipe.RadialGuides=MoveTemp(Resolved);return true;
 }
 #if WITH_EDITOR
 void UCLPlanetRecipeAsset::BindGuideLibrary()

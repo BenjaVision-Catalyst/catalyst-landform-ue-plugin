@@ -16,6 +16,7 @@ public:
     FBox Bounds(FGuid Network=FGuid())const;
     double MinimumHalfWidth(FGuid Network=FGuid())const;
     void CellSupportBounds(TArray<FBox>&)const;
+    void InspectionSupportBounds(TArray<FBox>&,FGuid)const;
     bool TrySurfaces(const FVector&,FCLSurfaceWeights&)const;
     void GeologyStats(uint64& Prepared,uint64& Exact)const{Prepared=Exact=0;}
     FVector BodyPoint(FVector,int32 Network=0)const;

@@ -30,12 +30,15 @@ public:
     FBox Bounds(FGuid Network=FGuid())const;
     double MinimumHalfWidth(FGuid Network=FGuid())const;
     void GetCellSupportBounds(TArray<FBox>& Out)const;
+    /** Joint-level supports for joining native inspection domains without changing cave anatomy. */
+    void GetInspectionSupportBounds(TArray<FBox>& Out,FGuid Network=FGuid())const;
+    double ExteriorDistance(const FVector&)const;
     FVector BodyPoint(const FVector& BeddingPosition)const;
     FVector BeddingPoint(const FVector& BodyPosition,bool bCompiled=true)const;
     double FloorHeight(double X,double Y)const;
 private:
     friend class FCLSpatialCaveFamily;
-    static TSharedPtr<const FCLCompiledCaves> BuildNetworkAt(const FCLCompiledPlanetRecipe&,const FCLCaveSettings&,int32,const FVector&,double,FString&,bool FollowBedding=true,int32 RequestedLevels=0);
+    static TSharedPtr<const FCLCompiledCaves> BuildNetworkAt(const FCLCompiledPlanetRecipe&,const FCLCaveSettings&,int32,const FVector&,double,FString&,bool FollowBedding=true,int32 RequestedLevels=0,double DepthFraction=.5,bool SurfaceOpening=false);
     static TSharedPtr<const FCLCompiledCaves> CompileComposition(const FCLCompiledPlanetRecipe&,TSharedPtr<FCLSpatialCaveData>,int32,FString&,bool);
     TSharedPtr<const FCLSpatialCaveData> Data;
 };

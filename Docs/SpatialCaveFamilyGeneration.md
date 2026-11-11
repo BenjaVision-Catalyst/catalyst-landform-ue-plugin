@@ -1,5 +1,8 @@
 # Spatial cave family generation
 
+Placement follow-up: [editable cave radial bounds and surface openings](CavePlacement.md).
+Shape refinement is paused; the visual acceptance status below remains unchanged.
+
 11 November 2026. This is a procedural family candidate for visual review. The
 previous editor output and fixed-composition placement were rejected. Neither
 those reports nor this change's automated checks establish visual acceptance.

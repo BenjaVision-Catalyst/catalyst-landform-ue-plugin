@@ -15,6 +15,10 @@
 #include "Misc/CoreDelegates.h"
 #include "ProfilingDebugging/CpuProfilerTrace.h"
 
+#ifndef VOXEL_CATALYST_PROJECTION_BOUNDS
+#define VOXEL_CATALYST_PROJECTION_BOUNDS 0
+#endif
+
 static TAutoConsoleVariable<float> CVarCLCurvature(
     TEXT("landform.Curvature"), 1, TEXT("Landform presentation curvature: 1 natural, 0 flat"));
 

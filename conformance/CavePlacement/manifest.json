@@ -1,0 +1,20 @@
+{
+  "componentBase": "37169f5fd337493f00325b70a1553c5a6182e764",
+  "platform": "UE 5.7.4 / Mac arm64 / stock VPP 2.0p8",
+  "changedSourcesSHA256": {
+    "Source/CatalystLandform/Private/Model/CLCaves.cpp": "ae36289c44dbe2f68a828c12e2f973034b922ef3de25529c1b41c345fe5786e2",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "3aa3bb0fdab1f5399c089971af62bdd625cd8813bd36246899c4d37637056021",
+    "Source/CatalystLandform/Private/Model/CLSpatialCave.cpp": "3bf5a9f3dd20c264c48d791e670c932c38586a62bef36c29c6767f47a7ecb9d0",
+    "Source/CatalystLandform/Private/Model/CLSpatialCaveFamily.cpp": "8b5b5405e29e673e8007ba34a2185ad07c13b259a76097406ddd71c6dcbb2432",
+    "Source/CatalystLandform/Private/Model/CLSpatialCaveFamily.h": "c391c341ade9b2618bfa03530b74f3c7ab19c655288e366a07aebe0f7b6e2718",
+    "Source/CatalystLandform/Private/Presentation/CLNativePlanetPresentation.cpp": "c3bb63a33b12e555864444b1841f9297bdac3f14768cc1b3dac0d4b1811e2fe5",
+    "Source/CatalystLandform/Public/Model/CLCaves.h": "2b0153145600440e90288ed1c499211d607c371761ee3a62ce3dd384bebfee2b",
+    "Source/CatalystLandform/Public/Model/CLSpatialCave.h": "02e2b787c8cc1ab5f72691c166036e4d8a78e4eba4f0acc0a50018319802ea0b",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "f58a23718a65202945acf495a66a4aed94e6444b65941ecccc57cd43fdf75556",
+    "Source/CatalystLandformTests/Private/CLCavePlacementTests.cpp": "6434674b452d3028b24be7f4f21120470e4132f85a2b86061a29ee6c2afbc066",
+    "Source/CatalystLandformTests/Private/CLCaveTests.cpp": "2ad71d3caa26ad502c5cf26e378a3d78cbf53466d16fdcd1580eb4f8fb672332"
+  },
+  "authoringSnapshotSHA256": "24a710f5234f18d93a8e1287eee77447f8bcf4f9c154dbffdf4be2bf328e7838",
+  "authoringSnapshot": "/private/tmp/landform-placement-review/regression-final/editor/recipe.json",
+  "morphologyKernelUnchanged": true
+}

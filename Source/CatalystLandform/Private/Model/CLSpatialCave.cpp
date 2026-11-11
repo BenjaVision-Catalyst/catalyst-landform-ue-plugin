@@ -11,6 +11,7 @@
 #include "CLNativeNoiseKernel.h"
 #include "Polygon2.h"
 #include "Math/RotationMatrix.h"
+#include "VoxelAABBTree.h"
 #include <atomic>
 #if CL_SPATIAL_SIMD
 #include "CLSpatialMorph.generated.h"
@@ -37,6 +38,8 @@ public:
     TArray<FCLCavePassage> GeneratedPassages;
     TArray<FCLCaveChamber> GeneratedChambers;
     int32 Levels=0,Ramps=0;
+    double PlacementMin=0,PlacementMax=MAX_dbl,SurfaceClearance=0;
+    bool SurfaceOpening=false;
     TSharedPtr<const FCLCompiledRock> Rock,ContactRock;
     TSharedPtr<const FCLNativeNoiseKernel> Noise;
     FVector Origin,X,Y,Up;
@@ -45,6 +48,8 @@ public:
     bool bFinalSurfaceCompiled=false;
     TArray<double> Contacts;
     FBox Bounds;
+    TArray<FBox> InspectionSupports;
+    TSharedPtr<const FVoxelAABBTree> SupportIndex;
     FCLDirectionalScalarField Bedding,Surface[6];
     mutable std::atomic<uint64> SurfaceInterpolated{0},SurfaceExact{0};
     mutable std::atomic<uint64> EvaluationCycles[4]{};
@@ -143,6 +148,15 @@ void FCLSpatialCave::GetEvaluationSeconds(TArray<double>& Seconds)const
 }
 void FCLSpatialCave::GetCellSupportBounds(TArray<FBox>& Out)const
 {Out.Reset();if(Data->Family)Data->Family->CellSupportBounds(Out);else Out.Add(Data->Bounds);}
+void FCLSpatialCave::GetInspectionSupportBounds(TArray<FBox>& Out,FGuid Id)const
+{if(Data->Family)Data->Family->InspectionSupportBounds(Out,Id);else if(Data->InspectionSupports.IsEmpty())Out.Add(Data->Bounds);else Out.Append(Data->InspectionSupports);}
+double FCLSpatialCave::ExteriorDistance(const FVector& P)const
+{
+    if(!Data->SupportIndex)return FMath::Sqrt(Data->Bounds.ComputeSquaredDistanceToPoint(P));
+    double Best=MAX_dbl;
+    Data->SupportIndex->Traverse([&](const FVoxelFastBox& B){return B.GetBox().SquaredDistanceToPoint(P)<Best;},[&](int32 I){Best=FMath::Min(Best,Data->InspectionSupports[I].ComputeSquaredDistanceToPoint(P));});
+    return FMath::Sqrt(Best);
+}
 FBox FCLSpatialCave::Bounds(FGuid Network)const{return Data->Family?Data->Family->Bounds(Network):Data->Bounds;}
 double FCLSpatialCave::MinimumHalfWidth(FGuid Network)const{return Data->Family?Data->Family->MinimumHalfWidth(Network):Data->MinimumHalfWidth;}
 bool FCLSpatialCave::IsProceduralFamily()const{return Data->Family.IsValid();}
@@ -162,12 +176,26 @@ void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool 
         // the cavity is closed, and a cheap distance lower bound rejects rock.
         const double Outside=FMath::Sqrt(Data->Bounds.ComputeSquaredDistanceToPoint(P[I]));
         if(Outside>0){Air[I]=-Outside-1;continue;}
+        // The joint envelopes include wall warp, undercuts, roof pockets and
+        // a further twelve scaled metres of padding. Empty space between them
+        // needs a finite conservative distance, not exact geological inversion
+        // for every sample in the much larger whole-network box.
+        if(Data->SupportIndex&&!Data->Rock)
+        {
+            const double JointDistance=ExteriorDistance(P[I]);
+            if(JointDistance>0){Air[I]=-(JointDistance+8*Data->Scale)*.6;continue;}
+        }
         Active.Add(I);
     }
     uint64 Stage=FPlatformTime::Cycles64();
     for(int32 I:Active)Local.Add(BeddingPoint(P[I],bCompiledInputs));
-    if(!Data->Morphology.IsEmpty())for(int32 I:Active)
+    if(!Data->Morphology.IsEmpty())for(int32 K=0;K<Active.Num();++K)
     {
+        const int32 I=Active[K];
+        if(Data->ContactRock&&Data->Rock==Data->ContactRock)
+        {
+            ContactZ.Add(Local[K].Z+(Data->Datum-Data->ContactDatum)/Data->Scale);continue;
+        }
         const auto& Q=P[I];double Restored=Q.Length();
         if(Data->ContactRock)
         {
@@ -333,9 +361,11 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompi
     return CompileComposition(Base,Data,Seed,Error,true);
 }
 
-TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildNetworkAt(const FCLCompiledPlanetRecipe& Base,const FCLCaveSettings& Settings,int32 Seed,const FVector& Direction,double Scale,FString& Error,bool FollowBedding,int32 RequestedLevels)
+TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildNetworkAt(const FCLCompiledPlanetRecipe& Base,const FCLCaveSettings& Settings,int32 Seed,const FVector& Direction,double Scale,FString& Error,bool FollowBedding,int32 RequestedLevels,double DepthFraction,bool SurfaceOpening)
 {
     auto Data=MakeShared<FCLSpatialCaveData>();Data->Scale=Scale;Data->Up=Direction;
+    if(!Settings.ResolvePlacement(Base,Data->PlacementMin,Data->PlacementMax,Data->SurfaceClearance,Error))return nullptr;
+    Data->SurfaceOpening=SurfaceOpening;
     Direction.FindBestAxisVectors(Data->X,Data->Y);
     FRandomStream Random(Seed);const FQuat Turn(Direction,Random.FRandRange(0.,2*UE_DOUBLE_PI));
     Data->X=Turn.RotateVector(Data->X);Data->Y=Turn.RotateVector(Data->Y);
@@ -349,7 +379,6 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildNetworkAt(const FCLCompi
     const double Reach=Random.FRandRange(410,560)*FMath::Lerp(.9,1.1,FMath::Clamp(Settings.LengthMeters/500.,0.,1.));
     // Full-size Mammoth/Carlsbad proportions on ordinary planets. Small bodies
     // uniformly fit the same anatomy, including its interconnected levels.
-    const double Cover=FMath::Max(12.,Settings.MinimumCoverMeters);
     auto Cave=MakeShared<FCLSpatialCave>();Cave->Data=Data;
     auto AddRegion=[&](const TArray<FVector2D>& Points,double Floor,double Rise,FVector2D Start,FVector2D End,double Roof,FVector2D Center,double RX,double RY,bool Pendant,int32 Group=INDEX_NONE)
     {
@@ -518,13 +547,48 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildNetworkAt(const FCLCompi
     if(!LayoutValid){Error.Reset();return nullptr;}
     FBox2D Footprint(ForceInit);for(const auto& R:Data->Regions)Footprint+=R.Bounds;
     const double Extent=FMath::Max(Footprint.Min.Length(),Footprint.Max.Length())+30;
-    const double Top=(Data->Levels-1)*Separation+52+Cover;
-    Scale=FMath::Min(Scale,(Base.RadiusMeters+Base.MinimumHeightMeters)/(Top+Extent/.80));Data->Scale=Scale;
-    if(Base.RadiusMeters+Base.MinimumHeightMeters>250)for(int32 I=0;I<Data->Regions.Num();++I)
-    {auto& Roof=Data->Morphology[4+28*I+7];if(Roof<20)Roof=FMath::Min(FMath::Max(Roof,6./Scale),.60*Separation);}
-    double RoofEnvelope=0;for(int32 I=0;I<Data->Regions.Num();++I)
-    {const auto* M=Data->Morphology.GetData()+4+28*I;RoofEnvelope=FMath::Max(RoofEnvelope,M[0]+M[1]+M[7]+M[14]+8);}
-    Data->Datum=Base.RadiusMeters+Base.MinimumHeightMeters-(RoofEnvelope+Cover)*Scale;Data->Origin=Direction*Data->Datum;
+    double RoofEnvelope=0;
+    const auto& Gate=Joints[Levels.Last().Last()];
+    // Fit the unchanged anatomy inside the requested radial band. Closed
+    // systems use their own local terrain envelope, never the planet-wide
+    // lowest surface. The seeded fraction distributes their remaining depth.
+    double Ceiling=Data->PlacementMax;
+    for(int32 Fit=0;Fit<4;++Fit)
+    {
+        if(Base.RadiusMeters+Base.MinimumHeightMeters>250)for(int32 I=0;I<Data->Regions.Num();++I)
+        {auto& Roof=Data->Morphology[4+28*I+7];if(Roof<20)Roof=FMath::Min(FMath::Max(Roof,6./Scale),.60*Separation);}
+        RoofEnvelope=0;for(int32 I=0;I<Data->Regions.Num();++I)
+        {const auto* M=Data->Morphology.GetData()+4+28*I;RoofEnvelope=FMath::Max(RoofEnvelope,M[0]+M[1]+M[7]+M[14]+8);}
+        Scale=FMath::Min(Scale,FMath::Max(1.e-12,(Ceiling-Data->PlacementMin)/(RoofEnvelope+20)));
+        Data->Scale=Scale;
+        const double Bottom=Data->PlacementMin+20*Scale,Top=Ceiling-RoofEnvelope*Scale;
+        Data->Datum=FMath::Lerp(Bottom,FMath::Max(Bottom,Top),1-FMath::Clamp(DepthFraction,0.,1.));Data->Origin=Direction*Data->Datum;
+        TArray<FVector> Directions;TArray<double> Heights;
+        if(SurfaceOpening)
+        {
+            // Expose the upper part of an existing broad chamber. On slopes
+            // this also makes side mouths; flat terrain can have a skylight.
+            // No new passage, tail, capsule or floor cut is constructed.
+            const double Z=Gate.Floor+18;
+            const auto P=Cave->BodyPoint(FVector(Gate.P.X,Gate.P.Y,Z));Directions.Add(P.GetSafeNormal());Base.SampleHeightsMeters(Directions,Heights);
+            Data->Datum+=Base.RadiusMeters+Heights[0]-P.Length();Data->Origin=Direction*Data->Datum;
+            if(Data->Datum-20*Scale<Data->PlacementMin||Data->Datum+((Data->Levels-1)*Separation+8)*Scale>Data->PlacementMax){Error.Reset();return nullptr;}
+        }
+        else if(Data->Datum+RoofEnvelope*Scale>Base.RadiusMeters+Base.MinimumHeightMeters-Data->SurfaceClearance)
+        {
+            for(const auto& R:Data->Regions)
+            {
+                const auto C=R.Bounds.GetCenter();Directions.Add(Cave->BodyPoint(FVector(C.X,C.Y,RoofEnvelope)).GetSafeNormal());
+                for(const auto& P:R.Polygon.GetVertices())Directions.Add(Cave->BodyPoint(FVector(P.X,P.Y,RoofEnvelope)).GetSafeNormal());
+            }
+            Base.SampleHeightsMeters(Directions,Heights);double LocalCeiling=Data->PlacementMax;
+            for(double H:Heights)LocalCeiling=FMath::Min(LocalCeiling,Base.RadiusMeters+H-Data->SurfaceClearance);
+            if(LocalCeiling<=Data->PlacementMin){Error.Reset();return nullptr;}
+            Ceiling=LocalCeiling;
+        }
+        Scale=FMath::Min(Scale,Data->Datum*.78/Extent);
+    }
+    Data->Scale=Scale;
     if(Base.Rock&&FollowBedding)
     {
         const auto Column=Base.Rock->SampleColumn(Direction);
@@ -546,7 +610,7 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildNetworkAt(const FCLCompi
     {
         const auto A=Path.Points[I-1],B=Path.Points[I];
         const double Run=FVector::VectorPlaneProject(B-A,(A+B).GetSafeNormal()).Length();
-        if(FMath::Abs(B.Length()-A.Length())>.45*Run)return BuildNetworkAt(Base,Settings,Seed,Direction,Scale,Error,false,RequestedLevels);
+        if(FMath::Abs(B.Length()-A.Length())>.45*Run)return BuildNetworkAt(Base,Settings,Seed,Direction,Scale,Error,false,RequestedLevels,DepthFraction,SurfaceOpening);
     }
     auto Compile=[&]{return CompileComposition(Base,Data,Seed,Error,false);};
     auto Result=Compile();
@@ -562,9 +626,9 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildNetworkAt(const FCLCompi
         // Retain the complete generated anatomy and canonical material queries
         // when a steep restored bed cannot support a walking floor.
         Error.Reset();Data->Rock.Reset();Data->Datum=Data->Origin.Length();
-        return BuildNetworkAt(Base,Settings,Seed,Direction,Scale,Error,false,RequestedLevels);
+        return BuildNetworkAt(Base,Settings,Seed,Direction,Scale,Error,false,RequestedLevels,DepthFraction,SurfaceOpening);
     }
-    if(!Result&&Scale>1.e-10){Error.Reset();return BuildNetworkAt(Base,Settings,Seed,Direction,Scale*.8,Error,false,RequestedLevels);}
+    if(!Result&&Scale>1.e-10){Error.Reset();return BuildNetworkAt(Base,Settings,Seed,Direction,Scale*.8,Error,false,RequestedLevels,DepthFraction,SurfaceOpening);}
     if(Result)
     {
         // Publish only a complete traversable proposal. This uses the actual
@@ -582,6 +646,46 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildNetworkAt(const FCLCompi
         }
         TArray<double> H,F;Cave->Sample(Heads,H);Cave->Sample(Feet,F);
         for(int32 I=0;I<H.Num();++I)if(H[I]<.35*WalkScale||F[I]>-.05*WalkScale){Error.Reset();return nullptr;}
+        if(SurfaceOpening)
+        {
+            // Placement may expose roofs and side walls, never remove the
+            // actual terrain supporting the existing walking graph.
+            TArray<double> GroundHeights,GroundField;Base.SampleHeightsMeters(Feet,GroundHeights);Base.SampleRadialFields(Feet,GroundHeights,GroundField);
+            if(GroundField.ContainsByPredicate([&](double V){return V>-.05*WalkScale;})){Error.Reset();return nullptr;}
+            TArray<double> Heights;Base.SampleHeightsMeters(Heads,Heights);
+            int32 Inside=INDEX_NONE;double Cover=4*WalkScale;
+            for(int32 I=0;I<Heads.Num();++I){const double D=Base.RadiusMeters+Heights[I]-Heads[I].Length();if(D>Cover){Inside=I;Cover=D;}}
+            if(Inside==INDEX_NONE){Error.Reset();return nullptr;}
+            const double HalfWidth=FMath::Min(5.,11*Scale);bool Found=false;
+            for(const FVector2D Offset:{FVector2D::ZeroVector,FVector2D(8,0),FVector2D(-8,0),FVector2D(0,8),FVector2D(0,-8)})
+            {
+                const auto Center=Cave->BodyPoint(FVector(Gate.P.X+Offset.X,Gate.P.Y+Offset.Y,Gate.Floor+18));
+                TArray<FVector> P;for(double X:{-HalfWidth,0.,HalfWidth})for(double Y:{-HalfWidth,0.,HalfWidth})P.Add((Center+Data->X*X+Data->Y*Y).GetSafeNormal());
+                Base.SampleHeightsMeters(P,Heights);
+                for(int32 I=0;I<P.Num();++I)P[I]*=Base.RadiusMeters+Heights[I]-.5*WalkScale;
+                TArray<double> Air;Cave->Sample(P,Air);
+                if(Air.ContainsByPredicate([&](double V){return V<.2*WalkScale;}))continue;
+                auto Mutable=MakeShared<FCLCompiledCaves>(*Result);
+                Mutable->SurfaceOpenings.Add({Mutable->NetworkInfo[0].Id,P[4]+P[4].GetSafeNormal()*(.5*WalkScale),Heads[Inside],HalfWidth*2});
+                Mutable->Nodes[Gate.Node].Portal=true;Mutable->Entrances=1;Result=Mutable;Found=true;break;
+            }
+            if(!Found){Error.Reset();return nullptr;}
+        }
+    }
+    Data->InspectionSupports.Reset();Data->SupportIndex.Reset();
+    if(Result)
+    {
+        FVoxelAABBTree::FElementArray Elements;
+        for(int32 I=0;I<Data->Regions.Num();++I)
+        {
+            const auto Rect=Data->Regions[I].Bounds.ExpandBy(16);const auto* M=Data->Morphology.GetData()+4+28*I;
+            double Low=MAX_dbl,High=-MAX_dbl;
+            for(double X:{Rect.Min.X,Rect.Max.X})for(double Y:{Rect.Min.Y,Rect.Max.Y}){const double D=RegionDatum(M,X,Y);Low=FMath::Min(Low,D);High=FMath::Max(High,D);}
+            FBox Support(ForceInit);
+            for(double X:{Rect.Min.X,Rect.GetCenter().X,Rect.Max.X})for(double Y:{Rect.Min.Y,Rect.GetCenter().Y,Rect.Max.Y})for(double Z:{Low-20,High+M[7]+M[14]+8})Support+=Cave->BodyPoint(FVector(X,Y,Z));
+            Support=Support.ExpandBy(12*Data->Scale);Data->InspectionSupports.Add(Support);Elements.Add(FVoxelBox(Support),I);
+        }
+        Data->SupportIndex=FVoxelAABBTree::Create(MoveTemp(Elements));
     }
     return Result;
 }
@@ -650,13 +754,21 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::CompileComposition(const FCLC
             [Surface,Direction](TConstArrayView<FVector2D> Points,TArray<double>& Heights)
             {TArray<FVector> Directions;Directions.Reserve(Points.Num());for(const auto& P:Points)Directions.Add(Direction(P));Surface->SampleHeightsMeters(Directions,Heights);},.00025);
     });
-    if(Generated&&!Data->Rock)
+    if(Generated)
     {
-        // In radial placement BodyPoint inverts radius exactly. The entire
-        // roof envelope has a construction-time cover proof, independent of
-        // the footprint's area; no repeated terrain/bedding probes are needed.
-        if(Base.RadiusMeters+Base.MinimumHeightMeters-(Data->Datum+Top*Data->Scale)<8*Data->Scale)
-        {Error=TEXT("Spatial network exceeds its radial cover envelope");return nullptr;}
+        TArray<FVector> Points,Feet;
+        auto AddPoint=[&](FVector2D P){Points.Add(Cave->BodyPoint(FVector(P.X,P.Y,Top)));Feet.Add(Cave->BodyPoint(FVector(P.X,P.Y,-20)));};
+        for(const auto& R:Data->Regions)
+        {
+            AddPoint(R.Bounds.GetCenter());for(const auto& P:R.Polygon.GetVertices())AddPoint(P);
+        }
+        const bool CoveredByBound=!Data->SurfaceOpening&&!Data->Rock&&Data->Datum+Top*Data->Scale<=Base.RadiusMeters+Base.MinimumHeightMeters-Data->SurfaceClearance;
+        TArray<double> Heights;if(!Data->SurfaceOpening&&!CoveredByBound)Base.SampleHeightsMeters(Points,Heights);
+        for(int32 I=0;I<Points.Num();++I)
+        {
+            if(Feet[I].Length()<Data->PlacementMin-1.e-4||(!Data->SurfaceOpening&&(Points[I].Length()>Data->PlacementMax+1.e-4||(!CoveredByBound&&Base.RadiusMeters+Heights[I]-Points[I].Length()<Data->SurfaceClearance-1.e-4))))
+            {Error=TEXT("Spatial network does not fit its local radial placement envelope");return nullptr;}
+        }
     }
     else for(double X=LocalBounds.Min.X+10;X<=LocalBounds.Max.X-10;X+=20)for(double Y=LocalBounds.Min.Y+10;Y<=LocalBounds.Max.Y-10;Y+=20)
     {

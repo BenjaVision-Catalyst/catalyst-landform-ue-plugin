@@ -43,7 +43,23 @@ bool FCLCaveFieldTest::RunTest(const FString&)
     TestFalse(TEXT("Caves use a volume scene"),Scene->IsHeightOnly());TestFalse(TEXT("Radial fallback is refused"),FCLScene::FromLegacyRadial(P,E).IsValid());
     TArray<FVector3d> Points;for(const auto& S:P->Caves->Segments)Points.Add((S.A+S.B)*.5);
     TArray<FCLSceneShapeSample> C,B;Scene->SampleShape({Points},C,E);Natural->SampleShape({Points},B,E);
-    for(int32 I=0;I<Points.Num();++I){TestTrue(TEXT("Native cutters expose actual underground air"),C[I].FieldMeters>0);TestTrue(TEXT("The uncut host was solid"),B[I].FieldMeters<0);}
+    TArray<FVector> ExteriorFeet;
+    for(int32 I=0;I<Points.Num();++I)
+    {
+        TestTrue(TEXT("Native cutters expose actual cave air"),C[I].FieldMeters>0);
+        TestTrue(TEXT("Uncut host field remains finite"),FMath::IsFinite(B[I].FieldMeters));
+        if(B[I].FieldMeters>=0)
+        {
+            const auto Network=P->Caves->Segments[I].Network;
+            TestTrue(TEXT("Exterior walking samples belong to a verified surface-opening network"),P->Caves->SurfaceOpenings.ContainsByPredicate([&](const auto& Opening){return Opening.Network==Network;}));
+            const auto* Info=P->Caves->NetworkInfo.FindByPredicate([&](const auto& N){return N.Id==Network;});
+            if(TestNotNull(TEXT("Exterior walking sample has network anatomy"),Info))
+                ExteriorFeet.Add(Points[I]-Points[I].GetSafeNormal()*(2*FMath::Clamp(Info->AnatomyScale,.001,1.)));
+        }
+    }
+    TArray<FCLSceneShapeSample> Footing;Natural->SampleShape({ExteriorFeet},Footing,E);
+    for(const auto& V:Footing)TestTrue(TEXT("Surface-open walking samples retain solid natural footing"),V.FieldMeters<0);
+    AddInfo(FString::Printf(TEXT("CAVE_SURFACE_WALKING exteriorSamples=%d"),ExteriorFeet.Num()));
     TArray<FCLSceneSurfaceSample> SC,SB;Scene->SampleSurfaces({Points},SC,E);Natural->SampleSurfaces({Points},SB,E);TArray<FCLRockSample> GC,GB;Scene->SampleGeology({Points},GC,E);Natural->SampleGeology({Points},GB,E);
     for(int32 I=0;I<Points.Num();++I){TestEqual(TEXT("Excavation keeps canonical geological identity"),GC[I].StratumId,GB[I].StratumId);TestEqual(TEXT("Exposed surface weight count is inherited"),SC[I].Weights.Num(),SB[I].Weights.Num());for(int32 J=0;J<SC[I].Weights.Num();++J)TestEqual(TEXT("Cutters do not paint replacement rock"),SC[I].Weights[J].Weight,SB[I].Weights[J].Weight);}
     FCLPlanetStamp Stamp;Stamp.bUseRecipe=true;Stamp.Recipe=R;Stamp.Radius=R.RadiusMeters*100;Stamp.bApplyOnVoid=true;Stamp.Behavior=EVoxelStampBehavior::AffectAll;
@@ -159,7 +175,7 @@ bool FCLCaveRiftNaturalTest::RunTest(const FString&)
     const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves){AddError(E);return false;}const auto& C=*P->Caves;
     if(!TestTrue(TEXT("Rift uses the established spatial family, never primitive substitute chambers"),C.Spatial&&C.Spatial->IsProceduralFamily()&&C.Chambers.Num()>C.Networks&&C.Passages.Num()>C.Networks))return false;
     TestTrue(TEXT("Every chamber retains the spatial family morphology"),!C.Chambers.ContainsByPredicate([](const auto& V){return V.GeometryProfile!=8;}));
-    TestEqual(TEXT("The rejected entrance tails are absent"),C.Entrances,0);
+    TestFalse(TEXT("The rejected appended entrance tails are absent"),C.Passages.ContainsByPredicate([](const auto& P){return P.Entrance;}));
     for(const auto& Room:C.Chambers)TestTrue(TEXT("Approved chamber dimensions are retained"),Room.HalfExtents.X>5&&Room.HalfExtents.Y>4&&Room.HalfExtents.Z>3);
     for(const auto& Path:C.Passages)TestTrue(TEXT("No ring route or appended long entrance"),!Path.Entrance&&Path.GeometryProfile==8&&Path.Points.Num()>5);
     const auto Scene=FCLScene::FromPlanet(P,E);int32 BadHead=0,BadFloor=0;double Grade=0;TArray<FVector> Probes,Feet;
