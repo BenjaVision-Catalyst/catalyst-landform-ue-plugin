@@ -183,3 +183,57 @@ and a 0.427 s maximum stop. It also fails the unchanged streaming gate. All 11
 retained-source geometry, determinism, legacy, native delivery and UI regression
 tests pass in `retained-automation.json`; this does not convert a failed walk into
 a passing family milestone.
+
+## Measured collision gate
+
+A subsequent read-only correlation of the existing `residual-critical-path` trace
+identifies the active gate; this is not another performance trial or a code fix.
+See `conformance/ProceduralCaves/collision-gate-audit.json` for exact exports,
+clipped intervals, call-stack attribution, all eight holds and trace SHA-256.
+
+The longest traced hold, `CL_CaveCollisionHold_7`, spans trace time
+63.496558–63.746384 s (249.826 ms) during Voxel State 47. Its 365 collision-generation
+calls had all ended by 63.181665 s, 314.893 ms before the hold. There are **zero**
+`CreateColliderRef` calls during this hold. Collision generation for that state
+was not waiting to start.
+
+State 47 instead remains busy with render generation. Within the hold, 1,301
+Landform density callbacks are descendants of render meshing, with 259.496 ms of
+aggregate elapsed callback time. Base render meshing accounts for 1,151 callbacks,
+1,875,074 point visits and 253.611 ms; relative LODs 1–3 account for only 5.885 ms.
+Thus repeated coarse-LOD evaluation is not the dominant measured cost here.
+
+Those callbacks enter `FCLDeliveryBinding::Distances` (`CLDeliveryPrototype.cpp:32`),
+which sends each packet to `FCLSpatialCave::SamplePlanet` (`CLSpatialCave.cpp:202`).
+That invokes the family preparation and `CLFamilyUnion` (`CLSpatialCaveFamily.cpp:127`,
+`:137`), including the cell union and three native Perlin bands, then the bounded
+planet-field composition. During the hold the background cave union accounts
+for approximately 142.7 ms, preparation 33.2 ms and planet composition 63.7 ms
+of aggregate elapsed intervals. These are stages inside the density callbacks;
+they must not be added to the inclusive callback total.
+
+The final render density callback ends at 63.665790 s. Native render-data/Nanite
+construction continues afterward; the last background render-data task ends at
+63.736462 s. State 47's game-thread `Render` starts at 63.753869 s and its first
+`SetCollider` occurs at 63.753924 s. State 48 begins background work at 63.757998 s
+and its first collider-generation call starts at 63.758164 s.
+
+The source gate is `FVoxelRuntime::Tick`: `!NewState->IsReadyToRender()` prevents
+publication and returns before the next `FVoxelState` is constructed.
+`FVoxelState::IsReadyToRender` returns `TaskContext->IsComplete()`. Publication
+then calls each subsystem's `Render`, including collision-component setup.
+This explains how render-generation work delays both normal collision publication
+and the next collision batch without a collision-generation deadlock. Our density
+provider is measured work in that render batch; the final native render-data tail
+is also real and must not be attributed entirely to Landform callbacks.
+
+Across the four holds longer than 100 ms, render meshing invokes 5,076 density
+callbacks (653.308 ms aggregate) versus 79 collision-meshing callbacks (9.206 ms).
+Two other holds, about 8 ms each, contain collision generation. The capture does
+not support describing every held frame as the same phase. Nor does `HasCollision`
+prove a specific private collider reference is non-null; the gate finding uses
+native task ancestry and publication events rather than that assumption.
+
+VPP source, scheduler, task limits, collision settings and render settings were
+not changed for this correlation. No new claim of a passed walkthrough or
+available ecosystem headroom follows from identifying the gate.

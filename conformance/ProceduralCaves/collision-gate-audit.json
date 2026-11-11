@@ -1,0 +1,462 @@
+{
+  "scope": "Existing traced profile-9 walkthrough; no engine, VPP, configuration or code changes for this audit",
+  "componentRevision": "1f130f4f4a85f4185268d951f85f5a525ebc938d",
+  "workspaceRevision": "662b5097f6a98d27bb25dd1e8e846bc57a74c413",
+  "trace": "/private/tmp/landform-procedural-family/residual-critical-path/walk.utrace",
+  "traceSHA256": "5d6a09a2ec9aec631b880f3e19bf4b9310176608d9e510e4d4b3dc5a1b6d4a13",
+  "exportCommand": "TimingInsights.ExportTimingEvents /private/tmp/landform-procedural-family/residual-critical-path/gate-audit/hold7.csv -region=CL_CaveCollisionHold_7 -columns=ThreadId,ThreadName,TimerId,TimerName,StartTime,EndTime,Depth,Duration\nTimingInsights.ExportTimingEvents /private/tmp/landform-procedural-family/residual-critical-path/gate-audit/states.csv -region=CL_CaveStreaming -timers=\"Voxel State *,CreateColliderRef,SetCollider,*Invoker*,CL_MoveHeldForCollision\" -columns=ThreadId,ThreadName,TimerId,TimerName,StartTime,EndTime,Depth,Duration\n",
+  "allHoldExportCommand": "TimingInsights.ExportTimingEvents /private/tmp/landform-procedural-family/residual-critical-path/gate-audit/events-{region}.csv -region=CL_CaveCollisionHold_* -timers=\"CL_*,Voxel State *,CreateColliderRef,SetCollider,FVoxelMesher*,CreateClusters,CreateRenderData\" -columns=ThreadId,ThreadName,TimerId,TimerName,StartTime,EndTime,Depth,Duration\n",
+  "method": "Timing event ancestry, grouped by thread and depth. Durations are clipped to the trace region. A density callback is collision work only when CreateColliderRef is an ancestor; otherwise FVoxelMesher::CreateMesh identifies render meshing. Aggregate elapsed intervals are not wall duration or pure CPU time.",
+  "longestHold": {
+    "name": "CL_CaveCollisionHold_7",
+    "state": 47,
+    "regionStart": 63.496558,
+    "regionEnd": 63.746384,
+    "regionDuration": 0.24982599999999877,
+    "stateFirstBackgroundEvent": 62.7746998,
+    "colliderGenerationCallsBeforeHold": 365,
+    "lastColliderGenerationEnd": 63.181665,
+    "colliderGenerationCallsDuringHold": 0,
+    "lastRenderDensityCallbackEnd": 63.66579,
+    "lastBackgroundRenderDataTaskEnd": 63.7364618,
+    "stateRenderStart": 63.7538689,
+    "firstSetCollider": 63.753924,
+    "nextStateFirstBackgroundEvent": 63.7579983,
+    "nextStateFirstColliderGeneration": 63.7581635,
+    "densityCallbackAttribution": {
+      "render base meshing": {
+        "calls": 1151,
+        "seconds": 0.2536111999999804,
+        "points": 1875074,
+        "pointCountsFound": 1151
+      },
+      "FVoxelMesher::ComputeLOD RelativeLOD=1": {
+        "calls": 50,
+        "seconds": 0.00309270000000339,
+        "points": 19135,
+        "pointCountsFound": 50
+      },
+      "FVoxelMesher::ComputeLOD RelativeLOD=2": {
+        "calls": 50,
+        "seconds": 0.0018913999999981002,
+        "points": 10131,
+        "pointCountsFound": 50
+      },
+      "FVoxelMesher::ComputeLOD RelativeLOD=3": {
+        "calls": 50,
+        "seconds": 0.000900899999983551,
+        "points": 4340,
+        "pointCountsFound": 50
+      }
+    },
+    "blockingGate": "FVoxelRuntime::Tick -> !NewState->IsReadyToRender() -> return; IsReadyToRender delegates to TaskContext->IsComplete(). The live State 47 task context contains render-meshing/density and subsequent native render-data work. Both publication and creation of the next generation state are after this return.",
+    "observedLateRenderCallChain": [
+      "FVoxelMesher::CreateMesh ChunkSize=32",
+      "Finalize",
+      "Compute LODs",
+      "FVoxelMesher::ComputeLOD RelativeLOD=3",
+      "Apply x76",
+      "CL_DensityDelivery"
+    ],
+    "interpretationLimit": "This does not identify the particular rejected position with a private FColliderRef. HasCollision alone is not proof of a non-null cooked collider. Generation/publication phase attribution comes from native timer events, independently of that boolean."
+  },
+  "longHoldsOver100ms": {
+    "count": 4,
+    "wallRegionSeconds": 0.7606639999999913,
+    "densityCallbackAttribution": {
+      "render meshing": {
+        "calls": 5076,
+        "seconds": 0.6533084999999517
+      },
+      "collision": {
+        "calls": 79,
+        "seconds": 0.009205800000032127
+      }
+    }
+  },
+  "allHolds": [
+    {
+      "hold": "CL_CaveCollisionHold_1",
+      "start": 56.51316,
+      "end": 56.701933,
+      "duration": 0.18877299999999764,
+      "states": [
+        "Voxel State 36",
+        "Voxel State 37"
+      ],
+      "colliderGenerationCalls": 0,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 2334,
+          "seconds": 0.16187169999989948
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 4164,
+          "seconds": 0.026976300000299602
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 4159,
+          "seconds": 0.10571389999996939
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 4165,
+          "seconds": 0.011899199999852783
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 34,
+          "seconds": 0.022744499999994616
+        },
+        "CreateRenderData": {
+          "calls": 347,
+          "seconds": 0.059557899999987285
+        },
+        "CreateClusters": {
+          "calls": 347,
+          "seconds": 0.02345170000005936
+        }
+      },
+      "setColliderNearRelease": 0,
+      "firstSetCollider": null,
+      "densityAttribution": {
+        "render meshing": {
+          "calls": 2334,
+          "seconds": 0.16187169999989948
+        }
+      }
+    },
+    {
+      "hold": "CL_CaveCollisionHold_2",
+      "start": 59.970975,
+      "end": 60.108483,
+      "duration": 0.13750799999999685,
+      "states": [
+        "Voxel State 43",
+        "Voxel State 44"
+      ],
+      "colliderGenerationCalls": 2,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 588,
+          "seconds": 0.08120030000002032
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 1524,
+          "seconds": 0.011778100000071845
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 1525,
+          "seconds": 0.05563630000001751
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 1524,
+          "seconds": 0.006731599999959315
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 18,
+          "seconds": 0.005539499999997588
+        },
+        "CreateRenderData": {
+          "calls": 311,
+          "seconds": 0.05689179999995986
+        },
+        "CreateClusters": {
+          "calls": 311,
+          "seconds": 0.02235609999992505
+        }
+      },
+      "setColliderNearRelease": 0,
+      "firstSetCollider": null,
+      "densityAttribution": {
+        "render meshing": {
+          "calls": 583,
+          "seconds": 0.08040070000002686
+        },
+        "collision": {
+          "calls": 5,
+          "seconds": 0.0007995999999934611
+        }
+      }
+    },
+    {
+      "hold": "CL_CaveCollisionHold_3",
+      "start": 62.655021,
+      "end": 62.663026,
+      "duration": 0.008005000000004259,
+      "states": [
+        "Voxel State 46"
+      ],
+      "colliderGenerationCalls": 12,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 97,
+          "seconds": 0.011057100000002151
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 173,
+          "seconds": 0.0010030000000682548
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 174,
+          "seconds": 0.008702499999955648
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 173,
+          "seconds": 0.0005220000000392133
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 2,
+          "seconds": 0.0006936999999922477
+        },
+        "CreateRenderData": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CreateClusters": {
+          "calls": 0,
+          "seconds": 0
+        }
+      },
+      "setColliderNearRelease": 0,
+      "firstSetCollider": null,
+      "densityAttribution": {
+        "collision": {
+          "calls": 97,
+          "seconds": 0.011057100000002151
+        }
+      }
+    },
+    {
+      "hold": "CL_CaveCollisionHold_4",
+      "start": 62.696493,
+      "end": 62.704591,
+      "duration": 0.008098000000003935,
+      "states": [
+        "Voxel State 46"
+      ],
+      "colliderGenerationCalls": 13,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 89,
+          "seconds": 0.011033100000020113
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 189,
+          "seconds": 0.0011616999999972677
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 191,
+          "seconds": 0.008456199999947955
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 190,
+          "seconds": 0.000602299999997058
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 4,
+          "seconds": 0.0015591000000085842
+        },
+        "CreateRenderData": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CreateClusters": {
+          "calls": 0,
+          "seconds": 0
+        }
+      },
+      "setColliderNearRelease": 0,
+      "firstSetCollider": null,
+      "densityAttribution": {
+        "collision": {
+          "calls": 89,
+          "seconds": 0.011033100000020113
+        }
+      }
+    },
+    {
+      "hold": "CL_CaveCollisionHold_5",
+      "start": 62.741505,
+      "end": 62.747578,
+      "duration": 0.006073000000000661,
+      "states": [
+        "Voxel State 46"
+      ],
+      "colliderGenerationCalls": 0,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CreateRenderData": {
+          "calls": 55,
+          "seconds": 0.009557200000010369
+        },
+        "CreateClusters": {
+          "calls": 55,
+          "seconds": 0.0037876999999753025
+        }
+      },
+      "setColliderNearRelease": 136,
+      "firstSetCollider": 62.7711323,
+      "densityAttribution": {}
+    },
+    {
+      "hold": "CL_CaveCollisionHold_6",
+      "start": 62.759613,
+      "end": 62.763553,
+      "duration": 0.003940000000000055,
+      "states": [],
+      "colliderGenerationCalls": 0,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CreateRenderData": {
+          "calls": 0,
+          "seconds": 0
+        },
+        "CreateClusters": {
+          "calls": 0,
+          "seconds": 0
+        }
+      },
+      "setColliderNearRelease": 136,
+      "firstSetCollider": 62.7711323,
+      "densityAttribution": {}
+    },
+    {
+      "hold": "CL_CaveCollisionHold_7",
+      "start": 63.496558,
+      "end": 63.746384,
+      "duration": 0.24982599999999877,
+      "states": [
+        "Voxel State 47"
+      ],
+      "colliderGenerationCalls": 0,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 1301,
+          "seconds": 0.2594961999999654
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 4320,
+          "seconds": 0.0331664000000913
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 4155,
+          "seconds": 0.142723699999884
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 4321,
+          "seconds": 0.06369959999997121
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 49,
+          "seconds": 0.01654319999998677
+        },
+        "CreateRenderData": {
+          "calls": 374,
+          "seconds": 0.06949169999995064
+        },
+        "CreateClusters": {
+          "calls": 374,
+          "seconds": 0.027394100000016408
+        }
+      },
+      "setColliderNearRelease": 137,
+      "firstSetCollider": 63.753924,
+      "densityAttribution": {
+        "render meshing": {
+          "calls": 1301,
+          "seconds": 0.2594961999999654
+        }
+      }
+    },
+    {
+      "hold": "CL_CaveCollisionHold_8",
+      "start": 65.796518,
+      "end": 65.981075,
+      "duration": 0.18455699999999808,
+      "states": [
+        "Voxel State 50",
+        "Voxel State 51"
+      ],
+      "colliderGenerationCalls": 4,
+      "backgroundTimers": {
+        "CL_DensityDelivery": {
+          "calls": 932,
+          "seconds": 0.15994610000009857
+        },
+        "CL_CavePacketPrepare": {
+          "calls": 3047,
+          "seconds": 0.025009000000508763
+        },
+        "CL_CaveUnionKernel": {
+          "calls": 2920,
+          "seconds": 0.10998299999987182
+        },
+        "CL_PlanetFieldAfterCaves": {
+          "calls": 3048,
+          "seconds": 0.010680800000173463
+        },
+        "CL_SurfaceDelivery": {
+          "calls": 34,
+          "seconds": 0.014118300000021122
+        },
+        "CreateRenderData": {
+          "calls": 343,
+          "seconds": 0.06348920000009173
+        },
+        "CreateClusters": {
+          "calls": 343,
+          "seconds": 0.025067300000031878
+        }
+      },
+      "setColliderNearRelease": 0,
+      "firstSetCollider": null,
+      "densityAttribution": {
+        "render meshing": {
+          "calls": 858,
+          "seconds": 0.1515399000000599
+        },
+        "collision": {
+          "calls": 74,
+          "seconds": 0.008406200000038666
+        }
+      }
+    }
+  ]
+}

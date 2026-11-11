@@ -1,3 +1,5 @@
+Latest read-only gate correlation: [measured collision gate](../../Docs/ProceduralCaveFamily.md#measured-collision-gate). `collision-gate-audit.json` shows State 47 collision generation finished before the longest hold; its render-generation task context delayed publication and the next state. This finding does not fix the failed walkthrough.
+
 > **Current status: EXPERIMENTAL, not a freeze fix.** The latest integrated
 > provider completes the 400 m control grounded but still has a 0.43 s maximum
 > stop and 0.90 s total admission holds. The stock scheduler is unchanged and
