@@ -1,0 +1,64 @@
+{
+  "status": "retained experimental source; streaming failed",
+  "component": {
+    "Source/CatalystLandform/CatalystLandform.Build.cs": "a1cfb806470f80538d351becde66c417841e4b6bbde6d882baa18e4f383f6835",
+    "Source/CatalystLandform/Private/CLDeliveryPrototype.cpp": "ee9094fc6e2289cdac2c6987a2096c95dee3477c4de54733062e0f473c7f8fa8",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "e2d107ce2d6cf415139e2c87041dec54494ed786768d42e945950ce2000adc46",
+    "Source/CatalystLandform/Private/CLRadialGravityMovement.cpp": "6209d32d7a8d9d4ecb165ca473ca51806ebd30a79a92f564af40bd249d16f710",
+    "Source/CatalystLandform/Private/Model/CLCaves.cpp": "5cbc8873ec1479739f19463b81b608bcbd6cd2416cb3462e7a38c626d84d3f52",
+    "Source/CatalystLandform/Private/Model/CLDirectionalScalarField.cpp": "813a3bcfc489432a67def097efc3ccea590ab76380249a553199f6cd55ead961",
+    "Source/CatalystLandform/Private/Model/CLDirectionalScalarField.h": "d476b39939da4fa0d6e9c1ef3e76044c70a554c7177268cb4f9f6632b95f2d7a",
+    "Source/CatalystLandform/Private/Model/CLRockLayer.cpp": "4fe4a8d6c4a0e23676f5f4302888254bd54fd7c6d8316ec5c5f68509f815c71e",
+    "Source/CatalystLandform/Private/Model/CLSpatialCave.cpp": "ed6357e50b70dd77d2e29e0755ce24a8c6e6724165c850af9f7eebc54ad4b76f",
+    "Source/CatalystLandform/Private/Model/CLSpatialCaveFamily.cpp": "e9ca97d7723fab6d9609455a90d737eaec9540f3c9527a8af037ea65b6422737",
+    "Source/CatalystLandform/Private/Model/CLSpatialCaveFamily.h": "24d5605b3768fb4dba6b6b628f78f8c32138ac3d02e4ede059165360563d45ae",
+    "Source/CatalystLandform/Private/Model/CLSpatialMorph.ispc": "aded4f60b89a1527a87ab881ee7890efdad992fc5bbda7d9ffae55caa2db06e9",
+    "Source/CatalystLandform/Private/Scene/CLCaveVolume.cpp": "8d8d8b3508ba8923115e3383d3c8ae54f05d20f1cad1239f3320190267abe0f7",
+    "Source/CatalystLandform/Private/Scene/CLScene.cpp": "dcfc122d35fecc2215fdecb2021dccd391847312efdce3514c293b3d80bb44c9",
+    "Source/CatalystLandform/Public/CLDeliveryPrototype.h": "734b11b7cc653eab05317778329edc916dd98dab3c729938f9f8dc74388dff67",
+    "Source/CatalystLandform/Public/Model/CLRockLayer.h": "e0526e973e93d475fc42c74c48428c912bd7d67fd7da44bce7874223c884709f",
+    "Source/CatalystLandform/Public/Model/CLSpatialCave.h": "8b7189fb66a7e33b554176f3b6c5a041ab1eb3eda1de4cd3c4ab5793cedc5006",
+    "Source/CatalystLandformTests/Private/CLProceduralCaveTests.cpp": "16bf52438bc7f8643909458ff5e5355a13e07a77ab5546c20535a7d04a8bf308",
+    "Source/CatalystLandformTests/Private/CLProceduralCaveWorkTests.cpp": "b14ecbb54ec75234063131337167248686c60db4a54990250ea7fedc5f83d866",
+    "Tools/build-spatial-ispc.py": "575d9cabb04c2fe239207724c10603f66a113d770799068fa0d9ef1ab8133d13"
+  },
+  "workspaceHost": {
+    "Landform/Projects/LandformLab/Source/LandformLab/Private/CLGeneratedCaveProof.cpp": "1df34c193e95ffcea296bcc088a92aeaa8500f4482a8b94ff07ada834dc8daba"
+  },
+  "allMatchPhysicalHost": true,
+  "kernelArtifact": {
+    "inputSHA256": "c42c76b9a7b85ea221199443caffe60279d68958f1c7950683479b37d84ebed1",
+    "compiler": "/opt/homebrew/bin/ispc",
+    "version": "Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.31.0 (build commit  @ 20260625, LLVM 22.1.8)",
+    "flags": [
+      "--target=neon-i32x4",
+      "--arch=aarch64",
+      "--target-os=macos",
+      "--pic",
+      "--opt=disable-fma",
+      "-O2",
+      "-I",
+      "/private/tmp/landform-natural-karst/LandformLab/Plugins/Voxel/Source/VoxelCore/Public",
+      "-I",
+      "/private/tmp/landform-natural-karst/LandformLab/Plugins/Voxel/Source/VoxelGraph/Public"
+    ],
+    "nativeHeaderSHA256": {
+      "VoxelCore/Public/VoxelCoreMath.isph": "2cbbad19f0aba40f16f2a128717a229d19385cf9888e1b7dfa16993c93dda830",
+      "VoxelCore/Public/VoxelCoreMinimal.isph": "507fbca4874f12d0e1342c9fadc1002e6d1a91883dde6cdd139e3ac0a12e74d0",
+      "VoxelCore/Public/VoxelCoreTypes.isph": "616cfd8d2002e614266190f1cedbfd1d9e7f917abc39df08411ee4408ef34a60",
+      "VoxelCore/Public/VoxelCoreUniformMath.isph": "0665fb42a8c2beae261453ec9f6b27daa71c247f6b7106d4f5aa8873b5954a8f",
+      "VoxelCore/Public/VoxelMinimal.isph": "389a9b57c1d244b9ee54ac45bec28bd9f3b5efe2842f5488f1b0786d0cd2cfb9",
+      "VoxelCore/Public/VoxelWelfordVariance.isph": "640d87b8c1832daa809b66e2c9d16ce86e6dc23b89c42482eade09cfea5e1e4c",
+      "VoxelGraph/Public/Nodes/VoxelInterpolationNodesImpl.isph": "aebf21139e5f01f436cf59b1ff8ae6bbe1800251dda6546be5bea277f790010a",
+      "VoxelGraph/Public/Nodes/VoxelNoiseNodesImpl.isph": "7aac64f13c8bd6788cb7aa3e733966e5c588699732cbd00df029c64969c82beb",
+      "VoxelGraph/Public/VoxelBufferImpl.isph": "d9c9f2a2c77f54a0c3378bc849cefe1f12c8ef0041bbd4be14a788a33fe93dcf",
+      "VoxelGraph/Public/VoxelBufferStorageImpl.isph": "f22770b40c07e6f875c10dfcb1875a6a01f940c18a334e8ce8fffc22a55e1d78",
+      "VoxelGraph/Public/VoxelISPCNodeHelpers.isph": "40c420849696cdf90f2f5c16e8a8060872f00398e16dfdb301ad91b865e2252a"
+    },
+    "outputs": {
+      "CLSpatialMorph.generated.h": "96dc54d3f9ebff0366cebab2f51f6a3f96018c4541d1a69a27e83bb8e21ddd83",
+      "libCLSpatialMorph.a": "959689aa92babf8b66f31bd5f1064404167f4c28e12cc64a5e2ac17118f84aee"
+    }
+  },
+  "vppSourceChangesThisInvestigation": false
+}

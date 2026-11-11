@@ -1,0 +1,21 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-CLNaniteProjectionShaders",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-TestExit=Automation Test Queue Empty",
+  "-nullrhi",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Caves.ProceduralFamily+Catalyst.Landform.Caves.SpatialPrototype+Catalyst.Landform.Caves.DesignerControlsAndUndo+Catalyst.Landform.Caves.EligibilityAndVersions+Catalyst.Landform.Caves.DeliveryPrototype.Parity+Catalyst.Landform.Caves.NativeNoiseBatchParity+Catalyst.Landform.Scene.NativeBulkSparseParity",
+  "-abslog=/private/tmp/landform-procedural-family/final-core/native.log",
+  "-ReportExportPath=/private/tmp/landform-procedural-family/final-core/automation",
+  "-CLFamilyReport=/private/tmp/landform-procedural-family/final-core/family.json",
+  "-CLSpatialReport=/private/tmp/landform-procedural-family/final-core/geometry.json",
+  "-CLSpatialWorkReport=/private/tmp/landform-procedural-family/final-core/work.json"
+]

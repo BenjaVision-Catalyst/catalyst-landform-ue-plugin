@@ -1,0 +1,20 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-CLNaniteProjectionShaders",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-abslog=/private/tmp/landform-procedural-family/qualified-float-geometry/native.log",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Caves.ProceduralFamily",
+  "-TestExit=Automation Test Queue Empty",
+  "-ReportExportPath=/private/tmp/landform-procedural-family/qualified-float-geometry/automation",
+  "-CLSpatialReport=/private/tmp/landform-procedural-family/qualified-float-geometry/geometry.json",
+  "-CLFamilyReport=/private/tmp/landform-procedural-family/qualified-float-geometry/family.json",
+  "-CLSpatialWorkReport=/private/tmp/landform-procedural-family/qualified-float-geometry/work.json"
+]

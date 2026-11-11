@@ -1,5 +1,7 @@
 # Generated cave volumes
 
+The current opt-in spatial family is [seeded multi-level carbonate caves, profile 9](ProceduralCaveFamily.md). Profiles 1–8 retain their saved definitions.
+
 The opt-in [spatial passage/chamber prototype, profile 8](SpatialCavePrototype.md)
 replaces swept sections for the next morphology review. Existing UI defaults
 remain [Organic carbonate karst, profile 7](OrganicKarst.md).

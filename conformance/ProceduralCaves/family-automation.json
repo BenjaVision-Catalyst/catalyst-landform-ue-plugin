@@ -1,0 +1,72 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "D2808DF8AB4FFB7DE0D3B9882D59B2BB",
+			"instanceName": "jupiter.local-78653",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.10-23.25.46",
+	"succeeded": 2,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 111.41847991943359,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "ControlsDeterminismAndSelection",
+			"fullTestPath": "Catalyst.Landform.Caves.ProceduralFamily.ControlsDeterminismAndSelection",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D2808DF8AB4FFB7DE0D3B9882D59B2BB"
+			],
+			"duration": 73.441169738769531,
+			"dateTime": "2026.11.10-23.23.54",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_PACKET_ERROR maxMeters=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-23.25.07"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "TopologyFloorsAndStrata",
+			"fullTestPath": "Catalyst.Landform.Caves.ProceduralFamily.TopologyFloorsAndStrata",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D2808DF8AB4FFB7DE0D3B9882D59B2BB"
+			],
+			"duration": 37.977310180664062,
+			"dateTime": "2026.11.10-23.25.08",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

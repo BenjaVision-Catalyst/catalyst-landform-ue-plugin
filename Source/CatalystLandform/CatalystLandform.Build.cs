@@ -17,6 +17,9 @@ public class CatalystLandform : ModuleRules
             string Script = Path.Combine(PluginDirectory, "Tools", "build-spatial-ispc.py");
             ExternalDependencies.Add(Script);
             ExternalDependencies.Add(Path.Combine(ModuleDirectory, "Private", "Model", "CLSpatialMorph.ispc"));
+            string VoxelSource = Path.Combine(Directory.GetParent(PluginDirectory).FullName, "Voxel", "Source");
+            foreach (string Module in new[] { "VoxelCore", "VoxelGraph" })
+                ExternalDependencies.AddRange(Directory.GetFiles(Path.Combine(VoxelSource, Module, "Public"), "*.isph", SearchOption.AllDirectories));
             // Generate the header/archive before UBT resolves compilation inputs.
             // The content-addressed pre-build step also handles cached makefiles.
             var Start = new ProcessStartInfo("python3") { UseShellExecute = false };

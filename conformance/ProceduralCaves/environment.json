@@ -1,0 +1,28 @@
+{
+  "engineVersion": {
+    "MajorVersion": 5,
+    "MinorVersion": 7,
+    "PatchVersion": 4,
+    "Changelist": 51494982,
+    "CompatibleChangelist": 47537391,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.7"
+  },
+  "platform": "Mac arm64 M3 Max, 16 CPU cores, 128 GB",
+  "componentBase": "e41bf08",
+  "workspaceBase": "e0a8fcd",
+  "fixtureSHA256": "254551eb6fb567ce579b26dd4031d47def903966d15a9d02c926abadf885716b",
+  "nativeVoxelSizeCm": 20,
+  "nativeLODQuality": 1,
+  "movingInvokerRadiusCm": 3200,
+  "footAnchorRadiusCm": 100,
+  "staticInvokerOwners": 0,
+  "qualificationStatus": "EXPERIMENTAL: geometry tested; streaming, persistence and ecosystem acceptance incomplete",
+  "nativeBackgroundWorkers": 2,
+  "nativeDefaultVoxelSizeCm": 100,
+  "schedulerOverride": false,
+  "taskBudgetOverride": false,
+  "VPPSourceChangesThisInvestigation": false,
+  "worldIsEntirelyDefault": false
+}

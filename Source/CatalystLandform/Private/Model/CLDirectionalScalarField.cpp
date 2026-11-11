@@ -21,7 +21,7 @@ void FCLDirectionalScalarField::Build(const FBox2D& Bounds,TFunction<double(cons
     Tolerance=ToleranceMeters;Exact=MoveTemp(Function);Batch=MoveTemp(BatchFunction);
     if(!Batch)Batch=[this](TConstArrayView<FVector2D> Points,TArray<double>& Values)
     {Values.Reset(Points.Num());for(const auto& P:Points)Values.Add(Exact(P));};
-    Nodes.Reset();Nodes.AddDefaulted();Nodes[0].Bounds=Bounds;MaxError=0;
+    Packed.Reset();Links.Reset();LeafLookup.Reset();Nodes.Reset();Nodes.AddDefaulted();Nodes[0].Bounds=Bounds;MaxError=0;
     // Breadth first refinement gives every direction a fair share of the fixed
     // budget. A difficult corner must not consume the budget for a hemisphere.
     for(int32 Index=0;Index<Nodes.Num();++Index)
@@ -57,7 +57,7 @@ void FCLDirectionalScalarField::BuildNode(int32 Index,int32 Depth)
     for(int32 I=0;I<Points.Num();++I)Error=FMath::Max(Error,FMath::Abs(Node.Sample(Points[I])-Values[I]));
     if(Error<=Tolerance){MaxError=FMath::Max(MaxError,Error);Nodes[Index]=Node;return;}
     // Bound both compilation and storage; uncertain cells always use exact data.
-    if(Depth>=10||Nodes.Num()+4>65533){Node.bExact=true;Nodes[Index]=Node;return;}
+    if(Depth>=MaximumDepth||Nodes.Num()+4>65533){Node.bExact=true;Nodes[Index]=Node;return;}
     Node.Children=Nodes.AddDefaulted(4);Nodes[Index]=Node;
     const FVector2D Middle=(Node.Bounds.Min+Node.Bounds.Max)*.5;
     for(int32 Y=0;Y<2;++Y)for(int32 X=0;X<2;++X)
@@ -67,9 +67,23 @@ void FCLDirectionalScalarField::BuildNode(int32 Index,int32 Depth)
 
     }
 }
+void FCLDirectionalScalarField::BuildLookup()
+{
+    // A depth-ten address table selects leaves or deeper subtrees. Dyadic boundaries coincide with this
+    // immutable address table, so lookup changes no coefficients or fallback.
+    constexpr int32 Side=1024;LeafLookup.SetNumUninitialized(Side*Side);const auto& Root=Nodes[0].Bounds;
+    for(int32 I=0;I<Nodes.Num();++I)
+    {
+        const auto& N=Nodes[I];const double Ratio=(Root.Max.X-Root.Min.X)/(N.Bounds.Max.X-N.Bounds.Min.X);if(Ratio>1024.1||(N.Children!=INDEX_NONE&&Ratio<1023.9))continue;
+        const auto A=(N.Bounds.Min-Root.Min)/(Root.Max-Root.Min)*Side,B=(N.Bounds.Max-Root.Min)/(Root.Max-Root.Min)*Side;
+        const int32 X0=FMath::RoundToInt(A.X),Y0=FMath::RoundToInt(A.Y),X1=FMath::RoundToInt(B.X),Y1=FMath::RoundToInt(B.Y);
+        for(int32 Y=Y0;Y<Y1;++Y)for(int32 X=X0;X<X1;++X)LeafLookup[Y*Side+X]=I;
+    }
+}
 bool FCLDirectionalScalarField::TrySample(const FVector2D& P,double& Value)const
 {
     if(!Nodes[0].Bounds.IsInside(P))return false;int32 Index=0;
+    if(!LeafLookup.IsEmpty()){const auto T=(P-Nodes[0].Bounds.Min)/(Nodes[0].Bounds.Max-Nodes[0].Bounds.Min);Index=LeafLookup[FMath::Clamp(FMath::FloorToInt(T.Y*1024),0,1023)*1024+FMath::Clamp(FMath::FloorToInt(T.X*1024),0,1023)];}
     while(Nodes[Index].Children!=INDEX_NONE)
     {
         const auto& Node=Nodes[Index];const FVector2D Middle=(Node.Bounds.Min+Node.Bounds.Max)*.5;
@@ -83,3 +97,13 @@ double FCLDirectionalScalarField::Sample(const FVector2D& P,bool* bUsedExact)con
 }
 int32 FCLDirectionalScalarField::NumExactLeaves()const
 {int32 N=0;for(const auto& Node:Nodes)N+=Node.bExact;return N;}
+
+void FCLDirectionalScalarField::BuildPacked()
+{
+    Packed.Reset(Nodes.Num()*20);Links.Reset(Nodes.Num());
+    for(const auto& N:Nodes)
+    {
+        Packed.Append({N.Bounds.Min.X,N.Bounds.Min.Y,N.Bounds.Max.X-N.Bounds.Min.X,N.Bounds.Max.Y-N.Bounds.Min.Y});
+        Packed.Append(N.Coefficients,16);Links.Add(N.bExact?-2:N.Children);
+    }
+}

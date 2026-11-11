@@ -1,0 +1,515 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "428557FCB24B62D374D77FA473559FD4",
+			"instanceName": "jupiter.local-79856",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.11-02.41.59",
+	"succeeded": 6,
+	"succeededWithWarnings": 5,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 373.13803100585938,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "ControlsDeterminismAndSelection",
+			"fullTestPath": "Catalyst.Landform.Caves.ProceduralFamily.ControlsDeterminismAndSelection",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 202.06649780273438,
+			"dateTime": "2026.11.11-02.35.45",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_PACKET_ERROR maxMeters=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.39.07"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "TopologyFloorsAndStrata",
+			"fullTestPath": "Catalyst.Landform.Caves.ProceduralFamily.TopologyFloorsAndStrata",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 63.237617492675781,
+			"dateTime": "2026.11.11-02.39.07",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_WALL_PARITY seed=176 probes=10788 boundary=1403 signs=0 maxErrorMeters=0.000030748",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.39.42"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_WALL_PARITY seed=731 probes=10695 boundary=1330 signs=0 maxErrorMeters=0.000021381",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.39.57"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_WALL_PARITY seed=2049 probes=10323 boundary=1224 signs=0 maxErrorMeters=0.000028275",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.11"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "WorkVsSurface",
+			"fullTestPath": "Catalyst.Landform.Caves.ProceduralFamily.WorkVsSurface",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 37.204128265380859,
+			"dateTime": "2026.11.11-02.40.11",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.14"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CAVE_FREE_ENVELOPE LOD=0 chunks=216 excessChunks=0 currentFine=140096 uncutFine=140096",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CAVE_FREE_ENVELOPE LOD=1 chunks=216 excessChunks=0 currentFine=445312 uncutFine=445312",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CAVE_FREE_ENVELOPE LOD=2 chunks=216 excessChunks=0 currentFine=649088 uncutFine=649088",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.46"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CAVE_FREE_ENVELOPE LOD=3 chunks=201 excessChunks=1 currentFine=1150144 uncutFine=1150016",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "PREPARED_FINAL_SURFACE probes=41734 maximumErrorMeters=0.000218471",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "PREPARED_GEOLOGY stable=90576 exactFallback=10456 mismatches=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_WORK chamber chunks=68 solid=11 solidRefine=4 caveFine=903104 surfaceFine=0 cave=0.012927 surface=0.003523 discardedRock=0.001450",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.47"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_WORK passage chunks=60 solid=9 solidRefine=4 caveFine=1237120 surfaceFine=0 cave=0.007673 surface=0.003532 discardedRock=0.000671",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.48"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_WORK ramp chunks=59 solid=9 solidRefine=2 caveFine=1287744 surfaceFine=0 cave=0.007690 surface=0.003271 discardedRock=0.000857",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.48"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "FAMILY_WORK surface chunks=66 solid=13 solidRefine=3 caveFine=612032 surfaceFine=612032 cave=0.007382 surface=0.003424 discardedRock=0.001059",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.48"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "CoarseWork",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.CoarseWork",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 13.942462921142578,
+			"dateTime": "2026.11.11-02.40.48",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.40.51"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CHUNK_AUDIT passage chunks=454 rock=294 skipRock=278 mixed=159 fine=3609856 coarse=0.097s discardedRock=0.059s",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.02"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "CHUNK_AUDIT chamber chunks=459 rock=141 skipRock=116 mixed=185 fine=3806592 coarse=0.099s discardedRock=0.025s",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.02"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "CompiledBedding",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.CompiledBedding",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 19.370061874389648,
+			"dateTime": "2026.11.11-02.41.02",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.05"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "BEDDING points=314896 nodes=10941 exact=0 error=0.000066612m fieldError=0.000047851m reference=0.819s compiled=0.052s",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.21"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "GeometryAndDelivery",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 20.744400024414062,
+			"dateTime": "2026.11.11-02.41.21",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.24"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SPATIAL_CAVE floors=251 relief=3.018m grade=0.092 clearance=1.105m fieldProbes=6673 terrainNeeded=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.42"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "WorkerPackets",
+			"fullTestPath": "Catalyst.Landform.Caves.SpatialPrototype.WorkerPackets",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 13.748163223266602,
+			"dateTime": "2026.11.11-02.41.42",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Warning",
+						"message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+						"context": "log",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.45"
+				},
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "SPATIAL_WORKER_PACKETS points=24576 concurrentWorkers=8 maxError=0",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.56"
+				}
+			],
+			"warnings": 1,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 2.1534342765808105,
+			"dateTime": "2026.11.11-02.41.56",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "EligibilityAndVersions",
+			"fullTestPath": "Catalyst.Landform.Caves.EligibilityAndVersions",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 0.61627238988876343,
+			"dateTime": "2026.11.11-02.41.58",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "24/24 requested cave networks (0 carbonate karst, 24 structural), 168 curved passages, 24 entrances; 147/439 eligible sites",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.58"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeNoiseBatchParity",
+			"fullTestPath": "Catalyst.Landform.Caves.NativeNoiseBatchParity",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 0.020101375877857208,
+			"dateTime": "2026.11.11-02.41.59",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeBulkSparseParity",
+			"fullTestPath": "Catalyst.Landform.Scene.NativeBulkSparseParity",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"428557FCB24B62D374D77FA473559FD4"
+			],
+			"duration": 0.034860290586948395,
+			"dateTime": "2026.11.11-02.41.59",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native 105-point bulk/sparse parity: field 3.81469726562e-06 cm, material 1.52190215885e-05, legacy rounding delta 0.000970025575953 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.11-02.41.59"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

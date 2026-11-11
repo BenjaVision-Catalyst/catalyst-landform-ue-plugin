@@ -21,17 +21,18 @@ void FCLCaveSettings::UpgradeAbundanceProfile()
 void FCLCaveSettings::ApplyProgression(double Value)
 {
     Character=FMath::Clamp(Value,0.,1.);
-    AlgorithmVersion=7;NetworksPerSquareKilometer=6*Character*Character;
+    const bool Spatial=AlgorithmVersion>=8;AlgorithmVersion=Spatial?9:7;NetworksPerSquareKilometer=6*Character*Character;
     LengthMeters=FMath::Lerp(35.,140.,Character);
     RadiusMeters=FMath::Lerp(1.1,3.2,Character);
     DepthMeters=FMath::Lerp(10.,42.,Character);
     Branching=FMath::Lerp(.15,1.,Character);
+    if(Spatial){LengthMeters=FMath::Lerp(150.,500.,Character);RadiusMeters=FMath::Lerp(2.5,5.5,Character);}
 }
 bool FCLCaveSettings::Validate(FString& Error)const
 {
     auto In=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
-    if((AlgorithmVersion<1||AlgorithmVersion>8)||!In(Character,0,1)||!In(NetworksPerSquareKilometer,0,10)||!In(LengthMeters,1,500)||!In(RadiusMeters,.1,10)||!In(MinimumCoverMeters,1,100)||!In(DepthMeters,1,500)||!In(Branching,0,1))
-    {Error=TEXT("Caves require algorithm 1..8 and finite bounded physical density, dimensions, cover and branching");return false;}return true;
+    if((AlgorithmVersion<1||AlgorithmVersion>9)||!In(Character,0,1)||!In(NetworksPerSquareKilometer,0,10)||!In(LengthMeters,1,500)||!In(RadiusMeters,.1,10)||!In(MinimumCoverMeters,1,100)||!In(DepthMeters,1,500)||!In(Branching,0,1))
+    {Error=TEXT("Caves require algorithm 1..9 and finite bounded physical density, dimensions, cover and branching");return false;}return true;
 }
 TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettings& Settings,const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {
@@ -43,6 +44,7 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
     {Error=TEXT("Enabled caves require Rock, tectonics and selected compatible Landforms");return nullptr;}
     if(!Base.Rock->HasFractureHosts()&&!Base.Rock->HasKarstHosts())
     {Error=TEXT("Enabled caves require all three rock units to declare compatible fracture hosts or a finite carbonate sequence with positive dissolution potential");return nullptr;}
+    if(S.AlgorithmVersion==9)return FCLSpatialCave::BuildFamily(Base,S,Seed^S.Seed,Error);
     if(S.AlgorithmVersion==8)return FCLSpatialCave::BuildPrototype(Base,Seed^S.Seed,Error);
     const double Reference=Base.RadiusMeters+(Base.MinimumHeightMeters+Base.MaximumHeightMeters)*.5;
     if(S.DepthMeters+S.MinimumCoverMeters+S.RadiusMeters*3>Reference*.3||S.LengthMeters>Reference*.5)

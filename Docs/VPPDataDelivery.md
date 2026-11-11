@@ -1,3 +1,5 @@
+Current 11 November re-audit: [procedural-family evidence and unresolved delivery gaps](ProceduralCaveFamily.md#documentation-re-audit). The family still fails streaming acceptance; historical profile-8 results below do not qualify it.
+
 Current spatial-family follow-up: [moving-demand delivery and freeze correction](CaveStreamingDeliveryFix.md). Earlier workload/results below remain scoped to their recorded revisions.
 
 # Feeding Landform to VPP: target design and gap analysis

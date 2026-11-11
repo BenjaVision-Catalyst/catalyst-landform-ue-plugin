@@ -147,6 +147,9 @@ public:
     bool HasKarstHosts()const;
     FLinearColor Properties(const FVector3d& BodyMeters)const;
     void ApplySurfaces(const FVector3d& BodyMeters,FCLSurfaceWeights&)const;
+    /** Prepared directional inputs may resolve constant bed interiors only.
+     * Contacts, feathering and uncertain column boundaries retain exact evaluation. */
+    bool TryStableSurfaces(const FVector3d&,double Deformation,double BasementRadius,double InputTolerance,FCLSurfaceWeights&)const;
     const FCLRockFolding& GetFolding() const {return Folding;}
     FCLRockColumn SampleColumn(const FVector3d& UnitDirection) const;
     /** Legacy expanded histories only. Use indexed access for current compact histories. */

@@ -1,4 +1,6 @@
 #include "VoxelQuery.h"
+#include "Misc/ScopeExit.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "CLDeliveryPrototype.h"
 #include "Model/CLSpatialCave.h"
 #include "CLPlanet.h"
@@ -25,17 +27,18 @@ bool FCLDeliveryBinding::IsValid() const
     if(!Source||!Source->Scene||!Source->RecipePlan||!Source->Sources.IsEmpty())return false;
     const auto& S=Source->Stamp;const auto& P=*Source->RecipePlan;
     return !S.Window.bEnabled&&!S.bSectionPreview&&!S.bCaveInspectionPreview&&!S.bPlanarSources&&
-        P.Caves&&P.Caves->Cutters&&P.Rock&&P.Surfaces&&P.SourceRecipe&&(P.SourceRecipe->Caves.AlgorithmVersion==7||P.SourceRecipe->Caves.AlgorithmVersion==8);
+        P.Caves&&P.Caves->Cutters&&P.Rock&&P.Surfaces&&P.SourceRecipe&&(P.SourceRecipe->Caves.AlgorithmVersion==7||P.SourceRecipe->Caves.AlgorithmVersion==8||P.SourceRecipe->Caves.AlgorithmVersion==9);
 }
 FVoxelFloatBuffer FCLDeliveryBinding::Distances(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const
 {
+    TRACE_CPUPROFILER_EVENT_SCOPE(CL_DensityDelivery);
     check(IsValid());const auto& P=*Source->RecipePlan;int32 HeightCount=0;const uint64 Started=FPlatformTime::Cycles64();
     FVoxelFloatBuffer Result;Result.Allocate(Positions.Num());
+    TArray<FVector> Points;Points.Reserve(512);TArray<double> Heights,Fields;
     for(int32 Start=0;Start<Positions.Num();Start+=512)
     {
-        const int32 N=FMath::Min(512,Positions.Num()-Start);TArray<FVector> Points;Points.Reserve(N);
+        const int32 N=FMath::Min(512,Positions.Num()-Start);Points.Reset();
         for(int32 I=0;I<N;++I)Points.Add(Source->SamplingFrame.NativeToBodyMeters(Positions[Start+I]));
-        TArray<double> Heights,Fields;
         if(P.Caves->Spatial){int32 H=0;P.Caves->Spatial->SamplePlanet(P,Points,Fields,&H);HeightCount+=H;}
         else
         {
@@ -55,9 +58,18 @@ namespace
 {
 FVoxelLinearColorBuffer Properties(const FCLDeliveryBinding& B,const FVoxelDoubleVectorBuffer& Positions)
 {
+    const uint64 Started=FPlatformTime::Cycles64();
+    ON_SCOPE_EXIT {if(B.Counters){B.Counters->PropertyCalls.fetch_add(1,std::memory_order_relaxed);B.Counters->PropertyPoints.fetch_add(Positions.Num(),std::memory_order_relaxed);B.Counters->PropertyCycles.fetch_add(FPlatformTime::Cycles64()-Started,std::memory_order_relaxed);}};
     FVoxelLinearColorBuffer Values;Values.Allocate(Positions.Num());const auto& P=*B.Source->RecipePlan;
     for(int32 I=0;I<Positions.Num();++I)Values.Set(I,P.Rock->Properties(P.RockPositionMeters(Positions[I]*.01)));
     return Values;
+}
+FVoxelSurfaceTypeBlendBuffer Surfaces(const FCLDeliveryBinding& B,const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions)
+{
+    const uint64 Started=FPlatformTime::Cycles64();
+    ON_SCOPE_EXIT {if(B.Counters){B.Counters->SurfaceCalls.fetch_add(1,std::memory_order_relaxed);B.Counters->SurfacePoints.fetch_add(Positions.Num(),std::memory_order_relaxed);B.Counters->SurfaceCycles.fetch_add(FPlatformTime::Cycles64()-Started,std::memory_order_relaxed);}};
+    TRACE_CPUPROFILER_EVENT_SCOPE(CL_SurfaceDelivery);
+    return B.Source->SampleSurfaceTypes(Query,Positions);
 }
 }
 bool FCLDeliveryStampRuntime::Initialize(FVoxelDependencyCollector&){return Stamp.Binding.IsValid();}
@@ -75,7 +87,7 @@ void FCLDeliveryStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query,const F
     if(!AffectShape()&&!Surfaces&&!Rock&&!Metadata)return;
     const auto Positions=FVoxelStampUtilities::ComputePositions(Query,Transform);FVoxelFloatBuffer Alphas;
     FVoxelStampUtilities::ApplyDistances(*this,Query,Transform,Stamp.Binding.Distances(Query.Query,Positions),AffectShape(),(Surfaces||Rock||Metadata)?&Alphas:nullptr);
-    if(Surfaces)FVoxelStampUtilities::ApplySurfaceTypes(Query,Source.SampleSurfaceTypes(Query.Query,Positions),Alphas);
+    if(Surfaces)FVoxelStampUtilities::ApplySurfaceTypes(Query,::Surfaces(Stamp.Binding,Query.Query,Positions),Alphas);
     if(Metadata)FVoxelStampUtilities::ApplyMetadatas(Query,*Source.RuntimeMetadata,{},Alphas);
     if(Rock)Source.RockMetadata.IndirectBlend(Query.Indirection,Properties(Stamp.Binding,Positions),Alphas,Query.IndirectMetadata.FindChecked(Source.RockMetadata));
 }
@@ -100,7 +112,7 @@ void FCLNode_DeliverySurfaceType::Compute(FVoxelGraphQuery Query)const
         const auto* Position=Query->FindParameter<FVoxelGraphParameters::FPosition3D>();
         if(!ensure(Position))return;
         const auto Positions=Position->GetLocalPosition_Double(Query);
-        SurfaceTypePin.Set(Query,Binding->Source->SampleSurfaceTypes(Query->FindParameter<FVoxelGraphParameters::FQuery>()->Query,Positions));
+        SurfaceTypePin.Set(Query,Surfaces(*Binding,Query->FindParameter<FVoxelGraphParameters::FQuery>()->Query,Positions));
     };
 }
 void FCLNode_DeliveryRockProperties::Compute(FVoxelGraphQuery Query)const
@@ -134,7 +146,7 @@ bool CLDeliveryPrototype::Install(ACLPlanet& Planet,const FString& Backend,UVoxe
     if(Backend!=TEXT("cpp")&&Backend!=TEXT("graph")){Error=TEXT("Unknown delivery backend");return false;}
     FCLDeliveryBinding B;B.Snapshot=FGuid::NewGuid();B.Source=Planet.GetSamplingRuntime();B.Counters=Stats;
     if(!B.IsValid())
-    {Error=TEXT("Delivery prototype requires an unframed profile-7 or profile-8 rock planet");return false;}
+    {Error=TEXT("Delivery prototype requires an unframed profile-7, profile-8 or profile-9 rock planet");return false;}
     auto Copy=[&](FVoxelVolumeStamp& S)
     {
         // Copy every native base setting on the game thread, without copying

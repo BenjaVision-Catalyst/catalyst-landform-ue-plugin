@@ -160,7 +160,9 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
             const auto& P=Query.PositionsMeters[I];auto& S=Out[I];
             if(!IsFinitePosition(P)){S.State=ECLSceneSampleState::InvalidQuery;continue;}
             if(P.Length()>OuterRadiusMeters()){S.State=ECLSceneSampleState::OutsideDomain;continue;}
-            FCLSurfaceWeights W;RadialPlan->Rock->ApplySurfaces(RadialPlan->RockPositionMeters(P),W);
+            FCLSurfaceWeights W;
+            if(!(RadialPlan->Caves&&RadialPlan->Caves->Spatial&&RadialPlan->Caves->Spatial->TryPreparedSurfaces(P,W)))
+                RadialPlan->Rock->ApplySurfaces(RadialPlan->RockPositionMeters(P),W);
             if(RadialPlan->Volumes&&RadialPlan->Volumes->Operations.ContainsByPredicate([](const auto& O){return O.SurfaceIndex!=INDEX_NONE;}))
             {
                 const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Base;RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Base);if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)Base[0]=RadialPlan->Caves->Cutters->Compose(P,Base[0]);RadialPlan->Volumes->Compose(P,Base[0],&W);

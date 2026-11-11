@@ -1,0 +1,115 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "jupiter.local",
+			"instance": "D4C87DDBDF44A62B6FA06F857D7AB946",
+			"instanceName": "jupiter.local-57594",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.1 25G76",
+			"model": "Default",
+			"gPU": "Apple M3 Max",
+			"cPUModel": "Apple M3 Max",
+			"rAMInGB": 128,
+			"renderMode": "SM6",
+			"rHI": "Metal Bindless (SM6)",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.11.10-22.37.16",
+	"succeeded": 4,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 2.9079990386962891,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "DesignerControlsAndUndo",
+			"fullTestPath": "Catalyst.Landform.Caves.DesignerControlsAndUndo",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D4C87DDBDF44A62B6FA06F857D7AB946"
+			],
+			"duration": 2.227971076965332,
+			"dateTime": "2026.11.10-22.37.13",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "EligibilityAndVersions",
+			"fullTestPath": "Catalyst.Landform.Caves.EligibilityAndVersions",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D4C87DDBDF44A62B6FA06F857D7AB946"
+			],
+			"duration": 0.6223638653755188,
+			"dateTime": "2026.11.10-22.37.15",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "24/24 requested cave networks (0 carbonate karst, 24 structural), 168 curved passages, 24 entrances; 147/439 eligible sites",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-22.37.15"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeNoiseBatchParity",
+			"fullTestPath": "Catalyst.Landform.Caves.NativeNoiseBatchParity",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D4C87DDBDF44A62B6FA06F857D7AB946"
+			],
+			"duration": 0.021272040903568268,
+			"dateTime": "2026.11.10-22.37.16",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		},
+		{
+			"testDisplayName": "NativeBulkSparseParity",
+			"fullTestPath": "Catalyst.Landform.Scene.NativeBulkSparseParity",
+			"tags": [],
+			"state": "Success",
+			"deviceInstance": [
+				"D4C87DDBDF44A62B6FA06F857D7AB946"
+			],
+			"duration": 0.036392208188772202,
+			"dateTime": "2026.11.10-22.37.16",
+			"entries": [
+				{
+					"event":
+					{
+						"type": "Info",
+						"message": "Native 105-point bulk/sparse parity: field 3.81469726562e-06 cm, material 1.52190215885e-05, legacy rounding delta 0.000970025575953 cm",
+						"context": "",
+						"artifact": "00000000000000000000000000000000"
+					},
+					"filename": "",
+					"lineNumber": -1,
+					"timestamp": "2026.11.10-22.37.16"
+				}
+			],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}

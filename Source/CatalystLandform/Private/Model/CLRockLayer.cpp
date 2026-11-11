@@ -258,6 +258,42 @@ void FCLCompiledRock::ApplySurfaces(const FVector3d& P,FCLSurfaceWeights& W)cons
     const auto C=Classify(P);for(double& V:W.Values)V=0;W.Values[SurfaceIndices[C.Unit]]+=C.Alpha;W.Values[SurfaceIndices[C.Other]]+=1-C.Alpha;
 }
 
+
+bool FCLCompiledRock::TryStableSurfaces(const FVector3d& P,double Deformation,double BasementRadius,double Tolerance,FCLSurfaceWeights& W)const
+{
+    if(Layer.AlgorithmVersion<5||GetBedCount()==0)return false;
+    const double Distance=P.Length();if(Distance<1.e-6)return false;
+    // The compiler's directional input tolerance is expanded before testing
+    // discontinuities. Never approximate a contact blend or a bed identity.
+    // Bedding deformation retains its 25 micrometre input budget.
+    // Tolerance describes the separately prepared basement input only.
+    const double Guard=.000025*4+1.e-7;
+    const double BasementGuard=Tolerance*4+1.e-7;
+    const double Floor=FMath::Clamp(Datum+Deformation,0.,Datum);
+    bool Young=false;
+    if(Deformation<-Guard&&Distance>Floor+Guard)Young=true;
+    else if(!(Deformation>Guard||Distance<Floor-Guard))return false;
+    const double Coordinate=Young?Distance:Distance-Deformation;
+    int32 Unit=0;
+    if(!Young&&Coordinate<BasementRadius-BasementGuard){}
+    else
+    {
+        if(!Young&&Coordinate<BasementRadius+BasementGuard)return false;
+        int32 Begin=Young?OlderBedCount:0,End=Young?GetBedCount():OlderBedCount;
+        if(Begin==End){}
+        else
+        {
+            const int32 First=Begin,Last=End-1;
+            while(Begin<End){const int32 Mid=(Begin+End)/2;if(Coordinate>=GetBed(Mid).UpperMeters)Begin=Mid+1;else End=Mid;}
+            const int32 Index=FMath::Clamp(Begin,First,Last);const auto B=GetBed(Index);
+            const double Feather=FMath::Min(Layer.ContactFeatherFraction*(B.UpperMeters-B.LowerMeters),(B.UpperMeters-B.LowerMeters)*.2);
+            if((Index>First&&Coordinate<B.LowerMeters+Feather+Guard)||(Index<Last&&Coordinate>B.UpperMeters-Feather-Guard))return false;
+            Unit=B.Unit;
+        }
+    }
+    for(double& V:W.Values)V=0;W.Values[SurfaceIndices[Unit]]=1;return true;
+}
+
 bool FCLCompiledRock::HasCarbonateSequence()const
 {return Layer.AlgorithmVersion>=3&&Layer.Units.Num()==3&&!Layer.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Carbonate;});}
 bool FCLCompiledRock::HasKarstHosts()const

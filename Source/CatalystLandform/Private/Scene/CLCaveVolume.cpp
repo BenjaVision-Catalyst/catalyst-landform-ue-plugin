@@ -331,6 +331,7 @@ TSharedPtr<const FCLCompiledCaveVolume> FCLCompiledCaveVolume::Select(TConstArra
 }
 FBox FCLCompiledCaveVolume::Bounds(FGuid Network)const
 {
+    if(Spatial&&Spatial->IsProceduralFamily()){if(Network.IsValid())return SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(Network)?Spatial->Bounds(Network):FBox(ForceInit);if(SelectedNetworks.IsEmpty())return Spatial->Bounds();FBox B(ForceInit);for(const auto Id:SelectedNetworks)B+=Spatial->Bounds(Id);return B;}
     if(Spatial)return (!Network.IsValid()||Network==SpatialNetwork)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(SpatialNetwork))?Spatial->Bounds():FBox(ForceInit);
     FBox B(ForceInit);
     for(const auto& P:Data->Paths)if((!Network.IsValid()||P.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Network)))B+=P.Bounds;
@@ -355,9 +356,9 @@ void FCLCompiledCaveVolume::ComposeBatchInternal(TConstArrayView<FVector3d> Posi
     check(Positions.Num()==Fields.Num());
     if(Spatial)
     {
-        if(!SelectedNetworks.IsEmpty()&&!SelectedNetworks.Contains(SpatialNetwork))
+        if(!Spatial->IsProceduralFamily()&&!SelectedNetworks.IsEmpty()&&!SelectedNetworks.Contains(SpatialNetwork))
         {for(double& Field:Fields)if(!FMath::IsFinite(Field))Field=-1.e6;return;}
-        TArray<double> Air;Spatial->Sample(Positions,Air);for(int32 I=0;I<Fields.Num();++I)Fields[I]=FMath::IsFinite(Fields[I])?FMath::Max(Fields[I],Air[I]):Air[I];return;
+        TArray<double> Air;Spatial->SampleSelected(Positions,Air,SelectedNetworks);for(int32 I=0;I<Fields.Num();++I)Fields[I]=FMath::IsFinite(Fields[I])?FMath::Max(Fields[I],Air[I]):Air[I];return;
     }
     if(!Data->Index)return;
     // Native AABB index selects feature/query pairs. No 64-bit operation mask:

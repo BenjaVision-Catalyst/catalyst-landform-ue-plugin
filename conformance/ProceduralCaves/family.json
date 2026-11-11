@@ -1,0 +1,58 @@
+{
+	"cases": [
+		{
+			"seed": 176,
+			"networks": 1,
+			"levels": 3,
+			"cells": 40,
+			"ramps": 4,
+			"nodes": 18,
+			"passages": 22,
+			"routeProbePoints": 1346,
+			"foundationFailures": 0,
+			"clearanceFailures": 0,
+			"maximumPhysicalGrade": 0.37200107140210503,
+			"scalarErrorMeters": 1.5028476698430993e-05,
+			"strata": 29,
+			"unprunedSignProbes": 26896,
+			"unprunedSignErrors": 0,
+			"deepRockProbes": 15872
+		},
+		{
+			"seed": 731,
+			"networks": 1,
+			"levels": 3,
+			"cells": 40,
+			"ramps": 4,
+			"nodes": 18,
+			"passages": 22,
+			"routeProbePoints": 1336,
+			"foundationFailures": 0,
+			"clearanceFailures": 0,
+			"maximumPhysicalGrade": 0.39071741342775929,
+			"scalarErrorMeters": 1.3966798773745737e-05,
+			"strata": 29,
+			"unprunedSignProbes": 26896,
+			"unprunedSignErrors": 0,
+			"deepRockProbes": 16070
+		},
+		{
+			"seed": 2049,
+			"networks": 1,
+			"levels": 3,
+			"cells": 40,
+			"ramps": 4,
+			"nodes": 18,
+			"passages": 22,
+			"routeProbePoints": 1308,
+			"foundationFailures": 0,
+			"clearanceFailures": 0,
+			"maximumPhysicalGrade": 0.39024818626616958,
+			"scalarErrorMeters": 1.5813350681792571e-05,
+			"strata": 29,
+			"unprunedSignProbes": 26896,
+			"unprunedSignErrors": 0,
+			"deepRockProbes": 16034
+		}
+	]
+}

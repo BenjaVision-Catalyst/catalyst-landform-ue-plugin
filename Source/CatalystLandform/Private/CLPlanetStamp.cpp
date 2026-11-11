@@ -290,6 +290,8 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FV
     if(Metadata)FVoxelStampUtilities::ApplyMetadatas(Query,*RuntimeMetadata,{},Alphas);
     if(Rock)
     {
+        const uint64 Started=Stamp.DeliveryCounters?FPlatformTime::Cycles64():0;
+        ON_SCOPE_EXIT {if(Stamp.DeliveryCounters){auto& C=*Stamp.DeliveryCounters;C.PropertyCalls.fetch_add(1,std::memory_order_relaxed);C.PropertyPoints.fetch_add(Positions.Num(),std::memory_order_relaxed);C.PropertyCycles.fetch_add(FPlatformTime::Cycles64()-Started,std::memory_order_relaxed);}};
         FVoxelLinearColorBuffer Values;Values.Allocate(Positions.Num());
         for(int32 I=0;I<Positions.Num();++I)
         {
@@ -302,6 +304,8 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FV
 
 FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVoxelQuery& Query,const FVoxelDoubleVectorBuffer& Positions) const
 {
+    const uint64 Started=Stamp.DeliveryCounters?FPlatformTime::Cycles64():0;
+    ON_SCOPE_EXIT {if(Stamp.DeliveryCounters){auto& C=*Stamp.DeliveryCounters;C.SurfaceCalls.fetch_add(1,std::memory_order_relaxed);C.SurfacePoints.fetch_add(Positions.Num(),std::memory_order_relaxed);C.SurfaceCycles.fetch_add(FPlatformTime::Cycles64()-Started,std::memory_order_relaxed);}};
     FVoxelSurfaceTypeBlendBuffer Out;Out.Allocate(Positions.Num());
     if(!RecipePlan||!RecipePlan->Surfaces){for(int32 I=0;I<Positions.Num();++I)Out.Set(I,FVoxelSurfaceTypeBlend());return Out;}
     if (Scene)

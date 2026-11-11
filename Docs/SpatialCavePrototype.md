@@ -1,6 +1,9 @@
 # Spatial cave prototype
 
-Current follow-up: [moving-demand delivery](CaveStreamingDeliveryFix.md) removes the rejected whole-cave residency workaround and qualifies the compiled directional inputs. The [residency experiment](ChamberCollisionResidency.md) is historical.
+Current family: [seeded multi-level caves](ProceduralCaveFamily.md). The original
+profile-8 composition remains the frozen reference below.
+
+Previous delivery follow-up: [moving-demand delivery](CaveStreamingDeliveryFix.md) removes the rejected whole-cave residency workaround and qualifies the compiled directional inputs. The [residency experiment](ChamberCollisionResidency.md) is historical.
 
 7 November 2026. Opt-in profile 8 replaces swept passage sections with one
 spatial passage/chamber composition. It follows the

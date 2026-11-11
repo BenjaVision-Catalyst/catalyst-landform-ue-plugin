@@ -9,6 +9,8 @@ struct CATALYSTLANDFORM_API FCLDeliveryCounters
 {
     std::atomic<uint64> Calls{0},Points{0},HeightPoints{0},Cycles{0};
     std::atomic<uint64> LODPoints[16]{};
+    std::atomic<uint64> SurfaceCalls{0},SurfacePoints{0},SurfaceCycles{0};
+    std::atomic<uint64> PropertyCalls{0},PropertyPoints{0},PropertyCycles{0};
     void Record(int32 Num,int32 Heights,int32 LOD,uint64 Elapsed);
 };
 

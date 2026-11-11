@@ -1,0 +1,1144 @@
+{
+	"passed": false,
+	"breakthrough": false,
+	"wallBlockedBefore": false,
+	"connectionOpenAfter": false,
+	"airBrushCentreBeforeCm": 0,
+	"throughDistanceCm": 0,
+	"throughGroundedFrames": 0,
+	"message": "Free cave walking: chamber loop, close wall approach and return through passage",
+	"coldReader": false,
+	"processID": 33727,
+	"writerPID": 33727,
+	"nativeContacts": 2,
+	"collisionInvokerRadiusCm": 3200,
+	"stage": 0,
+	"nativeBreakdownProbes": 0,
+	"walkDistanceCm": 0,
+	"walkGroundedFrames": 0,
+	"nativeFloorFrames": 3279,
+	"beforeMineCm": 0,
+	"afterMineCm": 0,
+	"afterFillCm": 0,
+	"controlBeforeCm": 0,
+	"controlAfterCm": 0,
+	"controlOffsetCm": 0,
+	"controlIdentityUnchanged": false,
+	"comparedProbes": 0,
+	"maximumReloadErrorCm": 0,
+	"saveBytes": 0,
+	"elapsedSeconds": 61.566116292029619,
+	"processCPUSecondsTotal": 383.893642,
+	"streamingFrameMs":
+	{
+		"samples": 3249,
+		"mean": 13.624977852453192,
+		"p50": 16.161955893039703,
+		"p95": 22.595584392547607,
+		"p99": 33.670790493488312,
+		"max": 126.16479024291039
+	},
+	"streamingGameThreadMs":
+	{
+		"samples": 3249,
+		"mean": 2.0279073045047551,
+		"p50": 1.140458345413208,
+		"p95": 6.3023748397827148,
+		"p99": 26.735542297363281,
+		"max": 111.28299713134766
+	},
+	"streamingRenderThreadMs":
+	{
+		"samples": 3249,
+		"mean": 13.625538781372427,
+		"p50": 16.202207565307617,
+		"p95": 20.833375930786133,
+		"p99": 33.309791564941406,
+		"max": 79.028579711914062
+	},
+	"streamingGpuMs":
+	{
+		"samples": 3249,
+		"mean": 12.053275579157225,
+		"p50": 11.897083282470703,
+		"p95": 13.675541877746582,
+		"p99": 18.007457733154297,
+		"max": 33.933498382568359
+	},
+	"peakNativePendingTasks": 923,
+	"nativeStateBusyFrames": 3248,
+	"deliveryCounters":
+	{
+		"calls": 798800,
+		"points": 710250435,
+		"heightPoints": 84073265,
+		"aggregateEvaluatorSeconds": 175.81127133333337,
+		"pointsByNativeLOD": [
+			325833428,
+			209028255,
+			113771220,
+			42585425,
+			13903411,
+			4573829,
+			494429,
+			48824,
+			10764,
+			850,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0
+		]
+	},
+	"recipeSHA1": "BDEC60C721CDCD92BF77696CEF03609B6241AE80",
+	"voxelSizeCm": 20,
+	"nativeLODQuality": 2,
+	"deliveryBackend": "cpp",
+	"readySeconds": 17.298547498881817,
+	"referenceMovingFrameMs":
+	{
+		"samples": 3068,
+		"mean": 13.500939830020556,
+		"p50": 16.08503982424736,
+		"p95": 22.335793823003769,
+		"p99": 33.33958238363266,
+		"max": 126.16479024291039
+	},
+	"referenceMovingGpuMs":
+	{
+		"samples": 3068,
+		"mean": 12.033190712002453,
+		"p50": 11.885416984558105,
+		"p95": 13.601875305175781,
+		"p99": 17.939874649047852,
+		"max": 33.933498382568359
+	},
+	"referenceWalkSpeedCmPerSecond": 3000,
+	"surfaceNodes": 131838,
+	"surfaceExactLeaves": 482,
+	"surfaceBytes": 23203488,
+	"surfaceInterpolatedPoints": 84067614,
+	"surfaceExactPoints": 5651,
+	"familyLevels": 3,
+	"familyCells": 40,
+	"familyRamps": 4,
+	"beddingNodes": 34977,
+	"beddingExactLeaves": 0,
+	"beddingBytes": 10350256,
+	"beddingValidationErrorMeters": 2.4998572755910442e-05,
+	"fieldStageSeconds":
+	{
+		"bedding": 0,
+		"noise": 0,
+		"morphology": 136.55007279166671,
+		"planet": 34.736171708333337
+	},
+	"maximumStreamingPublicationSeconds": 1.5463135838508606,
+	"roamProof": true,
+	"maximumStoppedUnderInputSeconds": 0.38313287496566772,
+	"legacyProbeRejectedFrames": 518,
+	"legacyProbeRejectedWhileMoving": 148,
+	"roamWitnesses": [
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 32,
+			"waitSeconds": 0.0082415416836738586,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 32,
+			"waitSeconds": 0.024928208440542221,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 30,
+			"waitSeconds": 0.033363040536642075,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 17,
+			"waitSeconds": 0.0503670834004879,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 12,
+			"waitSeconds": 0.058334290981292725,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 788,
+			"waitSeconds": 0.076162666082382202,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 758,
+			"waitSeconds": 0.085041247308254242,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 616,
+			"waitSeconds": 0.10856962203979492,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 446,
+			"waitSeconds": 0.11227579042315483,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50399.665 Y=-13451.055 Z=-15876.640",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 135,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 35.494584401352469
+		},
+		{
+			"positionCm": "X=50398.168 Y=-13454.630 Z=-15878.573",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 317,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 18.81729927514143
+		},
+		{
+			"positionCm": "X=50392.239 Y=-13468.768 Z=-15886.214",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 509,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 18.988354101290273
+		},
+		{
+			"positionCm": "X=50388.239 Y=-13478.289 Z=-15891.359",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 432,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.103564967170286
+		},
+		{
+			"positionCm": "X=50386.200 Y=-13483.141 Z=-15893.981",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 413,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.162287342238077
+		},
+		{
+			"positionCm": "X=50383.227 Y=-13490.217 Z=-15897.805",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 390,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.247913290137209
+		},
+		{
+			"positionCm": "X=50369.318 Y=-13523.297 Z=-15915.679",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 349,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.648280894501461
+		},
+		{
+			"positionCm": "X=50360.772 Y=-13543.574 Z=-15926.632",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 325,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.893756264368495
+		},
+		{
+			"positionCm": "X=50356.933 Y=-13552.668 Z=-15931.544",
+			"routeIndex": 10,
+			"grounded": true,
+			"pendingTasks": 304,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.003869906263684
+		},
+		{
+			"positionCm": "X=50343.453 Y=-13584.578 Z=-15948.777",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 202,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.390274108838405
+		},
+		{
+			"positionCm": "X=50334.312 Y=-13606.212 Z=-15960.392",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 192,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.651975095760513
+		},
+		{
+			"positionCm": "X=50324.215 Y=-13630.116 Z=-15973.171",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 187,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.940919655426018
+		},
+		{
+			"positionCm": "X=50319.460 Y=-13641.358 Z=-15979.170",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 187,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.076782737824129
+		},
+		{
+			"positionCm": "X=50307.631 Y=-13669.315 Z=-15994.041",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 182,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.414494450304765
+		},
+		{
+			"positionCm": "X=50301.887 Y=-13682.871 Z=-16001.241",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 181,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.578220296437191
+		},
+		{
+			"positionCm": "X=50288.757 Y=-13713.845 Z=-16017.655",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 180,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.952215573583377
+		},
+		{
+			"positionCm": "X=50281.792 Y=-13729.629 Z=-16025.968",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 177,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 22.143472905402955
+		},
+		{
+			"positionCm": "X=50267.213 Y=-13763.950 Z=-16044.101",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 173,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 22.557774127374298
+		},
+		{
+			"positionCm": "X=50252.027 Y=-13799.601 Z=-16062.902",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 169,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 22.98812685701666
+		},
+		{
+			"positionCm": "X=50244.210 Y=-13817.933 Z=-16072.562",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 167,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 23.209411709461541
+		},
+		{
+			"positionCm": "X=50235.069 Y=-13839.324 Z=-16083.823",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 164,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 23.467657355813408
+		},
+		{
+			"positionCm": "X=50218.062 Y=-13879.097 Z=-16104.733",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 158,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 23.947739138855695
+		},
+		{
+			"positionCm": "X=50200.540 Y=-13919.952 Z=-16126.180",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 147,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 24.44093884606874
+		},
+		{
+			"positionCm": "X=50191.590 Y=-13940.753 Z=-16137.089",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 139,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 24.692110635546438
+		},
+		{
+			"positionCm": "X=50173.437 Y=-13982.889 Z=-16159.158",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 136,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 25.200852288227097
+		},
+		{
+			"positionCm": "X=50164.823 Y=-14002.828 Z=-16169.592",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 127,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 25.441642722795144
+		},
+		{
+			"positionCm": "X=50146.699 Y=-14044.742 Z=-16191.494",
+			"routeIndex": 11,
+			"grounded": true,
+			"pendingTasks": 124,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 25.94773685158998
+		},
+		{
+			"positionCm": "X=50121.330 Y=-14103.196 Z=-16221.982",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 120,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 26.653643961891021
+		},
+		{
+			"positionCm": "X=50105.025 Y=-14140.614 Z=-16241.519",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 116,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 27.105832566134222
+		},
+		{
+			"positionCm": "X=50096.759 Y=-14159.523 Z=-16251.395",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 112,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 27.334445020737608
+		},
+		{
+			"positionCm": "X=50078.926 Y=-14200.275 Z=-16272.704",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 86,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 27.827315504728926
+		},
+		{
+			"positionCm": "X=50060.838 Y=-14240.860 Z=-16293.898",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 76,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 28.319163828851483
+		},
+		{
+			"positionCm": "X=50051.712 Y=-14261.576 Z=-16304.739",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 71,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 28.569958456949976
+		},
+		{
+			"positionCm": "X=50033.654 Y=-14302.425 Z=-16326.126",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 55,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 29.064758351270001
+		},
+		{
+			"positionCm": "X=50024.534 Y=-14323.007 Z=-16336.904",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 47,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 29.314153078037425
+		},
+		{
+			"positionCm": "X=50005.851 Y=-14365.074 Z=-16358.947",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 30,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 29.824091708974827
+		},
+		{
+			"positionCm": "X=49987.765 Y=-14405.666 Z=-16380.225",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 27,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 30.316395681418953
+		},
+		{
+			"positionCm": "X=49978.333 Y=-14426.201 Z=-16390.950",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 26,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 30.566237977369894
+		},
+		{
+			"positionCm": "X=49959.670 Y=-14468.456 Z=-16413.154",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 20,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 31.078401393190155
+		},
+		{
+			"positionCm": "X=49950.649 Y=-14488.012 Z=-16423.375",
+			"routeIndex": 12,
+			"grounded": true,
+			"pendingTasks": 18,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 31.316499867636608
+		},
+		{
+			"positionCm": "X=49919.730 Y=-14557.174 Z=-16459.709",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 12,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 32.15606598506362
+		},
+		{
+			"positionCm": "X=49913.170 Y=-14571.309 Z=-16467.104",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 12,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 32.328337228124873
+		},
+		{
+			"positionCm": "X=49898.707 Y=-14603.572 Z=-16484.087",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 12,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 32.720266076779602
+		},
+		{
+			"positionCm": "X=49891.297 Y=-14619.483 Z=-16492.424",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 10,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 32.914334618661741
+		},
+		{
+			"positionCm": "X=49875.359 Y=-14654.856 Z=-16511.065",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 4,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 33.344418352046304
+		},
+		{
+			"positionCm": "X=49867.357 Y=-14671.973 Z=-16520.044",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 4,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 33.553351690905671
+		},
+		{
+			"positionCm": "X=49849.540 Y=-14711.268 Z=-16540.763",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 2,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 34.031568551712233
+		},
+		{
+			"positionCm": "X=49829.061 Y=-14755.789 Z=-16564.212",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 763,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 34.574280365349466
+		},
+		{
+			"positionCm": "X=49816.631 Y=-14782.194 Z=-16578.082",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 687,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 34.896980092180279
+		},
+		{
+			"positionCm": "X=49794.732 Y=-14829.991 Z=-16603.301",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 437,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 35.479551075713964
+		},
+		{
+			"positionCm": "X=49777.660 Y=-14866.695 Z=-16622.639",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 433,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 35.927674735632536
+		},
+		{
+			"positionCm": "X=49756.778 Y=-14911.421 Z=-16646.207",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 279,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 17.671676454764278
+		},
+		{
+			"positionCm": "X=49721.449 Y=-14986.662 Z=-16685.868",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 358,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 18.59245800448279
+		},
+		{
+			"positionCm": "X=49718.100 Y=-14993.670 Z=-16689.553",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 339,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 18.678400421458427
+		},
+		{
+			"positionCm": "X=49716.219 Y=-14997.604 Z=-16691.622",
+			"routeIndex": 13,
+			"grounded": true,
+			"pendingTasks": 339,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 18.726646902236034
+		},
+		{
+			"positionCm": "X=49693.973 Y=-15044.842 Z=-16716.523",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 255,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.304985947402386
+		},
+		{
+			"positionCm": "X=49685.527 Y=-15062.259 Z=-16725.954",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 142,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.520200829868351
+		},
+		{
+			"positionCm": "X=49679.864 Y=-15073.862 Z=-16732.326",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 136,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.664097769895587
+		},
+		{
+			"positionCm": "X=49670.617 Y=-15093.240 Z=-16743.194",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 134,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.904626485130372
+		},
+		{
+			"positionCm": "X=49665.075 Y=-15104.467 Z=-16749.517",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 133,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.044775064221003
+		},
+		{
+			"positionCm": "X=49652.938 Y=-15128.909 Z=-16763.463",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 127,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.350935262346859
+		},
+		{
+			"positionCm": "X=49640.089 Y=-15155.266 Z=-16778.703",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 121,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.681103107069895
+		},
+		{
+			"positionCm": "X=49633.131 Y=-15169.154 Z=-16786.744",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 120,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.855808241189081
+		},
+		{
+			"positionCm": "X=49617.737 Y=-15199.754 Z=-16804.607",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 115,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.241630282905525
+		},
+		{
+			"positionCm": "X=49609.749 Y=-15215.581 Z=-16813.877",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 114,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.441420169560146
+		},
+		{
+			"positionCm": "X=49593.344 Y=-15248.718 Z=-16833.456",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 111,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.859312572904287
+		},
+		{
+			"positionCm": "X=49585.121 Y=-15264.906 Z=-16843.019",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 108,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 22.064226474511202
+		},
+		{
+			"positionCm": "X=49566.087 Y=-15302.259 Z=-16865.202",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 105,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 22.537809492342937
+		},
+		{
+			"positionCm": "X=49546.282 Y=-15340.963 Z=-16888.291",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 96,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 23.029307139337508
+		},
+		{
+			"positionCm": "X=49536.251 Y=-15361.073 Z=-16900.353",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 94,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 23.284023994856284
+		},
+		{
+			"positionCm": "X=49516.094 Y=-15400.216 Z=-16923.857",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 87,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 23.782294186361568
+		},
+		{
+			"positionCm": "X=49506.637 Y=-15418.519 Z=-16934.869",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 84,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 24.015506711047511
+		},
+		{
+			"positionCm": "X=49485.891 Y=-15458.550 Z=-16959.071",
+			"routeIndex": 14,
+			"grounded": true,
+			"pendingTasks": 81,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 24.526351315683019
+		},
+		{
+			"positionCm": "X=49462.039 Y=-15504.377 Z=-16986.849",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 75,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 25.11190080198633
+		},
+		{
+			"positionCm": "X=49446.884 Y=-15533.428 Z=-17004.460",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 73,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 25.483250876158976
+		},
+		{
+			"positionCm": "X=49439.085 Y=-15548.351 Z=-17013.506",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 72,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 25.674068059321414
+		},
+		{
+			"positionCm": "X=49422.442 Y=-15580.167 Z=-17032.794",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 59,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 26.080981364061671
+		},
+		{
+			"positionCm": "X=49413.575 Y=-15597.084 Z=-17043.049",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 55,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 26.297405343953415
+		},
+		{
+			"positionCm": "X=49394.566 Y=-15633.309 Z=-17065.010",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 48,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 26.760959852993878
+		},
+		{
+			"positionCm": "X=49385.397 Y=-15650.744 Z=-17075.577",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 45,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 26.984139203300487
+		},
+		{
+			"positionCm": "X=49364.454 Y=-15690.523 Z=-17099.689",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 38,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 27.493462631341458
+		},
+		{
+			"positionCm": "X=49343.808 Y=-15729.640 Z=-17123.397",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 16,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 27.994515633101059
+		},
+		{
+			"positionCm": "X=49333.832 Y=-15747.887 Z=-17134.412",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 13,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 28.229360926799195
+		},
+		{
+			"positionCm": "X=49312.448 Y=-15788.258 Z=-17158.875",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 3,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 28.746785234281855
+		},
+		{
+			"positionCm": "X=49302.750 Y=-15806.522 Z=-17169.940",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 1,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 28.980966690490483
+		},
+		{
+			"positionCm": "X=49276.979 Y=-15854.110 Z=-17198.708",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 650,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 29.592776394637102
+		},
+		{
+			"positionCm": "X=49265.591 Y=-15875.470 Z=-17211.645",
+			"routeIndex": 15,
+			"grounded": true,
+			"pendingTasks": 458,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 29.866828572306254
+		},
+		{
+			"positionCm": "X=49227.286 Y=-15946.331 Z=-17254.502",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 181,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 30.777781250028134
+		},
+		{
+			"positionCm": "X=49214.614 Y=-15969.334 Z=-17268.389",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 234,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 13.417273468126378
+		},
+		{
+			"positionCm": "X=49186.464 Y=-16020.952 Z=-17299.607",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 328,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 14.082791633815013
+		},
+		{
+			"positionCm": "X=49181.324 Y=-16030.491 Z=-17305.384",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 326,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 14.205564312862803
+		},
+		{
+			"positionCm": "X=49173.376 Y=-16045.236 Z=-17314.316",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 314,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 14.395360805268083
+		},
+		{
+			"positionCm": "X=49170.192 Y=-16051.137 Z=-17317.890",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 305,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 14.47132832389042
+		},
+		{
+			"positionCm": "X=49127.514 Y=-16128.296 Z=-17364.514",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 170,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 15.468431695080248
+		},
+		{
+			"positionCm": "X=49106.830 Y=-16165.733 Z=-17387.143",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 162,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 15.952169966033059
+		},
+		{
+			"positionCm": "X=49096.237 Y=-16185.218 Z=-17398.945",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 157,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 16.203359912442011
+		},
+		{
+			"positionCm": "X=49074.612 Y=-16223.805 Z=-17422.236",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 155,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 16.703071276050458
+		},
+		{
+			"positionCm": "X=49053.660 Y=-16261.422 Z=-17444.963",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 151,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 17.189788709383659
+		},
+		{
+			"positionCm": "X=49043.068 Y=-16280.790 Z=-17456.692",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 147,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 17.439727159667182
+		},
+		{
+			"positionCm": "X=49020.886 Y=-16320.026 Z=-17480.361",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 134,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 17.948594323407345
+		},
+		{
+			"positionCm": "X=49009.979 Y=-16339.479 Z=-17492.110",
+			"routeIndex": 16,
+			"grounded": true,
+			"pendingTasks": 131,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 18.200581948479083
+		},
+		{
+			"positionCm": "X=48973.694 Y=-16403.968 Z=-17531.048",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 98,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.03644634966383
+		},
+		{
+			"positionCm": "X=48957.448 Y=-16432.745 Z=-17548.442",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 75,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.409746063260165
+		},
+		{
+			"positionCm": "X=48948.988 Y=-16447.687 Z=-17557.476",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 63,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 19.603699611316923
+		},
+		{
+			"positionCm": "X=48930.739 Y=-16479.900 Z=-17576.972",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 57,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.0219719335972
+		},
+		{
+			"positionCm": "X=48921.250 Y=-16496.600 Z=-17587.081",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 56,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.23893282636989
+		},
+		{
+			"positionCm": "X=48901.116 Y=-16531.935 Z=-17608.480",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 51,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 20.698297159064811
+		},
+		{
+			"positionCm": "X=48880.214 Y=-16568.508 Z=-17630.638",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 48,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.174061059670908
+		},
+		{
+			"positionCm": "X=48869.233 Y=-16587.666 Z=-17642.245",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 48,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.42341498187897
+		},
+		{
+			"positionCm": "X=48846.952 Y=-16626.488 Z=-17665.777",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 45,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 21.928885867990775
+		},
+		{
+			"positionCm": "X=48835.791 Y=-16645.877 Z=-17677.529",
+			"routeIndex": 17,
+			"grounded": true,
+			"pendingTasks": 42,
+			"waitSeconds": 0.12270099669694901,
+			"distanceFromPublishedDemandOriginMeters": 22.181476705950153
+		}
+	],
+	"referenceWalkWallSeconds": 0,
+	"referenceWalkCPUSeconds": 0,
+	"referenceWalkComplete": false,
+	"routeDistanceMeters": 1000.7528616013957,
+	"routeFrames": 3069,
+	"routeGroundedFrames": 3069,
+	"eyeHeightMeters": 1.5977927221408701,
+	"nativeBackgroundWorkers": 6,
+	"nativeColliderBytes": 30161896,
+	"nativeCollisionComponents": 256,
+	"wallContactFrames": 0,
+	"renderProxyInstances": 0,
+	"renderProxyFixture": "optional camera-attached native ISM sphere lattice; no ecology, PCG, object collision or animation",
+	"streamingProcessCPUSeconds": 316.765332,
+	"streamingWallSeconds": 44.269346043467522,
+	"processResidentBytes": 4137697280,
+	"nativeFloorDemandInvokers": 0,
+	"nativeDemandInvokers": 2,
+	"movingCollisionDemandOnly": true,
+	"streamingPublications": 70,
+	"nativeFootAnchorEnabled": true,
+	"nativeOwnerStable": true,
+	"finalPositionCm": "X=50512.860 Y=-16695.449 Z=-5363.954",
+	"finalVelocityCmPerSecond": "X=-378.363 Y=-1549.882 Z=1248.173",
+	"finalRouteIndex": 181,
+	"finalFloorBlockingHit": true,
+	"finalFloorDistanceCm": 2.2391800880432129,
+	"floorAppearedAfterNativeSettlement": false,
+	"failureNativeFields": [],
+	"failureNearbyColliders": [],
+	"nativeCollisionWaitFrames": 364,
+	"nativeCollisionWaitSeconds": 4.8781482502818108,
+	"entranceMovingFrames": 0,
+	"entranceMovingGroundedFrames": 0,
+	"entranceProof": false,
+	"minimumFootFieldMeters": 0.011368066734417936,
+	"peakSpeedCmPerSecond": 3000.0000000013924,
+	"framesMissingNativeFootChunks": 0,
+	"entranceSamples": []
+}

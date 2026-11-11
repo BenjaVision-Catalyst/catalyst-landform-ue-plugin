@@ -1,4 +1,6 @@
 #include "Model/CLSpatialCave.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
+#include "CLSpatialCaveFamily.h"
 #include "Async/ParallelFor.h"
 #include "Model/CLSphericalPatches.h"
 #include "Model/CLDirectionalScalarField.h"
@@ -21,6 +23,7 @@ class FCLSpatialCaveData
 {
 public:
     struct FRegion {UE::Geometry::FPolygon2d Polygon;FBox2D Bounds;};
+    TSharedPtr<const FCLSpatialCaveFamily> Family;
     TArray<FRegion> Regions;
     TArray<double> VertexX,VertexY;TArray<int32> PolygonStarts,PolygonCounts;
     TSharedPtr<const FCLCompiledRock> Rock;
@@ -28,6 +31,7 @@ public:
     FVector Origin,X,Y,Up;
     double Datum=0;
     int32 Seed=0;
+    bool bFinalSurfaceCompiled=false;
     TArray<double> Contacts;
     FBox Bounds;
     FCLDirectionalScalarField Bedding,Surface[6];
@@ -53,6 +57,7 @@ double RoomWeight(double X)
 }
 FVector FCLSpatialCave::BeddingPoint(const FVector& P,bool bCompiled)const
 {
+    if(Data->Family)return Data->Family->BeddingPoint(P,0,bCompiled);
     const auto D=P-Data->Origin;
     const double Along=FVector::DotProduct(P,Data->Up);
     const double Restored=bCompiled&&Along>1.e-6?P.Length()-Data->Bedding.Sample(FVector2D(FVector::DotProduct(P,Data->X),FVector::DotProduct(P,Data->Y))*(Data->Datum/Along)):Data->Rock->RestoredRadiusMeters(P);
@@ -60,6 +65,7 @@ FVector FCLSpatialCave::BeddingPoint(const FVector& P,bool bCompiled)const
 }
 FVector FCLSpatialCave::BodyPoint(const FVector& P)const
 {
+    if(Data->Family)return Data->Family->BodyPoint(P);
     // Invert the same canonical restored coordinate, retaining planetary curvature.
     FVector Q=Data->Origin+Data->X*P.X+Data->Y*P.Y+Data->Up*P.Z;
     for(int32 I=0;I<5;++I)
@@ -71,6 +77,7 @@ FVector FCLSpatialCave::BodyPoint(const FVector& P)const
 }
 double FCLSpatialCave::FloorHeight(double X,double Y)const
 {
+    if(Data->Family)return Data->Family->FloorHeight(X,Y);
     // One sediment/bedrock surface over the whole connected space. No per-room
     // clipping, route clamp, or independently joined floor patches.
     const double Bank=2.1*Hill(X,Y,-53,-9,24,6)+3.3*Hill(X,Y,35,24,25,13)+2.7*Hill(X,Y,55,-21,18,11);
@@ -79,7 +86,7 @@ double FCLSpatialCave::FloorHeight(double X,double Y)const
     return -.012*X-1.4*RoomWeight(X)+Bank+Channel+Rolling;
 }
 void FCLSpatialCave::GetBeddingCompilationStats(int32& Nodes,int32& ExactLeaves,uint64& Bytes,double& Error)const
-{Nodes=Data->Bedding.NumNodes();ExactLeaves=Data->Bedding.NumExactLeaves();Bytes=Data->Bedding.GetAllocatedSize();Error=Data->Bedding.MaximumValidationError();}
+{if(Data->Family){int32 L,C,R;Data->Family->Stats(L,C,R,Nodes,ExactLeaves,Bytes,Error);return;}Nodes=Data->Bedding.NumNodes();ExactLeaves=Data->Bedding.NumExactLeaves();Bytes=Data->Bedding.GetAllocatedSize();Error=Data->Bedding.MaximumValidationError();}
 void FCLSpatialCave::GetSurfaceCompilationStats(int32& Nodes,int32& ExactLeaves,uint64& Bytes,uint64& Interpolated,uint64& Exact)const
 {Nodes=ExactLeaves=0;Bytes=0;for(const auto& S:Data->Surface){Nodes+=S.NumNodes();ExactLeaves+=S.NumExactLeaves();Bytes+=S.GetAllocatedSize();}Interpolated=Data->SurfaceInterpolated.load();Exact=Data->SurfaceExact.load();}
 void FCLSpatialCave::SampleSurfaceHeights(const FCLCompiledPlanetRecipe& P,TConstArrayView<FVector> Points,TArray<double>& Heights)const
@@ -93,19 +100,29 @@ void FCLSpatialCave::SampleSurfaceHeights(const FCLCompiledPlanetRecipe& P,TCons
     }
     if(!Needed.IsEmpty())
     {
-        TArray<double> Values;(P.WatershedSurface?P.WatershedSurface.Get():&P)->SampleHeightsMeters(Needed,Values);
+        TArray<double> Values;(P.WatershedSurface&&!Data->bFinalSurfaceCompiled?P.WatershedSurface.Get():&P)->SampleHeightsMeters(Needed,Values);
         for(int32 I=0;I<Indices.Num();++I)Heights[Indices[I]]=Values[I];
     }
-    if(P.WatershedSurface)P.Watershed->MapHeights(Points,Heights);
+    if(P.WatershedSurface&&!Data->bFinalSurfaceCompiled)P.Watershed->MapHeights(Points,Heights);
     Data->SurfaceInterpolated.fetch_add(Points.Num()-Needed.Num(),std::memory_order_relaxed);Data->SurfaceExact.fetch_add(Needed.Num(),std::memory_order_relaxed);
 }
 void FCLSpatialCave::GetEvaluationSeconds(TArray<double>& Seconds)const
 {
     Seconds.Reset();for(const auto& Cycles:Data->EvaluationCycles)Seconds.Add(FPlatformTime::ToSeconds64(Cycles.load()));
 }
-FBox FCLSpatialCave::Bounds()const{return Data->Bounds;}
+void FCLSpatialCave::GetCellSupportBounds(TArray<FBox>& Out)const
+{Out.Reset();if(Data->Family)Data->Family->CellSupportBounds(Out);else Out.Add(Data->Bounds);}
+FBox FCLSpatialCave::Bounds(FGuid Network)const{return Data->Family?Data->Family->Bounds(Network):Data->Bounds;}
+bool FCLSpatialCave::IsProceduralFamily()const{return Data->Family.IsValid();}
+bool FCLSpatialCave::TryPreparedSurfaces(const FVector& P,FCLSurfaceWeights& W)const{return Data->Family&&Data->Family->TrySurfaces(P,W);}
+void FCLSpatialCave::GetPreparedGeologyStats(uint64& Prepared,uint64& Exact)const{Prepared=Exact=0;if(Data->Family)Data->Family->GeologyStats(Prepared,Exact);}
+void FCLSpatialCave::GetFamilyStats(int32& Levels,int32& Cells,int32& Ramps)const
+{Levels=Cells=Ramps=0;if(Data->Family){int32 N,E;uint64 B;double Error;Data->Family->Stats(Levels,Cells,Ramps,N,E,B,Error);}}
+void FCLSpatialCave::SampleSelected(TConstArrayView<FVector> P,TArray<double>& Air,const TSet<FGuid>& Selection)const
+{if(Data->Family)Data->Family->Sample(P,Air,true,&Selection);else Sample(P,Air);}
 void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool bCompiledInputs)const
 {
+    if(Data->Family){const uint64 Start=FPlatformTime::Cycles64();Data->Family->Sample(P,Air,bCompiledInputs);Data->EvaluationCycles[2].fetch_add(FPlatformTime::Cycles64()-Start,std::memory_order_relaxed);return;}
     Air.SetNumUninitialized(P.Num());TArray<int32> Active;TArray<FVector> Local,NoisePoints;
     for(int32 I=0;I<P.Num();++I)
     {
@@ -185,6 +202,7 @@ void FCLSpatialCave::Sample(TConstArrayView<FVector> P,TArray<double>& Air,bool 
 void FCLSpatialCave::SamplePlanet(const FCLCompiledPlanetRecipe& P,TConstArrayView<FVector> Positions,TArray<double>& Fields,int32* HeightPoints)const
 {
     Sample(Positions,Fields);const uint64 Stage=FPlatformTime::Cycles64();
+    TRACE_CPUPROFILER_EVENT_SCOPE(CL_PlanetFieldAfterCaves);
     // A smaller natural radius gives an upper bound on the solid/air field.
     // If the cavity already exceeds it, expensive terrain cannot affect max.
     const bool Bounded=P.SurfaceRange.IsValid()||(P.WatershedSurface&&P.WatershedSurface->SurfaceRange.IsValid());
@@ -281,4 +299,22 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompi
     }
     Out->Passages.Add(Route);FCLCaveChamber Room;Room.Network=Id;Room.Node=0;Room.Center=Cave->BodyPoint(FVector(24,0,15));Room.Rotation=FRotationMatrix::MakeFromXZ(Data->X,Data->Up).ToQuat();Room.HalfExtents=FVector(48,40,20);Room.Form=ECLCaveForm::BeddedChamber;Room.GeometryProfile=8;Room.FloorRock=Base.Rock;Room.FloorRadius=Data->Datum;Out->Chambers.Add(Room);
     Out->Cutters=FCLCompiledCaveVolume::CompileSpatial(Cave,Id);Out->ResolveInspectionDomains();Out->Readiness=TEXT("Spatial prototype: one bedding-controlled passage/chamber composition; no swept geometry");return Out;
+}
+
+TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildFamily(const FCLCompiledPlanetRecipe& Base,const FCLCaveSettings& Settings,int32 Seed,FString& Error)
+{
+    auto Out=MakeShared<FCLCompiledCaves>();auto D=MakeShared<FCLSpatialCaveData>();
+    D->Family=FCLSpatialCaveFamily::Build(Base,Settings,Seed,*Out,Error);if(!D->Family)return nullptr;
+    D->Bounds=D->Family->Bounds();auto Cave=MakeShared<FCLSpatialCave>();Cave->Data=D;
+    // Compile the final directional terrain input, including watershed mapping.
+    // Reapplying the mapped surface per 3-D density point defeats preparation.
+    D->bFinalSurfaceCompiled=true;
+    const auto Surface=MakeShared<const FCLCompiledPlanetRecipe>(Base);
+    ParallelFor(6,[&](int32 Face)
+    {
+        auto Direction=[Face](const FVector2D& P){return FCLSphericalPatches::Direction(Face,P);};
+        D->Surface[Face].Build(FBox2D(FVector2D(-1.000001),FVector2D(1.000001)),[Surface,Direction](const FVector2D& P){return Surface->SampleHeightMeters(Direction(P));},
+            [Surface,Direction](TConstArrayView<FVector2D> Points,TArray<double>& Heights){TArray<FVector> Directions;for(const auto& P:Points)Directions.Add(Direction(P));Surface->SampleHeightsMeters(Directions,Heights);},.00020);
+    });
+    Out->Spatial=Cave;Out->Cutters=FCLCompiledCaveVolume::CompileSpatial(Cave,FGuid());Out->ResolveInspectionDomains();return Out;
 }
