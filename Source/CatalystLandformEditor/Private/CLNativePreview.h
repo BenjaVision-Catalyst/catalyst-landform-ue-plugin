@@ -17,6 +17,7 @@ public:
     explicit FCLNativePreview(bool InspectCaves=false,FGuid Network={}):CaveInspection(InspectCaves),CaveDomain(Network){}
     ~FCLNativePreview();
     void SetVisible(bool Visible);
+    void SetNavigationActive(bool Active);
     bool Start(UWorld&,TSharedPtr<const FCLCompiledPlanetRecipe>,bool Section,double Width,FString&,bool Draft=false);
     void Reset();
     bool Poll(bool Grid=false);
@@ -58,6 +59,7 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     bool MaterialCoordinatesEnabled=true;
 #endif
+    bool bNavigationActive=false;
     double Width=500,PendingWidth=500;
     uint32 PublishedHash=0;
     mutable FBuffers Last;

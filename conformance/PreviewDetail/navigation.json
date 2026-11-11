@@ -1,0 +1,26 @@
+{
+  "scope": "Preview navigation draft quality and finer minimum cell size; no VPP source, game settings, UI or recipe changes.",
+  "navigationQuality": 1,
+  "idleQuality": 4,
+  "idleDelayMilliseconds": 200,
+  "maximumMinimumCellCmBefore": 50,
+  "maximumMinimumCellCmAfter": 25,
+  "checks": [
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.Navigation",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.RoutedPointerOrbit",
+      "state": "Success"
+    }
+  ],
+  "sourceSHA256": {
+    "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "3ff1883d9cac46bb4bb241e827baef151a923b6bb8fc69b32c6d8f8d78312117",
+    "Source/CatalystLandformEditor/Private/CLNativePreview.h": "5c460dea0cf2ea1ffe11d5588300da89469916dfa40103b90e2408ce03544cb6",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "0872af4262bd582288d9abe80c6604ec06e7efc9c630365321366f44c343b728"
+  },
+  "allMatchRunningHost": true,
+  "taskCountBeforeAfterMeasured": false,
+  "limitations": "Native LOD can still schedule tasks while moving and refine after stopping; no zero-task or cave-streaming claim."
+}

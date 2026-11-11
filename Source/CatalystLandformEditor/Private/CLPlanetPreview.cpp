@@ -310,6 +310,7 @@ public:
         }
         if(RegionCentres.IsValidIndex(SelectedIndex))PDI->DrawPoint(RegionCentres[SelectedIndex],FLinearColor(.1,.9,1),12,SDPG_Foreground);
     }
+    double NavigationDetailAfter=0;
     FIntPoint NavigationSize;
     FCLRadialGuideSet Guides;
     bool bGuides=true;
@@ -340,11 +341,13 @@ public:
     virtual bool InputAxis(const FInputKeyEventArgs&) override {return true;}
     virtual FLinearColor GetBackgroundColor() const override {return FLinearColor(.007,.012,.02);}
     virtual void Tick(float Delta) override
-    {FEditorViewportClient::Tick(Delta);if(Viewport&&Viewport->GetSizeXY()!=NavigationSize)Apply();}
+    {FEditorViewportClient::Tick(Delta);if(Viewport&&Viewport->GetSizeXY()!=NavigationSize)Apply();if(NativePreview&&NavigationDetailAfter&&FPlatformTime::Seconds()>=NavigationDetailAfter){NativePreview->SetNavigationActive(false);NavigationDetailAfter=0;}}
     virtual bool InputGesture(FViewport*,FInputDeviceId,EGestureEvent Type,const FVector2D& Delta,bool Inverted,uint64) override
     {if(Type==EGestureEvent::Magnify)Navigation.Dolly(Delta.X*6);else if(Type==EGestureEvent::Scroll)Navigation.PanBy(Delta*(Inverted?-10:10));Apply();return true;}
     void Apply()
     {
+        NavigationDetailAfter=FPlatformTime::Seconds()+.2;
+        if(NativePreview)NativePreview->SetNavigationActive(true);
         NavigationSize=Viewport?Viewport->GetSizeXY():FIntPoint(1000,800);
         const double H=FMath::Tan(FMath::DegreesToRadians(30.)),V=H*FMath::Max(1,NavigationSize.Y)/FMath::Max(1,NavigationSize.X);
         const auto C=Navigation.Camera(H,V);SetViewLocation(C.Eye);SetViewRotation(C.Rotation);SetLookAtLocation(C.Target);StudioScene->AimLights(C.Rotation);Invalidate();

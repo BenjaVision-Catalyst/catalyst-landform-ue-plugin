@@ -75,7 +75,7 @@ local-window/face recipes and a second legacy radial geology source are rejected
 
 The source preview reuses the native globe and a disposable contextual reference.
 The native VPP minimum voxel size follows one quarter of the resolved scarp width,
-clamped to its supported 1–50 cm display-space range. Camera-driven native LOD
+clamped to its supported 1–25 cm display-space range. Camera-driven native LOD
 still controls refinement. This is a finest-level limit, not a promise that a
 whole-globe view resolves every small scarp. Read-only mesh inspection invalidates
 its cache only for newly accepted inputs, not camera navigation.
@@ -100,3 +100,18 @@ The [qualification record](../conformance/ContinentalRift/qualification-mac-arm6
 separates field, editor and cooked evidence. Acceptance of the artistic landform
 still requires human review. Erosion, sediment fill, connected fault history and
 other provincial expressions remain future work.
+
+## Preview navigation — 11 November 2026
+
+The terrain preview uses native quality 1 while the view moves, then restores
+its existing full quality 4 after 200 ms without navigation. This changes only
+the preview world's native LOD quality; it does not recompile the recipe or
+replace its world, stamp, renderer or geological field. Native LOD can still
+schedule work while moving and one full-detail refinement after stopping.
+The normal minimum cell cap is 25 cm in normalized display space instead of
+50 cm, allowing finer close-up cells. Draft authoring and cave diagnostics retain
+their previous quality policies. UI controls and camera motion are unchanged.
+
+The two existing navigation checks passed in the rebuilt editor. This is a
+bounded preview adjustment, not a cave-streaming fix or a claim of zero native
+tasks during rotation. Earlier high-quality/redraw experiments were discarded.

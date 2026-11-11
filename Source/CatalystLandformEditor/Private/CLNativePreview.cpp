@@ -67,6 +67,12 @@ FVoxelVolumeTransform FCLNativePreview::StampToDisplay()const
     return FVoxelVolumeTransform::Create(Stamp->GetComponentTransform(),FTransform::Identity,FVoxelBox(-1,1),0);
 }
 FCLNativePreview::~FCLNativePreview(){Reset();}
+void FCLNativePreview::SetNavigationActive(bool Active)
+{
+    if(CaveInspection||bNavigationActive==Active)return;
+    bNavigationActive=Active;
+    if(Native)Native->LODQuality.EditorQuality=(Active||AppliedDraft)?FFloatInterval(1,1):FFloatInterval(4,4);
+}
 void FCLNativePreview::Reset()
 {
     CaveDomains.Reset();Pending.Reset();VisiblePlan.Reset();Plan.Reset();Stamp.Reset();
@@ -99,7 +105,7 @@ bool FCLNativePreview::Start(UWorld& World,TSharedPtr<const FCLCompiledPlanetRec
         Native.Reset(World.SpawnActor<AVoxelWorld>(Params));
         if(!Native){Error=TEXT("Native preview world could not be created");return false;}
         Native->DestroyRuntime();Native->SetupForPreview();Native->bEnableNanite=false;Native->bEnableTessellation=false;
-        Native->bEnableNavigation=false;Native->bWaitForPCG=false;Native->VoxelSize=50;
+        Native->bEnableNavigation=false;Native->bWaitForPCG=false;Native->VoxelSize=25;
         Native->bCreateRuntimeOnBeginPlay=false;Native->bDoubleSidedCollision=true;
         if(CaveInspection)
         {
@@ -125,15 +131,14 @@ bool FCLNativePreview::ApplyPending()
     else if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())Native->MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
     else if(auto* Material=GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous())Native->MegaMaterial=Material;
     Section=PendingSection;Width=PendingWidth;AppliedDraft=PendingDraft;PublishedHash=0;InspectionHash=0;
-    // The generic 50 cm display voxel can sample away metre-scale fault scarps.
-    // Lower only the native minimum cell size; native camera LOD stays in charge.
+    // Permit finer close-up cells; native camera LOD still selects refinement.
     if(!CaveInspection)
     {
-        Native->VoxelSize=50;
+        Native->VoxelSize=25;
         if(Plan->GeneratedRegions&&Plan->GeneratedRegions->bHasProvinceDeformation)
         {
             double WidthMeters=MAX_dbl;for(const auto& Rift:Plan->GeneratedRegions->Rifts)if(Rift)WidthMeters=FMath::Min(WidthMeters,Rift->ScarpWidthMeters());
-            Native->VoxelSize=FMath::Clamp(FMath::FloorToInt(WidthMeters*.25*100000./Plan->RadiusMeters),1,50);
+            Native->VoxelSize=FMath::Clamp(FMath::FloorToInt(WidthMeters*.25*100000./Plan->RadiusMeters),1,25);
         }
     }
     // Scale the stamp through VPP's supported transform, never the voxel world
@@ -163,7 +168,7 @@ bool FCLNativePreview::ApplyPending()
     // A planet-wide cave diagnostic must retain thin voids even when terrain
     // overview LOD would sample them away. VPP owns subdivision and meshing;
     // this higher native quality applies only to the sparse inspection layer.
-    Native->LODQuality.EditorQuality=CaveInspection?FFloatInterval(8192,8192):AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
+    Native->LODQuality.EditorQuality=CaveInspection?FFloatInterval(8192,8192):(AppliedDraft||bNavigationActive)?FFloatInterval(1,1):FFloatInterval(4,4);
     auto Coordinates=MaterialCoordinates(StampToDisplay(),Section,Source.SectionReferenceRadiusMeters);
 #if WITH_DEV_AUTOMATION_TESTS
     if(!MaterialCoordinatesEnabled)Coordinates.High.A=0;
