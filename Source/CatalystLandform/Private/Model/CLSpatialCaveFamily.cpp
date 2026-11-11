@@ -21,17 +21,18 @@ double Hill(double X,double Y,double CX,double CY,double RX,double RY){return FM
 FVector FCLSpatialCaveFamily::BodyPoint(FVector P,int32 I)const
 {
     const auto& N=Networks[I];FVector Q=N.Origin+N.X*P.X+N.Y*P.Y+N.Up*P.Z;
-    for(int32 K=0;K<7;++K)Q+=N.Up*((N.Datum+P.Z-Rock->RestoredRadiusMeters(Q))/FMath::Max(.35,FVector::DotProduct(Q.GetSafeNormal(),N.Up)));
+    for(int32 K=0;K<7;++K)Q+=N.Up*((N.Datum+P.Z-(Rock?Rock->RestoredRadiusMeters(Q):Q.Length()))/FMath::Max(.35,FVector::DotProduct(Q.GetSafeNormal(),N.Up)));
     return Q;
 }
 FVector FCLSpatialCaveFamily::BeddingPoint(FVector P,int32 I,bool Compiled)const
 {
     const auto& N=Networks[I];const auto D=P-N.Origin;const double Along=FVector::DotProduct(P,N.Up);
-    const double Radius=Compiled&&Along>1.e-6?P.Length()-N.Bedding.Sample(FVector2D(FVector::DotProduct(P,N.X),FVector::DotProduct(P,N.Y))*(N.Datum/Along)):Rock->RestoredRadiusMeters(P);
+    const double Radius=Compiled&&Along>1.e-6?P.Length()-N.Bedding.Sample(FVector2D(FVector::DotProduct(P,N.X),FVector::DotProduct(P,N.Y))*(N.Datum/Along)):(Rock?Rock->RestoredRadiusMeters(P):P.Length());
     return {FVector::DotProduct(D,N.X),FVector::DotProduct(D,N.Y),Radius-N.Datum};
 }
 bool FCLSpatialCaveFamily::TrySurfaces(const FVector& P,FCLSurfaceWeights& W)const
 {
+    if(!Rock)return false;
     for(const auto& N:Networks)
     {
         const double Along=FVector::DotProduct(P,N.Up);if(Along<=1.e-6)continue;
@@ -45,8 +46,9 @@ bool FCLSpatialCaveFamily::TrySurfaces(const FVector& P,FCLSurfaceWeights& W)con
 double FCLSpatialCaveFamily::RollingFloor(const FNetwork& N,double X,double Y)const
 {
     // Common to every opening and every level, including each ramp endpoint.
-    return .40*FMath::Sin(X*.025+N.Phase)+.35*FMath::Cos(Y*.033-N.Phase)+.12*FMath::Sin((X+Y)*.09)
-        +1.2*Hill(X,Y,48,-32,38,22)-.35*FMath::Exp(-FMath::Square((Y-3*FMath::Sin(X*.025))/6));
+    X/=N.UnitScale;Y/=N.UnitScale;
+    return N.UnitScale*(.40*FMath::Sin(X*.025+N.Phase)+.35*FMath::Cos(Y*.033-N.Phase)+.12*FMath::Sin((X+Y)*.09)
+        +1.2*Hill(X,Y,48,-32,38,22)-.35*FMath::Exp(-FMath::Square((Y-3*FMath::Sin(X*.025))/6)));
 }
 double FCLSpatialCaveFamily::FloorHeight(double X,double Y,int32 Level,int32 I)const
 {return -Networks[I].Spacing*Level+RollingFloor(Networks[I],X,Y);}
@@ -70,7 +72,7 @@ void FCLSpatialCaveFamily::SampleCell(const FNetwork& N,const FCell& C,TConstArr
     const int32 Num=Q.Num();Values.SetNumUninitialized(Num);TArray<double> X,Y,Z,Floor;X.Reserve(Num);Y.Reserve(Num);Z.Reserve(Num);Floor.Reserve(Num);
     for(const auto& P:Q){X.Add(P.X);Y.Add(P.Y);Z.Add(P.Z);if(!Compiled)Floor.Add(CellFloor(N,C,P.X,P.Y));}
 #if CL_SPATIAL_SIMD
-    if(Compiled){ispc::CLFamilyCell(X.GetData(),Y.GetData(),Z.GetData(),Broad.GetData(),Bed.GetData(),Detail.GetData(),C.X.GetData(),C.Y.GetData(),C.X.Num(),N.Contacts.GetData(),N.Contacts.Num(),C.Center.X,C.Center.Y,C.Roof,C.Scale,N.Phase,C.Chamber?1:0,C.A.X,C.A.Y,C.B.X,C.B.Y,C.FloorA,C.FloorB,Values.GetData(),Num);return;}
+    if(Compiled){ispc::CLFamilyCell(X.GetData(),Y.GetData(),Z.GetData(),Broad.GetData(),Bed.GetData(),Detail.GetData(),C.X.GetData(),C.Y.GetData(),C.X.Num(),N.Contacts.GetData(),N.Contacts.Num(),C.Center.X,C.Center.Y,C.Roof,C.Scale,N.Phase,N.UnitScale,C.Chamber?1:0,C.A.X,C.A.Y,C.B.X,C.B.Y,C.FloorA,C.FloorB,Values.GetData(),Num);return;}
 #endif
     if(Floor.IsEmpty())for(const auto& P:Q)Floor.Add(CellFloor(N,C,P.X,P.Y));
     for(int32 I=0;I<Num;++I)
@@ -188,9 +190,9 @@ void FCLSpatialCaveFamily::Sample(TConstArrayView<FVector> P,TArray<double>& Air
                         [&](int32 F){const auto Feature=Features[F];if(Feature.X==NI)Nearest=FMath::Min(Nearest,Networks[Feature.X].Cells[Feature.Y].BodyBounds.ComputeSquaredDistanceToPoint(V));});
                     Air[I]=-FMath::Sqrt(Nearest)-1;continue;
                 }
-                else Restored=Rock->RestoredRadiusMeters(V); // Uncertain in-domain leaves retain exact evaluation.
+                else Restored=(Rock?Rock->RestoredRadiusMeters(V):V.Length()); // Uncertain in-domain leaves retain exact evaluation.
             }
-            else Restored=Rock->RestoredRadiusMeters(V);
+            else Restored=(Rock?Rock->RestoredRadiusMeters(V):V.Length());
             const FVector Q(FVector::DotProduct(D,N.X),FVector::DotProduct(D,N.Y),Restored-N.Datum);
             Active.Add(I);Local.Add(Q);X.Add(Q.X);Y.Add(Q.Y);Z.Add(Q.Z);
         }
@@ -222,35 +224,43 @@ void FCLSpatialCaveFamily::Sample(TConstArrayView<FVector> P,TArray<double>& Air
     }
 #endif
 }
-TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLCompiledPlanetRecipe& Base,const FCLCaveSettings& S,int32 Seed,FCLCompiledCaves& Out,FString& Error)
+TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLCompiledPlanetRecipe& Base,const FCLCaveSettings& S,int32 Seed,FCLCompiledCaves& Out,FString& Error,bool PreferGeology)
 {
-    if(!Base.Rock||!Base.Rock->HasKarstHosts()||!Base.Watershed||!Base.GeneratedRegions){Error=TEXT("Spatial carbonate family requires carbonate Rock, Watershed and included eligible Carbonate Platform");return nullptr;}
-    if(S.bSurfaceEntrances){Error=TEXT("Profile 9 currently qualifies underground networks; use the existing entrance-capable profiles for surface access");return nullptr;}
-    if(S.RadiusMeters<1.2||S.LengthMeters<40){Error=TEXT("Walkable spatial family requires radius >= 1.2 m and length >= 40 m");return nullptr;}
-    auto Family=MakeShared<FCLSpatialCaveFamily>();Family->Rock=Base.Rock;Family->Noise=FCLNativeNoiseKernel::Create(Error);Family->Seed=Seed^0x53504139;if(!Family->Noise)return nullptr;
+    // The existing spatial family supplies every enabled minimum. Geological
+    // capabilities select preferred sites/bedding, never a replacement shape.
+    const bool Preferred=PreferGeology&&Base.Rock&&Base.Rock->HasKarstHosts()&&Base.Watershed&&Base.GeneratedRegions&&!S.bSurfaceEntrances&&S.RadiusMeters>=1.2&&S.LengthMeters>=40;
     const double Reference=Base.RadiusMeters+(Base.MinimumHeightMeters+Base.MaximumHeightMeters)*.5,Area=4*UE_DOUBLE_PI*Reference*Reference/1.e6;
-    if(Area*16>16384){Error=TEXT("Spatial family exceeds the existing 16384-site physical-area budget");return nullptr;}
-    Out.Candidates=FMath::Max(16,FMath::CeilToInt(Area*16));
+    const double UnitScale=Preferred?1:FMath::Min(1.,Reference/500.);
+    auto Settings=S;
+    if(!Preferred)
+    {
+        Settings.RadiusMeters=FMath::Min(FMath::Max(2.5,S.RadiusMeters)*UnitScale,Reference*.006);
+        Settings.LengthMeters=FMath::Min(FMath::Max(40.,S.LengthMeters)*UnitScale,Reference*.4);
+        Settings.DepthMeters=FMath::Min(S.DepthMeters*UnitScale,Reference*.08);
+        Settings.MinimumCoverMeters=FMath::Min(S.MinimumCoverMeters*UnitScale,Reference*.01);
+    }
+    auto Family=MakeShared<FCLSpatialCaveFamily>();Family->Rock=Preferred?Base.Rock:nullptr;Family->Noise=FCLNativeNoiseKernel::Create(Error);Family->Seed=Seed^0x53504139;if(!Family->Noise)return nullptr;
+    Out.Candidates=FMath::Clamp(FMath::CeilToInt(FMath::Min(Area*16,16384.)),16,16384);
     struct FCandidate{FVector D;int32 Id;uint32 Rank;};TArray<FCandidate> Eligible;
     FRandomStream Placement(Seed);const FQuat Rotation(FRotator(Placement.FRandRange(-90,90),Placement.FRandRange(-180,180),Placement.FRandRange(-180,180)));
     for(int32 I=0;I<Out.Candidates;++I)
     {
         const double Z=1-2*(I+.5)/Out.Candidates,A=I*2.399963229728653;const FVector D=Rotation.RotateVector(FVector(FMath::Cos(A)*FMath::Sqrt(1-Z*Z),FMath::Sin(A)*FMath::Sqrt(1-Z*Z),Z));
-        const auto& G=*Base.GeneratedRegions;const auto& Province=G.Palette[G.Cells[G.Owner(D)].PaletteIndex];
+        if(Preferred){const auto& G=*Base.GeneratedRegions;const auto& Province=G.Palette[G.Cells[G.Owner(D)].PaletteIndex];
         if(Province.Suitability.Province.Type!=ECLProvinceType::CarbonatePlatform||Province.Suitability.Province.Match(FCLProvinceGeology::Sample(Base,D))!=ECLProvinceMatch::Eligible)continue;
-        const auto& Water=Base.Watershed->GetCells();const auto* Nearest=&Water[0];double Dot=-2;for(const auto& C:Water){const double V=FVector::DotProduct(C.Direction,D);if(V>Dot){Dot=V;Nearest=&C;}}if(Nearest->bOcean||Nearest->bLake)continue;
+        const auto& Water=Base.Watershed->GetCells();const auto* Nearest=&Water[0];double Dot=-2;for(const auto& C:Water){const double V=FVector::DotProduct(C.Direction,D);if(V>Dot){Dot=V;Nearest=&C;}}if(Nearest->bOcean||Nearest->bLake)continue;}
         Eligible.Add({D,I,HashCombineFast(uint32(Seed),uint32(I+1))});
     }
-    Out.EligibleCandidates=Eligible.Num();Out.RequestedNetworks=FMath::Max(1,FMath::CeilToInt(S.NetworksPerSquareKilometer*Area*Eligible.Num()/Out.Candidates));
-    if(Out.RequestedNetworks>64){Error=TEXT("Spatial family exceeds 64 complete networks; reduce density rather than truncating construction");return nullptr;}
+    Out.EligibleCandidates=Eligible.Num();Out.RequestedNetworks=FMath::Max(1,FMath::CeilToInt(FMath::Min(64.,S.NetworksPerSquareKilometer*Area*Eligible.Num()/Out.Candidates)));
+    Out.RequestedNetworks=FMath::Min(64,Out.RequestedNetworks);
     Eligible.Sort([](const auto& A,const auto& B){return A.Rank==B.Rank?A.Id<B.Id:A.Rank<B.Rank;});
     for(const auto& Site:Eligible)
     {
         if(!FCLCompileProgress::Check(Error))return nullptr;
-        const auto Column=Base.Rock->SampleColumn(Site.D);if(!Column.bValid)continue;
+        const auto Column=Family->Rock?Family->Rock->SampleColumn(Site.D):FCLRockColumn();if(Preferred&&!Column.bValid)continue;
         FNetwork N;N.Id=FGuid(0x53504139,uint32(Seed),uint32(S.Seed),Site.Id+1);N.Up=Site.D;Site.D.FindBestAxisVectors(N.X,N.Y);
         FRandomStream Random(int32(Site.Rank));const FQuat Turn(N.Up,Random.FRandRange(0,2*UE_DOUBLE_PI));N.X=Turn.RotateVector(N.X);N.Y=Turn.RotateVector(N.Y);N.Phase=Random.FRandRange(0,6.28);
-        const double R=S.RadiusMeters,Extent=S.LengthMeters*.38;N.Spacing=R*6.6+8;
+        const double R=Settings.RadiusMeters,Extent=Settings.LengthMeters*.38;N.UnitScale=UnitScale;N.Spacing=R*6.6+8*UnitScale;
         N.Levels=S.Branching<.3?1:S.Branching<.78?2:3;
         if(Extent*1.8<N.Spacing*1.5/.24)N.Levels=1;
         const int32 Count=4+2*FMath::FloorToInt(S.Branching*2);TArray<TArray<FVector2D>> Centers;
@@ -263,47 +273,92 @@ TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLComp
         }
         // Work in the canonical restored bedding coordinate, selecting actual
         // bed contacts only after all spatial footprints fit under real terrain.
-        const double RoofBound=R*6+8,Half=Extent+R*10+12;
+        const double RoofBound=R*6+8*UnitScale,Half=Extent+R*10+12*UnitScale;
         double Limit=MAX_dbl;
         for(double X:{-Half,0.,Half})for(double Y:{-Half,0.,Half})
         {
-            const FVector D=(Site.D+(N.X*X+N.Y*Y)/Reference).GetSafeNormal();const auto C=Base.Rock->SampleColumn(D);
-            if(!C.bValid){Limit=-1;continue;}
-            Limit=FMath::Min(Limit,Base.RadiusMeters+Base.SampleHeightMeters(D)-C.DeformationMeters-FMath::Max(S.DepthMeters,RoofBound+S.MinimumCoverMeters+6));
+            const FVector D=(Site.D+(N.X*X+N.Y*Y)/Reference).GetSafeNormal();const auto C=Family->Rock?Family->Rock->SampleColumn(D):FCLRockColumn();
+            if(Preferred&&!C.bValid){Limit=-1;continue;}
+            Limit=FMath::Min(Limit,Base.RadiusMeters+Base.SampleHeightMeters(D)-C.DeformationMeters-FMath::Max(Settings.DepthMeters,RoofBound+Settings.MinimumCoverMeters+6*UnitScale));
         }
         if(Limit<N.Spacing*(N.Levels-1)+R*4||Half>Limit*.65)continue;
-        int32 Bed=0;while(Bed<Base.Rock->GetOlderBedCount()&&Base.Rock->GetBed(Bed).UpperMeters<=Limit)++Bed;if(!Bed)continue;
-        N.Datum=Base.Rock->GetBed(Bed-1).UpperMeters;N.Origin=N.Up*(N.Datum+Column.DeformationMeters);
+        if(Preferred)
+        {
+            int32 Bed=0;while(Bed<Base.Rock->GetOlderBedCount()&&Base.Rock->GetBed(Bed).UpperMeters<=Limit)++Bed;
+            N.Datum=Bed?Base.Rock->GetBed(Bed-1).UpperMeters:Limit;
+        }
+        else N.Datum=Limit;
+        N.Origin=N.Up*(N.Datum+Column.DeformationMeters);
+        if(!Preferred){bool Crowded=false;for(const auto& Old:Out.NetworkInfo)Crowded|=FVector::Distance(Old.OriginDirection*Reference,N.Up*Reference)<Half*3;if(Crowded)continue;}
         const int32 NI=Family->Networks.Num();Family->Networks.Add(N);auto& Network=Family->Networks.Last();
         const int32 NodeOffset=Out.Nodes.Num(),PassageOffset=Out.Passages.Num(),ChamberOffset=Out.Chambers.Num();
         auto AddCell=[&](TArray<FVector2D> Polygon,double F0,double F1,FVector2D A,FVector2D B,double Roof,bool Chamber)
         {
             auto& C=Network.Cells.AddDefaulted_GetRef();C.A=A;C.B=B;C.FloorA=F0;C.FloorB=F1;C.Roof=Roof;C.Chamber=Chamber;C.Scale=R/5;C.Phase=Random.FRandRange(0,6.28);C.Center=FVector2D::ZeroVector;
-            C.Bounds=FBox(ForceInit);for(const auto& V:Polygon){C.X.Add(V.X);C.Y.Add(V.Y);C.Center+=V;C.Bounds+=FVector(V.X,V.Y,FMath::Min(F0,F1)-4);C.Bounds+=FVector(V.X,V.Y,FMath::Max(F0,F1)+Roof*1.12+3.2*C.Scale+3);}
-            C.Center/=Polygon.Num();C.Bounds=C.Bounds.ExpandBy(FVector(10*C.Scale+2,10*C.Scale+2,3));C.Polygon=UE::Geometry::FPolygon2d(Polygon);
+            C.Bounds=FBox(ForceInit);for(const auto& V:Polygon){C.X.Add(V.X);C.Y.Add(V.Y);C.Center+=V;C.Bounds+=FVector(V.X,V.Y,FMath::Min(F0,F1)-4*UnitScale);C.Bounds+=FVector(V.X,V.Y,FMath::Max(F0,F1)+Roof*1.12+3.2*C.Scale+3*UnitScale);}
+            C.Center/=Polygon.Num();C.Bounds=C.Bounds.ExpandBy(FVector(10*C.Scale+2*UnitScale,10*C.Scale+2*UnitScale,3*UnitScale));C.Polygon=UE::Geometry::FPolygon2d(Polygon);
         };
         for(int32 L=0;L<Network.Levels;++L)for(int32 I=0;I<Count;++I)
         {
-            const auto Center=Centers[L][I];Out.Nodes.Add({Network.Id,Family->BodyPoint(FVector(Center.X,Center.Y,Family->FloorHeight(Center.X,Center.Y,L,NI)+2),NI),{R*5,R*3},true,false});
+            const auto Center=Centers[L][I];Out.Nodes.Add({Network.Id,Family->BodyPoint(FVector(Center.X,Center.Y,Family->FloorHeight(Center.X,Center.Y,L,NI)+2*UnitScale),NI),{R*5,R*3},true,false});
             TArray<FVector2D> Polygon;const double RX=R*Random.FRandRange(4.8,8.0),RY=R*Random.FRandRange(3.2,6.5),Spin=Random.FRandRange(0,6.28);const FVector2D X(FMath::Cos(Spin),FMath::Sin(Spin)),Y(-X.Y,X.X);
             for(int32 K=0;K<12;++K){const double A=K*2*UE_DOUBLE_PI/12,J=Random.FRandRange(.78,1.18);Polygon.Add(Center+(X*(FMath::Cos(A)*RX)+Y*(FMath::Sin(A)*RY))*J);}
             const double Roof=R*Random.FRandRange(3.2,4.6);AddCell(Polygon,-L*Network.Spacing,-L*Network.Spacing,Center,Center,Roof,true);
             FCLCaveChamber Room;Room.Network=Network.Id;Room.Node=NodeOffset+L*Count+I;Room.Center=Family->BodyPoint({Center.X,Center.Y,-L*Network.Spacing+Roof*.5},NI);Room.HalfExtents={RX,RY,Roof*.5};Room.Rotation=FRotationMatrix::MakeFromXZ(Network.X,Network.Up).ToQuat();Room.Form=ECLCaveForm::BeddedChamber;Room.GeometryProfile=9;Room.FloorRock=Base.Rock;Room.FloorRadius=Network.Datum-L*Network.Spacing;Out.Chambers.Add(Room);
         }
-        auto Passage=[&](int32 L0,int32 I0,int32 L1,int32 I1,double RampBend=0.)
+        auto Passage=[&](int32 L0,int32 I0,int32 L1,int32 I1,double RampBend=0.,bool Entrance=false,FVector2D Mouth=FVector2D::ZeroVector,double MouthFloor=0.)
         {
-            const auto A=Centers[L0][I0],B=Centers[L1][I1],Delta=B-A;const double Length=Delta.Length();const FVector2D Side(-Delta.Y/Length,Delta.X/Length);
+            const auto A=Centers[L0][I0],B=Entrance?Mouth:Centers[L1][I1],Delta=B-A;const double Length=Delta.Length();const FVector2D Side(-Delta.Y/Length,Delta.X/Length);
             const double Bend=RampBend!=0?RampBend:R*Random.FRandRange(-1.4,1.4),Width=R*Random.FRandRange(2.1,3.1);TArray<FVector2D> Left,Right,Route;
-            for(int32 K=0;K<=6;++K){const double T=K/6.,Wave=FMath::Sin(T*UE_DOUBLE_PI);const auto P=A+Delta*T+Side*(Bend*Wave);const double W=Width*Random.FRandRange(.82,1.22);Left.Add(P+Side*W);Right.Add(P-Side*W);Route.Add(P);}
+            for(int32 K=0;K<=6;++K){const double T=K/6.,Wave=FMath::Sin(T*UE_DOUBLE_PI);const auto P=A+Delta*T+Side*(Bend*Wave);const double W=Width*Random.FRandRange(.82,1.22);const auto Cap=Entrance&&K==6?Delta/Length*(Width*2):FVector2D::ZeroVector;Left.Add(P+Side*W+Cap);Right.Add(P-Side*W+Cap);Route.Add(P);}
             TArray<FVector2D> Polygon=Left;for(int32 K=Right.Num()-1;K>=0;--K)Polygon.Add(Right[K]);
-            AddCell(Polygon,-L0*Network.Spacing,-L1*Network.Spacing,A,B,R*Random.FRandRange(1.8,2.6),false);
-            const auto& C=Network.Cells.Last();FCLCavePassage P;P.Network=Network.Id;P.From=NodeOffset+L0*Count+I0;P.To=NodeOffset+L1*Count+I1;P.Form=P.EndForm=ECLCaveForm::BeddedPassage;P.GeometryProfile=9;P.FloorRock=Base.Rock;
-            for(int32 K=1;K<Route.Num();++K){const int32 Steps=FMath::Max(1,FMath::CeilToInt(FVector2D::Distance(Route[K-1],Route[K])/2));for(int32 J=K==1?0:1;J<=Steps;++J){const auto Q=FMath::Lerp(Route[K-1],Route[K],double(J)/Steps);const double F=Family->CellFloor(Network,C,Q.X,Q.Y);P.Points.Add(Family->BodyPoint({Q.X,Q.Y,F+2},NI));P.Sections.Add({Width,C.Roof*.5});P.FloorRadii.Add(Network.Datum+F);}}
+            AddCell(Polygon,-L0*Network.Spacing,Entrance?MouthFloor:-L1*Network.Spacing,Entrance?A-Delta*.2:A,Entrance?B+Delta*.3:B,R*Random.FRandRange(1.8,2.6),false);
+            const auto& C=Network.Cells.Last();FCLCavePassage P;P.Network=Network.Id;P.From=NodeOffset+L0*Count+I0;P.To=Entrance?Out.Nodes.Num():NodeOffset+L1*Count+I1;P.Entrance=Entrance;P.Form=P.EndForm=ECLCaveForm::BeddedPassage;P.GeometryProfile=9;P.FloorRock=Base.Rock;
+            for(int32 K=1;K<Route.Num();++K){const int32 Steps=FMath::Max(1,FMath::CeilToInt(FVector2D::Distance(Route[K-1],Route[K])/2));for(int32 J=K==1?0:1;J<=Steps;++J){const auto Q=FMath::Lerp(Route[K-1],Route[K],double(J)/Steps);const double F=Family->CellFloor(Network,C,Q.X,Q.Y);P.Points.Add(Family->BodyPoint({Q.X,Q.Y,F+2*UnitScale},NI));P.Sections.Add({Width,C.Roof*.5});P.FloorRadii.Add(Network.Datum+F);}}
+            if(Entrance){Out.Nodes.Add({Network.Id,P.Points.Last(),{Width,C.Roof*.5},false,true});++Out.Entrances;}
             Out.Passages.Add(MoveTemp(P));
         };
         // A closed irregular gallery on each level supplies a return route.
         for(int32 L=0;L<Network.Levels;++L)for(int32 I=0;I<Count;++I)Passage(L,I,L,(I+1)%Count);
         for(int32 L=0;L+1<Network.Levels;++L){Passage(L,0,L+1,Count/2,R*6);Passage(L,0,L+1,Count/2,-R*6);}
+        FBox InteriorBounds(ForceInit);for(const auto& C:Network.Cells)InteriorBounds+=C.Bounds;
+        if(S.bSurfaceEntrances)
+        {
+            const auto A=Centers[0][0];double Best=MAX_dbl,EndFloor=0;FVector2D Mouth;
+            for(int32 K=0;K<16;++K)
+            {
+                const double Angle=K*2*UE_DOUBLE_PI/16;const FVector2D Along(FMath::Cos(Angle),FMath::Sin(Angle));
+                if(FVector2D::DotProduct(Along,A)<A.Length()*.5)continue;
+                const double Run=FMath::Min(Reference*.45,FMath::Max(Settings.LengthMeters*2,Settings.DepthMeters*12));
+                const auto End=A+Along*Run;double Floor=0;
+                for(int32 J=0;J<6;++J)
+                {
+                    const auto P=Family->BodyPoint({End.X,End.Y,Floor+Family->RollingFloor(Network,End.X,End.Y)},NI);const auto D=P.GetSafeNormal();
+                    const auto Surface=D*(Base.RadiusMeters+Base.SampleHeightMeters(D));
+                    Floor=(Family->Rock?Family->Rock->RestoredRadiusMeters(Surface):Surface.Length())-Network.Datum-Family->RollingFloor(Network,End.X,End.Y)-.1*UnitScale;
+                }
+                const double Grade=FMath::Abs(Floor)/Run;bool Foundation=Grade<.20;
+                for(int32 J=0;J<=24&&Foundation;++J)
+                {
+                    const double T=J/24.,Ramp=FMath::Clamp((T-.1)/.9,0.,1.);const auto XY=FMath::Lerp(A,End,T);
+                    const double Height=Floor*Ramp*Ramp*(3-2*Ramp)+Family->RollingFloor(Network,XY.X,XY.Y);
+                    const auto P=Family->BodyPoint({XY.X,XY.Y,Height},NI);
+                    Foundation=Base.RadiusMeters+Base.SampleHeightMeters(P.GetSafeNormal())-P.Length()>=.04*UnitScale;
+                }
+                if(Foundation&&Grade<Best){Best=Grade;Mouth=End;EndFloor=Floor;}
+            }
+            if(Best==MAX_dbl){Out.Nodes.SetNum(NodeOffset);Out.Passages.SetNum(PassageOffset);Out.Chambers.SetNum(ChamberOffset);Family->Networks.Pop();continue;}
+            Passage(0,0,0,0,0.,true,Mouth,EndFloor);
+        }
+        // Validate the actual walking foundation at the route's own spacing,
+        // including terrain dips missed by a broad roof/placement grid.
+        bool FloorSupported=true;
+        for(int32 I=PassageOffset;I<Out.Passages.Num()&&FloorSupported;++I)for(const auto& Q:Out.Passages[I].Points)
+        {
+            const auto Foot=Q-Q.GetSafeNormal()*(2.5*UnitScale);
+            if(Base.RadiusMeters+Base.SampleHeightMeters(Foot.GetSafeNormal())-Foot.Length()<.04*UnitScale){FloorSupported=false;break;}
+        }
+        if(!FloorSupported){if(S.bSurfaceEntrances)--Out.Entrances;Out.Nodes.SetNum(NodeOffset);Out.Passages.SetNum(PassageOffset);Out.Chambers.SetNum(ChamberOffset);Family->Networks.Pop();continue;}
         Network.BodyBounds=FBox(ForceInit);FBox LocalBounds(ForceInit);
         FVoxelAABBTree::FElementArray Elements;Elements.Reserve(Network.Cells.Num());
         for(int32 I=0;I<Network.Cells.Num();++I){LocalBounds+=Network.Cells[I].Bounds;Elements.Add(FVoxelBox(Network.Cells[I].Bounds),I);}
@@ -331,8 +386,8 @@ TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLComp
         for(auto& C:Network.Cells)
         {
             C.BodyBounds=FBox(ForceInit);const auto Mid=C.Bounds.GetCenter();
-            for(double X:{C.Bounds.Min.X,Mid.X,C.Bounds.Max.X})for(double Y:{C.Bounds.Min.Y,Mid.Y,C.Bounds.Max.Y})for(double Z:{C.Bounds.Min.Z,Mid.Z,C.Bounds.Max.Z}){const FVector Q=Family->BodyPoint({X,Y,Z},NI);SupportMapped&=FVector::DotProduct(Q,Network.Up)>0&&FMath::Abs(Base.Rock->RestoredRadiusMeters(Q)-Network.Datum-Z)<.002;C.BodyBounds+=Q;}
-            C.BodyBounds=C.BodyBounds.ExpandBy(12);Network.BodyBounds+=C.BodyBounds;
+            for(double X:{C.Bounds.Min.X,Mid.X,C.Bounds.Max.X})for(double Y:{C.Bounds.Min.Y,Mid.Y,C.Bounds.Max.Y})for(double Z:{C.Bounds.Min.Z,Mid.Z,C.Bounds.Max.Z}){const FVector Q=Family->BodyPoint({X,Y,Z},NI);SupportMapped&=FVector::DotProduct(Q,Network.Up)>0&&FMath::Abs((Family->Rock?Family->Rock->RestoredRadiusMeters(Q):Q.Length())-Network.Datum-Z)<.002;C.BodyBounds+=Q;}
+            C.BodyBounds=C.BodyBounds.ExpandBy(12*UnitScale);Network.BodyBounds+=C.BodyBounds;
         }
         // Immutable primitive-bound address grid. Triangle inequality retains
         // every box that can be nearest anywhere in each tile. This indexes
@@ -358,17 +413,17 @@ TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLComp
         }
         bool Fit=SupportMapped;for(const auto& Old:Out.NetworkInfo)if(Old.InspectionBounds.Intersect(Network.BodyBounds))Fit=false;
         // Verify true upper support, not the centre of a chamber or a route.
-        for(double X=LocalBounds.Min.X;X<=LocalBounds.Max.X;X+=FMath::Max(12.,R*4))for(double Y=LocalBounds.Min.Y;Y<=LocalBounds.Max.Y;Y+=FMath::Max(12.,R*4))
-        {const auto P=Family->BodyPoint({X,Y,RoofBound},NI);if(Base.RadiusMeters+Base.SampleHeightMeters(P.GetSafeNormal())-P.Length()<S.MinimumCoverMeters)Fit=false;}
-        if(!Fit){Out.Nodes.SetNum(NodeOffset);Out.Passages.SetNum(PassageOffset);Out.Chambers.SetNum(ChamberOffset);Family->Networks.Pop();continue;}
-        for(int32 I=0;I<Base.Rock->GetOlderBedCount();++I){const double H=Base.Rock->GetBed(I).UpperMeters-Network.Datum;if(H>=LocalBounds.Min.Z-4&&H<=LocalBounds.Max.Z+4)Network.Contacts.Add(H);}
-        FBox2D Chart(ForceInit);for(const auto& Cell:Network.Cells)for(int32 K=0;K<8;++K){const FVector P(K&1?Cell.BodyBounds.Max.X:Cell.BodyBounds.Min.X,K&2?Cell.BodyBounds.Max.Y:Cell.BodyBounds.Min.Y,K&4?Cell.BodyBounds.Max.Z:Cell.BodyBounds.Min.Z);const double Along=FVector::DotProduct(P,Network.Up);if(Along<=1){Error=TEXT("Spatial family crosses its bedding chart horizon; reduce dimensions");return nullptr;}Chart+=FVector2D(FVector::DotProduct(P,Network.X),FVector::DotProduct(P,Network.Y))*(Network.Datum/Along);}
+        for(double X=InteriorBounds.Min.X;X<=InteriorBounds.Max.X;X+=FMath::Max(12*UnitScale,R*4))for(double Y=InteriorBounds.Min.Y;Y<=InteriorBounds.Max.Y;Y+=FMath::Max(12*UnitScale,R*4))
+        {const auto P=Family->BodyPoint({X,Y,RoofBound},NI);if(Base.RadiusMeters+Base.SampleHeightMeters(P.GetSafeNormal())-P.Length()<Settings.MinimumCoverMeters)Fit=false;}
+        if(!Fit){if(S.bSurfaceEntrances)--Out.Entrances;Out.Nodes.SetNum(NodeOffset);Out.Passages.SetNum(PassageOffset);Out.Chambers.SetNum(ChamberOffset);Family->Networks.Pop();continue;}
+        for(int32 I=0;Family->Rock&&I<Base.Rock->GetOlderBedCount();++I){const double H=Base.Rock->GetBed(I).UpperMeters-Network.Datum;if(H>=LocalBounds.Min.Z-4&&H<=LocalBounds.Max.Z+4)Network.Contacts.Add(H);}
+        FBox2D Chart(ForceInit);for(const auto& Cell:Network.Cells)for(int32 K=0;K<8;++K){const FVector P(K&1?Cell.BodyBounds.Max.X:Cell.BodyBounds.Min.X,K&2?Cell.BodyBounds.Max.Y:Cell.BodyBounds.Min.Y,K&4?Cell.BodyBounds.Max.Z:Cell.BodyBounds.Min.Z);const double Along=FVector::DotProduct(P,Network.Up);if(Along<=UnitScale){Error=TEXT("Spatial family crosses its bedding chart horizon; reduce dimensions");return nullptr;}Chart+=FVector2D(FVector::DotProduct(P,Network.X),FVector::DotProduct(P,Network.Y))*(Network.Datum/Along);}
         const auto Rock=Family->Rock;const auto X=Network.X,Y=Network.Y,Up=Network.Up;const double Datum=Network.Datum;
         Network.Bedding.SetMaximumDepth(12);
-        Network.Bedding.Build(Chart.ExpandBy(1),[Rock,X,Y,Up,Datum](FVector2D P){const auto Q=(Up+X*(P.X/Datum)+Y*(P.Y/Datum)).GetSafeNormal()*Datum;return Datum-Rock->RestoredRadiusMeters(Q);});
+        Network.Bedding.Build(Chart.ExpandBy(1),[Rock,X,Y,Up,Datum](FVector2D P){const auto Q=(Up+X*(P.X/Datum)+Y*(P.Y/Datum)).GetSafeNormal()*Datum;return Datum-(Rock?Rock->RestoredRadiusMeters(Q):Q.Length());});
         Network.Bedding.BuildLookup();Network.Bedding.BuildPacked();
         Network.Basement.SetMaximumDepth(6);
-        Network.Basement.Build(Chart.ExpandBy(1),[Rock,X,Y,Up,Datum](FVector2D P){return Rock->SampleColumn((Up+X*(P.X/Datum)+Y*(P.Y/Datum)).GetSafeNormal()).RestoredBasementRadiusMeters;},{},.05);
+        Network.Basement.Build(Chart.ExpandBy(1),[Rock,X,Y,Up,Datum](FVector2D P){return Rock?Rock->SampleColumn((Up+X*(P.X/Datum)+Y*(P.Y/Datum)).GetSafeNormal()).RestoredBasementRadiusMeters:0.;},{},.05);
         Network.Basement.BuildLookup();
         for(const auto& C:Network.Cells)
         {
@@ -404,15 +459,19 @@ TSharedPtr<const FCLSpatialCaveFamily> FCLSpatialCaveFamily::Build(const FCLComp
                 if(Inside)Mask|=0x40000000u;if(Fallback)Mask|=0x80000000u;Network.EdgeMasks.Add(Mask);
 
             }
-            Network.Params.Append({C.A.X,C.A.Y,C.B.X,C.B.Y,C.FloorA,C.FloorB,C.Center.X,C.Center.Y,C.Roof,C.Scale,0.,C.Chamber?1.:0.,C.Bounds.Min.X,C.Bounds.Min.Y,C.Bounds.Min.Z,C.Bounds.Max.X,C.Bounds.Max.Y,C.Bounds.Max.Z});
+            Network.Params.Append({C.A.X,C.A.Y,C.B.X,C.B.Y,C.FloorA,C.FloorB,C.Center.X,C.Center.Y,C.Roof,C.Scale,Network.UnitScale,C.Chamber?1.:0.,C.Bounds.Min.X,C.Bounds.Min.Y,C.Bounds.Min.Z,C.Bounds.Max.X,C.Bounds.Max.Y,C.Bounds.Max.Z});
         }
-        FCLCompiledCaves::FNetwork Info;Info.Id=Network.Id;Info.Family=FCLCompiledCaves::EFamily::CarbonateKarst;Info.OriginDirection=Network.Up;Info.InceptionRadiusMeters=Network.Datum;Info.InspectionBounds=Network.BodyBounds;const auto& G=*Base.GeneratedRegions;Info.Landform=G.Palette[G.Cells[G.Owner(Network.Up)].PaletteIndex].Id;Out.NetworkInfo.Add(Info);Family->AllBounds+=Network.BodyBounds;++Out.Networks;
+        FCLCompiledCaves::FNetwork Info;Info.Id=Network.Id;Info.Family=Preferred?FCLCompiledCaves::EFamily::CarbonateKarst:FCLCompiledCaves::EFamily::General;Info.OriginDirection=Network.Up;Info.InceptionRadiusMeters=Network.Datum;Info.InspectionBounds=Network.BodyBounds;if(Base.GeneratedRegions){const auto& G=*Base.GeneratedRegions;Info.Landform=G.Palette[G.Cells[G.Owner(Network.Up)].PaletteIndex].Id;}Out.NetworkInfo.Add(Info);Family->AllBounds+=Network.BodyBounds;++Out.Networks;
         if(Out.Networks>=Out.RequestedNetworks)break;
     }
-    if(Family->Networks.IsEmpty()){Error=TEXT("No complete walkable spatial network fits eligible carbonate terrain; reduce dimensions/depth or choose larger compatible terrain");return nullptr;}
+    if(Family->Networks.IsEmpty())
+    {
+        if(Preferred&&FCLCompileProgress::Check(Error)){Out=FCLCompiledCaves();Error.Reset();return Build(Base,S,Seed,Out,Error,false);}
+        Error=TEXT("No complete spatial cave fits the physical terrain");return nullptr;
+    }
     FVoxelAABBTree::FElementArray Elements;int32 Total=0;for(const auto& N:Family->Networks)Total+=N.Cells.Num();Elements.Reserve(Total);
     for(int32 I=0;I<Family->Networks.Num();++I)for(int32 J=0;J<Family->Networks[I].Cells.Num();++J){const int32 F=Family->Features.Add({I,J});Elements.Add(FVoxelBox(Family->Networks[I].Cells[J].BodyBounds),F);}Family->Index=FVoxelAABBTree::Create(MoveTemp(Elements));
     int32 Levels,Cells,Ramps,Nodes,Exact;uint64 Bytes;double E;Family->Stats(Levels,Cells,Ramps,Nodes,Exact,Bytes,E);
-    Out.Readiness=FString::Printf(TEXT("%d/%d complete spatial carbonate networks, up to %d interconnected levels, %d galleries and %d gradual ramps; %d/%d eligible sites"),Out.Networks,Out.RequestedNetworks,Levels,Out.Passages.Num(),Ramps,Out.EligibleCandidates,Out.Candidates);
+    Out.Readiness=FString::Printf(TEXT("%d/%d complete spatial cave networks, up to %d interconnected levels, %d galleries and %d gradual ramps; %d/%d eligible sites"),Out.Networks,Out.RequestedNetworks,Levels,Out.Passages.Num(),Ramps,Out.EligibleCandidates,Out.Candidates);
     return Family;
 }

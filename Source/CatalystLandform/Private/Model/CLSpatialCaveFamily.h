@@ -15,7 +15,7 @@ struct FCLSurfaceWeights;
 class FCLSpatialCaveFamily
 {
 public:
-    static TSharedPtr<const FCLSpatialCaveFamily> Build(const FCLCompiledPlanetRecipe&,const FCLCaveSettings&,int32,FCLCompiledCaves&,FString&);
+    static TSharedPtr<const FCLSpatialCaveFamily> Build(const FCLCompiledPlanetRecipe&,const FCLCaveSettings&,int32,FCLCompiledCaves&,FString&,bool PreferGeology=true);
     void Sample(TConstArrayView<FVector>,TArray<double>&,bool Compiled=true,const TSet<FGuid>* Selection=nullptr)const;
     FBox Bounds(FGuid Network=FGuid())const;
     void CellSupportBounds(TArray<FBox>& Out)const;
@@ -39,7 +39,7 @@ private:
     {
         FGuid Id;
         FVector Origin,X,Y,Up;
-        double Datum=0,Spacing=0,Phase=0;
+        double Datum=0,Spacing=0,Phase=0,UnitScale=1;
         int32 Levels=1;
         FBox BodyBounds;
         TArray<FCell> Cells;

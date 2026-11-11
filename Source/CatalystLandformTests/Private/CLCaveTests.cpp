@@ -2,6 +2,7 @@
 #include "Misc/AutomationTest.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLCompileProgress.h"
+#include "Model/CLSpatialCave.h"
 #include "Scene/CLScene.h"
 #include "CLPlanetStamp.h"
 #include "VoxelQuery.h"
@@ -95,7 +96,7 @@ bool FCLCaveProgressionTest::RunTest(const FString&)
     TSet<int32> Counts;double PreviousRadius=0;for(int32 I=0;I<=10;++I){auto S=R.Caves;S.ApplyProgression(I/10.);TestTrue(TEXT("Every knob position validates"),S.Validate(E));const auto C=FCLCompiledCaves::Compile(S,*Base,R.Seed,E);if(!C){AddError(E);return false;}Counts.Add(C->Segments.Num());TestTrue(TEXT("Cave aperture develops across the knob"),S.RadiusMeters>PreviousRadius);PreviousRadius=S.RadiusMeters;if(I==0)TestTrue(TEXT("Enabled at zero still has its minimum cave"),!C->Segments.IsEmpty());}
     TestTrue(TEXT("Knob changes occurrence and branching as well as dimensions"),Counts.Num()>2);
     const auto P=FCLPlanetCompiler::Compile(R,E);auto S=R.Caves;++S.Seed;const auto V=FCLCompiledCaves::Compile(S,*Base,R.Seed,E);TestTrue(TEXT("Reseeding changes the deterministic underground layout"),V&&(V->Segments.Num()!=P->Caves->Segments.Num()||(!V->Segments.IsEmpty()&&V->Segments[0].A!=P->Caves->Segments[0].A)));
-    auto Large=MakeShared<FCLCompiledPlanetRecipe>(*Base);Large->RadiusMeters=100000;const auto Bounded=FCLCompiledCaves::Compile(R.Caves,*Large,R.Seed,E);TestTrue(TEXT("Preferred placement budget retains a bounded real minimum"),Bounded&&Bounded->Networks==1&&Bounded->Cutters);
+    auto Large=MakeShared<FCLCompiledPlanetRecipe>(*Base);Large->RadiusMeters=100000;const auto Bounded=FCLCompiledCaves::Compile(R.Caves,*Large,R.Seed,E);TestTrue(TEXT("Preferred placement budget retains a bounded real minimum"),Bounded&&Bounded->Networks>0&&Bounded->Cutters&&Bounded->Spatial&&Bounded->Spatial->IsProceduralFamily());
     const auto Prepared=FCLPlanetCompiler::PrepareBackground(R,E);if(!Prepared){AddError(E);return false;}const auto Control=MakeShared<FCLCompileProgress>();TSharedPtr<const FCLCompiledPlanetRecipe> Worker;FString WE;
     auto Task=UE::Tasks::Launch(UE_SOURCE_LOCATION,[&]{Worker=FCLPlanetCompiler::CompleteBackground(*Prepared,Control,WE);});Task.Wait();if(!Worker){AddError(WE);return false;}TestEqual(TEXT("Existing background worker produces the same native cave input"),Worker->Caves->Segments.Num(),P->Caves->Segments.Num());
     return true;
@@ -128,20 +129,49 @@ bool FCLCaveAlwaysEnabledTest::RunTest(const FString&)
     for(const auto& V:Field)TestTrue(TEXT("Enabled minimum contains actual underground air"),V.FieldMeters>0);
     auto Base=MakeShared<FCLCompiledPlanetRecipe>(*P);Base->Rock.Reset();Base->Tectonics.Reset();Base->GeneratedRegions.Reset();Base->Watershed.Reset();Base->Caves.Reset();
     int32 Cases=0;
-    for(double Radius:{10.,100.,1000.,10000000.})for(int32 Profile=1;Profile<=9;++Profile)for(bool Entrances:{false,true})
+    for(double Radius:{10.,100.,1000.,10000000.})
     {
-        Base->RadiusMeters=Radius;Base->MinimumHeightMeters=0;Base->MaximumHeightMeters=0;
+        auto Physical=R;Physical.Caves.bEnabled=false;Physical.RadiusMeters=Radius;
+        const auto Body=FCLPlanetCompiler::Compile(Physical,E);if(!Body){AddError(E);return false;}
+        Base=MakeShared<FCLCompiledPlanetRecipe>(*Body);Base->Rock.Reset();Base->Tectonics.Reset();Base->GeneratedRegions.Reset();Base->Watershed.Reset();Base->Caves.Reset();
+        for(int32 Profile=1;Profile<=9;++Profile)for(bool Entrances:{false,true})
+        {
         auto Settings=R.Caves;Settings.AlgorithmVersion=Profile;Settings.bSurfaceEntrances=Entrances;
         Settings.LengthMeters=500;Settings.RadiusMeters=10;Settings.DepthMeters=500;Settings.MinimumCoverMeters=100;
         const auto C=FCLCompiledCaves::Compile(Settings,*Base,R.Seed,E);
-        if(!TestTrue(TEXT("All enabled profiles fit a minimum regardless of missing geology, density or body scale"),C&&C->Networks>0&&C->Cutters)){AddError(E);return false;}
-        TestTrue(TEXT("Chamber-only inspection has finite positive resolution"),C->Cutters->MinimumHalfWidth()>0&&C->Cutters->MinimumHalfWidth()<MAX_dbl);
-        for(const auto& N:C->Nodes)TestTrue(TEXT("Every generated lobe has real air"),C->Cutters->Compose(N.Position,-Radius)>0);
-        for(const auto& S:C->Segments)for(int32 I=0;I<=20;++I)TestTrue(TEXT("Minimum connections remain continuously open"),C->Cutters->Compose(FMath::Lerp(S.A,S.B,I/20.),-Radius)>0);
+        if(!TestTrue(FString::Printf(TEXT("Natural family fits radius %.0f, saved profile %d, entrances %d"),Radius,Profile,Entrances),C&&C->Networks>0&&C->Cutters&&C->Spatial&&C->Spatial->IsProceduralFamily()&&!C->Passages.IsEmpty())){AddError(E);return false;}
+        TestTrue(TEXT("Natural-family inspection has finite positive resolution"),C->Cutters->MinimumHalfWidth()>0&&C->Cutters->MinimumHalfWidth()<MAX_dbl);
+        for(const auto& N:C->Nodes)TestTrue(TEXT("Every natural-family node has real air"),C->Cutters->Compose(N.Position,-Radius)>0);
+        for(const auto& Path:C->Passages)for(const auto& Point:Path.Points)TestTrue(TEXT("Natural family passages remain open"),C->Cutters->Compose(Point,-Radius)>0);
         if(Profile==9){const auto Again=FCLCompiledCaves::Compile(Settings,*Base,R.Seed,E);TestTrue(TEXT("The fitted minimum is deterministic"),Again&&Again->Nodes[0].Position==C->Nodes[0].Position);}
         TestFalse(TEXT("Minimum construction does not invent rock metadata"),Base->Rock.IsValid());++Cases;
+        }
     }
     R.Caves.bEnabled=false;const auto Off=FCLPlanetCompiler::Compile(R,E);TestTrue(TEXT("Disabling caves removes the generated layer"),Off&&!Off->Caves);
     AddInfo(FString::Printf(TEXT("Enabled minimum: %d scale/profile/access cases with real air and connected field probes"),Cases));return !HasAnyErrors();
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveRiftNaturalTest,"Catalyst.Landform.Caves.RiftNaturalFamily",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLCaveRiftNaturalTest::RunTest(const FString&)
+{
+    const auto* Asset=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview"));
+    if(!TestNotNull(TEXT("Current user review asset"),Asset))return false;
+    auto R=Asset->Recipe;R.Caves.bEnabled=true;R.Caves.ApplyProgression(1.);FString E;
+    const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves){AddError(E);return false;}const auto& C=*P->Caves;
+    if(!TestTrue(TEXT("Rift uses the established spatial family, never primitive substitute chambers"),C.Spatial&&C.Spatial->IsProceduralFamily()&&C.Chambers.Num()>=4&&C.Passages.Num()>=4))return false;
+    TestTrue(TEXT("Every chamber retains the spatial family morphology"),!C.Chambers.ContainsByPredicate([](const auto& V){return V.GeometryProfile!=9;}));
+    const auto Scene=FCLScene::FromPlanet(P,E);int32 BadHead=0,BadFloor=0;double Grade=0;TArray<FVector> Probes,Feet;
+    for(const auto& Path:C.Passages)
+    {
+        for(int32 I=0;I<Path.Points.Num();I+=3)
+        {
+            const auto Q=Path.Points[I],Up=Q.GetSafeNormal();BadHead+=C.Cutters->Compose(Q,-1000)<.35;BadFloor+=C.Cutters->Compose(Q-Up*2.5,-1000)>-.05;Probes.Add(Q);Feet.Add(Q-Up*2.5);
+        }
+        for(int32 I=1;I<Path.Points.Num();++I){const auto A=Path.Points[I-1],B=Path.Points[I];Grade=FMath::Max(Grade,FMath::Abs(B.Length()-A.Length())/FMath::Max(.001,FVector::VectorPlaneProject(B-A,(A+B).GetSafeNormal()).Length()));}
+    }
+    TestEqual(TEXT("Natural passages and entrance retain head clearance"),BadHead,0);TestEqual(TEXT("Natural passages and entrance retain continuous foundation"),BadFloor,0);TestTrue(TEXT("Entrance and passages use walkable grades"),Grade<.50);
+    TArray<double> Native,Scalar;C.Spatial->Sample(Probes,Native);C.Spatial->Sample(Probes,Scalar,false);double Error=0;for(int32 I=0;I<Probes.Num();++I)Error=FMath::Max(Error,FMath::Abs(Native[I]-Scalar[I]));TestTrue(TEXT("Same natural morphology through native and scalar evaluation"),Error<.001);
+    TArray<FCLSceneShapeSample> Field;Scene->SampleShape({Probes},Field,E);for(const auto& V:Field)TestTrue(TEXT("Natural family is actual air in the user review terrain"),V.FieldMeters>0);
+    Scene->SampleShape({Feet},Field,E);for(const auto& V:Field)TestTrue(TEXT("The actual review terrain supports every sampled walking floor"),V.FieldMeters<0);
+    AddInfo(FString::Printf(TEXT("Rift natural family: %d networks, %d chambers, %d passages, %d entrances, grade %.5f, clearance failures %d, foundation failures %d, scalar residual %.9g"),C.Networks,C.Chambers.Num(),C.Passages.Num(),C.Entrances,Grade,BadHead,BadFloor,Error));return !HasAnyErrors();
 }
 #endif

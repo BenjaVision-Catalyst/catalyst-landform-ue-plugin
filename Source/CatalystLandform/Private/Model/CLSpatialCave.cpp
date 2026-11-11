@@ -95,7 +95,7 @@ void FCLSpatialCave::SampleSurfaceHeights(const FCLCompiledPlanetRecipe& P,TCons
     for(int32 I=0;I<Points.Num();++I)
     {
         const FVector& Q=Points[I];const int32 Face=FCLSphericalPatches::Owner(Q);FVector2D UV;
-        if(FCLSphericalPatches::Coordinates(Face,Q,UV)&&Data->Surface[Face].TrySample(UV,Heights[I]))continue;
+        if(Data->Surface[Face].NumNodes()>0&&FCLSphericalPatches::Coordinates(Face,Q,UV)&&Data->Surface[Face].TrySample(UV,Heights[I]))continue;
         Needed.Add(Q);Indices.Add(I);
     }
     if(!Needed.IsEmpty())
@@ -308,6 +308,8 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildFamily(const FCLCompiled
     D->Bounds=D->Family->Bounds();auto Cave=MakeShared<FCLSpatialCave>();Cave->Data=D;
     // Compile the final directional terrain input, including watershed mapping.
     // Reapplying the mapped surface per 3-D density point defeats preparation.
+    if(Out->NetworkInfo[0].Family!=FCLCompiledCaves::EFamily::General)
+    {
     D->bFinalSurfaceCompiled=true;
     const auto Surface=MakeShared<const FCLCompiledPlanetRecipe>(Base);
     ParallelFor(6,[&](int32 Face)
@@ -316,5 +318,6 @@ TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildFamily(const FCLCompiled
         D->Surface[Face].Build(FBox2D(FVector2D(-1.000001),FVector2D(1.000001)),[Surface,Direction](const FVector2D& P){return Surface->SampleHeightMeters(Direction(P));},
             [Surface,Direction](TConstArrayView<FVector2D> Points,TArray<double>& Heights){TArray<FVector> Directions;for(const auto& P:Points)Directions.Add(Direction(P));Surface->SampleHeightsMeters(Directions,Heights);},.00020);
     });
+    }
     Out->Spatial=Cave;Out->Cutters=FCLCompiledCaveVolume::CompileSpatial(Cave,FGuid());Out->ResolveInspectionDomains();return Out;
 }

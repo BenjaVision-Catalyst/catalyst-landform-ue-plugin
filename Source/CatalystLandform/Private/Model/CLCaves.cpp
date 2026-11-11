@@ -44,7 +44,7 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
     // an enabled feature to exist. Cancellation still retires the whole job.
     if(!FCLCompileProgress::Check(Error))return nullptr;
     Error.Reset();
-    return CompileMinimum(Settings,Base,Seed,Error);
+    return FCLSpatialCave::BuildFamily(Base,Settings,Seed^Settings.Seed,Error);
 }
 TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::CompilePreferred(const FCLCaveSettings& Settings,const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {

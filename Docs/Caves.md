@@ -4,7 +4,7 @@
 valid planet recipe. Rock type is never permission to generate. This contract
 supersedes the historical host-rejection policies recorded below.
 
-The current opt-in spatial family is [seeded multi-level carbonate caves, profile 9](ProceduralCaveFamily.md). Profiles 1–8 retain their saved definitions.
+The [established spatial family, profile 9](ProceduralCaveFamily.md), also supplies enabled caves when preferred geology or placement cannot generate a network. [The correction and qualification](CaveEnabledMinimum.md) retain its natural morphology and floors. Successful saved profiles 1–8 retain their definitions.
 
 The opt-in [spatial passage/chamber prototype, profile 8](SpatialCavePrototype.md)
 replaces swept sections for the next morphology review. Existing UI defaults
@@ -93,14 +93,18 @@ Geological metadata selects preferred morphology and placement, never eligibilit
 for the feature itself. Missing rock, unknown lithology, zero fracture/dissolution
 potential, unavailable provinces or drainage cannot prevent enabled caves.
 
-Preferred structural and carbonate construction retain their existing geological
-checks and successful geometry. If those cannot produce a complete network, the
-same compiler fits a deterministic general network to the body's interior using
-three overlapping native vault/lobe volumes. Requested surface access adds a
-connected opening. Dimensions adapt to physical fit; preferred placement budgets
-remain bounded. This uses the existing native shape/blend/noise/index kernels and
-the same canonical solid/air field, without inventing geology or a debug mesh.
-The reused vault anatomy does not assign carbonate chemistry to unknown rock.
+Successful existing saved construction is retained. When geological metadata or
+preferred placement cannot supply a complete network, the established spatial
+family supplies the enabled minimum: the same irregular dissolution cells,
+chamber anatomy, galleries, loops and shared rolling floors used by profile 9.
+Missing metadata never selects a simpler shape generator. General-host placement
+uses a radial floor coordinate while canonical rock queries and strata retain the
+original geological source. Small-body fitting scales the same cell anatomy.
+
+Surface access is an ordinary family passage with a gradual continuous floor,
+leading outward from an existing chamber to a nearby local surface. It is never
+a stretched chamber or a vertical link to a global lower-bound datum. Preferred
+bedding-controlled networks retain their existing coordinates and geometry.
 
 Density still requests extra preferred networks, with readiness reporting actual
 counts. The minimum guarantees existence, not the full requested abundance or
@@ -111,7 +115,7 @@ normal pipeline validation; neither is a geological exclusion.
 This is a permanent component invariant in [AGENTS.md](../AGENTS.md). Changes to
 host selection, placement, fit or recipe validation must run the enabled-minimum
 regressions: actual positive-air samples and connected field probes across all
-nine profiles, missing geology, zero character/density and small/large bodies.
+nine saved profile selections, missing geology, zero character/density and small/large bodies.
 
 One immutable result defines the actual solid/air field, geological queries and
 diagnostic boundaries. Authored earthworks and native sculpting follow natural

@@ -68,11 +68,12 @@ struct FamilyInputs
  float warpX,warpY,relief;
 };
 static inline FamilyInputs familyInputs(float x,float y,float z,float b,float bed,float detail,
- uniform const double contacts[],uniform int numContacts,uniform float phase)
+ uniform const double contacts[],uniform int numContacts,uniform float phase,uniform float floorScale)
 {
  FamilyInputs q;q.broad=b;q.bed=bed;q.detail=detail;
- q.floor1=.40f*fsn(x*.025f+phase);q.floor2=.35f*fcs(y*.033f-phase);q.floor3=.12f*fsn((x+y)*.09f);
- q.floor4=1.2f*fhill(x,y,48.0f,-32.0f,38.0f,22.0f);q.floor5=.35f*fex(-fsq((y - 3.0f*fsn(x*.025f))/6.0f));
+ float fx=x/floorScale,fy=y/floorScale;
+ q.floor1=floorScale*.40f*fsn(fx*.025f+phase);q.floor2=floorScale*.35f*fcs(fy*.033f-phase);q.floor3=floorScale*.12f*fsn((fx+fy)*.09f);
+ q.floor4=floorScale*1.2f*fhill(fx,fy,48.0f,-32.0f,38.0f,22.0f);q.floor5=floorScale*.35f*fex(-fsq((fy - 3.0f*fsn(fx*.025f))/6.0f));
  q.warpX=2.8f*b+.65f*fsn(y*.15f+z*.20f);q.warpY=4.0f*b+1.8f*bed;
  int low=0,high=numContacts;while(low<high){int m=(low+high)/2;if(contacts[m]<z)low=m+1;else high=m;}
  float cd=1.e30f;if(low<numContacts)cd=abs((float)contacts[low]-z);if(low>0)cd=min(cd,abs((float)contacts[low - 1]-z));
@@ -152,11 +153,11 @@ export void CLFamilyCell(
  uniform const float broad[],uniform const float beds[],uniform const float detail[],
  uniform const double vx[],uniform const double vy[],uniform int vertices,
  uniform const double contacts[],uniform int numContacts,
- uniform double cx,uniform double cy,uniform double height,uniform double scale,uniform double phase,uniform int chamber,
+ uniform double cx,uniform double cy,uniform double height,uniform double scale,uniform double phase,uniform double floorScale,uniform int chamber,
  uniform double ax,uniform double ay,uniform double bx,uniform double by,uniform double fa,uniform double fb,
  uniform double air[],uniform int num)
 {
- foreach(i=0 ... num) {FamilyInputs q=familyInputs(qx[i],qy[i],qz[i],broad[i],beds[i],detail[i],contacts,numContacts,phase);air[i]=familyPoint(qx[i],qy[i],qz[i],q,vx,vy,vertices,NULL,false,NULL,0,0,0,NULL,contacts,numContacts,cx,cy,height,scale,phase,chamber,ax,ay,bx,by,fa,fb);}
+ foreach(i=0 ... num) {FamilyInputs q=familyInputs(qx[i],qy[i],qz[i],broad[i],beds[i],detail[i],contacts,numContacts,phase,floorScale);air[i]=familyPoint(qx[i],qy[i],qz[i],q,vx,vy,vertices,NULL,false,NULL,0,0,0,NULL,contacts,numContacts,cx,cy,height,scale,phase,chamber,ax,ay,bx,by,fa,fb);}
 }
 export void CLFamilyUnion(
  uniform const double qx[],uniform const double qy[],uniform const double qz[],uniform const int enabled[],uniform int seed,
@@ -184,7 +185,7 @@ export void CLFamilyUnion(
      float broad=GetPerlin3D(seed,MakeFloat3((float)(qx[i]/16.0d + 71.0d),(float)(qy[i]/13.0d - 39.0d),(float)(qz[i]/9.0d + 113.0d)));
      float bed=GetPerlin3D(seed,MakeFloat3((float)(qx[i]/4.2d - 31.0d),(float)(qy[i]/4.2d + 51.0d),(float)(qz[i]/2.1d + 19.0d)));
      float detail=GetPerlin3D(seed,MakeFloat3((float)(qx[i]/.65d + 13.0d),(float)(qy[i]/.65d + 91.0d),(float)(qz[i]/.65d - 43.0d)));
-     q=familyInputs(x,y,z,broad,bed,detail,contacts,numContacts,phase);prepared=true;
+     q=familyInputs(x,y,z,broad,bed,detail,contacts,numContacts,phase,params[p+10]);prepared=true;
     }
     float v=familyPoint(x,y,z,q,vx+starts[r],vy+starts[r],counts[r],edges+starts[r]*8,true,masks,tiles[r*3],tiles[r*3+1],tiles[r*3+2],grids+r*6,contacts,numContacts,
       params[p+6],params[p+7],params[p+8],params[p+9],phase,(uniform int)params[p+11],params[p],params[p+1],params[p+2],params[p+3],params[p+4],params[p+5]);

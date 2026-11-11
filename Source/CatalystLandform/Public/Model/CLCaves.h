@@ -129,5 +129,4 @@ public:
     static TSharedPtr<const FCLCompiledCaves> Compile(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32 PlanetSeed,FString& Error);
 private:
     static TSharedPtr<const FCLCompiledCaves> CompilePreferred(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32,FString&);
-    static TSharedPtr<const FCLCompiledCaves> CompileMinimum(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32,FString&);
 };

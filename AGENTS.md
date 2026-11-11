@@ -6,8 +6,12 @@ Character zero and density zero retain the enabled minimum.
 
 Rock identity, fracture/dissolution potential, plates, provinces, drainage and
 formation history may guide morphology and preferred placement. They must never
-be prerequisites for the existence of enabled caves. Fit a general cave when
-preferred construction cannot fit; do not invent or rewrite geological metadata.
+be prerequisites for the existence of enabled caves. Adapt placement and physical scale within the established spatial cave family
+when preferred construction cannot fit; do not invent or rewrite geological metadata.
+Never substitute capsules, stretched chambers or a simpler cave generator to
+satisfy existence. Acceptance must retain natural passages, varied chambers and
+continuous walkable floors. Check the current review asset as well as synthetic
+inputs, and assert spatial-family identity before accepting a generated result.
 
 Preserve successful existing cave fields. Keep VPP stock and the existing UI.
 Any change to cave eligibility, placement, fit or recipe validation must run the

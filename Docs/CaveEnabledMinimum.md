@@ -1,46 +1,46 @@
-# Enabled caves are unconditional
+# Enabled caves retain the natural family
 
-Caves is an authoring and exploration feature. Enabling it promises a real cave
-layer; it must not require the user to prepare a compatible three-rock palette,
-select a province or supply a drainage history. Geological metadata influences
-preferred morphology and location. It never grants permission for caves to exist.
-A hidden geological prerequisite also invalidates the preview, making unrelated
-terrain editing appear broken. That was the defect, entirely in Landform code.
+Caves ON guarantees generation and retains the established natural cave quality.
+Rock metadata guides preferred placement and bedding; it cannot switch caves off.
+The eye toggle requests zero, and later authored edits retain their existing order.
+VPP and the existing UI remain unchanged.
 
-The compiler preserves a successful preferred construction verbatim. When it
-cannot supply a complete network, it fits one deterministic general network into
-the conservative radial interior, using overlapping native vault/lobe kernels.
-Surface access, when requested, adds a connected opening. This minimum is actual
-terrain subtraction delivered by the existing scene and VPP stamp, with canonical
-rock queries retained. It does not fabricate rock identity or carbonate history.
-Character zero, density zero, unknown/missing host data and preferred-placement
-budget exhaustion cannot switch caves off. The eye toggle requests zero.
-Subsequent authored backfill and native sculpting retain their existing ordering.
+The previous minimum implementation was a regression: three overlapping chamber
+lobes and a stretched entrance chamber replaced the natural family when host
+checks failed. Its air/connectivity tests did not establish the requested cave
+morphology or floor quality. That implementation has been removed.
 
-The invariant is recorded in the component [AGENTS.md](../AGENTS.md) and
-[Caves contract](Caves.md#generation-and-editing-contract), with executable
-regressions in `Catalyst.Landform.Caves.AlwaysEnabledMinimum`. Future cave changes
-must retain this invariant instead of introducing a geological admission rule.
-VPP source/configuration and the existing UI are unchanged by this change.
+The enabled minimum now uses the existing spatial family's irregular chambers,
+looping galleries and shared rolling floors. General-host placement uses physical
+radial coordinates without rewriting geological metadata; canonical strata still
+come from the original rock source. Dimensions adapt to small bodies within the
+same family. Surface access uses an ordinary passage and continuous gradual floor
+from a chamber outward to local terrain, rather than a shaft from the global
+minimum surface radius. Existing successful preferred bedding geometry is retained.
 
-## Qualification
+The permanent component [contract](../AGENTS.md) forbids replacing this family with
+primitive volumes to satisfy existence. The regression suite must assert actual
+spatial-family identity and natural-family passage data, alongside positive air.
+`Catalyst.Landform.Caves.RiftNaturalFamily` loads the current Continental Rift
+review asset and checks chambers/passages, head clearance, foundation, actual
+route grade, scalar/native parity and delivery into the real terrain field.
+`AlwaysEnabledMinimum` checks the same family across missing geology, zero density,
+small/large planets and all saved profile selections. Other focused regressions
+retain native field parity, strata, persistence, backfill and background checks.
 
-Native UE 5.7 Mac arm64 editor build; five focused automation tests passed:
+This correction does not claim a new cave-performance or ecosystem qualification.
 
-- AlwaysEnabledMinimum: 72 combinations of profiles 1–9, radii 10/100/1,000/10,000,000 m,
-  and surface access off/on, with missing geological context, zero character and
-  density, oversized authored dimensions, actual positive-air and connected-field
-  probes, deterministic construction and finite inspection resolution.
-- EligibilityAndVersions: unknown and mixed hosts, missing/unselected provinces,
-  older spherical recipe schema and invalid dimensions.
-- NativeFieldsAndPersistence: existing native bulk/sparse parity, strata, recipe
-  round trip and later authored backfill.
-- KnobAndBackground: existing progression, reseeding, preferred placement budget
-  and background parity.
-- SmallPlanetMinimumAndScale: existing saved 500 m planet, seeds, zero density,
-  eye off, absent rock and deterministic reload.
+## Verified correction
 
-The minimum tests establish existence and connected field geometry, not visual
-acceptance or walkability of every fitted shape. Preferred family geometry code
-is unchanged. Full procedural-family walkthrough/performance qualification is
-outside this change; no freeze or ecosystem-headroom result is claimed.
+UE 5.7 Mac arm64 native build and all six focused tests passed: AlwaysEnabledMinimum,
+EligibilityAndVersions, KnobAndBackground, NativeFieldsAndPersistence,
+RiftNaturalFamily and SmallPlanetMinimumAndScale. The 72 fitted cases now assert
+spatial-family identity and use freshly compiled physical bodies at each radius.
+The test host matched all 275 source/build/configuration/shader inputs.
+
+The saved Rift at Character 1 produced 26 networks, 208 chambers, 234 passages and
+26 entrances. Walking probes reported zero clearance failures, zero cutter-floor
+failures and no unsupported feet in the final terrain field. Maximum sampled route
+grade was 0.30134 (about 17 degrees); native/scalar residual was 0.00001152 m.
+These checks establish this saved recipe and the stated synthetic cases. Visual
+approval remains the user's review of the restored existing family.
