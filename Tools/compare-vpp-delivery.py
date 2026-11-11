@@ -33,12 +33,11 @@ def main():
     parser.add_argument("--project", type=Path, required=True, help="Physical isolated LandformLab.uproject")
     parser.add_argument("--output", type=Path, required=True, help="New comparison directory")
     parser.add_argument("--rounds", type=int, default=2)
-    parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--create-graph", action="store_true", help="Create new native graph package; refuses to overwrite")
     parser.add_argument("--skip-saves", action="store_true", help="Performance-only rerun; omits edit persistence qualification")
     args = parser.parse_args()
-    if args.rounds < 1 or not 2 <= args.workers <= 32:
-        parser.error("Use at least one round and 2–32 workers")
+    if args.rounds < 1:
+        parser.error("Use at least one round")
     host = args.project.resolve().parent
     plugin = host / "Plugins/CatalystLandform"
     recipe = plugin / "Examples/OrganicKarst.json"
@@ -47,7 +46,7 @@ def main():
         parser.error("Missing native editor, project or canonical cave recipe")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
-    manifest = {"recipeSHA256": hashlib.sha256(recipe.read_bytes()).hexdigest(), "workersRequested": args.workers,
+    manifest = {"recipeSHA256": hashlib.sha256(recipe.read_bytes()).hexdigest(), "schedulerPolicy": "stock; no worker override",
                 "resolution": [1280, 800], "voxelSizeCm": 20, "rounds": args.rounds,
                 "note": "Synthetic render-only ISM workload; no ecosystem/PCG/animation budget inferred."}
     manifest["sources"] = {str(p.relative_to(host)): hashlib.sha256(p.read_bytes()).hexdigest()
@@ -68,7 +67,7 @@ def main():
         raise RuntimeError("Parity failed: no performance comparison accepted")
     proof_common = common.copy()
     proof_common[2] += "?game=/Script/LandformLab.CLGeneratedCaveProofGameMode"
-    proof_common += ["-game", "-CLCaveReviewWorkers="+str(args.workers), "-ResX=1280", "-ResY=800", "-windowed",
+    proof_common += ["-game", "-ResX=1280", "-ResY=800", "-windowed",
                      "-CLCaveRecipe="+str(recipe), "-ExecCmds=r.VSync 0,t.MaxFPS 0,t.IdleWhenNotForeground 0,r.ScreenPercentage,r.DynamicRes.OperationMode,sg.ResolutionQuality,sg.ShadowQuality,sg.GlobalIlluminationQuality,sg.ViewDistanceQuality"]
     backends = ["legacy", "cpp", "graph"]
     slot_prefix = "LandformDelivery_"+output.name

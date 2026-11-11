@@ -260,6 +260,14 @@ silently remove legitimate contributions. Keep native
 comparison. Do not improve the result merely by reducing shape fidelity, enlarging
 prefetch distance, adding workers, hiding waits or weakening error bounds.
 
+VPP configuration stays stock unless a controlled comparison proves a measurable
+benefit from a specific change. Diagnose and optimize Landform delivery first.
+Record the stock control, exact configuration difference, equivalent geometry,
+workload and hardware, and effects on movement, CPU/GPU time and memory before
+adopting an override. Historical tuning trials are evidence, not active defaults.
+Existing project voxel resolution and rendering settings must be reported
+explicitly; they do not make a configured review world a stock-default control.
+
 A complete acceptance matrix must include exterior, cave entrance, passage/room
 join, intersecting networks, poles/chart seams, backfill, native save/cold reload,
 local recipe change, origin shift, teardown and concurrent ecosystem placement.
