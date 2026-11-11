@@ -1,0 +1,24 @@
+{
+  "scope": "Remove navigation-triggered quality switching; retain the finer minimum cell cap.",
+  "fullPreviewQuality": 4,
+  "navigationQualityOverride": false,
+  "minimumCellCapCm": 25,
+  "vppSourceChanges": false,
+  "highRotationTaskCountResolved": false,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.Navigation",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.RoutedPointerOrbit",
+      "state": "Success"
+    }
+  ],
+  "sourceSHA256": {
+    "Source/CatalystLandformEditor/Private/CLNativePreview.cpp": "34c51d09f72e43cc122b68abbba5007d3264ed710e2e99dbcef9b0d93a19d140",
+    "Source/CatalystLandformEditor/Private/CLNativePreview.h": "83ab1fccad91f72d6355629908ab8ffa0e7ce3dcce8599a2c21c610b15974b15",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "1e4243885b4ed123a35c843e908db41f23cf84eebc83d6f1699171a1d793f1a6"
+  },
+  "matchesRunningHost": true
+}

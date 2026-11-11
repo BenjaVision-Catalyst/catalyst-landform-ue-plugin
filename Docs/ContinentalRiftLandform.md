@@ -101,17 +101,13 @@ separates field, editor and cooked evidence. Acceptance of the artistic landform
 still requires human review. Erosion, sediment fill, connected fault history and
 other provincial expressions remain future work.
 
-## Preview navigation — 11 November 2026
+## Preview detail — 11 November 2026
 
-The terrain preview uses native quality 1 while the view moves, then restores
-its existing full quality 4 after 200 ms without navigation. This changes only
-the preview world's native LOD quality; it does not recompile the recipe or
-replace its world, stamp, renderer or geological field. Native LOD can still
-schedule work while moving and one full-detail refinement after stopping.
 The normal minimum cell cap is 25 cm in normalized display space instead of
-50 cm, allowing finer close-up cells. Draft authoring and cave diagnostics retain
-their previous quality policies. UI controls and camera motion are unchanged.
+50 cm, allowing finer close-up cells. Full preview quality remains fixed at 4
+through orbit and zoom. Navigation does not change quality or enter authoring
+draft mode. The navigation-triggered quality downgrade was removed after user
+review. Draft authoring and cave diagnostics retain their previous policies.
 
-The two existing navigation checks passed in the rebuilt editor. This is a
-bounded preview adjustment, not a cave-streaming fix or a claim of zero native
-tasks during rotation. Earlier high-quality/redraw experiments were discarded.
+Native camera LOD still generates/refines chunks as needed. The high task count
+on rotation remains unresolved; this correction does not claim to fix it.

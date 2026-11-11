@@ -22,5 +22,6 @@
   },
   "allMatchRunningHost": true,
   "taskCountBeforeAfterMeasured": false,
-  "limitations": "Native LOD can still schedule tasks while moving and refine after stopping; no zero-task or cave-streaming claim."
+  "limitations": "Native LOD can still schedule tasks while moving and refine after stopping; no zero-task or cave-streaming claim.",
+  "status": "Rejected after user review: navigation caused a visible loss of detail; superseded by stable-detail.json"
 }

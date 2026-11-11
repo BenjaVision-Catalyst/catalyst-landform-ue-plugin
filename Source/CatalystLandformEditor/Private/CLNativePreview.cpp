@@ -67,12 +67,6 @@ FVoxelVolumeTransform FCLNativePreview::StampToDisplay()const
     return FVoxelVolumeTransform::Create(Stamp->GetComponentTransform(),FTransform::Identity,FVoxelBox(-1,1),0);
 }
 FCLNativePreview::~FCLNativePreview(){Reset();}
-void FCLNativePreview::SetNavigationActive(bool Active)
-{
-    if(CaveInspection||bNavigationActive==Active)return;
-    bNavigationActive=Active;
-    if(Native)Native->LODQuality.EditorQuality=(Active||AppliedDraft)?FFloatInterval(1,1):FFloatInterval(4,4);
-}
 void FCLNativePreview::Reset()
 {
     CaveDomains.Reset();Pending.Reset();VisiblePlan.Reset();Plan.Reset();Stamp.Reset();
@@ -168,7 +162,7 @@ bool FCLNativePreview::ApplyPending()
     // A planet-wide cave diagnostic must retain thin voids even when terrain
     // overview LOD would sample them away. VPP owns subdivision and meshing;
     // this higher native quality applies only to the sparse inspection layer.
-    Native->LODQuality.EditorQuality=CaveInspection?FFloatInterval(8192,8192):(AppliedDraft||bNavigationActive)?FFloatInterval(1,1):FFloatInterval(4,4);
+    Native->LODQuality.EditorQuality=CaveInspection?FFloatInterval(8192,8192):AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
     auto Coordinates=MaterialCoordinates(StampToDisplay(),Section,Source.SectionReferenceRadiusMeters);
 #if WITH_DEV_AUTOMATION_TESTS
     if(!MaterialCoordinatesEnabled)Coordinates.High.A=0;
