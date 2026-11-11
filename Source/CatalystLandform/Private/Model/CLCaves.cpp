@@ -36,6 +36,18 @@ bool FCLCaveSettings::Validate(FString& Error)const
 }
 TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettings& Settings,const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {
+    Error.Reset();
+    if(!Settings.Validate(Error)||!FCLCompileProgress::Check(Error))return nullptr;
+    const auto Preferred=CompilePreferred(Settings,Base,Seed,Error);
+    if(!Settings.bEnabled||(Preferred&&Preferred->Networks>0&&Preferred->Cutters))return Preferred;
+    // Geology selects a preferred construction; it never grants permission for
+    // an enabled feature to exist. Cancellation still retires the whole job.
+    if(!FCLCompileProgress::Check(Error))return nullptr;
+    Error.Reset();
+    return CompileMinimum(Settings,Base,Seed,Error);
+}
+TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::CompilePreferred(const FCLCaveSettings& Settings,const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
+{
     auto S=Settings;S.UpgradeAbundanceProfile();
     Error.Reset();if(!S.Validate(Error))return nullptr;
     auto Out=MakeShared<FCLCompiledCaves>();

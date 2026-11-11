@@ -343,6 +343,7 @@ double FCLCompiledCaveVolume::MinimumHalfWidth(FGuid Network)const
     if(Spatial)return 2.;
     double M=MAX_dbl;
     for(const auto& P:Data->Paths)if((!Network.IsValid()||P.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(P.Network)))M=FMath::Min(M,P.MinimumWidth);
+    if(Data->Paths.IsEmpty())for(const auto& C:Data->Chambers)if((!Network.IsValid()||C.Source.Network==Network)&&(SelectedNetworks.IsEmpty()||SelectedNetworks.Contains(C.Source.Network)))M=FMath::Min(M,C.Source.HalfExtents.GetMin());
     return M;
 }
 double FCLCompiledCaveVolume::Compose(const FVector3d& P,double Field,FCLSurfaceWeights*)const

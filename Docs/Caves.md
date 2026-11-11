@@ -1,5 +1,9 @@
 # Generated cave volumes
 
+**Hard requirement:** Caves ON always generates at least one real cave in every
+valid planet recipe. Rock type is never permission to generate. This contract
+supersedes the historical host-rejection policies recorded below.
+
 The current opt-in spatial family is [seeded multi-level carbonate caves, profile 9](ProceduralCaveFamily.md). Profiles 1–8 retain their saved definitions.
 
 The opt-in [spatial passage/chamber prototype, profile 8](SpatialCavePrototype.md)
@@ -78,28 +82,36 @@ cannot accommodate meaningful natural networks. Generated caves now use VPP's
 native AABB tree directly with a separate bounded natural-feature collection:
 4,096 passages, 2,048 chamber/scar volumes and 65,536 solid features, in addition
 to the existing 16,384 placement
-candidate limit. Overflow refuses the complete build. Authored edits retain their
+candidate limit. Overflow in preferred construction selects the bounded enabled minimum. Authored edits retain their
 existing order and limits. These are bridge budgets, not VPP feature limits.
 
 ## Generation and editing contract
 
-Structural caves require selected rift/shear Landforms with positive local evidence
-and explicitly fracture-capable, known non-ice rock hosts. Carbonate karst has the
-separate prerequisites below. The current conservative host
-rule requires the entire three-unit palette to be compatible. Sampled footprint,
-roof and cover checks reject a whole candidate before publication; these checks
-are not a continuous mathematical roof/host certificate.
+The Caves control promises a generated cave layer. The eye is the only control
+that requests zero; Character zero and density zero retain at least one network.
+Geological metadata selects preferred morphology and placement, never eligibility
+for the feature itself. Missing rock, unknown lithology, zero fracture/dissolution
+potential, unavailable provinces or drainage cannot prevent enabled caves.
 
-Enabled caves request at least one complete eligible network at every knob
-position. The eye is the way to request zero. Algorithms 2–6 resolve density to a requested complete-network count over estimated
-eligible physical area, then visits stable occurrence-ranked sites. The automatic
-profile is `6 * Character²` networks per eligible km². Physical area is measured at
-the fitted surface midpoint, using the existing equal-area candidate sampling.
-Counts round upward and retain the enabled minimum. Complete-fit capacity (and spacing in legacy profiles and the new bedded-karst family)
-can limit a request; readiness reports requested and accepted counts explicitly.
-It never silently stretches caves to fill a planet or fabricates host geology.
-Missing prerequisites or an impossible complete fit produce an explicit error.
-The minimum never fabricates eligible geology or an independent debug-only cave.
+Preferred structural and carbonate construction retain their existing geological
+checks and successful geometry. If those cannot produce a complete network, the
+same compiler fits a deterministic general network to the body's interior using
+three overlapping native vault/lobe volumes. Requested surface access adds a
+connected opening. Dimensions adapt to physical fit; preferred placement budgets
+remain bounded. This uses the existing native shape/blend/noise/index kernels and
+the same canonical solid/air field, without inventing geology or a debug mesh.
+The reused vault anatomy does not assign carbonate chemistry to unknown rock.
+
+Density still requests extra preferred networks, with readiness reporting actual
+counts. The minimum guarantees existence, not the full requested abundance or
+visual acceptance of every fitted shape. Authored backfill and sculpting retain
+their later position in scene composition. Invalid input and cancellation retain
+normal pipeline validation; neither is a geological exclusion.
+
+This is a permanent component invariant in [AGENTS.md](../AGENTS.md). Changes to
+host selection, placement, fit or recipe validation must run the enabled-minimum
+regressions: actual positive-air samples and connected field probes across all
+nine profiles, missing geology, zero character/density and small/large bodies.
 
 One immutable result defines the actual solid/air field, geological queries and
 diagnostic boundaries. Authored earthworks and native sculpting follow natural

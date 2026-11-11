@@ -477,16 +477,18 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     };
 
     const bool TypedHosts=Recipe.Rock.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Unknown||U.FracturePotential!=0||U.DissolutionPotential!=0;});
-    if(Recipe.SchemaVersion<23&&TypedHosts&&!CompilingCaveBase){Error=TEXT("Typed cave-host rock requires recipe schema 23");return nullptr;}
+    if(Recipe.SchemaVersion<23&&TypedHosts&&!CompilingCaveBase&&!Recipe.Caves.bEnabled){Error=TEXT("Typed cave-host rock requires recipe schema 23");return nullptr;}
     if(Recipe.SchemaVersion==23||Recipe.Caves.bEnabled)
     {
-        if(Recipe.SchemaVersion!=23||Recipe.AlgorithmVersion!=2||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||Recipe.MeasuredTerrain.IsActive()||LocalRegion||FCLSphericalPatches::IsFace(SurfacePatch))
-        {Error=TEXT("Caves schema 23 requires a whole native procedural spherical scene");return nullptr;}
+        if(Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface&&Recipe.Coordinates!=ECLTerrainCoordinates::Sphere)
+        {Error=TEXT("Planet caves require spherical body coordinates");return nullptr;}
         if(!Recipe.Caves.Validate(Error))return nullptr;
         if(Recipe.Rock.bEnabled&&!Recipe.Volumes.GeologicalUnits.IsEmpty()){Error=TEXT("Caves retain one canonical geological source");return nullptr;}
-        auto Base=Recipe;Base.SchemaVersion=22;Base.Caves=FCLCaveSettings();Base.Volumes=FCLVolumeSettings();
+        auto Base=Recipe;Base.SchemaVersion=Recipe.MeasuredTerrain.IsActive()?19:
+            Recipe.AlgorithmVersion==1?18:Recipe.SchemaVersion==23?22:Recipe.SchemaVersion;
+        Base.Caves=FCLCaveSettings();Base.Volumes=FCLVolumeSettings();
         TSharedPtr<const FCLCompiledPlanetRecipe> Core;
-        {TGuardValue<bool> Scope(CompilingCaveBase,true);Core=Compile(Base,Error,Library,nullptr,SurfacePatch,SurfaceLibraryOverride);}if(!Core)return nullptr;
+        {TGuardValue<bool> Scope(CompilingCaveBase,true);Core=Compile(Base,Error,Library,nullptr,INDEX_NONE,SurfaceLibraryOverride);}if(!Core)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);
         if(FCLCompileProgress::IsPreparing())return RetainInput(Out);
         if(Recipe.Caves.bEnabled){FCLCompileProgress::Report(ECLCompileStage::Caves);Out->Caves=FCLCompiledCaves::Compile(Recipe.Caves,*Out,Recipe.Seed,Error);if(!Out->Caves)return nullptr;}

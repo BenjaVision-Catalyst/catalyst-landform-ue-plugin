@@ -25,12 +25,12 @@ bool FCLCaveEligibilityTest::RunTest(const FString&)
     FString E;auto R=CaveRecipe(E);const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves){AddError(E);return false;}
     TestTrue(TEXT("Declared hosts and selected structural provinces produce cave networks"),P->Caves->Networks>0);AddInfo(P->Caves->Readiness);
     auto Unknown=R;for(auto& U:Unknown.Rock.Units){U.Lithology=ECLRockLithology::Unknown;U.FracturePotential=0;}
-    const auto U=FCLPlanetCompiler::Compile(Unknown,E);TestTrue(TEXT("Unknown hosts explicitly refuse enabled caves"),!U&&E.Contains(TEXT("declare")));
-    Unknown=R;Unknown.Rock.Units[2].FracturePotential=0;const auto Mixed=FCLPlanetCompiler::Compile(Unknown,E);TestTrue(TEXT("A nonfracturable host conservatively blocks this bounded family"),!Mixed&&E.Contains(TEXT("fracture")));
-    auto Missing=MakeShared<FCLCompiledPlanetRecipe>(*P);Missing->GeneratedRegions.Reset();const auto N=FCLCompiledCaves::Compile(R.Caves,*Missing,R.Seed,E);TestTrue(TEXT("Missing selected Landform context refuses enabled caves"),!N&&E.Contains(TEXT("require")));
+    const auto U=FCLPlanetCompiler::Compile(Unknown,E);TestTrue(TEXT("Unknown hosts retain enabled caves"),U&&U->Caves&&U->Caves->Cutters&&U->Caves->Networks>0);
+    Unknown=R;Unknown.Rock.Units[2].FracturePotential=0;const auto Mixed=FCLPlanetCompiler::Compile(Unknown,E);TestTrue(TEXT("Nonfracturable metadata cannot disable caves"),Mixed&&Mixed->Caves&&Mixed->Caves->Networks>0);
+    auto Missing=MakeShared<FCLCompiledPlanetRecipe>(*P);Missing->GeneratedRegions.Reset();const auto N=FCLCompiledCaves::Compile(R.Caves,*Missing,R.Seed,E);TestTrue(TEXT("Missing Landform context retains the enabled minimum"),N&&N->Cutters&&N->Networks>0);
     for(auto& Entry:R.RegionGeneration.Palette)Entry.bEnabled=Entry.Suitability.Province.Type==ECLProvinceType::CarbonatePlatform;
-    const auto Unselected=FCLPlanetCompiler::Compile(R,E);TestTrue(TEXT("Unavailable provinces refuse an enabled cave build"),!Unselected&&E.Contains(TEXT("no complete")));
-    R=CaveRecipe(E);R.SchemaVersion=22;TestFalse(TEXT("Caves and typed hosts require explicit schema 23"),FCLPlanetCompiler::Compile(R,E).IsValid());
+    const auto Unselected=FCLPlanetCompiler::Compile(R,E);TestTrue(TEXT("Unavailable preferred provinces retain caves"),Unselected&&Unselected->Caves&&Unselected->Caves->Networks>0);
+    R=CaveRecipe(E);R.SchemaVersion=22;TestTrue(TEXT("An older valid spherical recipe can enable caves"),FCLPlanetCompiler::Compile(R,E).IsValid());
     auto Invalid=P->SourceRecipe->Caves;Invalid.RadiusMeters=-1;TestFalse(TEXT("Invalid dimensions are refused"),Invalid.Validate(E));
     return true;
 }
@@ -95,7 +95,7 @@ bool FCLCaveProgressionTest::RunTest(const FString&)
     TSet<int32> Counts;double PreviousRadius=0;for(int32 I=0;I<=10;++I){auto S=R.Caves;S.ApplyProgression(I/10.);TestTrue(TEXT("Every knob position validates"),S.Validate(E));const auto C=FCLCompiledCaves::Compile(S,*Base,R.Seed,E);if(!C){AddError(E);return false;}Counts.Add(C->Segments.Num());TestTrue(TEXT("Cave aperture develops across the knob"),S.RadiusMeters>PreviousRadius);PreviousRadius=S.RadiusMeters;if(I==0)TestTrue(TEXT("Enabled at zero still has its minimum cave"),!C->Segments.IsEmpty());}
     TestTrue(TEXT("Knob changes occurrence and branching as well as dimensions"),Counts.Num()>2);
     const auto P=FCLPlanetCompiler::Compile(R,E);auto S=R.Caves;++S.Seed;const auto V=FCLCompiledCaves::Compile(S,*Base,R.Seed,E);TestTrue(TEXT("Reseeding changes the deterministic underground layout"),V&&(V->Segments.Num()!=P->Caves->Segments.Num()||(!V->Segments.IsEmpty()&&V->Segments[0].A!=P->Caves->Segments[0].A)));
-    auto Large=MakeShared<FCLCompiledPlanetRecipe>(*Base);Large->RadiusMeters=100000;TestFalse(TEXT("Physical candidate budget never silently coarsens a large planet"),FCLCompiledCaves::Compile(R.Caves,*Large,R.Seed,E).IsValid());
+    auto Large=MakeShared<FCLCompiledPlanetRecipe>(*Base);Large->RadiusMeters=100000;const auto Bounded=FCLCompiledCaves::Compile(R.Caves,*Large,R.Seed,E);TestTrue(TEXT("Preferred placement budget retains a bounded real minimum"),Bounded&&Bounded->Networks==1&&Bounded->Cutters);
     const auto Prepared=FCLPlanetCompiler::PrepareBackground(R,E);if(!Prepared){AddError(E);return false;}const auto Control=MakeShared<FCLCompileProgress>();TSharedPtr<const FCLCompiledPlanetRecipe> Worker;FString WE;
     auto Task=UE::Tasks::Launch(UE_SOURCE_LOCATION,[&]{Worker=FCLPlanetCompiler::CompleteBackground(*Prepared,Control,WE);});Task.Wait();if(!Worker){AddError(WE);return false;}TestEqual(TEXT("Existing background worker produces the same native cave input"),Worker->Caves->Segments.Num(),P->Caves->Segments.Num());
     return true;
@@ -107,12 +107,41 @@ bool FCLCaveSmallPlanetTest::RunTest(const FString&)
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}const auto R=A->Recipe;const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves){AddError(E);return false;}
     TestEqual(TEXT("Frozen saved small planet is 500 m"),R.RadiusMeters,500.);TestTrue(TEXT("Saved high-end recipe now supplies multiple complete caves without moving the knob"),P->Caves->Networks>=3);TestEqual(TEXT("Legacy dimensions remain authored"),R.Caves.LengthMeters,92.);TestEqual(TEXT("Legacy automatic density upgrades on import"),R.Caves.NetworksPerSquareKilometer,6.);AddInfo(P->Caves->Readiness);
     auto Off=R;Off.Caves.bEnabled=false;const auto Base=FCLPlanetCompiler::Compile(Off,E);if(!Base){AddError(E);return false;}
-    for(int32 Seed=73;Seed<81;++Seed){auto C=R.Caves;C.Seed=Seed;const auto V=FCLCompiledCaves::Compile(C,*Base,R.Seed,E);TestTrue(TEXT("Each seed supplies a cave or explicitly refuses incompatible geometry"),(V&&V->Networks>0)||(!V&&E.Contains(TEXT("no complete"))));if(V)AddInfo(FString::Printf(TEXT("seed %d: %s"),Seed,*V->Readiness));}
+    for(int32 Seed=73;Seed<81;++Seed){auto C=R.Caves;C.Seed=Seed;const auto V=FCLCompiledCaves::Compile(C,*Base,R.Seed,E);TestTrue(TEXT("Every seed supplies an enabled cave"),V&&V->Networks>0&&V->Cutters);if(V)AddInfo(FString::Printf(TEXT("seed %d: %s"),Seed,*V->Readiness));}
     for(double Value:{0.,.01,.25,.5,1.}){auto C=R.Caves;C.ApplyProgression(Value);const auto V=FCLCompiledCaves::Compile(C,*Base,R.Seed,E);if(!V){AddError(E);return false;}TestTrue(TEXT("Every enabled knob position produces at least one cave"),V->Networks>=1);}
     auto Density=R.Caves;Density.NetworksPerSquareKilometer=0;const auto Zero=FCLCompiledCaves::Compile(Density,*Base,R.Seed,E);TestTrue(TEXT("Zero density means no extras beyond the enabled minimum"),Zero&&Zero->Networks==1);
     Density.bEnabled=false;const auto Disabled=FCLCompiledCaves::Compile(Density,*Base,R.Seed,E);TestTrue(TEXT("The eye toggle is the way to produce zero caves"),Disabled&&Disabled->Segments.IsEmpty());
-    auto Unknown=MakeShared<FCLCompiledPlanetRecipe>(*Base);Unknown->Rock.Reset();const auto Missing=FCLCompiledCaves::Compile(R.Caves,*Unknown,R.Seed,E);TestTrue(TEXT("A minimum does not bypass missing geological prerequisites"),!Missing&&E.Contains(TEXT("require")));
+    auto Unknown=MakeShared<FCLCompiledPlanetRecipe>(*Base);Unknown->Rock.Reset();const auto Missing=FCLCompiledCaves::Compile(R.Caves,*Unknown,R.Seed,E);TestTrue(TEXT("Missing geology cannot disable the enabled minimum"),Missing&&Missing->Networks>0&&Missing->Cutters);
     auto Original=CaveRecipe(E);Original.Caves.ApplyProgression(1.);const auto Large=FCLPlanetCompiler::Compile(Original,E);TestTrue(TEXT("Density still adds networks on the existing reference planet"),Large&&Large->Caves->Networks>P->Caves->Networks&&!Large->Caves->Readiness.Contains(TEXT("minimum applied")));
     const auto Reload=FCLPlanetCompiler::Compile(R,E);TestTrue(TEXT("Minimum network identity is deterministic"),Reload&&Reload->Caves->Segments[0].Network==P->Caves->Segments[0].Network&&Reload->Caves->Segments[0].A==P->Caves->Segments[0].A);return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveAlwaysEnabledTest,"Catalyst.Landform.Caves.AlwaysEnabledMinimum",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLCaveAlwaysEnabledTest::RunTest(const FString&)
+{
+    FString E;auto R=FCLPlanetCompiler::BasePlanet();R.NoiseLayers.Reset();R.RadiusMeters=1000;
+    R.Caves.bEnabled=true;R.Caves.Character=0;R.Caves.NetworksPerSquareKilometer=0;
+    const auto P=FCLPlanetCompiler::Compile(R,E);
+    if(!TestTrue(TEXT("A plain planet with no host declarations compiles enabled caves"),P&&P->Caves&&P->Caves->Cutters)){AddError(E);return false;}
+    const auto Scene=FCLScene::FromPlanet(P,E);if(!TestTrue(TEXT("The minimum is delivered through the actual volume scene"),Scene&&!Scene->IsHeightOnly()))return false;
+    TArray<FVector> Points;for(const auto& N:P->Caves->Nodes)Points.Add(N.Position);
+    TArray<FCLSceneShapeSample> Field;Scene->SampleShape({Points},Field,E);
+    for(const auto& V:Field)TestTrue(TEXT("Enabled minimum contains actual underground air"),V.FieldMeters>0);
+    auto Base=MakeShared<FCLCompiledPlanetRecipe>(*P);Base->Rock.Reset();Base->Tectonics.Reset();Base->GeneratedRegions.Reset();Base->Watershed.Reset();Base->Caves.Reset();
+    int32 Cases=0;
+    for(double Radius:{10.,100.,1000.,10000000.})for(int32 Profile=1;Profile<=9;++Profile)for(bool Entrances:{false,true})
+    {
+        Base->RadiusMeters=Radius;Base->MinimumHeightMeters=0;Base->MaximumHeightMeters=0;
+        auto Settings=R.Caves;Settings.AlgorithmVersion=Profile;Settings.bSurfaceEntrances=Entrances;
+        Settings.LengthMeters=500;Settings.RadiusMeters=10;Settings.DepthMeters=500;Settings.MinimumCoverMeters=100;
+        const auto C=FCLCompiledCaves::Compile(Settings,*Base,R.Seed,E);
+        if(!TestTrue(TEXT("All enabled profiles fit a minimum regardless of missing geology, density or body scale"),C&&C->Networks>0&&C->Cutters)){AddError(E);return false;}
+        TestTrue(TEXT("Chamber-only inspection has finite positive resolution"),C->Cutters->MinimumHalfWidth()>0&&C->Cutters->MinimumHalfWidth()<MAX_dbl);
+        for(const auto& N:C->Nodes)TestTrue(TEXT("Every generated lobe has real air"),C->Cutters->Compose(N.Position,-Radius)>0);
+        for(const auto& S:C->Segments)for(int32 I=0;I<=20;++I)TestTrue(TEXT("Minimum connections remain continuously open"),C->Cutters->Compose(FMath::Lerp(S.A,S.B,I/20.),-Radius)>0);
+        if(Profile==9){const auto Again=FCLCompiledCaves::Compile(Settings,*Base,R.Seed,E);TestTrue(TEXT("The fitted minimum is deterministic"),Again&&Again->Nodes[0].Position==C->Nodes[0].Position);}
+        TestFalse(TEXT("Minimum construction does not invent rock metadata"),Base->Rock.IsValid());++Cases;
+    }
+    R.Caves.bEnabled=false;const auto Off=FCLPlanetCompiler::Compile(R,E);TestTrue(TEXT("Disabling caves removes the generated layer"),Off&&!Off->Caves);
+    AddInfo(FString::Printf(TEXT("Enabled minimum: %d scale/profile/access cases with real air and connected field probes"),Cases));return !HasAnyErrors();
 }
 #endif

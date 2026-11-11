@@ -117,7 +117,7 @@ public:
     TArray<FCLCaveInfill> Infills;
     TSharedPtr<const FCLCompiledCaveVolume> Cutters;
     TSharedPtr<const FCLSpatialCave> Spatial;
-    enum class EFamily:uint8 {Structural,CarbonateKarst};
+    enum class EFamily:uint8 {Structural,CarbonateKarst,General};
     struct FNetwork {FGuid Id;EFamily Family=EFamily::Structural;int32 RechargeCell=INDEX_NONE,ReceivingCell=INDEX_NONE;double InceptionRadiusMeters=0;FBox InspectionBounds=FBox(ForceInit);FGuid Landform;FVector OriginDirection=FVector::ZeroVector;};
     TArray<FNetwork> NetworkInfo;
     /** Static query/render support groups, not a claim of physical connectivity. */
@@ -127,4 +127,7 @@ public:
     int32 Candidates=0,EligibleCandidates=0,RequestedNetworks=0,Networks=0,Entrances=0;
     FString Readiness;
     static TSharedPtr<const FCLCompiledCaves> Compile(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32 PlanetSeed,FString& Error);
+private:
+    static TSharedPtr<const FCLCompiledCaves> CompilePreferred(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32,FString&);
+    static TSharedPtr<const FCLCompiledCaves> CompileMinimum(const FCLCaveSettings&,const FCLCompiledPlanetRecipe&,int32,FString&);
 };

@@ -122,7 +122,7 @@ bool FCLProceduralCaveControlsTest::RunTest(const FString&)
     TestTrue(TEXT("The distribution fixture exercises rock between independent networks"),GapProbes>0);
     const auto Selected=P->Caves->Cutters->Select(P->Caves->NetworkInfo[0].Id);
     for(const auto& N:P->Caves->Nodes)TestTrue(TEXT("Native inspection selection retains only its requested network"),N.Network==P->Caves->NetworkInfo[0].Id?Selected->Compose(N.Position,-1000)>.5:Selected->Compose(N.Position,-1000)<0);
-    R.Caves.bSurfaceEntrances=true;TestFalse(TEXT("Unqualified entrance option refuses explicitly"),FCLPlanetCompiler::Compile(R,E).IsValid());TestTrue(TEXT("Refusal explains supported scope"),E.Contains(TEXT("surface access")));
+    R.Caves.bSurfaceEntrances=true;const auto Access=FCLPlanetCompiler::Compile(R,E);TestTrue(TEXT("Surface access retains a real enabled cave"),Access&&Access->Caves&&Access->Caves->Cutters&&Access->Caves->Entrances>0);
     return !HasAnyErrors();
 }
 
