@@ -650,6 +650,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
 {
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FCLPlanetInspectorTest;
+    friend class FCLInstalledPlanetEditorTest;
     friend class FCLTectonicLiveKnobTest;
     friend class FCLTectonicAdvancedTest;
     friend class FCLRockDesignerTest;
@@ -2034,6 +2035,33 @@ bool FCLTectonicAdvancedTest::RunTest(const FString&)
     Draft.PlateCount=99;Editor->PlanetInspectors[1]->OnFinishedChangingProperties().Broadcast(Finished);TestEqual(TEXT("Invalid advanced edits preserve the accepted recipe"),Asset->Recipe.Tectonics.PlateCount,4);TestEqual(TEXT("Invalid draft returns to the accepted value"),Draft.PlateCount,4);
     Editor->PlanetInspectors[1]->SetRootExpansionStates(false,false);TestEqual(TEXT("Reveal alone publishes no geometry"),Editor->Globe->PublishedBuilds(),Builds);
     Asset->GetOutermost()->SetDirtyFlag(false);TestTrue(TEXT("Inline editor retires"),Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed));return true;
+}
+// Exercise the installed host asset through its real asset-definition entry point.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLInstalledPlanetEditorTest,"Catalyst.Landform.Planet.InstalledBasePlanet",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLInstalledPlanetEditorTest::RunTest(const FString&)
+{
+    auto* Asset=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/DA_BasePlanet"));
+    if(!TestNotNull(TEXT("The host's BasePlanet exists"),Asset))return false;
+    const auto Before=Asset->Recipe;const bool WasDirty=Asset->GetOutermost()->IsDirty();
+    auto* Editors=GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+    TestTrue(TEXT("The real asset definition opens BasePlanet"),Editors->OpenEditorForAsset(Asset));
+    auto E=FCLRecipeToolkit::ActivePlanet.Pin();if(!TestTrue(TEXT("BasePlanet opens in Planet"),E&&E->RecipeAsset()==Asset))return false;
+    TestEqual(TEXT("All five workflow pages are present"),E->PlanetInspectors.Num(),5);
+    TestTrue(TEXT("All five geology controls are available even on an older asset"),E->ContinentalSlider&&E->TectonicSlider&&E->RockSlider&&E->WatershedSlider&&E->CaveSlider);
+    TestTrue(TEXT("The province catalogue is available"),E->LandformRows&&E->LandformRows->Controls.Num()>=17);
+    for(const TCHAR* Tab:{TEXT("CLNoiseLayers"),TEXT("CLSurfaceLayers")})TestFalse(TEXT("No standalone landform editing tabs are registered"),E->GetTabManager()->HasTabSpawner(FName(Tab)));
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_ContinentalRift"));
+    if(TestNotNull(TEXT("Installed Rift source is present"),Source))
+    {
+        Editors->OpenEditorForAsset(Source);
+        TestTrue(TEXT("Opening a landform focuses the same Planet instance"),E==FCLRecipeToolkit::ActivePlanet.Pin()&&E->InspectorPage==2);
+        TestTrue(TEXT("Landforms have no separate asset editor"),Editors->FindEditorForAsset(Source,false)==nullptr);
+    }
+    TestTrue(TEXT("Opening the current editor preserves the authored recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&Asset->Recipe,0));
+    TestEqual(TEXT("Opening does not change the dirty state"),Asset->GetOutermost()->IsDirty(),WasDirty);
+    E->InspectorPage=1;
+    if(!FParse::Param(FCommandLine::Get(),TEXT("LandformKeepBasePlanet")))E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);
+    return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetInspectorTest,"Catalyst.Landform.PlanetLayers.InspectorAndVariationUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLPlanetInspectorTest::RunTest(const FString&)
