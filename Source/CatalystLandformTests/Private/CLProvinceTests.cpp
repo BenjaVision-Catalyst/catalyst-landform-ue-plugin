@@ -3,6 +3,8 @@
 #include "Model/CLProvinceDefinition.h"
 #include "Model/CLTerrainType.h"
 #include "Model/CLRegionGeneration.h"
+#include "Model/CLCompileProgress.h"
+#include "Algo/Reverse.h"
 #include "Surface/CLSurfaceCompiler.h"
 #include "Interfaces/IPluginManager.h"
 #include "Misc/FileHelper.h"
@@ -30,6 +32,49 @@ FCLPlanetRecipe ProvinceBase(FString& Error)
     FString Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/WatershedContinental.json")));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(Json,Error))return {};return A->Recipe;
 }
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLProvinceBalanceTest,"Catalyst.Landform.Provinces.BalancedCoverage",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLProvinceBalanceTest::RunTest(const FString&)
+{
+    FString Error,Json;const auto Types=ProvinceDefinitions(Error);if(Types.Num()!=17){AddError(Error);return false;}
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>());
+    FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/ContinentalRiftProvince.json")));
+    if(!Asset->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    Asset->Recipe.Caves.bEnabled=false;Asset->Recipe.Watershed.bEnabled=false;Asset->Recipe.RegionGeneration.RegionCount=24;
+    FGuid RiftId;for(auto& P:Asset->Recipe.RegionGeneration.Palette){P.bEnabled=P.Suitability.Province.Type==ECLProvinceType::ContinentalRift;if(P.bEnabled)RiftId=P.Id;}
+    const auto Single=FCLPlanetCompiler::Compile(Asset->Recipe,Error);if(!Single){AddError(Error);return false;}
+    for(const auto& C:Single->GeneratedRegions->Cells)TestEqual(TEXT("Selecting Rift alone fills every cell"),Single->GeneratedRegions->Palette[C.PaletteIndex].Id,RiftId);
+    TStrongObjectPtr<UCLTerrainTypeAsset> Arc(NewObject<UCLTerrainTypeAsset>());Arc->TerrainType=*Types.FindByPredicate([](const auto& T){return T.VolcanicArc.IsActive();});
+    if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return Asset->AddPaletteSource(Arc.Get(),Error);})){AddError(Error);return false;}
+    auto CheckCounts=[&](const FCLCompiledRegionGeneration& G,int32 Sources)
+    {
+        TMap<FGuid,int32> Counts;for(const auto& C:G.Cells)++Counts.FindOrAdd(G.Palette[C.PaletteIndex].Id);
+        TestEqual(TEXT("Every selected source has an actual assigned cell"),Counts.Num(),Sources);
+        for(const auto& Pair:Counts)TestTrue(TEXT("Included sources share cells equally within one cell"),Pair.Value>=G.Cells.Num()/Sources&&Pair.Value<=(G.Cells.Num()+Sources-1)/Sources);
+    };
+    TSharedPtr<const FCLCompiledPlanetRecipe> Pair;
+    for(int32 Count:{24,25,128})
+    {
+        auto R=Asset->Recipe;R.RegionGeneration.RegionCount=Count;
+        Pair=FCLPlanetCompiler::Compile(R,Error);if(!Pair){AddError(Error);return false;}CheckCounts(*Pair->GeneratedRegions,2);
+        auto Reordered=R;Algo::Reverse(Reordered.RegionGeneration.Palette);const auto Replay=FCLPlanetCompiler::Compile(Reordered,Error);if(!Replay){AddError(Error);return false;}
+        for(int32 I=0;I<Count;++I){const auto& A=*Pair->GeneratedRegions;const auto& B=*Replay->GeneratedRegions;TestEqual(TEXT("Balanced placement is deterministic and independent of source order"),A.Palette[A.Cells[I].PaletteIndex].Id,B.Palette[B.Cells[I].PaletteIndex].Id);}
+        AddInfo(FString::Printf(TEXT("Rift + Volcanic arc: %d cells, each receives %d or %d"),Count,Count/2,(Count+1)/2));
+    }
+    auto OtherSeed=Asset->Recipe;++OtherSeed.RegionGeneration.Seed;const auto Seeded=FCLPlanetCompiler::Compile(OtherSeed,Error);if(!Seeded){AddError(Error);return false;}CheckCounts(*Seeded->GeneratedRegions,2);
+    auto Three=Asset->Recipe;Three.RegionGeneration.Palette.Add(ProvinceEntry(*Types.FindByPredicate([](const auto& T){return T.Transform.IsActive();})));const auto Third=FCLPlanetCompiler::Compile(Three,Error);if(!Third){AddError(Error);return false;}CheckCounts(*Third->GeneratedRegions,3);
+    auto Pinned=Asset->Recipe;const auto Baseline=FCLPlanetCompiler::Compile(Pinned,Error);if(!Baseline){AddError(Error);return false;}
+    for(int32 I=0;I<20;++I){FCLRegionAssignmentOverride O;O.RegionId=Baseline->GeneratedRegions->Cells[I].Id;O.LandformId=Arc->TerrainType.Id;Pinned.RegionGeneration.Overrides.Add(O);}
+    const auto Locked=FCLPlanetCompiler::Compile(Pinned,Error);if(!Locked){AddError(Error);return false;}
+    int32 RiftCount=0;for(int32 I=0;I<Locked->GeneratedRegions->Cells.Num();++I){const auto& G=*Locked->GeneratedRegions;const auto Id=G.Palette[G.Cells[I].PaletteIndex].Id;RiftCount+=Id==RiftId;if(I<20)TestTrue(TEXT("Manual assignments remain locked"),Id==Arc->TerrainType.Id&&G.Cells[I].bOverride);}
+    TestEqual(TEXT("Manual excess leaves the other included source represented"),RiftCount,4);
+    for(int32 I=20;I<24;++I){FCLRegionAssignmentOverride O;O.RegionId=Baseline->GeneratedRegions->Cells[I].Id;O.LandformId=Arc->TerrainType.Id;Pinned.RegionGeneration.Overrides.Add(O);}
+    TestFalse(TEXT("Contradictory overrides cannot silently orphan an included source"),FCLPlanetCompiler::Compile(Pinned,Error).IsValid());
+    auto Many=ProvinceBase(Error);Many.Caves.bEnabled=false;Many.RegionGeneration.bEnabled=true;Many.RegionGeneration.AlgorithmVersion=3;Many.RegionGeneration.RegionCount=8;
+    for(auto T:Types){T.Rift=FCLRiftLandform();T.Transform=FCLTransformLandform();T.VolcanicArc=FCLVolcanicArcLandform();T.NoiseLayers.Reset();T.PlacementSuitability.Province.bPlaceholder=true;Many.RegionGeneration.Palette.Add(ProvinceEntry(T));}
+    const auto Expanded=FCLPlanetCompiler::Compile(Many,Error);if(!Expanded){AddError(Error);return false;}TestEqual(TEXT("Enough cells are generated for every selected source"),Expanded->GeneratedRegions->Cells.Num(),Types.Num());CheckCounts(*Expanded->GeneratedRegions,Types.Num());
+    TestEqual(TEXT("The authored cell-count setting is unchanged"),Many.RegionGeneration.RegionCount,8);
+    return !HasAnyErrors();
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLProvinceDefinitionsTest,"Catalyst.Landform.Provinces.DefinitionsAndEvidence",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLProvinceDefinitionsTest::RunTest(const FString&)

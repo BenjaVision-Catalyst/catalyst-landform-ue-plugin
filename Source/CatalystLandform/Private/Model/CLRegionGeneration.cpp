@@ -12,6 +12,37 @@ double Quintic(double T){T=FMath::Clamp(T,0.,1.);return T*T*T*(T*(T*6-15)+10);}
 double RangeFit(double V,const FVector2D& Range,double Softness)
 {const double D=FMath::Max(FMath::Max(Range.X-V,V-Range.Y),0.)/Softness;return FMath::Exp(-D*D);}
 FGuid CellId(int32 Seed,int32 Index){return FGuid(0x434C5247U,uint32(Seed),1,uint32(Index+1));}
+
+// Minimum-cost cell-to-slot matching. Slots carry the balanced source capacities;
+// optimizing the complete assignment avoids a source winning every local contest
+// or an early cell consuming the only good location for another source.
+bool AssignBalancedCells(const TArray<TArray<double>>& Costs,const TArray<int32>& Cells,
+    const TArray<int32>& Slots,TArray<int32>& Assigned,FString& Error)
+{
+    const int32 N=Cells.Num();check(N==Slots.Num());
+    TArray<double> U,V;U.Init(0,N+1);V.Init(0,N+1);
+    TArray<int32> Row,Previous;Row.Init(0,N+1);Previous.Init(0,N+1);
+    for(int32 I=1;I<=N;++I)
+    {
+        if(!FCLCompileProgress::Check(Error))return false;
+        Row[0]=I;int32 J0=0;TArray<double> Minimum;Minimum.Init(MAX_dbl,N+1);TArray<bool> Used;Used.Init(false,N+1);
+        do
+        {
+            Used[J0]=true;const int32 I0=Row[J0];double Delta=MAX_dbl;int32 J1=0;
+            for(int32 J=1;J<=N;++J)if(!Used[J])
+            {
+                const double Cost=Costs[Cells[I0-1]][Slots[J-1]]-U[I0]-V[J];
+                if(Cost<Minimum[J]){Minimum[J]=Cost;Previous[J]=J0;}
+                if(Minimum[J]<Delta){Delta=Minimum[J];J1=J;}
+            }
+            for(int32 J=0;J<=N;++J)if(Used[J]){U[Row[J]]+=Delta;V[J]-=Delta;}else Minimum[J]-=Delta;
+            J0=J1;
+        }while(Row[J0]!=0);
+        do{const int32 J1=Previous[J0];Row[J0]=Row[J1];J0=J1;}while(J0);
+    }
+    for(int32 J=1;J<=N;++J)Assigned[Cells[Row[J]-1]]=Slots[J-1];
+    return true;
+}
 }
 bool FCLLandformSuitability::Validate(FString& Error) const
 {
@@ -147,7 +178,9 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     auto Fail=[&](const FString& E)->TSharedPtr<const FCLCompiledRegionGeneration>{Error=E;return nullptr;};
     const auto& Settings=Recipe.RegionGeneration;
     if(!ValidateSettings(Settings,Error))return nullptr;
-    auto Out=MakeShared<FCLCompiledRegionGeneration>();Out->Guidance=Settings.StructureGuidance;Out->Band=(4*UE_DOUBLE_PI/Settings.RegionCount)*Settings.BlendFraction*.5;Out->Strength=Settings.ReliefStrength;Out->NeutralHeight=Base.BaseHeightMeters;Out->Structure=Base.BaseStructure;
+    int32 EnabledCount=0;for(const auto& Entry:Settings.Palette)EnabledCount+=Entry.bEnabled;
+    const int32 CellCount=FMath::Max(Settings.RegionCount,EnabledCount);
+    auto Out=MakeShared<FCLCompiledRegionGeneration>();Out->Guidance=Settings.StructureGuidance;Out->Band=(4*UE_DOUBLE_PI/CellCount)*Settings.BlendFraction*.5;Out->Strength=Settings.ReliefStrength;Out->NeutralHeight=Base.BaseHeightMeters;Out->Structure=Base.BaseStructure;
     for(const auto& Entry:Settings.Palette)if(Entry.bEnabled)Out->Palette.Add(Entry);
     Out->Palette.Sort([](const auto& A,const auto& B){return A.Id.ToString(EGuidFormats::Digits)<B.Id.ToString(EGuidFormats::Digits);});
     if(Out->Palette.IsEmpty())return Fail(TEXT("Select at least one enabled Landform for generated regions"));
@@ -178,7 +211,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     const uint32 Seed=MixRegion(uint32(Recipe.Seed))^MixRegion(uint32(Settings.Seed));
     const double U=RandomRegion(Seed),A=2*UE_DOUBLE_PI*RandomRegion(Seed+1),B=2*UE_DOUBLE_PI*RandomRegion(Seed+2);
     const FQuat Rotation(FMath::Sqrt(1-U)*FMath::Sin(A),FMath::Sqrt(1-U)*FMath::Cos(A),FMath::Sqrt(U)*FMath::Sin(B),FMath::Sqrt(U)*FMath::Cos(B));
-    const int32 PoolCount=Settings.RegionCount*16;TArray<FVector> Pool;TArray<double> Density,Distance;
+    const int32 PoolCount=CellCount*16;TArray<FVector> Pool;TArray<double> Density,Distance;
     for(int32 I=0;I<PoolCount;++I)
     {
         const double Y=1-2*(I+.5)/PoolCount,R=FMath::Sqrt(1-Y*Y),Angle=I*2.399963229728653;
@@ -188,7 +221,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     // Weighted farthest-point sites retain whole-sphere coverage while placing more
     // regions around broad uplift/basins/scars. Site identity is independent of palette order.
     int32 Next=int32(MixRegion(Seed+3)%uint32(PoolCount));
-    for(int32 I=0;I<Settings.RegionCount;++I)
+    for(int32 I=0;I<CellCount;++I)
     {
         if(!FCLCompileProgress::Check(Error))return nullptr;
         FCLGeneratedRegionCell Cell;Cell.Id=CellId(Settings.Seed,I);Cell.Centre=Pool[Next];Cell.StructureSignature=Out->Signature(Cell.Centre);Cell.Uplift=Cell.StructureSignature.X;Cell.Basin=Cell.StructureSignature.Y;
@@ -197,11 +230,11 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
         double Strongest=0;
         for(const auto& F:Out->Structure){const double W=F.Weight(Cell.Centre);if(W>Strongest){Strongest=W;Axis=FVector::VectorPlaneProject(F.Orientation.RotateVector(F.HalfExtentRadians.X>=F.HalfExtentRadians.Y?FVector::XAxisVector:FVector::YAxisVector),Cell.Centre).GetSafeNormal();}}
         Cell.Frame=FRotationMatrix::MakeFromXZ(Axis,Cell.Centre).ToQuat();Cell.Stretch=1+Settings.StructureGuidance*1.25*Strongest;
-        Cell.Scale=2*FMath::Sqrt(4*UE_DOUBLE_PI/Settings.RegionCount)*(Base.RadiusMeters+Base.BaseHeightMeters)/Base.RadiusMeters;Out->Cells.Add(Cell);
+        Cell.Scale=2*FMath::Sqrt(4*UE_DOUBLE_PI/CellCount)*(Base.RadiusMeters+Base.BaseHeightMeters)/Base.RadiusMeters;Out->Cells.Add(Cell);
         double Best=-1;int32 Winner=0;
         for(int32 J=0;J<PoolCount;++J){Distance[J]=FMath::Min(Distance[J],(Pool[J]-Cell.Centre).SizeSquared());const double Value=Distance[J]*Density[J];if(Value>Best){Best=Value;Winner=J;}}Next=Winner;
     }
-    const double Epsilon=FMath::Clamp(FMath::Sqrt(4*UE_DOUBLE_PI/Settings.RegionCount)*.06,.003,.04);TArray<FVector> Samples;
+    const double Epsilon=FMath::Clamp(FMath::Sqrt(4*UE_DOUBLE_PI/CellCount)*.06,.003,.04);TArray<FVector> Samples;
     for(const auto& Cell:Out->Cells){const FVector X=Cell.Frame.GetAxisX(),Y=Cell.Frame.GetAxisY(),N=Cell.Centre;Samples.Append({N,(N+X*Epsilon).GetSafeNormal(),(N-X*Epsilon).GetSafeNormal(),(N+Y*Epsilon).GetSafeNormal(),(N-Y*Epsilon).GetSafeNormal()});}
     TArray<double> Heights;Base.SampleHeightsMeters(Samples,Heights);
     struct FBaseSample {double Height,Slope;FVector Signature;FCLProvinceGeology Geology;};
@@ -211,7 +244,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
         // Equal-area sphere samples follow actual cell ownership, not a disc
         // approximation around the site. Fixed 128 samples/cell on average;
         // no surface-resolution or client mesh dependency. Bound field scratch.
-        const int32 Count=Settings.RegionCount*128;
+        const int32 Count=CellCount*128;
         constexpr int32 Batch=512;constexpr double Step=.001;
         for(int32 Start=0;Start<Count;Start+=Batch)
         {
@@ -302,78 +335,96 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
         }
     }
     TSet<FGuid> OverrideIds;
+    TArray<int32> Assigned,Locked,Targets,FreeCells,Order,Slots;
+    Assigned.Init(INDEX_NONE,Out->Cells.Num());Locked.Init(0,EnabledCount);
     for(const auto& Override:Settings.Overrides)
     {
-        if(!Override.RegionId.IsValid()||!Override.LandformId.IsValid()||OverrideIds.Contains(Override.RegionId)||!Out->Cells.ContainsByPredicate([&](const auto& C){return C.Id==Override.RegionId;})||!Out->Palette.ContainsByPredicate([&](const auto& P){return P.Id==Override.LandformId;}))return Fail(TEXT("Region override references a missing cell/enabled Landform, or repeats a cell"));OverrideIds.Add(Override.RegionId);
+        const int32 I=Out->Cells.IndexOfByPredicate([&](const auto& C){return C.Id==Override.RegionId;});
+        const int32 P=Out->Palette.IndexOfByPredicate([&](const auto& Entry){return Entry.Id==Override.LandformId;});
+        if(!Override.RegionId.IsValid()||!Override.LandformId.IsValid()||OverrideIds.Contains(Override.RegionId)||I<0||P<0||P>=EnabledCount)
+            return Fail(TEXT("Region override references a missing cell/enabled Landform, or repeats a cell"));
+        OverrideIds.Add(Override.RegionId);Assigned[I]=P;++Locked[P];Out->Cells[I].bOverride=true;
     }
-    TArray<int32> RelaxedAssignments;RelaxedAssignments.Init(0,Out->Palette.Num());
+    // Equal shares are inclusion semantics, independent of Character or relative
+    // suitability scores. Explicit overrides stay locked; water-fill the remaining
+    // capacity fairly, with at least one cell reserved for every included source.
+    Targets=Locked;int32 Reserved=0;
+    for(int32 P=0;P<EnabledCount;++P){Targets[P]=FMath::Max(1,Targets[P]);Reserved+=Targets[P];Order.Add(P);}
+    if(Reserved>Out->Cells.Num())return Fail(TEXT("Region overrides leave too few free cells to assign every included Landform. Clear an override or increase the region count."));
+    auto SourceSeed=[&](int32 P){const auto Id=Out->Palette[P].Id;return MixRegion(Seed^MixRegion(Id.A)^MixRegion(Id.B)^MixRegion(Id.C)^MixRegion(Id.D));};
+    Order.Sort([&](int32 AIndex,int32 BIndex){const uint32 ASeed=SourceSeed(AIndex),BSeed=SourceSeed(BIndex);return ASeed==BSeed?AIndex<BIndex:ASeed<BSeed;});
+    while(Reserved<Out->Cells.Num())
+    {int32 Best=Order[0];for(int32 P:Order)if(Targets[P]<Targets[Best])Best=P;++Targets[Best];++Reserved;}
+    for(int32 P:Order)for(int32 K=Locked[P];K<Targets[P];++K)Slots.Add(P);
+    for(int32 I=0;I<Assigned.Num();++I)if(Assigned[I]<0)FreeCells.Add(I);
+
+    TArray<TArray<double>> Scores,Costs;Scores.SetNum(Out->Cells.Num());Costs.SetNum(Out->Cells.Num());
+    int32 MaximumTier=1;for(int32 P=0;P<EnabledCount;++P)MaximumTier=FMath::Max(MaximumTier,Out->Palette[P].Suitability.Province.Relaxations.Num()+1);
+    const double RelaxedPenalty=(Out->Cells.Num()+1.)*(MaximumTier+1);
     for(int32 I=0;I<Out->Cells.Num();++I)
     {
         auto& Cell=Out->Cells[I];if(Settings.AlgorithmVersion==1){Cell.HeightMeters=Heights[I*5];const double Span=2*Epsilon*(Base.RadiusMeters+Base.BaseHeightMeters);
         Cell.SlopeDegrees=FMath::RadiansToDegrees(FMath::Atan(FMath::Sqrt(FMath::Square((Heights[I*5+1]-Heights[I*5+2])/Span)+FMath::Square((Heights[I*5+3]-Heights[I*5+4])/Span))));}
-        if((BasePalette>=0?BasePalette:Out->Palette.Num())==1){Cell.PaletteIndex=0;Cell.Score=1;Cell.Reason=TEXT("Only selected Landform; used in every region. Placement preferences do not exclude regions.");}
-        else
+        Scores[I].SetNumUninitialized(EnabledCount);Costs[I].SetNumUninitialized(EnabledCount);
+        for(int32 P=0;P<EnabledCount;++P)
         {
-            double Best=-1;int32 BestTier=MAX_int32;
-            for(int32 P=0;P<Out->Palette.Num();++P)
+            const auto& Entry=Out->Palette[P];const auto& S=Entry.Suitability;double Score=1;
+            if(S.bUsePreferences)
             {
-                if(P==BasePalette||(Settings.AlgorithmVersion>=3&&!Eligibility[I][P].Allowed))continue;
-                const auto& Entry=Out->Palette[P];const auto& S=Entry.Suitability;double Score=1;
-                if(S.bUsePreferences)
+                const auto* Low=Base.Guides.FindByPredicate([&](const auto& G){return G.Name==S.LowerElevationGuide;});const auto* High=Base.Guides.FindByPredicate([&](const auto& G){return G.Name==S.UpperElevationGuide;});
+                if(!Low||!High||High->HeightMeters<=Low->HeightMeters)return Fail(TEXT("Placement preferences require an ordered guide interval: ")+Entry.Name);
+                const double Elevation=(Cell.HeightMeters-Low->HeightMeters)/(High->HeightMeters-Low->HeightMeters);
+                if(Settings.AlgorithmVersion==1)
                 {
-                    const auto* Low=Base.Guides.FindByPredicate([&](const auto& G){return G.Name==S.LowerElevationGuide;});const auto* High=Base.Guides.FindByPredicate([&](const auto& G){return G.Name==S.UpperElevationGuide;});
-                    if(!Low||!High||High->HeightMeters<=Low->HeightMeters)return Fail(TEXT("Placement preferences require an ordered guide interval: ")+Entry.Name);
-                    const double Elevation=(Cell.HeightMeters-Low->HeightMeters)/(High->HeightMeters-Low->HeightMeters);
-                    if(Settings.AlgorithmVersion==1)
-                    {
-                        Score=FMath::Max(.01,1+3*S.UpliftAffinity*Cell.Uplift+3*S.BasinAffinity*Cell.Basin+2*S.StructuralEdgeAffinity*Cell.StructuralEdge)*S.SelectionWeight;
-                        Score*=FMath::Max(.001,RangeFit(Elevation,S.PreferredElevation,.12)*RangeFit(Cell.SlopeDegrees,S.PreferredSlopeDegrees,6)*RangeFit(Cell.Scale,S.PreferredScale,.15));
-                    }
-                    else
-                    {
-                        // Rank the joint elevation/slope/structural fit over the
-                        // region's area. A flat centre cannot conceal steep banks
-                        // or a ridge elsewhere in the same region.
-                        Score=0;
-                        for(const auto& V:Character[I])
-                        {
-                            const double E=(V.Height-Low->HeightMeters)/(High->HeightMeters-Low->HeightMeters),Influence=FMath::Max3(V.Signature.X,V.Signature.Y,V.Signature.Z);
-                            const double Affinity=FMath::Max(.01,1+3*S.UpliftAffinity*V.Signature.X+3*S.BasinAffinity*V.Signature.Y+2*S.StructuralEdgeAffinity*4*Influence*(1-Influence));
-                            Score+=Affinity*RangeFit(E,S.PreferredElevation,.06)*RangeFit(V.Slope,S.PreferredSlopeDegrees,2);
-                        }
-                        Score=S.SelectionWeight*FMath::Max(.001,Score/Character[I].Num())*RangeFit(Cell.Scale,S.PreferredScale,.15);
-                        // Protect gentle terrain from a steep minority hidden by
-                        // the area average. Ridge crests can still be flat: only
-                        // the preferred maximum constrains the upper decile.
-                        Score*=RangeFit(Cell.UpperSlopeDegrees,FVector2D(0,S.PreferredSlopeDegrees.Y),2);
-                    }
+                    Score=FMath::Max(.01,1+3*S.UpliftAffinity*Cell.Uplift+3*S.BasinAffinity*Cell.Basin+2*S.StructuralEdgeAffinity*Cell.StructuralEdge)*S.SelectionWeight;
+                    Score*=FMath::Max(.001,RangeFit(Elevation,S.PreferredElevation,.12)*RangeFit(Cell.SlopeDegrees,S.PreferredSlopeDegrees,6)*RangeFit(Cell.Scale,S.PreferredScale,.15));
                 }
-                int32 Tier=0;
-                if(Settings.AlgorithmVersion>=3)
+                else
                 {
-                    const auto& Fit=Eligibility[I][P];Tier=Fit.CoverageFallback?MAX_int32:Fit.Tier;Score*=Fit.Weight;
-                    if(Fit.Tier>0)Score*=FMath::Min(1.,double(Entry.Suitability.Province.MaximumRelaxedRegions)/FMath::Max(1,RelaxedAssignments[P]+1));
+                    // Rank the joint elevation/slope/structural fit over the
+                    // region's area. A flat centre cannot conceal steep banks
+                    // or a ridge elsewhere in the same region.
+                    Score=0;
+                    for(const auto& V:Character[I])
+                    {
+                        const double E=(V.Height-Low->HeightMeters)/(High->HeightMeters-Low->HeightMeters),Influence=FMath::Max3(V.Signature.X,V.Signature.Y,V.Signature.Z);
+                        const double Affinity=FMath::Max(.01,1+3*S.UpliftAffinity*V.Signature.X+3*S.BasinAffinity*V.Signature.Y+2*S.StructuralEdgeAffinity*4*Influence*(1-Influence));
+                        Score+=Affinity*RangeFit(E,S.PreferredElevation,.06)*RangeFit(V.Slope,S.PreferredSlopeDegrees,2);
+                    }
+                    Score=S.SelectionWeight*FMath::Max(.001,Score/Character[I].Num())*RangeFit(Cell.Scale,S.PreferredScale,.15);
+                    // Protect gentle terrain from a steep minority hidden by
+                    // the area average. Ridge crests can still be flat: only
+                    // the preferred maximum constrains the upper decile.
+                    Score*=RangeFit(Cell.UpperSlopeDegrees,FVector2D(0,S.PreferredSlopeDegrees.Y),2);
                 }
-                const double Choice=Score*(.9+.2*RandomRegion(Seed^MixRegion(uint32(I))^MixRegion(Entry.Id.A)^MixRegion(Entry.Id.B)^MixRegion(Entry.Id.C)^MixRegion(Entry.Id.D)));
-                if(Tier<BestTier||(Tier==BestTier&&Choice>Best)){Best=Choice;BestTier=Tier;Cell.PaletteIndex=P;Cell.Score=Score;}
             }
-            if(Cell.PaletteIndex<0)return Fail(TEXT("Every generated cell must select an included Landform"));
-            Cell.Reason=FString::Printf(TEXT("Best seeded suitability match (score %.3f). Uplift %.2f, basin %.2f, structural edge %.2f; base slope %.1f°, region scale %.2f × radius. %s"),Cell.Score,Cell.Uplift,Cell.Basin,Cell.StructuralEdge,Cell.SlopeDegrees,Cell.Scale,Out->Palette[Cell.PaletteIndex].Suitability.bUsePreferences?TEXT("Named elevation guides and placement preferences applied."):TEXT("Neutral placement preferences."));
+            int32 Tier=0;
+            if(Settings.AlgorithmVersion>=3)
+            {
+                const auto& Fit=Eligibility[I][P];Tier=Fit.CoverageFallback?MaximumTier:Fit.Tier;Score*=Fit.Weight;
+                if(Tier>0)Score*=FMath::Min(1.,double(Out->Palette[P].Suitability.Province.MaximumRelaxedRegions)/Targets[P]);
+            }
+            Scores[I][P]=Score;
+            const double Jitter=RandomRegion(SourceSeed(P)^MixRegion(uint32(I)));
+            const double Choice=Score*(.9+.2*Jitter);
+            const double Preference=(30-FMath::Clamp(FMath::Loge(FMath::Max(Choice,1.e-30)),-30.,30.))/60+1.e-6*Jitter;
+            // Across the complete balanced assignment: preserve as many strict
+            // cells as possible, then prefer earlier relaxation tiers, then fit.
+            Costs[I][P]=(Tier>0?RelaxedPenalty:0)+Tier+Preference/(Out->Cells.Num()+1.);
         }
-        if(Cell.PaletteIndex<0)return Fail(TEXT("Every generated cell must select an included Landform"));
+    }
+    if(!AssignBalancedCells(Costs,FreeCells,Slots,Assigned,Error))return nullptr;
+    for(int32 I=0;I<Out->Cells.Num();++I)
+    {
+        auto& Cell=Out->Cells[I];const int32 P=Assigned[I];if(P<0)return Fail(TEXT("Every generated cell must select an included Landform"));
+        Cell.PaletteIndex=P;Cell.Score=Scores[I][P];
+        Cell.Reason=FString::Printf(TEXT("%s: %s, %d/%d cells. Balanced inclusion with geological fit optimized over the planet (score %.3f)."),Cell.bOverride?TEXT("Editorial assignment"):TEXT("Balanced assignment"),*Out->Palette[P].Name,Targets[P],Out->Cells.Num(),Cell.Score);
         if(Settings.AlgorithmVersion>=2)
         {
             const double Low=(Base.RadiusMeters+Cell.MinimumBaseHeightMeters)/Base.RadiusMeters,High=(Base.RadiusMeters+Cell.MaximumBaseHeightMeters)/Base.RadiusMeters;
-            Cell.Reason=FString::Printf(TEXT("Area suitability: %s (score %.3f), %d equal-area samples. Sampled base radial height %.3f–%.3f × radius; slope median %.1f°, 90th percentile %.1f°. Mean uplift %.2f, basin %.2f, edge %.2f. %s"),*Out->Palette[Cell.PaletteIndex].Name,Cell.Score,Cell.CharacterSampleCount,Low,High,Cell.MedianSlopeDegrees,Cell.UpperSlopeDegrees,Cell.Uplift,Cell.Basin,Cell.StructuralEdge,Out->Palette.Num()==1?TEXT("Only selected source fills every region."):TEXT("Joint elevation, slope and structural fit averaged across the cell."));
+            Cell.Reason+=FString::Printf(TEXT(" Area suitability: %d equal-area samples; base radial height %.3f–%.3f × radius, slope median %.1f°, 90th percentile %.1f°. Mean uplift %.2f, basin %.2f, edge %.2f."),Cell.CharacterSampleCount,Low,High,Cell.MedianSlopeDegrees,Cell.UpperSlopeDegrees,Cell.Uplift,Cell.Basin,Cell.StructuralEdge);
         }
-        if(Settings.AlgorithmVersion>=3)
-        {
-            Cell.ProvinceRelaxationTier=Eligibility[I][Cell.PaletteIndex].Tier;Cell.Reason+=TEXT(" ")+Eligibility[I][Cell.PaletteIndex].Reason;
-        }
-        if(const auto* Override=Settings.Overrides.FindByPredicate([&](const auto& O){return O.RegionId==Cell.Id;}))
-        {const int32 Assigned=Out->Palette.IndexOfByPredicate([&](const auto& P){return P.Id==Override->LandformId;});
-            Cell.PaletteIndex=Assigned;Cell.ProvinceRelaxationTier=Settings.AlgorithmVersion>=3?Eligibility[I][Assigned].Tier:0;Cell.bOverride=true;Cell.Reason=FString::Printf(TEXT("Editorial assignment: %s. Automatic evaluation: %s"),*Out->Palette[Cell.PaletteIndex].Name,*Cell.Reason);if(Settings.AlgorithmVersion>=3)Cell.Reason+=TEXT(" ")+Eligibility[I][Assigned].Reason;}
-        if(Settings.AlgorithmVersion>=3&&Cell.ProvinceRelaxationTier>0)++RelaxedAssignments[Cell.PaletteIndex];
+        if(Settings.AlgorithmVersion>=3){Cell.ProvinceRelaxationTier=Eligibility[I][P].Tier;Cell.Reason+=TEXT(" ")+Eligibility[I][P].Reason;}
     }
     // An explicit evaluator option bypasses regional assignment for Solo.
     // It cannot be stored in, exported from, or enabled by a planet recipe.

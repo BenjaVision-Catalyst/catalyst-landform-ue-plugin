@@ -32,11 +32,19 @@ source definitions. Solo temporarily reveals a hidden selected row and restores 
 Unsolo. It temporarily excludes
 other Landforms, including manually placed instances. Base geology, planet scale,
 radial guides, Rock and Caves remain supplied by the planet. Every generated cell must be assigned to an included Landform. One included
-Landform fills every cell. With several, strict geological fits have priority,
-then the source’s declared relaxation tiers, then the closest remaining
-preferences to complete coverage. The source’s strict requirements and known
+Landform fills every cell. With several, every included Landform receives at
+least one cell and their cell counts differ by at most one unless explicit
+assignment overrides require otherwise. Two included Landforms share the cells
+about 50/50. Character and suitability do not increase a Landform's share.
+Within those shares, a deterministic assignment over the complete planet
+preserves as many strict geological fits as possible, then prefers the source’s
+earlier relaxation tiers and the closest elevation/slope/structural fit.
+The source’s strict requirements and known
 geological evidence are never rewritten. Preferred relaxed-placement budgets
-remain soft during mandatory full coverage. Solo is
+remain soft during mandatory full coverage. If more Landforms are included than
+the requested cell count, generation uses enough cells to represent every one;
+the authored count is retained. Explicit assignment overrides stay fixed, but an
+override set that leaves no room for an included source is rejected. Solo is
 an explicit compiler evaluation option, outside the recipe and JSON format;
 it overrides region assignment in the same stock native VPP pipeline. Changing
 that option invalidates prepared input reuse where necessary.
@@ -107,8 +115,9 @@ stale results. Runtime generation still returns the complete planet in one call.
 
 The expanded Rift heading reads “Continental Rift”. Planet opens with province
 cell boundaries hidden and a stronger geographic grid, highlighted equator and
-labelled north/south poles. Preview → Globe grid and Province cells control these
-independently. These are editor overlays; neither changes saved generation or
+labelled north/south poles. Preview → Globe grid controls the geographic grid;
+each Landform's Info icon controls its assigned-cell overlay. These are editor
+overlays; neither changes saved generation or
 VPP geometry. Grid paths are cached from surface heights once per accepted input
 and reused when caves arrive and during navigation.
 

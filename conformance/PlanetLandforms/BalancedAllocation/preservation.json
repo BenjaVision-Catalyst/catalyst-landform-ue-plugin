@@ -1,0 +1,20 @@
+{
+  "allProjectContentFilesUnchanged": true,
+  "contentFilesChecked": 186,
+  "restoredUnsavedAuthoring": [
+    {
+      "asset": "/Game/LandformDesigner/DA_BasePlanet.DA_BasePlanet",
+      "exact": true
+    },
+    {
+      "asset": "/Game/LandformDesigner/DA_RadialGuideLibrary.DA_RadialGuideLibrary",
+      "exact": true
+    }
+  ],
+  "restorationChecks": [
+    "complete reflected struct text",
+    "full precision float properties",
+    "guide set and source asset references"
+  ],
+  "noAssetSaveAPIsUsed": true
+}

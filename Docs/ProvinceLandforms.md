@@ -109,10 +109,18 @@ preferences rank eligible sources. Missing evidence stays unknown and is not
 inferred from altitude, shape, material colour, asset names or rock resistance.
 
 Every cell must belong to an included Landform. A single included province is
-assigned to every cell. With several, strict geological candidates have priority
-at each cell, followed by the profile’s declared relaxation tiers. If none fit,
-closest partial geological evidence and existing soft elevation/slope/structural
-preferences complete coverage. Preferred relaxed-placement budgets are soft and
+assigned to every cell. With several, all included sources receive at least one
+cell and share the cells equally to within one cell. Geological suitability
+chooses locations within those shares; a source cannot win the whole planet by
+outscoring every other source independently at each cell. The deterministic
+global assignment first preserves the maximum number of strict fits, then
+prefers earlier declared relaxation tiers, then partial evidence and the existing
+soft elevation/slope/structural preferences. Character does not control coverage.
+If necessary the generated cell count grows to the number of included sources,
+without changing the authored count. Manual assignments remain locked and the
+remaining capacity is shared fairly; conflicting overrides that leave an
+included source without any possible cell are rejected.
+Preferred relaxed-placement budgets are soft and
 may be exceeded for full coverage. Source requirements are not rewritten and
 missing geological evidence is never fabricated. Each cell records its applied
 tier and the reason for coverage fallback. Editorial overrides use the same

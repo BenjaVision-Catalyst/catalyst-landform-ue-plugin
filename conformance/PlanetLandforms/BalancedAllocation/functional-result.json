@@ -1,0 +1,402 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.01.57"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 73: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.03"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 74: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 75: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.07"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 76: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 77: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 78: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 79: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 80: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.31"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.InstalledBasePlanet",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.BalancedCoverage",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rift + Volcanic arc: 24 cells, each receives 12 or 12",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rift + Volcanic arc: 25 cells, each receives 12 or 13",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rift + Volcanic arc: 128 cells, each receives 64 or 64",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.45"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 selected assignments, 20 relaxed regions; max final-height change 0 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.53"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"p95Ms\":13.105206,\"assignedRegions\":32,\"retainedBaseRegions\":0,\"counts\":{\"Crystalline shield\":2,\"Covered continental platform\":2,\"Clastic sedimentary basin\":2,\"Carbonate platform and reef province\":1,\"Evaporite basin\":2,\"Fold and thrust belt\":2,\"Metamorphic mountain core\":2,\"Continental rift and fault-block province\":2,\"Transform and shear belt\":2,\"Volcanic arc province\":2,\"Basaltic volcanic province\":2,\"Silicic volcanic province\":2,\"Plutonic and intrusive province\":1,\"Passive continental margin\":2,\"Oceanic crust province\":2,\"Impact province\":2,\"Icy-crust province\":2,\"Base geology\":0}}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.56"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.PackagedLibrary",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.RegionalCharacter.AreaAndAssignment",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Area source Rolling Plains \u2014 regional: 12 regions, mean base radial height 0.467304, mean upper slope 1.698",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Area source Mountain ridges \u2014 area regional: 12 regions, mean base radial height 0.473344, mean upper slope 22.447",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Area source Plateaus \u2014 area regional: 12 regions, mean base radial height 0.486023, mean upper slope 4.350",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Area samples 4608; reassigned cells after geology move 23; true three-source junctions 4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.58"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.RegionalCharacter.OffCentreGeology",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Off-centre uplift: centre 0.000000, area 0.012675, sampled slope 1.5678, relief 30.3397 m, 114 samples",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.58"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.RegionalCharacter.ThreeWayNativeParity",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Three-way parity: 4 junctions, 256 native samples, 2.27373675e-11 cm native / 0.00197791478 cm section residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.02.59"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Regions.BlendAndNativeParity",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generated field: 2379 directions, 2.22044604925e-16 weight error, 9.04038199678e-06 m oracle error, 8.70370109851e-06 m atlas error, 0.000870370131 cm native residual, 0.00197791478 cm section residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.03.01"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Regions.PortabilityAndOverrides",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Regions.StructureAndPalette",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Regions: 24 cells, 12 mountain / 12 plateau; mean uplift 0.23174 / 0.00000; 23 sites respond to guidance",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.03.03"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.PlacementRelaxation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_FALLBACK assigned=24 cells=24 tier=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.03.03"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.CurvesDeterminismAndRock",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.EnabledCaves",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.UniformWeights",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.DrainageAndSamplingBudget",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Arc drainage: probes=320000 nsPerProbe=353.4 maxCandidates=20 meanSegments=113.0 meanPrimaryBytes=21851.0 checksum=7542779.516",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.03.09"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.FamilyAndAssembly",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.UnknownGeologyAndEnabledCaves",
+      "state": "Success",
+      "entries": []
+    }
+  ]
+}

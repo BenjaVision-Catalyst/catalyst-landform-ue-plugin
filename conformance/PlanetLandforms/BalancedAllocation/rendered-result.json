@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.AssignedCellHighlights",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Rendered Rift + Volcanic arc: Rift 12, Volcanic arc 12, total 24",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-21.05.22"
+        }
+      ]
+    }
+  ]
+}
