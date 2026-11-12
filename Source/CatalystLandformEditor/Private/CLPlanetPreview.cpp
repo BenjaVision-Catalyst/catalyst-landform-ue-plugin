@@ -497,11 +497,11 @@ void SCLPlanetPreview::FrameSurfaceForTesting(FVector D)
     Client->StudioScene->AimLights(Client->GetViewRotation());Client->Invalidate();
 }
 
-void SCLPlanetPreview::FrameLandformForTesting(FVector D,FVector Along,double Extent)
+void SCLPlanetPreview::FrameLandformForTesting(FVector D,FVector Along,double Extent,FVector2D Slope)
 {
     if(!Client->Plan)return;const auto& P=*Client->Plan;D.Normalize();Along=(Along-D*FVector::DotProduct(Along,D)).GetSafeNormal();
     const FVector Across=FVector::CrossProduct(Along,D).GetSafeNormal(),Center=D*(P.RadiusMeters+P.SampleHeightMeters(D));
-    const FVector Eye=Center+D*Extent*.90-Across*Extent*.45-Along*Extent*.15,Target=Center;
+    const FVector Eye=Center+D*Extent*Slope.X-Across*Extent*Slope.Y-Along*Extent*.15,Target=Center;
     Client->InspectionTarget=Target*(100000./P.RadiusMeters);Client->InspectionCamera=FTransform(FRotationMatrix::MakeFromXZ((Target-Eye).GetSafeNormal(),D).Rotator(),Eye*(100000./P.RadiusMeters));Client->Apply();
 }
 void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->InspectionCamera.Reset();Client->Navigation.Orbit(Delta);Client->Apply();}

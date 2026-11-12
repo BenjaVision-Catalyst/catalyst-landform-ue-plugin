@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "17 geological province definitions: Continental Rift has a physical surface/deformation profile; the other 16 remain neutral placeholders.",
+  "status": "17 geological province definitions: Continental Rift, Transform and Volcanic arc have physical surface/deformation profiles; the other 14 remain neutral placeholders.",
   "assetRoot": "/CatalystLandform/TerrainTypes/Provinces",
   "profiles": [
     {

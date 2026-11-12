@@ -1,6 +1,7 @@
 #pragma once
 #include "Model/CLRiftLandform.h"
 #include "Model/CLTransformLandform.h"
+#include "Model/CLVolcanicArcLandform.h"
 #include "CoreMinimal.h"
 #include "Model/CLPlanetRecipe.h"
 #include "CLTerrainType.generated.h"
@@ -21,6 +22,7 @@ struct CATALYSTLANDFORM_API FCLTerrainType
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLLandformSuitability PlacementSuitability;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(DisplayName="Character")) FCLRiftLandform Rift;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLTransformLandform Transform;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLVolcanicArcLandform VolcanicArc;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
     bool Validate(FString& Error) const;
     /** Apply a validated snapshot atomically; never changes the planet's RadialGuides/radius/seed. */

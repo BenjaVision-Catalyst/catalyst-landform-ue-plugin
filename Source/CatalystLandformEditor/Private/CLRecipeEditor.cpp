@@ -658,6 +658,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLProvinceEditorTest;
     friend class FCLRiftDesignerTest;
     friend class FCLTransformDesignerTest;
+    friend class FCLVolcanicArcDesignerTest;
     friend class FCLPlanetSurfaceFirstTest;
     friend class FCLPlanetLandformRowsTest;
     friend class FCLCaveDesignerTest;
@@ -3121,6 +3122,72 @@ bool FCLTransformDesignerTest::RunTest(const FString&)
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),A->Recipe,Id));return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLVolcanicArcDesignerTest,"Catalyst.Landform.Planet.LandformRows.VolcanicArcRange",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLVolcanicArcDesignerTest::RunTest(const FString&)
+{
+    auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_TransformShearFamilyReview"));
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_VolcanicArc"));
+    if(!TestNotNull(TEXT("Current saved authoring planet"),Review)||!TestNotNull(TEXT("Canonical volcanic arc source"),Source))return false;
+    const auto Saved=Review->Recipe;const auto SourceBefore=Source->TerrainType;
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLArcRange_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),TEXT("VolcanicArcReview"),RF_Transactional));A->Recipe=Saved;
+    auto E=MakeShared<FCLRecipeToolkit>();E->HoldCavesForTesting=true;E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=2;
+    const FGuid Id=Source->TerrainType.Id;E->Landforms->AddSource(Source);
+    if(!E->Landforms->Include(Id,true)){AddError(E->Landforms->Error);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return false;}
+    const auto WithArc=A->Recipe;auto Expected=Source->TerrainType.VolcanicArc;Expected.ApplyProgression(.41);
+    E->Landforms->SetCharacter(Id,.41);TestTrue(TEXT("Standard knob applies independent physical curves"),FCLVolcanicArcLandform::StaticStruct()->CompareScriptStruct(&Expected,&E->Landforms->Entry(Id)->VolcanicArc,0));
+    auto Manual=*E->Landforms->Entry(Id);Manual.VolcanicArc.HeightMeters=165;E->Landforms->SetValues(Id,Manual);
+    E->Landforms->BeginGesture(Id);E->Landforms->SetCharacter(Id,.23);E->Landforms->SetCharacter(Id,.78);E->Landforms->EndGesture();
+    GEditor->UndoTransaction();TestEqual(TEXT("One Undo retains manual values and prior Character"),E->Landforms->Entry(Id)->VolcanicArc.HeightMeters,165.);TestEqual(TEXT("One Undo retains prior Character"),E->Landforms->Character(Id),.41);
+    GEditor->RedoTransaction();TestEqual(TEXT("Redo restores the knob position"),E->Landforms->Character(Id),.78);
+    const int32 Seed=E->Landforms->Entry(Id)->VolcanicArc.Seed;E->Landforms->Reseed(Id);TestTrue(TEXT("Standard reseed changes volcanic variation"),E->Landforms->Entry(Id)->VolcanicArc.Seed!=Seed);GEditor->UndoTransaction();
+    E->Landforms->ToggleEye(Id);TestFalse(TEXT("Eye is preview only"),E->Landforms->Visible(Id));E->Landforms->ToggleEye(Id);
+    E->Landforms->Include(Id,false);auto* Row=E->LandformRows->Controls.Find(Id);if(Row)TestTrue(TEXT("Unchecked row disables its controls"),!Row->Knob->IsEnabled()&&!Row->Solo->IsEnabled()&&!Row->Disclosure->IsEnabled());E->Landforms->Include(Id,true);
+    E->Landforms->ToggleSolo(Id);E->Landforms->SetCharacter(Id,0);E->LandformRows->Focus(Id);
+    class FReview:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLPlanetRecipeAsset> A;TStrongObjectPtr<UCLPlanetRecipeAsset> OriginalAsset;TStrongObjectPtr<UCLTerrainTypeAsset> Source;
+        FCLPlanetRecipe Saved,WithArc;FCLTerrainType SourceBefore;FGuid Id;
+        int32 Stage=0;double Start=FPlatformTime::Seconds(),Ready=0;bool Framed=false;TArray<FString> Records;
+        const TArray<double> Positions={0.,.17,.34,.50,.67,.84,1.};
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLPlanetRecipeAsset* Asset,UCLPlanetRecipeAsset* Original,UCLTerrainTypeAsset* S,FCLPlanetRecipe R,FCLPlanetRecipe W,FCLTerrainType B,FGuid I):Test(T),E(In),A(Asset),OriginalAsset(Original),Source(S),Saved(MoveTemp(R)),WithArc(MoveTemp(W)),SourceBefore(MoveTemp(B)),Id(I){}
+        bool Update()override
+        {
+            auto Close=[&]{A->GetOutermost()->SetDirtyFlag(false);if(FParse::Param(FCommandLine::Get(),TEXT("LandformKeepArcReview")))E->HoldCavesForTesting=false;else E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};const double Now=FPlatformTime::Seconds();
+            if(Now-Start>180){Test->AddError(FString::Printf(TEXT("Arc range stage %d: %s %s"),Stage,*E->Status,*E->InspectorError));return Close();}
+            const auto P=E->AcceptedSurfacePlan;if(!P||!P->GeneratedRegions)return false;
+            const auto* Current=P->SourceRecipe->RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
+            if(!Current||FMath::Abs(Current->VolcanicArc.Character-Positions[Stage])>1.e-8)return false;
+            auto* N=E->Globe->NativeForTesting();if(!N)return false;
+            if(!Framed)
+            {
+                for(const auto& Arc:P->GeneratedRegions->VolcanicArcs)if(Arc&&!Arc->GetCentres().IsEmpty())
+                {const auto& C=Arc->GetCentres()[0];E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Globe->SetGlobeGrid(false);E->Globe->FrameLandformForTesting(C.Direction,C.Along,1250,FVector2D(.38,.95));break;}
+                E->LandformRows->Focus(Id);Framed=true;return false;
+            }
+            E->Globe->GetViewportClient()->Viewport->Draw(false);
+            if(N->PublishedPlan()!=P||N->IsUpdating()||!E->Globe->IsSurfaceReady(P)){Ready=0;return false;}
+            if(!Ready){Ready=Now;return false;}if(Now-Ready<.6)return false;
+            int32 Count=0;const auto Probe=N->SamplePublishedVerticesForTesting(Count);Test->TestTrue(TEXT("Stock native VPP supplies visible arc geometry"),Count>100&&Probe.SourcePoints.Num()>100);
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/volcanic-arc");IFileManager::Get().MakeDirectory(*Dir,true);
+            auto Capture=[&](TSharedRef<SWidget> Widget,const FString& Name){TArray<FColor> Pixels;FIntVector Size;if(Test->TestTrue(TEXT("Actual Planet editor capture"),FSlateApplication::Get().TakeScreenshot(Widget,Pixels,Size))){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/Name));}};
+            Capture(E->GetToolkitHost()->GetParentWidget(),FString::Printf(TEXT("planet-%02d.png"),FMath::RoundToInt(Positions[Stage]*100)));Capture(E->Globe.ToSharedRef(),FString::Printf(TEXT("surface-%02d.png"),FMath::RoundToInt(Positions[Stage]*100)));
+            Records.Add(FString::Printf(TEXT("{\"character\":%.4f,\"nativeVertices\":%d,\"heightMeters\":%.6f,\"incisionMeters\":%.6f,\"secondaryHeight\":%.6f}"),Positions[Stage],Count,Current->VolcanicArc.HeightMeters,Current->VolcanicArc.IncisionMeters,Current->VolcanicArc.SecondaryHeight));
+            ++Stage;Ready=0;Start=Now;
+            if(Stage==Positions.Num())
+            {
+                E->LandformRows->ToggleDetails(Id);
+                Test->TestTrue(TEXT("Review preserves the user's saved authoring exactly"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Saved,&OriginalAsset->Recipe,0));
+                Test->TestTrue(TEXT("Review preserves the catalogue source"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&SourceBefore,&Source->TerrainType,0));
+                auto Other=A->Recipe;Other.RegionGeneration.Palette.RemoveAll([&](const auto& V){return V.Id==Id;});auto Before=WithArc;Before.RegionGeneration.Palette.RemoveAll([&](const auto& V){return V.Id==Id;});Test->TestTrue(TEXT("Arc review preserves every other authoring value"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Other,&Before,0));
+                FFileHelper::SaveStringToFile(TEXT("{\"editor\":\"Planet\",\"cases\":[")+FString::Join(Records,TEXT(","))+TEXT("]}\n"),*(Dir/TEXT("range.json")));return Close();
+            }
+            E->Landforms->SetCharacter(Id,Positions[Stage]);E->LandformRows->Focus(Id);return false;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Review,Source,Saved,WithArc,SourceBefore,Id));return !HasAnyErrors();
 }
 
 }

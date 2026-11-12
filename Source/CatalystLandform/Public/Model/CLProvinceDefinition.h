@@ -49,6 +49,8 @@ struct CATALYSTLANDFORM_API FCLProvinceDefinition
     /** Definition-only sources contribute neither relief nor a replacement surface material. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bPlaceholder=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<ECLGeologicalEvidence> Requirements;
+    /** Soft placement evidence, including when the strict history requirements are relaxed. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<ECLGeologicalEvidence> PlacementPreferences;
     /** Share of pre-Landform area samples that must positively satisfy every requirement. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.01",ClampMax="1")) double MinimumCoverage=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FName> RegionalForms;

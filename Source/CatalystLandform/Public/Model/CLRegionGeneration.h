@@ -45,6 +45,7 @@ public:
     TArray<FCLCompiledPlanetFeature> Structure;
     TArray<TSharedPtr<const FCLCompiledRiftLandform>> Rifts;
     TArray<TSharedPtr<const FCLCompiledTransformLandform>> Transforms;
+    TArray<TSharedPtr<const FCLCompiledVolcanicArcLandform>> VolcanicArcs;
     bool bHasDirectionalDeformation=false;
     FVector ProvinceReferenceDirection(const FVector&)const;
     bool bHasPhysicalRelief=false,bHasProvinceDeformation=false;

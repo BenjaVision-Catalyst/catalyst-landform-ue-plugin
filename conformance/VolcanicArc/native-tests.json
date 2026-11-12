@@ -1,0 +1,71 @@
+{
+  "platform": "UE 5.7 Mac arm64 / Metal SM6",
+  "build": "Succeeded",
+  "uniqueTests": 13,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.PackagedLibrary",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.CurvesDeterminismAndRock",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.EnabledCaves",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.UniformWeights",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.FamilyAndAssembly",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.UnknownGeologyAndEnabledCaves",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.VolcanicArcRange",
+      "state": "Success"
+    }
+  ],
+  "finalObliqueRangeReview": [
+    {
+      "fullTestPath": "Catalyst.Landform.Planet.LandformRows.VolcanicArcRange",
+      "state": "Success"
+    }
+  ],
+  "sourceHashes": {
+    "Source/CatalystLandform/Private/Model/CLVolcanicArcLandform.cpp": "9287b0b34c9ff135c19f5e7a520176e3ca177d41ec9f1dfe9d5e3b7450891164",
+    "Source/CatalystLandform/Private/Model/CLGeologyProgression.cpp": "aacd12e4c789a6aead6206990bfbc5913e4681893948d2baee6ae6ab32e66ccd",
+    "Examples/TerrainTypes/Provinces/VolcanicArc.json": "666dbd5183dd0cac1fbc3a1187d011d4fe333c5a5fb87cf63bb252f36f242dda",
+    "Content/TerrainTypes/Provinces/DA_Province_VolcanicArc.uasset": "97f5e8297670c2c3635e153ca2554318408d215e584c5a1076b0362e2d7e00a0"
+  }
+}

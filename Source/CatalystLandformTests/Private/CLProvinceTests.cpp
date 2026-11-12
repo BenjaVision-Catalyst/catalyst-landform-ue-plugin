@@ -24,7 +24,7 @@ TArray<FCLTerrainType> ProvinceDefinitions(FString& Error)
     return Result;
 }
 FCLLandformPaletteEntry ProvinceEntry(const FCLTerrainType& T)
-{FCLLandformPaletteEntry P;P.Id=T.Id;P.Name=T.Name;P.AlgorithmVersion=T.AlgorithmVersion;P.Suitability=T.PlacementSuitability;P.Rift=T.Rift;P.Transform=T.Transform;P.NoiseLayers=T.NoiseLayers;return P;}
+{FCLLandformPaletteEntry P;P.Id=T.Id;P.Name=T.Name;P.AlgorithmVersion=T.AlgorithmVersion;P.Suitability=T.PlacementSuitability;P.Rift=T.Rift;P.Transform=T.Transform;P.VolcanicArc=T.VolcanicArc;P.NoiseLayers=T.NoiseLayers;return P;}
 FCLPlanetRecipe ProvinceBase(FString& Error)
 {
     FString Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/WatershedContinental.json")));
@@ -38,8 +38,8 @@ bool FCLProvinceDefinitionsTest::RunTest(const FString&)
     TSet<FGuid> Ids;TSet<uint8> Kinds;
     for(const auto& T:Types)
     {
-        TestTrue(TEXT("Province definitions use the existing Landform type and native algorithm"),T.SchemaVersion==(T.Transform.IsActive()?13:T.Rift.IsActive()?10:9)&&T.AlgorithmVersion==2&&T.Coordinates==ECLTerrainCoordinates::SphericalSurface);
-        TestTrue(TEXT("Every placeholder keeps base relief and material"),T.PlacementSuitability.Province.bPlaceholder==!(T.Rift.IsActive()||T.Transform.IsActive())&&(!T.PlacementSuitability.Province.bPlaceholder||T.NoiseLayers.IsEmpty())&&!T.SurfaceStack.IsActive());
+        TestTrue(TEXT("Province definitions use the existing Landform type and native algorithm"),T.SchemaVersion==(T.VolcanicArc.IsActive()?14:T.Transform.IsActive()?13:T.Rift.IsActive()?10:9)&&T.AlgorithmVersion==2&&T.Coordinates==ECLTerrainCoordinates::SphericalSurface);
+        TestTrue(TEXT("Every placeholder keeps base relief and material"),T.PlacementSuitability.Province.bPlaceholder==!(T.Rift.IsActive()||T.Transform.IsActive()||T.VolcanicArc.IsActive())&&(!T.PlacementSuitability.Province.bPlaceholder||T.NoiseLayers.IsEmpty())&&!T.SurfaceStack.IsActive());
         TestFalse(TEXT("Landform identity is unique"),Ids.Contains(T.Id));Ids.Add(T.Id);Kinds.Add(uint8(T.PlacementSuitability.Province.Type));
         FCLProvinceGeology Context;TestEqual(TEXT("Unknown geology cannot place a province"),T.PlacementSuitability.Province.Match(Context),ECLProvinceMatch::Unknown);
         for(auto E:T.PlacementSuitability.Province.Requirements)Context.Set(E,true);
@@ -54,7 +54,7 @@ bool FCLProvinceDefinitionsTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLProvincePlacementTest,"Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLProvincePlacementTest::RunTest(const FString&)
 {
-    FString Error;auto Types=ProvinceDefinitions(Error);if(Types.Num()!=17){AddError(Error);return false;}for(auto& T:Types)if(T.Rift.IsActive()||T.Transform.IsActive()){T.Rift=FCLRiftLandform();T.Transform=FCLTransformLandform();T.NoiseLayers.Reset();T.SchemaVersion=9;T.PlacementSuitability.Province.bPlaceholder=true;T.PlacementSuitability.Province.AlgorithmVersion=1;T.PlacementSuitability.Province.Relaxations.Reset();}auto R=ProvinceBase(Error);
+    FString Error;auto Types=ProvinceDefinitions(Error);if(Types.Num()!=17){AddError(Error);return false;}for(auto& T:Types)if(T.Rift.IsActive()||T.Transform.IsActive()||T.VolcanicArc.IsActive()){T.Rift=FCLRiftLandform();T.Transform=FCLTransformLandform();T.VolcanicArc=FCLVolcanicArcLandform();T.NoiseLayers.Reset();T.SchemaVersion=9;T.PlacementSuitability.Province.bPlaceholder=true;T.PlacementSuitability.Province.AlgorithmVersion=1;T.PlacementSuitability.Province.Relaxations.Reset();T.PlacementSuitability.Province.PlacementPreferences.Reset();}auto R=ProvinceBase(Error);
     const auto Before=FCLPlanetCompiler::Compile(R,Error);if(!Before){AddError(Error);return false;}
     R.RegionGeneration.bEnabled=true;R.RegionGeneration.AlgorithmVersion=3;R.RegionGeneration.RegionCount=24;for(const auto& T:Types)R.RegionGeneration.Palette.Add(ProvinceEntry(T));
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}

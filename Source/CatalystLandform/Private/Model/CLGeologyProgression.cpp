@@ -2,6 +2,7 @@
 #include "Model/CLContinents.h"
 #include "Model/CLRockLayer.h"
 #include "Model/CLTransformLandform.h"
+#include "Model/CLVolcanicArcLandform.h"
 namespace
 {
 struct FKey { double Position,Value; };
@@ -96,4 +97,21 @@ void FCLTransformLandform::ApplyProgression(double Position)
     BasinWidthMeters=Track(Character,{{0,65},{.30,75},{.65,100},{1,70}});
     SecondaryStrandWeight=Track(Character,{{0,.12},{.30,.30},{.70,.85},{1,.50}});
     DissectionMeters=Track(Character,{{0,1},{.30,2},{.60,1.5},{1,5}});
+}
+
+void FCLVolcanicArcLandform::ApplyProgression(double Position)
+{
+    AlgorithmVersion=1;Character=FMath::Clamp(Position,0.,1.);
+    BaseRadiusMeters=Track(Character,{{0,280},{.18,260},{.37,220},{.66,270},{1,295}});
+    HeightMeters=Track(Character,{{0,32},{.20,44},{.43,76},{.72,107},{1,132}});
+    FlankExponent=Track(Character,{{0,1.45},{.35,1.60},{.67,1.30},{1,1.25}});
+    SecondaryHeight=Track(Character,{{0,.24},{.30,.12},{.58,.55},{.76,.80},{1,.72}});
+    CraterRadiusMeters=Track(Character,{{0,38},{.34,27},{.67,44},{1,62}});
+    CraterDepthMeters=Track(Character,{{0,6},{.40,12},{.72,23},{1,38}});
+    IncisionMeters=Track(Character,{{0,7},{.33,3},{.62,9},{.85,18},{1,22}});
+    LavaShoulderMeters=Track(Character,{{0,2},{.35,7},{.64,11},{1,6}});
+    ApronHeightMeters=Track(Character,{{0,5},{.30,4},{.69,11},{1,14}});
+    ApronReach=Track(Character,{{0,1.8},{.32,1.6},{.72,1.9},{1,2.15}});
+    BreachStrength=Track(Character,{{0,.05},{.38,.02},{.68,.12},{.88,.43},{1,.70}});
+    Asymmetry=Track(Character,{{0,.22},{.32,.10},{.67,.20},{1,.30}});
 }

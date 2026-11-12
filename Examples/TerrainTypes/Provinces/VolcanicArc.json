@@ -1,34 +1,124 @@
 {
-  "schemaVersion": 9,
+  "schemaVersion": 14,
   "algorithmVersion": 2,
   "id": "434C505200000001000000000000000A",
   "name": "Volcanic arc province",
-  "description": "Province placeholder. Continental and island arc variants. A convergent belt alone is not a volcanic record; require declared arc and eruption history.",
+  "description": "Composite volcanic centres, overlapping massifs, radial gullies and broad depositional aprons. Character maps the current editable physical values.",
   "coordinates": "SphericalSurface",
-  "noiseLayers": [],
+  "noiseLayers": [
+    {
+      "name": "Weathered volcanic mantle",
+      "seed": 301,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.65
+      },
+      "maximum": {
+        "offsetMeters": 0.65
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 70,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Lava and tephra texture",
+      "seed": 302,
+      "shape": "Ridged",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.3
+      },
+      "maximum": {
+        "offsetMeters": 0.3
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 12,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Rock and debris",
+      "seed": 303,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.1
+      },
+      "maximum": {
+        "offsetMeters": 0.1
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 3,
+      "octaves": 2,
+      "persistence": 0.45
+    }
+  ],
   "placementSuitability": {
     "bUsePreferences": true,
     "selectionWeight": 1,
     "upliftAffinity": 0,
     "basinAffinity": 0,
     "province": {
-      "algorithmVersion": 1,
+      "algorithmVersion": 2,
       "type": "VolcanicArc",
-      "bPlaceholder": true,
+      "bPlaceholder": false,
       "requirements": [
         "SubductionHistory",
         "VolcanicHistory"
       ],
-      "minimumCoverage": 0.6,
+      "minimumCoverage": 0.35,
       "regionalForms": [
         "Volcanic centres",
-        "Arc ridges",
-        "Volcaniclastic basins"
+        "Overlapping massifs",
+        "Radial gullies",
+        "Depositional aprons"
       ],
       "subsurfacePotential": [
         "Flow-dependent lava tubes",
         "Context-dependent hypogene"
+      ],
+      "maximumRelaxedRegions": 2,
+      "relaxations": [
+        {
+          "name": "Declared subduction without eruption history",
+          "relaxedRequirements": [
+            "VolcanicHistory"
+          ],
+          "minimumCoverage": 0.15,
+          "placementWeight": 0.6
+        },
+        {
+          "name": "Selected local volcanic expression",
+          "relaxedRequirements": [
+            "SubductionHistory",
+            "VolcanicHistory"
+          ],
+          "minimumCoverage": 0.01,
+          "placementWeight": 0.12
+        }
+      ],
+      "placementPreferences": [
+        "Compression"
       ]
     }
+  },
+  "volcanicArc": {
+    "algorithmVersion": 1,
+    "character": 0,
+    "seed": 137,
+    "baseRadiusMeters": 280,
+    "heightMeters": 32,
+    "flankExponent": 1.45,
+    "secondaryHeight": 0.24,
+    "craterRadiusMeters": 38,
+    "craterDepthMeters": 6,
+    "incisionMeters": 7,
+    "lavaShoulderMeters": 2,
+    "apronHeightMeters": 5,
+    "apronReach": 1.8,
+    "breachStrength": 0.05,
+    "asymmetry": 0.22
   }
 }

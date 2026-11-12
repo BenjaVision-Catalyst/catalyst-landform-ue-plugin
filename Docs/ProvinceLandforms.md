@@ -5,7 +5,7 @@
 The user considers Continental Rift complete for now. Historical open visual
 checks below describe earlier checkpoints; they do not reopen that decision.
 Transform and shear belt uses the established Character progression and direct
-physical settings. See [Transform](TransformShearLandform.md). Caves retain their existing
+physical settings. See [Transform](TransformShearLandform.md) and [Volcanic arc](VolcanicArcLandform.md). Caves retain their existing
 shape; this province work does not claim cave visual approval.
 
 12 November editor correction: **Planet is the only editor**. Its Landforms tab
@@ -19,8 +19,9 @@ version-1 hard-gate descriptions below remain the frozen catalogue baseline.
 New definition version 2 may relax recorded conditions when needed.
 
 Seventeen native Landform assets define geological province families and the base
-geology required to place them. Continental Rift adds local fault-block relief and Transform adds finite shear
-corridors, both with matching Rock deformation; fifteen remain neutral placeholders. The catalogue
+geology preferred for their placement. Continental Rift adds local fault-block relief, Transform adds finite shear
+corridors, and Volcanic arc adds composite centres and depositional aprons, all with
+matching Rock deformation; fourteen remain neutral placeholders. The catalogue
 creates no caves. This establishes
 the regional definitions before developing their terrain and underground forms.
 
@@ -180,3 +181,8 @@ history remains unknown. See [Caves](Caves.md) for the conservative host rule an
 current morphology limits. Province ownership does not clip a cave at an arbitrary
 regional boundary; the complete sampled route must retain its actual host and
 formation evidence.
+
+Volcanic arc now uses terrain schema 14 and the standard physical Character
+progression. See [Volcanic arc](VolcanicArcLandform.md). Its strict history
+metadata is retained with ordered gameplay relaxation and a soft compression
+preference; current compression is not required for inherited arcs.
