@@ -116,7 +116,7 @@ bool FCLVolcanicArcFallbackTest::RunTest(const FString&)
     if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return Asset->AddPaletteSource(Source.Get(),Error);})){AddError(Error);return false;}
     auto P=FCLPlanetCompiler::Compile(Asset->Recipe,Error);if(!P){AddError(Error);return false;}
     int32 Assigned=0;for(const auto& C:P->GeneratedRegions->Cells)if(P->GeneratedRegions->Palette[C.PaletteIndex].Id==Source->TerrainType.Id){++Assigned;TestEqual(TEXT("Unknown volcanic history uses recorded local fallback"),C.ProvinceRelaxationTier,2);}
-    TestEqual(TEXT("Relaxed placement retains its authored regional budget"),Assigned,2);
+    TestEqual(TEXT("A single selected arc fills the entire planet"),Assigned,P->GeneratedRegions->Cells.Num());
     // A real assembled review planet retains enabled caves, independently of
     // volcanic history and the new local surface anatomy.
     FFileHelper::LoadFileToString(J,*(Root/TEXT("Examples/ContinentalRiftProvince.json")));if(!Asset->ImportRecipeJson(J,Error)){AddError(Error);return false;}

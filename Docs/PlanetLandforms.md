@@ -20,18 +20,23 @@ name and brief description; the same row contains:
 | Control | Effect |
 | --- | --- |
 | Disclosure | Edit applied physical ranges, noise and placement values inline. |
-| Checkbox | Include in generation. Off disables disclosure, Character, eye, reseed and Solo. Settings are retained for re-enabling. |
+| Checkbox | Include in generation. Off disables disclosure, Character, eye, info, reseed and Solo. Settings are retained for re-enabling. |
 | Character | Change this planet's applied family Character, with one Undo per drag. |
 | Eye | Include/exclude only in the current preview; generation selection remains saved. |
+| Info | Toggle highlighted outlines and centre markers for all currently assigned cells of this Landform. This display action starts no terrain generation and is disabled when the row is excluded. |
 | Reseed | Change this planet's deterministic local variation. |
 | Solo / Unsolo | Apply this included Landform across every planet region / restore the assembled preview. |
 
-Eye and Solo are editor session state. They do not dirty the planet or mutate
+Eye, Info and Solo are editor session state. They do not dirty the planet or mutate
 source definitions. Solo temporarily reveals a hidden selected row and restores its eye state on
 Unsolo. It temporarily excludes
 other Landforms, including manually placed instances. Base geology, planet scale,
-radial guides, Rock and Caves remain supplied by the planet. Normal generation
-continues to use recorded geological placement and relaxation metadata. Solo is
+radial guides, Rock and Caves remain supplied by the planet. Every generated cell must be assigned to an included Landform. One included
+Landform fills every cell. With several, strict geological fits have priority,
+then the source’s declared relaxation tiers, then the closest remaining
+preferences to complete coverage. The source’s strict requirements and known
+geological evidence are never rewritten. Preferred relaxed-placement budgets
+remain soft during mandatory full coverage. Solo is
 an explicit compiler evaluation option, outside the recipe and JSON format;
 it overrides region assignment in the same stock native VPP pipeline. Changing
 that option invalidates prepared input reuse where necessary.
@@ -111,3 +116,14 @@ Within a resolved extensional belt, Rift relief varies across the belt and its
 ridges run along it. This follows the rift trend rather than the plate's travel
 direction. Where that context is absent, relaxed placement uses a seeded local
 orientation; not every generated ridge is therefore aligned to a plate boundary.
+
+## Assigned-cell display — 13 November 2026
+
+The instruction banner is removed. Each row has an Info icon immediately after
+the preview eye. It toggles gold cell boundaries and centre markers for that
+Landform’s actual current preview assignments. Multiple Info toggles may be on.
+Solo and a single included Landform therefore highlight every cell. Turning Info
+off clears its overlay; excluding the row disables and clears its Info state.
+The Preview tab no longer contains a Province cells checkbox. The globe grid
+retains its independent default and control. Info changes only display state:
+no recipe changes, native-world replacement, mesh extraction or rebuild.

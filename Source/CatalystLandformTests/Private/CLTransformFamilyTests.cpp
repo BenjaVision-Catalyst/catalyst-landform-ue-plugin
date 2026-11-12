@@ -41,7 +41,7 @@ bool FCLTransformFamilyTest::RunTest(const FString&)
     TStrongObjectPtr<UCLPlanetRecipeAsset> Copy(NewObject<UCLPlanetRecipeAsset>());TestTrue(TEXT("Physical settings export"),A->ExportJsonString(J,E));TestTrue(TEXT("Physical settings import"),Copy->ImportRecipeJson(J,E));TestTrue(TEXT("All authored physical values round-trip"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&A->Recipe,&Copy->Recipe,0));
     auto Unknown=FCLPlanetCompiler::RollingPlains();Unknown.AlgorithmVersion=2;Unknown.Coordinates=ECLTerrainCoordinates::SphericalSurface;Unknown.RadiusMeters=2000;A->Recipe=Unknown;if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return A->AddPaletteSource(S.Get(),E);})){AddError(E);return false;}P=FCLPlanetCompiler::Compile(A->Recipe,E);if(!P){AddError(E);return false;}
     int32 Assigned=0;for(const auto& C:P->GeneratedRegions->Cells)if(P->GeneratedRegions->Palette[C.PaletteIndex].Id==S->TerrainType.Id){++Assigned;TestEqual(TEXT("Missing shear follows recorded fallback"),C.ProvinceRelaxationTier,2);}
-    TestEqual(TEXT("Relaxation stays bounded"),Assigned,2);TestTrue(TEXT("Source settings are unchanged"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&Original,&S->TerrainType,0));return !HasAnyErrors();
+    TestEqual(TEXT("A single selected Transform fills every cell"),Assigned,P->GeneratedRegions->Cells.Num());TestTrue(TEXT("Source settings are unchanged"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&Original,&S->TerrainType,0));return !HasAnyErrors();
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTransformCaveTest,"Catalyst.Landform.Transform.Family.EnabledCaves",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLTransformCaveTest::RunTest(const FString&)

@@ -1,0 +1,252 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.40"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.45"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 73: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.47"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 74: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.48"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 75: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.50"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 76: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 77: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 78: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 79: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 80: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.43.58"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.InstalledBasePlanet",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 selected assignments, 0 relaxed regions; max final-height change 0 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.44.17"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"p95Ms\":17.197292,\"assignedRegions\":32,\"retainedBaseRegions\":0,\"counts\":{\"Crystalline shield\":0,\"Covered continental platform\":1,\"Clastic sedimentary basin\":0,\"Carbonate platform and reef province\":0,\"Evaporite basin\":0,\"Fold and thrust belt\":0,\"Metamorphic mountain core\":0,\"Continental rift and fault-block province\":2,\"Transform and shear belt\":12,\"Volcanic arc province\":0,\"Basaltic volcanic province\":0,\"Silicic volcanic province\":0,\"Plutonic and intrusive province\":0,\"Passive continental margin\":0,\"Oceanic crust province\":17,\"Impact province\":0,\"Icy-crust province\":0,\"Base geology\":0}}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.44.21"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.PackagedLibrary",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.PlacementRelaxation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_FALLBACK assigned=24 cells=24 tier=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.44.21"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.CurvesDeterminismAndRock",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.EnabledCaves",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.UniformWeights",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.DrainageAndSamplingBudget",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Arc drainage: probes=320000 nsPerProbe=359.5 maxCandidates=20 meanSegments=113.0 meanPrimaryBytes=21851.0 checksum=7542779.516",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.44.27"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.FamilyAndAssembly",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.UnknownGeologyAndEnabledCaves",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-20.44.30"
+        }
+      ]
+    }
+  ]
+}

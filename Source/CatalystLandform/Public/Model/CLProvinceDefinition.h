@@ -56,8 +56,9 @@ struct CATALYSTLANDFORM_API FCLProvinceDefinition
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FName> RegionalForms;
     /** Planned geological potential only; no cave generator is supplied by these definitions. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FName> SubsurfacePotential;
-    /** Version 2: used only if no cell satisfies a stricter tier for this source. */
+    /** Version 2: ordered per-cell relaxation after stricter fits have been preferred. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FCLProvinceRelaxation> Relaxations;
+    /** Preferred relaxed-placement budget; mandatory full coverage may exceed it. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="128")) int32 MaximumRelaxedRegions=1;
     bool IsActive()const{return Type!=ECLProvinceType::None;}
     bool Validate(FString& Error)const;

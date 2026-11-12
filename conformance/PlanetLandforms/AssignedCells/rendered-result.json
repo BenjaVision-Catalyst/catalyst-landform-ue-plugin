@@ -1,0 +1,10 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.AssignedCellHighlights",
+      "state": "Success",
+      "entries": []
+    }
+  ]
+}

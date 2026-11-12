@@ -103,20 +103,24 @@ and no surface-stack override. Validation rejects a placeholder carrying either.
 Adding or refreshing a neutral province source selects region algorithm 3, unless
 the recipe already uses mode 4. Physical Rift selects mode 4. Mode 3 reuses mode
 2's equal-area characterization, sites, deterministic ranking and native child
-fields. Each sampled point must positively satisfy every prerequisite; its share
+fields. At the strict tier, each sampled point must positively satisfy every prerequisite; its share
 of the cell must meet the profile's coverage. Only then do existing soft terrain
 preferences rank eligible sources. Missing evidence stays unknown and is not
 inferred from altitude, shape, material colour, asset names or rock resistance.
 
-When no source qualifies, the selector retains **Base geology** through an
-internal neutral entry. That entry is not a generated or substituted terrain type
-and is not offered as a source asset. Mode 3 supports 31 authored sources plus the
-neutral entry within the existing 32-entry native scratch limit. A single province
-is still gated. Manual cell assignment cannot bypass that gate. Global replacement
-and direct geometric-region application reject province assets; use the regional
-palette. Opening a neutral source's isolated relief preview strips metadata only from a
-validated local preview copy and leaves the original asset intact. Physical Rift
-retains metadata and previews through the existing native globe with geological context.
+Every cell must belong to an included Landform. A single included province is
+assigned to every cell. With several, strict geological candidates have priority
+at each cell, followed by the profile’s declared relaxation tiers. If none fit,
+closest partial geological evidence and existing soft elevation/slope/structural
+preferences complete coverage. Preferred relaxed-placement budgets are soft and
+may be exceeded for full coverage. Source requirements are not rewritten and
+missing geological evidence is never fabricated. Each cell records its applied
+tier and the reason for coverage fallback. Editorial overrides use the same
+recorded relaxation policy. The internal neutral field remains available for
+native preparation compatibility, but is never assigned to a generated cell.
+
+Global replacement and direct geometric-region application reject province
+assets; use the regional palette. Planet remains the only editor.
 
 Legacy region algorithms 1 and 2 retain the one-source-fills-all contract for
 ordinary Landforms. Mode 3 is explicit and versioned; existing recipes are not

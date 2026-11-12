@@ -662,6 +662,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLVolcanicArcDesignerTest;
     friend class FCLPlanetSurfaceFirstTest;
     friend class FCLPlanetLandformRowsTest;
+    friend class FCLPlanetLandformInfoTest;
     friend class FCLCaveDesignerTest;
     friend class FCLAuthoringLayoutTest;
     friend class FCLBackgroundDesignerTest;
@@ -794,6 +795,8 @@ public:
         if (TerrainEditing) TerrainEditing->Asset->OnTerrainChanged.Remove(TerrainChanged);
     }
     static TWeakPtr<FCLRecipeToolkit> ActivePlanet;
+    void SyncLandformHighlights()
+    {if(!Globe||!Landforms)return;TSet<FGuid> Ids;for(FGuid Id:Landforms->Highlighted)if(Landforms->Included(Id))Ids.Add(Id);Globe->SetHighlightedLandforms(Ids);}
     void ShowLandforms(UCLTerrainTypeAsset* Source=nullptr)
     {if(Source)Landforms->AddSource(Source);if(LandformRows){LandformRows->Refresh();if(Source)LandformRows->Focus(Source->TerrainType.Id);}InspectorPage=2;FocusWindow(RecipeAsset());}
     void Open(UCLPlanetRecipeAsset* Asset, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
@@ -802,6 +805,7 @@ public:
         ActivePlanet=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
         Landforms=MakeShared<FCLPlanetLandforms>(Asset);Landforms->Discover();
         Landforms->PreviewChanged=FSimpleDelegate::CreateSP(this,&FCLRecipeToolkit::Refresh);
+        Landforms->HighlightsChanged=FSimpleDelegate::CreateSP(this,&FCLRecipeToolkit::SyncLandformHighlights);
         OpenDesigner(Mode, Host);
     }
     void RefreshTerrain()
@@ -1136,7 +1140,7 @@ public:
     void Refresh()
     {
         auto* Asset = RecipeAsset();
-        if(LandformRows)LandformRows->SyncControls();
+        if(LandformRows)LandformRows->SyncControls();SyncLandformHighlights();
         InspectorRecipe=Asset->Recipe;InspectorRecipe.UseGuidedGeology();
         if(TectonicDraft)
         {
@@ -1638,8 +1642,6 @@ public:
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetOceanVisible(V==ECheckBoxState::Checked);}));
             InspectorRow(C,TEXT("Globe grid"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsGlobeGridVisible()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetGlobeGrid(V==ECheckBoxState::Checked);}));
-            InspectorRow(C,TEXT("Province cells"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsInspectingRegions()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetRegionInspection(V==ECheckBoxState::Checked);}));
             InspectorRow(C,TEXT("Channel"),SNew(SButton).Text(FText::FromString(TEXT("Focus largest channel"))).IsEnabled_Lambda([this]{return AcceptedSurfacePlan&&AcceptedSurfacePlan->Watershed&&!AcceptedSurfacePlan->Watershed->GetChannels().IsEmpty();}).OnClicked_Lambda([this]{if(!bGlobe){bGlobe=true;Refresh();}if(Globe)Globe->FocusWatershed();return FReply::Handled();}));
             InspectorRow(C,TEXT("Section area"),SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().FillWidth(1)[SNew(SSlider).Value_Lambda([this]{return float((PendingAreaWidth-100)/900);})
@@ -2945,10 +2947,10 @@ bool FCLPlanetLandformRowsTest::RunTest(const FString&)
     auto State=E->Landforms;auto* Row=E->LandformRows->Controls.Find(Id);if(!TestNotNull(TEXT("Planet contains the applied Rift row"),Row))return false;
     TestTrue(TEXT("Catalogue and applied sources are listed in Planet"),E->LandformRows->Controls.Num()>=17);TestFalse(TEXT("The obsolete terrain-layer tab is not registered"),E->GetTabManager()->HasTabSpawner(FName(TEXT("CLNoiseLayers"))));TestFalse(TEXT("The obsolete source-surface tab is not registered"),E->GetTabManager()->HasTabSpawner(FName(TEXT("CLSurfaceLayers"))));
     Row->Include->ToggleCheckedState();TestFalse(TEXT("Checkbox excludes generation"),State->Included(Id));
-    TestTrue(TEXT("Unchecked rows disable knob, eye, reseed and Solo"),!Row->Disclosure->IsEnabled()&&!Row->DetailsBox->IsEnabled()&&!Row->Knob->IsEnabled()&&!Row->Eye->IsEnabled()&&!Row->Reseed->IsEnabled()&&!Row->Solo->IsEnabled());
-    const auto Disabled=A->Recipe;TestFalse(TEXT("Disabled controller refuses Character"),State->SetCharacter(Id,.8));TestFalse(TEXT("Disabled controller refuses reseed"),State->Reseed(Id));TestFalse(TEXT("Disabled controller refuses eye"),State->ToggleEye(Id));TestFalse(TEXT("Disabled controller refuses Solo"),State->ToggleSolo(Id));
+    TestTrue(TEXT("Unchecked rows disable knob, eye, reseed and Solo"),!Row->Disclosure->IsEnabled()&&!Row->DetailsBox->IsEnabled()&&!Row->Knob->IsEnabled()&&!Row->Eye->IsEnabled()&&!Row->Info->IsEnabled()&&!Row->Reseed->IsEnabled()&&!Row->Solo->IsEnabled());
+    const auto Disabled=A->Recipe;TestFalse(TEXT("Disabled controller refuses Character"),State->SetCharacter(Id,.8));TestFalse(TEXT("Disabled controller refuses reseed"),State->Reseed(Id));TestFalse(TEXT("Disabled controller refuses eye"),State->ToggleEye(Id));TestFalse(TEXT("Disabled controller refuses Solo"),State->ToggleSolo(Id));TestFalse(TEXT("Disabled controller refuses cell highlights"),State->ToggleHighlight(Id));
     TestTrue(TEXT("Disabled actions preserve all settings"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Disabled,&A->Recipe,0));
-    Row->Include->ToggleCheckedState();TestTrue(TEXT("Reinclude restores all row controls"),Row->Knob->IsEnabled()&&Row->Eye->IsEnabled()&&Row->Reseed->IsEnabled()&&Row->Solo->IsEnabled());
+    Row->Include->ToggleCheckedState();TestTrue(TEXT("Reinclude restores all row controls"),Row->Knob->IsEnabled()&&Row->Eye->IsEnabled()&&Row->Info->IsEnabled()&&Row->Reseed->IsEnabled()&&Row->Solo->IsEnabled());
     A->Recipe.RegionGeneration.bEnabled=false;E->Refresh();TestFalse(TEXT("A saved disabled generator shows unchecked rows"),State->Included(Id));TestFalse(TEXT("A saved disabled generator disables its controls"),Row->Knob->IsEnabled());Row->Include->ToggleCheckedState();TestTrue(TEXT("The row checkbox reactivates generation explicitly"),State->Included(Id));
     Row->Disclosure->SimulateClick();TestTrue(TEXT("Disclosure creates native editable values"),Row->Details.IsValid()&&Row->Draft.IsValid());
     for(const auto& Path:Row->Details->GetDetailsView()->GetPropertiesInOrderDisplayed())TestTrue(TEXT("Details omit protected identity and algorithm fields"),Path.GetLeafMostProperty().Property->GetFName()!=TEXT("AlgorithmVersion")&&Path.GetLeafMostProperty().Property->GetFName()!=TEXT("Id"));
@@ -2973,6 +2975,60 @@ bool FCLPlanetLandformRowsTest::RunTest(const FString&)
     TestTrue(TEXT("A custom source can be assembled without leaving Planet"),FCLPlanetCompiler::WithAuthoringValidation([&]{return A->AddPaletteSource(Added.Get(),Error);}));TestTrue(TEXT("New applied sources immediately appear as rows"),E->LandformRows->Controls.Contains(Added->TerrainType.Id));
     const auto Toolkit=FCLRecipeToolkit::ActivePlanet.Pin();CLOpenTerrainDesigner(Source.Get());TestTrue(TEXT("Legacy terrain API focuses the existing planet"),Toolkit==FCLRecipeToolkit::ActivePlanet.Pin()&&E->InspectorPage==2);TestEqual(TEXT("The only toolkit is Planet"),E->GetToolkitFName(),FName(TEXT("CLRecipeDesigner")));TestTrue(TEXT("A source definition never gets a standalone editor"),GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->FindEditorForAsset(Source.Get(),false)==nullptr);
     A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return !HasAnyErrors();
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetLandformInfoTest,"Catalyst.Landform.Planet.LandformRows.AssignedCellHighlights",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlanetLandformInfoTest::RunTest(const FString&)
+{
+    auto* Original=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/DA_BasePlanet"));if(!TestNotNull(TEXT("Normal authoring planet"),Original))return false;
+    const auto Before=Original->Recipe;
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLInfo_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),TEXT("CellHighlightReview"),RF_Transactional));A->Recipe=Before;
+    auto E=MakeShared<FCLRecipeToolkit>();E->HoldCavesForTesting=true;E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=2;
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_VolcanicArc"));if(!TestNotNull(TEXT("Catalogue source"),Source))return false;
+    const FGuid Id=Source->TerrainType.Id;E->Landforms->AddSource(Source);if(!E->Landforms->Include(Id,true)){AddError(E->Landforms->Error);return false;}
+    E->LandformRows->Focus(Id);A->GetOutermost()->SetDirtyFlag(false);
+    class FReview:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLPlanetRecipeAsset> A,Original;FCLPlanetRecipe Before;FGuid Id;int32 Stage=0;double Start=FPlatformTime::Seconds(),Ready=0;bool Framed=false;uint32 Evaluations=0,Owner=0;uint64 Copies=0;TArray<FString> Records;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLPlanetRecipeAsset* Asset,UCLPlanetRecipeAsset* Source,FCLPlanetRecipe B,FGuid I):Test(T),E(In),A(Asset),Original(Source),Before(MoveTemp(B)),Id(I){}
+        bool Update()override
+        {
+            auto Close=[&]{A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
+            const double Now=FPlatformTime::Seconds();if(Now-Start>150){Test->AddError(FString::Printf(TEXT("Cell highlight stage %d: %s"),Stage,*E->Status));return Close();}
+            const auto P=E->AcceptedSurfacePlan;auto* N=E->Globe->NativeForTesting();if(!P||!P->GeneratedRegions||!N||E->EvaluationUpdating()||N->PublishedPlan()!=P||N->IsUpdating()||!E->Globe->IsSurfaceReady(P)){Ready=0;return false;}
+            const auto& G=*P->GeneratedRegions;
+            if(!Framed)
+            {
+                for(const auto& C:G.Cells)if(G.Palette[C.PaletteIndex].Id==Id){E->Globe->FrameDirectionForTesting(C.Centre,.9);break;}
+                E->Globe->SetGuides({},false);E->LandformRows->Focus(Id);Framed=true;return false;
+            }
+            E->Globe->GetViewportClient()->Viewport->Draw(false);if(!Ready){Ready=Now;return false;}if(Now-Ready<.4)return false;
+            TArray<FGuid> Expected;if(Stage!=0&&Stage!=2)for(const auto& C:G.Cells)if(G.Palette[C.PaletteIndex].Id==Id)Expected.Add(C.Id);
+            const auto Actual=E->Globe->HighlightedGeneratedRegions();Test->TestEqual(TEXT("Highlight count matches actual generated assignments"),Actual.Num(),Expected.Num());for(FGuid Cell:Actual)Test->TestTrue(TEXT("Every highlighted cell belongs to the requested Landform"),Expected.Contains(Cell));
+            if(Stage==1||Stage==2){Test->TestEqual(TEXT("Info starts no authoring evaluation"),E->Evaluation.Started,Evaluations);Test->TestEqual(TEXT("Info retains the native world"),N->WorldIdentity(),Owner);Test->TestEqual(TEXT("Info extracts no terrain mesh"),N->Metrics.MeshCopies,Copies);Test->TestFalse(TEXT("Info leaves the preview asset clean"),A->GetOutermost()->IsDirty());}
+            if(Stage==3||Stage==4)Test->TestEqual(TEXT("Solo and a single included Landform highlight every province cell"),Actual.Num(),G.Cells.Num());
+            if(Stage==0)
+            {
+                FString Text;TFunction<void(TSharedRef<SWidget>)> Collect=[&](TSharedRef<SWidget> W){if(W->GetType()==FName(TEXT("STextBlock")))Text+=StaticCastSharedRef<STextBlock>(W)->GetText().ToString()+TEXT(";");auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)Collect(C->GetChildAt(I));};Collect(E->LandformRows.ToSharedRef());Collect(E->PlanetInspectors[4].ToSharedRef());Test->TestFalse(TEXT("No Landforms instruction banner"),Text.Contains(TEXT("Choose Landforms"))||Text.Contains(TEXT("Eye and Solo affect")));Test->TestFalse(TEXT("Preview has no Province cells checkbox"),Text.Contains(TEXT("Province cells")));
+                Evaluations=E->Evaluation.Started;Owner=N->WorldIdentity();Copies=N->Metrics.MeshCopies;
+            }
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/landform-info");IFileManager::Get().MakeDirectory(*Dir,true);TArray<FColor> Pixels;FIntVector Size;
+            if(Test->TestTrue(TEXT("Actual Planet overlay capture"),FSlateApplication::Get().TakeScreenshot(E->GetToolkitHost()->GetParentWidget(),Pixels,Size))){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/FString::Printf(TEXT("mode-%d.png"),Stage)));}
+            Records.Add(FString::Printf(TEXT("{\"stage\":%d,\"highlighted\":%d,\"cells\":%d}"),Stage,Actual.Num(),G.Cells.Num()));Ready=0;Start=Now;
+            if(Stage==0||Stage==1)E->LandformRows->Controls[Id].Info->SimulateClick();
+            else if(Stage==2){E->LandformRows->Controls[Id].Info->SimulateClick();E->Landforms->ToggleSolo(Id);}
+            else if(Stage==3)
+            {
+                E->Landforms->ToggleSolo(Id);TArray<FGuid> Others;for(const auto& Entry:A->Recipe.RegionGeneration.Palette)if(Entry.Id!=Id&&Entry.bEnabled)Others.Add(Entry.Id);for(FGuid Other:Others)E->Landforms->Include(Other,false);
+            }
+            else
+            {
+                Test->TestTrue(TEXT("Tests preserve all original unsaved authoring"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&Original->Recipe,0));FFileHelper::SaveStringToFile(TEXT("{\"cases\":[")+FString::Join(Records,TEXT(","))+TEXT("]}\n"),*(Dir/TEXT("cases.json")));return Close();
+            }
+            ++Stage;return false;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Original,Before,Id));return true;
 }
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLRiftDesignerTest,"Catalyst.Landform.Rift.NativeDesigner",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 void FCLRiftDesignerTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const

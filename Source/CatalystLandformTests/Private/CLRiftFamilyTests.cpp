@@ -29,7 +29,7 @@ bool FCLRiftFallbackTest::RunTest(const FString&)
     const auto P=FCLPlanetCompiler::Compile(Asset->Recipe,E);if(!P){AddError(E);return false;}
     int32 Assigned=0;for(const auto& C:P->GeneratedRegions->Cells)if(P->GeneratedRegions->Palette[C.PaletteIndex].Id==Source->TerrainType.Id)
     {++Assigned;TestEqual(TEXT("Unknown geology uses the recorded final tier"),C.ProvinceRelaxationTier,3);TestTrue(TEXT("Existing inspector explains the relaxed placement"),C.Reason.Contains(TEXT("Selected local rift expression")));}
-    TestEqual(TEXT("Relaxed placement is bounded instead of covering the planet"),Assigned,Definition.MaximumRelaxedRegions);
+    TestEqual(TEXT("A single selected Rift fills every cell"),Assigned,P->GeneratedRegions->Cells.Num());
     auto Again=FCLPlanetCompiler::Compile(Asset->Recipe,E);if(!Again){AddError(E);return false;}
     for(int32 I=0;I<P->GeneratedRegions->Cells.Num();++I)TestEqual(TEXT("Fallback placement is deterministic"),P->GeneratedRegions->Cells[I].PaletteIndex,Again->GeneratedRegions->Cells[I].PaletteIndex);
     FString J;TStrongObjectPtr<UCLPlanetRecipeAsset> Copy(NewObject<UCLPlanetRecipeAsset>());TestTrue(TEXT("Relaxation metadata exports"),Asset->ExportJsonString(J,E));TestTrue(TEXT("Relaxation metadata imports"),Copy->ImportRecipeJson(J,E));

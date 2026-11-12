@@ -75,6 +75,7 @@ bool FCLPlanetLandforms::Include(FGuid Id,bool Enabled)
     S.bEnabled=S.Palette.ContainsByPredicate([](const auto& V){return V.bEnabled;});
     if(!Enabled)S.Overrides.RemoveAll([&](const auto& O){return O.LandformId==Id;});
     const bool Ok=Commit(MoveTemp(R),FText::FromString(TEXT("Include Landform in generation")),Source);
+    if(Ok&&!Enabled&&Highlighted.Remove(Id))HighlightsChanged.ExecuteIfBound();
     if(Ok&&!Enabled&&Solo==Id){Solo.Invalidate();PreviewChanged.ExecuteIfBound();}return Ok;
 }
 bool FCLPlanetLandforms::SetCharacter(FGuid Id,double Value)
@@ -101,6 +102,8 @@ bool FCLPlanetLandforms::Reseed(FGuid Id)
 }
 bool FCLPlanetLandforms::ToggleEye(FGuid Id)
 {if(!Included(Id))return false;if(Solo==Id){Solo.Invalidate();Hidden.Add(Id);}else if(Hidden.Contains(Id))Hidden.Remove(Id);else Hidden.Add(Id);PreviewChanged.ExecuteIfBound();return true;}
+bool FCLPlanetLandforms::ToggleHighlight(FGuid Id)
+{if(!Included(Id))return false;if(Highlighted.Contains(Id))Highlighted.Remove(Id);else Highlighted.Add(Id);HighlightsChanged.ExecuteIfBound();return true;}
 bool FCLPlanetLandforms::ToggleSolo(FGuid Id)
 {if(!Included(Id))return false;if(Solo==Id)Solo.Invalidate();else Solo=Id;PreviewChanged.ExecuteIfBound();return true;}
 void FCLPlanetLandforms::BeginGesture(FGuid Id)
@@ -119,7 +122,6 @@ FCLPlanetRecipe FCLPlanetLandforms::PreviewRecipe()const
 void SCLPlanetLandforms::Construct(const FArguments& A)
 {
     Session=A._Session;ChildSlot[SNew(SVerticalBox)
-        +SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(Session->PreviewSolo().IsValid()?TEXT("Solo preview — ")+Session->Name(Session->PreviewSolo()):TEXT("Choose Landforms for this planet. Eye and Solo affect the preview."));})]
         +SVerticalBox::Slot().FillHeight(1)[SAssignNew(Scroll,SScrollBox)+SScrollBox::Slot()[SAssignNew(Rows,SVerticalBox)]]
         +SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(STextBlock).AutoWrapText(true).ColorAndOpacity(FLinearColor(1,.4,.2)).Text_Lambda([this]{return FText::FromString(Session->Error);})]];Refresh();
 }
@@ -140,6 +142,7 @@ void SCLPlanetLandforms::Refresh()
             +SHorizontalBox::Slot().FillWidth(.55).VAlign(VAlign_Center)[SAssignNew(C.Knob,SSlider).IsEnabled_Lambda(Enabled).ToolTipText_Lambda([State,Id]{const auto* P=State->Entry(Id);return FText::FromString(P&&P->Rift.IsActive()?TEXT("Curated Character. Moving this restores the physical ranges; expand the row for manual overrides."):TEXT("Character. Expand the row to edit underlying values."));}).Value_Lambda([State,Id]{return float(State->Character(Id));}).OnMouseCaptureBegin_Lambda([State,Id]{State->BeginGesture(Id);}).OnValueChanged_Lambda([State,Id](float V){State->SetCharacter(Id,V);}).OnMouseCaptureEnd_Lambda([State]{State->EndGesture();})]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0)[SNew(SBox).WidthOverride(30)[SNew(STextBlock).IsEnabled_Lambda(Enabled).Text_Lambda([State,Id]{FNumberFormattingOptions Format;Format.SetMaximumFractionalDigits(1);return FText::AsNumber(State->Character(Id)*100,&Format);})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(C.Eye,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).ToolTipText(FText::FromString(TEXT("Include in preview"))).OnClicked_Lambda([State,Id]{State->ToggleEye(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(16,16)).Image_Lambda([State,Id]{return FAppStyle::GetBrush(State->Visible(Id)?TEXT("Level.VisibleIcon16x"):TEXT("Level.NotVisibleIcon16x"));})]]
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(C.Info,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).ToolTipText(FText::FromString(TEXT("Highlight assigned province cells"))).OnClicked_Lambda([State,Id]{State->ToggleHighlight(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(16,16)).Image(FAppStyle::GetBrush("Icons.Info")).ColorAndOpacity_Lambda([State,Id]{return State->Highlighted.Contains(Id)?FSlateColor(FLinearColor(1,.65,.1)):FSlateColor::UseForeground();})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(C.Reseed,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).ToolTipText(FText::FromString(TEXT("Reseed"))).OnClicked_Lambda([State,Id]{State->Reseed(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(16,16)).Image(FAppStyle::GetBrush("Icons.Refresh"))]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0,0,0)[SNew(SBox).WidthOverride(50)[SAssignNew(C.Solo,SButton).IsEnabled_Lambda(Enabled).ContentPadding(FMargin(3,2)).ToolTipText(FText::FromString(TEXT("Preview this Landform across the whole planet"))).OnClicked_Lambda([State,Id]{State->ToggleSolo(Id);return FReply::Handled();})[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([State,Id]{return FText::FromString(State->PreviewSolo()==Id?TEXT("Unsolo"):TEXT("Solo"));})]]]]
             +SVerticalBox::Slot().AutoHeight().Padding(16,8,0,0)[SAssignNew(C.DetailsBox,SBox).MaxDesiredHeight(420).IsEnabled_Lambda(Enabled).Visibility_Lambda([this,Id]{return Expanded.Contains(Id)?EVisibility::Visible:EVisibility::Collapsed;})]]];
@@ -158,7 +161,7 @@ void SCLPlanetLandforms::SyncControls()
     for(FGuid Id:Ids){const auto* C=Controls.Find(Id);Rebuild|=!C||C->Name!=Session->Name(Id)||C->Description!=Session->Description(Id);}
     if(Rebuild){Refresh();return;}
     for(auto& Pair:Controls)
-    {const bool Enabled=Session->Included(Pair.Key);auto& C=Pair.Value;C.Include->SetIsChecked(Enabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked);C.Disclosure->SetEnabled(Enabled);C.DetailsBox->SetEnabled(Enabled);C.Knob->SetEnabled(Enabled);C.Eye->SetEnabled(Enabled);C.Reseed->SetEnabled(Enabled);C.Solo->SetEnabled(Enabled);
+    {const bool Enabled=Session->Included(Pair.Key);auto& C=Pair.Value;C.Include->SetIsChecked(Enabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked);C.Disclosure->SetEnabled(Enabled);C.DetailsBox->SetEnabled(Enabled);C.Knob->SetEnabled(Enabled);C.Eye->SetEnabled(Enabled);C.Info->SetEnabled(Enabled);C.Reseed->SetEnabled(Enabled);C.Solo->SetEnabled(Enabled);
         if(C.Draft&&!ApplyingDetails)if(const auto* P=Session->Entry(Pair.Key);P&&!FCLLandformPaletteEntry::StaticStruct()->CompareScriptStruct(P,C.Draft->GetStructMemory(),0))
         {*reinterpret_cast<FCLLandformPaletteEntry*>(C.Draft->GetStructMemory())=*P;C.Details->GetDetailsView()->ForceRefresh();}
     }

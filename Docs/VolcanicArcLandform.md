@@ -49,7 +49,7 @@ Terrain schema 14 carries its typed values; absent values in older assets are
 inactive. Planet assembly retains the ordinary source/snapshot workflow.
 Strict metadata still records subduction and volcanic history. Version-2 ordered
 relaxations first permit declared subduction without eruption history, then a
-bounded selected local expression. Compression is a soft placement preference,
+selected local expression. Full cell coverage may exceed the preferred relaxed-placement budget. Compression is a soft placement preference,
 including during fallback; an inherited arc does not require current compression.
 Missing history remains unknown and is never manufactured by this landform.
 

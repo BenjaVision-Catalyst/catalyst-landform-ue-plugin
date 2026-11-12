@@ -177,6 +177,7 @@ public:
         for(const auto& P:{NorthPole,SouthPole}){const auto C=P.Z>0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1);PDI->DrawPoint(P,C,10,SDPG_World);PDI->DrawLine(P,P+P.GetSafeNormal()*2200,C,SDPG_World,2.5);}
     }
     FGuid SelectedRegion;
+    TSet<FGuid> HighlightedLandforms;
     TArray<FCLGeneratedRegionBoundary> RegionBoundaries;
     TArray<FVector> RegionCentres;
     ECLGlobePlacementMode Mode=ECLGlobePlacementMode::Move;
@@ -326,18 +327,26 @@ public:
             FVector2D Pixel;if(!IsSelected&&Project(O.Centre,Pixel))PDI->DrawPoint(O.Centre,C,8,SDPG_Foreground);
         }
     }
+    bool IsHighlightedRegion(int32 Index)const
+    {
+        if(!Plan||!Plan->GeneratedRegions)return false;const auto& G=*Plan->GeneratedRegions;
+        return G.Cells.IsValidIndex(Index)&&G.Palette.IsValidIndex(G.Cells[Index].PaletteIndex)&&HighlightedLandforms.Contains(G.Palette[G.Cells[Index].PaletteIndex].Id);
+    }
     void DrawGeneratedRegions(FPrimitiveDrawInterface* PDI)
     {
-        if(!bInspectRegions||!Plan||!Plan->GeneratedRegions)return;const auto& G=*Plan->GeneratedRegions;
+        if((!bInspectRegions&&HighlightedLandforms.IsEmpty())||!Plan||!Plan->GeneratedRegions)return;const auto& G=*Plan->GeneratedRegions;
+        const bool Filtered=!HighlightedLandforms.IsEmpty();const FLinearColor Highlight(1,.65,.1);
         const int32 SelectedIndex=G.Cells.IndexOfByPredicate([&](const auto& C){return C.Id==SelectedRegion;});
         for(const auto& Edge:RegionBoundaries)
         {
-            const bool Highlight=Edge.CellA==SelectedIndex||Edge.CellB==SelectedIndex;
+            if(Filtered&&!IsHighlightedRegion(Edge.CellA)&&!IsHighlightedRegion(Edge.CellB))continue;
+            const bool SelectedEdge=Edge.CellA==SelectedIndex||Edge.CellB==SelectedIndex;
             const auto& Cell=G.Cells[Edge.CellA];const auto Id=G.Palette[Cell.PaletteIndex].Id;
-            const FLinearColor Tint=FLinearColor::MakeFromHSV8(uint8((Id.A^Id.B^Id.C^Id.D)*53),140,190);
-            PDI->DrawLine(Edge.A,Edge.B,Highlight?FLinearColor(.1,.9,1):Tint,SDPG_World,Highlight?3:1.1,0,true);
+            const FLinearColor Tint=Filtered?Highlight:FLinearColor::MakeFromHSV8(uint8((Id.A^Id.B^Id.C^Id.D)*53),140,190);
+            PDI->DrawLine(Edge.A,Edge.B,Filtered?Tint:SelectedEdge?FLinearColor(.1,.9,1):Tint,SDPG_World,Filtered?2.5:SelectedEdge?3:1.1,0,true);
         }
-        if(RegionCentres.IsValidIndex(SelectedIndex))PDI->DrawPoint(RegionCentres[SelectedIndex],FLinearColor(.1,.9,1),12,SDPG_Foreground);
+        if(Filtered)for(int32 I=0;I<RegionCentres.Num();++I)if(IsHighlightedRegion(I))PDI->DrawPoint(RegionCentres[I],Highlight,7,SDPG_World);
+        if(!Filtered&&RegionCentres.IsValidIndex(SelectedIndex))PDI->DrawPoint(RegionCentres[SelectedIndex],FLinearColor(.1,.9,1),12,SDPG_Foreground);
     }
     FIntPoint NavigationSize;
 #if WITH_DEV_AUTOMATION_TESTS
@@ -521,6 +530,10 @@ void SCLPlanetPreview::SetEvaluationPending(bool Pending){bEvaluationPending=Pen
 void SCLPlanetPreview::SetAuthoringValid(bool Valid){bAuthoringInvalid=!Valid;if(!Valid)CancelPlacementDrag();}
 void SCLPlanetPreview::SetGlobeGrid(bool Visible){Client->bGlobeGrid=Visible;Client->Invalidate();}
 bool SCLPlanetPreview::IsGlobeGridVisible()const{return Client->bGlobeGrid;}
+void SCLPlanetPreview::SetHighlightedLandforms(const TSet<FGuid>& Ids)
+{Client->HighlightedLandforms=Ids;Client->Invalidate();}
+TArray<FGuid> SCLPlanetPreview::HighlightedGeneratedRegions()const
+{TArray<FGuid> Result;if(Client->Plan&&Client->Plan->GeneratedRegions)for(int32 I=0;I<Client->Plan->GeneratedRegions->Cells.Num();++I)if(Client->IsHighlightedRegion(I))Result.Add(Client->Plan->GeneratedRegions->Cells[I].Id);return Result;}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
     if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}

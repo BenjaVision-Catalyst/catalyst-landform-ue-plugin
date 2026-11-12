@@ -13,10 +13,10 @@ public:
     explicit FCLPlanetLandforms(UCLPlanetRecipeAsset* InAsset):Asset(InAsset){}
     UCLPlanetRecipeAsset* Asset;
     TMap<FGuid,TStrongObjectPtr<UCLTerrainTypeAsset>> Sources;
-    TSet<FGuid> Hidden;
+    TSet<FGuid> Hidden,Highlighted;
     FGuid Solo;
     FString Error;
-    FSimpleDelegate PreviewChanged;
+    FSimpleDelegate PreviewChanged,HighlightsChanged;
     void Discover();
     void AddSource(UCLTerrainTypeAsset*);
     TArray<FGuid> Rows()const;
@@ -31,6 +31,7 @@ public:
     bool Reseed(FGuid);
     bool SetValues(FGuid,const FCLLandformPaletteEntry&);
     bool ToggleEye(FGuid);
+    bool ToggleHighlight(FGuid);
     bool ToggleSolo(FGuid);
     void BeginGesture(FGuid);
     void EndGesture();
@@ -54,7 +55,7 @@ public:
         FString Name,Description;
         TSharedPtr<class SCheckBox> Include;
         TSharedPtr<class SSlider> Knob;
-        TSharedPtr<class SButton> Disclosure,Eye,Reseed,Solo;
+        TSharedPtr<class SButton> Disclosure,Eye,Info,Reseed,Solo;
         TSharedPtr<class SBox> DetailsBox;
         TSharedPtr<class IStructureDetailsView> Details;
         TSharedPtr<class FStructOnScope> Draft;

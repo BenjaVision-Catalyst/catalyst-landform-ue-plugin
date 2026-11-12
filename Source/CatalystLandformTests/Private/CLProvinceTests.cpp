@@ -61,13 +61,14 @@ bool FCLProvincePlacementTest::RunTest(const FString&)
     int32 Assigned=0,Retained=0;for(const auto& C:P->GeneratedRegions->Cells)
     {
         const auto Type=P->GeneratedRegions->Palette[C.PaletteIndex].Suitability.Province.Type;
-        if(Type==ECLProvinceType::None){++Retained;TestTrue(TEXT("Unassigned regions retain an explanation"),C.Reason.Contains(TEXT("Base geology retained")));}
-        else {++Assigned;TestTrue(TEXT("Only supported structural contexts are assigned today"),Type==ECLProvinceType::OceanicCrust||Type==ECLProvinceType::ContinentalRift||Type==ECLProvinceType::TransformBelt);TestTrue(TEXT("Positive geological area coverage is recorded"),C.Reason.Contains(TEXT("positive area samples")));}
+        TestTrue(TEXT("Every cell belongs to an included province"),Type!=ECLProvinceType::None);++Assigned;
+        if(C.ProvinceRelaxationTier==0){TestTrue(TEXT("Strict candidates retain priority wherever geological context fits"),Type==ECLProvinceType::OceanicCrust||Type==ECLProvinceType::ContinentalRift||Type==ECLProvinceType::TransformBelt);TestTrue(TEXT("Positive geological area coverage is recorded"),C.Reason.Contains(TEXT("positive area samples")));}
+        else {++Retained;TestTrue(TEXT("Relaxed placement records the coverage fallback"),C.Reason.Contains(TEXT("fallback")));}
     }
     TestTrue(TEXT("Real base geology supplies supported structural assignments"),Assigned>0);
     auto Restricted=R;for(auto& Entry:Restricted.RegionGeneration.Palette)Entry.bEnabled=Entry.Suitability.Province.Type==ECLProvinceType::OceanicCrust;
     const auto SelectedOnly=FCLPlanetCompiler::Compile(Restricted,Error);if(!SelectedOnly){AddError(Error);return false;}
-    for(const auto& C:SelectedOnly->GeneratedRegions->Cells){const auto& Entry=SelectedOnly->GeneratedRegions->Palette[C.PaletteIndex];TestTrue(TEXT("Placement uses only included Landforms or the unchanged base"),!Entry.Id.IsValid()||Entry.Suitability.Province.Type==ECLProvinceType::OceanicCrust);}
+    for(const auto& C:SelectedOnly->GeneratedRegions->Cells){const auto& Entry=SelectedOnly->GeneratedRegions->Palette[C.PaletteIndex];TestTrue(TEXT("Placement uses only included Landforms or the unchanged base"),Entry.Id.IsValid()&&Entry.Suitability.Province.Type==ECLProvinceType::OceanicCrust);}
     double Worst=0;for(int32 I=0;I<256;++I)
     {
         const double Z=1-2*(I+.5)/256,A=I*2.399963229728653;const FVector D(FMath::Sqrt(1-Z*Z)*FMath::Cos(A),FMath::Sqrt(1-Z*Z)*FMath::Sin(A),Z);
@@ -79,14 +80,17 @@ bool FCLProvincePlacementTest::RunTest(const FString&)
     TestTrue(TEXT("Neutral placeholders leave the final native surface unchanged"),Worst<1.e-7);
     const auto* Carbonate=Types.FindByPredicate([](const auto& T){return T.PlacementSuitability.Province.Type==ECLProvinceType::CarbonatePlatform;});
     auto Only=R;Only.RegionGeneration.Palette={ProvinceEntry(*Carbonate)};const auto Single=FCLPlanetCompiler::Compile(Only,Error);if(!Single){AddError(Error);return false;}
-    for(const auto& C:Single->GeneratedRegions->Cells)TestTrue(TEXT("One selected province never forces incompatible placement"),Single->GeneratedRegions->Palette[C.PaletteIndex].Suitability.Province.Type==ECLProvinceType::None);
-    FCLRegionAssignmentOverride Override;Override.RegionId=Single->GeneratedRegions->Cells[0].Id;Override.LandformId=Carbonate->Id;Only.RegionGeneration.Overrides.Add(Override);TestFalse(TEXT("Editorial assignment cannot bypass missing geological prerequisites"),FCLPlanetCompiler::Compile(Only,Error).IsValid());
+    for(const auto& C:Single->GeneratedRegions->Cells)TestTrue(TEXT("One selected province fills every cell without rewriting its geological metadata"),Single->GeneratedRegions->Palette[C.PaletteIndex].Id==Carbonate->Id&&C.ProvinceRelaxationTier>0);
+    FCLRegionAssignmentOverride Override;Override.RegionId=Single->GeneratedRegions->Cells[0].Id;Override.LandformId=Carbonate->Id;Only.RegionGeneration.Overrides.Add(Override);TestTrue(TEXT("Editorial assignment uses recorded relaxation when geology is missing"),FCLPlanetCompiler::Compile(Only,Error).IsValid());
+    Only.RegionGeneration.Overrides[0].LandformId=FGuid();TestFalse(TEXT("An override cannot assign a cell to the internal neutral palette entry"),FCLPlanetCompiler::Compile(Only,Error).IsValid());
     auto Legacy=R;Legacy.RegionGeneration.AlgorithmVersion=2;TestFalse(TEXT("Province snapshots cannot enter the legacy unconditional selector"),FCLPlanetCompiler::Compile(Legacy,Error).IsValid());
     auto Empty=R;Empty.Continents.bEnabled=false;Empty.Tectonics.bEnabled=false;Empty.NoiseLayers.Reset();Empty.BaseStructure.Reset();Empty.TerrainRegions.Reset();Empty.ElevationDistribution.bEnabled=false;Empty.Watershed.bEnabled=false;
-    const auto NoEvidence=FCLPlanetCompiler::Compile(Empty,Error);if(!NoEvidence){AddError(Error);return false;}for(const auto& C:NoEvidence->GeneratedRegions->Cells)TestTrue(TEXT("Missing base geology produces no random province assignment"),NoEvidence->GeneratedRegions->Palette[C.PaletteIndex].Suitability.Province.Type==ECLProvinceType::None);
+    const auto NoEvidence=FCLPlanetCompiler::Compile(Empty,Error);if(!NoEvidence){AddError(Error);return false;}for(const auto& C:NoEvidence->GeneratedRegions->Cells)TestTrue(TEXT("Missing geology still assigns a selected province and records relaxation"),NoEvidence->GeneratedRegions->Palette[C.PaletteIndex].Id.IsValid()&&C.ProvinceRelaxationTier>0);
+    const auto Replay=FCLPlanetCompiler::Compile(Empty,Error);if(!Replay){AddError(Error);return false;}
+    for(int32 I=0;I<NoEvidence->GeneratedRegions->Cells.Num();++I){TestEqual(TEXT("Relaxed coverage is deterministic"),NoEvidence->GeneratedRegions->Cells[I].PaletteIndex,Replay->GeneratedRegions->Cells[I].PaletteIndex);TestEqual(TEXT("Relaxation levels are deterministic"),NoEvidence->GeneratedRegions->Cells[I].ProvinceRelaxationTier,Replay->GeneratedRegions->Cells[I].ProvinceRelaxationTier);}
     TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>()),Copy(NewObject<UCLPlanetRecipeAsset>());Asset->Recipe=R;FString Json;TestTrue(TEXT("Province snapshots export"),Asset->ExportJsonString(Json,Error));TestTrue(TEXT("Server recipe import retains geological placement"),Copy->ImportRecipeJson(Json,Error));TestTrue(TEXT("Definitions and prerequisites roundtrip without live source links"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&R,&Copy->Recipe,0));
     TStrongObjectPtr<UCLTerrainTypeAsset> Source(NewObject<UCLTerrainTypeAsset>());Source->TerrainType=*Carbonate;Asset->Recipe=ProvinceBase(Error);TestTrue(TEXT("Choosing a province source opts into geological placement"),Asset->AddPaletteSource(Source.Get(),Error));TestEqual(TEXT("Geological source link uses mode 3"),Asset->Recipe.RegionGeneration.AlgorithmVersion,3);
-    AddInfo(FString::Printf(TEXT("%d geological assignments, %d retained base regions; max final-height change %.12g m"),Assigned,Retained,Worst));return true;
+    AddInfo(FString::Printf(TEXT("%d selected assignments, %d relaxed regions; max final-height change %.12g m"),Assigned,Retained,Worst));return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLProvinceAssetsTest,"Catalyst.Landform.Provinces.PackagedLibrary",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLProvinceAssetsTest::RunTest(const FString&)

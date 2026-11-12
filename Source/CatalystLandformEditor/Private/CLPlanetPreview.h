@@ -65,6 +65,8 @@ public:
     bool IsWatershedOverlayEnabled() const;
     bool FocusWatershed();
     void SetRegionInspection(bool Inspect);
+    void SetHighlightedLandforms(const TSet<FGuid>&);
+    TArray<FGuid> HighlightedGeneratedRegions()const;
     bool IsInspectingRegions() const;
     void SelectGeneratedRegion(FGuid Id);
     FGuid GeneratedSelection() const;

@@ -252,7 +252,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
             Cell.Scale=2*FMath::Sqrt(Cell.SolidAngle)*(Base.RadiusMeters+Base.BaseHeightMeters)/Base.RadiusMeters;
         }
     }
-    struct FEligibility {bool Allowed=true;int32 Positive=0,Unknown=0,Tier=0;double Weight=1;FString Reason;};
+    struct FEligibility {bool Allowed=true,CoverageFallback=false;int32 Positive=0,Unknown=0,Tier=0;double Weight=1;FString Reason;};
     TArray<TArray<FEligibility>> Eligibility;
     auto Evaluate=[&](int32 I,int32 P,int32 Tier)
     {
@@ -279,45 +279,42 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
             for(int32 P=0;P<Out->Palette.Num();++P)
             {
                 const auto& Definition=Out->Palette[P].Suitability.Province;if(!Definition.IsActive())continue;
-                Eligibility[I][P]=Evaluate(I,P,0);
+                auto Fit=Evaluate(I,P,0);
+                if(!Fit.Allowed)for(int32 Tier=1;Tier<=Definition.Relaxations.Num();++Tier)
+                {auto Relaxed=Evaluate(I,P,Tier);if(Relaxed.Allowed){Fit=MoveTemp(Relaxed);break;}}
+                if(!Fit.Allowed)
+                {
+                    // Coverage is mandatory. Preserve strict source metadata and
+                    // rank the remaining cells by partial evidence/preferences.
+                    double Compatibility=0,Preferred=0;
+                    for(const auto& Sample:Character[I])
+                    {
+                        for(auto Evidence:Definition.Requirements){const uint64 Bit=uint64(1)<<uint8(Evidence);Compatibility+=(Sample.Geology.Known&Bit)?((Sample.Geology.Present&Bit)?1.:0.):.25;}
+                        for(auto Evidence:Definition.PlacementPreferences){const uint64 Bit=uint64(1)<<uint8(Evidence);Preferred+=bool((Sample.Geology.Known&Bit)&&(Sample.Geology.Present&Bit));}
+                    }
+                    Compatibility/=FMath::Max(1,Character[I].Num()*Definition.Requirements.Num());
+                    const double Preference=Definition.PlacementPreferences.IsEmpty()?1.:1+2*Preferred/(Character[I].Num()*Definition.PlacementPreferences.Num());
+                    Fit.Allowed=true;Fit.CoverageFallback=true;Fit.Tier=Definition.Relaxations.Num()+1;Fit.Weight=(.1+.9*Compatibility*Compatibility)*Preference;
+                    Fit.Reason+=TEXT(" Coverage fallback: no declared tier fits this cell; closest selected geological preferences used. Strict requirements remain recorded and upstream geology is unchanged.");
+                }
+                Eligibility[I][P]=MoveTemp(Fit);
             }
-        }
-    }
-    // Relax a source only when the entire planet offers no strict candidate.
-    // A small metadata-owned fallback budget prevents an unsupported province
-    // from filling every cell merely because it was included in the palette.
-    if(Settings.AlgorithmVersion>=3)for(int32 P=0;P<BasePalette;++P)
-    {
-        const auto& Definition=Out->Palette[P].Suitability.Province;
-        if(Definition.AlgorithmVersion!=2||Definition.Relaxations.IsEmpty())continue;
-        bool Strict=false;for(int32 I=0;I<Eligibility.Num();++I)Strict|=Eligibility[I][P].Allowed;
-        if(Strict)continue;
-        for(int32 Tier=1;Tier<=Definition.Relaxations.Num();++Tier)
-        {
-            TArray<FEligibility> Fits;TArray<int32> Candidates;
-            for(int32 I=0;I<Eligibility.Num();++I){Fits.Add(Evaluate(I,P,Tier));if(Fits.Last().Allowed)Candidates.Add(I);}
-            if(Candidates.IsEmpty())continue;
-            auto Rank=[&](int32 I){return double(Fits[I].Positive)/Character[I].Num()*(Definition.PlacementPreferences.IsEmpty()?1.:Fits[I].Weight)+.001*RandomRegion(Seed^uint32(I)^GetTypeHash(Out->Palette[P].Id));};
-            Candidates.Sort([&](int32 A,int32 B){return Rank(A)>Rank(B);});
-            for(int32 I:Candidates)Fits[I].Allowed=false;
-            for(int32 K=0;K<FMath::Min(Definition.MaximumRelaxedRegions,Candidates.Num());++K)Fits[Candidates[K]].Allowed=true;
-            for(int32 I=0;I<Eligibility.Num();++I)Eligibility[I][P]=MoveTemp(Fits[I]);
-            break;
         }
     }
     TSet<FGuid> OverrideIds;
     for(const auto& Override:Settings.Overrides)
     {
-        if(!Override.RegionId.IsValid()||OverrideIds.Contains(Override.RegionId)||!Out->Cells.ContainsByPredicate([&](const auto& C){return C.Id==Override.RegionId;})||!Out->Palette.ContainsByPredicate([&](const auto& P){return P.Id==Override.LandformId;}))return Fail(TEXT("Region override references a missing cell/enabled Landform, or repeats a cell"));OverrideIds.Add(Override.RegionId);
+        if(!Override.RegionId.IsValid()||!Override.LandformId.IsValid()||OverrideIds.Contains(Override.RegionId)||!Out->Cells.ContainsByPredicate([&](const auto& C){return C.Id==Override.RegionId;})||!Out->Palette.ContainsByPredicate([&](const auto& P){return P.Id==Override.LandformId;}))return Fail(TEXT("Region override references a missing cell/enabled Landform, or repeats a cell"));OverrideIds.Add(Override.RegionId);
     }
+    TArray<int32> RelaxedAssignments;RelaxedAssignments.Init(0,Out->Palette.Num());
     for(int32 I=0;I<Out->Cells.Num();++I)
     {
         auto& Cell=Out->Cells[I];if(Settings.AlgorithmVersion==1){Cell.HeightMeters=Heights[I*5];const double Span=2*Epsilon*(Base.RadiusMeters+Base.BaseHeightMeters);
         Cell.SlopeDegrees=FMath::RadiansToDegrees(FMath::Atan(FMath::Sqrt(FMath::Square((Heights[I*5+1]-Heights[I*5+2])/Span)+FMath::Square((Heights[I*5+3]-Heights[I*5+4])/Span))));}
-        if(Out->Palette.Num()==1&&Settings.AlgorithmVersion<3){Cell.PaletteIndex=0;Cell.Score=1;Cell.Reason=TEXT("Only selected Landform; used in every region. Placement preferences do not exclude regions.");}
+        if((BasePalette>=0?BasePalette:Out->Palette.Num())==1){Cell.PaletteIndex=0;Cell.Score=1;Cell.Reason=TEXT("Only selected Landform; used in every region. Placement preferences do not exclude regions.");}
         else
         {
-            double Best=-1;
+            double Best=-1;int32 BestTier=MAX_int32;
             for(int32 P=0;P<Out->Palette.Num();++P)
             {
                 if(P==BasePalette||(Settings.AlgorithmVersion>=3&&!Eligibility[I][P].Allowed))continue;
@@ -351,14 +348,19 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
                         Score*=RangeFit(Cell.UpperSlopeDegrees,FVector2D(0,S.PreferredSlopeDegrees.Y),2);
                     }
                 }
-                if(Settings.AlgorithmVersion>=3)Score*=Eligibility[I][P].Weight;
+                int32 Tier=0;
+                if(Settings.AlgorithmVersion>=3)
+                {
+                    const auto& Fit=Eligibility[I][P];Tier=Fit.CoverageFallback?MAX_int32:Fit.Tier;Score*=Fit.Weight;
+                    if(Fit.Tier>0)Score*=FMath::Min(1.,double(Entry.Suitability.Province.MaximumRelaxedRegions)/FMath::Max(1,RelaxedAssignments[P]+1));
+                }
                 const double Choice=Score*(.9+.2*RandomRegion(Seed^MixRegion(uint32(I))^MixRegion(Entry.Id.A)^MixRegion(Entry.Id.B)^MixRegion(Entry.Id.C)^MixRegion(Entry.Id.D)));
-                if(Choice>Best){Best=Choice;Cell.PaletteIndex=P;Cell.Score=Score;}
+                if(Tier<BestTier||(Tier==BestTier&&Choice>Best)){Best=Choice;BestTier=Tier;Cell.PaletteIndex=P;Cell.Score=Score;}
             }
-            if(Settings.AlgorithmVersion>=3&&Cell.PaletteIndex<0){Cell.PaletteIndex=BasePalette;Cell.Score=0;}
+            if(Cell.PaletteIndex<0)return Fail(TEXT("Every generated cell must select an included Landform"));
             Cell.Reason=FString::Printf(TEXT("Best seeded suitability match (score %.3f). Uplift %.2f, basin %.2f, structural edge %.2f; base slope %.1f°, region scale %.2f × radius. %s"),Cell.Score,Cell.Uplift,Cell.Basin,Cell.StructuralEdge,Cell.SlopeDegrees,Cell.Scale,Out->Palette[Cell.PaletteIndex].Suitability.bUsePreferences?TEXT("Named elevation guides and placement preferences applied."):TEXT("Neutral placement preferences."));
         }
-        if(Settings.AlgorithmVersion>=3&&Cell.PaletteIndex<0){Cell.PaletteIndex=BasePalette;Cell.Score=0;}
+        if(Cell.PaletteIndex<0)return Fail(TEXT("Every generated cell must select an included Landform"));
         if(Settings.AlgorithmVersion>=2)
         {
             const double Low=(Base.RadiusMeters+Cell.MinimumBaseHeightMeters)/Base.RadiusMeters,High=(Base.RadiusMeters+Cell.MaximumBaseHeightMeters)/Base.RadiusMeters;
@@ -366,19 +368,12 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
         }
         if(Settings.AlgorithmVersion>=3)
         {
-            if(Cell.PaletteIndex==BasePalette)
-            {
-                Cell.PaletteIndex=BasePalette;Cell.Score=0;Cell.Reason=TEXT("Base geology retained: no selected Landform meets its geological prerequisites.");
-                for(int32 P=0;P<FMath::Min(4,BasePalette);++P)Cell.Reason+=TEXT(" ")+Out->Palette[P].Name+TEXT(": ")+Eligibility[I][P].Reason;
-            }
-            else {Cell.ProvinceRelaxationTier=Eligibility[I][Cell.PaletteIndex].Tier;Cell.Reason+=TEXT(" ")+Eligibility[I][Cell.PaletteIndex].Reason;}
+            Cell.ProvinceRelaxationTier=Eligibility[I][Cell.PaletteIndex].Tier;Cell.Reason+=TEXT(" ")+Eligibility[I][Cell.PaletteIndex].Reason;
         }
         if(const auto* Override=Settings.Overrides.FindByPredicate([&](const auto& O){return O.RegionId==Cell.Id;}))
         {const int32 Assigned=Out->Palette.IndexOfByPredicate([&](const auto& P){return P.Id==Override->LandformId;});
-            if(Settings.AlgorithmVersion>=3&&!Eligibility[I][Assigned].Allowed&&Out->Palette[Assigned].Suitability.Province.AlgorithmVersion==2)
-                for(int32 Tier=0;Tier<=Out->Palette[Assigned].Suitability.Province.Relaxations.Num();++Tier){auto Fit=Evaluate(I,Assigned,Tier);if(Fit.Allowed){Eligibility[I][Assigned]=MoveTemp(Fit);break;}}
-            if(Settings.AlgorithmVersion>=3&&!Eligibility[I][Assigned].Allowed)return Fail(TEXT("Editorial province assignment is incompatible or lacks base geology: ")+Out->Palette[Assigned].Name+TEXT(". ")+Eligibility[I][Assigned].Reason);
             Cell.PaletteIndex=Assigned;Cell.ProvinceRelaxationTier=Settings.AlgorithmVersion>=3?Eligibility[I][Assigned].Tier:0;Cell.bOverride=true;Cell.Reason=FString::Printf(TEXT("Editorial assignment: %s. Automatic evaluation: %s"),*Out->Palette[Cell.PaletteIndex].Name,*Cell.Reason);if(Settings.AlgorithmVersion>=3)Cell.Reason+=TEXT(" ")+Eligibility[I][Assigned].Reason;}
+        if(Settings.AlgorithmVersion>=3&&Cell.ProvinceRelaxationTier>0)++RelaxedAssignments[Cell.PaletteIndex];
     }
     // An explicit evaluator option bypasses regional assignment for Solo.
     // It cannot be stored in, exported from, or enabled by a planet recipe.
