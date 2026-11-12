@@ -1,0 +1,891 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Fail",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogStreaming: FlushAsyncLoading(318): 1 QueuedPackages, 0 AsyncPackages",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.21"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.22"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.23"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogStreaming: FlushAsyncLoading(320): 1 QueuedPackages, 0 AsyncPackages",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogStreaming: FlushAsyncLoading(323): 1 QueuedPackages, 0 AsyncPackages",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteWPO took 4.8ms",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteDisplacement took 6.2ms",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteMaterialSelection took 4.6ms",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cave mesh worst residual 13.517175 m at X=637.435 Y=-177.643 Z=661.098",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.42"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.465943",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.42"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_PREVIEW_READY totalSeconds=21.056 inspectionSeconds=8.155 networks=39 domains=30 nativeVertices=26275 cyanPixels=12669 overviewResidualMeters=13.517175",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.42"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generating cave surfaces \u00b7 30/30 ready | components 6, native producer/presenter 41699, ready 1, processing 0, tasks 0, inspected vertices 335, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 7/7 | components 3, native producer/presenter 41731, ready 1, processing 0, tasks 0, inspected vertices 161, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 21 chunk 32 lod 4/4 | components 5, native producer/presenter 41751, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 41771, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41791, ready 1, processing 0, tasks 0, inspected vertices 852, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 5/5 | components 5, native producer/presenter 41811, ready 1, processing 0, tasks 0, inspected vertices 409, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41831, ready 1, processing 0, tasks 0, inspected vertices 297, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 6/6 | components 6, native producer/presenter 41851, ready 1, processing 0, tasks 0, inspected vertices 913, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 41871, ready 1, processing 0, tasks 0, inspected vertices 519, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 41891, ready 1, processing 0, tasks 0, inspected vertices 523, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 6/6 | components 7, native producer/presenter 41911, ready 1, processing 0, tasks 0, inspected vertices 696, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41931, ready 1, processing 0, tasks 0, inspected vertices 766, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41951, ready 1, processing 0, tasks 0, inspected vertices 1000, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41971, ready 1, processing 0, tasks 0, inspected vertices 622, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41991, ready 1, processing 0, tasks 0, inspected vertices 682, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 4, native producer/presenter 42011, ready 1, processing 0, tasks 0, inspected vertices 264, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42031, ready 1, processing 0, tasks 0, inspected vertices 654, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 5, native producer/presenter 42051, ready 1, processing 0, tasks 0, inspected vertices 505, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 6, native producer/presenter 42071, ready 1, processing 0, tasks 0, inspected vertices 1451, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 8, native producer/presenter 42091, ready 1, processing 0, tasks 0, inspected vertices 3804, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4 | components 7, native producer/presenter 42111, ready 1, processing 0, tasks 0, inspected vertices 1151, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42131, ready 1, processing 0, tasks 0, inspected vertices 1299, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 42151, ready 1, processing 0, tasks 0, inspected vertices 1077, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 20 chunk 32 lod 4/4 | components 6, native producer/presenter 42171, ready 1, processing 0, tasks 0, inspected vertices 1072, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 42191, ready 1, processing 0, tasks 0, inspected vertices 981, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 5/5 | components 6, native producer/presenter 42211, ready 1, processing 0, tasks 0, inspected vertices 412, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 7, native producer/presenter 42231, ready 1, processing 0, tasks 0, inspected vertices 1101, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42251, ready 1, processing 0, tasks 0, inspected vertices 1006, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 6/6 | components 4, native producer/presenter 42271, ready 1, processing 0, tasks 0, inspected vertices 795, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 42291, ready 1, processing 0, tasks 0, inspected vertices 670, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.12.42"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "components 87, native producer/presenter 38998, ready 1, processing 1, tasks 37, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/6",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "Unknown",
+          "lineNumber": 0,
+          "timestamp": "2026.11.12-06.13.50"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "Generating cave surfaces \u00b7 30/30 ready | components 142, native producer/presenter 41699, ready 1, processing 1, tasks 1, inspected vertices 335, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 0/5 | components 6, native producer/presenter 41731, ready 1, processing 0, tasks 0, inspected vertices 161, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 21 chunk 32 lod 3/3 | components 34, native producer/presenter 41751, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 2/4 | components 6, native producer/presenter 41771, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41791, ready 1, processing 0, tasks 0, inspected vertices 852, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 4/5 | components 5, native producer/presenter 41811, ready 1, processing 0, tasks 0, inspected vertices 409, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 13, native producer/presenter 41831, ready 1, processing 0, tasks 0, inspected vertices 297, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 4/5 | components 6, native producer/presenter 41851, ready 1, processing 0, tasks 0, inspected vertices 913, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 41871, ready 1, processing 0, tasks 0, inspected vertices 519, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 14, native producer/presenter 41891, ready 1, processing 0, tasks 0, inspected vertices 523, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 7, native producer/presenter 41911, ready 1, processing 0, tasks 0, inspected vertices 696, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41931, ready 1, processing 0, tasks 0, inspected vertices 766, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41951, ready 1, processing 0, tasks 0, inspected vertices 1000, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41971, ready 1, processing 0, tasks 0, inspected vertices 622, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 41991, ready 1, processing 0, tasks 0, inspected vertices 682, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 4, native producer/presenter 42011, ready 1, processing 0, tasks 0, inspected vertices 264, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42031, ready 1, processing 0, tasks 0, inspected vertices 654, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 5, native producer/presenter 42051, ready 1, processing 0, tasks 0, inspected vertices 505, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 7, native producer/presenter 42071, ready 1, processing 0, tasks 0, inspected vertices 1451, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 8, native producer/presenter 42091, ready 1, processing 0, tasks 0, inspected vertices 3804, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4 | components 7, native producer/presenter 42111, ready 1, processing 0, tasks 0, inspected vertices 1151, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42131, ready 1, processing 0, tasks 0, inspected vertices 1299, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 42151, ready 1, processing 0, tasks 0, inspected vertices 1077, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 20 chunk 32 lod 4/4 | components 6, native producer/presenter 42171, ready 1, processing 0, tasks 0, inspected vertices 1072, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 42191, ready 1, processing 0, tasks 0, inspected vertices 981, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 5/5 | components 6, native producer/presenter 42211, ready 1, processing 0, tasks 0, inspected vertices 412, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 7, native producer/presenter 42231, ready 1, processing 0, tasks 0, inspected vertices 1101, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 42251, ready 1, processing 0, tasks 0, inspected vertices 1006, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 6/6 | components 4, native producer/presenter 42271, ready 1, processing 0, tasks 0, inspected vertices 795, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 42291, ready 1, processing 0, tasks 0, inspected vertices 670, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "Unknown",
+          "lineNumber": 0,
+          "timestamp": "2026.11.12-06.13.50"
+        }
+      ]
+    }
+  ]
+}

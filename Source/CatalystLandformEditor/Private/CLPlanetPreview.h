@@ -44,7 +44,10 @@ public:
     SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
-    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug=nullptr);
+    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug=nullptr,bool PreserveWalk=false);
+    bool IsSurfaceReady(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)const;
+    void SetGlobeGrid(bool Visible);
+    bool IsGlobeGridVisible()const;
     void Cancel();
     void SetEvaluationPending(bool Pending);
     void SetAuthoringValid(bool Valid);

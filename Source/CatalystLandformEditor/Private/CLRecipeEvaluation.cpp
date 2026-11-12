@@ -1,5 +1,6 @@
 #include "CLRecipeEvaluation.h"
 #include "CLWatershedDebug.h"
+#include "Model/CLCaves.h"
 #include "Model/CLSurfaceRange.h"
 #include "Containers/Ticker.h"
 #include "UObject/UObjectGlobals.h"
@@ -32,34 +33,56 @@ TSharedPtr<const FCLPreparedPlanetCompile> FCLRecipeEvaluation::Prepare(const FC
 {
     const double Start=FPlatformTime::Seconds();const uint64 Epoch=NativeInputEpoch;auto P=FCLPlanetCompiler::PrepareBackground(R,E,Region,INDEX_NONE,NativeEpoch==Epoch?NativeCache.Get():nullptr,SoloPreviewLandform);if(P){NativeCache=P;NativeEpoch=Epoch;}LastPreparationMs=(FPlatformTime::Seconds()-Start)*1000;MaximumPreparationMs=FMath::Max(MaximumPreparationMs,LastPreparationMs);return P;
 }
-uint64 FCLRecipeEvaluation::Request(FCLPlanetRecipe R,TSharedPtr<const FCLPreparedPlanetCompile> P)
+uint64 FCLRecipeEvaluation::Request(FCLPlanetRecipe R,TSharedPtr<const FCLPreparedPlanetCompile> P,bool SurfaceFirst)
 {
-    check(IsInGameThread());++Serial;if(Progress)Progress->Cancelled=true;Pending=FRequest{Serial,MoveTemp(R),MoveTemp(P)};return Serial;
+    check(IsInGameThread());++Serial;if(Progress)Progress->Cancelled=true;
+    if(WaitingSurface){WaitingSurface.Reset();Active.Reset();Progress.Reset();}
+    const bool StageSurface=SurfaceFirst&&R.Caves.bEnabled;
+    Pending=FRequest{Serial,MoveTemp(R),MoveTemp(P),StageSurface};return Serial;
 }
-void FCLRecipeEvaluation::Cancel(){++Serial;Pending.Reset();if(Progress)Progress->Cancelled=true;}
+void FCLRecipeEvaluation::Cancel(){++Serial;Pending.Reset();if(Progress)Progress->Cancelled=true;if(WaitingSurface){WaitingSurface.Reset();Active.Reset();Progress.Reset();}}
+void FCLRecipeEvaluation::ResumeAfterSurface(uint64 PublishedSerial)
+{
+    check(IsInGameThread());if(PublishedSerial!=Serial||!WaitingSurface)return;
+    auto Surface=MoveTemp(WaitingSurface);Launch(MoveTemp(Surface));
+}
 TSharedPtr<FCLRecipeEvaluationResult> FCLRecipeEvaluation::Pump()
 {
     check(IsInGameThread());RetireCompleted();TSharedPtr<FCLRecipeEvaluationResult> Result;
-    if(Active.IsSet()&&Task.IsCompleted())
+    if(Active.IsSet()&&!WaitingSurface&&Task.IsValid()&&Task.IsCompleted())
     {
-        auto Done=Task.GetResult();if(Done->Serial==Serial)Result=MoveTemp(Done);else ++Discarded;
-        Active.Reset();Progress.Reset();Task={};
+        auto Done=Task.GetResult();Task={};
+        if(Done->Serial==Serial)
+        {
+            Result=Done;
+            if(Done->SurfaceOnly&&Done->Plan)WaitingSurface=Done;
+        }
+        else ++Discarded;
+        if(!WaitingSurface){Active.Reset();Progress.Reset();}
     }
     if(!Active.IsSet()&&Pending.IsSet())
     {
-        Active=MoveTemp(Pending);Pending.Reset();Progress=MakeShared<FCLCompileProgress>();const auto Input=Active.GetValue();const auto Control=Progress.ToSharedRef();++Started;
-        Task=UE::Tasks::Launch(UE_SOURCE_LOCATION,[Input,Control]()->TSharedPtr<FCLRecipeEvaluationResult>
+        Active=MoveTemp(Pending);Pending.Reset();Progress=MakeShared<FCLCompileProgress>();Launch();
+    }
+    return Result;
+}
+void FCLRecipeEvaluation::Launch(TSharedPtr<FCLRecipeEvaluationResult> Surface)
+{
+        const auto Input=Active.GetValue();const auto Control=Progress.ToSharedRef();++Started;
+        Task=UE::Tasks::Launch(UE_SOURCE_LOCATION,[Input,Control,Surface]()->TSharedPtr<FCLRecipeEvaluationResult>
         {
             const double Start=FPlatformTime::Seconds();auto R=MakeShared<FCLRecipeEvaluationResult>();R->Serial=Input.Serial;R->Recipe=Input.Recipe;R->WorkerThread=!IsInGameThread();
-            if(Input.Prepared)R->Plan=FCLPlanetCompiler::CompleteBackground(*Input.Prepared,Control,R->Error);else R->Error=TEXT("Native input preparation failed");
-            if(R->Plan&&!Control->Cancelled.load())Measure(*R,Control);
-            if(R->Plan&&R->Plan->Watershed&&!Control->Cancelled.load())
+            R->SurfaceOnly=Input.SurfaceFirst&&!Surface;
+            if(Input.Prepared)R->Plan=Surface?
+                FCLPlanetCompiler::CompleteCavesBackground(*Input.Prepared,*Surface->Plan,Control,R->Error):
+                FCLPlanetCompiler::CompleteBackground(*Input.Prepared,Control,R->Error,R->SurfaceOnly);
+            else R->Error=TEXT("Native input preparation failed");
+            if(R->Plan&&!R->SurfaceOnly&&!Control->Cancelled.load())Measure(*R,Control);
+            if(R->Plan&&!R->SurfaceOnly&&R->Plan->Watershed&&!Control->Cancelled.load())
             {Control->Stage=ECLCompileStage::Presentation;Control->Work=0;R->WatershedDebug=FCLWatershedDebugGeometry::Build(*R->Plan,&Control.Get());}
             R->Seconds=FPlatformTime::Seconds()-Start;return R;
         },UE::Tasks::ETaskPriority::BackgroundNormal);
         LiveEvaluations.Add({Task,Control});
-    }
-    return Result;
 }
 
 void FCLRecipeEvaluation::Startup()
@@ -103,5 +126,34 @@ bool FCLNativeInputReuseTest::RunTest(const FString&)
     TestEqual(TEXT("Changed upstream recipe inputs cannot reuse old native fields"),FCLCompileProgress::ReusedNativeInputs(*Upstream),0);
     const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/background");IFileManager::Get().MakeDirectory(*Dir,true);FFileHelper::SaveStringToFile(FString::Printf(TEXT("{\"initialMs\":%.6f,\"reusedMs\":%.6f,\"reusedInputs\":%d,\"invalidatedInputs\":%d,\"upstreamChangedInputs\":%d}\n"),InitialMs,ReusedMs,FCLCompileProgress::ReusedNativeInputs(*Reused),FCLCompileProgress::ReusedNativeInputs(*Invalidated),FCLCompileProgress::ReusedNativeInputs(*Upstream)),*(Dir/TEXT("native-input-cache.json")));
     return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSurfaceCheckpointTest,"Catalyst.Landform.Background.SurfaceCheckpoint",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLSurfaceCheckpointTest::RunTest(const FString&)
+{
+    auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftFamilyReview"));
+    if(!TestNotNull(TEXT("Current authored review exists"),Review))return false;
+    auto Recipe=Review->Recipe;FString Error;FCLRecipeEvaluation E;auto Input=E.Prepare(Recipe,Error);if(!Input){AddError(Error);return false;}
+    auto Wait=[&](){TSharedPtr<FCLRecipeEvaluationResult> R;const double Start=FPlatformTime::Seconds();while(!R&&E.IsBusy()&&FPlatformTime::Seconds()-Start<60){R=E.Pump();FPlatformProcess::SleepNoStats(.001f);}return R;};
+    const auto Serial=E.Request(Recipe,Input,true);auto Surface=Wait();if(!Surface||!Surface->Plan){AddError(Surface?Surface->Error:TEXT("Surface checkpoint timed out"));return false;}
+    TestTrue(TEXT("Checkpoint returns before caves and diagnostic work"),Surface->SurfaceOnly&&!Surface->Plan->Caves&&!Surface->WatershedDebug&&Surface->Elevation.IsEmpty());
+    TestTrue(TEXT("Checkpoint retains the enabled authored cave settings"),Surface->Plan->SourceRecipe&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,Surface->Plan->SourceRecipe.Get(),0));
+    const auto Started=E.Started;for(int32 I=0;I<10;++I)E.Pump();TestEqual(TEXT("Caves wait for native surface acknowledgment"),E.Started,Started);
+    E.ResumeAfterSurface(Serial-1);TestTrue(TEXT("Stale acknowledgment cannot start caves"),E.AwaitingSurface());
+    E.ResumeAfterSurface(Serial);auto Full=Wait();if(!Full||!Full->Plan){AddError(Full?Full->Error:TEXT("Cave continuation timed out"));return false;}
+    auto Normal=FCLPlanetCompiler::CompleteBackground(*Input,MakeShared<FCLCompileProgress>(),Error);if(!Normal){AddError(Error);return false;}
+    TestTrue(TEXT("Cave continuation retains enabled caves"),Full->Plan->Caves&&Full->Plan->Caves->Spatial&&Full->Plan->Caves->Networks>0);
+    TestEqual(TEXT("Staged and ordinary compiler have identical networks"),Full->Plan->Caves->Networks,Normal->Caves->Networks);
+    TestEqual(TEXT("Staged and ordinary compiler have identical segments"),Full->Plan->Caves->Segments.Num(),Normal->Caves->Segments.Num());
+    for(int32 I=0;I<Normal->Caves->Segments.Num();++I){const auto& A=Normal->Caves->Segments[I];const auto& B=Full->Plan->Caves->Segments[I];TestTrue(TEXT("Staging preserves deterministic cave placement"),A.A==B.A&&A.B==B.B&&A.Radius==B.Radius&&A.Network==B.Network);}
+    for(const auto& Node:Normal->Caves->Nodes)for(const FVector Offset:{FVector::ZeroVector,FVector(25,0,0),FVector(-25,0,0),FVector(0,25,0),FVector(0,-25,0),FVector(0,0,15),FVector(0,0,-15)})
+    {const FVector P=Node.Position+Offset;TestEqual(TEXT("Staging preserves the actual cave cutter field"),Full->Plan->Caves->Cutters->Compose(P,0),Normal->Caves->Cutters->Compose(P,0));}
+    for(int32 I=0;I<256;++I){const double Z=1-2*(I+.5)/256,Angle=I*2.399963229728653;const FVector D(FMath::Cos(Angle)*FMath::Sqrt(1-Z*Z),FMath::Sin(Angle)*FMath::Sqrt(1-Z*Z),Z);TestEqual(TEXT("Surface heights are unchanged by staging"),Surface->Plan->SampleHeightMeters(D),Normal->SampleHeightMeters(D));TestEqual(TEXT("Continuation reuses exactly the published surface"),Full->Plan->SampleHeightMeters(D),Surface->Plan->SampleHeightMeters(D));}
+    const auto CancelSerial=E.Request(Recipe,Input,true);Surface=Wait();if(!Surface){AddError(TEXT("Second checkpoint timed out"));return false;}E.Cancel();E.ResumeAfterSurface(CancelSerial);TestFalse(TEXT("Cancel while waiting releases the checkpoint"),E.IsBusy());
+    E.Request(Recipe,Input,true);Surface=Wait();if(!Surface){AddError(TEXT("Third checkpoint timed out"));return false;}
+    auto LatestRecipe=Recipe;++LatestRecipe.Caves.Seed;auto LatestInput=E.Prepare(LatestRecipe,Error);if(!LatestInput){AddError(Error);return false;}
+    E.Request(LatestRecipe,LatestInput,true);Surface=Wait();if(!Surface){AddError(TEXT("Replacement checkpoint timed out"));return false;}
+    TestEqual(TEXT("Replacement fences the previous checkpoint"),Surface->Recipe.Caves.Seed,LatestRecipe.Caves.Seed);
+    E.ResumeAfterSurface(Surface->Serial);E.Cancel();Wait();TestFalse(TEXT("Cancel in cave job drains without publication"),E.IsBusy());return !HasAnyErrors();
 }
 #endif

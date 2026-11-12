@@ -35,6 +35,9 @@
 #include "EditorModeRegistry.h"
 #include "AssetEditorModeManager.h"
 #include "SceneView.h"
+#include "CanvasItem.h"
+#include "CanvasTypes.h"
+#include "Engine/Engine.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 FCLGlobeBuffers FCLGlobeBuffers::Build(const FCLCompiledPlanetRecipe& Plan,int32 Resolution,const TAtomic<bool>* Stop)
@@ -141,6 +144,8 @@ public:
     FCLGlobeScene* StudioScene=nullptr;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     FCLNativePreview* NativePreview=nullptr;
+    TSharedPtr<const FCLCompiledPlanetRecipe> DrawnSurfacePlan;
+    uint64 SurfaceDrawFrame=0;
     bool bCaveOverlay=false;
 #if WITH_DEV_AUTOMATION_TESTS
     bool bReferenceFixture=false;
@@ -148,7 +153,29 @@ public:
     mutable TOptional<FVector> LastPickPoint;
     TArray<FCLGlobePlacementTarget> Targets;
     FCLGlobeSelection Selected;
-    bool bInspectRegions=true;
+    bool bInspectRegions=false,bGlobeGrid=true;
+    struct FGeographicLine{TArray<FVector> Points;bool Major=false;};
+    TArray<FGeographicLine> GeographicLines;
+    FVector NorthPole=FVector::ZeroVector,SouthPole=FVector::ZeroVector;
+    TSharedPtr<const FCLPlanetRecipe> GridRecipe;
+    void UpdateGlobeGrid()
+    {
+        if(!Plan||(GridRecipe&&GridRecipe==Plan->SourceRecipe))return;GridRecipe=Plan->SourceRecipe;GeographicLines.Reset();
+        TArray<FVector> D;
+        auto Point=[](double Lat,double Lon){const double P=FMath::DegreesToRadians(Lat),A=FMath::DegreesToRadians(Lon);return FVector(FMath::Cos(P)*FMath::Cos(A),FMath::Cos(P)*FMath::Sin(A),FMath::Sin(P));};
+        for(int32 Lat=-60;Lat<=60;Lat+=30){auto& L=GeographicLines.AddDefaulted_GetRef();L.Major=Lat==0;for(int32 Lon=0;Lon<=360;++Lon)D.Add(Point(Lat,Lon));L.Points.SetNum(361);}
+        for(int32 Lon=0;Lon<180;Lon+=30){auto& L=GeographicLines.AddDefaulted_GetRef();for(int32 I=0;I<=360;++I){const double A=FMath::DegreesToRadians(double(I)),P=FMath::DegreesToRadians(double(Lon));D.Add(FVector(FMath::Cos(A)*FMath::Cos(P),FMath::Cos(A)*FMath::Sin(P),FMath::Sin(A)));}L.Points.SetNum(361);}
+        D.Add(FVector::ZAxisVector);D.Add(-FVector::ZAxisVector);TArray<double> H;Plan->SampleHeightsMeters(D,H);
+        int32 I=0;auto Place=[&]{const int32 K=I++;return D[K]*((Plan->RadiusMeters+H[K])/Plan->RadiusMeters*100000+120);};
+        for(auto& L:GeographicLines)for(auto& P:L.Points)P=Place();NorthPole=Place();SouthPole=Place();
+    }
+    void DrawGlobeGrid(FPrimitiveDrawInterface* PDI)
+    {
+        if(!bGlobeGrid||!Plan||bCaveOverlay||GeographicLines.IsEmpty())return;
+        for(const auto& L:GeographicLines)for(int32 I=1;I<L.Points.Num();++I)
+            PDI->DrawLine(L.Points[I-1],L.Points[I],L.Major?FLinearColor(.95,.5,.07):FLinearColor(.04,.38,.65),SDPG_World,L.Major?2:1.2,0,true);
+        for(const auto& P:{NorthPole,SouthPole}){const auto C=P.Z>0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1);PDI->DrawPoint(P,C,10,SDPG_World);PDI->DrawLine(P,P+P.GetSafeNormal()*2200,C,SDPG_World,2.5);}
+    }
     FGuid SelectedRegion;
     TArray<FCLGeneratedRegionBoundary> RegionBoundaries;
     TArray<FVector> RegionCentres;
@@ -371,7 +398,8 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);
+        if(NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&DrawnSurfacePlan!=Plan){DrawnSurfacePlan=Plan;SurfaceDrawFrame=GFrameCounter;Invalidate();}
         if(Plan&&!WalkDirection.IsNearlyZero())
         {
             const FVector P=WalkDirection*((Plan->RadiusMeters+Plan->SampleHeightMeters(WalkDirection))/Plan->RadiusMeters*100000+150);
@@ -383,6 +411,11 @@ public:
             PDI->DrawLine(P,P+WalkDirection*R*2,FLinearColor(1,.65,.08),SDPG_Foreground,2);
             }
         }}
+    virtual void Draw(FViewport* V,FCanvas* Canvas)override
+    {
+        FEditorViewportClient::Draw(V,Canvas);if(!bGlobeGrid||!Plan||bCaveOverlay||GeographicLines.IsEmpty())return;
+        for(const auto& P:{NorthPole,SouthPole}){FVector2D Pixel;if(Project(P+P.GetSafeNormal()*2400,Pixel)){FCanvasTextItem Label(Pixel/Canvas->GetDPIScale()+FVector2D(8,-20),FText::FromString(P.Z>0?TEXT("N"):TEXT("S")),GEngine->GetMediumFont(),P.Z>0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1));Label.Scale=FVector2D(1.2);Label.EnableShadow(FLinearColor::Black);Canvas->DrawItem(Label);}}
+    }
     double NormalizedAtScreenY(double Y)const
     {return bHasProjection&&Core.Y-Sky.Y>1.e-9?FMath::Clamp((Core.Y-Y)/(Core.Y-Sky.Y),0.,1.):0;}
 
@@ -423,10 +456,12 @@ void SCLPlanetPreview::CreateReferenceMeshForTesting()
 }
 #endif
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
-void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug)
+bool SCLPlanetPreview::IsSurfaceReady(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)const
+{return NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&Client->DrawnSurfacePlan==Plan&&GFrameCounter>Client->SurfaceDrawFrame+1;}
+void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug,bool PreserveWalk)
 {
     if(!Plan){Cancel();return;}
-    SetWalkLocation(FVector::ZeroVector);Client->Plan=Plan;PendingDebugPlan=Plan;PendingWatershedDebug=MoveTemp(Debug);
+    if(!PreserveWalk)SetWalkLocation(FVector::ZeroVector);Client->Plan=Plan;Client->UpdateGlobeGrid();PendingDebugPlan=Plan;PendingWatershedDebug=MoveTemp(Debug);
     if(!NativePreview)NativePreview=MakeUnique<FCLNativePreview>();FString Error;
     if(!NativePreview->Start(*Scene->GetWorld(),Plan,false,500,Error,bDraft))UE_LOG(LogTemp,Error,TEXT("Native globe: %s"),*Error);
     Client->NativePreview=NativePreview.Get();
@@ -460,7 +495,7 @@ void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->Navigation.Orbit
 void SCLPlanetPreview::Cancel()
 {
     CavePreview.Reset();CaveInput.Reset();NativePreview.Reset();PendingDebugPlan.Reset();DisplayedDebugPlan.Reset();PendingWatershedDebug.Reset();
-    if(Client){Client->NativePreview=nullptr;Client->WatershedDebug.Reset();Client->DebugPlan.Reset();}
+    if(Client){Client->NativePreview=nullptr;Client->DrawnSurfacePlan.Reset();Client->WatershedDebug.Reset();Client->DebugPlan.Reset();}
     if(DebugWater)DebugWater->SetVisibility(false);
 }
 FString SCLPlanetPreview::NativePreviewStatus()const{return NativePreview?NativePreview->Status():TEXT("No native preview");}
@@ -470,6 +505,8 @@ TOptional<float> SCLPlanetPreview::InputProgress()const{if(Client&&Client->bCave
 FString SCLPlanetPreview::InputProgressText()const{if(Client&&Client->bCaveOverlay&&CavePreview&&CavePreview->IsApplyingInput()&&NativePreview&&!NativePreview->IsApplyingInput())return CavePreview->InputProgressText();return NativePreview?NativePreview->InputProgressText():TEXT("Preparing preview…");}
 void SCLPlanetPreview::SetEvaluationPending(bool Pending){bEvaluationPending=Pending;if(Pending)CancelPlacementDrag();}
 void SCLPlanetPreview::SetAuthoringValid(bool Valid){bAuthoringInvalid=!Valid;if(!Valid)CancelPlacementDrag();}
+void SCLPlanetPreview::SetGlobeGrid(bool Visible){Client->bGlobeGrid=Visible;Client->Invalidate();}
+bool SCLPlanetPreview::IsGlobeGridVisible()const{return Client->bGlobeGrid;}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
     if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
@@ -1591,7 +1628,9 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst,Mixed,Joined,Morph,Natural,Bedded,Organic,CurrentRift]
     {
         auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
-        if(Now-S.Start>(CurrentRift?90:300)){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
+        // Close native refinement can outlive the overview; retain stock quality
+        // and measure both phases under the same deadline as the other fixtures.
+        if(Now-S.Start>300){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
         const FString Dir=FPaths::ProjectSavedDir()/(CurrentRift?TEXT("Verification/current-rift-caves"):Natural?(Organic?TEXT("Verification/organic-karst"):Bedded?TEXT("Verification/bedded-karst"):TEXT("Verification/natural-karst")):Morph?(S.Plan&&S.Plan->Caves&&S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::CarbonateKarst;})?(S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::Structural;})?TEXT("Verification/morph-mixed"):TEXT("Verification/morph-karst")):TEXT("Verification/morph-fissure")):Joined?TEXT("Verification/cave-joined"):Mixed?TEXT("Verification/cave-mixed"):Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
         auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
         {

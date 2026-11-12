@@ -1,0 +1,28 @@
+{
+  "uniquePassingTests": 20,
+  "tests": {
+    "Catalyst.Landform.Background.SurfaceCheckpoint": "Success",
+    "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes": "Success",
+    "Catalyst.Landform.Caves.Placement.GuidesAndPersistence": "Success",
+    "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings": "Success",
+    "Catalyst.Landform.Caves.AlwaysEnabledMinimum": "Success",
+    "Catalyst.Landform.Caves.KnobAndBackground": "Success",
+    "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale": "Success",
+    "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence": "Success",
+    "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed": "Success",
+    "Catalyst.Landform.Rift.Family.CharacterNoiseAndRock": "Success",
+    "Catalyst.Landform.Rift.Family.CuratedLandscape": "Success",
+    "Catalyst.Landform.Rift.Family.PlacementRelaxation": "Success",
+    "Catalyst.Landform.Rift.Family.SoloSavedProfile": "Success",
+    "Catalyst.Landform.Planet.SurfaceBeforeCaves": "Success",
+    "Catalyst.Landform.PlanetBuilder.GeneratedRegionInspection": "Success",
+    "Catalyst.Landform.Background.ResponsiveDesigner": "Success",
+    "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift": "Success",
+    "Catalyst.Landform.Rift.NativeDesigner.Character": "Success",
+    "Catalyst.Landform.Rift.NativeDesigner.Landscape": "Success",
+    "Catalyst.Landform.Rift.NativeDesigner.PreviewModes": "Success"
+  },
+  "earlierCurrentRiftTimeoutsRetained": 2,
+  "latestCurrentRiftPassedWithDeadlineSeconds": 300,
+  "highDpiSurfaceOrderingPassed": true
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/regionGeneration/palette/0/rift/minimumThrowMeters",
+    "before": 8,
+    "after": 12
+  },
+  {
+    "path": "/regionGeneration/palette/0/rift/maximumThrowMeters",
+    "before": 28,
+    "after": 42
+  }
+]

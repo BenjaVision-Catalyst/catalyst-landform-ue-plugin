@@ -173,7 +173,7 @@ void SCLPlanetLandforms::ToggleDetails(FGuid Id)
     *reinterpret_cast<FCLLandformPaletteEntry*>(C->Draft->GetStructMemory())=*Session->Entry(Id);
     FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
     C->Details=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,FStructureDetailsViewArgs(),C->Draft);
-    C->Details->SetCustomName(FText::FromString(TEXT("Landform values")));
+    C->Details->SetCustomName(FText::FromString(Session->Entry(Id)->Rift.IsActive()?TEXT("Continental Rift"):Session->Name(Id)));
     C->Details->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([RiftActive=Session->Entry(Id)->Rift.IsActive()](const FPropertyAndParent& P)
     {
         const FName N=P.Property.GetFName();if(RiftActive&&P.ParentProperties.IsEmpty()&&(N==TEXT("Seed")||N==TEXT("SurfaceStack")))return false;if(N==TEXT("AlgorithmVersion")||N==TEXT("Character")||N==TEXT("Id")||N==TEXT("Type")||N==TEXT("bPlaceholder"))return false;

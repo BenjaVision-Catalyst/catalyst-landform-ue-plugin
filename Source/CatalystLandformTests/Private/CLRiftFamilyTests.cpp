@@ -103,12 +103,12 @@ bool FCLRiftCuratedTest::RunTest(const FString&)
     {
         A->Recipe.RegionGeneration.Palette[0].Rift.ApplyCuratedCharacter(I/10.);const auto P=FCLPlanetCompiler::Compile(A->Recipe,E);if(!P){AddError(E);return false;}
         double Peak=0;for(auto V:D)Peak=FMath::Max(Peak,FMath::Abs(P->SampleHeightMeters(V)-Base->SampleHeightMeters(V)));
-        TestTrue(TEXT("Every slider position adds bounded metre relief without re-fitting the landscape"),Peak>0.01&&Peak<34);Worst=FMath::Max(Worst,Peak);
+        TestTrue(TEXT("Every slider position adds bounded metre relief without re-fitting the landscape"),Peak>0.01&&Peak<48);Worst=FMath::Max(Worst,Peak);
         auto Input=FCLPlanetCompiler::PrepareBackground(A->Recipe,E,nullptr,INDEX_NONE,nullptr,S->TerrainType.Id);const auto Solo=Input?FCLPlanetCompiler::CompleteBackground(*Input,MakeShared<FCLCompileProgress>(),E):nullptr;if(!Solo){AddError(E);return false;}
         double SoloPeak=0;for(auto V:D)SoloPeak=FMath::Max(SoloPeak,FMath::Abs(Solo->SampleHeightMeters(V)-Base->SampleHeightMeters(V)));
-        TestTrue(TEXT("Whole-planet Solo also preserves local metre scale throughout the slider"),SoloPeak>.01&&SoloPeak<34);SoloWorst=FMath::Max(SoloWorst,SoloPeak);
+        TestTrue(TEXT("Whole-planet Solo also preserves local metre scale throughout the slider"),SoloPeak>.01&&SoloPeak<48);SoloWorst=FMath::Max(SoloWorst,SoloPeak);
     }
-    auto& F=A->Recipe.RegionGeneration.Palette[0].Rift;F.MaximumThrowMeters=160;TestTrue(TEXT("Deliberate extreme physical ranges remain valid"),F.Validate(E));F.ApplyCuratedCharacter(1);TestEqual(TEXT("Returning to the knob restores the curated range"),F.MaximumThrowMeters,28.);
+    auto& F=A->Recipe.RegionGeneration.Palette[0].Rift;F.MaximumThrowMeters=160;TestTrue(TEXT("Deliberate extreme physical ranges remain valid"),F.Validate(E));F.ApplyCuratedCharacter(1);TestEqual(TEXT("Returning to the knob restores the curated range"),F.MaximumThrowMeters,42.);
     AddInfo(FString::Printf(TEXT("CURATED_RIFT wholeSliderSamples=11 maximumLandscapeDeltaMeters=%.6f maximumSoloDeltaMeters=%.6f"),Worst,SoloWorst));return !HasAnyErrors();
 }
 #endif

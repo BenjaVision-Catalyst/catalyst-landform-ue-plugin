@@ -11,7 +11,7 @@ double Smooth(double X){X=FMath::Clamp(X,0.,1.);return X*X*X*(X*(X*6-15)+10);}
 }
 void FCLRiftLandform::ApplyCuratedCharacter(double Value)
 {
-    AlgorithmVersion=3;MinimumSpacingMeters=180;MaximumSpacingMeters=440;MinimumThrowMeters=8;MaximumThrowMeters=28;MinimumScarpWidthMeters=8;MaximumScarpWidthMeters=26;
+    AlgorithmVersion=3;MinimumSpacingMeters=180;MaximumSpacingMeters=440;MinimumThrowMeters=12;MaximumThrowMeters=42;MinimumScarpWidthMeters=8;MaximumScarpWidthMeters=26;
     Character=FMath::Clamp(Value,0.,1.);
 }
 bool FCLRiftLandform::Validate(FString& Error)const

@@ -336,7 +336,10 @@ public:
     /** Resolve native client assets/PCG on the game thread; defer derived field work. */
     static TSharedPtr<const FCLPreparedPlanetCompile> PrepareBackground(const FCLPlanetRecipe&,FString&,const FBox2D* LocalRegion=nullptr,int32 SurfacePatch=INDEX_NONE,const FCLPreparedPlanetCompile* Previous=nullptr,FGuid SoloPreviewLandform=FGuid());
     /** Pure field completion over captured immutable plans. Called on a UE task worker. */
-    static TSharedPtr<const FCLCompiledPlanetRecipe> CompleteBackground(const FCLPreparedPlanetCompile&,const TSharedRef<FCLCompileProgress>&,FString&);
+    /** SurfaceOnly is an editor checkpoint; SourceRecipe retains enabled caves. */
+    static TSharedPtr<const FCLCompiledPlanetRecipe> CompleteBackground(const FCLPreparedPlanetCompile&,const TSharedRef<FCLCompileProgress>&,FString&,bool SurfaceOnly=false);
+    /** Finish that checkpoint without rebuilding its surface or native inputs. */
+    static TSharedPtr<const FCLCompiledPlanetRecipe> CompleteCavesBackground(const FCLPreparedPlanetCompile&,const FCLCompiledPlanetRecipe& Surface,const TSharedRef<FCLCompileProgress>&,FString&);
     /** Returns no plan on error; callers may retain their last successful plan. */
     static TSharedPtr<const FCLCompiledPlanetRecipe> Compile(const FCLPlanetRecipe& Recipe, FString& Error, UCLStampLibraryAsset* StampLibrary = nullptr, const FBox2D* LocalRegion = nullptr, int32 SurfacePatch = INDEX_NONE,UCLSurfaceLibraryAsset* SurfaceLibraryOverride=nullptr);
     static TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmapped(const FCLPlanetRecipe& Recipe,FString& Error,UCLStampLibraryAsset* StampLibrary,const FBox2D* LocalRegion,int32 SurfacePatch,UCLSurfaceLibraryAsset* SurfaceLibraryOverride=nullptr);

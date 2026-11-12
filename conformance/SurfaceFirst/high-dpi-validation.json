@@ -1,0 +1,33 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Planet.SurfaceBeforeCaves",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SURFACE_BEFORE_CAVES visibleSurfacePixels=775329",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.26.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"surfaceNativeReadySeconds\":1.374477,\"cavesNativeReadySeconds\":18.638386,\"cavesStartedAfterSurfacePublication\":true,\"surfacePickableBeforeCaves\":true,\"nativeOwner\":40009}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.26.48"
+        }
+      ]
+    }
+  ]
+}

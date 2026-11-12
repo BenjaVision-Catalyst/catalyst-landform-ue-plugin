@@ -610,13 +610,15 @@ public:
     virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
     { Client = MakeShared<FCLSectionClient>(&Scene, SharedThis(this)); return Client.ToSharedRef(); }
     bool IsUpdating() const{return NativePreview&&NativePreview->IsUpdating();}
+    uint64 SurfacePublicationFrame=0;
+    bool IsSurfaceReady(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)const{return NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&GFrameCounter>SurfacePublicationFrame+2;}
     bool IsApplyingInput()const{return NativePreview&&NativePreview->IsApplyingInput();}
     TOptional<float> InputProgress()const{return NativePreview?NativePreview->InputProgress():TOptional<float>();}
     FString InputProgressText()const{return NativePreview?NativePreview->InputProgressText():TEXT("Preparing preview…");}
     void CancelPendingBuild(){NativePreview.Reset();}
     void PumpBuild()
     {
-        if(NativePreview&&NativePreview->Poll(false)){++AppliedBuilds;if(!bCameraFramed){bCameraFramed=true;Client->ApplyNavigation();}Client->Invalidate();}
+        if(NativePreview&&NativePreview->Poll(false)){++AppliedBuilds;SurfacePublicationFrame=GFrameCounter;if(!bCameraFramed){bCameraFramed=true;Client->ApplyNavigation();}Client->Invalidate();}
     }
     virtual void Tick(const FGeometry& G,double T,float D) override
     {SEditorViewport::Tick(G,T,D);PumpBuild();}
@@ -655,6 +657,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLWatershedDesignerTest;
     friend class FCLProvinceEditorTest;
     friend class FCLRiftDesignerTest;
+    friend class FCLPlanetSurfaceFirstTest;
     friend class FCLPlanetLandformRowsTest;
     friend class FCLCaveDesignerTest;
     friend class FCLAuthoringLayoutTest;
@@ -1164,9 +1167,9 @@ public:
             auto Prepared=!Solo.IsValid()&&!TerrainEditing&&PreparedEditRecipe.IsSet()&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&PreparedEditRecipe.GetValue(),&Input,0)?PreparedEdit:Evaluation.Prepare(Input,Error,Region.IsSet()?&Region.GetValue():nullptr,Solo);
             PreparedEdit.Reset();PreparedEditRecipe.Reset();
             if(!GuidesValid||!Prepared){Evaluation.Cancel();if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(false);}bPreviewInvalid=true;InspectorError=Status=!GuidesValid?GuideError:Error;}
-            else {Evaluation.Request(Input,Prepared);bPreviewInvalid=false;InspectorError.Reset();if(Globe){Globe->SetAuthoringValid(true);Globe->SetEvaluationPending(true);}PumpEvaluation();}
+            else {Evaluation.Request(Input,Prepared,true);bPreviewInvalid=false;InspectorError.Reset();if(Globe){Globe->SetAuthoringValid(true);Globe->SetEvaluationPending(true);}PumpEvaluation();}
         }
-        else if(!Evaluation.IsBusy()&&AcceptedSurfacePlan&&!bPreviewInvalid)PublishPlan(AcceptedSurfacePlan);
+        else if((!Evaluation.IsBusy()||PublishedEvaluation==Evaluation.Latest())&&AcceptedSurfacePlan&&!bPreviewInvalid)PublishPlan(AcceptedSurfacePlan,true);
         RefreshAllUI(EditingAsset,false);
     }
     bool PrepareEdit(const FCLPlanetRecipe& R,FString& Error)
@@ -1175,18 +1178,29 @@ public:
     }
     void PumpEvaluation()
     {
+        // Give VPP its first publication and usable collision before starting
+        // cave generation. Keep the accepted surface interactive during that job.
+        if(Evaluation.AwaitingSurface()&&PublishedEvaluation==Evaluation.Latest()&&
+            (UsesGlobePreview()?Globe&&Globe->IsSurfaceReady(AcceptedSurfacePlan):Preview&&Preview->IsSurfaceReady(AcceptedSurfacePlan)))
+        {
+#if WITH_DEV_AUTOMATION_TESTS
+            if(!HoldCavesForTesting)
+#endif
+            Evaluation.ResumeAfterSurface(PublishedEvaluation);
+        }
         if(auto R=Evaluation.Pump())
         {
             if(R->Serial!=Evaluation.Latest())return;
             if(Globe){Globe->SetEvaluationPending(false);Globe->SetAuthoringValid(R->Plan.IsValid());}
             LastEvaluationSeconds=R->Seconds;LastEvaluationWasWorker=R->WorkerThread;
             if(!R->Plan){bPreviewInvalid=true;InspectorError=Status=R->Error;return;}
+            const bool PreserveWalk=PublishedEvaluation==R->Serial;
             bPreviewInvalid=false;InspectorError.Reset();PublishedEvaluation=R->Serial;AcceptedSurfacePlan=R->Plan;AcceptedWatershedDebug=R->WatershedDebug;
-            MeasuredElevation=MoveTemp(R->Elevation);ElevationReadout=MoveTemp(R->ElevationReadout);MeasuredRockBeds=R->Beds;TargetRockBeds=MoveTemp(R->TargetBeds);
-            PublishPlan(R->Plan);
+            if(!R->SurfaceOnly){MeasuredElevation=MoveTemp(R->Elevation);ElevationReadout=MoveTemp(R->ElevationReadout);MeasuredRockBeds=R->Beds;TargetRockBeds=MoveTemp(R->TargetBeds);}
+            PublishPlan(R->Plan,PreserveWalk);
         }
     }
-    void PublishPlan(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)
+    void PublishPlan(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan,bool PreserveWalk=false)
     {
         auto* Asset=RecipeAsset();
         if(GenerationPanel)GenerationPanel->Refresh(Plan?Plan->GeneratedRegions:nullptr);
@@ -1199,7 +1213,7 @@ public:
             {
                 if(UsesGlobePreview()){Preview->CancelPendingBuild();Preview->Client->Plan=Plan;}
                 else if ((TerrainEditing&&!TerrainEditing->Asset->TerrainType.Rift.IsActive()) || !Plan->Regions.IsEmpty() || !Plan->SurfacePatches.IsEmpty()) Preview->RebuildAsync(Plan); else Preview->Rebuild(Plan);
-                if(Globe && (!TerrainEditing||TerrainEditing->Asset->TerrainType.Rift.IsActive())){if(bGlobe){Globe->Rebuild(Plan,AcceptedWatershedDebug);if(TerrainEditing)Globe->SetRegionInspection(false);}else Globe->Cancel();}
+                if(Globe && (!TerrainEditing||TerrainEditing->Asset->TerrainType.Rift.IsActive())){if(bGlobe){Globe->Rebuild(Plan,AcceptedWatershedDebug,PreserveWalk);if(TerrainEditing)Globe->SetRegionInspection(false);}else Globe->Cancel();}
                 if (PendingAreaWidth <= 0) PendingAreaWidth = Preview->Client->AreaWidthMeters;
             }
         }
@@ -1212,6 +1226,7 @@ public:
     FText EvaluationCaption()const
     {
         if(!Evaluation.IsBusy())return FText::FromString(UsesGlobePreview()?Globe->InputProgressText():Preview->InputProgressText());
+        if(Evaluation.AwaitingSurface())return FText::FromString(UsesGlobePreview()?Globe->InputProgressText():Preview->InputProgressText());
         FString Caption;switch(Evaluation.Stage())
         {
         case ECLCompileStage::Preparing:Caption=TEXT("Preparing terrain…");break;
@@ -1226,9 +1241,11 @@ public:
         return FText::FromString(Caption);
     }
 #if WITH_DEV_AUTOMATION_TESTS
+    bool HoldCavesForTesting=false;
     void AwaitEvaluationForTesting()
     {
-        const double Start=FPlatformTime::Seconds();while(Evaluation.IsBusy()&&FPlatformTime::Seconds()-Start<30){PumpEvaluation();FPlatformProcess::SleepNoStats(.001f);}
+        // Field/controller tests deliberately do not tick a Slate viewport.
+        const double Start=FPlatformTime::Seconds();while(Evaluation.IsBusy()&&FPlatformTime::Seconds()-Start<30){Evaluation.ResumeAfterSurface(Evaluation.Latest());PumpEvaluation();FPlatformProcess::SleepNoStats(.001f);}
     }
 #endif
     TSharedRef<SWidget> BuildViewport()
@@ -1616,7 +1633,9 @@ public:
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Preview){Preview->Client->bGuides=V==ECheckBoxState::Checked;Preview->Client->Invalidate();if(Globe)Globe->SetGuides(RecipeAsset()->Recipe.RadialGuides,Preview->Client->bGuides);}}));
             InspectorRow(C,TEXT("Ocean"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsOceanVisible()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetOceanVisible(V==ECheckBoxState::Checked);}));
-            InspectorRow(C,TEXT("Regions"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsInspectingRegions()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+            InspectorRow(C,TEXT("Globe grid"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsGlobeGridVisible()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetGlobeGrid(V==ECheckBoxState::Checked);}));
+            InspectorRow(C,TEXT("Province cells"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsInspectingRegions()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetRegionInspection(V==ECheckBoxState::Checked);}));
             InspectorRow(C,TEXT("Channel"),SNew(SButton).Text(FText::FromString(TEXT("Focus largest channel"))).IsEnabled_Lambda([this]{return AcceptedSurfacePlan&&AcceptedSurfacePlan->Watershed&&!AcceptedSurfacePlan->Watershed->GetChannels().IsEmpty();}).OnClicked_Lambda([this]{if(!bGlobe){bGlobe=true;Refresh();}if(Globe)Globe->FocusWatershed();return FReply::Handled();}));
             InspectorRow(C,TEXT("Section area"),SNew(SHorizontalBox)
@@ -2997,6 +3016,64 @@ bool FCLRiftDesignerTest::RunTest(const FString& Variant)
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Source->TerrainType.Id,Modes,Landscape));return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetSurfaceFirstTest,"Catalyst.Landform.Planet.SurfaceBeforeCaves",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlanetSurfaceFirstTest::RunTest(const FString&)
+{
+    auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftFamilyReview"));if(!TestNotNull(TEXT("Saved review exists"),Review))return false;
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLSurfaceFirst_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));A->Recipe=Review->Recipe;
+    auto E=MakeShared<FCLRecipeToolkit>();E->HoldCavesForTesting=true;E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=2;
+    for(const auto& Entry:A->Recipe.RegionGeneration.Palette)if(Entry.Rift.IsActive()){E->LandformRows->ToggleDetails(Entry.Id);E->LandformRows->Focus(Entry.Id);break;}
+    class FReview:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLPlanetRecipeAsset> A;
+        double Start=FPlatformTime::Seconds(),SurfaceTime=0,Stable=0;int32 Phase=0;uint32 Owner=0,Jobs=0;bool PickedDuringCaves=false;FVector Walk;TSharedPtr<const FCLCompiledPlanetRecipe> Surface;
+        void Capture(const TCHAR* Name)
+        {
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/surface-first");IFileManager::Get().MakeDirectory(*Dir,true);
+            TArray<FColor> Pixels;FIntVector Size;if(Test->TestTrue(TEXT("Actual Planet window capture"),FSlateApplication::Get().TakeScreenshot(E->GetToolkitHost()->GetParentWidget(),Pixels,Size))){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/(FString(Name)+TEXT(".png"))));}
+        }
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLPlanetRecipeAsset* Asset):Test(T),E(In),A(Asset){}
+        bool Update()override
+        {
+            const double Now=FPlatformTime::Seconds();auto Close=[&]{A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
+            if(Now-Start>180){Test->AddError(FString::Printf(TEXT("Surface-first preview timed out phase %d: %s"),Phase,*E->Status));return Close();}
+            if(!E->AcceptedSurfacePlan)return false;auto P=E->AcceptedSurfacePlan;auto* N=E->Globe->NativeForTesting();if(!N)return false;
+            if(Phase==0)
+            {
+                if(!E->Evaluation.AwaitingSurface()||!E->Globe->IsSurfaceReady(P)||!E->Globe->CanPick())return false;
+                Surface=P;Owner=N->WorldIdentity();Jobs=E->Evaluation.Started;SurfaceTime=Now-Start;
+                Test->TestTrue(TEXT("Surface is natively published and pickable before cave generation"),E->Evaluation.IsBusy()&&!P->Caves&&P->SourceRecipe->Caves.bEnabled);
+                Test->TestTrue(TEXT("Geographic globe overlay is enabled by default"),E->Globe->IsGlobeGridVisible());Test->TestFalse(TEXT("Province cells are hidden by default"),E->Globe->IsInspectingRegions());
+                int32 Vertices=0;N->SamplePublishedVerticesForTesting(Vertices);Test->TestTrue(TEXT("Surface checkpoint renders real VPP mesh"),Vertices>100);
+                // Inspect the actual native viewport image, not only its field
+                // or proxy readiness. Flush only in this bounded render test.
+                auto* Viewport=E->Globe->GetViewportClient()->Viewport;Viewport->Draw(false);FlushRenderingCommands();TArray<FColor> Pixels;Viewport->ReadPixels(Pixels);
+                int32 SurfacePixels=0;for(auto C:Pixels)SurfacePixels+=C.R>60&&C.G>55&&C.B>40;
+                Test->TestTrue(TEXT("Opaque native surface pixels are visible before caves start"),SurfacePixels>10000);
+                Test->AddInfo(FString::Printf(TEXT("SURFACE_BEFORE_CAVES visibleSurfacePixels=%d"),SurfacePixels));
+                Walk=FVector(1,0,0);E->Globe->SetWalkLocation(Walk);Capture(TEXT("surface-ready-before-caves"));Stable=Now;Phase=1;return false;
+            }
+            if(Phase==1)
+            {
+                Test->TestEqual(TEXT("Navigation does not bypass surface gate"),E->Evaluation.Started,Jobs);if(Now-Stable<.5)return false;
+                Test->TestTrue(TEXT("Published surface remains pickable while caves wait"),E->Globe->CanPick());E->HoldCavesForTesting=false;Phase=2;Stable=0;return false;
+            }
+            if(E->Evaluation.IsBusy()&&!E->Evaluation.AwaitingSurface()&&P==Surface){PickedDuringCaves=E->Globe->CanPick();Test->TestTrue(TEXT("Surface stays usable during cave computation"),PickedDuringCaves);}
+            if(E->Evaluation.IsBusy()||!E->Globe->IsSurfaceReady(P)||!E->Globe->CanPick())return false;
+            Test->TestTrue(TEXT("Observed usable native surface during cave computation"),PickedDuringCaves);
+            if(!Stable){Stable=Now;return false;}if(Now-Stable<.5)return false;
+            Test->TestTrue(TEXT("Final preview includes generated caves"),P->Caves&&P->Caves->Networks>0);
+            Test->TestEqual(TEXT("Caves retain the same native world"),N->WorldIdentity(),Owner);Test->TestEqual(TEXT("Cave continuation is one additional job"),E->Evaluation.Started,Jobs+1);
+            Test->TestEqual(TEXT("Walk location survives cave publication"),E->Globe->WalkLocation(),Walk);
+            Test->TestEqual(TEXT("Cave continuation preserves surface height"),P->SampleHeightMeters(Walk),Surface->SampleHeightMeters(Walk));Capture(TEXT("surface-with-caves"));
+            const FString Json=FString::Printf(TEXT("{\"surfaceNativeReadySeconds\":%.6f,\"cavesNativeReadySeconds\":%.6f,\"cavesStartedAfterSurfacePublication\":true,\"surfacePickableBeforeCaves\":true,\"nativeOwner\":%u}\n"),SurfaceTime,Now-Start,Owner);
+            FFileHelper::SaveStringToFile(Json,*(FPaths::ProjectSavedDir()/TEXT("Verification/surface-first/timings.json")));Test->AddInfo(Json);return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get()));return true;
 }
 
 }

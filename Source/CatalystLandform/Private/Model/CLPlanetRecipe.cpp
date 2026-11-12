@@ -58,7 +58,7 @@ struct FCLPreparedPlanetCompile
 };
 namespace
 {
-struct FCompileRun {bool Preparing=false;FCLPreparedPlanetCompile* Prepared=nullptr;int32 Next=0,RawDepth=0;FCLCompileProgress* Progress=nullptr;const FCLPreparedPlanetCompile* Previous=nullptr;};
+struct FCompileRun {bool Preparing=false,SurfaceOnly=false;FCLPreparedPlanetCompile* Prepared=nullptr;int32 Next=0,RawDepth=0;FCLCompileProgress* Progress=nullptr;const FCLPreparedPlanetCompile* Previous=nullptr;};
 thread_local FCompileRun* CompileRun=nullptr;
 thread_local bool CompilingCaveBase=false;
 TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRecipe&,FString&,UCLStampLibraryAsset*,const FBox2D*,int32,UCLSurfaceLibraryAsset*);
@@ -90,11 +90,27 @@ TSharedPtr<const FCLPreparedPlanetCompile> FCLPlanetCompiler::PrepareBackground(
     if(!Compile(R,E,nullptr,Region,Patch))return nullptr;return P;
 }
 int32 FCLCompileProgress::ReusedNativeInputs(const FCLPreparedPlanetCompile& P){return P.ReusedInputs;}
-TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompleteBackground(const FCLPreparedPlanetCompile& P,const TSharedRef<FCLCompileProgress>& Progress,FString& E)
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompleteBackground(const FCLPreparedPlanetCompile& P,const TSharedRef<FCLCompileProgress>& Progress,FString& E,bool SurfaceOnly)
 {
-    FCompileRun Run;Run.Prepared=const_cast<FCLPreparedPlanetCompile*>(&P);Run.Progress=&Progress.Get();auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};
+    FCompileRun Run;Run.SurfaceOnly=SurfaceOnly;Run.Prepared=const_cast<FCLPreparedPlanetCompile*>(&P);Run.Progress=&Progress.Get();auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};
     if(!FCLCompileProgress::Check(E))return nullptr;auto Out=Compile(P.Recipe,E,nullptr,P.Region.IsSet()?&P.Region.GetValue():nullptr,P.Patch);
     if(Out&&Run.Next!=P.Raw.Num()){E=TEXT("Prepared native field sequence did not match completion");return nullptr;}
+    if(!FCLCompileProgress::Check(E))return nullptr;Progress->Stage=ECLCompileStage::Complete;return Out;
+}
+TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::CompleteCavesBackground(const FCLPreparedPlanetCompile& P,const FCLCompiledPlanetRecipe& Surface,const TSharedRef<FCLCompileProgress>& Progress,FString& E)
+{
+    FCompileRun Run;Run.Prepared=const_cast<FCLPreparedPlanetCompile*>(&P);Run.Progress=&Progress.Get();auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};
+    if(!Surface.SourceRecipe||Surface.Caves||!FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&P.Recipe,Surface.SourceRecipe.Get(),0))
+    {E=TEXT("Cave completion requires the matching surface checkpoint");return nullptr;}
+    if(!FCLCompileProgress::Check(E))return nullptr;
+    auto Out=MakeShared<FCLCompiledPlanetRecipe>(Surface);
+    if(P.Recipe.Caves.bEnabled)
+    {
+        // Match the normal compiler's order: cave placement samples the surface
+        // before authored volume edits, while the published plan retains both.
+        auto CaveBase=Surface;CaveBase.Volumes.Reset();FCLCompileProgress::Report(ECLCompileStage::Caves);
+        Out->Caves=FCLCompiledCaves::Compile(P.Recipe.Caves,CaveBase,P.Recipe.Seed,E);if(!Out->Caves)return nullptr;
+    }
     if(!FCLCompileProgress::Check(E))return nullptr;Progress->Stage=ECLCompileStage::Complete;return Out;
 }
 void FCLCompiledPlanetRecipe::SampleRadialFields(TConstArrayView<FVector> Positions,TConstArrayView<double> Heights,TArray<double>& Fields)const
@@ -495,7 +511,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         {TGuardValue<bool> Scope(CompilingCaveBase,true);Core=Compile(Base,Error,Library,nullptr,INDEX_NONE,SurfaceLibraryOverride);}if(!Core)return nullptr;
         auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);
         if(FCLCompileProgress::IsPreparing())return RetainInput(Out);
-        if(Recipe.Caves.bEnabled){FCLCompileProgress::Report(ECLCompileStage::Caves);Out->Caves=FCLCompiledCaves::Compile(Recipe.Caves,*Out,Recipe.Seed,Error);if(!Out->Caves)return nullptr;}
+        if(Recipe.Caves.bEnabled&&!(CompileRun&&CompileRun->SurfaceOnly)){FCLCompileProgress::Report(ECLCompileStage::Caves);Out->Caves=FCLCompiledCaves::Compile(Recipe.Caves,*Out,Recipe.Seed,Error);if(!Out->Caves)return nullptr;}
         if(Recipe.Volumes.bEnabled){Out->Volumes=FCLCompiledVolumes::Compile(Recipe.Volumes,Recipe.RadiusMeters,Out->Surfaces.Get(),Error);if(!Out->Volumes)return nullptr;}
         return RetainInput(Out);
     }

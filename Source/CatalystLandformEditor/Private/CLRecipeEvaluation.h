@@ -16,6 +16,7 @@ struct FCLRecipeEvaluationResult
     FCLRockBedStatistics Beds;
     TArray<double> TargetBeds;
     bool WorkerThread=false;
+    bool SurfaceOnly=false;
     double Seconds=0;
 };
 /** One UE task plus one latest pending input. Owns no editor, asset or widget. */
@@ -24,7 +25,10 @@ class FCLRecipeEvaluation
 public:
     ~FCLRecipeEvaluation(){Cancel();}
     TSharedPtr<const FCLPreparedPlanetCompile> Prepare(const FCLPlanetRecipe&,FString&,const FBox2D* Region=nullptr,FGuid SoloPreviewLandform=FGuid());
-    uint64 Request(FCLPlanetRecipe,TSharedPtr<const FCLPreparedPlanetCompile>);
+    uint64 Request(FCLPlanetRecipe,TSharedPtr<const FCLPreparedPlanetCompile>,bool SurfaceFirst=false);
+    /** Called only after the viewport has published the checkpoint's native surface. */
+    void ResumeAfterSurface(uint64 PublishedSerial);
+    bool AwaitingSurface()const{return WaitingSurface.IsValid();}
     TSharedPtr<FCLRecipeEvaluationResult> Pump();
     void Cancel();
     static void Startup();
@@ -41,10 +45,12 @@ public:
     uint32 Started=0,Discarded=0;
     double LastPreparationMs=0,MaximumPreparationMs=0;
 private:
-    struct FRequest{uint64 Serial;FCLPlanetRecipe Recipe;TSharedPtr<const FCLPreparedPlanetCompile> Prepared;};
+    struct FRequest{uint64 Serial;FCLPlanetRecipe Recipe;TSharedPtr<const FCLPreparedPlanetCompile> Prepared;bool SurfaceFirst=false;};
+    void Launch(TSharedPtr<FCLRecipeEvaluationResult> Surface=nullptr);
     uint64 Serial=0,NativeEpoch=0;
     TSharedPtr<const FCLPreparedPlanetCompile> NativeCache;
     TOptional<FRequest> Active,Pending;
     TSharedPtr<FCLCompileProgress> Progress;
+    TSharedPtr<FCLRecipeEvaluationResult> WaitingSurface;
     UE::Tasks::TTask<TSharedPtr<FCLRecipeEvaluationResult>> Task;
 };

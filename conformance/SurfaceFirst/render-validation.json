@@ -1,0 +1,155 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Background.ResponsiveDesigner",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Background.SurfaceCheckpoint",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cave mesh worst residual 13.517175 m at X=637.435 Y=-177.643 Z=661.098",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.16.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.465943",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.16.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_PREVIEW_READY totalSeconds=20.643 inspectionSeconds=7.997 networks=39 domains=30 nativeVertices=26275 cyanPixels=12667 overviewResidualMeters=13.517175",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.16.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generating cave surfaces \u00b7 30/30 ready | components 6, native producer/presenter 42312, ready 1, processing 0, tasks 0, inspected vertices 335, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 7/7 | components 3, native producer/presenter 42280, ready 1, processing 0, tasks 0, inspected vertices 161, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 21 chunk 32 lod 4/4 | components 5, native producer/presenter 42260, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 42240, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 42220, ready 1, processing 0, tasks 0, inspected vertices 852, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 5/5 | components 5, native producer/presenter 42200, ready 1, processing 0, tasks 0, inspected vertices 409, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 42180, ready 1, processing 0, tasks 0, inspected vertices 297, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 6/6 | components 6, native producer/presenter 42160, ready 1, processing 0, tasks 0, inspected vertices 913, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 42140, ready 1, processing 0, tasks 0, inspected vertices 519, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 42120, ready 1, processing 0, tasks 0, inspected vertices 523, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 6/6 | components 7, native producer/presenter 42100, ready 1, processing 0, tasks 0, inspected vertices 696, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 42080, ready 1, processing 0, tasks 0, inspected vertices 766, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 42060, ready 1, processing 0, tasks 0, inspected vertices 1000, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 42040, ready 1, processing 0, tasks 0, inspected vertices 622, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 42020, ready 1, processing 0, tasks 0, inspected vertices 682, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 4, native producer/presenter 42000, ready 1, processing 0, tasks 0, inspected vertices 264, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41980, ready 1, processing 0, tasks 0, inspected vertices 654, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 5, native producer/presenter 41960, ready 1, processing 0, tasks 0, inspected vertices 505, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 6, native producer/presenter 41940, ready 1, processing 0, tasks 0, inspected vertices 1451, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 8, native producer/presenter 41920, ready 1, processing 0, tasks 0, inspected vertices 3804, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4 | components 7, native producer/presenter 41900, ready 1, processing 0, tasks 0, inspected vertices 1151, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41880, ready 1, processing 0, tasks 0, inspected vertices 1299, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41860, ready 1, processing 0, tasks 0, inspected vertices 1077, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 20 chunk 32 lod 4/4 | components 6, native producer/presenter 41840, ready 1, processing 0, tasks 0, inspected vertices 1072, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41820, ready 1, processing 0, tasks 0, inspected vertices 981, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 5/5 | components 6, native producer/presenter 41800, ready 1, processing 0, tasks 0, inspected vertices 412, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 7, native producer/presenter 41780, ready 1, processing 0, tasks 0, inspected vertices 1101, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41760, ready 1, processing 0, tasks 0, inspected vertices 1006, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 6/6 | components 4, native producer/presenter 41740, ready 1, processing 0, tasks 0, inspected vertices 795, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41720, ready 1, processing 0, tasks 0, inspected vertices 670, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.16.37"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_ZOOM seconds=71.766 vertices=53423 maxCellMeters=0.600 maxResidualMeters=0.217652",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.17.49"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Planet.SurfaceBeforeCaves",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SURFACE_BEFORE_CAVES visibleSurfacePixels=185911",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.17.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"surfaceNativeReadySeconds\":1.560824,\"cavesNativeReadySeconds\":7.752238,\"cavesStartedAfterSurfacePublication\":true,\"surfacePickableBeforeCaves\":true,\"nativeOwner\":41801}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.17.57"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.Character",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"cameraZoom\":0.7,\"navigationP95Ms\":21.520957,\"cases\":[{\"stage\":0,\"vertices\":130131,\"geometryCrc\":783621490},{\"stage\":1,\"vertices\":129876,\"geometryCrc\":4156162198},{\"stage\":2,\"vertices\":127246,\"geometryCrc\":2446709350}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.18.33"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.Landscape",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Native landscape camera captured at Character 0.5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.19.21"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.PreviewModes",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"cases\":[{\"stage\":3,\"vertices\":131166,\"geometryCrc\":3269838702},{\"stage\":4,\"vertices\":133021,\"geometryCrc\":1941652360}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.19.45"
+        }
+      ]
+    }
+  ]
+}

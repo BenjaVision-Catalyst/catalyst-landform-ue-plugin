@@ -1,0 +1,17 @@
+{
+  "baseComponent": "36fa4000fd1125be446c15d01c815b0234b3bc8b",
+  "host": "LandformLab, UE 5.7, macOS arm64 Development",
+  "sha256": {
+    "Examples/TerrainTypes/ContinentalRiftFamily.json": "c9188e1ed6de3af98a79f5713164deab2b0024117e58cb3e1272dbf8e3fee7ae",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "1f9095d35c7ef1eccc83f9e8fd93a937c78f5a4f30926da444fed23a1c71713f",
+    "Source/CatalystLandform/Private/Model/CLRiftLandform.cpp": "c38dff33ccb42414440996c7b7dff4f618e6e3191aba4b173d884569e9740214",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "c0c74df292ec903eeff60968c47f21f85bcdb198310a305a09e7fad9c75fd86b",
+    "Source/CatalystLandformEditor/Private/CLPlanetLandforms.cpp": "445b211567c277ec20c212ca313af5b2c7d949690f1960bc7ced1849f8d3463f",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "a04c819c6a5f0218641283a20cba150e4ceca0025c912638cf7d5a17267e2b46",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "b438cbba282622b3f36f6963c72d88deb69a11b89292b5744d5aefa411c0bcd6",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "bd012c861d70d2a63a0ea25c35a5b8061bd4334ea9a46b5c3dee017eb468c2fc",
+    "Source/CatalystLandformEditor/Private/CLRecipeEvaluation.cpp": "860aa3634a92bd3629aecc684eecb3e9138466c5de83976aa1d7c18f92e14257",
+    "Source/CatalystLandformEditor/Private/CLRecipeEvaluation.h": "9aa4f9a8a4b51e53c89fc0bc2461120f73ee791dc52722b3e7aee199cc2e528b",
+    "Source/CatalystLandformTests/Private/CLRiftFamilyTests.cpp": "e61548d5bced591bc492f00e38eb53b1e946a02ff3cd8462022181b7306a5c2d"
+  }
+}

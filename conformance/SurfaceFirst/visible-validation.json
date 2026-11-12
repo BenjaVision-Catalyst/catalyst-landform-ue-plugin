@@ -1,0 +1,60 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.SurfaceBeforeCaves",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "SURFACE_BEFORE_CAVES visibleSurfacePixels=185589",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.11.44"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"surfaceNativeReadySeconds\":1.377435,\"cavesNativeReadySeconds\":7.635778,\"cavesStartedAfterSurfacePublication\":true,\"surfacePickableBeforeCaves\":true,\"nativeOwner\":38552}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.11.50"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.GeneratedRegionInspection",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generated region inspection: 1500 surface contour segments, 6332 visibly changed pixels; routed surface selection passed",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-06.11.51"
+        }
+      ]
+    }
+  ]
+}

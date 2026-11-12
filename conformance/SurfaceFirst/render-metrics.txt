@@ -1,0 +1,4 @@
+CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.465943
+RIFT_CAVE_PREVIEW_READY totalSeconds=20.643 inspectionSeconds=7.997 networks=39 domains=30 nativeVertices=26275 cyanPixels=12667 overviewResidualMeters=13.517175
+RIFT_CAVE_ZOOM seconds=71.766 vertices=53423 maxCellMeters=0.600 maxResidualMeters=0.217652
+SURFACE_BEFORE_CAVES visibleSurfacePixels=185911

@@ -67,7 +67,7 @@ with validation and Undo/Redo. Source identity and algorithm fields stay protect
 Collapsed/expanded state is preview UI state. Disabled rows disable the disclosure
 and its values as well as the other controls.
 
-Rift profile 3 is the curated family: 180–440 m spacing, 8–28 m throw and 8–26 m
+Rift profile 3 is the curated family: 180–440 m spacing, 12–42 m throw and 8–26 m
 scarp width across Character. The shape expression also avoids the previous
 harsh sawtooth endpoint. These defaults are intended to produce usable variants
 throughout the slider; visual approval remains open. Details permit deliberate
@@ -82,3 +82,24 @@ local. Rock restoration uses that same physical structural displacement. The
 planet's authored global guide span, underlying geology and Caves settings remain
 independent. A high-relief base can still have large mountains with Rift hidden;
 this change curates the Landform contribution rather than rewriting those inputs.
+
+Planet preview publishes the updated surface before generating caves. The first
+worker checkpoint retains the complete authored recipe, including enabled caves,
+but defers cave construction and diagnostic measurements. VPP publishes that
+surface and its collision before the editor starts the cave continuation. Picking
+and navigation are available while caves generate. The continuation reuses the
+same immutable surface, native world and walk location; it adds the existing cave
+family and then its diagnostics. A newer edit cancels either phase and rejects
+stale results. Runtime generation still returns the complete planet in one call.
+
+The expanded Rift heading reads “Continental Rift”. Planet opens with province
+cell boundaries hidden and a stronger geographic grid, highlighted equator and
+labelled north/south poles. Preview → Globe grid and Province cells control these
+independently. These are editor overlays; neither changes saved generation or
+VPP geometry. Grid paths are cached from surface heights once per accepted input
+and reused when caves arrive and during navigation.
+
+Within a resolved extensional belt, Rift relief varies across the belt and its
+ridges run along it. This follows the rift trend rather than the plate's travel
+direction. Where that context is absent, relaxed placement uses a seeded local
+orientation; not every generated ridge is therefore aligned to a plate boundary.

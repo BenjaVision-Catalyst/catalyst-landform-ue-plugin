@@ -1,0 +1,16 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-abslog=/private/tmp/landform-surface-first/surface-visible/native.log",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Planet.SurfaceBeforeCaves+Catalyst.Landform.PlanetBuilder.GeneratedRegionInspection+Catalyst.Landform.Planet.LandformRows",
+  "-TestExit=Automation Test Queue Empty",
+  "-ReportExportPath=/private/tmp/landform-surface-first/surface-visible/automation"
+]

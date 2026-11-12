@@ -112,8 +112,8 @@
     "seed": 37,
     "minimumSpacingMeters": 180,
     "maximumSpacingMeters": 440,
-    "minimumThrowMeters": 8,
-    "maximumThrowMeters": 28,
+    "minimumThrowMeters": 12,
+    "maximumThrowMeters": 42,
     "minimumScarpWidthMeters": 8,
     "maximumScarpWidthMeters": 26
   }
