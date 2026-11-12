@@ -3155,7 +3155,9 @@ bool FCLTransformDesignerTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLVolcanicArcDesignerTest,"Catalyst.Landform.Planet.LandformRows.VolcanicArcRange",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLVolcanicArcDesignerTest::RunTest(const FString&)
 {
-    auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_TransformShearFamilyReview"));
+    FString ReviewPath=TEXT("/Game/LandformDesigner/DA_BasePlanet");
+    FParse::Value(FCommandLine::Get(),TEXT("LandformArcReviewAsset="),ReviewPath);
+    auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,*ReviewPath);
     auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_VolcanicArc"));
     if(!TestNotNull(TEXT("Current saved authoring planet"),Review)||!TestNotNull(TEXT("Canonical volcanic arc source"),Source))return false;
     const auto Saved=Review->Recipe;const auto SourceBefore=Source->TerrainType;
@@ -3192,9 +3194,10 @@ bool FCLVolcanicArcDesignerTest::RunTest(const FString&)
             if(!Framed)
             {
                 for(const auto& Arc:P->GeneratedRegions->VolcanicArcs)if(Arc&&!Arc->GetCentres().IsEmpty())
-                {const auto& C=Arc->GetCentres()[0];E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Globe->SetGlobeGrid(false);E->Globe->FrameLandformForTesting(C.Direction,C.Along,1250,FVector2D(.38,.95));break;}
+                {const auto& C=Arc->GetCentres()[0];E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Globe->SetGlobeGrid(false);E->Globe->FrameLandformForTesting(C.Direction,C.Along,700,FVector2D(.95,.45));break;}
                 E->LandformRows->Focus(Id);Framed=true;return false;
             }
+            E->Globe->SetGuides({},false);E->Globe->SetGlobeGrid(false);
             E->Globe->GetViewportClient()->Viewport->Draw(false);
             if(N->PublishedPlan()!=P||N->IsUpdating()||!E->Globe->IsSurfaceReady(P)){Ready=0;return false;}
             if(!Ready){Ready=Now;return false;}if(Now-Ready<.6)return false;
@@ -3212,7 +3215,7 @@ bool FCLVolcanicArcDesignerTest::RunTest(const FString&)
                 auto Other=A->Recipe;Other.RegionGeneration.Palette.RemoveAll([&](const auto& V){return V.Id==Id;});auto Before=WithArc;Before.RegionGeneration.Palette.RemoveAll([&](const auto& V){return V.Id==Id;});Test->TestTrue(TEXT("Arc review preserves every other authoring value"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Other,&Before,0));
                 FFileHelper::SaveStringToFile(TEXT("{\"editor\":\"Planet\",\"cases\":[")+FString::Join(Records,TEXT(","))+TEXT("]}\n"),*(Dir/TEXT("range.json")));return Close();
             }
-            E->Landforms->SetCharacter(Id,Positions[Stage]);E->LandformRows->Focus(Id);return false;
+            E->Landforms->SetCharacter(Id,Positions[Stage]);E->LandformRows->Focus(Id);Framed=false;return false;
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Review,Source,Saved,WithArc,SourceBefore,Id));return !HasAnyErrors();

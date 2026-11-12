@@ -33,11 +33,25 @@ struct CATALYSTLANDFORM_API FCLVolcanicArcLandform
 class CATALYSTLANDFORM_API FCLCompiledVolcanicArcLandform
 {
 public:
+    struct FDrainageSegment
+    {
+        FVector2D Start,Delta;
+        double InverseLengthSquared=0,StartWidth=0,EndWidth=0,StartDepth=0,EndDepth=0;
+    };
+    struct FLavaLobe
+    {
+        FVector2D Centre,Along;
+        double Length=1,Width=1,Height=0;
+    };
+    static constexpr int32 DrainageGridSize=24;
+    static constexpr double DrainageGridExtent=1.9;
     struct FCentre
     {
         FVector Direction,Along,Across;
         double Radius=1,HeightScale=1,Phase=0,Elongation=1,Breach=0;
-        int32 Gullies=12;
+        TArray<FDrainageSegment> Drainage;
+        TArray<TArray<uint16>> DrainageBins;
+        TArray<FLavaLobe> LavaLobes;
         bool bSecondary=false,bPlateGuided=false;
     };
     static TSharedPtr<const FCLCompiledVolcanicArcLandform> Compile(const FCLVolcanicArcLandform&,int32 PlanetSeed,double ReferenceRadius,TConstArrayView<FCLGeneratedRegionCell>,TSharedPtr<const FCLCompiledTectonics>,FString& Error);

@@ -28,9 +28,11 @@ References informing the shape, rather than a geological age chronology:
 `FCLCompiledVolcanicArcLandform` builds seeded local groups of vents with varied
 proportions and angular structure. Their locations persist across Character;
 secondary prominence blends continuously. Convergent plate belts can guide the
-local group trend. Geology continues to own the planet-scale arc. Radial channels
-branch down the flanks, lava shoulders interrupt them, and aprons taper into the
-existing landscape. Smooth union retains saddles between overlapping edifices.
+local group trend. Geology continues to own the planet-scale arc. Seeded catchments have unequal heads, widths, depths and lengths. Headwater
+tributaries converge downslope into broader trunks. Rounded valley cross-sections
+and diminishing incision join the depositional foot; neither equally spaced
+angular channels nor periodic lava petals are used. A few independent lava
+shoulders interrupt the drainage, and aprons taper into the existing landscape. Smooth union retains saddles between overlapping edifices.
 Subordinate additive noise supplies weathered mantle, lava/tephra texture and
 small rock/debris detail. No external stamps are required by this pass.
 
@@ -56,3 +58,24 @@ native VPP through the existing generated-province path. Rock identities and
 bindings are retained. VPP remains stock and owns meshing, LOD, rendering,
 collision and edits. Existing caves and surface-first preview scheduling retain
 their owners. Rendered Planet captures are review evidence, not user approval.
+
+## Flank realism revision
+
+The first rendered range was rejected: periodic angular channels made the cones
+look fluted. The replacement compiles finite drainage polylines with irregular
+catchment spacing, merging tributaries and varied downstream widening. Sampling
+looks up only overlapping segments in a 24 × 24 local spatial index. The network
+is built once per compiled centre, never during voxel sampling; no iterative
+hydraulic simulation, textures or meshes are added to the query. Character and
+manual physical settings retain their existing ownership and metadata/materials.
+
+Useful morphology references:
+
+- [NASA: Shivelyuch's channels, lobed deposits and asymmetric collapse terrain](https://science.nasa.gov/earth/earth-observatory/melting-snow-off-shivelyuch/).
+- [USGS: evolving Mount St. Helens drainage, erosion and deposition](https://pubs.usgs.gov/sir/2020/5027/sir20205027.pdf).
+
+These inform a bounded procedural approximation, not a hydraulic or eruption
+simulation. Native Planet renders remain subject to user visual review. Test
+variations use transient recipes and never save experiment changes to assets.
+
+The [current native Planet captures and sampling measurements](../conformance/VolcanicArc/Realism/README.md) record the revised drainage for review.

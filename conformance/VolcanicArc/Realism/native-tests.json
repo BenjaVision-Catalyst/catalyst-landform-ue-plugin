@@ -1,0 +1,52 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.InstalledBasePlanet",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.PackagedLibrary",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.DrainageAndSamplingBudget",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Arc drainage: probes=320000 nsPerProbe=359.0 maxCandidates=20 meanSegments=113.0 meanPrimaryBytes=21851.0 checksum=7542779.516",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-19.54.46"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.FamilyAndAssembly",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.VolcanicArc.UnknownGeologyAndEnabledCaves",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.VolcanicArcRange",
+      "state": "Success",
+      "entries": []
+    }
+  ]
+}

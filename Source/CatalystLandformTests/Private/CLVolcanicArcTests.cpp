@@ -67,6 +67,44 @@ bool FCLVolcanicArcTest::RunTest(const FString&)
     TestTrue(TEXT("Source remains unchanged"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&Original,&Source->TerrainType,0));return !HasAnyErrors();
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLVolcanicArcDrainageTest,"Catalyst.Landform.VolcanicArc.DrainageAndSamplingBudget",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLVolcanicArcDrainageTest::RunTest(const FString&)
+{
+    TArray<FCLGeneratedRegionCell> Cells;auto& Cell=Cells.AddDefaulted_GetRef();Cell.Id=FGuid(1,2,3,4);Cell.Centre=FVector::ZAxisVector;
+    FString Error;int32 MaximumCandidates=0,Segments=0;uint64 Bytes=0;double Checksum=0,Elapsed=0;int32 Probes=0;
+    for(int32 Seed:{17,137,1729,8191})for(double Character:{0.,.34,.67,1.})
+    {
+        FCLVolcanicArcLandform S;S.ApplyProgression(Character);S.Seed=Seed;S.SecondaryHeight=0;S.Asymmetry=0;S.BreachStrength=0;S.LavaShoulderMeters=0;
+        auto Incised=FCLCompiledVolcanicArcLandform::Compile(S,42,1500,Cells,nullptr,Error);S.IncisionMeters=0;
+        auto Base=FCLCompiledVolcanicArcLandform::Compile(S,42,1500,Cells,nullptr,Error);if(!Incised||!Base){AddError(Error);return false;}
+        const auto& C=Incised->GetCentres()[0];Segments+=C.Drainage.Num();Bytes+=C.Drainage.GetAllocatedSize()+C.DrainageBins.GetAllocatedSize();
+        for(const auto& Bin:C.DrainageBins){MaximumCandidates=FMath::Max(MaximumCandidates,Bin.Num());Bytes+=Bin.GetAllocatedSize();}
+        auto Direction=[&](double X,double Y){return (C.Direction+C.Along*FMath::Tan(X*C.Elongation/1500)+C.Across*FMath::Tan(Y/C.Elongation/1500)).GetSafeNormal();};
+        double Cuts=0,MostCut=0,LeastCut=100000;
+        for(double U:{.35,.50,.70,.90})
+        {
+            double Previous=0,First=0;
+            for(int32 A=0;A<=720;++A)
+            {
+                const double Theta=2*UE_DOUBLE_PI*A/720;const auto D=Direction(C.Radius*U*FMath::Cos(Theta),C.Radius*U*FMath::Sin(Theta));
+                const double B=Base->SampleMeters(D),H=Incised->SampleMeters(D),Cut=B-H;
+                TestTrue(TEXT("Incision cannot raise the cone or slice below its apron"),Cut>=-1.e-7&&H>0);
+                if(A)TestTrue(TEXT("Gully banks remain continuous without vertical slots"),FMath::Abs(H-Previous)/(C.Radius*U*2*UE_DOUBLE_PI/720)<1.8);
+                if(!A)First=H;else if(A==720)TestTrue(TEXT("No angular seam in drainage"),FMath::Abs(H-First)<1.e-6);
+                Cuts+=Cut;MostCut=FMath::Max(MostCut,Cut);LeastCut=FMath::Min(LeastCut,Cut);Previous=H;
+            }
+        }
+        TestTrue(TEXT("Varied catchments leave intact interfluves"),MostCut>.1&&LeastCut<MostCut*.1&&Cuts>1);
+        const double Start=FPlatformTime::Seconds();
+        for(int32 I=0;I<20000;++I){const double U=.2+1.1*double(I%173)/172,Theta=I*2.399963229728653;Checksum+=Incised->SampleMeters(Direction(C.Radius*U*FMath::Cos(Theta),C.Radius*U*FMath::Sin(Theta)));++Probes;}
+        Elapsed+=FPlatformTime::Seconds()-Start;
+    }
+    TestTrue(TEXT("Spatial bins bound the local segment work"),MaximumCandidates<48);
+    TestTrue(TEXT("Cached drainage uses under 128 KiB per primary centre"),Bytes<16*128*1024);
+    AddInfo(FString::Printf(TEXT("Arc drainage: probes=%d nsPerProbe=%.1f maxCandidates=%d meanSegments=%.1f meanPrimaryBytes=%.1f checksum=%.3f"),Probes,Elapsed*1.e9/Probes,MaximumCandidates,double(Segments)/16,double(Bytes)/16,Checksum));
+    return !HasAnyErrors();
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLVolcanicArcFallbackTest,"Catalyst.Landform.VolcanicArc.UnknownGeologyAndEnabledCaves",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLVolcanicArcFallbackTest::RunTest(const FString&)
 {

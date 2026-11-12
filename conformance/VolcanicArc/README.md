@@ -1,4 +1,8 @@
-# Volcanic arc — Planet review
+# Volcanic arc — original Planet review
+
+**Rejected:** the user identified unnatural repeating radial slots in this range.
+The current [revised flank review](Realism/README.md) replaces that drainage pattern.
+The captures below are historical evidence, not visual approval.
 
 Actual stock VPP renders inside Planet, using the existing landform row and
 independent physical Character curves. Same seed and camera throughout. The
