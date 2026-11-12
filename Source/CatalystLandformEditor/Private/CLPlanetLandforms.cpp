@@ -16,25 +16,6 @@
 #include "PropertyPath.h"
 #include "UObject/StructOnScope.h"
 
-namespace
-{
-// Adopt an implemented source only on an explicit row gesture. Existing applied
-// snapshots remain pinned on load; retain their authored placement preferences.
-void AdoptTransform(FCLLandformPaletteEntry& P,const UCLTerrainTypeAsset* Source,FCLRegionGenerationSettings& Settings)
-{
-    if(!Source||!P.Suitability.Province.bPlaceholder||P.Transform.IsActive()||!Source->TerrainType.Transform.IsActive())return;
-    P.Transform=Source->TerrainType.Transform;P.Transform.Character=P.Character;if(P.Seed)P.Transform.Seed=P.Seed;
-    P.NoiseLayers=Source->TerrainType.NoiseLayers;P.AlgorithmVersion=Source->TerrainType.AlgorithmVersion;
-    auto& Province=P.Suitability.Province;const auto& Definition=Source->TerrainType.PlacementSuitability.Province;
-    if(Province.AlgorithmVersion==1&&Province.Requirements==Definition.Requirements&&Definition.AlgorithmVersion==2)
-    {
-        Province.AlgorithmVersion=2;Province.Relaxations=Definition.Relaxations;Province.MaximumRelaxedRegions=Definition.MaximumRelaxedRegions;
-        double Coverage=Province.MinimumCoverage;for(auto& Tier:Province.Relaxations){Tier.MinimumCoverage=FMath::Min(Coverage,Tier.MinimumCoverage);Coverage=Tier.MinimumCoverage;}
-    }
-    Province.bPlaceholder=false;Settings.AlgorithmVersion=4;
-}
-}
-
 void FCLPlanetLandforms::AddSource(UCLTerrainTypeAsset* Source)
 {if(Source&&Source->TerrainType.Coordinates==ECLTerrainCoordinates::SphericalSurface)Sources.Add(Source->TerrainType.Id,TStrongObjectPtr<UCLTerrainTypeAsset>(Source));}
 void FCLPlanetLandforms::Discover()
@@ -89,7 +70,6 @@ bool FCLPlanetLandforms::Include(FGuid Id,bool Enabled)
         if(P->SurfaceStack.IsActive()&&!R.SurfaceStack.IsActive())R.SurfaceStack=P->SurfaceStack;
     }
     if(Enabled&&!S.bEnabled)for(auto& Existing:S.Palette)Existing.bEnabled=false;
-    if(Enabled){const auto* Found=Sources.Find(Id);AdoptTransform(*P,Found?Found->Get():nullptr,S);}
     P->bEnabled=Enabled;R.SchemaVersion=FMath::Max(R.SchemaVersion,P->SurfaceStack.IsActive()?13:12);
     S.AlgorithmVersion=FMath::Max(S.AlgorithmVersion,(P->Rift.IsActive()||P->Transform.IsActive())?4:P->Suitability.Province.IsActive()?3:2);
     S.bEnabled=S.Palette.ContainsByPredicate([](const auto& V){return V.bEnabled;});
@@ -101,8 +81,7 @@ bool FCLPlanetLandforms::SetCharacter(FGuid Id,double Value)
 {
     if(!Included(Id)||!FMath::IsFinite(Value))return false;auto R=Asset->Recipe;
     auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
-    const auto* Found=Sources.Find(Id);AdoptTransform(*P,Found?Found->Get():nullptr,R.RegionGeneration);
-    Value=FMath::Clamp(Value,0.,1.);if(P->Rift.IsActive())P->Rift.ApplyCuratedCharacter(Value);else if(P->Transform.IsActive())P->Transform.Character=Value;else P->Character=Value;
+    Value=FMath::Clamp(Value,0.,1.);if(P->Rift.IsActive())P->Rift.ApplyCuratedCharacter(Value);else if(P->Transform.IsActive())P->Transform.ApplyProgression(Value);else P->Character=Value;
     return Commit(MoveTemp(R),FText::FromString(TEXT("Change Landform Character")));
 }
 bool FCLPlanetLandforms::SetValues(FGuid Id,const FCLLandformPaletteEntry& Values)
@@ -117,7 +96,6 @@ bool FCLPlanetLandforms::SetValues(FGuid Id,const FCLLandformPaletteEntry& Value
 bool FCLPlanetLandforms::Reseed(FGuid Id)
 {
     if(!Included(Id))return false;auto R=Asset->Recipe;auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
-    const auto* Found=Sources.Find(Id);AdoptTransform(*P,Found?Found->Get():nullptr,R.RegionGeneration);
     int32& Seed=P->Rift.IsActive()?P->Rift.Seed:P->Transform.IsActive()?P->Transform.Seed:P->Seed;Seed=int32(uint32(Seed)*1664525U+1013904223U);
     return Commit(MoveTemp(R),FText::FromString(TEXT("Reseed Landform")));
 }

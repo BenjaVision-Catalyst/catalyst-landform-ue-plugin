@@ -1,0 +1,13 @@
+{
+  "savedGameAssetsChecked": 163,
+  "unrelatedSavedAssetsUnchanged": 161,
+  "changedAssets": [
+    "Content/LandformDesigner/Provinces/DA_TransformShearFamilyReview.uasset",
+    "Content/LandformDesigner/Provinces/DA_TransformShearFamilyCandidate.uasset"
+  ],
+  "exactEditedRecipePreservedExceptRepresentation": true,
+  "characterPreserved": 0.2053200900554657,
+  "seedPreserved": 73,
+  "duplicateSourceRemoved": true,
+  "stockVppFingerprintsVerified": 4
+}

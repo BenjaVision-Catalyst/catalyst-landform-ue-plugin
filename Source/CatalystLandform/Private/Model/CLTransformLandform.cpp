@@ -8,45 +8,21 @@ double Random(uint32 V){return (double(Mix(V))+.5)/4294967296.;}
 double Smooth(double T){T=FMath::Clamp(T,0.,1.);return T*T*T*(T*(T*6-15)+10);}
 double Bell(double X){return FMath::Exp(-X*X);}
 }
-FCLTransformLandform::FCLTransformLandform()
-{
-    auto Add=[&](const TCHAR* N,double P,double VD,double VW,double RH,double RW,double O,double BD,double BW,double S,double D)
-    {auto& E=Examples.AddDefaulted_GetRef();E.Name=N;E.Position=P;E.ValleyDepthMeters=VD;E.ValleyWidthMeters=VW;E.RidgeHeightMeters=RH;E.RidgeWidthMeters=RW;E.LateralOffsetMeters=O;E.BasinDepthMeters=BD;E.BasinWidthMeters=BW;E.SecondaryStrandWeight=S;E.DissectionMeters=D;};
-    Add(TEXT("Linear shear valley"),0,12,75,5,55,5,2,65,.12,1);
-    Add(TEXT("Offset ridge landscape"),.30,6,55,13,42,48,4,75,.30,2);
-    Add(TEXT("Stepover basin landscape"),.65,4,45,8,48,34,28,100,.85,1.5);
-    Add(TEXT("Pressure ridge landscape"),1,5,50,39,52,54,10,70,.50,5);
-}
 bool FCLTransformLandform::Validate(FString& Error)const
 {
     if(!IsActive())return true;
-    if(AlgorithmVersion!=1||!FMath::IsFinite(Character)||Character<0||Character>1||!FMath::IsFinite(FeatureLengthMeters)||FeatureLengthMeters<20||FeatureLengthMeters>100000||Examples.Num()!=4)
-    {Error=TEXT("Transform family requires profile 1, Character 0..1, length 20..100000 m and four authored examples");return false;}
-    const double Positions[]={0,.30,.65,1};
-    for(int32 I=0;I<4;++I)
-    {
-        const auto& E=Examples[I];const double V[]={E.ValleyDepthMeters,E.ValleyWidthMeters,E.RidgeHeightMeters,E.RidgeWidthMeters,E.LateralOffsetMeters,E.BasinDepthMeters,E.BasinWidthMeters,E.DissectionMeters};
-        for(double X:V)if(!FMath::IsFinite(X)||X<0||X>100000){Error=TEXT("Transform physical values must be finite metres in 0..100000");return false;}
-        if(E.Position!=Positions[I]||E.Name.TrimStartAndEnd().IsEmpty()||E.ValleyWidthMeters<1||E.RidgeWidthMeters<1||E.BasinWidthMeters<1||!FMath::IsFinite(E.SecondaryStrandWeight)||E.SecondaryStrandWeight<0||E.SecondaryStrandWeight>1)
-        {Error=TEXT("Transform examples require positions 0, 0.30, 0.65, 1, names, positive widths and strand weights 0..1");return false;}
-    }
+    const double Values[]={ValleyDepthMeters,ValleyWidthMeters,RidgeHeightMeters,RidgeWidthMeters,LateralOffsetMeters,BasinDepthMeters,BasinWidthMeters,DissectionMeters};
+    for(double V:Values)if(!FMath::IsFinite(V)||V<0||V>100000){Error=TEXT("Transform physical values must be finite metres in 0..100000");return false;}
+    if(AlgorithmVersion!=1||!FMath::IsFinite(Character)||Character<0||Character>1||!FMath::IsFinite(FeatureLengthMeters)||FeatureLengthMeters<20||FeatureLengthMeters>100000||ValleyWidthMeters<1||RidgeWidthMeters<1||BasinWidthMeters<1||!FMath::IsFinite(SecondaryStrandWeight)||SecondaryStrandWeight<0||SecondaryStrandWeight>1)
+    {Error=TEXT("Transform requires profile 1, Character 0..1, positive physical widths, length 20..100000 m and strand weight 0..1");return false;}
     return true;
-}
-FCLTransformExample FCLTransformLandform::Interpolate()const
-{
-    int32 I=0;while(I<2&&Character>Examples[I+1].Position)++I;
-    const auto& A=Examples[I];const auto& B=Examples[I+1];const double T=Smooth((Character-A.Position)/(B.Position-A.Position));auto E=A;
-#define BLEND(V) E.V=FMath::Lerp(A.V,B.V,T)
-    BLEND(ValleyDepthMeters);BLEND(ValleyWidthMeters);BLEND(RidgeHeightMeters);BLEND(RidgeWidthMeters);BLEND(LateralOffsetMeters);BLEND(BasinDepthMeters);BLEND(BasinWidthMeters);BLEND(SecondaryStrandWeight);BLEND(DissectionMeters);
-#undef BLEND
-    E.Position=Character;return E;
 }
 TSharedPtr<const FCLCompiledTransformLandform> FCLCompiledTransformLandform::Compile(const FCLTransformLandform& S,int32 Seed,double R,TConstArrayView<FCLGeneratedRegionCell> Cells,TSharedPtr<const FCLCompiledTectonics> Plates,FString& Error)
 {
     if(!S.Validate(Error))return nullptr;
     if(!S.IsActive()||!FMath::IsFinite(R)||R<=0||Cells.IsEmpty()){Error=TEXT("Transform compilation requires an active profile, positive reference radius and generated cells");return nullptr;}
-    auto Out=MakeShared<FCLCompiledTransformLandform>();Out->Form=S.Interpolate();Out->Radius=R;
-    // Scale only when a small planet cannot contain the physical example.
+    auto Out=MakeShared<FCLCompiledTransformLandform>();Out->Settings=S;Out->Radius=R;
+    // Scale only when a small planet cannot contain the physical feature.
     Out->Scale=FMath::Min(1.,R*.45/S.FeatureLengthMeters);
     for(int32 I=0;I<Cells.Num();++I)
     {
@@ -64,7 +40,7 @@ TSharedPtr<const FCLCompiledTransformLandform> FCLCompiledTransformLandform::Com
 FCLCompiledTransformLandform::FSample FCLCompiledTransformLandform::Sample(const FVector& Direction)const
 {
     const FVector D=Direction.GetSafeNormal();FSample Out;double Sum=0;
-    const auto& E=Form;
+    const auto& E=Settings;
     for(const auto& C:Corridors)
     {
         const double Reach=C.HalfLength+Scale*FMath::Max3(E.ValleyWidthMeters,E.BasinWidthMeters,E.RidgeWidthMeters)*3.5+Scale*30;
@@ -82,7 +58,7 @@ FCLCompiledTransformLandform::FSample FCLCompiledTransformLandform::Sample(const
         const double W=End*Edge;Sum+=W;
         const double X=Across-Step;
         const double Valley=-E.ValleyDepthMeters*Bell(X/(Scale*E.ValleyWidthMeters));
-        // Offset opposing banks and discontinuous shutter ridges remain visible at anchor zero.
+        // Offset opposing banks and discontinuous shutter ridges remain visible at Character zero.
         const double Phase=U*5.8+C.Phase+C.Sign*FMath::Tanh(X/Width)*E.LateralOffsetMeters/45;
         const double Bank=Bell((X-Width*.85)/(Scale*E.RidgeWidthMeters))*(.64+.22*FMath::Sin(Phase))+
             .65*Bell((X+Width*.95)/(Scale*E.RidgeWidthMeters))*(.66+.24*FMath::Sin(Phase+1.8));
@@ -97,4 +73,4 @@ FCLCompiledTransformLandform::FSample FCLCompiledTransformLandform::Sample(const
     const double Normalize=1/FMath::Max(1.,Sum);Out.Relief*=Normalize;Out.TangentOffset*=Normalize;return Out;
 }
 double FCLCompiledTransformLandform::MaximumDisplacementMeters()const
-{return Scale*1.2*(Form.ValleyDepthMeters*1.65+Form.BasinDepthMeters+Form.RidgeHeightMeters*2.7+Form.DissectionMeters);}
+{return Scale*1.2*(Settings.ValleyDepthMeters*1.65+Settings.BasinDepthMeters+Settings.RidgeHeightMeters*2.7+Settings.DissectionMeters);}

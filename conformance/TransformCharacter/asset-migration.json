@@ -1,0 +1,7 @@
+{
+  "exactSavedPayloadsVerified": [
+    "/Game/LandformDesigner/Provinces/DA_TransformShearFamilyReview.DA_TransformShearFamilyReview",
+    "/CatalystLandform/TerrainTypes/Provinces/DA_Province_TransformBelt.DA_Province_TransformBelt"
+  ],
+  "duplicateSourceAndRedirectorRemoved": true
+}

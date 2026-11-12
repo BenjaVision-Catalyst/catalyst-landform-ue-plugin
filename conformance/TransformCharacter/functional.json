@@ -2,11 +2,6 @@
   "exitCode": 0,
   "tests": [
     {
-      "name": "Catalyst.Landform.Background.SurfaceCheckpoint",
-      "state": "Success",
-      "entries": []
-    },
-    {
       "name": "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes",
       "state": "Success",
       "entries": []
@@ -29,7 +24,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.04.55"
+          "timestamp": "2026.11.12-08.32.27"
         },
         {
           "event": {
@@ -40,7 +35,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.04.55"
+          "timestamp": "2026.11.12-08.32.27"
         },
         {
           "event": {
@@ -51,7 +46,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.04.55"
+          "timestamp": "2026.11.12-08.32.27"
         },
         {
           "event": {
@@ -62,7 +57,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.04.55"
+          "timestamp": "2026.11.12-08.32.27"
         },
         {
           "event": {
@@ -73,7 +68,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.04.55"
+          "timestamp": "2026.11.12-08.32.27"
         }
       ]
     },
@@ -90,7 +85,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.04.55"
+          "timestamp": "2026.11.12-08.32.27"
         }
       ]
     },
@@ -107,7 +102,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.04.59"
+          "timestamp": "2026.11.12-08.32.32"
         },
         {
           "event": {
@@ -118,7 +113,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.02"
+          "timestamp": "2026.11.12-08.32.34"
         },
         {
           "event": {
@@ -129,7 +124,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.03"
+          "timestamp": "2026.11.12-08.32.36"
         },
         {
           "event": {
@@ -140,7 +135,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.05"
+          "timestamp": "2026.11.12-08.32.38"
         },
         {
           "event": {
@@ -151,7 +146,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.06"
+          "timestamp": "2026.11.12-08.32.39"
         },
         {
           "event": {
@@ -162,7 +157,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.08"
+          "timestamp": "2026.11.12-08.32.41"
         },
         {
           "event": {
@@ -173,7 +168,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.09"
+          "timestamp": "2026.11.12-08.32.42"
         },
         {
           "event": {
@@ -184,7 +179,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.11"
+          "timestamp": "2026.11.12-08.32.45"
         },
         {
           "event": {
@@ -195,17 +190,17 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.13"
+          "timestamp": "2026.11.12-08.32.46"
         }
       ]
     },
     {
-      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "name": "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
       "state": "Success",
       "entries": []
     },
     {
-      "name": "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed",
+      "name": "Catalyst.Landform.Provinces.PackagedLibrary",
       "state": "Success",
       "entries": []
     },
@@ -222,7 +217,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.26"
+          "timestamp": "2026.11.12-08.32.59"
         }
       ]
     },
@@ -239,7 +234,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.27"
+          "timestamp": "2026.11.12-08.32.59"
         }
       ]
     },
@@ -256,7 +251,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.28"
+          "timestamp": "2026.11.12-08.33.00"
         }
       ]
     },
@@ -273,7 +268,7 @@
           },
           "filename": "",
           "lineNumber": -1,
-          "timestamp": "2026.11.12-07.05.28"
+          "timestamp": "2026.11.12-08.33.01"
         }
       ]
     },
@@ -284,6 +279,16 @@
     },
     {
       "name": "Catalyst.Landform.Transform.Family.CurvesDeterminismAndRock",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.EnabledCaves",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.UniformWeights",
       "state": "Success",
       "entries": []
     }

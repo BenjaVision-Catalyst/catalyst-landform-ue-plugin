@@ -1,20 +1,69 @@
 {
-  "schemaVersion": 9,
+  "schemaVersion": 13,
   "algorithmVersion": 2,
   "id": "434C5052000000010000000000000009",
   "name": "Transform and shear belt",
-  "description": "Province placeholder. Strike-slip deformation context from the existing finite plate belts. Shear does not by itself establish open permeability, deposition or hydrothermal activity.",
+  "description": "Transform and shear belt. Character maps independent physical controls for valleys, lateral offsets, stepovers and pressure ridges; expand the row to edit the current settings.",
   "coordinates": "SphericalSurface",
-  "noiseLayers": [],
+  "noiseLayers": [
+    {
+      "name": "Weathered fault shoulders",
+      "seed": 201,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -1.5
+      },
+      "maximum": {
+        "offsetMeters": 1.5
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 80,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Dissected ridge flanks",
+      "seed": 202,
+      "shape": "Ridged",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.7
+      },
+      "maximum": {
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 19,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Rock and debris",
+      "seed": 203,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.15
+      },
+      "maximum": {
+        "offsetMeters": 0.15
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 3.5,
+      "octaves": 2,
+      "persistence": 0.45
+    }
+  ],
   "placementSuitability": {
     "bUsePreferences": true,
     "selectionWeight": 1,
     "upliftAffinity": 0,
     "basinAffinity": 0,
     "province": {
-      "algorithmVersion": 1,
+      "algorithmVersion": 2,
       "type": "TransformBelt",
-      "bPlaceholder": true,
+      "bPlaceholder": false,
       "requirements": [
         "Shear"
       ],
@@ -22,11 +71,44 @@
       "regionalForms": [
         "Shear valleys",
         "Offset ridges",
-        "Pull-apart settings"
+        "Stepover basins",
+        "Pressure ridges"
       ],
       "subsurfacePotential": [
         "Open-fracture caves"
+      ],
+      "maximumRelaxedRegions": 2,
+      "relaxations": [
+        {
+          "name": "Sparse regional shear",
+          "relaxedRequirements": [],
+          "minimumCoverage": 0.15,
+          "placementWeight": 0.6
+        },
+        {
+          "name": "Selected local shear expression",
+          "relaxedRequirements": [
+            "Shear"
+          ],
+          "minimumCoverage": 0.01,
+          "placementWeight": 0.12
+        }
       ]
     }
+  },
+  "transform": {
+    "algorithmVersion": 1,
+    "character": 0,
+    "seed": 73,
+    "featureLengthMeters": 650,
+    "valleyDepthMeters": 12,
+    "valleyWidthMeters": 75,
+    "ridgeHeightMeters": 5,
+    "ridgeWidthMeters": 55,
+    "lateralOffsetMeters": 5,
+    "basinDepthMeters": 2,
+    "basinWidthMeters": 65,
+    "secondaryStrandWeight": 0.12,
+    "dissectionMeters": 1
   }
 }

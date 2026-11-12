@@ -1,6 +1,7 @@
 #include "Model/CLTectonics.h"
 #include "Model/CLContinents.h"
 #include "Model/CLRockLayer.h"
+#include "Model/CLTransformLandform.h"
 namespace
 {
 struct FKey { double Position,Value; };
@@ -81,4 +82,18 @@ void FCLRockLayer::ApplyProgression(double Position)
     YoungerCoverRadiusFraction=Track(Character,{{0,0},{.18,0},{.38,.003},{.58,.006},{.78,.014},{1,.055}});
     DepositionalVariation=Track(Character,{{0,0},{.18,.08},{.38,.25},{.58,.35},{.78,.7},{1,1}});
     FoldShorteningStrain=Track(Character,{{0,0},{.18,.005},{.38,.025},{.58,.15},{.78,.08},{1,.025}});
+}
+
+void FCLTransformLandform::ApplyProgression(double Position)
+{
+    AlgorithmVersion=1;Character=FMath::Clamp(Position,0.,1.);
+    ValleyDepthMeters=Track(Character,{{0,12},{.28,6},{.66,4},{1,5}});
+    ValleyWidthMeters=Track(Character,{{0,75},{.35,55},{.70,45},{1,50}});
+    RidgeHeightMeters=Track(Character,{{0,5},{.28,13},{.65,8},{1,39}});
+    RidgeWidthMeters=Track(Character,{{0,55},{.30,42},{.65,48},{1,52}});
+    LateralOffsetMeters=Track(Character,{{0,5},{.30,48},{.65,34},{1,54}});
+    BasinDepthMeters=Track(Character,{{0,2},{.25,4},{.65,28},{1,10}});
+    BasinWidthMeters=Track(Character,{{0,65},{.30,75},{.65,100},{1,70}});
+    SecondaryStrandWeight=Track(Character,{{0,.12},{.30,.30},{.70,.85},{1,.50}});
+    DissectionMeters=Track(Character,{{0,1},{.30,2},{.60,1.5},{1,5}});
 }

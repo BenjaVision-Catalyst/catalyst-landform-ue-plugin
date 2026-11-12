@@ -4,9 +4,8 @@
 
 The user considers Continental Rift complete for now. Historical open visual
 checks below describe earlier checkpoints; they do not reopen that decision.
-Transform and shear belt is the next family, with four accepted reference
-expressions and seven Planet views requested for visual review. See
-[Transform family](TransformShearLandform.md). Caves retain their existing
+Transform and shear belt uses the established Character progression and direct
+physical settings. See [Transform](TransformShearLandform.md). Caves retain their existing
 shape; this province work does not claim cave visual approval.
 
 12 November editor correction: **Planet is the only editor**. Its Landforms tab

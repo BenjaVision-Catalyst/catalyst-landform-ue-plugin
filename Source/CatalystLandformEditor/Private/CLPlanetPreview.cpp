@@ -360,7 +360,7 @@ public:
         SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);EngineShowFlags.SetTranslucency(true);
         // Every camera angle uses the same studio exposure; nothing adapts while
         // this non-realtime viewport redraws intermittently during an orbit.
-        ExposureSettings.bFixed=true;ExposureSettings.FixedEV100=0;
+        ExposureSettings.bFixed=true;ExposureSettings.FixedEV100=-2;
         EngineShowFlags.SetEyeAdaptation(false);EngineShowFlags.SetLocalExposure(false);
         EngineShowFlags.SetBloom(false);EngineShowFlags.SetLensFlares(false);EngineShowFlags.SetLightShafts(false);
         SetRealtime(false);ViewFOV=FOVAngle=60;Apply();
@@ -1519,7 +1519,7 @@ void SCLPlanetPreview::UpdateCaveVolume()
     CavePreview->SetVisible(Ready);if(Published)Client->Invalidate();
 }
 void SCLPlanetPreview::SetCaveOverlay(bool Enabled)
-{Client->ExposureSettings.FixedEV100=Enabled?-2:0;Client->bCaveOverlay=Enabled;UpdateCaveVolume();static_cast<FCLGlobeScene*>(Scene.Get())->SetCaveInspection(Enabled);Scene->UpdateCaptureContents();Client->Invalidate();}
+{Client->bCaveOverlay=Enabled;UpdateCaveVolume();static_cast<FCLGlobeScene*>(Scene.Get())->SetCaveInspection(Enabled);Scene->UpdateCaptureContents();Client->Invalidate();}
 bool SCLPlanetPreview::IsCaveOverlayEnabled()const{return Client->bCaveOverlay;}
 void SCLPlanetPreview::SetWatershedOverlay(bool Enabled)
 {Client->bWatershedOverlay=Enabled;UpdateWatershedDebug();UpdateOcean();Client->Invalidate();}
