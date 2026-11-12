@@ -54,10 +54,12 @@ fault-block expression without manufacturing a plate boundary. Surface and Rock
 consume the same structural displacement. Surface noise exposes relief without
 warping geological units or painting replacement rock.
 
-The source editor keeps one Character row with its existing reseed/disclosure.
-The expanded properties include the authored noise array and placement metadata.
-Both source preview and planet palette compilation carry the same noise stack.
-VPP remains stock and owns geometry, LOD, materials, collision and edits.
+The Planet editor owns the applied Character and variation in its Landforms row.
+Its eye and whole-planet Solo are preview-only. The standalone source editor was
+incorrectly used for the first captures and has been retired; those captures are
+historical, not current UI qualification. See [Planet Landforms](PlanetLandforms.md).
+Both palette compilation and native VPP use the authored noise stack. VPP remains
+stock and owns geometry, LOD, materials, collision and edits.
 
 ## Megascans stamp candidates
 
@@ -99,9 +101,9 @@ still too smooth relative to the broken range fronts and dissected shoulders in
 the references. Next visual work should address that anatomy and evaluate local
 stamp placement; it must not promote the present candidate to the catalogue.
 
-`Tools/create-rift-family-review.py` creates separate source and planet review
-assets, copying the original review's recipe and retaining its current Caves
-settings. Existing candidate assets are reopened without replacing their edits.
+`Tools/create-rift-family-review.py` creates a reusable source and a planet review
+asset, copying the original review's recipe and retaining its current Caves
+settings. Existing candidate assets retain their edits; only the Planet editor opens.
 The original `DA_ContinentalRiftReview` and radial-guide library stay untouched.
 
 Private native VPP mesh bakes now exist for Granite Cliff and both Rock Plates.

@@ -28,9 +28,9 @@ void Measure(FCLRecipeEvaluationResult& R,const TSharedRef<FCLCompileProgress>& 
     if(R.Beds.Count){const auto S=R.Recipe.Rock.BedDistribution;const auto C=S.QuantileCurve();for(int32 I=0;I<8192;++I){const double T=C.Eval((I+.5f)/8192);const int32 B=FMath::Clamp(int32((T-S.MinimumMeters)/(S.MaximumMeters-S.MinimumMeters)*FCLRockBedStatistics::BinCount),0,FCLRockBedStatistics::BinCount-1);R.TargetBeds[B]+=1./8192;}}
 }
 }
-TSharedPtr<const FCLPreparedPlanetCompile> FCLRecipeEvaluation::Prepare(const FCLPlanetRecipe& R,FString& E,const FBox2D* Region)
+TSharedPtr<const FCLPreparedPlanetCompile> FCLRecipeEvaluation::Prepare(const FCLPlanetRecipe& R,FString& E,const FBox2D* Region,FGuid SoloPreviewLandform)
 {
-    const double Start=FPlatformTime::Seconds();const uint64 Epoch=NativeInputEpoch;auto P=FCLPlanetCompiler::PrepareBackground(R,E,Region,INDEX_NONE,NativeEpoch==Epoch?NativeCache.Get():nullptr);if(P){NativeCache=P;NativeEpoch=Epoch;}LastPreparationMs=(FPlatformTime::Seconds()-Start)*1000;MaximumPreparationMs=FMath::Max(MaximumPreparationMs,LastPreparationMs);return P;
+    const double Start=FPlatformTime::Seconds();const uint64 Epoch=NativeInputEpoch;auto P=FCLPlanetCompiler::PrepareBackground(R,E,Region,INDEX_NONE,NativeEpoch==Epoch?NativeCache.Get():nullptr,SoloPreviewLandform);if(P){NativeCache=P;NativeEpoch=Epoch;}LastPreparationMs=(FPlatformTime::Seconds()-Start)*1000;MaximumPreparationMs=FMath::Max(MaximumPreparationMs,LastPreparationMs);return P;
 }
 uint64 FCLRecipeEvaluation::Request(FCLPlanetRecipe R,TSharedPtr<const FCLPreparedPlanetCompile> P)
 {

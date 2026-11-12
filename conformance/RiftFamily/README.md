@@ -1,6 +1,6 @@
 # Continental Rift — first family candidate
 
-12 November 2026, UE 5.7, macOS arm64 Development editor. **Visual approval open.**
+12 November 2026, UE 5.7, macOS arm64 Development editor. **Historical standalone-editor captures; superseded for UI review by Planet Landforms. Visual approval open.**
 This starts the first province-completion pass; it does not complete Continental
 Rift or change the frozen catalogue source.
 

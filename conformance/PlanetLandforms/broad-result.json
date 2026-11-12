@@ -1,0 +1,3748 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Background.NativeInputInvalidation",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.GuidesAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.23959418e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.71010724e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.0104735e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.39737773e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.24"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT networks=39 openings=4 savedCharacter=0.668",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.24"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Fail",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.25"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.26"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogStreaming: FlushAsyncLoading(333): 1 QueuedPackages, 0 AsyncPackages",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogStreaming: FlushAsyncLoading(336): 1 QueuedPackages, 0 AsyncPackages",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteWPO took 3.6ms",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteDisplacement took 4.7ms",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogVoxel: Regenerating MegaMaterial /Engine/Transient.VoxelMegaMaterial_2 target NaniteMaterialSelection took 3.4ms",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cave mesh worst residual 13.517175 m at X=637.435 Y=-177.643 Z=661.098",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.43"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.465943",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.43"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_PREVIEW_READY totalSeconds=18.819 inspectionSeconds=7.031 networks=39 domains=30 nativeVertices=26275 cyanPixels=12669 overviewResidualMeters=13.517175",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.43"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generating cave surfaces \u00b7 30/30 ready | components 6, native producer/presenter 41193, ready 1, processing 0, tasks 0, inspected vertices 335, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 7/7 | components 3, native producer/presenter 41225, ready 1, processing 0, tasks 0, inspected vertices 161, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 21 chunk 32 lod 4/4 | components 5, native producer/presenter 41245, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 41265, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41285, ready 1, processing 0, tasks 0, inspected vertices 852, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 5/5 | components 5, native producer/presenter 41305, ready 1, processing 0, tasks 0, inspected vertices 409, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41325, ready 1, processing 0, tasks 0, inspected vertices 297, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 6/6 | components 6, native producer/presenter 41345, ready 1, processing 0, tasks 0, inspected vertices 913, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 41365, ready 1, processing 0, tasks 0, inspected vertices 519, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 41385, ready 1, processing 0, tasks 0, inspected vertices 523, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 6/6 | components 7, native producer/presenter 41405, ready 1, processing 0, tasks 0, inspected vertices 696, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41425, ready 1, processing 0, tasks 0, inspected vertices 766, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41445, ready 1, processing 0, tasks 0, inspected vertices 1000, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41465, ready 1, processing 0, tasks 0, inspected vertices 622, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41485, ready 1, processing 0, tasks 0, inspected vertices 682, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 4, native producer/presenter 41505, ready 1, processing 0, tasks 0, inspected vertices 264, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41525, ready 1, processing 0, tasks 0, inspected vertices 654, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 5, native producer/presenter 41545, ready 1, processing 0, tasks 0, inspected vertices 505, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 6, native producer/presenter 41565, ready 1, processing 0, tasks 0, inspected vertices 1451, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 8, native producer/presenter 41585, ready 1, processing 0, tasks 0, inspected vertices 3804, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4 | components 7, native producer/presenter 41605, ready 1, processing 0, tasks 0, inspected vertices 1151, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41625, ready 1, processing 0, tasks 0, inspected vertices 1299, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41645, ready 1, processing 0, tasks 0, inspected vertices 1077, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 20 chunk 32 lod 4/4 | components 6, native producer/presenter 41665, ready 1, processing 0, tasks 0, inspected vertices 1072, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41685, ready 1, processing 0, tasks 0, inspected vertices 981, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 5/5 | components 6, native producer/presenter 41705, ready 1, processing 0, tasks 0, inspected vertices 412, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 7, native producer/presenter 41725, ready 1, processing 0, tasks 0, inspected vertices 1101, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41745, ready 1, processing 0, tasks 0, inspected vertices 1006, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 6/6 | components 4, native producer/presenter 41765, ready 1, processing 0, tasks 0, inspected vertices 795, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41785, ready 1, processing 0, tasks 0, inspected vertices 670, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.23.43"
+        },
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.24.14"
+        },
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.24.22"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "components 87, native producer/presenter 39305, ready 1, processing 1, tasks 580, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/6",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "Unknown",
+          "lineNumber": 0,
+          "timestamp": "2026.11.12-03.24.57"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "Generating cave surfaces \u00b7 30/30 ready | components 6, native producer/presenter 41193, ready 1, processing 1, tasks 284, inspected vertices 335, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 7/7 | components 6, native producer/presenter 41225, ready 1, processing 1, tasks 1, inspected vertices 161, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 21 chunk 32 lod 3/3 | components 34, native producer/presenter 41245, ready 1, processing 1, tasks 1, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 2/4 | components 6, native producer/presenter 41265, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41285, ready 1, processing 1, tasks 1, inspected vertices 852, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 4/5 | components 5, native producer/presenter 41305, ready 1, processing 0, tasks 0, inspected vertices 409, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 13, native producer/presenter 41325, ready 1, processing 1, tasks 1, inspected vertices 297, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 4/5 | components 6, native producer/presenter 41345, ready 1, processing 0, tasks 0, inspected vertices 913, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 41365, ready 1, processing 1, tasks 1, inspected vertices 519, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 14, native producer/presenter 41385, ready 1, processing 1, tasks 1, inspected vertices 523, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 7, native producer/presenter 41405, ready 1, processing 0, tasks 0, inspected vertices 696, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41425, ready 1, processing 0, tasks 0, inspected vertices 766, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41445, ready 1, processing 0, tasks 0, inspected vertices 1000, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41465, ready 1, processing 0, tasks 0, inspected vertices 622, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 41485, ready 1, processing 1, tasks 1, inspected vertices 682, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 4, native producer/presenter 41505, ready 1, processing 0, tasks 0, inspected vertices 264, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41525, ready 1, processing 0, tasks 0, inspected vertices 654, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 5, native producer/presenter 41545, ready 1, processing 0, tasks 0, inspected vertices 505, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 7, native producer/presenter 41565, ready 1, processing 1, tasks 1, inspected vertices 1451, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/5 | components 8, native producer/presenter 41585, ready 1, processing 0, tasks 0, inspected vertices 3804, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4 | components 7, native producer/presenter 41605, ready 1, processing 0, tasks 0, inspected vertices 1151, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41625, ready 1, processing 0, tasks 0, inspected vertices 1299, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41645, ready 1, processing 0, tasks 0, inspected vertices 1077, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 20 chunk 32 lod 4/4 | components 6, native producer/presenter 41665, ready 1, processing 0, tasks 0, inspected vertices 1072, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41685, ready 1, processing 0, tasks 0, inspected vertices 981, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 5/5 | components 6, native producer/presenter 41705, ready 1, processing 0, tasks 0, inspected vertices 412, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 7, native producer/presenter 41725, ready 1, processing 0, tasks 0, inspected vertices 1101, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41745, ready 1, processing 1, tasks 1, inspected vertices 1006, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 6/6 | components 4, native producer/presenter 41765, ready 1, processing 0, tasks 0, inspected vertices 795, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41785, ready 1, processing 0, tasks 0, inspected vertices 670, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "Unknown",
+          "lineNumber": 0,
+          "timestamp": "2026.11.12-03.24.57"
+        },
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LogHttp: HTTP request timed out after 3.00 seconds URL=https://www.google.com/generate_204",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.25.00"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.28"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Designer.AuthoringBoundaries",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 geological assignments, 0 retained base regions; max final-height change 0 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.43"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"p95Ms\":12.509376,\"assignedRegions\":29,\"retainedBaseRegions\":3,\"counts\":{\"Crystalline shield\":0,\"Covered continental platform\":0,\"Clastic sedimentary basin\":0,\"Carbonate platform and reef province\":0,\"Evaporite basin\":0,\"Fold and thrust belt\":0,\"Metamorphic mountain core\":0,\"Continental rift and fault-block province\":2,\"Transform and shear belt\":12,\"Volcanic arc province\":0,\"Basaltic volcanic province\":0,\"Silicic volcanic province\":0,\"Plutonic and intrusive province\":0,\"Passive continental margin\":0,\"Oceanic crust province\":15,\"Impact province\":0,\"Icy-crust province\":0,\"Base geology\":3}}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.47"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.PackagedLibrary",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Regions.BlendAndNativeParity",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generated field: 2379 directions, 2.22044604925e-16 weight error, 9.04038199678e-06 m oracle error, 1.02409524061e-06 m atlas error, 0.000102409525 cm native residual, 0.00197791478 cm section residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.48"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Regions.PortabilityAndOverrides",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Regions.StructureAndPalette",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Regions: 24 cells, 8 mountain / 16 plateau; mean uplift 0.34760 / 0.00000; 23 sites respond to guidance",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.51"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.CharacterNoiseAndRock",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_ROCK probes=138 restorationMetres=4.54747350886e-13 noiseLayers=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.51"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.PlacementRelaxation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_FALLBACK assigned=2 cells=24 tier=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.51"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.Character",
+      "state": "Fail",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogStreaming: FlushAsyncLoading(354): 1 QueuedPackages, 0 AsyncPackages",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.51"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.54"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.56"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.57"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.26.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.00"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.01"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.02"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.02"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.02"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.02"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.02"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.02"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.13"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.14"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.15"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.16"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.16"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.16"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.16"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.16"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.16"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.17"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.19"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.20"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.27"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.28"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.31"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.32"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.33"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.34"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.35"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.35"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.35"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.35"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.35"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.35"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.35"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.36"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "LogTemp: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.27.36"
+        },
+        {
+          "event": {
+            "type": "Error",
+            "message": "Expected 'Native navigation p95 stays below 50ms' to be true.",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "Unknown",
+          "lineNumber": 0,
+          "timestamp": "2026.11.12-03.28.53"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"navigationP95Ms\":1230.831582,\"cases\":[{\"stage\":0,\"vertices\":125765,\"geometryCrc\":1409941753},{\"stage\":1,\"vertices\":121867,\"geometryCrc\":3360282374},{\"stage\":2,\"vertices\":124699,\"geometryCrc\":1309838484}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.28.53"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.PreviewModes",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"cases\":[{\"stage\":3,\"vertices\":140889,\"geometryCrc\":3100180656},{\"stage\":4,\"vertices\":132164,\"geometryCrc\":2361832894}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.29.27"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.BackgroundAndRecipe",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Background/synchronous residual 0 m; 3 reused native inputs",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.29.27"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.CharacterAndScale",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "5 Character positions; physical spacing 500.000 to 100.000 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.29.28"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.GeologyAndRestoration",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "175 active physical samples, 3790 outside hosts, 175 strata probes; max throw 17.5100977 m; restoration 4.54747350886e-13 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.29.28"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.UpstreamHostsAndSeed",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "31 carbonate regions, 1 physical rift regions; reseed difference 1.520069 m; chart-tie residual 5.60025942065e-08 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-03.29.28"
+        }
+      ]
+    }
+  ]
+}

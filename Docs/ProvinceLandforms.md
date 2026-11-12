@@ -1,5 +1,10 @@
 # Geological province Landforms
 
+12 November editor correction: **Planet is the only editor**. Its Landforms tab
+uses [one row per Landform](PlanetLandforms.md), with inclusion, Character, eye,
+reseed and whole-planet Solo. Earlier standalone source-editor instructions in
+historical checkpoints are superseded.
+
 12 November gameplay direction: [the Rift family candidate](RiftFamilyReview.md)
 records strict geological preferences with ordered relaxation. The mode-3/4
 version-1 hard-gate descriptions below remain the frozen catalogue baseline.

@@ -1,0 +1,13 @@
+{
+  "authoringAssetsVerified": 108,
+  "changedAuthoringAssets": [],
+  "stockVoxel": {
+    "version": "2.0p8",
+    "verifiedStockSHA256": {
+      "Source/Voxel/Public/Nanite/VoxelNaniteComponent.h": "468fe894b25a1360b16c011b3b813ce337908f32959b19abc58f509d16b70c8e",
+      "Source/Voxel/Private/Nanite/VoxelNaniteComponent.cpp": "28aa00b6e5d81043fefb721e1e555447cf668aa7300aa8a3304b34350618e721",
+      "Source/Voxel/Public/VoxelWorld.h": "fdbdd36418c0240e7a8c0d068c9a4b4131f852d53aaaaf19c175be63a6b97e96",
+      "Source/Voxel/Private/Render/VoxelRenderComponentCreator.cpp": "991dbe50c6a0782a4238d4ed9bf51e8c4c954212621cb57bde3a8eeaa086efcc"
+    }
+  }
+}

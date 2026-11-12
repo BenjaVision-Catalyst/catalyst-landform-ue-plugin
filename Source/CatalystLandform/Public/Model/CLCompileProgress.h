@@ -13,6 +13,8 @@ struct CATALYSTLANDFORM_API FCLCompileProgress
     std::atomic<uint64> Work{0};
     static void Count(uint32 Completed,uint32 Total);
     static bool IsPreparing();
+    /** Explicit evaluation-only Solo; normal generation always returns an invalid ID. */
+    static FGuid SoloPreviewLandform();
     static int32 ReusedNativeInputs(const FCLPreparedPlanetCompile&);
     static bool Check(FString& Error);
     static void Report(ECLCompileStage Stage);

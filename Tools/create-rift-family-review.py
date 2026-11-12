@@ -33,5 +33,5 @@ if not review:
     assert len(review.recipe.region_generation.palette[0].noise_layers) == 3
     assert review.recipe.caves.character == character
     assets.save_loaded_asset(review)
-unreal.get_editor_subsystem(unreal.AssetEditorSubsystem).open_editor_for_assets([review, source])
+unreal.get_editor_subsystem(unreal.AssetEditorSubsystem).open_editor_for_assets([review])
 unreal.log('RIFT_FAMILY_REVIEW_OPENED_ORIGINAL_AUTHORING_PRESERVED')

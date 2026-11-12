@@ -1,0 +1,16 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-abslog=/private/tmp/landform-planet-landforms/verified/native.log",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Planet.LandformRows+Catalyst.Landform.Rift.NativeDesigner+Catalyst.Landform.Regions.StructureAndPalette+Catalyst.Landform.Regions.BlendAndNativeParity+Catalyst.Landform.Regions.PortabilityAndOverrides+Catalyst.Landform.Rift.Family+Catalyst.Landform.Rift.GeologyAndRestoration+Catalyst.Landform.Rift.CharacterAndScale+Catalyst.Landform.Rift.BackgroundAndRecipe+Catalyst.Landform.Rift.UpstreamHostsAndSeed+Catalyst.Landform.Provinces.DefinitionsAndEvidence+Catalyst.Landform.Provinces.BaseGeologyAndNeutrality+Catalyst.Landform.Provinces.PackagedLibrary+Catalyst.Landform.Provinces.NativeDesignerAndNavigation+Catalyst.Landform.Background.NativeInputInvalidation+Catalyst.Landform.Designer.AuthoringBoundaries+Catalyst.Landform.Caves.AlwaysEnabledMinimum+Catalyst.Landform.Caves.Placement+Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+  "-TestExit=Automation Test Queue Empty",
+  "-ReportExportPath=/private/tmp/landform-planet-landforms/verified/automation"
+]

@@ -23,7 +23,7 @@ class FCLRecipeEvaluation
 {
 public:
     ~FCLRecipeEvaluation(){Cancel();}
-    TSharedPtr<const FCLPreparedPlanetCompile> Prepare(const FCLPlanetRecipe&,FString&,const FBox2D* Region=nullptr);
+    TSharedPtr<const FCLPreparedPlanetCompile> Prepare(const FCLPlanetRecipe&,FString&,const FBox2D* Region=nullptr,FGuid SoloPreviewLandform=FGuid());
     uint64 Request(FCLPlanetRecipe,TSharedPtr<const FCLPreparedPlanetCompile>);
     TSharedPtr<FCLRecipeEvaluationResult> Pump();
     void Cancel();

@@ -133,7 +133,10 @@ struct CATALYSTLANDFORM_API FCLLandformPaletteEntry
     GENERATED_BODY()
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FGuid Id;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FString Name;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FString Description;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=true;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=2;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLLandformSuitability Suitability;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLRiftLandform Rift;
@@ -329,7 +332,7 @@ public:
     /** Editor operations validate syntax/native inputs while derived fields remain deferred. */
     static bool WithAuthoringValidation(TFunctionRef<bool()> Operation);
     /** Resolve native client assets/PCG on the game thread; defer derived field work. */
-    static TSharedPtr<const FCLPreparedPlanetCompile> PrepareBackground(const FCLPlanetRecipe&,FString&,const FBox2D* LocalRegion=nullptr,int32 SurfacePatch=INDEX_NONE,const FCLPreparedPlanetCompile* Previous=nullptr);
+    static TSharedPtr<const FCLPreparedPlanetCompile> PrepareBackground(const FCLPlanetRecipe&,FString&,const FBox2D* LocalRegion=nullptr,int32 SurfacePatch=INDEX_NONE,const FCLPreparedPlanetCompile* Previous=nullptr,FGuid SoloPreviewLandform=FGuid());
     /** Pure field completion over captured immutable plans. Called on a UE task worker. */
     static TSharedPtr<const FCLCompiledPlanetRecipe> CompleteBackground(const FCLPreparedPlanetCompile&,const TSharedRef<FCLCompileProgress>&,FString&);
     /** Returns no plan on error; callers may retain their last successful plan. */

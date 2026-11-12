@@ -4,6 +4,6 @@
 class UCLTerrainTypeAsset;
 struct FCLRadialGuideSet;
 class IToolkitHost;
-/** Open the terrain Designer with optional preview guides. No planet identity or settings are retained. */
+/** Legacy API alias: focus the planet editor Landforms tab. Does not create a terrain editor. */
 CATALYSTLANDFORMEDITOR_API void CLOpenTerrainDesigner(UCLTerrainTypeAsset* Terrain, const FCLRadialGuideSet* PreviewRadialGuides = nullptr,
     EToolkitMode::Type Mode = EToolkitMode::Standalone, TSharedPtr<IToolkitHost> Host = nullptr);

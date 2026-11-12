@@ -1,5 +1,10 @@
 # Continental Rift Landform
 
+12 November editor correction: the standalone source editor is retired. Use the
+Planet editor's [Landforms rows](PlanetLandforms.md). Historical captures below
+establish earlier field/render checks only.
+
+
 12 November: [the first family review candidate](RiftFamilyReview.md) adds
 versioned local noise, recorded gameplay placement relaxation and the chosen
 weathered-to-sharp Character blend. The profile-1 checkpoint below remains frozen.

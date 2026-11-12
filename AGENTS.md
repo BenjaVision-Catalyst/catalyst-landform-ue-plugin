@@ -21,7 +21,12 @@ connectivity, clearance, counts or performance tests. Procedural extensions need
 a concrete comparison and user visual acceptance before replacing this anatomy.
 Keep the frozen profile-8 review field available as the comparison baseline.
 
-Keep VPP stock and the existing UI.
+Keep VPP stock. Planet is the only editor; assemble and review Landforms in its
+Landforms tab, never a separate source/terrain editor. Each row has a name, brief
+description, generation checkbox, one Character slider, preview eye, reseed and
+whole-planet Solo. An unchecked generation checkbox disables the other controls.
+Eye and Solo are preview-only; Unsolo restores the previous eye state. Keep this
+interface and the planet's authoring edits. See Docs/PlanetLandforms.md.
 Any change to cave eligibility, placement, fit or recipe validation must run the
 enabled-minimum regression tests, including missing/unknown geology and small
 planets. Cancellation and invalid input remain normal pipeline validation, not

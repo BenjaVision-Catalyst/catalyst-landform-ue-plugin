@@ -1,0 +1,16 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-abslog=/private/tmp/landform-planet-landforms/ui-final/native.log",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Planet.LandformRows+Catalyst.Landform.Rift.NativeDesigner+Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+  "-TestExit=Automation Test Queue Empty",
+  "-ReportExportPath=/private/tmp/landform-planet-landforms/ui-final/automation"
+]

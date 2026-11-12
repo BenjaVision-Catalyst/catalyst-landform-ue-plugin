@@ -4,6 +4,7 @@
 #include "Model/CLRegionGeneration.h"
 #include "Interfaces/IPluginManager.h"
 #include "Misc/FileHelper.h"
+#include "Model/CLCompileProgress.h"
 #include "UObject/StrongObjectPtr.h"
 namespace
 {
@@ -75,5 +76,19 @@ bool FCLRiftFamilyShapeTest::RunTest(const FString&)
     }
     TestTrue(TEXT("Noise family has an actual shared geological deformation"),Probes>0&&Residual<1.e-7);
     AddInfo(FString::Printf(TEXT("RIFT_FAMILY_ROCK probes=%d restorationMetres=%.12g noiseLayers=3"),Probes,Residual));return !HasAnyErrors();
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRiftSavedSoloTest,"Catalyst.Landform.Rift.Family.SoloSavedProfile",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRiftSavedSoloTest::RunTest(const FString&)
+{
+    FString J,E;TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
+    FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/ContinentalRiftProvince.json")));
+    if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}const auto Id=A->Recipe.RegionGeneration.Palette[0].Id;
+    TestEqual(TEXT("Saved Rift remains profile 1"),A->Recipe.RegionGeneration.Palette[0].Rift.AlgorithmVersion,1);
+    auto Prepared=FCLPlanetCompiler::PrepareBackground(A->Recipe,E,nullptr,INDEX_NONE,nullptr,Id);const auto Solo=Prepared?FCLPlanetCompiler::CompleteBackground(*Prepared,MakeShared<FCLCompileProgress>(),E):nullptr;
+    auto Flat=A->Recipe;Flat.RegionGeneration.Palette[0].Rift.MinimumThrowMeters=Flat.RegionGeneration.Palette[0].Rift.MaximumThrowMeters=0;
+    auto FlatInput=FCLPlanetCompiler::PrepareBackground(Flat,E,nullptr,INDEX_NONE,nullptr,Id);const auto NoThrow=FlatInput?FCLPlanetCompiler::CompleteBackground(*FlatInput,MakeShared<FCLCompileProgress>(),E):nullptr;
+    if(!Solo||!NoThrow){AddError(E);return false;}double Delta=0;for(auto D:FamilyDirections())Delta+=FMath::Abs(Solo->SampleHeightMeters(D)-NoThrow->SampleHeightMeters(D));
+    TestTrue(TEXT("Solo delivers saved-profile fault relief to the actual spherical surface"),Delta>1);
+    TestEqual(TEXT("Solo keeps the saved profile pinned"),A->Recipe.RegionGeneration.Palette[0].Rift.AlgorithmVersion,1);return !HasAnyErrors();
 }
 #endif

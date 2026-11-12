@@ -42,6 +42,7 @@ private:
 struct FCLPreparedPlanetCompile
 {
     FCLPlanetRecipe Recipe;
+    FGuid SoloPreviewLandform; // evaluation option, never part of an authored recipe
     TOptional<FBox2D> Region;
     int32 Patch=INDEX_NONE,ReusedInputs=0;
     struct FNativeSnapshot
@@ -62,6 +63,7 @@ thread_local FCompileRun* CompileRun=nullptr;
 thread_local bool CompilingCaveBase=false;
 TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRecipe&,FString&,UCLStampLibraryAsset*,const FBox2D*,int32,UCLSurfaceLibraryAsset*);
 }
+FGuid FCLCompileProgress::SoloPreviewLandform(){return CompileRun?CompileRun->Prepared->SoloPreviewLandform:FGuid();}
 bool FCLCompileProgress::IsPreparing(){return CompileRun&&CompileRun->Preparing;}
 bool FCLCompileProgress::Check(FString& E)
 {if(CompileRun&&CompileRun->Progress&&CompileRun->Progress->Cancelled.load()){E=TEXT("Evaluation superseded");return false;}return true;}
@@ -79,12 +81,12 @@ bool FCLPlanetCompiler::WithAuthoringValidation(TFunctionRef<bool()> Operation)
     check(IsInGameThread());FCLPreparedPlanetCompile P;P.Figure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());
     FCompileRun Run;Run.Preparing=true;Run.Prepared=&P;auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};return Operation();
 }
-TSharedPtr<const FCLPreparedPlanetCompile> FCLPlanetCompiler::PrepareBackground(const FCLPlanetRecipe& R,FString& E,const FBox2D* Region,int32 Patch,const FCLPreparedPlanetCompile* PreviousInputs)
+TSharedPtr<const FCLPreparedPlanetCompile> FCLPlanetCompiler::PrepareBackground(const FCLPlanetRecipe& R,FString& E,const FBox2D* Region,int32 Patch,const FCLPreparedPlanetCompile* PreviousInputs,FGuid SoloPreviewLandform)
 {
-    check(IsInGameThread());auto P=MakeShared<FCLPreparedPlanetCompile>();P->Recipe=R;if(Region)P->Region=*Region;P->Patch=Patch;
+    check(IsInGameThread());auto P=MakeShared<FCLPreparedPlanetCompile>();P->Recipe=R;P->SoloPreviewLandform=SoloPreviewLandform;if(Region)P->Region=*Region;P->Patch=Patch;
     P->Figure=MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());
     if((R.AlgorithmVersion==2||(R.Rock.bEnabled&&R.Rock.AlgorithmVersion==1))&&!FCLNativeNoiseKernel::Create(E))return nullptr;
-    FCompileRun Run;Run.Preparing=true;Run.Prepared=&P.Get();Run.Previous=PreviousInputs;auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};
+    FCompileRun Run;Run.Preparing=true;Run.Prepared=&P.Get();Run.Previous=PreviousInputs&&PreviousInputs->SoloPreviewLandform==SoloPreviewLandform?PreviousInputs:nullptr;auto* Previous=CompileRun;CompileRun=&Run;ON_SCOPE_EXIT{CompileRun=Previous;};
     if(!Compile(R,E,nullptr,Region,Patch))return nullptr;return P;
 }
 int32 FCLCompileProgress::ReusedNativeInputs(const FCLPreparedPlanetCompile& P){return P.ReusedInputs;}
@@ -576,8 +578,9 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         // Native surface stacks route geometry through their six spherical
         // fields. Profile 2 must compose local relief in those fields too;
         // attaching it only to the atlas root leaves it out of height queries.
-        // Saved profile-1 worlds retain their previous field exactly.
-        if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&P.Rift.AlgorithmVersion==2;}))
+        // Saved profile-1 generation retains its previous field; an explicit
+        // Solo preview must deliver that source to the spherical fields too.
+        if(FCLCompileProgress::SoloPreviewLandform().IsValid()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&P.Rift.AlgorithmVersion==2;}))
         {
             TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(const TSharedPtr<const FCLCompiledPlanetRecipe>&)> Compose;
             Compose=[&](const auto& Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
@@ -587,7 +590,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             };
             const auto Patches=Raw->SurfacePatches;Raw->SurfacePatches.Reset();for(const auto& Patch:Patches)Raw->SurfacePatches.Add(Compose(Patch));
         }
-        double Low=0,High=0;for(const auto& Field:Generated->Fields)if(Field){Low=FMath::Min(Low,Field->MinimumHeightMeters-Generated->NeutralHeight);High=FMath::Max(High,Field->MaximumHeightMeters-Generated->NeutralHeight);}
+        double Low=0,High=0;for(int32 I=0;I<Generated->Fields.Num();++I)if(const auto& Field=Generated->Fields[I]){const double Scale=Generated->Palette[I].Rift.IsActive()?1:2*Generated->Palette[I].Character;Low=FMath::Min(Low,(Field->MinimumHeightMeters-Generated->NeutralHeight)*Scale);High=FMath::Max(High,(Field->MaximumHeightMeters-Generated->NeutralHeight)*Scale);}
         const double Displacement=Generated->MaximumProvinceDisplacementMeters();
         Raw->MinimumHeightMeters=FMath::Max(-Raw->RadiusMeters,Raw->MinimumHeightMeters+Low*Generated->Strength-Displacement);
         Raw->MaximumHeightMeters=FMath::Min(0.,Raw->MaximumHeightMeters+High*Generated->Strength+Displacement);
@@ -739,7 +742,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
         auto AttachGenerated=[Core](const TSharedPtr<const FCLCompiledRegionGeneration>& Generated,FString& Error)->TSharedPtr<const FCLCompiledPlanetRecipe>
         {
         double Low=0,High=0;
-        for(const auto& Field:Generated->Fields)if(Field){Low=FMath::Min(Low,Field->MinimumHeightMeters-Generated->NeutralHeight);High=FMath::Max(High,Field->MaximumHeightMeters-Generated->NeutralHeight);}
+        for(int32 I=0;I<Generated->Fields.Num();++I)if(const auto& Field=Generated->Fields[I]){const double Scale=Generated->Palette[I].Rift.IsActive()?1:2*Generated->Palette[I].Character;Low=FMath::Min(Low,(Field->MinimumHeightMeters-Generated->NeutralHeight)*Scale);High=FMath::Max(High,(Field->MaximumHeightMeters-Generated->NeutralHeight)*Scale);}
         TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(const TSharedPtr<const FCLCompiledPlanetRecipe>&)> Attach;
         Attach=[&](const TSharedPtr<const FCLCompiledPlanetRecipe>& In)->TSharedPtr<const FCLCompiledPlanetRecipe>
         {

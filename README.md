@@ -120,84 +120,37 @@ after this base field; recipe output is clipped at the outer radius.
 `Examples/RollingPlains.json`
 is the first versioned local recipe; it is not a backend wire contract.
 
-The editor module has separate **Landform Designer** and **Planet Recipe**
-entry points, sharing Details, Validation and a core-to-sky cutaway. The former
-owns a reusable terrain definition; the latter owns planet settings/assembly.
-In Planet Recipe, select and drag guide ticks/labels, Delete
-to remove, use the small Core + to add a Radial Guide, and rename labels in place.
-Ticks, leaders and labels use light gray at 30% opacity; the selected Radial Guide
-becomes fully opaque, with no selection box or change in tick thickness.
-Each tick is separated from the cross-section edge by one tick width.
-Guide labels use 9-point type, vertically centred on their connection lines.
-Planet Builder's Radial Guide Sets popup references a project catalog entry by
-asset and stable set ID. Its Save persists the recipe and catalog; Duplicate guide
-set creates an independent variant. Exported recipes retain resolved values.
-Landform Designer instead has a read-only **Preview Radial Guides** selector and saves
-only its terrain definition. Schema 1 recipes
-migrate to schema 2 while preserving physical terrain. The tests cover compilation, serialization,
-snapshots, live updates and native VPP composition. Algorithm 1 uses UE CPU 3D
-Perlin noise and remains reproducible. Algorithm 2 uses the native VPP Perlin
-3D compute kernel. Bounded CPU PCG stamp distribution is now available; general graph assets remain future work. The host's
-`Docs/RecipeDesigner.md` documents authoring and physical validation.
+The project has one **Planet** editor, with Planet, Geology, Landforms, Surface
+and Preview tabs. The **Landforms** tab lists the province catalogue and the
+planet's applied custom sources. Each row has its name, a brief description,
+a generation checkbox, Character knob, preview eye, reseed and Solo. Unchecking
+it disables the other row controls while preserving its settings. Knob and
+reseed edits belong to this planet's snapshot and support Undo/Redo.
 
-Guide dragging updates cached projected ticks and labels immediately; it commits
-one recipe/mesh/VPP update on release. The scene preview does not render
-continuously while idle. Built-in reference layouts are Temperate, Oceanic,
-High relief, Airless rocky and Deep atmosphere. They seed once without replacing
-edited presets or reintroducing deleted ones.
+The eye temporarily excludes a Landform from the preview. Solo applies one
+included Landform across every region of the planet, retaining its underlying
+geology and radial guides. Both are preview-only: they never change generation
+selection, geological prerequisites or exported recipes. Unsolo restores the
+assembled preview. [Planet Landforms](Docs/PlanetLandforms.md) records the contract.
 
-The section has its own dark studio lighting: warm front-left key, cool right
-fill and high rear rim, with restrained ambient light and fixed exposure.
-The lights follow the camera's azimuth as you orbit, keeping their composition
-without rebuilding terrain. Only the key casts shadows. The rig is independent
-of other asset editors' environment profiles; idle redraw remains disabled.
+Terrain definitions remain reusable source assets, but opening one focuses the
+Planet editor's Landforms tab. The old standalone Landform Designer window and
+menu entry are retired. `Landform.Designer` and `Landform.TerrainDesigner` are
+compatibility aliases for the Planet Landforms tab. `Landform.PlanetBuilder`
+and `Landform.PlanetRecipe` open the Planet editor.
 
-`UCLTerrainTypeAsset` supplies reusable base noise profiles through Foundation.
-Planet Recipe's Terrain selector assembles a layer snapshot while retaining the
-planet's global Radial Guide Sets, radius and seed. Landform Designer's selector opens a
-terrain definition and keeps the current preview guide snapshot. Shipped sources are Rolling plains,
-Hills, Mountain ridges and Plateaus (`Examples/TerrainTypes`, with assets under
-`Content/TerrainTypes`). Schema 3 adds guide-interval heights/deltas and
-planet-relative wavelengths, resolved to scalars before worker/VPP evaluation.
-Schema 1/2 imports preserve their old field semantics and upgrade for export.
-Mountain ridges now selects native algorithm 2. Plains and Hills retain the
-algorithm 1 reference. General VPP graph execution and regional composition remain subsequent work; stamp distribution is described below.
+Planet owns Radial Guides, radius and seed. Drag guide ticks or labels, Delete
+to remove, use the small Core + to add a guide, and rename labels in place.
+The guide-set popup references a project catalogue entry by asset and stable ID;
+Save persists recipe and catalogue, while Duplicate creates an independent set.
+Guide dragging updates projected labels immediately and commits one terrain
+update on release. Export retains resolved metre values.
 
-Terrain assets now open in the shared cross-section Designer with a **Noise
-layers** tab. Select, add, duplicate, remove, reorder or enable layers; the
-selected layer exposes shape, blend, seed, wavelength, octaves, persistence and
-guide-based height bounds. Guide pickers use the preview context's Radial Guide.
-Distance labels are unit-neutral; the suffix in each numeric field identifies
-its input unit. Global planet inputs are absent from Landform Designer.
-The recipe's stored metre values and serialized field names are unchanged.
-Finished property edits are transactional; invalid drafts leave the definition
-unchanged. Undo/redo refreshes the stack and preview.
-
-The terrain editor owns only the reusable definition. Its entry point accepts
-an optional Radial Guide Sets value snapshot, not a planet. Radius, global seed, planet
-identity and Apply-to-planet controls are absent. Opening from a planet defaults
-only the preview guides; no live planet pointer/binding is retained. The guide
-selector changes a transient evaluator and catalog copy without transactions,
-dirtying assets or saving guides into the landform. Radial Guide authoring remains
-outside this preview. **Solo** is preview-only and never changes the definition.
-The evaluator uses a fixed 1 km reference scale and deterministic seed; actual
-planet globals and guide values are resolved by recipe assembly/compiler owners.
-**New** and **Save as variant…** create project assets; duplication gives a new
-terrain identity. Normal Save and Foundation export operate on the terrain asset.
-Shipped plugin presets open as project working copies under
-`/Game/LandformDesigner/TerrainTypes`. Each copy is seeded once and subsequently
-reused, so authoring changes survive plugin staging and templates remain intact.
-
-Terrain-mode previews build geometry and normals on one background worker with
-one replaceable pending request. Obsolete results cannot replace the current
-scene. UObject/mesh work remains on the editor thread, and camera framing stays
-fixed across completion. The `Landform.TerrainDesigner` command opens Mountain
-ridges by default; optional arguments are a terrain asset path and a recipe path
-supplying only initial preview Radial Guide Sets. `Landform.Designer` / Window → Landform
-Designer open the terrain workbench; `Landform.PlanetRecipe` / Planet Recipe open
-the separate existing recipe editor. The optional recipe's radius/seed are ignored.
-This authoring path supports both generation versions; it does not execute
-arbitrary VPP graph assets. Stamp distribution runs its own bounded CPU PCG pipeline.
+VPP remains responsible for meshing, LOD, rendering, collision and edits. Native
+inputs are captured on the game thread; one background evaluator with a latest
+pending request compiles immutable fields. Obsolete results cannot replace the
+current preview. Previously saved recipes retain their pinned algorithm.
+Algorithm 1 uses UE CPU Perlin; algorithm 2 uses the stock VPP Perlin kernel.
 
 ## Native Mountain ridges generation
 
@@ -452,7 +405,7 @@ second endpoint derivatives. Priority and persistent ID define canonical order.
 The native spherical volume and flat Planet Recipe preview share this compositor.
 
 Planet Recipe has source selection and add/remove controls for regions; masks
-are edited in Details. Single-terrain Designer ownership is unchanged. Numeric
+are edited in the Planet editor. Terrain definitions remain source snapshots. Numeric
 mask drags broadcast one rebuild on commit, and composed cutaways use the
 existing coalesced background mesh build. Applied snapshots contain no asset
 paths and remain independent of later source edits until explicitly refreshed.
