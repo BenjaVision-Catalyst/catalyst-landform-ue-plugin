@@ -11,7 +11,8 @@ name and brief description; the same row contains:
 
 | Control | Effect |
 | --- | --- |
-| Checkbox | Include in generation. Off disables Character, eye, reseed and Solo. Settings are retained for re-enabling. |
+| Disclosure | Edit applied physical ranges, noise and placement values inline. |
+| Checkbox | Include in generation. Off disables disclosure, Character, eye, reseed and Solo. Settings are retained for re-enabling. |
 | Character | Change this planet's applied family Character, with one Undo per drag. |
 | Eye | Include/exclude only in the current preview; generation selection remains saved. |
 | Reseed | Change this planet's deterministic local variation. |
@@ -56,3 +57,28 @@ runs exceeded its existing 90-second readiness budget. This remains an unresolve
 native readiness/performance gap; the UI work does not claim reliable cave timing.
 A closer-view navigation run also measured 72.6 ms p95. Whole-planet UI navigation
 uses the same camera as its captures (zoom 0.7) and retains the 50 ms p95 limit.
+
+
+## Disclosure and curated Character
+
+Each included row has a disclosure triangle. Its native property view edits the
+planet's applied physical ranges, noise layers and placement settings directly,
+with validation and Undo/Redo. Source identity and algorithm fields stay protected.
+Collapsed/expanded state is preview UI state. Disabled rows disable the disclosure
+and its values as well as the other controls.
+
+Rift profile 3 is the curated family: 180–440 m spacing, 8–28 m throw and 8–26 m
+scarp width across Character. The shape expression also avoids the previous
+harsh sawtooth endpoint. These defaults are intended to produce usable variants
+throughout the slider; visual approval remains open. Details permit deliberate
+extremes. Moving Character again restores the curated ranges. Older saved
+profiles remain pinned until a slider gesture or explicit physical edit adopts
+profile 3; the candidate source uses terrain schema 12.
+
+Local physical relief is added to the already calibrated geological landscape,
+rather than refitting the whole planet after introducing a province. Elevation
+distribution continues to shape the base; the local metre displacement stays
+local. Rock restoration uses that same physical structural displacement. The
+planet's authored global guide span, underlying geology and Caves settings remain
+independent. A high-relief base can still have large mountains with Rift hidden;
+this change curates the Landform contribution rather than rewriting those inputs.

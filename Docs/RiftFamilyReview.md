@@ -30,14 +30,13 @@ metre-scale spacing and asymmetric back slopes. Low Character uses broader,
 softer, lower blocks and stronger surface weathering; high Character uses closer,
 sharper, higher scarps and less weathering. Three authored native VPP noise layers
 supply shoulder breakup (90 m wavelength, ±4 m), broken scarp relief (22 m,
-−2..0 m) and rock/debris detail (3.5 m, ±0.25 m). Their strength falls from 1 to
-0.25 across Character. These are appearance layers, not simulated erosion or
+−2..0 m) and rock/debris detail (3.5 m, ±0.25 m). Profile 3 keeps their breakup in a gentler band across Character. These are appearance layers, not simulated erosion or
 connected drainage. Local reseeding changes both fault structure and the stack.
 
 ## Versioned implementation
 
 `Examples/TerrainTypes/ContinentalRiftFamily.json` is the explicit candidate
-(schema 11, Rift profile 2, province definition 2). The existing catalogue source,
+(schema 12, Rift profile 3, province definition 2). The existing catalogue source,
 profile 1 and saved palette snapshots remain frozen pending review.
 
 Province definition 2 records ordered fallback tiers: relaxed requirements,
@@ -77,11 +76,11 @@ or texture is redistributed in the plugin. Private inspection copies preserve
 source packages and their checksums. Candidate selection is not a claim that a
 mesh has already become a qualified native VPP terrain stamp.
 
-## Spherical delivery correction
+## Historical profile-2 delivery correction
 
 The first effect-on/effect-off test found that a native surface-stack atlas routes
 height queries into six spherical fields before sampling region relief attached
-only to the atlas root. Profile 2 now composes the shared province field into those
+only to the atlas root. Profile 2 composes the shared province field into those
 raw fields before global height calibration. Tests independently disable noise and
 fault throw to prove that each changes the actual final terrain. Rock restoration
 uses the same structural displacement. Profile-1 saved output remains unchanged.
@@ -112,3 +111,20 @@ the conformance report. This proves conversion to stock native distance fields;
 visual stamp qualification, placement/blending, material bindings and packaged
 asset distribution remain open. None of their commercial package bytes is
 included in this repository.
+
+## Curated profile 3 and inline values
+
+The current Planet row adds a disclosure for editable physical ranges, noise and
+placement values. Character now restores a curated range: spacing 180–440 m,
+throw 8–28 m and scarp width 8–26 m. High Character retains sharper structure
+without the former extreme endpoint. Larger deliberate ranges can be edited in
+the disclosure; another knob gesture restores the curated ranges. Existing saved
+profiles remain pinned until explicitly edited.
+
+Profile 3 adds physical relief after base landscape calibration and elevation
+distribution. It does not stretch a local fault block to occupy the full planet
+radial interval. Its Rock restoration continues to follow structural displacement.
+The current authored base relief remains independent and can be substantial even
+with Rift hidden. See `conformance/LandformCuration` for actual Planet captures
+and the measured change against the same base at eleven slider positions. These
+are review evidence, not visual approval or completion of Rift anatomy/stamps.

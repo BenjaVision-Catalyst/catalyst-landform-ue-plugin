@@ -1,0 +1,32 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.Character",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"cameraZoom\":0.7,\"navigationP95Ms\":18.109500,\"cases\":[{\"stage\":0,\"vertices\":130264,\"geometryCrc\":3248140418},{\"stage\":1,\"vertices\":127634,\"geometryCrc\":4236113414},{\"stage\":2,\"vertices\":128769,\"geometryCrc\":890101716}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.38.04"
+        }
+      ]
+    }
+  ]
+}

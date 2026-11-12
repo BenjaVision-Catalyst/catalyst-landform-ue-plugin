@@ -17,7 +17,7 @@ if not source:
     source = tools.create_asset(name, folder, unreal.CLTerrainTypeAsset, unreal.CLTerrainTypeFactory())
     recipe = Path(unreal.Paths.project_plugins_dir()) / 'CatalystLandform/Examples/TerrainTypes/ContinentalRiftFamily.json'
     source.import_terrain_type_json(recipe.read_text())
-    assert source.terrain_type.rift.algorithm_version == 2
+    assert source.terrain_type.rift.algorithm_version >= 3
     assert len(source.terrain_type.noise_layers) == 3
     assets.save_loaded_asset(source)
 review = unreal.load_asset(review_path)
@@ -29,7 +29,7 @@ if not review:
     review.recipe = original.recipe
     character = review.recipe.caves.character
     review.add_palette_source(source)
-    assert review.recipe.region_generation.palette[0].rift.algorithm_version == 2
+    assert review.recipe.region_generation.palette[0].rift.algorithm_version == source.terrain_type.rift.algorithm_version
     assert len(review.recipe.region_generation.palette[0].noise_layers) == 3
     assert review.recipe.caves.character == character
     assets.save_loaded_asset(review)

@@ -1,0 +1,1659 @@
+﻿Log file open, 11/12/26 15:34:42
+LogInit: Display: Running engine for game: LandformLab
+LogCore: UTS: Unreal Trace Server launched successfully
+LogTrace: Initializing trace...
+LogCore: Display: Requested channels: 'cpu,gpu,frame,log,bookmark,screenshot,region'
+LogCore: No trace connection. Tracing to in-memory cache.
+LogTrace: Finished trace initialization.
+LogCsvProfiler: Display: Metadata set : platform="Mac"
+LogCsvProfiler: Display: Metadata set : config="Development"
+LogCsvProfiler: Display: Metadata set : buildversion="++UE5+Release-5.7-CL-51494982"
+LogCsvProfiler: Display: Metadata set : engineversion="5.7.4-51494982+++UE5+Release-5.7"
+LogCsvProfiler: Display: Metadata set : enginereleaseversion="5.7.4"
+LogCsvProfiler: Display: Metadata set : os="macOS 26.6.1 25G76"
+LogCsvProfiler: Display: Metadata set : cpu="Apple|Apple M3 Max"
+LogCsvProfiler: Display: Metadata set : pgoenabled="0"
+LogCsvProfiler: Display: Metadata set : pgoprofilingenabled="0"
+LogCsvProfiler: Display: Metadata set : ltoenabled="0"
+LogCsvProfiler: Display: Metadata set : asan="0"
+LogCsvProfiler: Display: Metadata set : mergedmodules="0"
+LogCsvProfiler: Display: Metadata set : commandline="" /private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject /Engine/Maps/Entry -unattended -nosplash -nosound -notracethreading -nohighdpi -stdout -FullStdOutLogOutput -abslog=/private/tmp/landform-curation/final/native.log -ExecCmds="Automation RunTests Catalyst.Landform.Planet.LandformRows+Catalyst.Landform.Rift.Family+Catalyst.Landform.Rift.GeologyAndRestoration+Catalyst.Landform.Rift.BackgroundAndRecipe+Catalyst.Landform.Regions.BlendAndNativeParity+Catalyst.Landform.Rift.NativeDesigner+Catalyst.Landform.Caves.AlwaysEnabledMinimum+Catalyst.Landform.Caves.Placement" -TestExit="Automation Test Queue Empty" -ReportExportPath=/private/tmp/landform-curation/final/automation""
+LogCsvProfiler: Display: Metadata set : loginid="96035bbdc74f2355494347b5f6b5d6ce"
+LogCsvProfiler: Display: Metadata set : llm="0"
+LogStats: Stats thread started at 0.193206
+LogPluginManager: Display: By default, prioritizing newer version (v423) of 'AscentCombatFramework' plugin, over older version (v43).
+LogPluginManager: Display: Module LTween from plugin LTween is already associated with plugin LGUI (maybe because the plugin should be using bIsPluginExtension)
+LogCsvProfiler: Display: Metadata set : systemresolution.resx="1280"
+LogCsvProfiler: Display: Metadata set : systemresolution.resy="720"
+LogICUInternationalization: ICU TimeZone Detection - Raw Offset: +10:00, Platform Override: ''
+LogInit: Session CrashGUID >====================================================
+         Session CrashGUID >   UECC-Mac-89690D4E7045E16A8019919C03BA3844
+         Session CrashGUID >====================================================
+LogConfig: No local boot hotfix file found at: [../../../../../../../private/tmp/landform-natural-karst/LandformLab/Saved/PersistentDownloadDir/HotfixForNextBoot.txt]
+LogAudio: Display: Audio Device Manager not initializing due to all audio being disabled. If this is not intentional, please check command line arguments for "-nosound".
+LogPluginManager: Looking for build plugins target receipt
+LogPluginManager: Found matching target receipt: ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Binaries/Mac/LandformLabEditor.target
+LogPluginManager: Looking for enabled plugins target receipt
+LogPluginManager: Found matching target receipt: ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Binaries/Mac/LandformLabEditor.target
+LogAssetRegistry: Display: Asset registry cache read as 19.9 MiB from ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Intermediate/CachedAssetRegistry_0.bin
+LogPluginManager: Mounting Engine plugin PCG
+LogPluginManager: Mounting Engine plugin ProceduralMeshComponent
+LogPluginManager: Mounting Engine plugin ComputeFramework
+LogPluginManager: Mounting Engine plugin MeshModelingToolset
+LogPluginManager: Mounting Engine plugin GeoReferencing
+LogPluginManager: Mounting Engine plugin GeometryCache
+LogPluginManager: Mounting Engine plugin GeometryProcessing
+LogPluginManager: Mounting Engine plugin VoxelPluginInstaller
+LogPluginManager: Mounting Engine plugin EditorScriptingUtilities
+LogPluginManager: Mounting Engine plugin ProxyLODPlugin
+LogPluginManager: Mounting Engine plugin PluginBrowser
+LogPluginManager: Mounting Engine plugin PythonScriptPlugin
+LogPluginManager: Mounting Engine plugin PlanarCut
+LogPluginManager: Mounting Engine plugin TextureFormatOodle
+LogPluginManager: Mounting Engine plugin PluginUtils
+LogPluginManager: Mounting Engine plugin Niagara
+LogPluginManager: Mounting Engine plugin ContentBrowserAssetDataSource
+LogPluginManager: Mounting Engine plugin ContentBrowserFileDataSource
+LogPluginManager: Mounting Engine plugin SQLiteCore
+LogPluginManager: Mounting Project plugin CatalystLandform
+LogPluginManager: Mounting Project plugin Voxel
+LogPluginManager: Mounting Project plugin CatalystFoundation
+LogPluginManager: Mounting Project plugin CatalystConnect
+LogConfig: Display: Loading VulkanPC ini files took 0.05 seconds
+LogConfig: Display: Loading IOS ini files took 0.05 seconds
+LogConfig: Display: Loading Mac ini files took 0.05 seconds
+LogConfig: Display: Loading Android ini files took 0.05 seconds
+LogConfig: Display: Loading Unix ini files took 0.05 seconds
+LogConfig: Display: Loading Windows ini files took 0.05 seconds
+LogConfig: Display: Loading TVOS ini files took 0.05 seconds
+LogConfig: Display: Loading VisionOS ini files took 0.05 seconds
+LogConfig: Display: Loading LinuxArm64 ini files took 0.05 seconds
+LogConfig: Display: Loading Linux ini files took 0.05 seconds
+LogTemp: Display: CL_NANITE_PROJECTION_OVERLAY: enabled; cooked=0
+LogVoxel: Display: VOXEL_DEBUG=0
+LogInit: Creating http thread with maximum 256 concurrent requests
+LogInit: ExecutableName: UnrealEditor
+LogInit: Build: ++UE5+Release-5.7-CL-51494982
+LogInit: Platform=MacEditor
+LogInit: MachineId=96035bbdc74f2355494347b5f6b5d6ce
+LogInit: DeviceId=
+LogInit: Engine Version: 5.7.4-51494982+++UE5+Release-5.7
+LogInit: Compatible Engine Version: 5.7.0-47537391+++UE5+Release-5.7
+LogInit: Net CL: 47537391
+LogInit: OS: macOS 26.6.1 (25G76), CPU: Apple M3 Max, GPU: Apple M3 Max
+LogInit: CPU Model ID: 0, microcode revision: 0
+LogInit: Compiled (64-bit): Mar  6 2026 07:40:56
+LogInit: Architecture: arm64
+LogInit: Compiled with Clang: 16.0.0 (clang-1600.0.26.4)
+LogInit: Build Configuration: Development
+LogInit: Branch Name: ++UE5+Release-5.7
+LogInit: Command Line: /Engine/Maps/Entry -unattended -nosplash -nosound -notracethreading -nohighdpi -stdout -FullStdOutLogOutput -abslog=/private/tmp/landform-curation/final/native.log -ExecCmds="Automation RunTests Catalyst.Landform.Planet.LandformRows+Catalyst.Landform.Rift.Family+Catalyst.Landform.Rift.GeologyAndRestoration+Catalyst.Landform.Rift.BackgroundAndRecipe+Catalyst.Landform.Regions.BlendAndNativeParity+Catalyst.Landform.Rift.NativeDesigner+Catalyst.Landform.Caves.AlwaysEnabledMinimum+Catalyst.Landform.Caves.Placement" -TestExit="Automation Test Queue Empty" -ReportExportPath=/private/tmp/landform-curation/final/automation
+LogInit: Base Directory: /Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/
+LogInit: Allocator: TBB
+LogInit: Installed Engine Build: 1
+LogInit: This binary is optimized with LTO: no, PGO: no, instrumented for PGO data collection: no
+LogDevObjectVersion: Number of dev versions registered: 36
+LogDevObjectVersion:   Dev-Blueprints (B0D832E4-1F89-4F0D-ACCF-7EB736FD4AA2): 10
+LogDevObjectVersion:   Dev-Build (E1C64328-A22C-4D53-A36C-8E866417BD8C): 0
+LogDevObjectVersion:   Dev-Core (375EC13C-06E4-48FB-B500-84F0262A717E): 4
+LogDevObjectVersion:   Dev-Editor (E4B068ED-F494-42E9-A231-DA0B2E46BB41): 40
+LogDevObjectVersion:   Dev-Framework (CFFC743F-43B0-4480-9391-14DF171D2073): 37
+LogDevObjectVersion:   Dev-Mobile (B02B49B5-BB20-44E9-A304-32B752E40360): 3
+LogDevObjectVersion:   Dev-Networking (A4E4105C-59A1-49B5-A7C5-40C4547EDFEE): 0
+LogDevObjectVersion:   Dev-Online (39C831C9-5AE6-47DC-9A44-9C173E1C8E7C): 0
+LogDevObjectVersion:   Dev-Physics (78F01B33-EBEA-4F98-B9B4-84EACCB95AA2): 20
+LogDevObjectVersion:   Dev-Platform (6631380F-2D4D-43E0-8009-CF276956A95A): 0
+LogDevObjectVersion:   Dev-Rendering (12F88B9F-8875-4AFC-A67C-D90C383ABD29): 49
+LogDevObjectVersion:   Dev-Sequencer (7B5AE74C-D270-4C10-A958-57980B212A5A): 13
+LogDevObjectVersion:   Dev-VR (D7296918-1DD6-4BDD-9DE2-64A83CC13884): 3
+LogDevObjectVersion:   Dev-LoadTimes (C2A15278-BFE7-4AFE-6C17-90FF531DF755): 1
+LogDevObjectVersion:   Private-Geometry (6EACA3D4-40EC-4CC1-B786-8BED09428FC5): 3
+LogDevObjectVersion:   Dev-AnimPhys (29E575DD-E0A3-4627-9D10-D276232CDCEA): 17
+LogDevObjectVersion:   Dev-Anim (AF43A65D-7FD3-4947-9873-3E8ED9C1BB05): 15
+LogDevObjectVersion:   Dev-ReflectionCapture (6B266CEC-1EC7-4B8F-A30B-E4D90942FC07): 1
+LogDevObjectVersion:   Dev-Automation (0DF73D61-A23F-47EA-B727-89E90C41499A): 1
+LogDevObjectVersion:   FortniteMain (601D1886-AC64-4F84-AA16-D3DE0DEAC7D6): 225
+LogDevObjectVersion:   FortniteValkyrie (8DBC2C5B-54A7-43E0-A768-FCBB7DA29060): 8
+LogDevObjectVersion:   FortniteSeason (5B4C06B7-2463-4AF8-805B-BF70CDF5D0DD): 15
+LogDevObjectVersion:   FortniteRelease (E7086368-6B23-4C58-8439-1B7016265E91): 17
+LogDevObjectVersion:   Dev-Enterprise (9DFFBCD6-494F-0158-E221-12823C92A888): 11
+LogDevObjectVersion:   Dev-Niagara (F2AED0AC-9AFE-416F-8664-AA7FFA26D6FC): 1
+LogDevObjectVersion:   Dev-Destruction (174F1F0B-B4C6-45A5-B13F-2EE8D0FB917D): 10
+LogDevObjectVersion:   Dev-Physics-Ext (35F94A83-E258-406C-A318-09F59610247C): 41
+LogDevObjectVersion:   Dev-PhysicsMaterial-Chaos (B68FC16E-8B1B-42E2-B453-215C058844FE): 1
+LogDevObjectVersion:   Dev-CineCamera (B2E18506-4273-CFC2-A54E-F4BB758BBA07): 1
+LogDevObjectVersion:   Dev-VirtualProduction (64F58936-FD1B-42BA-BA96-7289D5D0FA4E): 1
+LogDevObjectVersion:   UE5-Main (697DD581-E64F-41AB-AA4A-51ECBEB7B628): 121
+LogDevObjectVersion:   UE5-Release (D89B5E42-24BD-4D46-8412-ACA8DF641779): 61
+LogDevObjectVersion:   UE5-SpecialProject (59DA5D52-1232-4948-B878-597870B8E98B): 9
+LogDevObjectVersion:   Dev-MediaFramework (6F0ED827-A609-4895-9C91-998D90180EA4): 2
+LogDevObjectVersion:   Dev-NaniteResearch (30D58BE3-95EA-4282-A6E3-B159D8EBB06A): 1
+LogDevObjectVersion:   Dev-ComputeFramework (6304A3E7-0059-4F59-8CFC-21BD7721FD4E): 0
+LogInit: Presizing for max 25165824 objects, including 0 objects not considered by GC.
+LogInit: Object subsystem initialized
+LogConfig: Set CVar [[con.DebugEarlyDefault:1]]
+LogConfig: CVar [[con.DebugLateDefault:1]] deferred - dummy variable created
+LogConfig: CVar [[con.DebugLateCheat:1]] deferred - dummy variable created
+LogConfig: CVar [[LogNamedEventFilters:Frame *]] deferred - dummy variable created
+LogConfig: Set CVar [[r.setres:1280x720]]
+LogConfig: Set CVar [[g.TimeoutForBlockOnRenderFence:300000]]
+LogConfig: CVar [[framepro.ScopeMinTimeMicroseconds:10]] deferred - dummy variable created
+LogConfig: CVar [[fx.NiagaraAllowRuntimeScalabilityChanges:1]] deferred - dummy variable created
+LogConfig: CVar [[QualityLevelMapping:high]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.VSync:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Applying CVar settings from Section [/Script/Engine.RendererSettings] File [Engine]
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VisualizeCalibrationColorMaterialPath:/Engine/EngineMaterials/PPM_DefaultCalibrationColor.PPM_DefaultCalibrationColor]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VisualizeCalibrationGrayscaleMaterialPath:/Engine/EngineMaterials/PPM_DefaultCalibrationGrayscale.PPM_DefaultCalibrationGrayscale]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.GPUCrashDebugging:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[MaxSkinBones:(Default=65536,PerPlatform=(("Mobile", 256)))]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Substrate.RoughDiffuse:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Substrate.SheenQuality:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Substrate.ShadingQuality:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Substrate.TileCoord8bits:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Substrate.Glints:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Substrate.ClosuresPerPixel:4]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Refraction.Blur:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.DynamicGlobalIlluminationMethod:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.ReflectionMethod:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.GenerateMeshDistanceFields:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[r.Shadow.Virtual.Enable:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Applying CVar settings from Section [/Script/Engine.RendererOverrideSettings] File [Engine]
+[2026.11.12-04.34.43:158][  0]LogConfig: Applying CVar settings from Section [/Script/Engine.StreamingSettings] File [Engine]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.MinBulkDataSizeForAsyncLoading:131072]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.AsyncLoadingThreadEnabled:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.EventDrivenLoaderEnabled:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.WarnIfTimeLimitExceeded:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.TimeLimitExceededMultiplier:1.5]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.TimeLimitExceededMinTime:0.005]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.UseBackgroundLevelStreaming:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.PriorityAsyncLoadingExtraTime:15.0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.LevelStreamingActorsUpdateTimeLimit:5.0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.PriorityLevelStreamingActorsUpdateExtraTime:5.0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.LevelStreamingComponentsRegistrationGranularity:10]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.UnregisterComponentsTimeLimit:1.0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.LevelStreamingComponentsUnregistrationGranularity:5]]
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[s.MaxPackageSummarySize:16384]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[s.FlushStreamingOnExit:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[FixedBootOrder:/Script/Engine/Default__SoundBase]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[FixedBootOrder:/Script/Engine/Default__MaterialInterface]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[FixedBootOrder:/Script/Engine/Default__DeviceProfileManager]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: Applying CVar settings from Section [/Script/Engine.GarbageCollectionSettings] File [Engine]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.MaxObjectsNotConsideredByGC:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.FlushStreamingOnGC:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.NumRetriesBeforeForcingGC:10]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.AllowParallelGC:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.TimeBetweenPurgingPendingKillObjects:61.1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.MaxObjectsInEditor:25165824]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.IncrementalBeginDestroyEnabled:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.CreateGCClusters:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.MinGCClusterSize:5]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.AssetClustreringEnabled:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.ActorClusteringEnabled:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.VerifyUObjectsAreNotFGCObjects:0]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Set CVar [[gc.GarbageEliminationEnabled:1]]
+[2026.11.12-04.34.43:158][  0]LogConfig: Applying CVar settings from Section [/Script/Engine.NetworkSettings] File [Engine]
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[NetworkEmulationProfiles:(ProfileName="Average",ToolTip="Simulates average internet conditions")]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[NetworkEmulationProfiles:(ProfileName="Bad",ToolTip="Simulates laggy internet conditions")]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[NetworkEmulationProfiles:(ProfileName="BufferBloat",ToolTip="Simulates a connection affected by buffer bloat (in and out)")]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: Applying CVar settings from Section [/Script/UnrealEd.CookerSettings] File [Engine]
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[DefaultASTCQualityBySpeed:2]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[DefaultASTCQualityBySize:3]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[DefaultASTCQualityBySizeHQ:4]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:WidgetBlueprint]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:GroupActor]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:MetaData]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:ObjectRedirector]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:NavMeshRenderingComponent]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:ReflectionCaptureComponent]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:TextRenderComponent]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:Font]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:InterpCurveEdSetup]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:MaterialExpression]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:NiagaraEmitter]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:NiagaraScript]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:ParticleEmitter]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:ParticleLODLevel]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:ParticleModule]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:SubUVAnimation]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:SoundNode]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:GameplayEffectUIData]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedServer:AmbientSound]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedClient:WidgetBlueprint]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedClient:GroupActor]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedClient:MetaData]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedClient:ObjectRedirector]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[ClassesExcludedOnDedicatedClient:InterpCurveEdSetup]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.AllowStaticLighting]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.MaterialEditor.LWCTruncateMode]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.VelocityOutputPass]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.SelectiveBasePassOutputs]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.DBuffer]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.Mobile.DBuffer]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.Shaders.Symbols]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.Shaders.GenerateSymbols]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.Shaders.WriteSymbols]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.Shaders.AllowUniqueSymbols]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.Shaders.ExtraData]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.Shaders.Optimize]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.CompileShadersForDevelopment]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.MobileHDR]] deferred - dummy variable created
+[2026.11.12-04.34.43:158][  0]LogConfig: CVar [[VersionedIntRValues:r.UsePreExposure]] deferred - dummy variable created
+[2026.11.12-04.34.43:159][  0]LogCsvProfiler: Display: Metadata set : systemresolution.resx="4112"
+[2026.11.12-04.34.43:159][  0]LogCsvProfiler: Display: Metadata set : systemresolution.resy="2658"
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [ViewDistanceQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkeletalMeshLODBias:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.ViewDistanceScale:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [AntiAliasingQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.FXAA.Quality:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TemporalAA.Quality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TSR.History.R11G11B10:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TSR.History.ScreenPercentage:200]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TSR.History.UpdateQuality:3]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TSR.ShadingRejection.Flickering:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TSR.RejectionAntiAliasingQuality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TSR.ReprojectionField:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TSR.Resurrection:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [ShadowQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LightFunctionQuality:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.ShadowQuality:5]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.CSM.MaxCascades:10]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.MaxResolution:2048]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.MaxCSMResolution:2048]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.RadiusThreshold:0.01]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.DistanceScale:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.CSM.TransitionScale:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.PreShadowResolutionFactor:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DistanceFieldShadowing:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.VolumetricFog:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.VolumetricFog.GridPixelSize:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.VolumetricFog.GridSizeZ:128]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.VolumetricFog.HistoryMissSupersampleCount:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LightMaxDrawDistanceScale:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.CapsuleShadows:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.MaxPhysicalPages:4096]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.ResolutionLodBiasDirectional:-1.5]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.ResolutionLodBiasDirectionalMoving:-1.5]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.ResolutionLodBiasLocal:0.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.ResolutionLodBiasLocalMoving:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.SMRT.RayCountDirectional:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.SMRT.SamplesPerRayDirectional:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.SMRT.RayCountLocal:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.SMRT.SamplesPerRayLocal:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Shadow.Virtual.MarkCoarsePagesLocal:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [GlobalIlluminationQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DistanceFieldAO:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkylightIntensityMultiplier:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.AOQuality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.DiffuseIndirect.Allow:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LumenScene.DirectLighting.MaxLightsPerTile:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LumenScene.DirectLighting.UpdateFactor:32]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LumenScene.Radiosity.UpdateFactor:64]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LumenScene.Radiosity.ProbeSpacing:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LumenScene.Radiosity.HemisphereProbeResolution:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TraceMeshSDFs.Allow:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.RadianceCache.ProbeResolution:32]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.RadianceCache.NumProbesToTraceBudget:100]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.DownsampleFactor:16]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.NumAdaptiveProbes:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.TracingOctahedronResolution:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.IrradianceFormat:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.StochasticInterpolation:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.FullResolutionJitterWidth:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.TwoSidedFoliageBackfaceDiffuse:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.ScreenTraces.HZBTraversal.FullResDepth:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.ShortRangeAO.BentNormal:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.ShortRangeAO.HorizonSearch.HZB:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.ShortRangeAO.HorizonSearch.ForegroundSampleRejectPower:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TranslucencyVolume.GridPixelSize:32]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TranslucencyVolume.TraceFromVolume:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TranslucencyVolume.TracingOctahedronResolution:3]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TranslucencyVolume.RadianceCache.ProbeResolution:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TranslucencyVolume.RadianceCache.NumProbesToTraceBudget:70]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.RayTracing.Scene.BuildMode:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [ReflectionQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SSR.Quality:3]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SSR.HalfResSceneColor:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.Reflections.Allow:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.Reflections.DownsampleFactor:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.Reflections.MaxRoughnessToTraceForFoliage:0.4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.ScreenProbeGather.MaxRoughnessToEvaluateRoughSpecularForFoliage:0.8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.Reflections.ScreenSpaceReconstruction.NumSamples:5]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.Reflections.ScreenSpaceReconstruction.MinWeight:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TranslucencyReflections.FrontLayer.Allow:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Lumen.TranslucencyReflections.FrontLayer.Enable:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [PostProcessQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.MotionBlurQuality:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.MotionBlur.HalfResGather:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.AmbientOcclusionMipLevelFactor:0.4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.AmbientOcclusionMaxQuality:100]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.AmbientOcclusionLevels:-1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.AmbientOcclusionRadiusScale:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DepthOfFieldQuality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.RenderTargetPoolMin:400]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LensFlareQuality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SceneColorFringeQuality:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.EyeAdaptationQuality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.BloomQuality:5]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Bloom.ScreenPercentage:50.000]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.FastBlurThreshold:100]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Upscale.Quality:3]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.LightShaftQuality:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Filter.SizeScale:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Tonemapper.Quality:5]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Gather.ResolutionDivisor:2         ; lower gathering resolution]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Gather.AccumulatorQuality:1        ; higher gathering accumulator quality]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Gather.PostfilterMethod:1          ; Median3x3 postfilering method]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Gather.EnableBokehSettings:0       ; no bokeh simulation when gathering]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Gather.RingCount:4                 ; medium number of samples when gathering]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Scatter.ForegroundCompositing:1    ; additive foreground scattering]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Scatter.BackgroundCompositing:2    ; additive background scattering]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Scatter.EnableBokehSettings:1      ; bokeh simulation when scattering]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Scatter.MaxSpriteRatio:0.1         ; only a maximum of 10% of scattered bokeh]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Recombine.Quality:1                ; cheap slight out of focus]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Recombine.EnableBokehSettings:0    ; no bokeh simulation on slight out of focus]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.TemporalAAQuality:1                ; more stable temporal accumulation]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Kernel.MaxForegroundRadius:0.025]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DOF.Kernel.MaxBackgroundRadius:0.025]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [TextureQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Streaming.MipBias:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Streaming.AmortizeCPUToGPUCopy:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Streaming.MaxNumTexturesToStreamPerFrame:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Streaming.Boost:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.MaxAnisotropy:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.VT.MaxAnisotropy:8]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Streaming.LimitPoolSizeToVRAM:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Streaming.PoolSize:1000]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Streaming.MaxEffectiveScreenSize:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [EffectsQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TranslucencyLightingVolume.Dim:64]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.RefractionQuality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SceneColorFormat:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.DetailMode:3]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.TranslucencyLightingVolume.Blur:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.MaterialQualityLevel:1 ; High quality]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SSS.Scale:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SSS.SampleSet:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SSS.Quality:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SSS.HalfRes:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SSGI.Quality:3]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.EmitterSpawnRateScale:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.ParticleLightQuality:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.AerialPerspectiveLUT.FastApplyOnOpaque:1 ; Always have FastSkyLUT 1 in this case to avoid wrong sky]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.AerialPerspectiveLUT.SampleCountMaxPerSlice:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.AerialPerspectiveLUT.DepthResolution:16.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.FastSkyLUT:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.FastSkyLUT.SampleCountMin:4.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.FastSkyLUT.SampleCountMax:128.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.SampleCountMin:4.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.SampleCountMax:128.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.TransmittanceLUT.UseSmallFormat:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.TransmittanceLUT.SampleCount:10.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.SkyAtmosphere.MultiScatteringLUT.SampleCount:15.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: CVar [[fx.Niagara.QualityLevel:3]] deferred - dummy variable created
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.Refraction.OffsetQuality:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HeterogeneousVolumes.DownsampleFactor:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HeterogeneousVolumes.MaxStepCount:256]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HeterogeneousVolumes.Shadows.Resolution:512]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HeterogeneousVolumes.Shadows.Precision:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HeterogeneousVolumes.UseExistenceMask:0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [FoliageQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[foliage.DensityScale:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[grass.DensityScale:1.0]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [ShadingQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HairStrands.SkyLighting.IntegrationType:2]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HairStrands.SkyAO.SampleCount:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.HairStrands.Visibility.MSAA.SamplePerPixel:4]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Set CVar [[r.AnisotropicMaterials:1]]
+[2026.11.12-04.34.43:159][  0]LogConfig: Applying CVar settings from Section [LandscapeQuality@3] File [Scalability]
+[2026.11.12-04.34.43:159][  0]LogInit: Selected Device Profile: [MacEditor]
+[2026.11.12-04.34.43:159][  0]LogHAL: Display: Platform has ~ 128 GB [137438953472 / 137438953472 / 128], which maps to Largest [LargestMinGB=32, LargerMinGB=12, DefaultMinGB=8, SmallerMinGB=6, SmallestMinGB=0)
+[2026.11.12-04.34.43:160][  0]LogDeviceProfileManager: Going up to parent DeviceProfile [Mac]
+[2026.11.12-04.34.43:160][  0]LogDeviceProfileManager: Going up to parent DeviceProfile []
+[2026.11.12-04.34.43:160][  0]LogDeviceProfileManager: Pushing Device Profile CVar: [[r.Shaders.ZeroInitialise:1 -> 1]]
+[2026.11.12-04.34.43:160][  0]LogDeviceProfileManager: Pushing Device Profile CVar: [[r.Shaders.BoundsChecking:1 -> 1]]
+[2026.11.12-04.34.43:160][  0]LogDeviceProfileManager: Pushing Device Profile CVar: [[UI.SlateSDFText.RasterizationMode:Bitmap -> Msdf]]
+[2026.11.12-04.34.43:160][  0]LogDeviceProfileManager: Pushing Device Profile CVar: [[UI.SlateSDFText.ResolutionLevel:2 -> 2]]
+[2026.11.12-04.34.43:160][  0]LogConfig: Applying CVar settings from Section [Startup] File [../../../Engine/Config/ConsoleVariables.ini]
+[2026.11.12-04.34.43:160][  0]LogConfig: Set CVar [[r.DumpShaderDebugInfo:2]]
+[2026.11.12-04.34.43:160][  0]LogConfig: Set CVar [[p.chaos.AllowCreatePhysxBodies:1]]
+[2026.11.12-04.34.43:160][  0]LogConfig: Set CVar [[fx.SkipVectorVMBackendOptimizations:1]]
+[2026.11.12-04.34.43:160][  0]LogConfig: Applying CVar settings from Section [Startup_Mac] File [../../../Engine/Config/ConsoleVariables.ini]
+[2026.11.12-04.34.43:160][  0]LogConfig: Applying CVar settings from Section [ConsoleVariables] File [Engine]
+[2026.11.12-04.34.43:160][  0]LogConfig: Set CVar [[r.HairStrands.Visibility.MSAA.SamplePerPixel:1]]
+[2026.11.12-04.34.43:160][  0]LogConfig: CVar [[r.SceneCulling.ExplicitCellBounds:1]] deferred - dummy variable created
+[2026.11.12-04.34.43:160][  0]LogConfig: CVar [[r.GPUStatsEnabled:0]] deferred - dummy variable created
+[2026.11.12-04.34.43:160][  0]LogConfig: Set CVar [[Slate.NoAnimationOnTabForegroundedEvent:1]]
+[2026.11.12-04.34.43:160][  0]LogConfig: Applying CVar settings from Section [ConsoleVariables] File [/private/tmp/landform-natural-karst/LandformLab/Saved/Config/MacEditor/Editor.ini]
+[2026.11.12-04.34.43:160][  0]LogInit: macOS 26.6.1 (25G76)
+[2026.11.12-04.34.43:160][  0]LogInit: Model: Mac15,9
+[2026.11.12-04.34.43:160][  0]LogInit: CPU: Apple M3 Max
+[2026.11.12-04.34.43:160][  0]LogInit: CPU Page size=16384, Cores=16, HT=16
+[2026.11.12-04.34.43:160][  0]LogInit: Computer: jupiter.local
+[2026.11.12-04.34.43:160][  0]LogInit: User: jupiter
+[2026.11.12-04.34.43:160][  0]LogInit: High frequency timer resolution =24.000000 MHz
+[2026.11.12-04.34.43:160][  0]LogInit: Power Source: AC Power
+[2026.11.12-04.34.43:160][  0]LogInit: Xcode developer folder path: /Applications/Xcode.app/Contents/Developer, version 26.6.0
+[2026.11.12-04.34.43:160][  0]LogInit: Memory total: Physical=128.0GB (128GB approx) Pagefile=1.0GB Virtual=129.0GB
+[2026.11.12-04.34.43:160][  0]LogCsvProfiler: Display: Metadata set : extradevelopmentmemorymb="0"
+[2026.11.12-04.34.43:160][  0]LogSpline: Registered spline type: TypeId=0x54E3AD22, Impl=MultiSpline, Value=Vector
+[2026.11.12-04.34.43:160][  0]LogChaosDD: Chaos Debug Draw Startup
+[2026.11.12-04.34.43:160][  0]LogInit: Physics initialised using underlying interface: Chaos
+[2026.11.12-04.34.43:161][  0]LogInit: Using OS detected language (en-AU).
+[2026.11.12-04.34.43:161][  0]LogInit: Using OS detected locale (en-AU).
+[2026.11.12-04.34.43:162][  0]LogTextLocalizationManager: No specific localization for 'en-AU' exists, so 'en' will be used for the language.
+[2026.11.12-04.34.43:367][  0]LogObj: Display: Attempting to load config data for Default__SlateThemeManager before the Class has been constructed/registered/linked (likely during module loading or early startup). This will result in the load silently failing and should be fixed.
+[2026.11.12-04.34.43:368][  0]LogSlate: New Slate User Created. Platform User Id 0, User Index 0, Is Virtual User: 0
+[2026.11.12-04.34.43:368][  0]LogSlate: Slate User Registered.  User Index 0, Is Virtual User: 0
+[2026.11.12-04.34.43:531][  0]LogRHI: Texture pool is 68812 MB (70% of 98304 MB)
+[2026.11.12-04.34.43:531][  0]LogMetal: Display:       Vendor ID: 4203
+[2026.11.12-04.34.43:531][  0]LogMetal: Display:       Device ID: 909194570
+[2026.11.12-04.34.43:531][  0]LogMetal: Display:       VRAM (MB): 98304
+[2026.11.12-04.34.43:532][  0]LogMac: Attached monitors:
+[2026.11.12-04.34.43:532][  0]LogMac: Screen: Built-in Retina Display, Resolution: 2056x1329, Points: 2056x1329, WorkArea: (0, 53) -> (2056, 1290), Scale: 2.00
+[2026.11.12-04.34.43:532][  0]LogMac: Found 1 attached monitors.
+[2026.11.12-04.34.43:539][  0]LogRHI: RHI Adapter Info:
+[2026.11.12-04.34.43:539][  0]LogRHI:             Name: Apple M3 Max
+[2026.11.12-04.34.43:539][  0]LogRHI:   Driver Version:  (internal:353.14, unified:353.14)
+[2026.11.12-04.34.43:539][  0]LogRHI:      Driver Date: 1-1-1970
+[2026.11.12-04.34.43:542][  0]LogVRS: Current RHI does not support Variable Rate Shading
+[2026.11.12-04.34.43:543][  0]LogCsvProfiler: Display: Metadata set : verbatimrhiname="Metal"
+[2026.11.12-04.34.43:543][  0]LogCsvProfiler: Display: Metadata set : rhiname="Metal"
+[2026.11.12-04.34.43:543][  0]LogCsvProfiler: Display: Metadata set : rhifeaturelevel="SM6"
+[2026.11.12-04.34.43:543][  0]LogCsvProfiler: Display: Metadata set : shaderplatform="METAL_SM6"
+[2026.11.12-04.34.43:543][  0]LogInit: Initializing FReadOnlyCVARCache
+[2026.11.12-04.34.43:593][  0]LogTextureFormatASTC: Display: ASTCEnc version 5.0.1 library loaded
+[2026.11.12-04.34.43:593][  0]LogTextureFormatManager: Display: Loaded Base TextureFormat: TextureFormatASTC
+[2026.11.12-04.34.43:593][  0]LogTextureFormatManager: Display: Loaded Base TextureFormat: TextureFormatDXT
+[2026.11.12-04.34.43:593][  0]LogTextureFormatManager: Display: Loaded Base TextureFormat: TextureFormatETC2
+[2026.11.12-04.34.43:593][  0]LogTextureFormatManager: Display: Loaded Base TextureFormat: TextureFormatIntelISPCTexComp
+[2026.11.12-04.34.43:593][  0]LogTextureFormatManager: Display: Loaded Base TextureFormat: TextureFormatUncompressed
+[2026.11.12-04.34.43:593][  0]LogTextureFormatOodle: Display: Oodle Texture TFO init; latest sdk version = 2.9.14
+[2026.11.12-04.34.43:593][  0]LogTextureFormatOodle: Display: Oodle Texture loading DLL: liboo2texmac64.2.9.14.dylib
+[2026.11.12-04.34.43:600][  0]LogTextureFormatOodle: Display: Oodle Texture loading DLL: liboo2texmac64.2.9.5.dylib
+[2026.11.12-04.34.43:606][  0]LogTextureFormatManager: Display: Loaded Base TextureFormat: TextureFormatOodle
+[2026.11.12-04.34.43:647][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'IOS'
+[2026.11.12-04.34.43:647][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'IOSClient'
+[2026.11.12-04.34.43:657][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Mac'
+[2026.11.12-04.34.43:657][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'MacEditor'
+[2026.11.12-04.34.43:657][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'MacServer'
+[2026.11.12-04.34.43:657][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'MacClient'
+[2026.11.12-04.34.43:678][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'TVOS'
+[2026.11.12-04.34.43:678][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'TVOSClient'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_ASTC'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_DXT'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_ETC2'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_OpenXR'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'AndroidClient'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_ASTCClient'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_DXTClient'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_ETC2Client'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_OpenXRClient'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_Multi'
+[2026.11.12-04.34.43:700][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'Android_MultiClient'
+[2026.11.12-04.34.43:722][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'VisionOS'
+[2026.11.12-04.34.43:722][  0]LogTargetPlatformManager: Display: Loaded TargetPlatform 'VisionOSClient'
+[2026.11.12-04.34.43:722][  0]LogTargetPlatformManager: Display: Building Assets For MacEditor
+[2026.11.12-04.34.43:771][  0]LogTargetPlatformManager: Unable to find shader format SF_METAL_ES3_1_IOS from hinted modules, loading all potential format modules to find it
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager: Loaded format module MetalShaderFormat
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_ES3_1_IOS
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_SM5_IOS
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_ES3_1_TVOS
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_SM5_TVOS
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_SM5
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_SM6
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_SIM
+[2026.11.12-04.34.43:817][  0]LogTargetPlatformManager:   SF_METAL_ES3_1
+[2026.11.12-04.34.43:825][  0]LogTargetPlatformManager: Loaded format module ShaderFormatOpenGL
+[2026.11.12-04.34.43:825][  0]LogTargetPlatformManager:   GLSL_150_ES31
+[2026.11.12-04.34.43:825][  0]LogTargetPlatformManager:   GLSL_ES3_1_ANDROID
+[2026.11.12-04.34.43:825][  0]LogTargetPlatformManager: Loaded format module ShaderFormatVectorVM
+[2026.11.12-04.34.43:825][  0]LogTargetPlatformManager:   VVM_1_0
+[2026.11.12-04.34.43:832][  0]LogTargetPlatformManager: Loaded format module VulkanShaderFormat
+[2026.11.12-04.34.43:832][  0]LogTargetPlatformManager:   SF_VULKAN_SM5
+[2026.11.12-04.34.43:832][  0]LogTargetPlatformManager:   SF_VULKAN_ES31_ANDROID
+[2026.11.12-04.34.43:832][  0]LogTargetPlatformManager:   SF_VULKAN_ES31
+[2026.11.12-04.34.43:832][  0]LogTargetPlatformManager:   SF_VULKAN_SM5_ANDROID
+[2026.11.12-04.34.43:832][  0]LogTargetPlatformManager:   SF_VULKAN_SM6
+[2026.11.12-04.34.43:832][  0]LogRendererCore: Ray tracing is disabled. Reason: disabled through project setting (r.RayTracing=0).
+[2026.11.12-04.34.43:836][  0]LogDerivedDataCache: Display: Memory: Max Cache Size: -1 MB
+[2026.11.12-04.34.43:836][  0]LogDerivedDataCache: FDerivedDataBackendGraph: Pak pak cache file ../../../../../../../private/tmp/landform-natural-karst/LandformLab/DerivedDataCache/DDC.ddp not found, will not use a pak cache.
+[2026.11.12-04.34.43:836][  0]LogDerivedDataCache: Unable to find inner node Pak for hierarchy Hierarchy.
+[2026.11.12-04.34.43:836][  0]LogDerivedDataCache: FDerivedDataBackendGraph: CompressedPak pak cache file ../../../../../../../private/tmp/landform-natural-karst/LandformLab/DerivedDataCache/Compressed.ddp not found, will not use a pak cache.
+[2026.11.12-04.34.43:836][  0]LogDerivedDataCache: Unable to find inner node CompressedPak for hierarchy Hierarchy.
+[2026.11.12-04.34.44:105][  0]LogDerivedDataCache: Display: ../../../Engine/DerivedDataCache/Compressed.ddp: Opened pak cache for reading. (2469 MiB)
+[2026.11.12-04.34.44:105][  0]LogDerivedDataCache: FDerivedDataBackendGraph: EnterprisePak pak cache file ../../../Enterprise/DerivedDataCache/Compressed.ddp not found, will not use a pak cache.
+[2026.11.12-04.34.44:105][  0]LogDerivedDataCache: Unable to find inner node EnterprisePak for hierarchy Hierarchy.
+[2026.11.12-04.34.44:105][  0]LogZenServiceInstance: Found Zen config default=/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Data
+[2026.11.12-04.34.44:105][  0]LogZenServiceInstance: Display: Launching zen utility '/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/zen service status'.
+[2026.11.12-04.34.44:410][  0]LogZenServiceInstance: Display: Launching zen utility '/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/zen service status'.
+[2026.11.12-04.34.44:660][  0]LogTemp: Display: /Applications/Xcode.app/Contents/Developer
+
+[2026.11.12-04.34.44:715][  0]LogZenServiceInstance: Display: Read zen version cache file from '/Users/jupiter/Library/Application Support/Epic/UnrealEngine/5.7/Saved/Zen/zen.version', version: '5.7.6-202510061211-macosx-arm64-release-9a1ebb9'
+[2026.11.12-04.34.44:715][  0]LogZenServiceInstance: InTree version at '/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/zenserver' is '5.7.6-202510061211-macosx-arm64-release-9a1ebb9'
+[2026.11.12-04.34.44:715][  0]LogZenServiceInstance: Display: Read zen version cache file from '/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Install/zen.version', version: '5.8.13-202605190511-macosx-arm64-release-094f62c'
+[2026.11.12-04.34.44:715][  0]LogZenServiceInstance: Installed version at '/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Install/zenserver' is '5.8.13-202605190511-macosx-arm64-release-094f62c'
+[2026.11.12-04.34.44:715][  0]LogZenServiceInstance: Display: Installed service at '/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Install/zenserver' is up to date
+[2026.11.12-04.34.44:715][  0]LogZenServiceInstance: No current process using the data dir found, launching a new instance
+[2026.11.12-04.34.44:715][  0]LogZenServiceInstance: Display: Launching executable '/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Install/zenserver', working dir '/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Install', data dir '/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Data', args '--port 8558 --data-dir "/Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/Zen/Data" --http asio --gc-cache-duration-seconds 1209600 --gc-interval-seconds 21600 --gc-low-diskspace-threshold 2147483648 --cache-bucket-limit-overwrites --quiet --http-forceloopback --owner-pid 72275  --child-id Zen_72275_Startup --detach'
+[2026.11.12-04.34.44:903][  0]LogZenServiceInstance: Display: Unreal Zen Storage Server HTTP service at http://[::1]:8558 status: OK!.
+[2026.11.12-04.34.44:903][  0]LogZenServiceInstance: Local ZenServer AutoLaunch initialization completed in 0.188 seconds
+[2026.11.12-04.34.44:904][  0]LogDerivedDataCache: Display: ZenLocal: Using ZenServer HTTP service at [::1] with namespace ue.ddc status: OK!.
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: /Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/DerivedDataCache: Speed tests took 0.00 seconds.
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: Display: /Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/DerivedDataCache: Performance: Latency=0.00ms. RandomReadSpeed=2700.61MBs, RandomWriteSpeed=542.17MBs. Assigned SpeedClass 'Local'
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: Local: Using data cache path /Users/jupiter/Library/Application Support/Epic/UnrealEngine/Common/DerivedDataCache: DeleteOnly
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: ZenShared: Disabled because Host is set to 'None'
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: Unable to find inner node ZenShared for hierarchy Hierarchy.
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: Shared: Disabled because no path is configured.
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: Unable to find inner node Shared for hierarchy Hierarchy.
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: Cloud: Disabled because Host is set to 'None'
+[2026.11.12-04.34.44:906][  0]LogDerivedDataCache: Unable to find inner node Cloud for hierarchy Hierarchy.
+[2026.11.12-04.34.44:907][  0]LogShaderCompilers: Guid format shader working directory is 14 characters bigger than the processId version (../../../../../../../private/tmp/landform-natural-karst/LandformLab/Intermediate/Shaders/WorkingDirectory/72275/).
+[2026.11.12-04.34.44:907][  0]LogShaderCompilers: Cleaned the shader compiler working directory '../../../../../../../private/tmp/landform-natural-karst/LandformLab/Intermediate/Shaders/tmp/55C8FEA77C4B9960F4B1D0B5862440E0/'.
+[2026.11.12-04.34.44:907][  0]LogShaderCompilers: Display: No distributed shader compiler controller found
+[2026.11.12-04.34.44:907][  0]LogShaderCompilers: Display: Using 8 local workers for shader compilation
+[2026.11.12-04.34.44:907][  0]LogShaderCompilers: Display: Compiling shader autogen file: ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Intermediate/ShaderAutogen/METAL_SM6/AutogenShaderHeaders.ush
+[2026.11.12-04.34.44:907][  0]LogShaderCompilers: Display: Autogen file is unchanged, skipping write.
+[2026.11.12-04.34.46:195][  0]LogSlate: Using FreeType 2.10.0
+[2026.11.12-04.34.46:195][  0]LogSlate: SlateFontServices - WITH_FREETYPE: 1, WITH_HARFBUZZ: 1
+[2026.11.12-04.34.46:213][  0]LogAssetRegistry: FAssetRegistry took 0.0009 seconds to start up
+[2026.11.12-04.34.46:214][  0]LogAssetRegistry: Display: AssetDataGatherer spent 0.000s loading caches ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Intermediate/CachedAssetRegistry_*.bin.
+[2026.11.12-04.34.46:215][  0]LogEditorDomain: Display: EditorDomain is Disabled
+[2026.11.12-04.34.46:350][  0]LogDeviceProfileManager: Display: Deviceprofile LinuxArm64Editor not found.
+[2026.11.12-04.34.46:350][  0]LogDeviceProfileManager: Display: Deviceprofile LinuxArm64 not found.
+[2026.11.12-04.34.46:377][  0]LogDeviceProfileManager: Active device profile: [0x43467cb80][0x41fdb1100 82] MacEditor
+[2026.11.12-04.34.46:377][  0]LogCsvProfiler: Display: Metadata set : deviceprofile="MacEditor"
+[2026.11.12-04.34.46:379][  0]LogStreaming: Display: FlushAsyncLoading(1): 1 QueuedPackages, 0 AsyncPackages
+[2026.11.12-04.34.46:379][  0]LogTextureEncodingSettings: Display: Texture Encode Speed: FinalIfAvailable (editor).
+[2026.11.12-04.34.46:379][  0]LogTextureEncodingSettings: Display: Oodle Texture Encode Speed settings: Fast: RDO Off Lambda=0, Effort=Normal Final: RDO Off Lambda=0, Effort=Normal
+[2026.11.12-04.34.46:379][  0]LogTextureEncodingSettings: Display: Shared linear texture encoding: Disabled
+[2026.11.12-04.34.46:388][  0]LogStreaming: Display: Flushing package /Engine/Functions/Engine_MaterialFunctions01/Shading/PowerToRoughness (state: WaitingForIo) recursively from another package /Engine/EngineMaterials/DefaultTextMaterialOpaque (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:388][  0]LogStreaming: Display: Package /Engine/EngineMaterials/DefaultTextMaterialOpaque is adding a dynamic import to package /Engine/Functions/Engine_MaterialFunctions01/Shading/PowerToRoughness because of a recursive sync load
+[2026.11.12-04.34.46:388][  0]LogStreaming: Display: Flushing package /Engine/Functions/Engine_MaterialFunctions01/Shading/PowerToRoughness (state: DeferredPostLoad) recursively from another package /Engine/EngineMaterials/DefaultTextMaterialOpaque (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:389][  0]LogStreaming: Display: Flushing package /Engine/Functions/Engine_MaterialFunctions01/Shading/ConvertFromDiffSpec (state: WaitingForIo) recursively from another package /Engine/EngineMaterials/DefaultTextMaterialOpaque (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:389][  0]LogStreaming: Display: Package /Engine/EngineMaterials/DefaultTextMaterialOpaque is adding a dynamic import to package /Engine/Functions/Engine_MaterialFunctions01/Shading/ConvertFromDiffSpec because of a recursive sync load
+[2026.11.12-04.34.46:389][  0]LogStreaming: Display: Flushing package /Engine/Functions/Engine_MaterialFunctions01/Shading/ConvertFromDiffSpec (state: DeferredPostLoad) recursively from another package /Engine/EngineMaterials/DefaultTextMaterialOpaque (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:389][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/WorldGridMaterial (state: WaitingForIo) recursively from another package /Engine/EngineMaterials/DefaultTextMaterialOpaque (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:390][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/DefaultDeferredDecalMaterial (state: WaitingForIo) recursively from another package /Engine/EngineMaterials/WorldGridMaterial (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:390][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/DefaultLightFunctionMaterial (state: WaitingForIo) recursively from another package /Engine/EngineMaterials/DefaultDeferredDecalMaterial (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:390][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/DefaultPostProcessMaterial (state: WaitingForIo) recursively from another package /Engine/EngineMaterials/DefaultLightFunctionMaterial (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:391][  0]LogStreaming: Display: Package /Engine/EngineMaterials/DefaultLightFunctionMaterial is adding a dynamic import to package /Engine/EngineMaterials/DefaultPostProcessMaterial because of a recursive sync load
+[2026.11.12-04.34.46:391][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/DefaultPostProcessMaterial (state: DeferredPostLoad) recursively from another package /Engine/EngineMaterials/DefaultLightFunctionMaterial (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:416][  0]LogStreaming: Display: Package /Engine/EngineMaterials/DefaultDeferredDecalMaterial is adding a dynamic import to package /Engine/EngineMaterials/DefaultLightFunctionMaterial because of a recursive sync load
+[2026.11.12-04.34.46:416][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/DefaultLightFunctionMaterial (state: DeferredPostLoad) recursively from another package /Engine/EngineMaterials/DefaultDeferredDecalMaterial (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:427][  0]LogStreaming: Display: Package /Engine/EngineMaterials/WorldGridMaterial is adding a dynamic import to package /Engine/EngineMaterials/DefaultDeferredDecalMaterial because of a recursive sync load
+[2026.11.12-04.34.46:427][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/DefaultDeferredDecalMaterial (state: DeferredPostLoad) recursively from another package /Engine/EngineMaterials/WorldGridMaterial (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:437][  0]LogStreaming: Display: Package /Engine/EngineMaterials/DefaultTextMaterialOpaque is adding a dynamic import to package /Engine/EngineMaterials/WorldGridMaterial because of a recursive sync load
+[2026.11.12-04.34.46:437][  0]LogStreaming: Display: Flushing package /Engine/EngineMaterials/WorldGridMaterial (state: DeferredPostLoad) recursively from another package /Engine/EngineMaterials/DefaultTextMaterialOpaque (state: CreateLinkerLoadExports) will result in a partially loaded package to avoid a deadlock.
+[2026.11.12-04.34.46:569][  0]LogMeshReduction: Display: Skeletal mesh reduction module (r.SkeletalMeshReductionModule) set to "SkeletalMeshReduction" which doesn't exist.
+[2026.11.12-04.34.46:569][  0]LogMeshReduction: Display: HLOD mesh reduction module (r.ProxyLODMeshReductionModule) set to "ProxyLODMeshReduction" which doesn't exist.
+[2026.11.12-04.34.46:569][  0]LogMeshReduction: Display: Using QuadricMeshReduction for automatic static mesh reduction
+[2026.11.12-04.34.46:569][  0]LogMeshReduction: Display: No automatic skeletal mesh reduction module available
+[2026.11.12-04.34.46:569][  0]LogMeshReduction: Display: No automatic mesh merging module available
+[2026.11.12-04.34.46:569][  0]LogMeshReduction: Display: No distributed automatic mesh merging module available
+[2026.11.12-04.34.46:569][  0]LogMeshMerging: No automatic mesh merging module available
+[2026.11.12-04.34.46:569][  0]LogMeshMerging: No distributed automatic mesh merging module available
+[2026.11.12-04.34.46:695][  0]LogConfig: Applying CVar settings from Section [/Script/VoxelCore.VoxelDeveloperSettings] File [Engine]
+[2026.11.12-04.34.46:742][  0]LogConfig: Applying CVar settings from Section [/Script/CQTest.CQTestSettings] File [Engine]
+[2026.11.12-04.34.46:749][  0]LogConfig: Applying CVar settings from Section [/Script/VoxelCore.VoxelShaderHooksSettings] File [Engine]
+[2026.11.12-04.34.46:749][  0]LogConfig: Applying CVar settings from Section [/Script/PCG.PCGEngineSettings] File [Engine]
+[2026.11.12-04.34.46:749][  0]LogConfig: Applying CVar settings from Section [/Script/Voxel.VoxelSettings] File [Engine]
+[2026.11.12-04.34.46:749][  0]LogConfig: Applying CVar settings from Section [/Script/VoxelGraphEditor.VoxelGraphEditorSettings] File [Engine]
+[2026.11.12-04.34.46:750][  0]LogConfig: Applying CVar settings from Section [/Script/VoxelEditor.VoxelEditorSettings] File [Engine]
+[2026.11.12-04.34.46:766][  0]LogShaderCompilers: Display: Compiling shader autogen file: ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Intermediate/ShaderAutogen/METAL_SM5/AutogenShaderHeaders.ush
+[2026.11.12-04.34.46:766][  0]LogShaderCompilers: Display: Autogen file is unchanged, skipping write.
+[2026.11.12-04.34.46:766][  0]LogVirtualization: Display: VirtualizationSystem name found in ini file: None
+[2026.11.12-04.34.46:766][  0]LogVirtualization: Display: FNullVirtualizationSystem mounted, virtualization will be disabled
+[2026.11.12-04.34.46:779][  0]LogSlate: Border
+[2026.11.12-04.34.46:779][  0]LogSlate: BreadcrumbButton
+[2026.11.12-04.34.46:779][  0]LogSlate: Brushes.Title
+[2026.11.12-04.34.46:779][  0]LogSlate: ColorPicker.ColorThemes
+[2026.11.12-04.34.46:779][  0]LogSlate: Default
+[2026.11.12-04.34.46:779][  0]LogSlate: Icons.Save
+[2026.11.12-04.34.46:779][  0]LogSlate: Icons.Toolbar.Settings
+[2026.11.12-04.34.46:779][  0]LogSlate: ListView
+[2026.11.12-04.34.46:779][  0]LogSlate: SoftwareCursor_CardinalCross
+[2026.11.12-04.34.46:779][  0]LogSlate: SoftwareCursor_Grab
+[2026.11.12-04.34.46:779][  0]LogSlate: TableView.DarkRow
+[2026.11.12-04.34.46:779][  0]LogSlate: TableView.Row
+[2026.11.12-04.34.46:779][  0]LogSlate: TreeView
+[2026.11.12-04.34.46:893][  0]LogWorldPartition: Display: FWorldPartitionClassDescRegistry::Initialize started...
+[2026.11.12-04.34.46:894][  0]LogWorldPartition: Display: FWorldPartitionClassDescRegistry::Initialize took 1.220 ms
+[2026.11.12-04.34.46:923][  0]LogCF: Display: Catalyst Foundation module started.
+[2026.11.12-04.34.46:923][  0]LogInit: XR: Instanced Stereo Rendering is Disabled
+[2026.11.12-04.34.46:923][  0]LogInit: XR: MultiViewport is Disabled
+[2026.11.12-04.34.46:923][  0]LogInit: XR: Mobile Multiview is Disabled
+[2026.11.12-04.34.46:929][  0]LogUObjectGlobals: Warning: LoadPackage can't find package /ACLPlugin/ACLAnimBoneCompressionSettings.
+[2026.11.12-04.34.46:929][  0]LogUObjectGlobals: Warning: LoadPackage can't find package /ACLPlugin/ACLAnimBoneCompressionSettings.
+[2026.11.12-04.34.46:929][  0]LogUObjectGlobals: Warning: Failed to find object 'Object None./ACLPlugin/ACLAnimBoneCompressionSettings'
+[2026.11.12-04.34.46:929][  0]LogAnimationCompression: Warning: Couldn't load default compression settings asset with path '/ACLPlugin/ACLAnimBoneCompressionSettings'
+[2026.11.12-04.34.46:929][  0]LogUObjectGlobals: Warning: LoadPackage can't find package /ACLPlugin/ACLAnimCurveCompressionSettings.
+[2026.11.12-04.34.46:929][  0]LogUObjectGlobals: Warning: LoadPackage can't find package /ACLPlugin/ACLAnimCurveCompressionSettings.
+[2026.11.12-04.34.46:929][  0]LogUObjectGlobals: Warning: Failed to find object 'Object None./ACLPlugin/ACLAnimCurveCompressionSettings'
+[2026.11.12-04.34.46:929][  0]LogAnimationCompression: Warning: Couldn't load default compression settings asset with path '/ACLPlugin/ACLAnimCurveCompressionSettings'
+[2026.11.12-04.34.46:976][  0]LogNiagaraDebuggerClient: Niagara Debugger Client Initialized | Session: 9276070B38954FD68000000000009F00 | Instance: FFB27014D04FAA6CE33EF1A450851F99 (jupiter.local-72275).
+[2026.11.12-04.34.48:256][  0]LogCF: Display: [CFModelAssetFactory] ctor: bCreateNew=1 bEditAfterNew=1
+[2026.11.12-04.34.48:257][  0]LogLinker: Warning: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Plugins/Runtime/GeoReferencing/Content/UI/Icons/S_GeoReferencing.uasset: VerifyImport: Failed to find script package for import object 'Package /Script/InterchangePipelines'
+[2026.11.12-04.34.48:257][  0]LogLinker: Warning: [AssetLog] /Users/jupiter/UnrealEngine/UE_5.7/Engine/Plugins/Runtime/GeoReferencing/Content/UI/Icons/S_GeoReferencing.uasset: VerifyImport: Failed to find script package for import object 'Package /Script/InterchangeFactoryNodes'
+[2026.11.12-04.34.48:257][  0]LogInterchangeEngine: Display: Missing Interchange reimport data for Texture2D /GeoReferencing/UI/Icons/S_GeoReferencing.S_GeoReferencing
+[2026.11.12-04.34.48:391][  0]LogGeoReferencing: Display: The engine is currently using Compressed Rotation Transforms. You may encounter accuracy issues with large neshes. We recommend setting all bSupportsSceneDataCompressedTransforms to false in the Engine/Config/[platform]/DataDrivenPlatformInfo.ini file
+[2026.11.12-04.34.48:481][  0]LogCollectionManager: Loaded 0 collections in 0.001425 seconds
+[2026.11.12-04.34.48:481][  0]LogFileCache: Scanning file cache for directory '/private/tmp/landform-natural-karst/LandformLab/Saved/Collections/' took 0.00s
+[2026.11.12-04.34.48:482][  0]LogFileCache: Scanning file cache for directory '/private/tmp/landform-natural-karst/LandformLab/Content/Developers/jupiter/Collections/' took 0.00s
+[2026.11.12-04.34.48:482][  0]LogFileCache: Scanning file cache for directory '/private/tmp/landform-natural-karst/LandformLab/Content/Collections/' took 0.00s
+[2026.11.12-04.34.48:485][  0]LogCatalystLandform: Display: Catalyst Landform runtime loaded
+[2026.11.12-04.34.48:514][  0]LogCFEditor: Display: CatalystFoundationEditor Startup
+[2026.11.12-04.34.48:544][  0]LogStreaming: Warning: Failed to read file '../../../Engine/Content/Editor/Slate/Icons/icon_Landscape_Target_Heightmap_48x.png' error.
+[2026.11.12-04.34.48:544][  0]LogSlate: Could not load file for Slate resource: [../../../Engine/Content/Editor/Slate/Icons/icon_Landscape_Target_Heightmap_48x.png] file: [../../../Engine/Content/Editor/Slate/Icons/icon_Landscape_Target_Heightmap_48x.png]
+[2026.11.12-04.34.48:552][  0]LogUObjectArray: 33344 objects as part of root set at end of initial load.
+[2026.11.12-04.34.48:552][  0]LogUObjectArray: CloseDisregardForGC: 0/0 objects in disregard for GC pool
+[2026.11.12-04.34.48:652][  0]LogEngine: Initializing Engine...
+[2026.11.12-04.34.48:692][  0]LogStats: UGameplayTagsManager::InitializeManager -  0.000 s
+[2026.11.12-04.34.48:832][  0]LogTextureFormatOodle: Display: Oodle Texture loading DLL: liboo2texmac64.2.9.11.dylib
+[2026.11.12-04.34.48:848][  0]LogTextureFormatOodle: Display: Oodle Texture loading DLL: liboo2texmac64.2.9.12.dylib
+[2026.11.12-04.34.48:864][  0]LogChaosDD: Creating Chaos Debug Draw Scene for world Untitled
+[2026.11.12-04.34.48:878][  0]LogNetVersion: Set ProjectVersion to 1.0.0.0. Version Checksum will be recalculated on next use.
+[2026.11.12-04.34.48:878][  0]LogInit: Texture streaming: Enabled
+[2026.11.12-04.34.48:880][  0]LogAnalytics: Display: [UEEditor.Rocket.Release] AnalyticsET::StartSession ( APIServer = https://datarouter.ol.epicgames.com/datarouter/api/v1/public/data. AppVersion = 5.7.4-51494982+++UE5+Release-5.7 )
+[2026.11.12-04.34.48:893][  0]LogCsvProfiler: Display: Metadata set : largeworldcoordinates="1"
+[2026.11.12-04.34.48:894][  0]LogInit: Undo buffer set to 256 MB
+[2026.11.12-04.34.48:894][  0]LogInit: Transaction tracking system initialized
+[2026.11.12-04.34.48:897][  0]SourceControl: Revision control is disabled
+[2026.11.12-04.34.48:907][  0]LogSourceControl: Display: Uncontrolled Changelist persistency file loaded ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Saved/SourceControl/UncontrolledChangelists.json
+[2026.11.12-04.34.48:991][  0]LocalizationService: Localization service is disabled
+[2026.11.12-04.34.49:019][  0]LogTimingProfiler: Initialize
+[2026.11.12-04.34.49:019][  0]LogTimingProfiler: OnSessionChanged
+[2026.11.12-04.34.49:019][  0]LoadingProfiler: Initialize
+[2026.11.12-04.34.49:019][  0]LoadingProfiler: OnSessionChanged
+[2026.11.12-04.34.49:019][  0]LogNetworkingProfiler: Initialize
+[2026.11.12-04.34.49:019][  0]LogNetworkingProfiler: OnSessionChanged
+[2026.11.12-04.34.49:020][  0]LogMemoryProfiler: Initialize
+[2026.11.12-04.34.49:020][  0]LogMemoryProfiler: OnSessionChanged
+[2026.11.12-04.34.49:180][  0]LogCsvProfiler: Display: Metadata set : systemresolution.resx="2056"
+[2026.11.12-04.34.49:180][  0]LogCsvProfiler: Display: Metadata set : systemresolution.resy="1329"
+[2026.11.12-04.34.49:203][  0]LogTextureFormatOodle: Display: Oodle Texture loading DLL: liboo2texmac64.2.9.13.dylib
+[2026.11.12-04.34.49:625][  0]LogPython: Python enabled via CVar 'Engine.Python.IsEnabledByDefault'
+[2026.11.12-04.34.49:625][  0]LogPython: Using Python 3.11.8
+[2026.11.12-04.34.49:779][  0]LogPython: Display: No pip-enabled plugins with python dependencies found, skipping
+[2026.11.12-04.34.49:820][  0]LogPython: Warning: 'CLTerrainRegion.bSphericalMask' and 'CLTerrainRegion.SphericalMask' have the same name (spherical_mask) when exposed to Python. Rename one of them using 'ScriptName' meta-data (or 'ScriptMethod' or 'ScriptConstant' for extension functions).
+[2026.11.12-04.34.50:051][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:055][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:056][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:058][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:059][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:060][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:061][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:063][  0]LogInit: Display: Engine is initialized. Leaving FEngineLoop::Init()
+[2026.11.12-04.34.50:064][  0]SourceControl: Revision control is disabled
+[2026.11.12-04.34.50:064][  0]LogUnrealEdMisc: Loading editor; pre map load, took 7.372
+[2026.11.12-04.34.50:064][  0]Cmd: MAP LOAD FILE="../../../Engine/Content/Maps/Entry.umap" TEMPLATE=0 SHOWPROGRESS=0 FEATURELEVEL=4
+[2026.11.12-04.34.50:066][  0]LogWorld: UWorld::CleanupWorld for Untitled, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.34.50:066][  0]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.34.50:074][  0]LogUObjectHash: Compacting FUObjectHashTables data took   0.14ms
+[2026.11.12-04.34.50:077][  0]LogChaosDD: Creating Chaos Debug Draw Scene for world Entry
+[2026.11.12-04.34.50:083][  0]LogEditorServer: Finished looking for orphan Actors (0.000 secs)
+[2026.11.12-04.34.50:091][  0]LogUObjectHash: Compacting FUObjectHashTables data took   0.14ms
+[2026.11.12-04.34.50:091][  0]Cmd: MAP CHECKDEP NOCLEARLOG
+[2026.11.12-04.34.50:092][  0]MapCheck: Map check complete: 0 Error(s), 0 Warning(s), took 0.043ms to complete.
+[2026.11.12-04.34.50:097][  0]LogUnrealEdMisc: Total Editor Startup Time, took 7.404
+[2026.11.12-04.34.50:105][  0]LogAssetRegistry: Display: Package /Users/jupiter/UnrealEngine/UE_5.7/Engine/Plugins/PCG/Content/GraphTemplates/Meshes/Fence01.uasset uses an unknown custom version and cannot be loaded for the AssetRegistry
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Enumerating Projects From Engine Ver: 5.7
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Looking for directories to scan from : /Users/jupiter/Library/Application Support/Epic/UnrealEngine/5.7/Saved/Config/MacEditor
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Searching for previously created project directories...
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Unreal Projects"
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision"
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision/CatalystDevKit/UnrealEnginePlugins"
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision/CatalystDevKit"
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Desktop"
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Projects/ThatGame"
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-mixed/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.05-12.46.35)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-morphology/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.05-20.44.16)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-cleanup/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.06-04.03.24)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-approach/LandformExamples/LandformExamples.uproject",LastOpenTime=2026.11.06-06.02.59)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-cinematic/LandformExamples/LandformExamples.uproject",LastOpenTime=2026.11.06-07.26.12)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-editor-quit/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.06-23.20.17)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-background/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.07-20.04.26)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVisionPro/catalyst-workspace/Landform/Projects/LandformExamples/LandformExamples.uproject",LastOpenTime=2026.11.07-23.00.08)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Projects/ThatGame/TGCAssetStaging/TGCAssetStaging.uproject",LastOpenTime=2026.11.11-06.09.46)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.12-04.34.48)" in recently opened files
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/VoxelPlay/VoxelPlay.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst-old-170225/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/MV_Development/MV_Development.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Playground/Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/AwesomeMV/AwesomeMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame/ThatGame.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/BuildPluginTemp/BuildPluginTemp.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/LGUITest/LGUITest.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/RespectedMV/RespectedMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56MainMenu/ThatGame56MainMenu.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56Playground/ThatGame56Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/EasyBuildingSystemV10/EasyBuildingSystemv10.uproject" in previously created project directory
+[2026.11.12-04.34.50:145][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:146][  0]LogDesktopPlatform: Found project "/opt/git/BenjaVision/CatalystDevKit/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:147][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins5.4.WIP/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:147][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/TGCAssetStaging/TGCAssetStaging.uproject" in previously created project directory
+[2026.11.12-04.34.50:147][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:147][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst-old/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:147][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:147][  0]LogDesktopPlatform: Searching for projects in .uprojectdirs
+[2026.11.12-04.34.50:150][  0]LogProjectBrowser: Looking for projects...
+[2026.11.12-04.34.50:150][  0]LogProjectBrowser: Found Engine Installation "5.6"(/Users/jupiter/UnrealEngine/UE_5.6)
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Enumerating Projects From Engine Ver: 5.6
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Looking for directories to scan from : /Users/jupiter/Library/Application Support/Epic/UnrealEngine/5.6/Saved/Config/MacEditor
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Searching for previously created project directories...
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Projects/ThatGame"
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Unreal Projects"
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision"
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision/CatalystDevKit/UnrealEnginePlugins"
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject",LastOpenTime=2025.05.26-07.52.23)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/ThatGame56Testing/ThatGame56Testing.uproject",LastOpenTime=2025.06.19-22.25.39)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/ThatGame56MainMenu/ThatGame56MainMenu.uproject",LastOpenTime=2025.07.13-21.27.11)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/ThatGame/ThatGame.uproject",LastOpenTime=2025.08.07-21.19.37)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVision/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.08.09-22.57.14)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/ThatGame56Playground/ThatGame56Playground.uproject",LastOpenTime=2025.09.09-08.07.46)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVision/CatalystDevKit/UE/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.10.01-02.19.11)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVision/CatalystDevKit/UnrealEnginePlugins/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.10.08-04.25.39)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/actions-runner/_work/CatalystDevKit/CatalystDevKit/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.10.11-05.05.50)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVision/CatalystDevKit/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.11.26-19.44.55)" in recently opened files
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/VoxelPlay/VoxelPlay.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst-old-170225/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/MV_Development/MV_Development.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Playground/Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/AwesomeMV/AwesomeMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame/ThatGame.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/BuildPluginTemp/BuildPluginTemp.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/LGUITest/LGUITest.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/RespectedMV/RespectedMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56MainMenu/ThatGame56MainMenu.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56Playground/ThatGame56Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/EasyBuildingSystemV10/EasyBuildingSystemv10.uproject" in previously created project directory
+[2026.11.12-04.34.50:151][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:152][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins5.4.WIP/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:152][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/TGCAssetStaging/TGCAssetStaging.uproject" in previously created project directory
+[2026.11.12-04.34.50:152][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:152][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst-old/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:152][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:152][  0]LogDesktopPlatform: Searching for projects in .uprojectdirs
+[2026.11.12-04.34.50:152][  0]LogProjectBrowser: Found Engine Installation "5.8"(/Users/jupiter/UnrealEngine/UE_5.8)
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Enumerating Projects From Engine Ver: 5.8
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Looking for directories to scan from : /Users/jupiter/Library/Application Support/Epic/UnrealEngine/5.8/Saved/Config/MacEditor
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Searching for previously created project directories...
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Projects/ThatGame"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Unreal Projects"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision/CatalystDevKit/UnrealEnginePlugins"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision/CatalystDevKit"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Desktop"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVisionPro"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVisionPro/landform-workspace"
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVision/CatalystDevKit/UnrealEnginePlugins/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.10.04-06.44.42)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Desktop/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.10.04-11.19.49)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Desktop/Dummy/Dummy.uproject",LastOpenTime=2025.11.29-04.05.38)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVision/CatalystDevKit/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2025.12.10-10.04.26)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVisionPro/CatalystPlugins/CatalystPlugins.uproject",LastOpenTime=2026.10.22-13.46.54)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVisionPro/landform-workspace/CatalystPlugins58/CatalystPlugins58.uproject",LastOpenTime=2026.10.22-20.16.16)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVisionPro/catalyst-workspace/recovery/connect-platforms-20261029/UEHost/ConnectHost.uproject",LastOpenTime=2026.10.29-00.01.53)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVisionPro/catalyst-workspace/recovery/users-platforms-20261029/UEHost/ConnectHost.uproject",LastOpenTime=2026.10.30-02.01.24)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/catalyst-vpp-installer-160-ue584/InstallerCheck/InstallerCheck.uproject",LastOpenTime=2026.10.30-04.06.49)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVisionPro/catalyst-workspace/Landform/Projects/LandformLab/LandformLab.uproject",LastOpenTime=2026.10.30-04.22.26)" in recently opened files
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/VoxelPlay/VoxelPlay.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst-old-170225/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/MV_Development/MV_Development.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Playground/Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/AwesomeMV/AwesomeMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame/ThatGame.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/BuildPluginTemp/BuildPluginTemp.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/LGUITest/LGUITest.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/RespectedMV/RespectedMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56MainMenu/ThatGame56MainMenu.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56Playground/ThatGame56Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/EasyBuildingSystemV10/EasyBuildingSystemv10.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins5.4.WIP/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:153][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/TGCAssetStaging/TGCAssetStaging.uproject" in previously created project directory
+[2026.11.12-04.34.50:154][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:154][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst-old/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:154][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:154][  0]LogDesktopPlatform: Found project "/opt/git/BenjaVision/CatalystDevKit/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:155][  0]LogDesktopPlatform: Found project "/opt/git/BenjaVisionPro/landform-workspace/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:155][  0]LogDesktopPlatform: Searching for projects in .uprojectdirs
+[2026.11.12-04.34.50:155][  0]LogProjectBrowser: Found Engine Installation "5.7"(/Users/jupiter/UnrealEngine/UE_5.7)
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Enumerating Projects From Engine Ver: 5.7
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Looking for directories to scan from : /Users/jupiter/Library/Application Support/Epic/UnrealEngine/5.7/Saved/Config/MacEditor
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Searching for previously created project directories...
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Unreal Projects"
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision"
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision/CatalystDevKit/UnrealEnginePlugins"
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found directory: "/opt/git/BenjaVision/CatalystDevKit"
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Desktop"
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Projects/ThatGame"
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-mixed/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.05-12.46.35)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-morphology/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.05-20.44.16)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-cleanup/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.06-04.03.24)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-approach/LandformExamples/LandformExamples.uproject",LastOpenTime=2026.11.06-06.02.59)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-cinematic/LandformExamples/LandformExamples.uproject",LastOpenTime=2026.11.06-07.26.12)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-editor-quit/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.06-23.20.17)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-background/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.07-20.04.26)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/opt/git/BenjaVisionPro/catalyst-workspace/Landform/Projects/LandformExamples/LandformExamples.uproject",LastOpenTime=2026.11.07-23.00.08)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Projects/ThatGame/TGCAssetStaging/TGCAssetStaging.uproject",LastOpenTime=2026.11.11-06.09.46)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "(ProjectName="/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",LastOpenTime=2026.11.12-04.34.48)" in recently opened files
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/VoxelPlay/VoxelPlay.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst-old-170225/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/MV_Development/MV_Development.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Playground/Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/AwesomeMV/AwesomeMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame/ThatGame.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/BuildPluginTemp/BuildPluginTemp.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/LGUITest/LGUITest.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/RespectedMV/RespectedMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56MainMenu/ThatGame56MainMenu.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56Playground/ThatGame56Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/EasyBuildingSystemV10/EasyBuildingSystemv10.uproject" in previously created project directory
+[2026.11.12-04.34.50:156][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:157][  0]LogDesktopPlatform: Found project "/opt/git/BenjaVision/CatalystDevKit/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:157][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins5.4.WIP/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:157][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/TGCAssetStaging/TGCAssetStaging.uproject" in previously created project directory
+[2026.11.12-04.34.50:157][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:157][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst-old/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:157][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:157][  0]LogDesktopPlatform: Searching for projects in .uprojectdirs
+[2026.11.12-04.34.50:158][  0]LogProjectBrowser: Found Engine Installation "5.5"(/Users/jupiter/UnrealEngine/UE_5.5)
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Enumerating Projects From Engine Ver: 5.5
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Looking for directories to scan from : /Users/jupiter/Library/Application Support/Epic/UnrealEngine/5.5/Saved/Config/MacEditor
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Searching for previously created project directories...
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Projects/ThatGame"
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Unreal Projects"
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/MotionDesignTest/MotionDesignTest.uproject",LastOpenTime=2024.12.08-03.08.02)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/GameAnimationSample/GameAnimationSample.uproject",LastOpenTime=2024.12.08-03.12.38)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/RespectedMV/RespectedMV.uproject",LastOpenTime=2024.12.13-20.02.30)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/Playground/Playground.uproject",LastOpenTime=2024.12.22-09.19.17)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/BuildPluginTemp/BuildPluginTemp.uproject",LastOpenTime=2025.01.02-07.24.36)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/MV_Development/MV_Development.uproject",LastOpenTime=2025.03.28-21.58.48)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/EasyBuildingSystemV10/EasyBuildingSystemv10.uproject",LastOpenTime=2025.04.26-04.14.24)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst/ThatGameCatalyst.uproject",LastOpenTime=2025.04.30-22.13.04)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/WhatIsSmalltalk/WhatIsSmalltalk.uproject",LastOpenTime=2025.05.26-06.26.46)" in recently opened files
+[2026.11.12-04.34.50:158][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject",LastOpenTime=2025.05.26-08.48.37)" in recently opened files
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/VoxelPlay/VoxelPlay.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst-old-170225/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/MV_Development/MV_Development.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Playground/Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/AwesomeMV/AwesomeMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame/ThatGame.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/BuildPluginTemp/BuildPluginTemp.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/LGUITest/LGUITest.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/RespectedMV/RespectedMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56MainMenu/ThatGame56MainMenu.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56Playground/ThatGame56Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/EasyBuildingSystemV10/EasyBuildingSystemv10.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins5.4.WIP/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/TGCAssetStaging/TGCAssetStaging.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/CatalystPlugins/CatalystPlugins.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst-old/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Projects/ThatGame/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:159][  0]LogDesktopPlatform: Searching for projects in .uprojectdirs
+[2026.11.12-04.34.50:159][  0]LogProjectBrowser: Found Engine Installation "{0139DA40-3D41-D3F0-D9F5-8686C3D75262}"(/Users/jupiter/UnrealEngine/UE_5.4_Source)
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Enumerating Projects From Engine Ver: {0139DA40-3D41-D3F0-D9F5-8686C3D75262}
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Looking for directories to scan from : /Users/jupiter/UnrealEngine/UE_5.4_Source/Engine/Saved/Config/MacEditor
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Searching for previously created project directories...
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found directory: "/Users/jupiter/Documents/Unreal Projects"
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "(ProjectName="/Users/jupiter/Documents/Unreal Projects/VoxelPlay/VoxelPlay.uproject",LastOpenTime=2024.10.22-21.25.50)" in recently opened files
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/VoxelPlay/VoxelPlay.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst-old-170225/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/MV_Development/MV_Development.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Playground/Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/Smalltalk/Smalltalk.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/AwesomeMV/AwesomeMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame/ThatGame.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/BuildPluginTemp/BuildPluginTemp.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/LGUITest/LGUITest.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/RespectedMV/RespectedMV.uproject" in previously created project directory
+[2026.11.12-04.34.50:160][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56MainMenu/ThatGame56MainMenu.uproject" in previously created project directory
+[2026.11.12-04.34.50:161][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGame56Playground/ThatGame56Playground.uproject" in previously created project directory
+[2026.11.12-04.34.50:161][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/EasyBuildingSystemV10/EasyBuildingSystemv10.uproject" in previously created project directory
+[2026.11.12-04.34.50:161][  0]LogDesktopPlatform: Found project "/Users/jupiter/Documents/Unreal Projects/ThatGameCatalyst/ThatGameCatalyst.uproject" in previously created project directory
+[2026.11.12-04.34.50:161][  0]LogDesktopPlatform: Searching for projects in .uprojectdirs
+[2026.11.12-04.34.50:163][  0]LogProjectBrowser: Enumerating Launcher Sample Projects...
+[2026.11.12-04.34.50:168][  0]LogPlacementMode: Display: The Asset Registry is not yet fully loaded so some placeable classes might be missing.
+[2026.11.12-04.34.50:249][  0]LogSlate: Updating window title bar state: overlay mode, drag disabled, window buttons hidden, title bar hidden
+[2026.11.12-04.34.50:299][  0]LogSlate: Updating window title bar state: overlay mode, drag disabled, window buttons hidden, title bar hidden
+[2026.11.12-04.34.50:348][  0]LogSlate: Updating window title bar state: overlay mode, drag disabled, window buttons hidden, title bar hidden
+[2026.11.12-04.34.50:396][  0]LogSlate: Updating window title bar state: overlay mode, drag disabled, window buttons hidden, title bar hidden
+[2026.11.12-04.34.50:410][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:410][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_HandheldARBP.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:410][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:410][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_VirtualRealityBP.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:410][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:411][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_TopDownBP.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:411][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:411][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_VehicleAdvBP.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:411][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:411][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_TopDown.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:411][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:411][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_ThirdPerson.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:411][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:411][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_FirstPerson.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:411][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:411][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_FirstPersonBP.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:411][  0]LogPakFile: Initializing PakPlatformFile
+[2026.11.12-04.34.50:411][  0]LogPakFile: Display: Mounted Pak file '/Users/jupiter/UnrealEngine/UE_5.7/FeaturePacks/TP_ThirdPersonBP.upack', mount point: 'root:/'
+[2026.11.12-04.34.50:520][  0]LogSlate: Took 0.000060 seconds to synchronously load lazily loaded font '../../../Engine/Content/Slate/Fonts/DroidSansMono.ttf' (77K)
+[2026.11.12-04.34.50:563][  0]LogSlate: The tab "Unknown" attempted to spawn in layout 'LevelEditor_Layout_v1.8' but failed for some reason. It will not be displayed.
+[2026.11.12-04.34.50:614][  0]LogSlate: The tab "Unknown" attempted to spawn in layout 'UnrealEd_Layout_v1.5' but failed for some reason. It will not be displayed.
+[2026.11.12-04.34.50:627][  0]LogSlate: The tab "Unknown" attempted to spawn in layout 'UnrealEd_Layout_v1.5' but failed for some reason. It will not be displayed.
+[2026.11.12-04.34.50:627][  0]LogSlate: Window '' being destroyed
+[2026.11.12-04.34.50:629][  0]LogSlate: Took 0.000111 seconds to synchronously load lazily loaded font '../../../Engine/Content/Slate/Fonts/Roboto-Regular.ttf' (155K)
+[2026.11.12-04.34.50:631][  0]LogSlate: Took 0.000094 seconds to synchronously load lazily loaded font '../../../Engine/Content/Slate/Fonts/Roboto-Bold.ttf' (160K)
+[2026.11.12-04.34.50:632][  0]LogSlate: Took 0.000076 seconds to synchronously load lazily loaded font '../../../Engine/Content/Slate/Fonts/Roboto-Italic.ttf' (157K)
+[2026.11.12-04.34.50:670][  0]LogSlate: Took 0.000162 seconds to synchronously load lazily loaded font '../../../Engine/Content/Slate/Fonts/Roboto-Light.ttf' (167K)
+[2026.11.12-04.34.50:705][  0]LogLoad: (Engine Initialization) Total time: 8.01 seconds
+[2026.11.12-04.34.50:938][  0]LogContentStreaming: Texture pool size now 1000 MB
+[2026.11.12-04.34.50:938][  0]LogCsvProfiler: Display: Metadata set : streamingpoolsizemb="1000"
+[2026.11.12-04.34.50:966][  0]LogZenServiceInstance: Display: Launching zen utility '/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/zen service status'.
+[2026.11.12-04.34.51:271][  0]LogZenServiceInstance: Display: Launching zen utility '/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/zen service status'.
+[2026.11.12-04.34.51:579][  0]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.34.51:579][  0]LogVoxelInstaller: Refreshing user
+[2026.11.12-04.34.51:579][  0]LogVoxelInstaller: Updating versions
+[2026.11.12-04.34.51:580][  0]Automation: RunTests='Catalyst.Landform.Planet.LandformRows+Catalyst.Landform.Rift.Family+Catalyst.Landform.Rift.GeologyAndRestoration+Catalyst.Landform.Rift.BackgroundAndRecipe+Catalyst.Landform.Regions.BlendAndNativeParity+Catalyst.Landform.Rift.NativeDesigner+Catalyst.Landform.Caves.AlwaysEnabledMinimum+Catalyst.Landform.Caves.Placement' Queued.
+[2026.11.12-04.34.51:581][  0]LogTrace: Display: Control listening on port 1985
+[2026.11.12-04.34.51:602][  1]LogAssetRegistry: AssetRegistryGather time 0.1521s: AssetDataDiscovery 0.0523s, AssetDataGather 0.0730s, StoreResults 0.0268s. Wall time 5.3890s.
+	NumCachedDirectories 0. NumUncachedDirectories 1322. NumCachedFiles 7008. NumUncachedFiles 0.
+	BackgroundTickInterruptions 0.
+[2026.11.12-04.34.51:615][  1]LogAssetRegistry: Display: Starting OnFilesLoaded.Broadcast
+[2026.11.12-04.34.51:620][  1]LogPlacementMode: Display: The Asset Registry is done with its initial scan, the list of placeable classes has been updated.
+[2026.11.12-04.34.51:624][  1]LogCollectionManager: Fixed up redirectors for 0 collections in 0.000000 seconds (updated 0 objects)
+[2026.11.12-04.34.51:624][  1]LogAssetRegistry: Display: Completed OnFilesLoaded.Broadcast: -0.050s
+[2026.11.12-04.34.51:625][  1]LogSourceControl: Uncontrolled asset discovery started...
+[2026.11.12-04.34.51:643][  1]LogAppleWebBrowser: Warning: SetWebBrowserVisibility 0!
+[2026.11.12-04.34.51:643][  1]LogEngineAutomationLatentCommand: FWaitForInteractiveFrameRate: Starting wait for framerate of >= 10 FPS
+[2026.11.12-04.34.51:689][  8]LogAssetRegistry: Display: Asset registry cache written as 19.9 MiB to ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Intermediate/CachedAssetRegistry_*.bin
+[2026.11.12-04.34.51:758][ 13]LogSourceControl: Uncontrolled asset discovery finished in 0.133619 seconds (Found 6984 uncontrolled assets)
+[2026.11.12-04.34.56:674][603]LogEngineAutomationLatentCommand: FWaitForInteractiveFrameRate: Hit 45.71 FPS for 5 seconds after 5 seconds of waiting
+[2026.11.12-04.34.56:674][603]LogAutomationCommandLine: Display: Ready to start automation
+[2026.11.12-04.35.01:692][204]LogAutomationWorker: Received FindWorkersMessage from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:692][204]LogAutomationController: Received FindWorkersResponseMessage from A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:692][204]LogAutomationController: Requesting test list from A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:700][205]LogAutomationWorker: Received RequestTestsMessage from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:707][205]LogAutomationWorker: Set 2530 tests to 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:707][205]LogAutomationController: Received RequestTestsReplyCompleteMessage from A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:708][205]LogAutomationController: 2530 tests available on A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: Found 16 automation tests based on 'Catalyst.Landform.Planet.LandformRows+Catalyst.Landform.Rift.Family+Catalyst.Landform.Rift.GeologyAndRestoration+Catalyst.Landform.Rift.BackgroundAndRecipe+Catalyst.Landform.Regions.BlendAndNativeParity+Catalyst.Landform.Rift.NativeDesigner+Catalyst.Landform.Caves.AlwaysEnabledMinimum+Catalyst.Landform.Caves.Placement'
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Caves.Placement.DepthRangeAndShapes
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Caves.Placement.GuidesAndPersistence
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Caves.AlwaysEnabledMinimum
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Regions.BlendAndNativeParity
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.Family.CharacterNoiseAndRock
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.Family.CuratedLandscape
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.Family.PlacementRelaxation
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.Family.SoloSavedProfile
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.NativeDesigner.Character
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.NativeDesigner.Landscape
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.NativeDesigner.PreviewModes
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.BackgroundAndRecipe
+[2026.11.12-04.35.01:717][205]LogAutomationCommandLine: Display: 	Catalyst.Landform.Rift.GeologyAndRestoration
+[2026.11.12-04.35.01:717][205]LogAutomationController: Sending StopTests to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:718][205]LogAutomationController: Display: Loading results html template...
+[2026.11.12-04.35.01:718][205]LogAutomationController: Display: Successfully wrote html results file!
+[2026.11.12-04.35.01:718][205]LogAutomationController: Sending StartTestSession to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:718][205]LogAutomationController: Display: Clearing ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Saved/Automation/Logs/ and ../../../../../../../private/tmp/landform-natural-karst/LandformLab/Saved/Automation/Tmp/
+[2026.11.12-04.35.01:718][205]AutomationTestingLog: -----Test Run 3----
+[2026.11.12-04.35.01:719][205]LogAutomationController: Sending RunTest DepthRangeAndShapes to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:719][205]LogAutomationController: Display: Test Started. Name={DepthRangeAndShapes} Path={Catalyst.Landform.Caves.Placement.DepthRangeAndShapes}
+[2026.11.12-04.35.01:723][206]LogAutomationWorker: Received StopTests from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:723][206]LogAutomationWorker: Received StartTestSession from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:723][206]LogAutomationWorker: Received RunTests DepthRangeAndShapes from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:723][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:723][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:725][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:726][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:728][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:734][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:745][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:750][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:752][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:757][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:758][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:758][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:760][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:760][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:763][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:768][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:779][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:783][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:784][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:786][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:791][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:791][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:793][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:794][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:796][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:801][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:812][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:817][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:820][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:824][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:825][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:825][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:827][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:828][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:830][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:835][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:846][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:851][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:853][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:858][206]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.01:863][207]LogAutomationController: Display: Test Completed. Result={Success} Name={DepthRangeAndShapes} Path={Catalyst.Landform.Caves.Placement.DepthRangeAndShapes}
+[2026.11.12-04.35.01:864][207]LogAutomationController: BeginEvents: Catalyst.Landform.Caves.Placement.DepthRangeAndShapes
+[2026.11.12-04.35.01:864][207]LogAutomationController: EndEvents: Catalyst.Landform.Caves.Placement.DepthRangeAndShapes
+[2026.11.12-04.35.01:864][207]LogAutomationController: Sending RunTest GuidesAndPersistence to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:864][207]LogAutomationController: Display: Test Started. Name={GuidesAndPersistence} Path={Catalyst.Landform.Caves.Placement.GuidesAndPersistence}
+[2026.11.12-04.35.01:872][208]LogAutomationWorker: Received RunTests GuidesAndPersistence from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:880][209]LogAutomationController: Display: Test Completed. Result={Success} Name={GuidesAndPersistence} Path={Catalyst.Landform.Caves.Placement.GuidesAndPersistence}
+[2026.11.12-04.35.01:880][209]LogAutomationController: BeginEvents: Catalyst.Landform.Caves.Placement.GuidesAndPersistence
+[2026.11.12-04.35.01:880][209]LogAutomationController: EndEvents: Catalyst.Landform.Caves.Placement.GuidesAndPersistence
+[2026.11.12-04.35.01:880][209]LogAutomationController: Sending RunTest RiftSurfaceOpenings to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.01:880][209]LogAutomationController: Display: Test Started. Name={RiftSurfaceOpenings} Path={Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings}
+[2026.11.12-04.35.01:889][210]LogAutomationWorker: Received RunTests RiftSurfaceOpenings from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.01:889][210]LogStreaming: Display: FlushAsyncLoading(318): 1 QueuedPackages, 0 AsyncPackages
+[2026.11.12-04.35.02:778][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.02:867][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.02:973][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.03:137][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.03:316][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.03:487][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.03:694][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.03:806][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.03:933][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:059][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:197][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:268][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:371][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:529][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:537][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:653][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:746][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:849][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.04:970][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.05:103][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.05:229][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.05:382][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.05:574][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.05:764][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.05:873][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:026][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:125][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:284][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:384][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:466][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:543][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:619][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:692][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:753][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:788][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:814][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:841][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.06:960][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:056][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:159][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:260][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:375][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:471][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:583][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:760][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:857][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.07:959][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:050][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:146][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:241][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:345][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:437][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:547][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:743][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.08:949][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.09:116][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.09:261][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.09:368][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.09:515][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.09:715][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.09:799][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.09:910][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.10:091][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.10:307][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.10:537][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.10:661][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.10:882][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.10:993][210]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:015][210]LogAutomationController: Ignoring very large delta of 10.13 seconds in calls to FAutomationControllerManager::Tick() and not penalizing unresponsive tests
+[2026.11.12-04.35.12:020][211]LogAutomationController: Display: Test Completed. Result={Success} Name={RiftSurfaceOpenings} Path={Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings}
+[2026.11.12-04.35.12:020][211]LogAutomationController: BeginEvents: Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings
+[2026.11.12-04.35.12:020][211]LogAutomationController: CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.23959418e-07
+[2026.11.12-04.35.12:020][211]LogAutomationController: CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.71010724e-07
+[2026.11.12-04.35.12:020][211]LogAutomationController: CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.0104735e-07
+[2026.11.12-04.35.12:020][211]LogAutomationController: CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.39737773e-07
+[2026.11.12-04.35.12:020][211]LogAutomationController: CAVE_PLACEMENT networks=39 openings=4 savedCharacter=0.668
+[2026.11.12-04.35.12:020][211]LogAutomationController: EndEvents: Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings
+[2026.11.12-04.35.12:031][211]LogAutomationController: Sending RunTest AlwaysEnabledMinimum to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.12:031][211]LogAutomationController: Display: Test Started. Name={AlwaysEnabledMinimum} Path={Catalyst.Landform.Caves.AlwaysEnabledMinimum}
+[2026.11.12-04.35.12:070][212]LogAutomationWorker: Received RunTests AlwaysEnabledMinimum from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.12:071][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:071][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:071][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:072][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:072][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:072][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:073][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:073][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:073][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:074][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:074][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:074][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:075][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:075][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:075][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:076][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:076][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:077][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:077][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:077][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:078][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:078][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:078][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:078][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:079][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:079][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:080][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:080][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:080][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:081][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:081][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:081][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:082][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:082][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:082][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:083][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:083][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:083][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:084][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:084][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:084][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:085][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:085][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:085][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:086][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:086][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:086][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:087][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:087][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:087][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:088][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:088][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:088][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:089][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:089][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:090][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:090][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:090][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:091][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:091][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:091][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:091][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:092][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:092][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:092][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:093][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:093][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:094][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:094][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:094][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:095][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:095][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:095][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:096][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:096][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:096][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:097][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:097][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:097][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:098][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:098][212]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.12:107][214]LogAutomationController: Display: Test Completed. Result={Success} Name={AlwaysEnabledMinimum} Path={Catalyst.Landform.Caves.AlwaysEnabledMinimum}
+[2026.11.12-04.35.12:107][214]LogAutomationController: BeginEvents: Catalyst.Landform.Caves.AlwaysEnabledMinimum
+[2026.11.12-04.35.12:107][214]LogAutomationController: Enabled minimum: 72 scale/profile/access cases with real air and connected field probes
+[2026.11.12-04.35.12:107][214]LogAutomationController: EndEvents: Catalyst.Landform.Caves.AlwaysEnabledMinimum
+[2026.11.12-04.35.12:111][214]LogAutomationController: Sending RunTest ControlsAndPersistence to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.12:111][214]LogAutomationController: Display: Test Started. Name={ControlsAndPersistence} Path={Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence}
+[2026.11.12-04.35.12:119][215]LogAutomationWorker: Received RunTests ControlsAndPersistence from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.12:218][215]LogStreaming: Display: FlushAsyncLoading(320): 1 QueuedPackages, 0 AsyncPackages
+[2026.11.12-04.35.12:318][215]LogEditorTransaction: Undo Edit Landform values
+[2026.11.12-04.35.12:332][215]LogEditorTransaction: Undo Change Landform Character
+[2026.11.12-04.35.12:336][215]LogEditorTransaction: Redo Change Landform Character
+[2026.11.12-04.35.12:617][215]LogSlate: Window 'CLPlanetRecipeAsset_0' being destroyed
+[2026.11.12-04.35.12:644][215]LogWorld: UWorld::CleanupWorld for World_0, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.35.12:644][215]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.35.12:644][215]LogWorld: UWorld::CleanupWorld for World_1, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.35.12:644][215]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.35.12:843][216]LogUObjectHash: Compacting FUObjectHashTables data took   0.16ms
+[2026.11.12-04.35.12:868][216]LogAutomationController: Display: Test Completed. Result={Success} Name={ControlsAndPersistence} Path={Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence}
+[2026.11.12-04.35.12:868][216]LogAutomationController: BeginEvents: Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence
+[2026.11.12-04.35.12:868][216]LogAutomationController: EndEvents: Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence
+[2026.11.12-04.35.12:868][216]LogAutomationController: Sending RunTest GenericNoiseAndSeed to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.12:869][216]LogAutomationController: Display: Test Started. Name={GenericNoiseAndSeed} Path={Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed}
+[2026.11.12-04.35.12:881][217]LogAutomationWorker: Received RunTests GenericNoiseAndSeed from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.12:929][219]LogAutomationController: Display: Test Completed. Result={Success} Name={GenericNoiseAndSeed} Path={Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed}
+[2026.11.12-04.35.12:929][219]LogAutomationController: BeginEvents: Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed
+[2026.11.12-04.35.12:929][219]LogAutomationController: EndEvents: Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed
+[2026.11.12-04.35.12:941][219]LogAutomationController: Sending RunTest BlendAndNativeParity to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.12:942][219]LogAutomationController: Display: Test Started. Name={BlendAndNativeParity} Path={Catalyst.Landform.Regions.BlendAndNativeParity}
+[2026.11.12-04.35.12:952][220]LogAutomationWorker: Received RunTests BlendAndNativeParity from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.12:952][220]LogStreaming: Display: FlushAsyncLoading(336): 1 QueuedPackages, 0 AsyncPackages
+[2026.11.12-04.35.14:601][221]LogAutomationController: Display: Test Completed. Result={Success} Name={BlendAndNativeParity} Path={Catalyst.Landform.Regions.BlendAndNativeParity}
+[2026.11.12-04.35.14:601][221]LogAutomationController: BeginEvents: Catalyst.Landform.Regions.BlendAndNativeParity
+[2026.11.12-04.35.14:601][221]LogAutomationController: Generated field: 2379 directions, 2.22044604925e-16 weight error, 9.04038199678e-06 m oracle error, 1.02409524061e-06 m atlas error, 0.000102409525 cm native residual, 0.00197791478 cm section residual
+[2026.11.12-04.35.14:601][221]LogAutomationController: EndEvents: Catalyst.Landform.Regions.BlendAndNativeParity
+[2026.11.12-04.35.14:602][221]LogAutomationController: Sending RunTest CharacterNoiseAndRock to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.14:602][221]LogAutomationController: Display: Test Started. Name={CharacterNoiseAndRock} Path={Catalyst.Landform.Rift.Family.CharacterNoiseAndRock}
+[2026.11.12-04.35.14:606][222]LogAutomationWorker: Received RunTests CharacterNoiseAndRock from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.15:074][223]LogAutomationController: Display: Test Completed. Result={Success} Name={CharacterNoiseAndRock} Path={Catalyst.Landform.Rift.Family.CharacterNoiseAndRock}
+[2026.11.12-04.35.15:074][223]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.Family.CharacterNoiseAndRock
+[2026.11.12-04.35.15:074][223]LogAutomationController: RIFT_FAMILY_ROCK probes=136 restorationMetres=4.54747350886e-13 noiseLayers=3
+[2026.11.12-04.35.15:074][223]LogAutomationController: EndEvents: Catalyst.Landform.Rift.Family.CharacterNoiseAndRock
+[2026.11.12-04.35.15:074][223]LogAutomationController: Sending RunTest CuratedLandscape to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.15:074][223]LogAutomationController: Display: Test Started. Name={CuratedLandscape} Path={Catalyst.Landform.Rift.Family.CuratedLandscape}
+[2026.11.12-04.35.15:082][224]LogAutomationWorker: Received RunTests CuratedLandscape from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.15:083][224]LogStreaming: Display: FlushAsyncLoading(349): 1 QueuedPackages, 0 AsyncPackages
+[2026.11.12-04.35.16:020][225]LogAutomationController: Display: Test Completed. Result={Success} Name={CuratedLandscape} Path={Catalyst.Landform.Rift.Family.CuratedLandscape}
+[2026.11.12-04.35.16:020][225]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.Family.CuratedLandscape
+[2026.11.12-04.35.16:020][225]LogAutomationController: CURATED_RIFT wholeSliderSamples=11 maximumLandscapeDeltaMeters=4.199412 maximumSoloDeltaMeters=4.795877
+[2026.11.12-04.35.16:020][225]LogAutomationController: EndEvents: Catalyst.Landform.Rift.Family.CuratedLandscape
+[2026.11.12-04.35.16:020][225]LogAutomationController: Sending RunTest PlacementRelaxation to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.16:020][225]LogAutomationController: Display: Test Started. Name={PlacementRelaxation} Path={Catalyst.Landform.Rift.Family.PlacementRelaxation}
+[2026.11.12-04.35.16:028][226]LogAutomationWorker: Received RunTests PlacementRelaxation from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.16:102][227]LogAutomationController: Display: Test Completed. Result={Success} Name={PlacementRelaxation} Path={Catalyst.Landform.Rift.Family.PlacementRelaxation}
+[2026.11.12-04.35.16:102][227]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.Family.PlacementRelaxation
+[2026.11.12-04.35.16:102][227]LogAutomationController: RIFT_FAMILY_FALLBACK assigned=2 cells=24 tier=3
+[2026.11.12-04.35.16:102][227]LogAutomationController: EndEvents: Catalyst.Landform.Rift.Family.PlacementRelaxation
+[2026.11.12-04.35.16:102][227]LogAutomationController: Sending RunTest SoloSavedProfile to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.16:102][227]LogAutomationController: Display: Test Started. Name={SoloSavedProfile} Path={Catalyst.Landform.Rift.Family.SoloSavedProfile}
+[2026.11.12-04.35.16:111][228]LogAutomationWorker: Received RunTests SoloSavedProfile from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.16:428][230]LogAutomationController: Display: Test Completed. Result={Success} Name={SoloSavedProfile} Path={Catalyst.Landform.Rift.Family.SoloSavedProfile}
+[2026.11.12-04.35.16:428][230]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.Family.SoloSavedProfile
+[2026.11.12-04.35.16:428][230]LogAutomationController: EndEvents: Catalyst.Landform.Rift.Family.SoloSavedProfile
+[2026.11.12-04.35.16:431][230]LogAutomationController: Sending RunTest Character to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.16:431][230]LogAutomationController: Display: Test Started. Name={Character} Path={Catalyst.Landform.Rift.NativeDesigner.Character}
+[2026.11.12-04.35.16:440][231]LogAutomationWorker: Received RunTests Character from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.17:296][293]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:337][298]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:409][306]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:483][315]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:559][324]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:593][328]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:647][335]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:677][338]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:761][349]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:822][356]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:858][360]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.17:918][367]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:015][379]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:056][384]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:089][388]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:133][393]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:210][402]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:296][413]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:346][419]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:411][427]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:480][435]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:526][440]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:572][446]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:629][453]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:702][461]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:756][468]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:834][477]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:886][484]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:944][490]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.18:982][495]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:045][503]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:100][509]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:177][518]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:265][529]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:361][541]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:450][551]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:553][563]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:629][573]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:657][576]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:696][581]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:740][586]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:812][595]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:912][607]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.19:989][616]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.20:028][621]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.20:057][624]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.20:100][629]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.20:129][633]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.20:178][638]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.20:378][662]LogStreaming: Display: FlushAsyncLoading(350): 1 QueuedPackages, 0 AsyncPackages
+[2026.11.12-04.35.20:419][662]LogVoxel: Found MegaMaterialCache /Game/Developers/jupiter/MegaMaterialCache.MegaMaterialCache
+[2026.11.12-04.35.20:419][662]LogVoxel: Found generated data for /Voxel/Default/DefaultMegaMaterial.DefaultMegaMaterial in /Game/Developers/jupiter/MegaMaterialCache.MegaMaterialCache
+[2026.11.12-04.35.20:431][662]LogVoxel: Found MegaMaterialCache /Game/Developers/jupiter/MegaMaterialCache.MegaMaterialCache
+[2026.11.12-04.35.20:431][662]LogVoxel: Found generated data for /CatalystLandform/Surfaces/MM_LandformSurfaces.MM_LandformSurfaces in /Game/Developers/jupiter/MegaMaterialCache.MegaMaterialCache
+[2026.11.12-04.35.20:437][663]LogStreaming: Display: FlushAsyncLoading(353): 1 QueuedPackages, 0 AsyncPackages
+[2026.11.12-04.35.26:430][223]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:472][228]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:546][237]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:621][246]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:696][255]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:732][259]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:786][265]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:816][269]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:901][279]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:962][287]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.26:998][291]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:041][295]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:110][303]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:209][315]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:250][320]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:283][324]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:327][329]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:377][335]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:443][343]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:512][352]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:559][357]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:603][363]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:661][370]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:733][378]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:808][387]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:892][397]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.27:981][408]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:032][414]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:088][421]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:139][427]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:198][434]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:222][437]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:271][443]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:346][452]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:434][462]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:524][473]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:617][484]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:695][494]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:725][497]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:762][502]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:807][507]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:878][515]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.28:979][528]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.29:055][537]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.29:093][541]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.29:121][545]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.29:194][553]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.29:320][569]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.29:351][572]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:493][ 32]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:533][ 37]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:607][ 45]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:681][ 54]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:754][ 63]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:789][ 67]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:843][ 74]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:877][ 78]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.34:978][ 90]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:034][ 97]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:089][103]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:157][112]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:197][116]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:276][126]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:340][134]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:381][138]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:414][142]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:460][148]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:510][154]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:576][162]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:641][170]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:686][175]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:744][182]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:814][190]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:878][198]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.35:967][209]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:060][220]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:110][226]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:167][233]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:225][240]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:287][247]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:320][251]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:343][254]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:401][261]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:476][270]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:564][280]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:654][291]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:747][302]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:823][311]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:851][315]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:889][319]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.36:932][325]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:003][333]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:104][344]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:179][353]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:215][358]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:242][361]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:314][369]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:436][384]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.37:464][387]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.43:388][923]LogSlate: Window 'CLPlanetRecipeAsset_0' being destroyed
+[2026.11.12-04.35.43:432][923]LogWorld: UWorld::CleanupWorld for World_2, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.35.43:432][923]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.35.43:434][923]LogWorld: UWorld::CleanupWorld for World_3, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.35.43:434][923]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.35.43:463][924]LogUObjectHash: Compacting FUObjectHashTables data took   0.17ms
+[2026.11.12-04.35.43:499][925]LogAutomationController: Display: Test Completed. Result={Success} Name={Character} Path={Catalyst.Landform.Rift.NativeDesigner.Character}
+[2026.11.12-04.35.43:499][925]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.NativeDesigner.Character
+[2026.11.12-04.35.43:499][925]LogAutomationController: {"editor":"Planet","cameraZoom":0.7,"navigationP95Ms":17.459832,"cases":[{"stage":0,"vertices":130264,"geometryCrc":3248140418},{"stage":1,"vertices":127634,"geometryCrc":4236113414},{"stage":2,"vertices":128769,"geometryCrc":890101716}]}
+
+[2026.11.12-04.35.43:499][925]LogAutomationController: EndEvents: Catalyst.Landform.Rift.NativeDesigner.Character
+[2026.11.12-04.35.43:507][925]LogAutomationController: Sending RunTest Landscape to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.35.43:507][925]LogAutomationController: Display: Test Started. Name={Landscape} Path={Catalyst.Landform.Rift.NativeDesigner.Landscape}
+[2026.11.12-04.35.43:516][926]LogAutomationWorker: Received RunTests Landscape from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.35.44:156][961]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:199][967]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:276][976]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:352][985]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:428][994]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:465][999]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:520][  5]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:550][  9]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:638][ 19]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:701][ 27]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:738][ 31]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:783][ 37]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:855][ 45]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.44:959][ 58]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:002][ 63]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:036][ 67]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:082][ 73]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:134][ 79]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:201][ 87]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:272][ 95]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:318][101]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:365][106]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:424][114]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:499][123]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:575][132]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:661][142]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:754][153]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:806][160]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:864][166]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:916][173]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.45:976][180]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:000][183]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:051][189]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:129][198]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:219][209]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:311][220]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:405][231]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:486][241]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:515][244]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:554][249]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:600][255]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:674][263]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:778][276]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:855][285]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:894][290]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:923][293]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.46:998][302]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.47:126][318]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.35.47:157][321]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.19:639][142]LogSlate: Window 'CLPlanetRecipeAsset_0' being destroyed
+[2026.11.12-04.36.19:671][142]LogWorld: UWorld::CleanupWorld for World_4, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.36.19:671][142]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.36.19:674][142]LogWorld: UWorld::CleanupWorld for World_5, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.36.19:674][142]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.36.19:708][143]LogUObjectHash: Compacting FUObjectHashTables data took   0.18ms
+[2026.11.12-04.36.19:738][143]LogAutomationController: Display: Test Completed. Result={Success} Name={Landscape} Path={Catalyst.Landform.Rift.NativeDesigner.Landscape}
+[2026.11.12-04.36.19:738][143]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.NativeDesigner.Landscape
+[2026.11.12-04.36.19:738][143]LogAutomationController: Native landscape camera captured at Character 0.5
+[2026.11.12-04.36.19:738][143]LogAutomationController: EndEvents: Catalyst.Landform.Rift.NativeDesigner.Landscape
+[2026.11.12-04.36.19:738][143]LogAutomationController: Sending RunTest PreviewModes to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.36.19:738][143]LogAutomationController: Display: Test Started. Name={PreviewModes} Path={Catalyst.Landform.Rift.NativeDesigner.PreviewModes}
+[2026.11.12-04.36.19:748][144]LogAutomationWorker: Received RunTests PreviewModes from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.36.20:692][222]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.20:748][229]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.20:819][237]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.20:924][250]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:034][263]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:109][272]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:180][280]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:266][291]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:352][301]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:412][308]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:480][316]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:546][324]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:616][333]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:699][343]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:769][351]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:830][358]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:905][367]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.21:990][378]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:080][388]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:145][396]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:213][404]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:273][412]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:336][419]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:433][431]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:510][440]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:603][451]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:684][461]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:761][470]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:844][480]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:906][487]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.22:990][498]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:036][503]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:086][509]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:146][516]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:263][530]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:382][545]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:480][556]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:580][569]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:656][578]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:704][583]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:753][589]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:807][596]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:859][602]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.23:951][613]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.24:088][629]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.24:150][637]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.24:212][644]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.24:281][653]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.24:380][664]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.24:473][676]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.24:522][681]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.30:796][193]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.30:822][197]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.30:872][203]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.30:916][208]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.30:938][211]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.30:974][215]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.30:994][217]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:053][224]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:095][229]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:120][233]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:148][236]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:168][238]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:190][241]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:220][244]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:262][249]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:309][255]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:363][262]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:397][266]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:429][270]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:458][273]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:495][277]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:538][283]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:569][286]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:597][290]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:635][294]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:685][300]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:708][303]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:761][309]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:797][314]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:836][318]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:852][320]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:893][325]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:908][327]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.31:959][333]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:015][340]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:057][345]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:111][351]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:151][356]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:205][363]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:224][365]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:250][368]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:281][372]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:330][378]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:400][386]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:446][392]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:451][392]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:458][393]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:476][395]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:497][398]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:541][403]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:623][413]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.32:641][415]LogTemp: Display: LANDFORM_SPATIAL_MORPHOLOGY backend=ISPC_neon_i32x4
+[2026.11.12-04.36.36:577][708]LogSlate: Window 'CLPlanetRecipeAsset_0' being destroyed
+[2026.11.12-04.36.36:587][708]LogWorld: UWorld::CleanupWorld for World_6, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.36.36:587][708]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.36.36:588][708]LogWorld: UWorld::CleanupWorld for World_7, bSessionEnded=true, bCleanupResources=true
+[2026.11.12-04.36.36:588][708]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2026.11.12-04.36.36:617][709]LogUObjectHash: Compacting FUObjectHashTables data took   0.16ms
+[2026.11.12-04.36.36:628][709]LogAutomationController: Display: Test Completed. Result={Success} Name={PreviewModes} Path={Catalyst.Landform.Rift.NativeDesigner.PreviewModes}
+[2026.11.12-04.36.36:628][709]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.NativeDesigner.PreviewModes
+[2026.11.12-04.36.36:628][709]LogAutomationController: {"editor":"Planet","cases":[{"stage":3,"vertices":132176,"geometryCrc":675882330},{"stage":4,"vertices":133021,"geometryCrc":1409751068}]}
+
+[2026.11.12-04.36.36:628][709]LogAutomationController: EndEvents: Catalyst.Landform.Rift.NativeDesigner.PreviewModes
+[2026.11.12-04.36.36:628][709]LogAutomationController: Sending RunTest BackgroundAndRecipe to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.36.36:628][709]LogAutomationController: Display: Test Started. Name={BackgroundAndRecipe} Path={Catalyst.Landform.Rift.BackgroundAndRecipe}
+[2026.11.12-04.36.36:638][710]LogAutomationWorker: Received RunTests BackgroundAndRecipe from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.36.37:136][712]LogAutomationController: Display: Test Completed. Result={Success} Name={BackgroundAndRecipe} Path={Catalyst.Landform.Rift.BackgroundAndRecipe}
+[2026.11.12-04.36.37:136][712]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.BackgroundAndRecipe
+[2026.11.12-04.36.37:136][712]LogAutomationController: Background/synchronous residual 0 m; 3 reused native inputs
+[2026.11.12-04.36.37:136][712]LogAutomationController: EndEvents: Catalyst.Landform.Rift.BackgroundAndRecipe
+[2026.11.12-04.36.37:140][712]LogAutomationController: Sending RunTest GeologyAndRestoration to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.36.37:140][712]LogAutomationController: Display: Test Started. Name={GeologyAndRestoration} Path={Catalyst.Landform.Rift.GeologyAndRestoration}
+[2026.11.12-04.36.37:149][713]LogAutomationWorker: Received RunTests GeologyAndRestoration from 52A0CE0EB14445252C654DB4A7F27F7C
+[2026.11.12-04.36.37:410][715]LogAutomationController: Display: Test Completed. Result={Success} Name={GeologyAndRestoration} Path={Catalyst.Landform.Rift.GeologyAndRestoration}
+[2026.11.12-04.36.37:410][715]LogAutomationController: BeginEvents: Catalyst.Landform.Rift.GeologyAndRestoration
+[2026.11.12-04.36.37:410][715]LogAutomationController: 175 active physical samples, 3790 outside hosts, 175 strata probes; max throw 17.5100977 m; restoration 4.54747350886e-13 m
+[2026.11.12-04.36.37:410][715]LogAutomationController: EndEvents: Catalyst.Landform.Rift.GeologyAndRestoration
+[2026.11.12-04.36.37:413][715]LogAutomationController: Display: Exporting Automation Report to /private/tmp/landform-curation/final/automation.
+[2026.11.12-04.36.37:413][715]LogAutomationController: Writing reports to /private/tmp/landform-curation/final/automation...
+[2026.11.12-04.36.37:413][715]LogAutomationController: Display: Converting results to json object...
+[2026.11.12-04.36.37:414][715]LogAutomationController: Display: Successfully wrote json results file!
+[2026.11.12-04.36.37:414][715]LogAutomationController: Exported report to '/private/tmp/landform-curation/final/automation' in 0.00 Seconds
+[2026.11.12-04.36.37:414][715]LogAutomationController: Display: Report can be opened in the editor at '/private/tmp/landform-curation/final/automation'
+[2026.11.12-04.36.37:414][715]LogAutomationController: Sending StopTestSession to A26C172A8442CB5EAEE257ACA954CDE8
+[2026.11.12-04.36.37:414][715]LogAutomationCommandLine: Display: ...Automation Test Queue Empty 16 tests performed.
+[2026.11.12-04.36.37:414][716]LogExit: Display: **** TestExit: Automation Test Queue Empty ****
+[2026.11.12-04.36.37:414][716]LogMac: FPlatformMisc::RequestExit(1, FEngineLoop::Tick.GScopedTestExit)

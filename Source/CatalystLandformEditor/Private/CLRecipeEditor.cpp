@@ -12,6 +12,7 @@
 #include "CLNoiseLayerStack.h"
 #include "CLRegionGenerationPanel.h"
 #include "CLPlanetLandforms.h"
+#include "IStructureDetailsView.h"
 #include "IDetailsView.h"
 #include "IDetailCustomization.h"
 #include "DetailLayoutBuilder.h"
@@ -2895,11 +2896,17 @@ bool FCLPlanetLandformRowsTest::RunTest(const FString&)
     auto State=E->Landforms;auto* Row=E->LandformRows->Controls.Find(Id);if(!TestNotNull(TEXT("Planet contains the applied Rift row"),Row))return false;
     TestTrue(TEXT("Catalogue and applied sources are listed in Planet"),E->LandformRows->Controls.Num()>=17);TestFalse(TEXT("The obsolete terrain-layer tab is not registered"),E->GetTabManager()->HasTabSpawner(FName(TEXT("CLNoiseLayers"))));TestFalse(TEXT("The obsolete source-surface tab is not registered"),E->GetTabManager()->HasTabSpawner(FName(TEXT("CLSurfaceLayers"))));
     Row->Include->ToggleCheckedState();TestFalse(TEXT("Checkbox excludes generation"),State->Included(Id));
-    TestTrue(TEXT("Unchecked rows disable knob, eye, reseed and Solo"),!Row->Knob->IsEnabled()&&!Row->Eye->IsEnabled()&&!Row->Reseed->IsEnabled()&&!Row->Solo->IsEnabled());
+    TestTrue(TEXT("Unchecked rows disable knob, eye, reseed and Solo"),!Row->Disclosure->IsEnabled()&&!Row->DetailsBox->IsEnabled()&&!Row->Knob->IsEnabled()&&!Row->Eye->IsEnabled()&&!Row->Reseed->IsEnabled()&&!Row->Solo->IsEnabled());
     const auto Disabled=A->Recipe;TestFalse(TEXT("Disabled controller refuses Character"),State->SetCharacter(Id,.8));TestFalse(TEXT("Disabled controller refuses reseed"),State->Reseed(Id));TestFalse(TEXT("Disabled controller refuses eye"),State->ToggleEye(Id));TestFalse(TEXT("Disabled controller refuses Solo"),State->ToggleSolo(Id));
     TestTrue(TEXT("Disabled actions preserve all settings"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Disabled,&A->Recipe,0));
     Row->Include->ToggleCheckedState();TestTrue(TEXT("Reinclude restores all row controls"),Row->Knob->IsEnabled()&&Row->Eye->IsEnabled()&&Row->Reseed->IsEnabled()&&Row->Solo->IsEnabled());
     A->Recipe.RegionGeneration.bEnabled=false;E->Refresh();TestFalse(TEXT("A saved disabled generator shows unchecked rows"),State->Included(Id));TestFalse(TEXT("A saved disabled generator disables its controls"),Row->Knob->IsEnabled());Row->Include->ToggleCheckedState();TestTrue(TEXT("The row checkbox reactivates generation explicitly"),State->Included(Id));
+    Row->Disclosure->SimulateClick();TestTrue(TEXT("Disclosure creates native editable values"),Row->Details.IsValid()&&Row->Draft.IsValid());
+    for(const auto& Path:Row->Details->GetDetailsView()->GetPropertiesInOrderDisplayed())TestTrue(TEXT("Details omit protected identity and algorithm fields"),Path.GetLeafMostProperty().Property->GetFName()!=TEXT("AlgorithmVersion")&&Path.GetLeafMostProperty().Property->GetFName()!=TEXT("Id"));
+    auto& Values=*reinterpret_cast<FCLLandformPaletteEntry*>(Row->Draft->GetStructMemory());const auto BeforeDetails=A->Recipe;Values.Rift.MaximumThrowMeters=120;
+    Row->Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(FPropertyChangedEvent(FindFProperty<FProperty>(FCLRiftLandform::StaticStruct(),TEXT("MaximumThrowMeters"))));
+    TestEqual(TEXT("Expanded values commit to the applied planet"),State->Entry(Id)->Rift.MaximumThrowMeters,120.);GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the expanded edit"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeDetails,&A->Recipe,0));
+    Row->Disclosure->SimulateClick();
     const auto Before=A->Recipe;State->BeginGesture(Id);TestTrue(TEXT("Knob first update accepted"),State->SetCharacter(Id,.2));TestTrue(TEXT("Knob final update accepted"),State->SetCharacter(Id,.8));State->EndGesture();const auto After=A->Recipe;
     GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the complete knob gesture"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));GEditor->RedoTransaction();TestTrue(TEXT("Redo restores final Character"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&After,&A->Recipe,0));
     Row->Reseed->SimulateClick();TestTrue(TEXT("Reseed changes the planet's applied variation"),A->Recipe.RegionGeneration.Palette[0].Rift.Seed!=After.RegionGeneration.Palette[0].Rift.Seed);
@@ -2920,7 +2927,7 @@ bool FCLPlanetLandformRowsTest::RunTest(const FString&)
 }
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLRiftDesignerTest,"Catalyst.Landform.Rift.NativeDesigner",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 void FCLRiftDesignerTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const
-{Names={TEXT("Character"),TEXT("PreviewModes")};Commands={TEXT("Character"),TEXT("PreviewModes")};}
+{Names={TEXT("Character"),TEXT("PreviewModes"),TEXT("Landscape")};Commands={TEXT("Character"),TEXT("PreviewModes"),TEXT("Landscape")};}
 bool FCLRiftDesignerTest::RunTest(const FString& Variant)
 {
     FString J,Error;const FString Root=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir();
@@ -2929,15 +2936,15 @@ bool FCLRiftDesignerTest::RunTest(const FString& Variant)
     if(auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftFamilyReview"),nullptr,LOAD_NoWarn|LOAD_Quiet))A->Recipe=Review->Recipe;
     else {FFileHelper::LoadFileToString(J,*(Root/TEXT("Examples/ContinentalRiftProvince.json")));if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}}
     if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return A->AddPaletteSource(Source.Get(),Error);})){AddError(Error);return false;}
-    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=2;const bool Modes=Variant==TEXT("PreviewModes");E->Landforms->SetCharacter(Source->TerrainType.Id,Modes?1:0);if(Modes)E->Landforms->ToggleSolo(Source->TerrainType.Id);
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=2;const bool Modes=Variant==TEXT("PreviewModes"),Landscape=Variant==TEXT("Landscape");E->Landforms->SetCharacter(Source->TerrainType.Id,Landscape?.5:Modes?1:0);if(Landscape)E->LandformRows->ToggleDetails(Source->TerrainType.Id);if(Modes)E->Landforms->ToggleSolo(Source->TerrainType.Id);
     E->LandformRows->Focus(Source->TerrainType.Id);
     class FReview:public IAutomationLatentCommand
     {
         FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLPlanetRecipeAsset> A;FGuid Id;
-        double Start=FPlatformTime::Seconds(),Ready=0;int32 Stage=0,EndStage=3,Framed=-1,Frame=0;uint32 Owner=0,Evaluations=0;uint64 Copies=0;double Last=0;bool NavigationReady=false;
+        double Start=FPlatformTime::Seconds(),Ready=0;int32 Stage=0,EndStage=3,Framed=-1,Frame=0;uint32 Owner=0,Evaluations=0;uint64 Copies=0;double Last=0;bool NavigationReady=false,Landscape=false;
         FVector Focus;TArray<double> Times;TArray<FString> Rows;
     public:
-        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLPlanetRecipeAsset* Asset,FGuid I,bool Modes):Test(T),E(In),A(Asset),Id(I),Stage(Modes?3:0),EndStage(Modes?5:3){}
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLPlanetRecipeAsset* Asset,FGuid I,bool Modes,bool InLandscape):Test(T),E(In),A(Asset),Id(I),Stage(InLandscape?1:Modes?3:0),EndStage(InLandscape?2:Modes?5:3),Landscape(InLandscape){}
         bool Update()override
         {
             const double Now=FPlatformTime::Seconds();auto Close=[&]{A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
@@ -2955,7 +2962,7 @@ bool FCLRiftDesignerTest::RunTest(const FString& Variant)
                     Owner=Native->WorldIdentity();double Best=0;for(int32 I=0;I<4096;++I){double Z=1-2*(I+.5)/4096,Angle=I*2.399963229728653;FVector D(FMath::Cos(Angle)*FMath::Sqrt(1-Z*Z),FMath::Sin(Angle)*FMath::Sqrt(1-Z*Z),Z);double V=FMath::Abs(P->GeneratedRegions->ProvinceDeformationMeters(D));if(V>Best){Best=V;Focus=D;}}
                     Test->TestTrue(TEXT("Assembled planet contains real Rift relief"),Best>.01);E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Preview->Client->bGuides=false;
                 }
-                E->Globe->FrameDirectionForTesting(Focus,.7);Framed=Stage;Ready=0;return false;
+                if(Landscape)E->Globe->FrameSurfaceForTesting(Focus);else E->Globe->FrameDirectionForTesting(Focus,.7);Framed=Stage;Ready=0;return false;
             }
             // Settle once before timing navigation. Subsequent native camera
             // LOD work is asynchronous and must not be mistaken for a UI frame.
@@ -2969,26 +2976,27 @@ bool FCLRiftDesignerTest::RunTest(const FString& Variant)
                 if(Stage==3)for(const auto& C:P->GeneratedRegions->Cells)Test->TestEqual(TEXT("Rendered Solo assigns every region to Rift"),P->GeneratedRegions->Palette[C.PaletteIndex].Id,Id);
                 if(Stage==4)Test->TestFalse(TEXT("Rendered eye-off excludes regional relief"),P->GeneratedRegions&&P->GeneratedRegions->HasPhysicalRelief());
                 Rows.Add(FString::Printf(TEXT("{\"stage\":%d,\"vertices\":%d,\"geometryCrc\":%u}"),Stage,Count,FCrc::MemCrc32(Probes.SourcePoints.GetData(),Probes.SourcePoints.Num()*sizeof(FVector))));
-                const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/planet-landforms");IFileManager::Get().MakeDirectory(*Dir,true);
+                const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/landform-curation");IFileManager::Get().MakeDirectory(*Dir,true);
                 auto Capture=[&](TSharedRef<SWidget> W,const FString& Name){TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Actual Planet editor renders"),FSlateApplication::Get().TakeScreenshot(W,Pixels,Size));if(Pixels.Num()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/Name));}};
-                Capture(E->GetToolkitHost()->GetParentWidget(),FString::Printf(TEXT("planet-%d.png"),Stage));Capture(E->Globe.ToSharedRef(),FString::Printf(TEXT("globe-%d.png"),Stage));if(auto Tab=E->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLPlanetControls"))))Capture(Tab->GetContent(),FString::Printf(TEXT("controls-%d.png"),Stage));
+                Capture(E->GetToolkitHost()->GetParentWidget(),FString::Printf(TEXT("%s-%d.png"),Landscape?TEXT("landscape"):TEXT("planet"),Stage));Capture(E->Globe.ToSharedRef(),FString::Printf(TEXT("globe-%d.png"),Stage));if(auto Tab=E->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLPlanetControls"))))Capture(Tab->GetContent(),FString::Printf(TEXT("controls-%d.png"),Stage));
                 ++Stage;Ready=0;
                 if(Stage==EndStage)
                 {
+                    if(Landscape){Test->AddInfo(TEXT("Native landscape camera captured at Character 0.5"));return Close();}
                     if(EndStage==5){const FString Json=TEXT("{\"editor\":\"Planet\",\"cases\":[")+FString::Join(Rows,TEXT(","))+TEXT("]}\n");FFileHelper::SaveStringToFile(Json,*(Dir/TEXT("preview-modes.json")));Test->AddInfo(Json);return Close();}
                     // Keep the same whole-planet camera used by these UI captures.
                 }
-                else if(Stage<3)E->Landforms->SetCharacter(Id,Stage*.5);
+                else if(Stage<3){E->Landforms->SetCharacter(Id,Stage*.5);if(Stage==1)E->LandformRows->ToggleDetails(Id);}
                 else E->LandformRows->Controls[Id].Eye->SimulateClick();
                 return false;
             }
             if(!NavigationReady){NavigationReady=true;Evaluations=E->Evaluation.Started;Copies=Native->Metrics.MeshCopies;Last=Now;return false;}
             Times.Add((Now-Last)*1000);Last=Now;E->Globe->OrbitForTesting(FVector2D(.5,.1));E->Globe->Dolly(Frame%2?.01:-.01);if(++Frame<60)return false;
             Test->TestEqual(TEXT("Planet navigation starts no authoring evaluations"),E->Evaluation.Started,Evaluations);Test->TestEqual(TEXT("Navigation copies no mesh"),Native->Metrics.MeshCopies,Copies);Times.RemoveAt(0);Times.Sort();const double P95=Times[FMath::Min(Times.Num()-1,int32(Times.Num()*.95))];Test->TestTrue(TEXT("Native navigation p95 stays below 50ms"),P95<50);
-            const FString Json=TEXT("{\"editor\":\"Planet\",\"cameraZoom\":0.7,\"navigationP95Ms\":")+LexToString(P95)+TEXT(",\"cases\":[")+FString::Join(Rows,TEXT(","))+TEXT("]}\n");FFileHelper::SaveStringToFile(Json,*(FPaths::ProjectSavedDir()/TEXT("Verification/planet-landforms/native-review.json")));Test->AddInfo(Json);return Close();
+            const FString Json=TEXT("{\"editor\":\"Planet\",\"cameraZoom\":0.7,\"navigationP95Ms\":")+LexToString(P95)+TEXT(",\"cases\":[")+FString::Join(Rows,TEXT(","))+TEXT("]}\n");FFileHelper::SaveStringToFile(Json,*(FPaths::ProjectSavedDir()/TEXT("Verification/landform-curation/native-review.json")));Test->AddInfo(Json);return Close();
         }
     };
-    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Source->TerrainType.Id,Modes));return true;
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Source->TerrainType.Id,Modes,Landscape));return true;
 }
 
 }

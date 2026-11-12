@@ -91,4 +91,24 @@ bool FCLRiftSavedSoloTest::RunTest(const FString&)
     TestTrue(TEXT("Solo delivers saved-profile fault relief to the actual spherical surface"),Delta>1);
     TestEqual(TEXT("Solo keeps the saved profile pinned"),A->Recipe.RegionGeneration.Palette[0].Rift.AlgorithmVersion,1);return !HasAnyErrors();
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRiftCuratedTest,"Catalyst.Landform.Rift.Family.CuratedLandscape",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRiftCuratedTest::RunTest(const FString&)
+{
+    FString E,J;TStrongObjectPtr<UCLTerrainTypeAsset> S(NewObject<UCLTerrainTypeAsset>());if(!FamilySource(*S,E)){AddError(E);return false;}
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
+    auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftFamilyReview"));if(!Review){AddError(TEXT("Current review is required"));return false;}A->Recipe=Review->Recipe;A->Recipe.Caves.bEnabled=false;A->Recipe.Watershed.bEnabled=false;
+    if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return A->AddPaletteSource(S.Get(),E);})){AddError(E);return false;}
+    auto R=A->Recipe;R.RegionGeneration=FCLRegionGenerationSettings();const auto Base=FCLPlanetCompiler::Compile(R,E);if(!Base){AddError(E);return false;}const auto D=FamilyDirections();double Worst=0,SoloWorst=0;
+    for(int32 I=0;I<=10;++I)
+    {
+        A->Recipe.RegionGeneration.Palette[0].Rift.ApplyCuratedCharacter(I/10.);const auto P=FCLPlanetCompiler::Compile(A->Recipe,E);if(!P){AddError(E);return false;}
+        double Peak=0;for(auto V:D)Peak=FMath::Max(Peak,FMath::Abs(P->SampleHeightMeters(V)-Base->SampleHeightMeters(V)));
+        TestTrue(TEXT("Every slider position adds bounded metre relief without re-fitting the landscape"),Peak>0.01&&Peak<34);Worst=FMath::Max(Worst,Peak);
+        auto Input=FCLPlanetCompiler::PrepareBackground(A->Recipe,E,nullptr,INDEX_NONE,nullptr,S->TerrainType.Id);const auto Solo=Input?FCLPlanetCompiler::CompleteBackground(*Input,MakeShared<FCLCompileProgress>(),E):nullptr;if(!Solo){AddError(E);return false;}
+        double SoloPeak=0;for(auto V:D)SoloPeak=FMath::Max(SoloPeak,FMath::Abs(Solo->SampleHeightMeters(V)-Base->SampleHeightMeters(V)));
+        TestTrue(TEXT("Whole-planet Solo also preserves local metre scale throughout the slider"),SoloPeak>.01&&SoloPeak<34);SoloWorst=FMath::Max(SoloWorst,SoloPeak);
+    }
+    auto& F=A->Recipe.RegionGeneration.Palette[0].Rift;F.MaximumThrowMeters=160;TestTrue(TEXT("Deliberate extreme physical ranges remain valid"),F.Validate(E));F.ApplyCuratedCharacter(1);TestEqual(TEXT("Returning to the knob restores the curated range"),F.MaximumThrowMeters,28.);
+    AddInfo(FString::Printf(TEXT("CURATED_RIFT wholeSliderSamples=11 maximumLandscapeDeltaMeters=%.6f maximumSoloDeltaMeters=%.6f"),Worst,SoloWorst));return !HasAnyErrors();
+}
 #endif

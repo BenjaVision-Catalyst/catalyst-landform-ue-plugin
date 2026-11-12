@@ -9,9 +9,14 @@ uint32 Mix(uint32 V){V^=V>>16;V*=0x7feb352dU;V^=V>>15;V*=0x846ca68bU;return V^(V
 double Random(uint32 V){return (double(Mix(V))+.5)/4294967296.;}
 double Smooth(double X){X=FMath::Clamp(X,0.,1.);return X*X*X*(X*(X*6-15)+10);}
 }
+void FCLRiftLandform::ApplyCuratedCharacter(double Value)
+{
+    AlgorithmVersion=3;MinimumSpacingMeters=180;MaximumSpacingMeters=440;MinimumThrowMeters=8;MaximumThrowMeters=28;MinimumScarpWidthMeters=8;MaximumScarpWidthMeters=26;
+    Character=FMath::Clamp(Value,0.,1.);
+}
 bool FCLRiftLandform::Validate(FString& Error)const
 {
-    if(AlgorithmVersion<0||AlgorithmVersion>2){Error=TEXT("Unsupported rift Landform version");return false;}
+    if(AlgorithmVersion<0||AlgorithmVersion>3){Error=TEXT("Unsupported rift Landform version");return false;}
     if(!IsActive())return true;
     auto Range=[](double A,double B,double Min,double Max){return FMath::IsFinite(A)&&FMath::IsFinite(B)&&A>=Min&&B>=A&&B<=Max;};
     if(!FMath::IsFinite(Character)||Character<0||Character>1||!Range(MinimumSpacingMeters,MaximumSpacingMeters,2,100000)||!Range(MinimumThrowMeters,MaximumThrowMeters,0,10000)||!Range(MinimumScarpWidthMeters,MaximumScarpWidthMeters,.1,10000)||MaximumScarpWidthMeters>MinimumSpacingMeters*.45)
@@ -29,10 +34,10 @@ bool FCLRiftLandform::ValidateNoise(TConstArrayView<FCLNoiseLayer> Layers,FStrin
 TSharedPtr<const FCLCompiledRiftLandform> FCLCompiledRiftLandform::Compile(const FCLRiftLandform& S,int32 PlanetSeed,double R,double Span,TSharedPtr<const FCLCompiledTectonics> T,TSharedPtr<const FCLCompiledContinents> C,FString& Error)
 {
     if(!S.Validate(Error)||!S.IsActive()||!FMath::IsFinite(R)||R<=0||!FMath::IsFinite(Span)||Span<0){if(Error.IsEmpty())Error=TEXT("Invalid rift reference radius or surface interval");return nullptr;}
-    auto Out=MakeShared<FCLCompiledRiftLandform>();Out->Radius=R;Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(C);Out->Character=S.Character;Out->Seed=Mix(uint32(PlanetSeed))^Mix(uint32(S.Seed));
+    auto Out=MakeShared<FCLCompiledRiftLandform>();Out->Radius=R;Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(C);Out->Character=S.AlgorithmVersion==3?FMath::Lerp(.15,.72,S.Character):S.Character;Out->Seed=Mix(uint32(PlanetSeed))^Mix(uint32(S.Seed));
     const double Curation=Smooth(S.Character);
     Out->ProfileVersion=S.AlgorithmVersion;
-    if(Out->ProfileVersion==2)
+    if(Out->ProfileVersion>=2)
     {
         Out->Noise=FCLNativeNoiseKernel::Create(Error);if(!Out->Noise)return nullptr;
         FRandomStream Random(int32(Out->Seed));const FVector Axis=Random.VRand();Axis.FindBestAxisVectors(Out->FallbackX,Out->FallbackY);

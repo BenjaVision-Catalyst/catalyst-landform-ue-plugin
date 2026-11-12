@@ -10,6 +10,11 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/AppStyle.h"
+#include "PropertyEditorModule.h"
+#include "IStructureDetailsView.h"
+#include "IDetailsView.h"
+#include "PropertyPath.h"
+#include "UObject/StructOnScope.h"
 
 void FCLPlanetLandforms::AddSource(UCLTerrainTypeAsset* Source)
 {if(Source&&Source->TerrainType.Coordinates==ECLTerrainCoordinates::SphericalSurface)Sources.Add(Source->TerrainType.Id,TStrongObjectPtr<UCLTerrainTypeAsset>(Source));}
@@ -76,8 +81,17 @@ bool FCLPlanetLandforms::SetCharacter(FGuid Id,double Value)
 {
     if(!Included(Id)||!FMath::IsFinite(Value))return false;auto R=Asset->Recipe;
     auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
-    Value=FMath::Clamp(Value,0.,1.);if(P->Rift.IsActive())P->Rift.Character=Value;else P->Character=Value;
+    Value=FMath::Clamp(Value,0.,1.);if(P->Rift.IsActive())P->Rift.ApplyCuratedCharacter(Value);else P->Character=Value;
     return Commit(MoveTemp(R),FText::FromString(TEXT("Change Landform Character")));
+}
+bool FCLPlanetLandforms::SetValues(FGuid Id,const FCLLandformPaletteEntry& Values)
+{
+    if(!Included(Id))return false;auto R=Asset->Recipe;auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
+    P->Rift=Values.Rift;P->NoiseLayers=Values.NoiseLayers;P->Suitability=Values.Suitability;P->SurfaceStack=Values.SurfaceStack;P->Seed=Values.Seed;
+    // A deliberate physical edit adopts additive delivery while retaining the
+    // user's ranges. The knob's curated defaults are a separate action.
+    if(P->Rift.IsActive())P->Rift.AlgorithmVersion=3;
+    return Commit(MoveTemp(R),FText::FromString(TEXT("Edit Landform values")));
 }
 bool FCLPlanetLandforms::Reseed(FGuid Id)
 {
@@ -116,16 +130,20 @@ void SCLPlanetLandforms::Refresh()
     {
         auto& C=Controls.Add(Id);C.Name=Session->Name(Id);C.Description=Session->Description(Id);const auto State=Session;auto Enabled=[State,Id]{return State->Included(Id);};
         FString Description=Session->Description(Id);int32 End;if(Description.FindChar('.',End))Description=Description.Left(End+1);if(Description.Len()>95)Description=Description.Left(92)+TEXT("…");
-        Rows->AddSlot().AutoHeight().Padding(4,1)[SNew(SBorder).BorderImage(FAppStyle::GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.055,.055,.055)).Padding(6,7)[SNew(SHorizontalBox)
+        Rows->AddSlot().AutoHeight().Padding(4,1)[SNew(SBorder).BorderImage(FAppStyle::GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.055,.055,.055)).Padding(6,7)[SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight()[SNew(SHorizontalBox)
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,4,0)[SAssignNew(C.Disclosure,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"NoBorder").ContentPadding(0).ToolTipText(FText::FromString(TEXT("Edit underlying values"))).OnClicked_Lambda([this,Id]{ToggleDetails(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(10,10)).Image_Lambda([this,Id]{return FAppStyle::GetBrush(Expanded.Contains(Id)?TEXT("TreeArrow_Expanded"):TEXT("TreeArrow_Collapsed"));})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,6,0)[SAssignNew(C.Include,SCheckBox).ToolTipText(FText::FromString(TEXT("Include in planet generation"))).IsChecked_Lambda([Enabled]{return Enabled()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;}).OnCheckStateChanged_Lambda([State,Id](ECheckBoxState V){State->Include(Id,V==ECheckBoxState::Checked);})]
             +SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(0,0,8,0)[SNew(SVerticalBox)
                 +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(Session->Name(Id))).Font(FAppStyle::GetFontStyle("PropertyWindow.BoldFont"))]
                 +SVerticalBox::Slot().AutoHeight().Padding(0,3,0,0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(Description)).ToolTipText(FText::FromString(Session->Description(Id))).Font(FAppStyle::GetFontStyle("SmallFont")).ColorAndOpacity(FLinearColor(.65,.65,.65))]]
-            +SHorizontalBox::Slot().FillWidth(.55).VAlign(VAlign_Center)[SAssignNew(C.Knob,SSlider).IsEnabled_Lambda(Enabled).ToolTipText(FText::FromString(TEXT("Character"))).Value_Lambda([State,Id]{return float(State->Character(Id));}).OnMouseCaptureBegin_Lambda([State,Id]{State->BeginGesture(Id);}).OnValueChanged_Lambda([State,Id](float V){State->SetCharacter(Id,V);}).OnMouseCaptureEnd_Lambda([State]{State->EndGesture();})]
+            +SHorizontalBox::Slot().FillWidth(.55).VAlign(VAlign_Center)[SAssignNew(C.Knob,SSlider).IsEnabled_Lambda(Enabled).ToolTipText_Lambda([State,Id]{const auto* P=State->Entry(Id);return FText::FromString(P&&P->Rift.IsActive()?TEXT("Curated Character. Moving this restores the physical ranges; expand the row for manual overrides."):TEXT("Character. Expand the row to edit underlying values."));}).Value_Lambda([State,Id]{return float(State->Character(Id));}).OnMouseCaptureBegin_Lambda([State,Id]{State->BeginGesture(Id);}).OnValueChanged_Lambda([State,Id](float V){State->SetCharacter(Id,V);}).OnMouseCaptureEnd_Lambda([State]{State->EndGesture();})]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0)[SNew(SBox).WidthOverride(24)[SNew(STextBlock).IsEnabled_Lambda(Enabled).Text_Lambda([State,Id]{return FText::AsNumber(FMath::RoundToInt(State->Character(Id)*100));})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(C.Eye,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).ToolTipText(FText::FromString(TEXT("Include in preview"))).OnClicked_Lambda([State,Id]{State->ToggleEye(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(16,16)).Image_Lambda([State,Id]{return FAppStyle::GetBrush(State->Visible(Id)?TEXT("Level.VisibleIcon16x"):TEXT("Level.NotVisibleIcon16x"));})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(C.Reseed,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).ToolTipText(FText::FromString(TEXT("Reseed"))).OnClicked_Lambda([State,Id]{State->Reseed(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(16,16)).Image(FAppStyle::GetBrush("Icons.Refresh"))]]
-            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0,0,0)[SNew(SBox).WidthOverride(50)[SAssignNew(C.Solo,SButton).IsEnabled_Lambda(Enabled).ContentPadding(FMargin(3,2)).ToolTipText(FText::FromString(TEXT("Preview this Landform across the whole planet"))).OnClicked_Lambda([State,Id]{State->ToggleSolo(Id);return FReply::Handled();})[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([State,Id]{return FText::FromString(State->PreviewSolo()==Id?TEXT("Unsolo"):TEXT("Solo"));})]]]]];
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0,0,0)[SNew(SBox).WidthOverride(50)[SAssignNew(C.Solo,SButton).IsEnabled_Lambda(Enabled).ContentPadding(FMargin(3,2)).ToolTipText(FText::FromString(TEXT("Preview this Landform across the whole planet"))).OnClicked_Lambda([State,Id]{State->ToggleSolo(Id);return FReply::Handled();})[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([State,Id]{return FText::FromString(State->PreviewSolo()==Id?TEXT("Unsolo"):TEXT("Solo"));})]]]]
+            +SVerticalBox::Slot().AutoHeight().Padding(16,8,0,0)[SAssignNew(C.DetailsBox,SBox).MaxDesiredHeight(420).IsEnabled_Lambda(Enabled).Visibility_Lambda([this,Id]{return Expanded.Contains(Id)?EVisibility::Visible:EVisibility::Collapsed;})]]];
+        if(Expanded.Contains(Id)){Expanded.Remove(Id);ToggleDetails(Id);}
     }
     SyncControls();
 }
@@ -140,7 +158,35 @@ void SCLPlanetLandforms::SyncControls()
     for(FGuid Id:Ids){const auto* C=Controls.Find(Id);Rebuild|=!C||C->Name!=Session->Name(Id)||C->Description!=Session->Description(Id);}
     if(Rebuild){Refresh();return;}
     for(auto& Pair:Controls)
-    {const bool Enabled=Session->Included(Pair.Key);auto& C=Pair.Value;C.Include->SetIsChecked(Enabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked);C.Knob->SetEnabled(Enabled);C.Eye->SetEnabled(Enabled);C.Reseed->SetEnabled(Enabled);C.Solo->SetEnabled(Enabled);}
+    {const bool Enabled=Session->Included(Pair.Key);auto& C=Pair.Value;C.Include->SetIsChecked(Enabled?ECheckBoxState::Checked:ECheckBoxState::Unchecked);C.Disclosure->SetEnabled(Enabled);C.DetailsBox->SetEnabled(Enabled);C.Knob->SetEnabled(Enabled);C.Eye->SetEnabled(Enabled);C.Reseed->SetEnabled(Enabled);C.Solo->SetEnabled(Enabled);
+        if(C.Draft&&!ApplyingDetails)if(const auto* P=Session->Entry(Pair.Key);P&&!FCLLandformPaletteEntry::StaticStruct()->CompareScriptStruct(P,C.Draft->GetStructMemory(),0))
+        {*reinterpret_cast<FCLLandformPaletteEntry*>(C.Draft->GetStructMemory())=*P;C.Details->GetDetailsView()->ForceRefresh();}
+    }
+}
+
+void SCLPlanetLandforms::ToggleDetails(FGuid Id)
+{
+    if(!Session->Included(Id))return;auto* C=Controls.Find(Id);if(!C)return;
+    if(Expanded.Contains(Id)){Expanded.Remove(Id);return;}Expanded.Add(Id);
+    if(C->Details)return;
+    C->Draft=MakeShared<FStructOnScope>(FCLLandformPaletteEntry::StaticStruct());
+    *reinterpret_cast<FCLLandformPaletteEntry*>(C->Draft->GetStructMemory())=*Session->Entry(Id);
+    FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
+    C->Details=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,FStructureDetailsViewArgs(),C->Draft);
+    C->Details->SetCustomName(FText::FromString(TEXT("Landform values")));
+    C->Details->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([RiftActive=Session->Entry(Id)->Rift.IsActive()](const FPropertyAndParent& P)
+    {
+        const FName N=P.Property.GetFName();if(RiftActive&&P.ParentProperties.IsEmpty()&&(N==TEXT("Seed")||N==TEXT("SurfaceStack")))return false;if(N==TEXT("AlgorithmVersion")||N==TEXT("Character")||N==TEXT("Id")||N==TEXT("Type")||N==TEXT("bPlaceholder"))return false;
+        auto Allowed=[](FName Name){return Name==TEXT("Rift")||Name==TEXT("NoiseLayers")||Name==TEXT("Suitability")||Name==TEXT("SurfaceStack")||Name==TEXT("Seed");};
+        if(Allowed(N))return true;for(const auto* Parent:P.ParentProperties)if(Allowed(Parent->GetFName()))return true;return false;
+    }));
+    const auto Draft=C->Draft;const auto State=Session;
+    C->Details->GetOnFinishedChangingPropertiesDelegate().AddLambda([this,State,Draft,Id](const FPropertyChangedEvent&)
+    {ApplyingDetails=true;State->SetValues(Id,*reinterpret_cast<FCLLandformPaletteEntry*>(Draft->GetStructMemory()));ApplyingDetails=false;});
+    C->DetailsBox->SetContent(C->Details->GetWidget().ToSharedRef());
+    // Visibility is bound after structure creation; rebuild the initial tree too.
+    auto View=C->Details->GetDetailsView();View->ForceRefresh();View->SetRootExpansionStates(true,false);
+    FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLLandformPaletteEntry::StaticStruct(),TEXT("Rift"))));View->ScrollPropertyIntoView(Path,true);
 }
 
 void SCLPlanetLandforms::Focus(FGuid Id)

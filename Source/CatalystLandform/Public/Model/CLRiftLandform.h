@@ -13,12 +13,14 @@ struct CATALYSTLANDFORM_API FCLRiftLandform
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="2",Units="m")) double MinimumSpacingMeters=100;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="2",Units="m")) double MaximumSpacingMeters=500;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",Units="m")) double MinimumThrowMeters=5;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",Units="m")) double MaximumThrowMeters=80;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",Units="m")) double MinimumScarpWidthMeters=2;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",Units="m")) double MaximumScarpWidthMeters=15;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="2",Units="m",ForceUnits="m")) double MinimumSpacingMeters=100;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="2",Units="m",ForceUnits="m")) double MaximumSpacingMeters=500;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",Units="m",ForceUnits="m")) double MinimumThrowMeters=5;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",Units="m",ForceUnits="m")) double MaximumThrowMeters=80;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",Units="m",ForceUnits="m")) double MinimumScarpWidthMeters=2;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",Units="m",ForceUnits="m")) double MaximumScarpWidthMeters=15;
+    /** Return to the curated physical family; manual ranges remain editable until the next adoption. */
+    void ApplyCuratedCharacter(double Value);
     bool IsActive()const{return AlgorithmVersion!=0;}
     bool Validate(FString& Error)const;
     bool ValidateNoise(TConstArrayView<FCLNoiseLayer>,FString& Error)const;
@@ -33,7 +35,7 @@ public:
     double MaximumDisplacementMeters()const{return Throw;}
     double SpacingMeters()const{return Spacing;}
     double ScarpWidthMeters()const{return Width;}
-    double SurfaceDetailStrength()const{return ProfileVersion==2?FMath::Lerp(1.,.25,Character):1.;}
+    double SurfaceDetailStrength()const{return ProfileVersion==3?FMath::Lerp(.8,.55,Character):ProfileVersion==2?FMath::Lerp(1.,.25,Character):1.;}
 private:
     double StructuralMeters(const FVector& Direction,double* Confidence=nullptr)const;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;

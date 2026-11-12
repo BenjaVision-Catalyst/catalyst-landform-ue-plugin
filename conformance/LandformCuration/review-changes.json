@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/regionGeneration/palette/0/rift/algorithmVersion",
+    "before": 2,
+    "after": 3
+  },
+  {
+    "path": "/regionGeneration/palette/0/rift/minimumSpacingMeters",
+    "before": 100,
+    "after": 180
+  },
+  {
+    "path": "/regionGeneration/palette/0/rift/maximumSpacingMeters",
+    "before": 500,
+    "after": 440
+  },
+  {
+    "path": "/regionGeneration/palette/0/rift/minimumThrowMeters",
+    "before": 5,
+    "after": 8
+  },
+  {
+    "path": "/regionGeneration/palette/0/rift/maximumThrowMeters",
+    "before": 80,
+    "after": 28
+  },
+  {
+    "path": "/regionGeneration/palette/0/rift/minimumScarpWidthMeters",
+    "before": 2,
+    "after": 8
+  },
+  {
+    "path": "/regionGeneration/palette/0/rift/maximumScarpWidthMeters",
+    "before": 15,
+    "after": 26
+  }
+]

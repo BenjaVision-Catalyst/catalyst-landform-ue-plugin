@@ -1,0 +1,261 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.GuidesAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.23959418e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.71010724e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.0104735e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.39737773e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.12"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT networks=39 openings=4 savedCharacter=0.668",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.12"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.12"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Regions.BlendAndNativeParity",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generated field: 2379 directions, 2.22044604925e-16 weight error, 9.04038199678e-06 m oracle error, 1.02409524061e-06 m atlas error, 0.000102409525 cm native residual, 0.00197791478 cm section residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.14"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.CharacterNoiseAndRock",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_ROCK probes=136 restorationMetres=4.54747350886e-13 noiseLayers=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.15"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.CuratedLandscape",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CURATED_RIFT wholeSliderSamples=11 maximumLandscapeDeltaMeters=4.199412 maximumSoloDeltaMeters=4.795877",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.16"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.PlacementRelaxation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_FALLBACK assigned=2 cells=24 tier=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.16"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.SoloSavedProfile",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.Character",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"cameraZoom\":0.7,\"navigationP95Ms\":17.459832,\"cases\":[{\"stage\":0,\"vertices\":130264,\"geometryCrc\":3248140418},{\"stage\":1,\"vertices\":127634,\"geometryCrc\":4236113414},{\"stage\":2,\"vertices\":128769,\"geometryCrc\":890101716}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.35.43"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.Landscape",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Native landscape camera captured at Character 0.5",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.36.19"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner.PreviewModes",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"cases\":[{\"stage\":3,\"vertices\":132176,\"geometryCrc\":675882330},{\"stage\":4,\"vertices\":133021,\"geometryCrc\":1409751068}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.36.36"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.BackgroundAndRecipe",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Background/synchronous residual 0 m; 3 reused native inputs",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.36.37"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.GeologyAndRestoration",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "175 active physical samples, 3790 outside hosts, 175 strata probes; max throw 17.5100977 m; restoration 4.54747350886e-13 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-04.36.37"
+        }
+      ]
+    }
+  ]
+}

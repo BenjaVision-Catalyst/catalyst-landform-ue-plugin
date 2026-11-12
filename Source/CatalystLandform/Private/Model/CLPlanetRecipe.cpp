@@ -282,6 +282,7 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
 {
     if(WatershedSurface){WatershedSurface->SampleHeightsMeters(Directions,Heights);Watershed->MapHeights(Directions,Heights);return;}
     if(MeasuredTerrain){MeasuredTerrain->SampleHeights(Directions,Heights);return;}
+    if(ProvinceSurface){ProvinceSurface->SampleHeightsMeters(Directions,Heights);GeneratedRegions->Blend(Directions,Heights);return;}
     if(UnmappedSurface)
     {UnmappedSurface->SampleHeightsMeters(Directions,Heights);SurfaceRange->MapHeights(Directions,Heights);return;}
     if(!SurfacePatches.IsEmpty())
@@ -539,7 +540,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
             TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(TSharedPtr<const FCLCompiledPlanetRecipe>)> Replace;
             Replace=[&](auto Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
             {
-                auto P=MakeShared<FCLCompiledPlanetRecipe>(*Input);P->SurfaceRange=Range;P->SurfacePatches.Reset();
+                auto P=MakeShared<FCLCompiledPlanetRecipe>(*Input);P->SurfaceRange=Range;if(Input->ProvinceSurface)P->ProvinceSurface=Replace(Input->ProvinceSurface);P->SurfacePatches.Reset();
                 for(const auto& Patch:Input->SurfacePatches)P->SurfacePatches.Add(Replace(Patch));return P;
             };
             Out=MakeShared<FCLCompiledPlanetRecipe>(*Replace(Core));
@@ -573,6 +574,17 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         // A neutral/no-eligible selection must retain the exact prior field.
         if(!Generated->HasPhysicalRelief())
         {Geology->GeneratedRegions=Generated;return RetainInput(Geology);}
+        if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&P.Rift.AlgorithmVersion==3;}))
+        {
+            // Local metre relief belongs on the already calibrated landscape.
+            // Re-fitting the whole planet after adding it makes local features
+            // compete for the entire SurfaceMin..SurfaceMax interval.
+            auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Core);Out->ProvinceSurface=Core;Out->GeneratedRegions=Generated;
+            Out->Rock=Geology->Rock?Geology->Rock->WithProvinceDeformation(Generated):nullptr;
+            double NoiseLow=0,NoiseHigh=0;for(const auto& F:Generated->Fields)if(F){NoiseLow=FMath::Min(NoiseLow,F->MinimumHeightMeters-Generated->NeutralHeight);NoiseHigh=FMath::Max(NoiseHigh,F->MaximumHeightMeters-Generated->NeutralHeight);}
+            const double D=Generated->MaximumProvinceDisplacementMeters();Out->MinimumHeightMeters=FMath::Max(-Out->RadiusMeters,Core->MinimumHeightMeters+NoiseLow*Generated->Strength-D);Out->MaximumHeightMeters=Core->MaximumHeightMeters+NoiseHigh*Generated->Strength+D;
+            return RetainInput(Out);
+        }
         auto Raw=MakeShared<FCLCompiledPlanetRecipe>(*(Core->UnmappedSurface?Core->UnmappedSurface:Core));
         Raw->GeneratedRegions=Generated;Raw->Rock=Geology->Rock?Geology->Rock->WithProvinceDeformation(Generated):nullptr;
         // Native surface stacks route geometry through their six spherical

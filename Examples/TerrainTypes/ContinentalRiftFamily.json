@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 11,
+  "schemaVersion": 12,
   "algorithmVersion": 2,
   "id": "434C5052000000010000000000000008",
   "name": "Continental rift and fault-block province",
@@ -107,14 +107,14 @@
     }
   },
   "rift": {
-    "algorithmVersion": 2,
+    "algorithmVersion": 3,
     "character": 0.6,
     "seed": 37,
-    "minimumSpacingMeters": 100,
-    "maximumSpacingMeters": 500,
-    "minimumThrowMeters": 5,
-    "maximumThrowMeters": 80,
-    "minimumScarpWidthMeters": 2,
-    "maximumScarpWidthMeters": 15
+    "minimumSpacingMeters": 180,
+    "maximumSpacingMeters": 440,
+    "minimumThrowMeters": 8,
+    "maximumThrowMeters": 28,
+    "minimumScarpWidthMeters": 8,
+    "maximumScarpWidthMeters": 26
   }
 }

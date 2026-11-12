@@ -138,10 +138,10 @@ struct CATALYSTLANDFORM_API FCLLandformPaletteEntry
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
     UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=2;
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLLandformSuitability Suitability;
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLRiftLandform Rift;
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) TArray<FCLNoiseLayer> NoiseLayers;
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) FCLSurfaceStack SurfaceStack;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLLandformSuitability Suitability;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRiftLandform Rift;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FCLNoiseLayer> NoiseLayers;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
 };
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRegionAssignmentOverride
@@ -272,6 +272,8 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     /** -1 is the six-patch router; -2 is the bounded whole-field reference oracle. */
     int32 SurfacePatch = INDEX_NONE;
     TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> SurfacePatches;
+    /** Curated provinces add metre relief after the base landscape has been mapped. */
+    TSharedPtr<const FCLCompiledPlanetRecipe> ProvinceSurface;
     TSharedPtr<const FCLCompiledPlanetRecipe> UnmappedSurface;
     TSharedPtr<const struct FCLSurfaceRange> SurfaceRange;
     FBox2D EvaluationRegion;
