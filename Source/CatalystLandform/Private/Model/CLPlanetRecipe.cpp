@@ -573,6 +573,20 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         {Geology->GeneratedRegions=Generated;return RetainInput(Geology);}
         auto Raw=MakeShared<FCLCompiledPlanetRecipe>(*(Core->UnmappedSurface?Core->UnmappedSurface:Core));
         Raw->GeneratedRegions=Generated;Raw->Rock=Geology->Rock?Geology->Rock->WithProvinceDeformation(Generated):nullptr;
+        // Native surface stacks route geometry through their six spherical
+        // fields. Profile 2 must compose local relief in those fields too;
+        // attaching it only to the atlas root leaves it out of height queries.
+        // Saved profile-1 worlds retain their previous field exactly.
+        if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&P.Rift.AlgorithmVersion==2;}))
+        {
+            TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(const TSharedPtr<const FCLCompiledPlanetRecipe>&)> Compose;
+            Compose=[&](const auto& Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
+            {
+                auto Field=MakeShared<FCLCompiledPlanetRecipe>(*Input);Field->GeneratedRegions=Generated;Field->SurfacePatches.Reset();
+                for(const auto& Patch:Input->SurfacePatches)Field->SurfacePatches.Add(Compose(Patch));return Field;
+            };
+            const auto Patches=Raw->SurfacePatches;Raw->SurfacePatches.Reset();for(const auto& Patch:Patches)Raw->SurfacePatches.Add(Compose(Patch));
+        }
         double Low=0,High=0;for(const auto& Field:Generated->Fields)if(Field){Low=FMath::Min(Low,Field->MinimumHeightMeters-Generated->NeutralHeight);High=FMath::Max(High,Field->MaximumHeightMeters-Generated->NeutralHeight);}
         const double Displacement=Generated->MaximumProvinceDisplacementMeters();
         Raw->MinimumHeightMeters=FMath::Max(-Raw->RadiusMeters,Raw->MinimumHeightMeters+Low*Generated->Strength-Displacement);

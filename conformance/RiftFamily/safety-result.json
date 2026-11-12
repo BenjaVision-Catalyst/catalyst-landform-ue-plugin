@@ -1,0 +1,204 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.GuidesAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.23959418e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.39"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.71010724e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.39"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.0104735e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.39"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.39737773e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.39"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT networks=39 openings=4 savedCharacter=0.668",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.39"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Cave mesh worst residual 13.517175 m at X=637.435 Y=-177.643 Z=661.098",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_OVERVIEW_CELL_ERROR maxFieldToCellRatio=0.465943",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.58"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_PREVIEW_READY totalSeconds=19.217 inspectionSeconds=7.241 networks=39 domains=30 nativeVertices=26275 cyanPixels=12669 overviewResidualMeters=13.517175",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generating cave surfaces \u00b7 30/30 ready | components 6, native producer/presenter 40889, ready 1, processing 0, tasks 0, inspected vertices 335, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 15 chunk 32 lod 7/7 | components 3, native producer/presenter 40921, ready 1, processing 0, tasks 0, inspected vertices 161, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 21 chunk 32 lod 4/4 | components 5, native producer/presenter 40941, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 40961, ready 1, processing 0, tasks 0, inspected vertices 1129, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 40981, ready 1, processing 0, tasks 0, inspected vertices 852, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 5/5 | components 5, native producer/presenter 41001, ready 1, processing 0, tasks 0, inspected vertices 409, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41021, ready 1, processing 0, tasks 0, inspected vertices 297, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 6/6 | components 6, native producer/presenter 41041, ready 1, processing 0, tasks 0, inspected vertices 913, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 6, native producer/presenter 41061, ready 1, processing 0, tasks 0, inspected vertices 519, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 6, native producer/presenter 41081, ready 1, processing 0, tasks 0, inspected vertices 523, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 6/6 | components 7, native producer/presenter 41101, ready 1, processing 0, tasks 0, inspected vertices 696, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41121, ready 1, processing 0, tasks 0, inspected vertices 766, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41141, ready 1, processing 0, tasks 0, inspected vertices 1000, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41161, ready 1, processing 0, tasks 0, inspected vertices 622, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41181, ready 1, processing 0, tasks 0, inspected vertices 682, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 4, native producer/presenter 41201, ready 1, processing 0, tasks 0, inspected vertices 264, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41221, ready 1, processing 0, tasks 0, inspected vertices 654, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 18 chunk 32 lod 4/4 | components 5, native producer/presenter 41241, ready 1, processing 0, tasks 0, inspected vertices 505, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 23 chunk 32 lod 4/4 | components 6, native producer/presenter 41261, ready 1, processing 0, tasks 0, inspected vertices 1451, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 8, native producer/presenter 41281, ready 1, processing 0, tasks 0, inspected vertices 3804, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 17 chunk 32 lod 4/4 | components 7, native producer/presenter 41301, ready 1, processing 0, tasks 0, inspected vertices 1151, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41321, ready 1, processing 0, tasks 0, inspected vertices 1299, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 7, native producer/presenter 41341, ready 1, processing 0, tasks 0, inspected vertices 1077, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 20 chunk 32 lod 4/4 | components 6, native producer/presenter 41361, ready 1, processing 0, tasks 0, inspected vertices 1072, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 8, native producer/presenter 41381, ready 1, processing 0, tasks 0, inspected vertices 981, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 22 chunk 32 lod 5/5 | components 6, native producer/presenter 41401, ready 1, processing 0, tasks 0, inspected vertices 412, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 19 chunk 32 lod 4/4 | components 7, native producer/presenter 41421, ready 1, processing 0, tasks 0, inspected vertices 1101, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/5 | components 7, native producer/presenter 41441, ready 1, processing 0, tasks 0, inspected vertices 1006, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 14 chunk 32 lod 6/6 | components 4, native producer/presenter 41461, ready 1, processing 0, tasks 0, inspected vertices 795, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4 | components 5, native producer/presenter 41481, ready 1, processing 0, tasks 0, inspected vertices 670, actor 2.0 config editor 1 quality 2.0/2.0 game 1.0/1.0 voxel 25 chunk 32 lod 4/4",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.23.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_CAVE_ZOOM seconds=58.854 vertices=53423 maxCellMeters=0.600 maxResidualMeters=0.217652",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.24.58"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.24.58"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Stamps.NativeMeshCandidates.Local Megascans",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_NATIVE_STAMPS candidates=3 stockVoxelizer=1 privateHostOnly=1",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.24.58"
+        },
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LoadErrors: While trying to load package /Game/Catalyst/Models/NaturePlants/RocksStones/Granite/GraniteCliff_rivav/Meshes/S_Granite_Cliff_rivav_lod0, a dependent package /Game/Catalyst/Models/NaturePlants/RocksStones/Granite/GraniteCliff_rivav/Materials/MI_Granite_Cliff_rivav_4K was not available. Additional explanatory information follows:\nFPackageName: Skipped package /Game/Catalyst/Models/NaturePlants/RocksStones/Granite/GraniteCliff_rivav/Materials/MI_Granite_Cliff_rivav_4K has a valid, mounted, mount point but does not exist either on disk or in iostore. The uncooked file would be expected on disk at '/private/tmp/landform-natural-karst/LandformLab/Content/Catalyst/Models/NaturePlants/RocksStones/Granite/GraniteCliff_rivav/Materials/MI_Granite_Cliff_rivav_4K'. Perhaps it has been deleted or was not synced?\n",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.24.58"
+        },
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LoadErrors: While trying to load package /Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates00_skEpS/Meshes/SM_Rock_Plates_00, a dependent package /Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates00_skEpS/Materials/MI_Rock_Plates_00 was not available. Additional explanatory information follows:\nFPackageName: Skipped package /Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates00_skEpS/Materials/MI_Rock_Plates_00 has a valid, mounted, mount point but does not exist either on disk or in iostore. The uncooked file would be expected on disk at '/private/tmp/landform-natural-karst/LandformLab/Content/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates00_skEpS/Materials/MI_Rock_Plates_00'. Perhaps it has been deleted or was not synced?\n",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.24.58"
+        },
+        {
+          "event": {
+            "type": "Warning",
+            "message": "LoadErrors: While trying to load package /Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates01_tdqbcacda/Meshes/SM_Rock_Plates_01, a dependent package /Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates01_tdqbcacda/Materials/MI_Rock_Plates_01 was not available. Additional explanatory information follows:\nFPackageName: Skipped package /Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates01_tdqbcacda/Materials/MI_Rock_Plates_01 has a valid, mounted, mount point but does not exist either on disk or in iostore. The uncooked file would be expected on disk at '/private/tmp/landform-natural-karst/LandformLab/Content/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates01_tdqbcacda/Materials/MI_Rock_Plates_01'. Perhaps it has been deleted or was not synced?\n",
+            "context": "log",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.24.58"
+        }
+      ]
+    }
+  ]
+}

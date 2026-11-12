@@ -3,6 +3,8 @@
 #include "CLRiftLandform.generated.h"
 class FCLCompiledTectonics;
 class FCLCompiledContinents;
+class FCLNativeNoiseKernel;
+struct FCLNoiseLayer;
 /** Physical ranges curated by Character; zero version preserves existing neutral provinces. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRiftLandform
@@ -19,6 +21,7 @@ struct CATALYSTLANDFORM_API FCLRiftLandform
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.1",Units="m")) double MaximumScarpWidthMeters=15;
     bool IsActive()const{return AlgorithmVersion!=0;}
     bool Validate(FString& Error)const;
+    bool ValidateNoise(TConstArrayView<FCLNoiseLayer>,FString& Error)const;
 };
 /** Immutable secondary fault-block field inside the existing warped extensional belts.
  * Surface relief and restored rock coordinates consume exactly this metre displacement. */
@@ -30,9 +33,14 @@ public:
     double MaximumDisplacementMeters()const{return Throw;}
     double SpacingMeters()const{return Spacing;}
     double ScarpWidthMeters()const{return Width;}
+    double SurfaceDetailStrength()const{return ProfileVersion==2?FMath::Lerp(1.,.25,Character):1.;}
 private:
+    double StructuralMeters(const FVector& Direction,double* Confidence=nullptr)const;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
     TSharedPtr<const FCLCompiledContinents> Crust;
     double Radius=1,Spacing=1,Throw=0,Width=1,Character=.5;
     uint32 Seed=0;
+    int32 ProfileVersion=1;
+    FVector FallbackX,FallbackY;
+    TSharedPtr<const FCLNativeNoiseKernel> Noise;
 };

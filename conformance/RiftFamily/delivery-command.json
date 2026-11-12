@@ -1,0 +1,17 @@
+[
+  "/Users/jupiter/UnrealEngine/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+  "/private/tmp/landform-natural-karst/LandformLab/LandformLab.uproject",
+  "/Engine/Maps/Entry",
+  "-unattended",
+  "-nosplash",
+  "-nosound",
+  "-notracethreading",
+  "-nohighdpi",
+  "-stdout",
+  "-FullStdOutLogOutput",
+  "-abslog=/private/tmp/landform-rift-family/delivery-final/native.log",
+  "-ExecCmds=Automation RunTests Catalyst.Landform.Rift.Family+Catalyst.Landform.Rift.GeologyAndRestoration+Catalyst.Landform.Rift.CharacterAndScale+Catalyst.Landform.Rift.BackgroundAndRecipe+Catalyst.Landform.Rift.UpstreamHostsAndSeed+Catalyst.Landform.Provinces.DefinitionsAndEvidence+Catalyst.Landform.Provinces.BaseGeologyAndNeutrality+Catalyst.Landform.Provinces.PackagedLibrary+Catalyst.Landform.Regions.StructureAndPalette+Catalyst.Landform.Regions.BlendAndNativeParity+Catalyst.Landform.Regions.PortabilityAndOverrides+Catalyst.Landform.Rift.NativeDesigner",
+  "-TestExit=Automation Test Queue Empty",
+  "-ReportExportPath=/private/tmp/landform-rift-family/delivery-final/automation",
+  "-CLRiftFamilyReview"
+]

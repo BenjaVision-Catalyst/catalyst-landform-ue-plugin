@@ -15,6 +15,8 @@ struct CATALYSTLANDFORM_API FCLGeneratedRegionCell
     double SolidAngle=0,MinimumBaseHeightMeters=0,MaximumBaseHeightMeters=0;
     double LowerHeightMeters=0,UpperHeightMeters=0,MedianSlopeDegrees=0,UpperSlopeDegrees=0;
     int32 PaletteIndex=INDEX_NONE;
+    /** Zero is the strict source definition; positive indices name recorded fallbacks. */
+    int32 ProvinceRelaxationTier=0;
     bool bOverride=false;
     double Score=0;
     FString Reason;

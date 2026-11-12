@@ -1,0 +1,26 @@
+{
+  "authoring": {
+    "Content/LandformDesigner/Provinces/DA_ContinentalRiftReview.uasset": {
+      "sha256": "f364f8b2cc4cb46694bdb888fee062c852ab7badcd7bce983b0b18d7601ce34c",
+      "expectedSHA256": "f364f8b2cc4cb46694bdb888fee062c852ab7badcd7bce983b0b18d7601ce34c"
+    },
+    "Content/LandformDesigner/Provinces/DA_ProvincePlacement.uasset": {
+      "sha256": "568d34c3a6b5fcdd1cfbe110bfc5756d4bd800c7b1f50c1fe9cb19f36d97b027",
+      "expectedSHA256": "568d34c3a6b5fcdd1cfbe110bfc5756d4bd800c7b1f50c1fe9cb19f36d97b027"
+    },
+    "Content/LandformDesigner/DA_RadialGuideLibrary.uasset": {
+      "sha256": "bb724be3ef7064813cb7a05053823c259a13982bc7f9ae09040c566a2e93b672",
+      "expectedSHA256": "bb724be3ef7064813cb7a05053823c259a13982bc7f9ae09040c566a2e93b672"
+    }
+  },
+  "voxel": {
+    "version": "2.0p8",
+    "verifiedStockSHA256": {
+      "Source/Voxel/Public/Nanite/VoxelNaniteComponent.h": "468fe894b25a1360b16c011b3b813ce337908f32959b19abc58f509d16b70c8e",
+      "Source/Voxel/Private/Nanite/VoxelNaniteComponent.cpp": "28aa00b6e5d81043fefb721e1e555447cf668aa7300aa8a3304b34350618e721",
+      "Source/Voxel/Public/VoxelWorld.h": "fdbdd36418c0240e7a8c0d068c9a4b4131f852d53aaaaf19c175be63a6b97e96",
+      "Source/Voxel/Private/Render/VoxelRenderComponentCreator.cpp": "991dbe50c6a0782a4238d4ed9bf51e8c4c954212621cb57bde3a8eeaa086efcc"
+    }
+  },
+  "privateMeshCopiesMatchSources": true
+}

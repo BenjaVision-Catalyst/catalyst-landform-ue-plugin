@@ -1,6 +1,8 @@
 #include "Model/CLRiftLandform.h"
 #include "Model/CLTectonics.h"
 #include "Model/CLContinents.h"
+#include "Model/CLPlanetRecipe.h"
+#include "CLNativeNoiseKernel.h"
 namespace
 {
 uint32 Mix(uint32 V){V^=V>>16;V*=0x7feb352dU;V^=V>>15;V*=0x846ca68bU;return V^(V>>16);}
@@ -9,11 +11,19 @@ double Smooth(double X){X=FMath::Clamp(X,0.,1.);return X*X*X*(X*(X*6-15)+10);}
 }
 bool FCLRiftLandform::Validate(FString& Error)const
 {
-    if(AlgorithmVersion<0||AlgorithmVersion>1){Error=TEXT("Unsupported rift Landform version");return false;}
+    if(AlgorithmVersion<0||AlgorithmVersion>2){Error=TEXT("Unsupported rift Landform version");return false;}
     if(!IsActive())return true;
     auto Range=[](double A,double B,double Min,double Max){return FMath::IsFinite(A)&&FMath::IsFinite(B)&&A>=Min&&B>=A&&B<=Max;};
     if(!FMath::IsFinite(Character)||Character<0||Character>1||!Range(MinimumSpacingMeters,MaximumSpacingMeters,2,100000)||!Range(MinimumThrowMeters,MaximumThrowMeters,0,10000)||!Range(MinimumScarpWidthMeters,MaximumScarpWidthMeters,.1,10000)||MaximumScarpWidthMeters>MinimumSpacingMeters*.45)
     {Error=TEXT("Rift Character requires finite ordered physical ranges; scarp width must be less than 45% of minimum fault spacing");return false;}
+    return true;
+}
+bool FCLRiftLandform::ValidateNoise(TConstArrayView<FCLNoiseLayer> Layers,FString& Error)const
+{
+    if(!IsActive())return true;
+    if(AlgorithmVersion==1&&!Layers.IsEmpty()){Error=TEXT("Frozen Rift profile 1 has no surface noise layers");return false;}
+    for(const auto& L:Layers)if(L.Operation!=ECLTerrainOperation::Noise||L.Blend!=ECLNoiseBlend::Add||L.Scale!=ECLNoiseScale::Meters||!L.Minimum.Guide.IsNone()||!L.Maximum.Guide.IsNone()||!L.Minimum.UpperGuide.IsNone()||!L.Maximum.UpperGuide.IsNone())
+    {Error=TEXT("Rift surface noise uses additive metre-scale relief; planet guides and base geology retain their own owners");return false;}
     return true;
 }
 TSharedPtr<const FCLCompiledRiftLandform> FCLCompiledRiftLandform::Compile(const FCLRiftLandform& S,int32 PlanetSeed,double R,double Span,TSharedPtr<const FCLCompiledTectonics> T,TSharedPtr<const FCLCompiledContinents> C,FString& Error)
@@ -21,12 +31,34 @@ TSharedPtr<const FCLCompiledRiftLandform> FCLCompiledRiftLandform::Compile(const
     if(!S.Validate(Error)||!S.IsActive()||!FMath::IsFinite(R)||R<=0||!FMath::IsFinite(Span)||Span<0){if(Error.IsEmpty())Error=TEXT("Invalid rift reference radius or surface interval");return nullptr;}
     auto Out=MakeShared<FCLCompiledRiftLandform>();Out->Radius=R;Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(C);Out->Character=S.Character;Out->Seed=Mix(uint32(PlanetSeed))^Mix(uint32(S.Seed));
     const double Curation=Smooth(S.Character);
+    Out->ProfileVersion=S.AlgorithmVersion;
+    if(Out->ProfileVersion==2)
+    {
+        Out->Noise=FCLNativeNoiseKernel::Create(Error);if(!Out->Noise)return nullptr;
+        FRandomStream Random(int32(Out->Seed));const FVector Axis=Random.VRand();Axis.FindBestAxisVectors(Out->FallbackX,Out->FallbackY);
+    }
     Out->Spacing=FMath::Lerp(S.MaximumSpacingMeters,S.MinimumSpacingMeters,Curation);
     Out->Throw=FMath::Min3(FMath::Lerp(S.MinimumThrowMeters,S.MaximumThrowMeters,Curation),R*.04,Span*.4);
     Out->Width=FMath::Lerp(S.MaximumScarpWidthMeters,S.MinimumScarpWidthMeters,Curation);return Out;
 }
 double FCLCompiledRiftLandform::SampleMeters(const FVector& Direction)const
 {
+    if(ProfileVersion==1)return StructuralMeters(Direction);
+    if(Direction.ContainsNaN()||Direction.IsNearlyZero()||Throw==0)return 0;
+    double Confidence=0;const double Structural=StructuralMeters(Direction,&Confidence);
+    const FVector P=Direction.GetSafeNormal()*Radius;
+    const double Warp=Noise->Sample(P/(Spacing*1.4),int32(Seed));
+    const double Phase=2*PI*(FVector::DotProduct(P,FallbackX)/Spacing+.18*Warp);
+    const double Soft=FMath::Exp(-2*PI*FMath::Min(Width,Spacing*.2)/Spacing);
+    const double Tilt=FMath::Atan2(Soft*FMath::Sin(Phase),1-Soft*FMath::Cos(Phase))/PI;
+    const double Segment=.7+.3*Noise->Sample(P/(Spacing*3.2)+FallbackY*7,int32(Seed^0x52494654));
+    // A relaxed region has its own seeded local expression. It neither moves
+    // plates nor fabricates their evidence. Resolved belts dominate where present.
+    return Structural+(1-Confidence)*Throw*.55*Tilt*Segment;
+}
+double FCLCompiledRiftLandform::StructuralMeters(const FVector& Direction,double* Confidence)const
+{
+    if(Confidence)*Confidence=0;
     if(!Tectonics||Throw==0||Direction.ContainsNaN()||Direction.IsNearlyZero())return 0;
     const FVector D=Direction.GetSafeNormal();
     const double Continental=Crust?Crust->Continentalness(D):Tectonics->Continentalness(D);
@@ -61,5 +93,7 @@ double FCLCompiledRiftLandform::SampleMeters(const FVector& Direction)const
         const double W=Gate*B.StateWeight;
         Sum+=W*FMath::Lerp(Profile(Index),Profile(Index+1),Blend);Drive+=W;
     });
-    return Host*Smooth((FMath::Tanh(Extension)-.02)/.10)*Throw*Sum/FMath::Max(1.,Drive);
+    const double Context=Host*Smooth((FMath::Tanh(Extension)-.02)/.10);
+    if(Confidence)*Confidence=Context;
+    return Context*Throw*Sum/FMath::Max(1.,Drive);
 }

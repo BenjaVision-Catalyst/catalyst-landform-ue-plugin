@@ -29,6 +29,17 @@ struct CATALYSTLANDFORM_API FCLProvinceGeology
 UENUM()
 enum class ECLProvinceMatch:uint8 {Eligible,Unknown,Incompatible};
 
+/** Ordered gameplay fallback; the original requirements remain recorded. */
+USTRUCT(BlueprintType)
+struct CATALYSTLANDFORM_API FCLProvinceRelaxation
+{
+    GENERATED_BODY()
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FName Name;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<ECLGeologicalEvidence> RelaxedRequirements;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.01",ClampMax="1")) double MinimumCoverage=.1;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.01",ClampMax="1")) double PlacementWeight=.25;
+};
+
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLProvinceDefinition
 {
@@ -43,8 +54,11 @@ struct CATALYSTLANDFORM_API FCLProvinceDefinition
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FName> RegionalForms;
     /** Planned geological potential only; no cave generator is supplied by these definitions. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FName> SubsurfacePotential;
+    /** Version 2: used only if no cell satisfies a stricter tier for this source. */
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FCLProvinceRelaxation> Relaxations;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="128")) int32 MaximumRelaxedRegions=1;
     bool IsActive()const{return Type!=ECLProvinceType::None;}
     bool Validate(FString& Error)const;
-    ECLProvinceMatch Match(const FCLProvinceGeology&,FString* Reason=nullptr)const;
+    ECLProvinceMatch Match(const FCLProvinceGeology&,FString* Reason=nullptr,int32 RelaxationTier=0)const;
     static const TCHAR* EvidenceName(ECLGeologicalEvidence);
 };

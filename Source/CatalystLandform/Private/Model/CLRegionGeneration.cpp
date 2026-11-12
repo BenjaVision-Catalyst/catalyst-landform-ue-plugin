@@ -86,7 +86,7 @@ void FCLCompiledRegionGeneration::Blend(TConstArrayView<FVector> Directions,TArr
         for(int32 P=0;P<Palette.Num();++P)if(!Queries[P].IsEmpty())
         {
             TArray<double> H;Fields[P]->SampleHeightsMeters(Queries[P],H);
-            for(int32 I=0;I<H.Num();++I)Heights[Indices[P][I]]+=(H[I]-NeutralHeight+(Rifts.IsValidIndex(P)&&Rifts[P]?Rifts[P]->SampleMeters(Queries[P][I]):0))*Weight[P][I]*Strength;
+            for(int32 I=0;I<H.Num();++I)Heights[Indices[P][I]]+=((H[I]-NeutralHeight)*(Rifts.IsValidIndex(P)&&Rifts[P]?Rifts[P]->SurfaceDetailStrength():1)+(Rifts.IsValidIndex(P)&&Rifts[P]?Rifts[P]->SampleMeters(Queries[P][I]):0))*Weight[P][I]*Strength;
         }
     }
 }
@@ -113,8 +113,8 @@ bool FCLCompiledRegionGeneration::ValidateSettings(const FCLRegionGenerationSett
             return Fail(Error.IsEmpty()?TEXT("Palette entries require unique IDs, names and valid source snapshots"):Error);
         if(Entry.Suitability.Province.IsActive()&&Settings.AlgorithmVersion<3)return Fail(TEXT("Province Landforms require geological region algorithm 3"));
         if(Entry.Suitability.Province.bPlaceholder&&(!Entry.NoiseLayers.IsEmpty()||Entry.SurfaceStack.IsActive()))return Fail(TEXT("Province placeholders cannot replace base relief or material"));
-        if(!Entry.Rift.Validate(Error))return false;
-        if(Entry.Rift.IsActive()&&(Settings.AlgorithmVersion!=4||Entry.Suitability.Province.Type!=ECLProvinceType::ContinentalRift||Entry.Suitability.Province.bPlaceholder||!Entry.NoiseLayers.IsEmpty()||Entry.SurfaceStack.IsActive()))return Fail(TEXT("Physical rifts require geology-first region algorithm 4 and a Continental Rift source without replacement noise/materials"));
+        if(!Entry.Rift.Validate(Error)||!Entry.Rift.ValidateNoise(Entry.NoiseLayers,Error))return false;
+        if(Entry.Rift.IsActive()&&(Settings.AlgorithmVersion!=4||Entry.Suitability.Province.Type!=ECLProvinceType::ContinentalRift||Entry.Suitability.Province.bPlaceholder||Entry.SurfaceStack.IsActive()))return Fail(TEXT("Physical rifts require geology-first region algorithm 4 and a Continental Rift source without replacement noise/materials"));
         Ids.Add(Entry.Id);
     }
     if(Settings.bEnabled&&!Settings.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled;}))return Fail(TEXT("Select at least one enabled Landform for generated regions"));
@@ -139,7 +139,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
         Out->Fields.SetNum(Out->Palette.Num());Out->FieldErrors.SetNum(Out->Palette.Num());
         for(int32 P=0;P<Out->Palette.Num();++P)
         {
-        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
+        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;if(Out->Palette[P].Rift.AlgorithmVersion==2)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Rift.Seed)));Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
             Out->Fields[P]=FCLPlanetCompiler::Compile(Child,Out->FieldErrors[P],Library);
             if(Settings.AlgorithmVersion==4&&!Out->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+Out->FieldErrors[P]);
         }
@@ -230,8 +230,20 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
             Cell.Scale=2*FMath::Sqrt(Cell.SolidAngle)*(Base.RadiusMeters+Base.BaseHeightMeters)/Base.RadiusMeters;
         }
     }
-    struct FEligibility {bool Allowed=true;int32 Positive=0,Unknown=0;FString Reason;};
+    struct FEligibility {bool Allowed=true;int32 Positive=0,Unknown=0,Tier=0;double Weight=1;FString Reason;};
     TArray<TArray<FEligibility>> Eligibility;
+    auto Evaluate=[&](int32 I,int32 P,int32 Tier)
+    {
+        FEligibility Fit;Fit.Tier=Tier;const auto& Definition=Out->Palette[P].Suitability.Province;
+        const double Coverage=Tier?Definition.Relaxations[Tier-1].MinimumCoverage:Definition.MinimumCoverage;
+        Fit.Weight=Tier?Definition.Relaxations[Tier-1].PlacementWeight:1;FString Missing;
+        for(const auto& Sample:Character[I])
+        {FString Why;const auto Match=Definition.Match(Sample.Geology,&Why,Tier);Fit.Positive+=Match==ECLProvinceMatch::Eligible;Fit.Unknown+=Match==ECLProvinceMatch::Unknown;if(Missing.IsEmpty()&&Match!=ECLProvinceMatch::Eligible)Missing=Why;}
+        Fit.Allowed=double(Fit.Positive)/Character[I].Num()+1.e-12>=Coverage;
+        Fit.Reason=FString::Printf(TEXT("Geological prerequisites: %d/%d positive area samples, %d unknown; required %.0f%% coverage. %s"),Fit.Positive,Character[I].Num(),Fit.Unknown,100*Coverage,Fit.Allowed?TEXT("Compatible base geology."):*Missing);
+        if(Tier)Fit.Reason+=FString::Printf(TEXT(" Gameplay fallback %d: %s; original geological requirements retained in source metadata."),Tier,*Definition.Relaxations[Tier-1].Name.ToString());
+        return Fit;
+    };
     if(Settings.AlgorithmVersion>=3)
     {
         Eligibility.SetNum(Out->Cells.Num());
@@ -241,12 +253,30 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
             for(int32 P=0;P<Out->Palette.Num();++P)
             {
                 const auto& Definition=Out->Palette[P].Suitability.Province;if(!Definition.IsActive())continue;
-                auto& Fit=Eligibility[I][P];FString Missing;
-                for(const auto& Sample:Character[I])
-                {FString Why;const auto Match=Definition.Match(Sample.Geology,&Why);Fit.Positive+=Match==ECLProvinceMatch::Eligible;Fit.Unknown+=Match==ECLProvinceMatch::Unknown;if(Missing.IsEmpty()&&Match!=ECLProvinceMatch::Eligible)Missing=Why;}
-                Fit.Allowed=double(Fit.Positive)/Character[I].Num()+1.e-12>=Definition.MinimumCoverage;
-                Fit.Reason=FString::Printf(TEXT("Geological prerequisites: %d/%d positive area samples, %d unknown; required %.0f%% coverage. %s"),Fit.Positive,Character[I].Num(),Fit.Unknown,100*Definition.MinimumCoverage,Fit.Allowed?TEXT("Compatible base geology."):*Missing);
+                Eligibility[I][P]=Evaluate(I,P,0);
             }
+        }
+    }
+    // Relax a source only when the entire planet offers no strict candidate.
+    // A small metadata-owned fallback budget prevents an unsupported province
+    // from filling every cell merely because it was included in the palette.
+    if(Settings.AlgorithmVersion>=3)for(int32 P=0;P<BasePalette;++P)
+    {
+        const auto& Definition=Out->Palette[P].Suitability.Province;
+        if(Definition.AlgorithmVersion!=2||Definition.Relaxations.IsEmpty())continue;
+        bool Strict=false;for(int32 I=0;I<Eligibility.Num();++I)Strict|=Eligibility[I][P].Allowed;
+        if(Strict)continue;
+        for(int32 Tier=1;Tier<=Definition.Relaxations.Num();++Tier)
+        {
+            TArray<FEligibility> Fits;TArray<int32> Candidates;
+            for(int32 I=0;I<Eligibility.Num();++I){Fits.Add(Evaluate(I,P,Tier));if(Fits.Last().Allowed)Candidates.Add(I);}
+            if(Candidates.IsEmpty())continue;
+            auto Rank=[&](int32 I){return double(Fits[I].Positive)/Character[I].Num()+.001*RandomRegion(Seed^uint32(I)^GetTypeHash(Out->Palette[P].Id));};
+            Candidates.Sort([&](int32 A,int32 B){return Rank(A)>Rank(B);});
+            for(int32 I:Candidates)Fits[I].Allowed=false;
+            for(int32 K=0;K<FMath::Min(Definition.MaximumRelaxedRegions,Candidates.Num());++K)Fits[Candidates[K]].Allowed=true;
+            for(int32 I=0;I<Eligibility.Num();++I)Eligibility[I][P]=MoveTemp(Fits[I]);
+            break;
         }
     }
     TSet<FGuid> OverrideIds;
@@ -295,6 +325,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
                         Score*=RangeFit(Cell.UpperSlopeDegrees,FVector2D(0,S.PreferredSlopeDegrees.Y),2);
                     }
                 }
+                if(Settings.AlgorithmVersion>=3)Score*=Eligibility[I][P].Weight;
                 const double Choice=Score*(.9+.2*RandomRegion(Seed^MixRegion(uint32(I))^MixRegion(Entry.Id.A)^MixRegion(Entry.Id.B)^MixRegion(Entry.Id.C)^MixRegion(Entry.Id.D)));
                 if(Choice>Best){Best=Choice;Cell.PaletteIndex=P;Cell.Score=Score;}
             }
@@ -314,12 +345,14 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
                 Cell.PaletteIndex=BasePalette;Cell.Score=0;Cell.Reason=TEXT("Base geology retained: no selected Landform meets its geological prerequisites.");
                 for(int32 P=0;P<FMath::Min(4,BasePalette);++P)Cell.Reason+=TEXT(" ")+Out->Palette[P].Name+TEXT(": ")+Eligibility[I][P].Reason;
             }
-            else Cell.Reason+=TEXT(" ")+Eligibility[I][Cell.PaletteIndex].Reason;
+            else {Cell.ProvinceRelaxationTier=Eligibility[I][Cell.PaletteIndex].Tier;Cell.Reason+=TEXT(" ")+Eligibility[I][Cell.PaletteIndex].Reason;}
         }
         if(const auto* Override=Settings.Overrides.FindByPredicate([&](const auto& O){return O.RegionId==Cell.Id;}))
         {const int32 Assigned=Out->Palette.IndexOfByPredicate([&](const auto& P){return P.Id==Override->LandformId;});
+            if(Settings.AlgorithmVersion>=3&&!Eligibility[I][Assigned].Allowed&&Out->Palette[Assigned].Suitability.Province.AlgorithmVersion==2)
+                for(int32 Tier=0;Tier<=Out->Palette[Assigned].Suitability.Province.Relaxations.Num();++Tier){auto Fit=Evaluate(I,Assigned,Tier);if(Fit.Allowed){Eligibility[I][Assigned]=MoveTemp(Fit);break;}}
             if(Settings.AlgorithmVersion>=3&&!Eligibility[I][Assigned].Allowed)return Fail(TEXT("Editorial province assignment is incompatible or lacks base geology: ")+Out->Palette[Assigned].Name+TEXT(". ")+Eligibility[I][Assigned].Reason);
-            Cell.PaletteIndex=Assigned;Cell.bOverride=true;Cell.Reason=FString::Printf(TEXT("Editorial assignment: %s. Automatic evaluation: %s"),*Out->Palette[Cell.PaletteIndex].Name,*Cell.Reason);}
+            Cell.PaletteIndex=Assigned;Cell.ProvinceRelaxationTier=Settings.AlgorithmVersion>=3?Eligibility[I][Assigned].Tier:0;Cell.bOverride=true;Cell.Reason=FString::Printf(TEXT("Editorial assignment: %s. Automatic evaluation: %s"),*Out->Palette[Cell.PaletteIndex].Name,*Cell.Reason);if(Settings.AlgorithmVersion>=3)Cell.Reason+=TEXT(" ")+Eligibility[I][Assigned].Reason;}
     }
     for(const auto& Cell:Out->Cells)
     {
@@ -336,7 +369,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
             if(!NativeInputs->Fields.IsValidIndex(P)||!NativeInputs->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+(NativeInputs->FieldErrors.IsValidIndex(P)?NativeInputs->FieldErrors[P]:TEXT("Native palette snapshot is missing")));
             Out->Fields[P]=NativeInputs->Fields[P];continue;
         }
-        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
+        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;if(Out->Palette[P].Rift.AlgorithmVersion==2)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Rift.Seed)));Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
         Out->Fields[P]=FCLPlanetCompiler::Compile(Child,Error,Library);if(!Out->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+Error);
     }
     // A modest diagnostic contour atlas, independent of terrain mesh LOD. Shared

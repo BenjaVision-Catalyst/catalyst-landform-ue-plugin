@@ -1216,7 +1216,7 @@ public:
         if (Plan)
         {
             Status = TerrainEditing ? FString::Printf(TEXT("%s | %d layers | %s"), *TerrainEditing->Asset->TerrainType.Name,
-                Plan->SurfacePatches.IsEmpty()?Plan->Layers.Num():Plan->SurfacePatches[0]->Layers.Num(), TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("Terrain preview")) :
+                (TerrainEditing->Asset->TerrainType.Rift.IsActive()?TerrainEditing->Asset->TerrainType.NoiseLayers.Num():Plan->SurfacePatches.IsEmpty()?Plan->Layers.Num():Plan->SurfacePatches[0]->Layers.Num()), TerrainEditing->Solo != INDEX_NONE ? TEXT("Solo preview") : TEXT("Terrain preview")) :
                 FString::Printf(TEXT("%s | radius %.0f m | %d broad features | %d editorial Landforms | %d generated regions"), *Asset->Recipe.Name, Plan->RadiusMeters, Asset->Recipe.BaseStructure.Num(), Asset->Recipe.TerrainRegions.Num(), Plan->GeneratedRegions?Plan->GeneratedRegions->Cells.Num():0);
             if (Preview)
             {
@@ -3057,21 +3057,21 @@ namespace {
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRiftDesignerTest,"Catalyst.Landform.Rift.NativeDesigner",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLRiftDesignerTest::RunTest(const FString&)
 {
-    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainTypes/Provinces/ContinentalRift.json")));
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"))?TEXT("Examples/TerrainTypes/ContinentalRiftFamily.json"):TEXT("Examples/TerrainTypes/Provinces/ContinentalRift.json"))));
     TStrongObjectPtr<UCLTerrainTypeAsset> A(NewObject<UCLTerrainTypeAsset>(CreatePackage(*(TEXT("/Temp/CLRiftDesigner_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));
     if(!A->ImportTerrainTypeJson(Json,Error)){AddError(Error);return false;}A->TerrainType.Rift.Character=0;
     auto Editor=MakeShared<FCLRecipeToolkit>();Editor->OpenTerrain(A.Get(),nullptr,EToolkitMode::Standalone,nullptr);
     class FReview:public IAutomationLatentCommand
     {
         FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLTerrainTypeAsset> A;
-        double Start=FPlatformTime::Seconds(),Ready=0;int32 Stage=0,Frame=0;uint32 Owner=0,Evaluations=0;uint64 Copies=0;
-        TArray<double> Times;double Last=0;FVector Focus;TArray<FString> Rows;
+        double Start=FPlatformTime::Seconds(),Ready=0;int32 Stage=0,Frame=0,CameraStage=-1;uint32 Owner=0,Evaluations=0;uint64 Copies=0;
+        TArray<double> Times;double Last=0;bool NavigationReady=false;FVector Focus;TArray<FString> Rows;
     public:
         FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLTerrainTypeAsset* Asset):Test(T),E(In),A(Asset){}
         bool Update()override
         {
             const double Now=FPlatformTime::Seconds();auto Close=[&]{A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
-            if(Now-Start>180){Test->AddError(E->Status+TEXT(" ")+E->InspectorError);return Close();}
+            if(Now-Start>180){Test->AddError(FString::Printf(TEXT("%s %s; stage=%d framed=%d accepted=%d evaluating=%d; %s"),*E->Status,*E->InspectorError,Stage,Owner!=0,E->AcceptedSurfacePlan.IsValid(),E->EvaluationUpdating(),E->Globe?*E->Globe->NativePreviewStatus():TEXT("no globe")));return Close();}
             if(!E->AcceptedSurfacePlan||(Stage<3&&E->EvaluationUpdating())){Ready=0;return false;}
             auto* Native=E->Globe?E->Globe->NativeForTesting():nullptr;
             if(!Native||(Stage<3&&(Native->PublishedPlan()!=E->AcceptedSurfacePlan||Native->IsUpdating()))){Ready=0;return false;}
@@ -3087,24 +3087,35 @@ bool FCLRiftDesignerTest::RunTest(const FString&)
                     auto P=E->AcceptedSurfacePlan;double Best=0;
                     for(int32 I=0;I<4096;++I){const double Z=1-2*(I+.5)/4096,Angle=I*2.399963229728653;FVector D(FMath::Cos(Angle)*FMath::Sqrt(1-Z*Z),FMath::Sin(Angle)*FMath::Sqrt(1-Z*Z),Z);double V=FMath::Abs(P->GeneratedRegions->ProvinceDeformationMeters(D));if(V>Best){Best=V;Focus=D;}}
                     Test->TestTrue(TEXT("The source reference contains eligible rift relief"),Best>.01);
-                    E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Preview->Client->bGuides=false;E->Globe->FrameDirectionForTesting(Focus,.35);Ready=0;return false;
+                    E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Preview->Client->bGuides=false;if(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview")))E->Globe->FrameSurfaceForTesting(Focus);else E->Globe->FrameDirectionForTesting(Focus,.35);CameraStage=Stage;Ready=0;return false;
                 }
+                if(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"))&&CameraStage!=Stage)
+                {E->Globe->FrameSurfaceForTesting(Focus);CameraStage=Stage;Ready=0;return false;}
                 Test->TestEqual(TEXT("Character changes retain the native preview owner"),Native->WorldIdentity(),Owner);
-                const auto& Mesh=Native->Published();double Residual=0;auto P=E->AcceptedSurfacePlan;
+                int32 VertexCount=0;FCLNativePreview::FBuffers Probes;
+                const bool Family=FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"));
+                if(Family)Probes=Native->SamplePublishedVerticesForTesting(VertexCount);
+                const auto& Mesh=Family?Probes:Native->Published();if(!Family)VertexCount=Mesh.SourcePoints.Num();double Residual=0;auto P=E->AcceptedSurfacePlan;
                 Test->TestEqual(TEXT("The published immutable source retains the current Character"),P->SourceRecipe->RegionGeneration.Palette[0].Rift.Character,A->TerrainType.Rift.Character);
+                Test->TestEqual(TEXT("Actual source preview retains the authored noise stack"),P->SourceRecipe->RegionGeneration.Palette[0].NoiseLayers.Num(),A->TerrainType.NoiseLayers.Num());
                 const uint32 Geometry=FCrc::MemCrc32(Mesh.SourcePoints.GetData(),Mesh.SourcePoints.Num()*sizeof(FVector));
                 for(const auto& Point:Mesh.SourcePoints){const FVector M=Point*.01;const double R=M.Length();Residual=FMath::Max(Residual,FMath::Abs(R-P->RadiusMeters-P->SampleHeightMeters(M.GetSafeNormal())));}
-                Rows.Add(FString::Printf(TEXT("{\"character\":%.2f,\"geometryCrc\":%u,\"vertices\":%d,\"maxSurfaceResidualMeters\":%.9g}"),A->TerrainType.Rift.Character,Geometry,Mesh.SourcePoints.Num(),Residual));
-                Test->TestTrue(TEXT("Native VPP publishes actual rift geometry"),Mesh.SourcePoints.Num()>100);
-                auto Capture=[&](TSharedRef<SWidget> Widget,const FString& Name){TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native rift review renders"),FSlateApplication::Get().TakeScreenshot(Widget,Pixels,Size));if(Pixels.Num()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification/rift")/Name));}};
-                const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/rift");IFileManager::Get().MakeDirectory(*Dir,true);
+                Rows.Add(FString::Printf(TEXT("{\"character\":%.2f,\"geometryCrc\":%u,\"vertices\":%d,\"maxSurfaceResidualMeters\":%.9g}"),A->TerrainType.Rift.Character,Geometry,VertexCount,Residual));
+                Test->TestTrue(TEXT("Native VPP publishes actual rift geometry"),VertexCount>100&&Mesh.SourcePoints.Num()>100);
+                auto Capture=[&](TSharedRef<SWidget> Widget,const FString& Name){TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Native rift review renders"),FSlateApplication::Get().TakeScreenshot(Widget,Pixels,Size));if(Pixels.Num()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"))?TEXT("Verification/rift-family"):TEXT("Verification/rift"))/Name));}};
+                const FString Dir=FPaths::ProjectSavedDir()/(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"))?TEXT("Verification/rift-family"):TEXT("Verification/rift"));IFileManager::Get().MakeDirectory(*Dir,true);
                 Capture(E->Globe.ToSharedRef(),FString::Printf(TEXT("globe-%d.png"),Stage));auto Tab=E->GetTabManager()->FindExistingLiveTab(FName(TEXT("CLNoiseLayers")));if(Tab)Capture(Tab->GetContent(),FString::Printf(TEXT("controls-%d.png"),Stage));
                 if(++Stage<3)
                 {
                     A->Modify();A->TerrainType.Rift.Character=Stage*.5;
                     FProperty* Property=FindFProperty<FProperty>(FCLRiftLandform::StaticStruct(),GET_MEMBER_NAME_CHECKED(FCLRiftLandform,Character));FPropertyChangedEvent Event(Property,EPropertyChangeType::ValueSet);A->PostEditChangeProperty(Event);Ready=0;return false;
                 }
-                Evaluations=E->Evaluation.Started;Copies=Native->Metrics.MeshCopies;Last=Now;return false;
+                Evaluations=E->Evaluation.Started;Copies=Native->Metrics.MeshCopies;Last=Now;if(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"))){E->Globe->FrameDirectionForTesting(Focus,.35);Ready=0;}return false;
+            }
+            if(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"))&&!NavigationReady)
+            {
+                if(Native->IsUpdating()){Ready=0;return false;}if(!Ready){Ready=Now;return false;}if(Now-Ready<1)return false;
+                NavigationReady=true;Last=Now;return false;
             }
             Times.Add((Now-Last)*1000);Last=Now;E->Globe->OrbitForTesting(FVector2D(.5,.1));E->Globe->Dolly(Frame%2?.01:-.01);
             Test->TestFalse(TEXT("Navigation does not show authoring progress"),E->AuthoringUpdating());
@@ -3113,7 +3124,7 @@ bool FCLRiftDesignerTest::RunTest(const FString&)
             Times.RemoveAt(0);Times.Sort();const double P95=Times[FMath::Min(Times.Num()-1,int32(Times.Num()*.95))];
             Test->TestTrue(TEXT("Native navigation p95 stays below 50 ms"),P95<50);
             FString JSON=TEXT("{\"frames\":60,\"navigationP95Ms\":")+LexToString(P95)+TEXT(",\"cases\":[")+FString::Join(Rows,TEXT(","))+TEXT("]}\n");
-            FFileHelper::SaveStringToFile(JSON,*(FPaths::ProjectSavedDir()/TEXT("Verification/rift/native-review.json")));Test->AddInfo(JSON);return Close();
+            FFileHelper::SaveStringToFile(JSON,*(FPaths::ProjectSavedDir()/(FParse::Param(FCommandLine::Get(),TEXT("CLRiftFamilyReview"))?TEXT("Verification/rift-family/native-review.json"):TEXT("Verification/rift/native-review.json"))));Test->AddInfo(JSON);return Close();
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Editor,A.Get()));return true;

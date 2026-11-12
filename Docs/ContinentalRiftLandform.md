@@ -1,5 +1,9 @@
 # Continental Rift Landform
 
+12 November: [the first family review candidate](RiftFamilyReview.md) adds
+versioned local noise, recorded gameplay placement relaxation and the chosen
+weathered-to-sharp Character blend. The profile-1 checkpoint below remains frozen.
+
 Continental Rift is the first province with a physical local surface expression.
 The other sixteen definitions remain neutral placeholders. This is a bounded
 kinematic model of secondary fault blocks, not a reconstruction of plate history.

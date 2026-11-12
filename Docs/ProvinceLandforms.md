@@ -1,5 +1,10 @@
 # Geological province Landforms
 
+12 November gameplay direction: [the Rift family candidate](RiftFamilyReview.md)
+records strict geological preferences with ordered relaxation. The mode-3/4
+version-1 hard-gate descriptions below remain the frozen catalogue baseline.
+New definition version 2 may relax recorded conditions when needed.
+
 Seventeen native Landform assets define geological province families and the base
 geology required to place them. Continental Rift now adds local fault-block relief and matching Rock
 deformation; the other sixteen remain neutral placeholders. The catalogue

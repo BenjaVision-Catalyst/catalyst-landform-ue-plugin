@@ -40,6 +40,12 @@ public:
     {
         uint32 Count=0;H->GetNumChildren(Count);for(uint32 I=0;I<Count;++I)
         {auto P=H->GetChildHandle(I).ToSharedRef();const FName N=P->GetProperty()->GetFName();if(N!=TEXT("AlgorithmVersion")&&N!=TEXT("Character"))Children.AddProperty(P);}
+        auto T=H->GetParentHandle();auto V=H->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCLRiftLandform,AlgorithmVersion));int32 Version=0;V->GetValue(Version);
+        if(Version==2&&T.IsValid())
+        {
+            Children.AddProperty(T->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCLTerrainType,NoiseLayers)).ToSharedRef());
+            Children.AddProperty(T->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCLTerrainType,PlacementSuitability))->GetChildHandle(TEXT("Province")).ToSharedRef());
+        }
     }
 };
 class FCLRiftAssetDetails:public IDetailCustomization
@@ -57,6 +63,6 @@ TSharedRef<SWidget> CLMakeRiftLandformEditor(UCLTerrainTypeAsset* Asset)
     auto View=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateDetailView(Args);
     View->RegisterInstancedCustomPropertyTypeLayout(TEXT("CLRiftLandform"),FOnGetPropertyTypeCustomizationInstance::CreateLambda([]{return MakeShared<FCLRiftCharacterDetails>();}));
     View->RegisterInstancedCustomPropertyLayout(UCLTerrainTypeAsset::StaticClass(),FOnGetDetailCustomizationInstance::CreateLambda([]{return MakeShared<FCLRiftAssetDetails>();}));
-    View->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([](const FPropertyAndParent& P){if(P.Property.GetFName()==TEXT("Rift"))return true;for(auto* Parent:P.ParentProperties)if(Parent->GetFName()==TEXT("Rift"))return true;return false;}));
+    View->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([Asset](const FPropertyAndParent& P){auto Allowed=[&](FName N){return N==TEXT("Rift")||(Asset->TerrainType.Rift.AlgorithmVersion==2&&(N==TEXT("NoiseLayers")||N==TEXT("Province")));};if(Allowed(P.Property.GetFName()))return true;for(auto* Parent:P.ParentProperties)if(Allowed(Parent->GetFName()))return true;return false;}));
     View->SetObject(Asset);return View;
 }

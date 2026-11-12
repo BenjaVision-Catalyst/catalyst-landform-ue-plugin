@@ -125,7 +125,7 @@ bool FCLTerrainEditing::PreviewRecipe(FCLPlanetRecipe& Recipe,FBox2D& Region,FSt
     if(Visible.PlacementSuitability.Province.IsActive()&&!Visible.Validate(OutError))return false;
     if(Visible.Rift.IsActive())
     {
-        FCLLandformPaletteEntry P;P.Id=Visible.Id;P.Name=Visible.Name;P.AlgorithmVersion=Visible.AlgorithmVersion;P.Suitability=Visible.PlacementSuitability;P.Rift=Visible.Rift;
+        FCLLandformPaletteEntry P;P.Id=Visible.Id;P.Name=Visible.Name;P.AlgorithmVersion=Visible.AlgorithmVersion;P.Suitability=Visible.PlacementSuitability;P.Rift=Visible.Rift;P.NoiseLayers=Visible.NoiseLayers;
         Recipe.RegionGeneration.bEnabled=true;Recipe.RegionGeneration.AlgorithmVersion=4;Recipe.RegionGeneration.Palette={P};Recipe.RegionGeneration.Overrides.Reset();
         Region=FBox2D(FVector2D(-500,-500),FVector2D(500,500));return true;
     }

@@ -443,6 +443,18 @@ void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TS
 }
 #if WITH_DEV_AUTOMATION_TESTS
 void SCLPlanetPreview::FrameDirectionForTesting(FVector D,double Zoom){const auto R=D.Rotation();Client->Navigation.Yaw=R.Yaw;Client->Navigation.Elevation=R.Pitch;Client->Navigation.Zoom=Zoom;Client->Apply();}
+void SCLPlanetPreview::FrameSurfaceForTesting(FVector D)
+{
+    if(!Client->Plan)return;const auto& P=*Client->Plan;D.Normalize();FVector X,Y;D.FindBestAxisVectors(X,Y);
+    const FVector Center=D*(P.RadiusMeters+P.SampleHeightMeters(D));
+    const double GX=P.SampleHeightMeters((Center+X*20).GetSafeNormal())-P.SampleHeightMeters((Center-X*20).GetSafeNormal());
+    const double GY=P.SampleHeightMeters((Center+Y*20).GetSafeNormal())-P.SampleHeightMeters((Center-Y*20).GetSafeNormal());
+    const FVector Across=(X*GX+Y*GY).GetSafeNormal();if(!Across.IsNearlyZero())X=Across;
+    const FVector Eye=Center+D*140-X*260,Target=Center+X*80;
+    Client->SetViewLocation(Eye*(100000./P.RadiusMeters));Client->SetViewRotation(FRotationMatrix::MakeFromXZ((Target-Eye).GetSafeNormal(),D).Rotator());
+    Client->StudioScene->AimLights(Client->GetViewRotation());Client->Invalidate();
+}
+
 void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->Navigation.Orbit(Delta);Client->Apply();}
 #endif
 void SCLPlanetPreview::Cancel()

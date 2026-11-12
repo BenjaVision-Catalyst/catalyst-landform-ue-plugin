@@ -39,20 +39,30 @@ const TCHAR* FCLProvinceDefinition::EvidenceName(ECLGeologicalEvidence E)
 bool FCLProvinceDefinition::Validate(FString& Error)const
 {
     auto Fail=[&](const TCHAR* Text){Error=Text;return false;};
-    if(AlgorithmVersion!=1||uint8(Type)>uint8(ECLProvinceType::IcyCrust)||!FMath::IsFinite(MinimumCoverage)||MinimumCoverage<.01||MinimumCoverage>1||Requirements.Num()>20||RegionalForms.Num()>24||SubsurfacePotential.Num()>16)
-        return Fail(TEXT("Province definitions require version 1, a valid type, bounded lists and coverage 0.01..1"));
+    if((AlgorithmVersion!=1&&AlgorithmVersion!=2)||uint8(Type)>uint8(ECLProvinceType::IcyCrust)||!FMath::IsFinite(MinimumCoverage)||MinimumCoverage<.01||MinimumCoverage>1||Requirements.Num()>20||RegionalForms.Num()>24||SubsurfacePotential.Num()>16)
+        return Fail(TEXT("Province definitions require version 1 or 2, a valid type, bounded lists and coverage 0.01..1"));
     if(!IsActive()&&(bPlaceholder||!Requirements.IsEmpty()||!RegionalForms.IsEmpty()||!SubsurfacePotential.IsEmpty()))return Fail(TEXT("An untyped Landform cannot carry a province definition"));
     if(IsActive()&&(Requirements.IsEmpty()||RegionalForms.IsEmpty()))return Fail(TEXT("A province requires geological prerequisites and intended regional forms"));
     TSet<uint8> Seen;for(auto E:Requirements){if(uint8(E)>uint8(ECLGeologicalEvidence::VolcanicHistory)||Seen.Contains(uint8(E)))return Fail(TEXT("Province geological prerequisites must be valid and unique"));Seen.Add(uint8(E));}
     if(Seen.Contains(uint8(ECLGeologicalEvidence::ContinentalCrust))&&Seen.Contains(uint8(ECLGeologicalEvidence::OceanicCrust)))return Fail(TEXT("A province cannot require both continental and oceanic crust at the same sample"));
     for(const auto* Names:{&RegionalForms,&SubsurfacePotential})for(FName N:*Names)if(N.IsNone()||N.ToString().Len()>96)return Fail(TEXT("Province form/potential names must be nonempty and bounded"));
+    if(Relaxations.Num()>4||MaximumRelaxedRegions<1||MaximumRelaxedRegions>128||(!Relaxations.IsEmpty()&&(!IsActive()||AlgorithmVersion!=2)))return Fail(TEXT("Province relaxation requires version 2 and bounded fallback regions/tiers"));
+    TSet<FName> Names;TSet<uint8> Previous;double Coverage=MinimumCoverage,Weight=1;
+    for(const auto& Tier:Relaxations)
+    {
+        if(Tier.Name.IsNone()||Names.Contains(Tier.Name)||!FMath::IsFinite(Tier.MinimumCoverage)||Tier.MinimumCoverage<.01||Tier.MinimumCoverage>Coverage||!FMath::IsFinite(Tier.PlacementWeight)||Tier.PlacementWeight<.01||Tier.PlacementWeight>Weight)return Fail(TEXT("Province fallback tiers require unique names and nonincreasing coverage and weight"));
+        TSet<uint8> Relaxed;for(auto E:Tier.RelaxedRequirements){if(!Seen.Contains(uint8(E))||Relaxed.Contains(uint8(E)))return Fail(TEXT("A fallback may relax only unique original geological requirements"));Relaxed.Add(uint8(E));}
+        for(uint8 E:Previous)if(!Relaxed.Contains(E))return Fail(TEXT("Later fallback tiers cannot reinstate relaxed requirements"));
+        Names.Add(Tier.Name);Previous=MoveTemp(Relaxed);Coverage=Tier.MinimumCoverage;Weight=Tier.PlacementWeight;
+    }
     return true;
 }
-ECLProvinceMatch FCLProvinceDefinition::Match(const FCLProvinceGeology& G,FString* Reason)const
+ECLProvinceMatch FCLProvinceDefinition::Match(const FCLProvinceGeology& G,FString* Reason,int32 Tier)const
 {
     if(!IsActive())return ECLProvinceMatch::Eligible;
     FString Unknown;for(auto E:Requirements)
     {
+        if(Tier>0&&AlgorithmVersion==2&&Relaxations.IsValidIndex(Tier-1)&&Relaxations[Tier-1].RelaxedRequirements.Contains(E))continue;
         if(!(G.Known&Bit(E))){if(!Unknown.IsEmpty())Unknown+=TEXT(", ");Unknown+=EvidenceName(E);}
         else if(!(G.Present&Bit(E))){if(Reason)*Reason=FString(TEXT("Incompatible base geology: "))+EvidenceName(E);return ECLProvinceMatch::Incompatible;}
     }

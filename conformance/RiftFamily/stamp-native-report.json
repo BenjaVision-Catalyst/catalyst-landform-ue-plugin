@@ -1,0 +1,32 @@
+[
+	{
+		"source": "/Game/Catalyst/Models/NaturePlants/RocksStones/Granite/GraniteCliff_rivav/Meshes/S_Granite_Cliff_rivav_lod0",
+		"sourceSHA256": "35dd6d394e7f93e38f1496afbc4f28df897b4397a4e65a0cc9a80a97e06c601d",
+		"nativeStamp": "/Game/LandformDesigner/Provinces/RiftStampCandidates/VM_S_Granite_Cliff_rivav_lod0",
+		"sizeMeters": "X=29.523 Y=8.083 Z=16.288",
+		"voxelCentimeters": 20,
+		"fieldSamples": 1375290,
+		"solidSamples": 348198,
+		"exteriorSamples": 1027092
+	},
+	{
+		"source": "/Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates00_skEpS/Meshes/SM_Rock_Plates_00",
+		"sourceSHA256": "1be2b7a76935d8c60ccd5d8580addc8c19bbf1d6461a2a591dd5e6aef6336944",
+		"nativeStamp": "/Game/LandformDesigner/Provinces/RiftStampCandidates/VM_SM_Rock_Plates_00",
+		"sizeMeters": "X=5.887 Y=3.585 Z=0.503",
+		"voxelCentimeters": 5,
+		"fieldSamples": 463488,
+		"solidSamples": 135880,
+		"exteriorSamples": 327608
+	},
+	{
+		"source": "/Game/Catalyst/Models/NaturePlants/RocksStones/Unclassified/RockPlates01_tdqbcacda/Meshes/SM_Rock_Plates_01",
+		"sourceSHA256": "09f69f4c1e5d54fa181ec5fdf18a8e510cceeafa33fabebca393b3585e6b6cfd",
+		"nativeStamp": "/Game/LandformDesigner/Provinces/RiftStampCandidates/VM_SM_Rock_Plates_01",
+		"sizeMeters": "X=4.493 Y=2.574 Z=0.537",
+		"voxelCentimeters": 5,
+		"fieldSamples": 219240,
+		"solidSamples": 51694,
+		"exteriorSamples": 167546
+	}
+]

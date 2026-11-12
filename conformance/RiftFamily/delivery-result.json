@@ -1,0 +1,190 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "24 geological assignments, 0 retained base regions; max final-height change 0 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.12"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.DefinitionsAndEvidence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Provinces.PackagedLibrary",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Regions.BlendAndNativeParity",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generated field: 2379 directions, 2.22044604925e-16 weight error, 9.04038199678e-06 m oracle error, 1.02409524061e-06 m atlas error, 0.000102409525 cm native residual, 0.00197791478 cm section residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.13"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Regions.PortabilityAndOverrides",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Regions.StructureAndPalette",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Regions: 24 cells, 8 mountain / 16 plateau; mean uplift 0.34760 / 0.00000; 23 sites respond to guidance",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.16"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.CharacterNoiseAndRock",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_ROCK probes=138 restorationMetres=4.54747350886e-13 noiseLayers=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.17"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.PlacementRelaxation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_FALLBACK assigned=2 cells=24 tier=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.17"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.BackgroundAndRecipe",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Background/synchronous residual 0 m; 3 reused native inputs",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.17"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.CharacterAndScale",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "5 Character positions; physical spacing 500.000 to 100.000 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.17"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.GeologyAndRestoration",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "175 active physical samples, 3790 outside hosts, 175 strata probes; max throw 17.5100977 m; restoration 4.54747350886e-13 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.20.18"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.NativeDesigner",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":60,\"navigationP95Ms\":23.347542,\"cases\":[{\"character\":0.00,\"geometryCrc\":3989585828,\"vertices\":1229683,\"maxSurfaceResidualMeters\":0.917628384},{\"character\":0.50,\"geometryCrc\":2028034604,\"vertices\":1552418,\"maxSurfaceResidualMeters\":1.30435131},{\"character\":1.00,\"geometryCrc\":1914293476,\"vertices\":1705059,\"maxSurfaceResidualMeters\":13.6370297}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.21.23"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.UpstreamHostsAndSeed",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "31 carbonate regions, 1 physical rift regions; reseed difference 1.520069 m; chart-tie residual 5.60025942065e-08 m",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-02.21.24"
+        }
+      ]
+    }
+  ]
+}

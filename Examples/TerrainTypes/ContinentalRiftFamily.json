@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 11,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000008",
+  "name": "Continental rift and fault-block province",
+  "description": "Continental Rift family candidate: weathered shoulders through sharp young scarps, seeded metre-scale surface noise and recorded gameplay placement fallbacks. Geology owns the underlying continental and plate structure.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [
+    {
+      "name": "Weathered shoulders",
+      "seed": 201,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -4
+      },
+      "maximum": {
+        "offsetMeters": 4
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 90,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Broken scarp surface",
+      "seed": 202,
+      "shape": "Ridged",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -2
+      },
+      "maximum": {
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 22,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Rock and debris relief",
+      "seed": 203,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.25
+      },
+      "maximum": {
+        "offsetMeters": 0.25
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 3.5,
+      "octaves": 2,
+      "persistence": 0.45
+    }
+  ],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 2,
+      "type": "ContinentalRift",
+      "bPlaceholder": false,
+      "requirements": [
+        "ContinentalCrust",
+        "Extension"
+      ],
+      "minimumCoverage": 0.35,
+      "regionalForms": [
+        "Fault-block ranges",
+        "Rift valleys",
+        "Escarpments"
+      ],
+      "subsurfacePotential": [
+        "Fissure",
+        "Formation-dependent caves"
+      ],
+      "maximumRelaxedRegions": 2,
+      "relaxations": [
+        {
+          "name": "Sparse extension",
+          "relaxedRequirements": [],
+          "minimumCoverage": 0.15,
+          "placementWeight": 0.6
+        },
+        {
+          "name": "Continental local fault blocks",
+          "relaxedRequirements": [
+            "Extension"
+          ],
+          "minimumCoverage": 0.15,
+          "placementWeight": 0.3
+        },
+        {
+          "name": "Selected local rift expression",
+          "relaxedRequirements": [
+            "Extension",
+            "ContinentalCrust"
+          ],
+          "minimumCoverage": 0.01,
+          "placementWeight": 0.12
+        }
+      ]
+    }
+  },
+  "rift": {
+    "algorithmVersion": 2,
+    "character": 0.6,
+    "seed": 37,
+    "minimumSpacingMeters": 100,
+    "maximumSpacingMeters": 500,
+    "minimumThrowMeters": 5,
+    "maximumThrowMeters": 80,
+    "minimumScarpWidthMeters": 2,
+    "maximumScarpWidthMeters": 15
+  }
+}

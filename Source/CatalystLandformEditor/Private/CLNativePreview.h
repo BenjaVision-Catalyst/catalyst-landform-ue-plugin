@@ -35,6 +35,8 @@ public:
     const void* RuntimeIdentity()const;
     bool UsesNativePresentation()const;
 #if WITH_DEV_AUTOMATION_TESTS
+    /** Bounded read-only probes of stock meshes; never used for presentation. */
+    FBuffers SamplePublishedVerticesForTesting(int32& NativeVertices,int32 MaximumProbes=8192)const;
     TArray<uint32> CaveWorldIdentities()const;
     TMap<FGuid,uint32> CaveDomainIdentities()const;
     struct FMetrics{uint64 MeshCopies=0,VerticesCopied=0,Starts=0;double MaxPollMs=0,TotalCopyMs=0;};

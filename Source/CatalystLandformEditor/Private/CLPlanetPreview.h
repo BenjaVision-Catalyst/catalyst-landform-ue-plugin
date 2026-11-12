@@ -80,6 +80,7 @@ public:
     FCLNativePreview* NativeForTesting()const{return NativePreview.Get();}
     void OrbitForTesting(FVector2D Delta);
     void FrameDirectionForTesting(FVector Direction,double Zoom=1);
+    void FrameSurfaceForTesting(FVector Direction);
 #endif
     void SetOceanVisible(bool Visible);
     bool IsOceanVisible() const{return bOceanVisible;}

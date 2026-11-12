@@ -278,6 +278,26 @@ const FCLNativePreview::FBuffers& FCLNativePreview::Published()const
 #endif
     Last=MoveTemp(Next);InspectionHash=PublishedHash;return Last;
 }
+#if WITH_DEV_AUTOMATION_TESTS
+FCLNativePreview::FBuffers FCLNativePreview::SamplePublishedVerticesForTesting(int32& NativeVertices,int32 MaximumProbes)const
+{
+    NativeVertices=0;FBuffers Sample;if(!Native||!VisiblePlan||VisiblePlan!=Plan||IsUpdating()||Section||MaximumProbes<=0)return Sample;
+    TInlineComponentArray<UVoxelMeshComponent*> Components;Native->GetComponents(Components);
+    for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())NativeVertices+=Proxy->Mesh->Vertices.Num();
+    const int32 Stride=FMath::Max(1,FMath::DivideAndRoundUp(NativeVertices,MaximumProbes));int32 Index=0;const auto SourceToDisplay=StampToDisplay();
+    for(auto* C:Components)if(const auto& Proxy=C->GetRenderProxy())
+    {
+        const auto& Mesh=*Proxy->Mesh;const auto Vertices=Mesh.GetDisplacedVertices({});
+        for(int32 I=0;I<Vertices.Num();++I,++Index)if(Index%Stride==0&&Sample.SourcePoints.Num()<MaximumProbes)
+        {
+            const FVector Display=C->GetComponentTransform().TransformPosition(FVector(Vertices[I]));Sample.Vertices.Add(Display);
+            Sample.SourcePoints.Add(SourceToDisplay.InverseTransform(Display));
+            Sample.SourceCellMeters.Add(float(double(Native->VoxelSize)*(1<<Mesh.ChunkLOD)/100./Stamp->GetComponentScale().GetAbsMax()));
+        }
+    }
+    return Sample;
+}
+#endif
 bool FCLNativePreview::Pick(const FVector& Start,const FVector& Direction,FVector& BodyMeters)const
 {
     // A queued recipe can already own the stamp transform while retained native
