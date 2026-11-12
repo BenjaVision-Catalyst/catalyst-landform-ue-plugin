@@ -189,6 +189,7 @@ void FCLCompiledTectonics::VisitBelts(const FState& S,const FVector& D,double St
         B.ExtensionDrive=FMath::Max(0.,-Con)*Controls.RiftStrength*Controls.Relief;
         B.ExtensionWeight=FMath::Tanh(B.ExtensionDrive*Envelope);
         B.ShearDrive=FMath::Abs(FVector::DotProduct(Relative,FVector::CrossProduct(E.Normal,Projected).GetSafeNormal()))*Controls.Motion*Controls.TransformStrength*Controls.Relief;
+        B.AlongDirection=FVector::CrossProduct(E.Normal,Projected).GetSafeNormal();B.SignedShear=FVector::DotProduct(Relative,B.AlongDirection);
         B.AlongRadians=FMath::Atan2(FVector::DotProduct(Projected,FVector::CrossProduct(E.Normal,E.Mid)),FVector::DotProduct(Projected,E.Mid));Visitor(B);
     }
 }

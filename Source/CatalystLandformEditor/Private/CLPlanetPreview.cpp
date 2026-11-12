@@ -340,6 +340,10 @@ public:
         if(RegionCentres.IsValidIndex(SelectedIndex))PDI->DrawPoint(RegionCentres[SelectedIndex],FLinearColor(.1,.9,1),12,SDPG_Foreground);
     }
     FIntPoint NavigationSize;
+#if WITH_DEV_AUTOMATION_TESTS
+    TOptional<FTransform> InspectionCamera;
+    FVector InspectionTarget=FVector::ZeroVector;
+#endif
     FCLRadialGuideSet Guides;
     bool bGuides=true;
     TArray<FCLGuideIndicator> Indicators;
@@ -356,7 +360,7 @@ public:
         SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);EngineShowFlags.SetTranslucency(true);
         // Every camera angle uses the same studio exposure; nothing adapts while
         // this non-realtime viewport redraws intermittently during an orbit.
-        ExposureSettings.bFixed=true;ExposureSettings.FixedEV100=-2;
+        ExposureSettings.bFixed=true;ExposureSettings.FixedEV100=0;
         EngineShowFlags.SetEyeAdaptation(false);EngineShowFlags.SetLocalExposure(false);
         EngineShowFlags.SetBloom(false);EngineShowFlags.SetLensFlares(false);EngineShowFlags.SetLightShafts(false);
         SetRealtime(false);ViewFOV=FOVAngle=60;Apply();
@@ -375,6 +379,9 @@ public:
     void Apply()
     {
         NavigationSize=Viewport?Viewport->GetSizeXY():FIntPoint(1000,800);
+#if WITH_DEV_AUTOMATION_TESTS
+        if(InspectionCamera.IsSet()){SetViewLocation(InspectionCamera->GetLocation());SetViewRotation(InspectionCamera->Rotator());SetLookAtLocation(InspectionTarget);StudioScene->AimLights(InspectionCamera->Rotator());Invalidate();return;}
+#endif
         const double H=FMath::Tan(FMath::DegreesToRadians(30.)),V=H*FMath::Max(1,NavigationSize.Y)/FMath::Max(1,NavigationSize.X);
         const auto C=Navigation.Camera(H,V);SetViewLocation(C.Eye);SetViewRotation(C.Rotation);SetLookAtLocation(C.Target);StudioScene->AimLights(C.Rotation);Invalidate();
     }
@@ -477,7 +484,7 @@ void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TS
     if(!Framed){Framed=true;Frame();}Client->Apply();
 }
 #if WITH_DEV_AUTOMATION_TESTS
-void SCLPlanetPreview::FrameDirectionForTesting(FVector D,double Zoom){const auto R=D.Rotation();Client->Navigation.Yaw=R.Yaw;Client->Navigation.Elevation=R.Pitch;Client->Navigation.Zoom=Zoom;Client->Apply();}
+void SCLPlanetPreview::FrameDirectionForTesting(FVector D,double Zoom){Client->InspectionCamera.Reset();const auto R=D.Rotation();Client->Navigation.Yaw=R.Yaw;Client->Navigation.Elevation=R.Pitch;Client->Navigation.Zoom=Zoom;Client->Apply();}
 void SCLPlanetPreview::FrameSurfaceForTesting(FVector D)
 {
     if(!Client->Plan)return;const auto& P=*Client->Plan;D.Normalize();FVector X,Y;D.FindBestAxisVectors(X,Y);
@@ -490,7 +497,14 @@ void SCLPlanetPreview::FrameSurfaceForTesting(FVector D)
     Client->StudioScene->AimLights(Client->GetViewRotation());Client->Invalidate();
 }
 
-void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->Navigation.Orbit(Delta);Client->Apply();}
+void SCLPlanetPreview::FrameLandformForTesting(FVector D,FVector Along,double Extent)
+{
+    if(!Client->Plan)return;const auto& P=*Client->Plan;D.Normalize();Along=(Along-D*FVector::DotProduct(Along,D)).GetSafeNormal();
+    const FVector Across=FVector::CrossProduct(Along,D).GetSafeNormal(),Center=D*(P.RadiusMeters+P.SampleHeightMeters(D));
+    const FVector Eye=Center+D*Extent*.90-Across*Extent*.45-Along*Extent*.15,Target=Center;
+    Client->InspectionTarget=Target*(100000./P.RadiusMeters);Client->InspectionCamera=FTransform(FRotationMatrix::MakeFromXZ((Target-Eye).GetSafeNormal(),D).Rotator(),Eye*(100000./P.RadiusMeters));Client->Apply();
+}
+void SCLPlanetPreview::OrbitForTesting(FVector2D Delta){Client->InspectionCamera.Reset();Client->Navigation.Orbit(Delta);Client->Apply();}
 #endif
 void SCLPlanetPreview::Cancel()
 {
@@ -1505,7 +1519,7 @@ void SCLPlanetPreview::UpdateCaveVolume()
     CavePreview->SetVisible(Ready);if(Published)Client->Invalidate();
 }
 void SCLPlanetPreview::SetCaveOverlay(bool Enabled)
-{Client->bCaveOverlay=Enabled;UpdateCaveVolume();static_cast<FCLGlobeScene*>(Scene.Get())->SetCaveInspection(Enabled);Scene->UpdateCaptureContents();Client->Invalidate();}
+{Client->ExposureSettings.FixedEV100=Enabled?-2:0;Client->bCaveOverlay=Enabled;UpdateCaveVolume();static_cast<FCLGlobeScene*>(Scene.Get())->SetCaveInspection(Enabled);Scene->UpdateCaptureContents();Client->Invalidate();}
 bool SCLPlanetPreview::IsCaveOverlayEnabled()const{return Client->bCaveOverlay;}
 void SCLPlanetPreview::SetWatershedOverlay(bool Enabled)
 {Client->bWatershedOverlay=Enabled;UpdateWatershedDebug();UpdateOcean();Client->Invalidate();}

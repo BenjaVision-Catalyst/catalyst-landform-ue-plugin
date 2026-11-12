@@ -20,6 +20,8 @@ struct CATALYSTLANDFORM_API FCLGeologicalSample
 struct CATALYSTLANDFORM_API FCLPlateBeltSample
 {
     FGuid BoundaryId;
+    FVector AlongDirection=FVector::ZeroVector;
+    double SignedShear=0;
     double AcrossRadians=0,AlongRadians=0,WidthRadians=0,Envelope=0;
     double CompressionDrive=0,ExtensionDrive=0,ExtensionWeight=0,ShearDrive=0,StateWeight=1;
 };

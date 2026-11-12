@@ -16,6 +16,25 @@
 #include "PropertyPath.h"
 #include "UObject/StructOnScope.h"
 
+namespace
+{
+// Adopt an implemented source only on an explicit row gesture. Existing applied
+// snapshots remain pinned on load; retain their authored placement preferences.
+void AdoptTransform(FCLLandformPaletteEntry& P,const UCLTerrainTypeAsset* Source,FCLRegionGenerationSettings& Settings)
+{
+    if(!Source||!P.Suitability.Province.bPlaceholder||P.Transform.IsActive()||!Source->TerrainType.Transform.IsActive())return;
+    P.Transform=Source->TerrainType.Transform;P.Transform.Character=P.Character;if(P.Seed)P.Transform.Seed=P.Seed;
+    P.NoiseLayers=Source->TerrainType.NoiseLayers;P.AlgorithmVersion=Source->TerrainType.AlgorithmVersion;
+    auto& Province=P.Suitability.Province;const auto& Definition=Source->TerrainType.PlacementSuitability.Province;
+    if(Province.AlgorithmVersion==1&&Province.Requirements==Definition.Requirements&&Definition.AlgorithmVersion==2)
+    {
+        Province.AlgorithmVersion=2;Province.Relaxations=Definition.Relaxations;Province.MaximumRelaxedRegions=Definition.MaximumRelaxedRegions;
+        double Coverage=Province.MinimumCoverage;for(auto& Tier:Province.Relaxations){Tier.MinimumCoverage=FMath::Min(Coverage,Tier.MinimumCoverage);Coverage=Tier.MinimumCoverage;}
+    }
+    Province.bPlaceholder=false;Settings.AlgorithmVersion=4;
+}
+}
+
 void FCLPlanetLandforms::AddSource(UCLTerrainTypeAsset* Source)
 {if(Source&&Source->TerrainType.Coordinates==ECLTerrainCoordinates::SphericalSurface)Sources.Add(Source->TerrainType.Id,TStrongObjectPtr<UCLTerrainTypeAsset>(Source));}
 void FCLPlanetLandforms::Discover()
@@ -49,7 +68,7 @@ bool FCLPlanetLandforms::Included(FGuid Id)const
 {const auto* P=Entry(Id);return Asset->Recipe.RegionGeneration.bEnabled&&P&&P->bEnabled;}
 bool FCLPlanetLandforms::Visible(FGuid Id)const{return Included(Id)&&(Solo==Id||!Hidden.Contains(Id));}
 double FCLPlanetLandforms::Character(FGuid Id)const
-{if(auto* P=Entry(Id))return P->Rift.IsActive()?P->Rift.Character:P->Character;if(const auto* S=Sources.Find(Id))return (*S)->TerrainType.Rift.IsActive()?(*S)->TerrainType.Rift.Character:.5;return .5;}
+{if(auto* P=Entry(Id))return P->Rift.IsActive()?P->Rift.Character:P->Transform.IsActive()?P->Transform.Character:P->Character;if(const auto* S=Sources.Find(Id))return (*S)->TerrainType.Rift.IsActive()?(*S)->TerrainType.Rift.Character:(*S)->TerrainType.Transform.IsActive()?(*S)->TerrainType.Transform.Character:.5;return .5;}
 bool FCLPlanetLandforms::Commit(FCLPlanetRecipe R,const FText& Label,UCLTerrainTypeAsset* Source)
 {
     Error.Reset();if(!FCLPlanetCompiler::PrepareBackground(R,Error))return false;
@@ -66,12 +85,13 @@ bool FCLPlanetLandforms::Include(FGuid Id,bool Enabled)
     {
         const auto* Found=Sources.Find(Id);if(!Enabled||!Found)return false;Source=Found->Get();if(!Source->TerrainType.Validate(Error))return false;
         if(S.Palette.Num()>=32){Error=TEXT("The planet supports at most 32 Landforms");return false;}
-        const auto& T=Source->TerrainType;P=&S.Palette.AddDefaulted_GetRef();P->Id=T.Id;P->Name=T.Name;P->Description=T.Description;P->AlgorithmVersion=T.AlgorithmVersion;P->Suitability=T.PlacementSuitability;P->Rift=T.Rift;P->NoiseLayers=T.NoiseLayers;P->SurfaceStack=T.SurfaceStack;
+        const auto& T=Source->TerrainType;P=&S.Palette.AddDefaulted_GetRef();P->Id=T.Id;P->Name=T.Name;P->Description=T.Description;P->AlgorithmVersion=T.AlgorithmVersion;P->Suitability=T.PlacementSuitability;P->Rift=T.Rift;P->Transform=T.Transform;P->NoiseLayers=T.NoiseLayers;P->SurfaceStack=T.SurfaceStack;
         if(P->SurfaceStack.IsActive()&&!R.SurfaceStack.IsActive())R.SurfaceStack=P->SurfaceStack;
     }
     if(Enabled&&!S.bEnabled)for(auto& Existing:S.Palette)Existing.bEnabled=false;
+    if(Enabled){const auto* Found=Sources.Find(Id);AdoptTransform(*P,Found?Found->Get():nullptr,S);}
     P->bEnabled=Enabled;R.SchemaVersion=FMath::Max(R.SchemaVersion,P->SurfaceStack.IsActive()?13:12);
-    S.AlgorithmVersion=FMath::Max(S.AlgorithmVersion,P->Rift.IsActive()?4:P->Suitability.Province.IsActive()?3:2);
+    S.AlgorithmVersion=FMath::Max(S.AlgorithmVersion,(P->Rift.IsActive()||P->Transform.IsActive())?4:P->Suitability.Province.IsActive()?3:2);
     S.bEnabled=S.Palette.ContainsByPredicate([](const auto& V){return V.bEnabled;});
     if(!Enabled)S.Overrides.RemoveAll([&](const auto& O){return O.LandformId==Id;});
     const bool Ok=Commit(MoveTemp(R),FText::FromString(TEXT("Include Landform in generation")),Source);
@@ -81,13 +101,14 @@ bool FCLPlanetLandforms::SetCharacter(FGuid Id,double Value)
 {
     if(!Included(Id)||!FMath::IsFinite(Value))return false;auto R=Asset->Recipe;
     auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
-    Value=FMath::Clamp(Value,0.,1.);if(P->Rift.IsActive())P->Rift.ApplyCuratedCharacter(Value);else P->Character=Value;
+    const auto* Found=Sources.Find(Id);AdoptTransform(*P,Found?Found->Get():nullptr,R.RegionGeneration);
+    Value=FMath::Clamp(Value,0.,1.);if(P->Rift.IsActive())P->Rift.ApplyCuratedCharacter(Value);else if(P->Transform.IsActive())P->Transform.Character=Value;else P->Character=Value;
     return Commit(MoveTemp(R),FText::FromString(TEXT("Change Landform Character")));
 }
 bool FCLPlanetLandforms::SetValues(FGuid Id,const FCLLandformPaletteEntry& Values)
 {
     if(!Included(Id))return false;auto R=Asset->Recipe;auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
-    P->Rift=Values.Rift;P->NoiseLayers=Values.NoiseLayers;P->Suitability=Values.Suitability;P->SurfaceStack=Values.SurfaceStack;P->Seed=Values.Seed;
+    P->Rift=Values.Rift;P->Transform=Values.Transform;P->NoiseLayers=Values.NoiseLayers;P->Suitability=Values.Suitability;P->SurfaceStack=Values.SurfaceStack;P->Seed=Values.Seed;
     // A deliberate physical edit adopts additive delivery while retaining the
     // user's ranges. The knob's curated defaults are a separate action.
     if(P->Rift.IsActive())P->Rift.AlgorithmVersion=3;
@@ -96,7 +117,8 @@ bool FCLPlanetLandforms::SetValues(FGuid Id,const FCLLandformPaletteEntry& Value
 bool FCLPlanetLandforms::Reseed(FGuid Id)
 {
     if(!Included(Id))return false;auto R=Asset->Recipe;auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
-    int32& Seed=P->Rift.IsActive()?P->Rift.Seed:P->Seed;Seed=int32(uint32(Seed)*1664525U+1013904223U);
+    const auto* Found=Sources.Find(Id);AdoptTransform(*P,Found?Found->Get():nullptr,R.RegionGeneration);
+    int32& Seed=P->Rift.IsActive()?P->Rift.Seed:P->Transform.IsActive()?P->Transform.Seed:P->Seed;Seed=int32(uint32(Seed)*1664525U+1013904223U);
     return Commit(MoveTemp(R),FText::FromString(TEXT("Reseed Landform")));
 }
 bool FCLPlanetLandforms::ToggleEye(FGuid Id)
@@ -138,7 +160,7 @@ void SCLPlanetLandforms::Refresh()
                 +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(Session->Name(Id))).Font(FAppStyle::GetFontStyle("PropertyWindow.BoldFont"))]
                 +SVerticalBox::Slot().AutoHeight().Padding(0,3,0,0)[SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(Description)).ToolTipText(FText::FromString(Session->Description(Id))).Font(FAppStyle::GetFontStyle("SmallFont")).ColorAndOpacity(FLinearColor(.65,.65,.65))]]
             +SHorizontalBox::Slot().FillWidth(.55).VAlign(VAlign_Center)[SAssignNew(C.Knob,SSlider).IsEnabled_Lambda(Enabled).ToolTipText_Lambda([State,Id]{const auto* P=State->Entry(Id);return FText::FromString(P&&P->Rift.IsActive()?TEXT("Curated Character. Moving this restores the physical ranges; expand the row for manual overrides."):TEXT("Character. Expand the row to edit underlying values."));}).Value_Lambda([State,Id]{return float(State->Character(Id));}).OnMouseCaptureBegin_Lambda([State,Id]{State->BeginGesture(Id);}).OnValueChanged_Lambda([State,Id](float V){State->SetCharacter(Id,V);}).OnMouseCaptureEnd_Lambda([State]{State->EndGesture();})]
-            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0)[SNew(SBox).WidthOverride(24)[SNew(STextBlock).IsEnabled_Lambda(Enabled).Text_Lambda([State,Id]{return FText::AsNumber(FMath::RoundToInt(State->Character(Id)*100));})]]
+            +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0)[SNew(SBox).WidthOverride(30)[SNew(STextBlock).IsEnabled_Lambda(Enabled).Text_Lambda([State,Id]{FNumberFormattingOptions Format;Format.SetMaximumFractionalDigits(1);return FText::AsNumber(State->Character(Id)*100,&Format);})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(C.Eye,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).ToolTipText(FText::FromString(TEXT("Include in preview"))).OnClicked_Lambda([State,Id]{State->ToggleEye(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(16,16)).Image_Lambda([State,Id]{return FAppStyle::GetBrush(State->Visible(Id)?TEXT("Level.VisibleIcon16x"):TEXT("Level.NotVisibleIcon16x"));})]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SAssignNew(C.Reseed,SButton).IsEnabled_Lambda(Enabled).ButtonStyle(FAppStyle::Get(),"SimpleButton").ContentPadding(3).ToolTipText(FText::FromString(TEXT("Reseed"))).OnClicked_Lambda([State,Id]{State->Reseed(Id);return FReply::Handled();})[SNew(SImage).DesiredSizeOverride(FVector2D(16,16)).Image(FAppStyle::GetBrush("Icons.Refresh"))]]
             +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(5,0,0,0)[SNew(SBox).WidthOverride(50)[SAssignNew(C.Solo,SButton).IsEnabled_Lambda(Enabled).ContentPadding(FMargin(3,2)).ToolTipText(FText::FromString(TEXT("Preview this Landform across the whole planet"))).OnClicked_Lambda([State,Id]{State->ToggleSolo(Id);return FReply::Handled();})[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([State,Id]{return FText::FromString(State->PreviewSolo()==Id?TEXT("Unsolo"):TEXT("Solo"));})]]]]
@@ -174,10 +196,10 @@ void SCLPlanetLandforms::ToggleDetails(FGuid Id)
     FDetailsViewArgs Args;Args.bAllowSearch=false;Args.bHideSelectionTip=true;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;
     C->Details=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateStructureDetailView(Args,FStructureDetailsViewArgs(),C->Draft);
     C->Details->SetCustomName(FText::FromString(Session->Entry(Id)->Rift.IsActive()?TEXT("Continental Rift"):Session->Name(Id)));
-    C->Details->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([RiftActive=Session->Entry(Id)->Rift.IsActive()](const FPropertyAndParent& P)
+    C->Details->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([RiftActive=Session->Entry(Id)->Rift.IsActive(),TransformActive=Session->Entry(Id)->Transform.IsActive()](const FPropertyAndParent& P)
     {
-        const FName N=P.Property.GetFName();if(RiftActive&&P.ParentProperties.IsEmpty()&&(N==TEXT("Seed")||N==TEXT("SurfaceStack")))return false;if(N==TEXT("AlgorithmVersion")||N==TEXT("Character")||N==TEXT("Id")||N==TEXT("Type")||N==TEXT("bPlaceholder"))return false;
-        auto Allowed=[](FName Name){return Name==TEXT("Rift")||Name==TEXT("NoiseLayers")||Name==TEXT("Suitability")||Name==TEXT("SurfaceStack")||Name==TEXT("Seed");};
+        const FName N=P.Property.GetFName();if((N==TEXT("Rift")&&TransformActive)||(N==TEXT("Transform")&&!TransformActive))return false;if(TransformActive&&P.ParentProperties.IsEmpty()&&(N==TEXT("Seed")||N==TEXT("SurfaceStack")))return false;if(RiftActive&&P.ParentProperties.IsEmpty()&&(N==TEXT("Seed")||N==TEXT("SurfaceStack")))return false;if(N==TEXT("AlgorithmVersion")||N==TEXT("Character")||N==TEXT("Id")||N==TEXT("Type")||N==TEXT("bPlaceholder"))return false;
+        auto Allowed=[](FName Name){return Name==TEXT("Transform")||Name==TEXT("Rift")||Name==TEXT("NoiseLayers")||Name==TEXT("Suitability")||Name==TEXT("SurfaceStack")||Name==TEXT("Seed");};
         if(Allowed(N))return true;for(const auto* Parent:P.ParentProperties)if(Allowed(Parent->GetFName()))return true;return false;
     }));
     const auto Draft=C->Draft;const auto State=Session;
@@ -186,7 +208,7 @@ void SCLPlanetLandforms::ToggleDetails(FGuid Id)
     C->DetailsBox->SetContent(C->Details->GetWidget().ToSharedRef());
     // Visibility is bound after structure creation; rebuild the initial tree too.
     auto View=C->Details->GetDetailsView();View->ForceRefresh();View->SetRootExpansionStates(true,false);
-    FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLLandformPaletteEntry::StaticStruct(),TEXT("Rift"))));View->ScrollPropertyIntoView(Path,true);
+    FPropertyPath Path;Path.AddProperty(FPropertyInfo(FindFProperty<FProperty>(FCLLandformPaletteEntry::StaticStruct(),Session->Entry(Id)->Transform.IsActive()?TEXT("Transform"):TEXT("Rift"))));View->ScrollPropertyIntoView(Path,true);
 }
 
 void SCLPlanetLandforms::Focus(FGuid Id)

@@ -1,5 +1,14 @@
 # Planet editor — Landforms
 
+## Current authoring decision — 12 November 2026
+
+The user considers Continental Rift complete for now. Historical open visual
+checks below describe earlier checkpoints; they do not reopen that decision.
+Transform and shear belt is the next family, with four accepted reference
+expressions and seven Planet views requested for visual review. See
+[Transform family](TransformShearLandform.md). Caves retain their existing
+shape; this province work does not claim cave visual approval.
+
 12 November 2026. User correction: there is one editor, **Planet**, where the world
 is assembled. Standalone Landform/source editors are retired. Terrain assets are
 source definitions; opening one focuses Planet's Landforms tab without applying
@@ -28,10 +37,10 @@ an explicit compiler evaluation option, outside the recipe and JSON format;
 it overrides region assignment in the same stock native VPP pipeline. Changing
 that option invalidates prepared input reuse where necessary.
 
-The catalogue still contains sixteen neutral province definitions awaiting their
+The catalogue still contains fifteen neutral province definitions awaiting their
 terrain pass. Their controls retain planet-local settings; including or soloing a
-placeholder cannot create terrain that has not yet been implemented. Rift uses
-its existing physical Character and seed. Generic authored noise Landforms use
+placeholder cannot create terrain that has not yet been implemented. Rift and Transform use
+their typed physical Character and seed. Generic authored noise Landforms use
 Character to scale their local relief around the unchanged default and a local
 seed offset; the original noise snapshot remains intact.
 

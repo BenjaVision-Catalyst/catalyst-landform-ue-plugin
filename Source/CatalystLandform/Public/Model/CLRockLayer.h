@@ -181,6 +181,8 @@ private:
     TSharedPtr<const FCLNativeNoiseKernel> NativeNoise;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
     TSharedPtr<const FCLCompiledRegionGeneration> Province;
+    TSharedPtr<const FCLCompiledRock> ProvinceBase;
+    FVector3d ProvinceReferencePosition(const FVector3d&)const;
     TSharedPtr<const FCLCompiledContinents> Crust;
     FQuat Frame=FQuat::Identity;
     FGuid Namespace;

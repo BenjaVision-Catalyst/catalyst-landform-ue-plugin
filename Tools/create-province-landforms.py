@@ -16,7 +16,7 @@ for entry in catalog['profiles']:
         folder,name=path.rsplit('/',1);obj=tools.create_asset(name,folder,unreal.CLTerrainTypeAsset,unreal.CLTerrainTypeFactory())
     assert obj,'Unable to create '+path
     result=obj.import_terrain_type_json((root/entry['source']).read_text());assert result is not None,(path,result)
-    assert obj.get_editor_property('terrain_type').get_editor_property('schema_version')==9
+    assert obj.get_editor_property('terrain_type').get_editor_property('schema_version')==json.loads((root/entry['source']).read_text())['schemaVersion']
     assert assets.save_loaded_asset(obj),path
     sources.append(obj)
 review_path='/Game/LandformDesigner/Provinces/DA_ProvincePlacement';review=unreal.load_asset(review_path)

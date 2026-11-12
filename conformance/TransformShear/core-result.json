@@ -1,0 +1,291 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Background.SurfaceCheckpoint",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.GuidesAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.23959418e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.04.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.71010724e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.04.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=5.0104735e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.04.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT_INPUT_RESIDUAL metres=3.39737773e-07",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.04.55"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "CAVE_PLACEMENT networks=39 openings=4 savedCharacter=0.668",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.04.55"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.04.55"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.04.59"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 73: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.02"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 74: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.03"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 75: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.05"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 76: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.06"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 77: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.08"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 78: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.09"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 79: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.11"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "seed 80: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.13"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Regions.BlendAndNativeParity",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "Generated field: 2379 directions, 2.22044604925e-16 weight error, 9.04038199678e-06 m oracle error, 1.02409524061e-06 m atlas error, 0.000102409525 cm native residual, 0.00197791478 cm section residual",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.26"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.CharacterNoiseAndRock",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_ROCK probes=137 restorationMetres=4.54747350886e-13 noiseLayers=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.27"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.CuratedLandscape",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "CURATED_RIFT wholeSliderSamples=11 maximumLandscapeDeltaMeters=5.857777 maximumSoloDeltaMeters=6.457717",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.28"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.PlacementRelaxation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "RIFT_FAMILY_FALLBACK assigned=2 cells=24 tier=3",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.05.28"
+        }
+      ]
+    },
+    {
+      "name": "Catalyst.Landform.Rift.Family.SoloSavedProfile",
+      "state": "Success",
+      "entries": []
+    },
+    {
+      "name": "Catalyst.Landform.Transform.Family.CurvesDeterminismAndRock",
+      "state": "Success",
+      "entries": []
+    }
+  ]
+}

@@ -298,7 +298,10 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
 {
     if(WatershedSurface){WatershedSurface->SampleHeightsMeters(Directions,Heights);Watershed->MapHeights(Directions,Heights);return;}
     if(MeasuredTerrain){MeasuredTerrain->SampleHeights(Directions,Heights);return;}
-    if(ProvinceSurface){ProvinceSurface->SampleHeightsMeters(Directions,Heights);GeneratedRegions->Blend(Directions,Heights);return;}
+    if(ProvinceSurface){
+        if(GeneratedRegions->bHasDirectionalDeformation){TArray<FVector> Restored;Restored.Reserve(Directions.Num());for(const auto& D:Directions)Restored.Add(GeneratedRegions->ProvinceReferenceDirection(D));ProvinceSurface->SampleHeightsMeters(Restored,Heights);}
+        else ProvinceSurface->SampleHeightsMeters(Directions,Heights);
+        GeneratedRegions->Blend(Directions,Heights);return;}
     if(UnmappedSurface)
     {UnmappedSurface->SampleHeightsMeters(Directions,Heights);SurfaceRange->MapHeights(Directions,Heights);return;}
     if(!SurfacePatches.IsEmpty())
@@ -590,7 +593,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         // A neutral/no-eligible selection must retain the exact prior field.
         if(!Generated->HasPhysicalRelief())
         {Geology->GeneratedRegions=Generated;return RetainInput(Geology);}
-        if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&P.Rift.AlgorithmVersion==3;}))
+        if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&(P.Rift.AlgorithmVersion==3||P.Transform.IsActive());}))
         {
             // Local metre relief belongs on the already calibrated landscape.
             // Re-fitting the whole planet after adding it makes local features

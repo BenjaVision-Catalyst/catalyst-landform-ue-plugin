@@ -1,0 +1,99 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Transform.NativeDesigner.SevenPositions",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "TRANSFORM_NATIVE character=0.000 residual=0.359913 m cellBudgetRatio=0.024245",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.00.30"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "TRANSFORM_NATIVE character=0.150 residual=0.502597 m cellBudgetRatio=0.024672",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.01.08"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "TRANSFORM_NATIVE character=0.300 residual=0.923791 m cellBudgetRatio=0.038491",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.01.18"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "TRANSFORM_NATIVE character=0.475 residual=1.122593 m cellBudgetRatio=0.046775",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.01.29"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "TRANSFORM_NATIVE character=0.650 residual=1.139916 m cellBudgetRatio=0.047497",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.01.40"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "TRANSFORM_NATIVE character=0.825 residual=1.145924 m cellBudgetRatio=0.050576",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.01.52"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "TRANSFORM_NATIVE character=1.000 residual=2.099580 m cellBudgetRatio=0.087482",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.02.04"
+        },
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"editor\":\"Planet\",\"seed\":1729,\"solo\":true,\"nativeOwner\":40008,\"cases\":[{\"character\":0.000,\"vertices\":921628,\"visiblePixels\":1317802,\"geometryCrc\":3552309972},{\"character\":0.150,\"vertices\":920927,\"visiblePixels\":1317802,\"geometryCrc\":554435119},{\"character\":0.300,\"vertices\":907197,\"visiblePixels\":1317805,\"geometryCrc\":3051995352},{\"character\":0.475,\"vertices\":923774,\"visiblePixels\":1317805,\"geometryCrc\":830730213},{\"character\":0.650,\"vertices\":936495,\"visiblePixels\":1317800,\"geometryCrc\":1209254487},{\"character\":0.825,\"vertices\":926349,\"visiblePixels\":1317811,\"geometryCrc\":2056685858},{\"character\":1.000,\"vertices\":915259,\"visiblePixels\":1317807,\"geometryCrc\":1788996332}]}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-08.02.04"
+        }
+      ]
+    }
+  ]
+}

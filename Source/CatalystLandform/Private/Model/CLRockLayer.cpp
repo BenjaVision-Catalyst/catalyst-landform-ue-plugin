@@ -127,6 +127,7 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& L
 }
 FCLCompiledRock::FPoint FCLCompiledRock::Classify(const FVector3d& P)const
 {
+    if(ProvinceBase)return ProvinceBase->Classify(ProvinceReferencePosition(P));
     if(Layer.AlgorithmVersion>=2)return ClassifyFinite(P);
     FPoint Out;const double Distance=P.Length();
     if(Distance<=Basement||Layer.InterbedFraction==0)return Out;
@@ -152,7 +153,9 @@ FCLCompiledRock::FPoint FCLCompiledRock::Classify(const FVector3d& P)const
     return Out;
 }
 TSharedPtr<const FCLCompiledRock> FCLCompiledRock::WithProvinceDeformation(TSharedPtr<const FCLCompiledRegionGeneration> P)const
-{auto Out=MakeShared<FCLCompiledRock>(*this);Out->Province=MoveTemp(P);return Out;}
+{auto Out=MakeShared<FCLCompiledRock>(*this);if(P&&P->bHasDirectionalDeformation)Out->ProvinceBase=MakeShared<FCLCompiledRock>(*this);Out->Province=MoveTemp(P);return Out;}
+FVector3d FCLCompiledRock::ProvinceReferencePosition(const FVector3d& P)const
+{const double R=P.Length();if(R<1.e-6)return P;const FVector D=P/R;return Province->ProvinceReferenceDirection(D)*FMath::Max(0.,R-Province->ProvinceDeformationMeters(D));}
 double FCLCompiledRock::DeformationMeters(const FVector3d& D,double* Extension) const
 {
     if(Extension)*Extension=0;
@@ -169,11 +172,13 @@ double FCLCompiledRock::DeformationMeters(const FVector3d& D,double* Extension) 
 }
 double FCLCompiledRock::RestoredRadiusMeters(const FVector3d& P) const
 {
+    if(ProvinceBase)return ProvinceBase->RestoredRadiusMeters(ProvinceReferencePosition(P));
     const double R=P.Length();
     return R<1.e-6?R:R-DeformationMeters(P/R);
 }
 FCLRockColumn FCLCompiledRock::SampleColumn(const FVector3d& Direction) const
 {
+    if(ProvinceBase&& !Direction.ContainsNaN()&&!Direction.IsNearlyZero()){const FVector D=Direction.GetSafeNormal();auto C=ProvinceBase->SampleColumn(Province->ProvinceReferenceDirection(D));const double Delta=Province->ProvinceDeformationMeters(D);C.DeformationMeters+=Delta;C.YoungerFloorRadiusMeters+=Delta;return C;}
     FCLRockColumn C;
     if(Layer.AlgorithmVersion<3||Direction.ContainsNaN()||Direction.IsNearlyZero())return C;
     const FVector D=Direction.GetSafeNormal();C.bValid=true;
@@ -261,6 +266,7 @@ void FCLCompiledRock::ApplySurfaces(const FVector3d& P,FCLSurfaceWeights& W)cons
 
 bool FCLCompiledRock::TryStableSurfaces(const FVector3d& P,double Deformation,double BasementRadius,double Tolerance,FCLSurfaceWeights& W)const
 {
+    if(ProvinceBase)return false; // Curved shear contacts require exact mapped classification.
     if(Layer.AlgorithmVersion<5||GetBedCount()==0)return false;
     const double Distance=P.Length();if(Distance<1.e-6)return false;
     // The compiler's directional input tolerance is expanded before testing

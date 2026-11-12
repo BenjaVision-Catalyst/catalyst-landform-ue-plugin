@@ -44,6 +44,9 @@ public:
     TArray<FCLGeneratedRegionJunction> Junctions;
     TArray<FCLCompiledPlanetFeature> Structure;
     TArray<TSharedPtr<const FCLCompiledRiftLandform>> Rifts;
+    TArray<TSharedPtr<const FCLCompiledTransformLandform>> Transforms;
+    bool bHasDirectionalDeformation=false;
+    FVector ProvinceReferenceDirection(const FVector&)const;
     bool bHasPhysicalRelief=false,bHasProvinceDeformation=false;
     bool HasPhysicalRelief()const;
     double ProvinceDeformationMeters(const FVector& Direction)const;

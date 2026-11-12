@@ -1,5 +1,14 @@
 # Geological province Landforms
 
+## Current authoring decision — 12 November 2026
+
+The user considers Continental Rift complete for now. Historical open visual
+checks below describe earlier checkpoints; they do not reopen that decision.
+Transform and shear belt is the next family, with four accepted reference
+expressions and seven Planet views requested for visual review. See
+[Transform family](TransformShearLandform.md). Caves retain their existing
+shape; this province work does not claim cave visual approval.
+
 12 November editor correction: **Planet is the only editor**. Its Landforms tab
 uses [one row per Landform](PlanetLandforms.md), with inclusion, Character, eye,
 reseed and whole-planet Solo. Earlier standalone source-editor instructions in
@@ -11,8 +20,8 @@ version-1 hard-gate descriptions below remain the frozen catalogue baseline.
 New definition version 2 may relax recorded conditions when needed.
 
 Seventeen native Landform assets define geological province families and the base
-geology required to place them. Continental Rift now adds local fault-block relief and matching Rock
-deformation; the other sixteen remain neutral placeholders. The catalogue
+geology required to place them. Continental Rift adds local fault-block relief and Transform adds finite shear
+corridors, both with matching Rock deformation; fifteen remain neutral placeholders. The catalogue
 creates no caves. This establishes
 the regional definitions before developing their terrain and underground forms.
 

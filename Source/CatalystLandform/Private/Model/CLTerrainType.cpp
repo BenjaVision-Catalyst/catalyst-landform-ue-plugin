@@ -6,16 +6,16 @@
 
 #if WITH_EDITOR
 void UCLTerrainTypeAsset::PostEditChangeProperty(FPropertyChangedEvent& Event)
-{ if(TerrainType.Rift.IsActive())TerrainType.SchemaVersion=FMath::Max(TerrainType.Rift.AlgorithmVersion>=3?12:TerrainType.Rift.AlgorithmVersion==2?11:10,TerrainType.SchemaVersion); if(TerrainType.PlacementSuitability.Province.IsActive())TerrainType.SchemaVersion=FMath::Max(9,TerrainType.SchemaVersion); if(TerrainType.SurfaceStack.IsActive())TerrainType.SchemaVersion=FMath::Max(8,TerrainType.SchemaVersion); if(TerrainType.PlacementSuitability.bUsePreferences)TerrainType.SchemaVersion=FMath::Max(7,TerrainType.SchemaVersion);Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnTerrainChanged.Broadcast(); }
+{ if(TerrainType.Transform.IsActive())TerrainType.SchemaVersion=FMath::Max(13,TerrainType.SchemaVersion); if(TerrainType.Rift.IsActive())TerrainType.SchemaVersion=FMath::Max(TerrainType.Rift.AlgorithmVersion>=3?12:TerrainType.Rift.AlgorithmVersion==2?11:10,TerrainType.SchemaVersion); if(TerrainType.PlacementSuitability.Province.IsActive())TerrainType.SchemaVersion=FMath::Max(9,TerrainType.SchemaVersion); if(TerrainType.SurfaceStack.IsActive())TerrainType.SchemaVersion=FMath::Max(8,TerrainType.SchemaVersion); if(TerrainType.PlacementSuitability.bUsePreferences)TerrainType.SchemaVersion=FMath::Max(7,TerrainType.SchemaVersion);Super::PostEditChangeProperty(Event); if (!(Event.ChangeType & EPropertyChangeType::Interactive)) OnTerrainChanged.Broadcast(); }
 void UCLTerrainTypeAsset::PostEditUndo()
 { Super::PostEditUndo(); OnTerrainChanged.Broadcast(); }
 #endif
 
 bool FCLTerrainType::Validate(FString& Error) const
 {
-    if ((SchemaVersion < 1 || SchemaVersion > 12) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
+    if ((SchemaVersion < 1 || SchemaVersion > 13) || (AlgorithmVersion != 1 && AlgorithmVersion != 2) ||
         (SchemaVersion == 1 && AlgorithmVersion != 1) || !Id.IsValid() || Name.TrimStartAndEnd().IsEmpty())
-    { Error = TEXT("Terrain type requires schema 1..12, a supported algorithm, a valid ID and a nonempty name"); return false; }
+    { Error = TEXT("Terrain type requires schema 1..13, a supported algorithm, a valid ID and a nonempty name"); return false; }
     if (SchemaVersion < 3 && NoiseLayers.ContainsByPredicate([](const auto& L) { return L.Operation != ECLTerrainOperation::Noise; }))
     { Error = TEXT("Terracing requires terrain type schema 3"); return false; }
     if(SchemaVersion<4 && NoiseLayers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution;}))
@@ -25,7 +25,9 @@ bool FCLTerrainType::Validate(FString& Error) const
     if (SchemaVersion < 5 && NoiseLayers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution && L.Distribution.ReliefMode==ECLStampReliefMode::GuideInterval;}))
     { Error = TEXT("Guide-based stamp relief requires terrain schema 5"); return false; }
     if(Coordinates==ECLTerrainCoordinates::SphericalSurface && SchemaVersion<6){Error=TEXT("Spherical surface terrain requires schema 6");return false;}
-    if(!Rift.Validate(Error))return false;
+    if(!Transform.Validate(Error)||!Rift.Validate(Error))return false;
+    if(Transform.IsActive()&&(SchemaVersion<13||Rift.IsActive()||PlacementSuitability.Province.Type!=ECLProvinceType::TransformBelt||PlacementSuitability.Province.bPlaceholder||Coordinates!=ECLTerrainCoordinates::SphericalSurface||SurfaceStack.IsActive())){Error=TEXT("Transform requires schema 13, a non-placeholder Transform Belt and no replacement stack or Rift");return false;}
+    if(Transform.IsActive()){FCLRiftLandform Additive;Additive.AlgorithmVersion=3;if(!Additive.ValidateNoise(NoiseLayers,Error))return false;}
     if(Rift.IsActive()&&(SchemaVersion<10||PlacementSuitability.Province.Type!=ECLProvinceType::ContinentalRift||PlacementSuitability.Province.bPlaceholder||Coordinates!=ECLTerrainCoordinates::SphericalSurface||SurfaceStack.IsActive())){Error=TEXT("Physical rift Landforms require schema 10, a non-placeholder Continental Rift definition and no replacement noise/material stack");return false;}
     if(Rift.AlgorithmVersion==2&&SchemaVersion<11){Error=TEXT("Rift profile 2 requires terrain schema 11");return false;}
     if(Rift.AlgorithmVersion==3&&SchemaVersion<12){Error=TEXT("Curated Rift profile 3 requires terrain schema 12");return false;}
@@ -123,13 +125,13 @@ bool UCLTerrainTypeAsset::ImportTerrainTypeJson(const FString& Json, FString& Er
     { Error = TEXT("Invalid terrain type JSON object"); return false; }
     if (!CLModelJson::CheckFields(*Object, *FCLTerrainType::StaticStruct(), Error, TEXT("TerrainType"))) return false;
     double Schema = 0;
-    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12))
-    { Error = TEXT("Terrain type requires schemaVersion 1..12"); return false; }
+    if (!Object->TryGetNumberField(TEXT("schemaVersion"), Schema) || (Schema != 1 && Schema != 2 && Schema != 3 && Schema != 4 && Schema != 5 && Schema != 6 && Schema != 7 && Schema != 8 && Schema != 9 && Schema != 10 && Schema != 11 && Schema != 12 && Schema != 13))
+    { Error = TEXT("Terrain type requires schemaVersion 1..13"); return false; }
     FCLTerrainType Candidate; FText Reason;
     if (!FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), &Candidate, 0, 0, false, &Reason))
     { Error = Reason.ToString(); return false; }
     if (!Candidate.Validate(Error)) return false;
-    Candidate.SchemaVersion = Candidate.Rift.IsActive()?(Candidate.Rift.AlgorithmVersion>=3?12:Candidate.Rift.AlgorithmVersion==2?11:10):Candidate.PlacementSuitability.Province.IsActive()?9:Candidate.SurfaceStack.IsActive()?8:Candidate.PlacementSuitability.bUsePreferences?7:Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface?6:5;
+    Candidate.SchemaVersion = Candidate.Transform.IsActive()?13:Candidate.Rift.IsActive()?(Candidate.Rift.AlgorithmVersion>=3?12:Candidate.Rift.AlgorithmVersion==2?11:10):Candidate.PlacementSuitability.Province.IsActive()?9:Candidate.SurfaceStack.IsActive()?8:Candidate.PlacementSuitability.bUsePreferences?7:Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface?6:5;
     Modify(); TerrainType = MoveTemp(Candidate);
 #if WITH_EDITOR
     PostEditChange(); MarkPackageDirty();

@@ -657,6 +657,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLWatershedDesignerTest;
     friend class FCLProvinceEditorTest;
     friend class FCLRiftDesignerTest;
+    friend class FCLTransformDesignerTest;
     friend class FCLPlanetSurfaceFirstTest;
     friend class FCLPlanetLandformRowsTest;
     friend class FCLCaveDesignerTest;
@@ -3074,6 +3075,66 @@ bool FCLPlanetSurfaceFirstTest::RunTest(const FString&)
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get()));return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTransformDesignerTest,"Catalyst.Landform.Transform.NativeDesigner.SevenPositions",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLTransformDesignerTest::RunTest(const FString&)
+{
+    FString J,Error;const FString Root=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir();
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/CLTransformReview_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));
+    FFileHelper::LoadFileToString(J,*(Root/TEXT("Examples/TransformShearProvince.json")));if(!A->ImportRecipeJson(J,Error)){AddError(Error);return false;}
+    const FGuid Id=A->Recipe.RegionGeneration.Palette[0].Id;
+    TStrongObjectPtr<UCLTerrainTypeAsset> Source(NewObject<UCLTerrainTypeAsset>());FFileHelper::LoadFileToString(J,*(Root/TEXT("Examples/TerrainTypes/TransformShearFamily.json")));if(!Source->ImportTerrainTypeJson(J,Error)){AddError(Error);return false;}A->PaletteSources.Add(Id,Source.Get());const auto SourceBefore=Source->TerrainType;
+    auto& Legacy=A->Recipe.RegionGeneration.Palette[0];Legacy.Transform=FCLTransformLandform();Legacy.NoiseLayers.Reset();Legacy.Suitability.Province.bPlaceholder=true;Legacy.Suitability.SelectionWeight=1.23;auto Preferences=Legacy.Suitability;Preferences.Province.bPlaceholder=false;Legacy.Suitability.Province.AlgorithmVersion=1;Legacy.Suitability.Province.Relaxations.Reset();
+    auto E=MakeShared<FCLRecipeToolkit>();E->HoldCavesForTesting=true;E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->InspectorPage=2;E->Landforms->SetCharacter(Id,0);E->Landforms->ToggleSolo(Id);E->LandformRows->Focus(Id);
+    TestTrue(TEXT("A deliberate row gesture adopts the implemented Transform family"),A->Recipe.RegionGeneration.Palette[0].Transform.IsActive());TestTrue(TEXT("Adoption preserves authored placement preferences"),FCLLandformSuitability::StaticStruct()->CompareScriptStruct(&Preferences,&A->Recipe.RegionGeneration.Palette[0].Suitability,0));TestTrue(TEXT("Row adoption leaves source definitions unchanged"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&SourceBefore,&Source->TerrainType,0));
+    class FReview:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLPlanetRecipeAsset> A;FGuid Id;
+        double Start=FPlatformTime::Seconds(),Ready=0,LastProgress=0;int32 Stage=0,Framed=-1;uint32 Owner=0;FVector Focus,Along;double Extent=650;TArray<FString> Rows;
+        const double Values[7]={0,.15,.30,.475,.65,.825,1};
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> In,UCLPlanetRecipeAsset* Asset,FGuid I):Test(T),E(In),A(Asset),Id(I){}
+        bool Update()override
+        {
+            const double Now=FPlatformTime::Seconds();auto Close=[&]{A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
+            if(Now-Start>900){Test->AddError(FString::Printf(TEXT("Transform review timed out at %d: %s %s"),Stage,*E->Status,*E->InspectorError));return Close();}
+            auto P=E->AcceptedSurfacePlan;
+            if(Now-LastProgress>10){LastProgress=Now;UE_LOG(LogTemp,Display,TEXT("TRANSFORM_REVIEW stage=%d wanted=%.17g authored=%.17g accepted=%.17g busy=%d awaiting=%d solo=%s status=%s error=%s native=%s"),Stage,Values[Stage],E->Landforms->Character(Id),P&&P->SourceRecipe?P->SourceRecipe->RegionGeneration.Palette[0].Transform.Character:-1.,E->Evaluation.IsBusy(),E->Evaluation.AwaitingSurface(),*E->Landforms->PreviewSolo().ToString(),*E->Status,*E->InspectorError,*E->Globe->NativePreviewStatus());}
+            if(!P||(!E->Evaluation.AwaitingSurface()&&E->Evaluation.IsBusy()))return false;
+            if(P->SourceRecipe->RegionGeneration.Palette[0].Transform.Character!=Values[Stage])return false;
+            auto* N=E->Globe->NativeForTesting();if(!N)return false;
+            if(Framed!=Stage)
+            {
+                if(!Owner)
+                {
+                    Owner=N->WorldIdentity();const auto G=P->GeneratedRegions;const auto F=G->Transforms[0];
+                    double Best=-MAX_dbl;for(const auto& C:F->GetCorridors())
+                    {double Low=MAX_dbl,High=-MAX_dbl;for(double U:{-.16,0.,.16})for(double V:{-.09,0.,.09}){const double H=P->ProvinceSurface->SampleHeightMeters((C.Centre+C.Along*U+C.Across*V).GetSafeNormal());Low=FMath::Min(Low,H);High=FMath::Max(High,H);}const double Score=Low-High;if(Score>Best){Best=Score;Focus=C.Centre;Along=C.Along;Extent=C.HalfLength*1.35;}}
+                    E->Globe->SetRegionInspection(false);E->Globe->SetGuides({},false);E->Globe->SetGlobeGrid(false);E->Preview->Client->bGuides=false;
+                }
+                E->LandformRows->Focus(Id);E->Globe->FrameLandformForTesting(Focus,Along,Extent);Framed=Stage;Ready=0;return false;
+            }
+            E->Globe->GetViewportClient()->Viewport->Draw(false);
+            if(N->PublishedPlan()!=P||N->IsUpdating()||!E->Globe->IsSurfaceReady(P)){Ready=0;return false;}
+            if(!Ready){Ready=Now;return false;}if(Now-Ready<.8)return false;
+            Test->TestEqual(TEXT("Character changes keep the native owner"),N->WorldIdentity(),Owner);
+            Test->TestTrue(TEXT("Surface checkpoint precedes enabled caves"),P->SourceRecipe->Caves.bEnabled&&!P->Caves);
+            for(const auto& C:P->GeneratedRegions->Cells)Test->TestEqual(TEXT("Planet Solo applies Transform everywhere"),P->GeneratedRegions->Palette[C.PaletteIndex].Id,Id);
+            int32 Count=0;auto Probe=N->SamplePublishedVerticesForTesting(Count);Test->TestTrue(TEXT("Real VPP mesh is published"),Count>100&&Probe.SourcePoints.Num()>100);
+            TArray<FVector> Directions;for(const auto& V:Probe.SourcePoints)Directions.Add(V.GetSafeNormal());TArray<double> Heights;P->SampleHeightsMeters(Directions,Heights);double MaximumRatio=0,MaximumResidual=0;
+            for(int32 I=0;I<Heights.Num();++I){const double Residual=FMath::Abs(Probe.SourcePoints[I].Length()*.01-P->RadiusMeters-Heights[I]);MaximumResidual=FMath::Max(MaximumResidual,Residual);MaximumRatio=FMath::Max(MaximumRatio,Residual/FMath::Max(.5,double(Probe.SourceCellMeters[I])*1.5));}
+            Test->TestTrue(TEXT("Native geometry matches the directional field within its cell budget"),MaximumRatio<=1.);Test->AddInfo(FString::Printf(TEXT("TRANSFORM_NATIVE character=%.3f residual=%.6f m cellBudgetRatio=%.6f"),Values[Stage],MaximumResidual,MaximumRatio));
+            auto* Viewport=E->Globe->GetViewportClient()->Viewport;Viewport->Draw(false);FlushRenderingCommands();TArray<FColor> VP;Viewport->ReadPixels(VP);int32 Visible=0;for(auto C:VP)Visible+=C.R>60&&C.G>55&&C.B>40;Test->TestTrue(TEXT("Native terrain is actually visible"),Visible>10000);
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/transform-family");IFileManager::Get().MakeDirectory(*Dir,true);
+            auto Capture=[&](TSharedRef<SWidget> W,const FString& Name){TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Planet editor capture succeeds"),FSlateApplication::Get().TakeScreenshot(W,Pixels,Size));if(Pixels.Num()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/Name));}};
+            Capture(E->GetToolkitHost()->GetParentWidget(),FString::Printf(TEXT("planet-%d.png"),Stage));Capture(E->Globe.ToSharedRef(),FString::Printf(TEXT("terrain-%d.png"),Stage));
+            Rows.Add(FString::Printf(TEXT("{\"character\":%.3f,\"vertices\":%d,\"visiblePixels\":%d,\"geometryCrc\":%u}"),Values[Stage],Count,Visible,FCrc::MemCrc32(Probe.SourcePoints.GetData(),Probe.SourcePoints.Num()*sizeof(FVector))));
+            if(++Stage==7){const FString Json=TEXT("{\"editor\":\"Planet\",\"seed\":1729,\"solo\":true,\"nativeOwner\":")+LexToString(Owner)+TEXT(",\"cases\":[")+FString::Join(Rows,TEXT(","))+TEXT("]}\n");FFileHelper::SaveStringToFile(Json,*(Dir/TEXT("native-review.json")));Test->AddInfo(Json);return Close();}
+            E->Landforms->SetCharacter(Id,Values[Stage]);Ready=0;return false;
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get(),Id));return true;
 }
 
 }

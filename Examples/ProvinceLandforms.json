@@ -62,7 +62,7 @@
     {
       "type": "TransformBelt",
       "name": "Transform and shear belt",
-      "source": "Examples/TerrainTypes/Provinces/TransformBelt.json",
+      "source": "Examples/TerrainTypes/TransformShearFamily.json",
       "asset": "/CatalystLandform/TerrainTypes/Provinces/DA_Province_TransformBelt",
       "id": "434C5052000000010000000000000009"
     },

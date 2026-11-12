@@ -1,0 +1,166 @@
+{
+  "engine": "5.7.4",
+  "platform": "Mac arm64",
+  "visualApproval": false,
+  "reviewPositions": [
+    0,
+    15,
+    30,
+    47.5,
+    65,
+    82.5,
+    100
+  ],
+  "nativeReview": {
+    "editor": "Planet",
+    "seed": 1729,
+    "solo": true,
+    "nativeOwner": 40008,
+    "cases": [
+      {
+        "character": 0.0,
+        "vertices": 921628,
+        "visiblePixels": 1317802,
+        "geometryCrc": 3552309972
+      },
+      {
+        "character": 0.15,
+        "vertices": 920927,
+        "visiblePixels": 1317802,
+        "geometryCrc": 554435119
+      },
+      {
+        "character": 0.3,
+        "vertices": 907197,
+        "visiblePixels": 1317805,
+        "geometryCrc": 3051995352
+      },
+      {
+        "character": 0.475,
+        "vertices": 923774,
+        "visiblePixels": 1317805,
+        "geometryCrc": 830730213
+      },
+      {
+        "character": 0.65,
+        "vertices": 936495,
+        "visiblePixels": 1317800,
+        "geometryCrc": 1209254487
+      },
+      {
+        "character": 0.825,
+        "vertices": 926349,
+        "visiblePixels": 1317811,
+        "geometryCrc": 2056685858
+      },
+      {
+        "character": 1.0,
+        "vertices": 915259,
+        "visiblePixels": 1317807,
+        "geometryCrc": 1788996332
+      }
+    ]
+  },
+  "tests": {
+    "Catalyst.Landform.Background.SurfaceCheckpoint": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Caves.Placement.GuidesAndPersistence": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Caves.AlwaysEnabledMinimum": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Regions.BlendAndNativeParity": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Rift.Family.CharacterNoiseAndRock": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Rift.Family.CuratedLandscape": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Rift.Family.PlacementRelaxation": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Rift.Family.SoloSavedProfile": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Transform.Family.CurvesDeterminismAndRock": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Background.ResponsiveDesigner": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Planet.SurfaceBeforeCaves": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": {
+      "state": "Success",
+      "evidence": "final-result.json"
+    },
+    "Catalyst.Landform.Provinces.DefinitionsAndEvidence": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": {
+      "state": "Success",
+      "evidence": "isolated-navigation-result.json"
+    },
+    "Catalyst.Landform.Provinces.PackagedLibrary": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Transform.Family.EnabledCaves": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Transform.Family.UniformWeights": {
+      "state": "Success",
+      "evidence": "sampling-result.json"
+    },
+    "Catalyst.Landform.Transform.NativeDesigner.SevenPositions": {
+      "state": "Success",
+      "evidence": "pinned-rendered-result.json"
+    }
+  },
+  "combinedRunNavigationFailed": true,
+  "isolatedNavigationP95Ms": 10.512084,
+  "authoringAssetsPreserved": 108,
+  "stockVpp": true
+}

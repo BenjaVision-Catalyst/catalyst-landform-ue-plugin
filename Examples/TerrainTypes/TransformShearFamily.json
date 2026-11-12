@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 13,
+  "algorithmVersion": 2,
+  "id": "434C5052000000010000000000000009",
+  "name": "Transform and shear belt",
+  "description": "Linear shear valleys, offset ridges, stepover basins and pressure ridges. Four curated expressions blend independently across Character; local fault corridors follow available plate shear.",
+  "coordinates": "SphericalSurface",
+  "noiseLayers": [
+    {
+      "name": "Weathered fault shoulders",
+      "seed": 201,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -1.5
+      },
+      "maximum": {
+        "offsetMeters": 1.5
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 80,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Dissected ridge flanks",
+      "seed": 202,
+      "shape": "Ridged",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.7
+      },
+      "maximum": {
+        "offsetMeters": 0
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 19,
+      "octaves": 3,
+      "persistence": 0.45
+    },
+    {
+      "name": "Rock and debris",
+      "seed": 203,
+      "shape": "Smooth",
+      "blend": "Add",
+      "minimum": {
+        "offsetMeters": -0.15
+      },
+      "maximum": {
+        "offsetMeters": 0.15
+      },
+      "scale": "Meters",
+      "wavelengthMeters": 3.5,
+      "octaves": 2,
+      "persistence": 0.45
+    }
+  ],
+  "placementSuitability": {
+    "bUsePreferences": true,
+    "selectionWeight": 1,
+    "upliftAffinity": 0,
+    "basinAffinity": 0,
+    "province": {
+      "algorithmVersion": 2,
+      "type": "TransformBelt",
+      "bPlaceholder": false,
+      "requirements": [
+        "Shear"
+      ],
+      "minimumCoverage": 0.35,
+      "regionalForms": [
+        "Shear valleys",
+        "Offset ridges",
+        "Stepover basins",
+        "Pressure ridges"
+      ],
+      "subsurfacePotential": [
+        "Open-fracture caves"
+      ],
+      "maximumRelaxedRegions": 2,
+      "relaxations": [
+        {
+          "name": "Sparse regional shear",
+          "relaxedRequirements": [],
+          "minimumCoverage": 0.15,
+          "placementWeight": 0.6
+        },
+        {
+          "name": "Selected local shear expression",
+          "relaxedRequirements": [
+            "Shear"
+          ],
+          "minimumCoverage": 0.01,
+          "placementWeight": 0.12
+        }
+      ]
+    }
+  },
+  "transform": {
+    "algorithmVersion": 1,
+    "character": 0,
+    "seed": 73,
+    "featureLengthMeters": 650,
+    "examples": [
+      {
+        "name": "Linear shear valley",
+        "position": 0,
+        "valleyDepthMeters": 12,
+        "valleyWidthMeters": 75,
+        "ridgeHeightMeters": 5,
+        "ridgeWidthMeters": 55,
+        "lateralOffsetMeters": 5,
+        "basinDepthMeters": 2,
+        "basinWidthMeters": 65,
+        "secondaryStrandWeight": 0.12,
+        "dissectionMeters": 1
+      },
+      {
+        "name": "Offset ridge landscape",
+        "position": 0.3,
+        "valleyDepthMeters": 6,
+        "valleyWidthMeters": 55,
+        "ridgeHeightMeters": 13,
+        "ridgeWidthMeters": 42,
+        "lateralOffsetMeters": 48,
+        "basinDepthMeters": 4,
+        "basinWidthMeters": 75,
+        "secondaryStrandWeight": 0.3,
+        "dissectionMeters": 2
+      },
+      {
+        "name": "Stepover basin landscape",
+        "position": 0.65,
+        "valleyDepthMeters": 4,
+        "valleyWidthMeters": 45,
+        "ridgeHeightMeters": 8,
+        "ridgeWidthMeters": 48,
+        "lateralOffsetMeters": 34,
+        "basinDepthMeters": 28,
+        "basinWidthMeters": 100,
+        "secondaryStrandWeight": 0.85,
+        "dissectionMeters": 1.5
+      },
+      {
+        "name": "Pressure ridge landscape",
+        "position": 1,
+        "valleyDepthMeters": 5,
+        "valleyWidthMeters": 50,
+        "ridgeHeightMeters": 39,
+        "ridgeWidthMeters": 52,
+        "lateralOffsetMeters": 54,
+        "basinDepthMeters": 10,
+        "basinWidthMeters": 70,
+        "secondaryStrandWeight": 0.5,
+        "dissectionMeters": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Provinces.NativeDesignerAndNavigation",
+      "state": "Success",
+      "entries": [
+        {
+          "event": {
+            "type": "Info",
+            "message": "{\"frames\":90,\"p95Ms\":10.512084,\"assignedRegions\":29,\"retainedBaseRegions\":3,\"counts\":{\"Crystalline shield\":0,\"Covered continental platform\":0,\"Clastic sedimentary basin\":0,\"Carbonate platform and reef province\":0,\"Evaporite basin\":0,\"Fold and thrust belt\":0,\"Metamorphic mountain core\":0,\"Continental rift and fault-block province\":2,\"Transform and shear belt\":12,\"Volcanic arc province\":0,\"Basaltic volcanic province\":0,\"Silicic volcanic province\":0,\"Plutonic and intrusive province\":0,\"Passive continental margin\":0,\"Oceanic crust province\":15,\"Impact province\":0,\"Icy-crust province\":0,\"Base geology\":3}}\n",
+            "context": "",
+            "artifact": "00000000000000000000000000000000"
+          },
+          "filename": "",
+          "lineNumber": -1,
+          "timestamp": "2026.11.12-07.38.50"
+        }
+      ]
+    }
+  ]
+}

@@ -84,6 +84,7 @@ public:
     void OrbitForTesting(FVector2D Delta);
     void FrameDirectionForTesting(FVector Direction,double Zoom=1);
     void FrameSurfaceForTesting(FVector Direction);
+    void FrameLandformForTesting(FVector Direction,FVector Along,double ExtentMeters);
 #endif
     void SetOceanVisible(bool Visible);
     bool IsOceanVisible() const{return bOceanVisible;}

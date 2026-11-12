@@ -1,5 +1,14 @@
 # Continental Rift family — first review candidate
 
+## Current authoring decision — 12 November 2026
+
+The user considers Continental Rift complete for now. Historical open visual
+checks below describe earlier checkpoints; they do not reopen that decision.
+Transform and shear belt is the next family, with four accepted reference
+expressions and seven Planet views requested for visual review. See
+[Transform family](TransformShearLandform.md). Caves retain their existing
+shape; this province work does not claim cave visual approval.
+
 12 November 2026. The user chose a blend across Character: weathered Basin-and-Range
 terrain through sharper, younger fault scarps. This is the first candidate in the
 province-completion workflow; visual acceptance remains open.

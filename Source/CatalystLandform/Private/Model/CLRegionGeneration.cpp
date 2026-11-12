@@ -51,6 +51,14 @@ int32 FCLCompiledRegionGeneration::Owner(const FVector& Direction) const
 }
 void FCLCompiledRegionGeneration::Weights(const FVector& Direction,double* CW,double* PW) const
 {
+    // Uniform assignment (including whole-planet Solo) has exact palette weight
+    // one. Cell inspection still evaluates the unchanged spatial partition.
+    if(PW&&!CW&&!Cells.IsEmpty())
+    {
+        const int32 P=Cells[0].PaletteIndex;bool Uniform=true;
+        for(const auto& C:Cells)if(C.PaletteIndex!=P){Uniform=false;break;}
+        if(Uniform){for(int32 I=0;I<Palette.Num();++I)PW[I]=I==P?1.:0.;return;}
+    }
     const FVector D=Direction.GetSafeNormal(),S=Signature(D);double Costs[128],Best=MAX_dbl,Sum=0;
     // A C2 compact smooth minimum keeps the normalization differentiable at
     // nearest-cell ties, including triple junctions. Its accumulated depression
@@ -86,17 +94,24 @@ void FCLCompiledRegionGeneration::Blend(TConstArrayView<FVector> Directions,TArr
         for(int32 P=0;P<Palette.Num();++P)if(!Queries[P].IsEmpty())
         {
             TArray<double> H;Fields[P]->SampleHeightsMeters(Queries[P],H);
-            for(int32 I=0;I<H.Num();++I)Heights[Indices[P][I]]+=((H[I]-NeutralHeight)*(Rifts.IsValidIndex(P)&&Rifts[P]?Rifts[P]->SurfaceDetailStrength():2*Palette[P].Character)+(Rifts.IsValidIndex(P)&&Rifts[P]?Rifts[P]->SampleMeters(Queries[P][I]):0))*Weight[P][I]*Strength;
+            for(int32 I=0;I<H.Num();++I)Heights[Indices[P][I]]+=((H[I]-NeutralHeight)*(Rifts.IsValidIndex(P)&&Rifts[P]?Rifts[P]->SurfaceDetailStrength():Transforms.IsValidIndex(P)&&Transforms[P]?1.:2*Palette[P].Character)+(Rifts.IsValidIndex(P)&&Rifts[P]?Rifts[P]->SampleMeters(Queries[P][I]):0)+(Transforms.IsValidIndex(P)&&Transforms[P]?Transforms[P]->Sample(Queries[P][I]).Relief:0))*Weight[P][I]*Strength;
         }
     }
 }
 bool FCLCompiledRegionGeneration::HasPhysicalRelief()const{return bHasPhysicalRelief;}
 double FCLCompiledRegionGeneration::MaximumProvinceDisplacementMeters()const
-{double Max=0;for(const auto& F:Rifts)if(F)Max=FMath::Max(Max,F->MaximumDisplacementMeters());return Max*Strength;}
+{double Max=0;for(const auto& F:Rifts)if(F)Max=FMath::Max(Max,F->MaximumDisplacementMeters());for(const auto& F:Transforms)if(F)Max=FMath::Max(Max,F->MaximumDisplacementMeters());return Max*Strength;}
 double FCLCompiledRegionGeneration::ProvinceDeformationMeters(const FVector& D)const
 {
     if(!bHasProvinceDeformation||Strength==0)return 0;double W[32];Weights(D,nullptr,W);double V=0;
-    for(int32 P=0;P<Rifts.Num();++P)if(W[P]>0&&Rifts[P])V+=W[P]*Rifts[P]->SampleMeters(D);return V*Strength;
+    for(int32 P=0;P<Rifts.Num();++P)if(W[P]>0&&Rifts[P])V+=W[P]*Rifts[P]->SampleMeters(D);for(int32 P=0;P<Transforms.Num();++P)if(W[P]>0&&Transforms[P])V+=W[P]*Transforms[P]->Sample(D).Relief;return V*Strength;
+}
+FVector FCLCompiledRegionGeneration::ProvinceReferenceDirection(const FVector& D)const
+{
+    if(!bHasDirectionalDeformation||Strength==0)return D;
+    const FVector Unit=D.GetSafeNormal();double W[32];Weights(Unit,nullptr,W);FVector Offset=FVector::ZeroVector;
+    for(int32 P=0;P<Transforms.Num();++P)if(W[P]>0&&Transforms[P])Offset+=W[P]*Transforms[P]->Sample(Unit).TangentOffset/Transforms[P]->ReferenceRadius();
+    return (Unit+Offset*Strength).GetSafeNormal();
 }
 bool FCLCompiledRegionGeneration::ValidateSettings(const FCLRegionGenerationSettings& Settings,FString& Error)
 {
@@ -113,6 +128,9 @@ bool FCLCompiledRegionGeneration::ValidateSettings(const FCLRegionGenerationSett
             return Fail(Error.IsEmpty()?TEXT("Palette entries require unique IDs, names and valid source snapshots"):Error);
         if(Entry.Suitability.Province.IsActive()&&Settings.AlgorithmVersion<3)return Fail(TEXT("Province Landforms require geological region algorithm 3"));
         if(Entry.Suitability.Province.bPlaceholder&&(!Entry.NoiseLayers.IsEmpty()||Entry.SurfaceStack.IsActive()))return Fail(TEXT("Province placeholders cannot replace base relief or material"));
+        if(!Entry.Transform.Validate(Error))return false;
+        if(Entry.Transform.IsActive()&&(Settings.AlgorithmVersion!=4||Entry.Rift.IsActive()||Entry.Suitability.Province.Type!=ECLProvinceType::TransformBelt||Entry.Suitability.Province.bPlaceholder||Entry.SurfaceStack.IsActive()))return Fail(TEXT("Transform requires geology-first mode 4 and a non-placeholder Transform Belt without replacement materials or Rift"));
+        if(Entry.Transform.IsActive()){FCLRiftLandform Additive;Additive.AlgorithmVersion=3;if(!Additive.ValidateNoise(Entry.NoiseLayers,Error))return false;}
         if(!Entry.Rift.Validate(Error)||!Entry.Rift.ValidateNoise(Entry.NoiseLayers,Error))return false;
         if(Entry.Rift.IsActive()&&(Settings.AlgorithmVersion!=4||Entry.Suitability.Province.Type!=ECLProvinceType::ContinentalRift||Entry.Suitability.Province.bPlaceholder||Entry.SurfaceStack.IsActive()))return Fail(TEXT("Physical rifts require geology-first region algorithm 4 and a Continental Rift source without replacement noise/materials"));
         if(!FMath::IsFinite(Entry.Character)||Entry.Character<0||Entry.Character>1)return Fail(TEXT("Landform Character must be between zero and one"));
@@ -140,7 +158,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
         Out->Fields.SetNum(Out->Palette.Num());Out->FieldErrors.SetNum(Out->Palette.Num());
         for(int32 P=0;P<Out->Palette.Num();++P)
         {
-        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;if(!Out->Palette[P].Rift.IsActive()&&Out->Palette[P].Seed)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Seed)));if(Out->Palette[P].Rift.AlgorithmVersion>=2)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Rift.Seed)));Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
+        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;if(!Out->Palette[P].Rift.IsActive()&&!Out->Palette[P].Transform.IsActive()&&Out->Palette[P].Seed)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Seed)));if(Out->Palette[P].Rift.AlgorithmVersion>=2)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Rift.Seed)));if(Out->Palette[P].Transform.IsActive())for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Transform.Seed)));Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
             Out->Fields[P]=FCLPlanetCompiler::Compile(Child,Out->FieldErrors[P],Library);
             if(Settings.AlgorithmVersion==4&&!Out->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+Out->FieldErrors[P]);
         }
@@ -361,9 +379,19 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
     const int32 SoloIndex=Out->Palette.IndexOfByPredicate([&](const auto& P){return P.Id==Solo&&P.bEnabled;});
     if(Solo.IsValid()&&SoloIndex!=INDEX_NONE)for(auto& Cell:Out->Cells)
     {Cell.PaletteIndex=SoloIndex;Cell.bOverride=false;Cell.Reason=TEXT("Whole-planet Solo preview; generation settings are unchanged.");}
+    Out->Transforms.SetNum(Out->Palette.Num());
+    for(int32 P=0;P<Out->Palette.Num();++P)if(Out->Palette[P].Transform.IsActive())
+    {
+        double R=Base.RadiusMeters+Base.BaseHeightMeters;
+        const auto* Lo=Base.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMin");});const auto* Hi=Base.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("SurfaceMax");});
+        if(Lo&&Hi)R=Base.RadiusMeters+(Lo->HeightMeters+Hi->HeightMeters)*.5;
+        Out->Transforms[P]=FCLCompiledTransformLandform::Compile(Out->Palette[P].Transform,Recipe.Seed,R,Out->Cells,Base.Tectonics,Error);if(!Out->Transforms[P])return nullptr;
+    }
     for(const auto& Cell:Out->Cells)
     {
         const int32 P=Cell.PaletteIndex;
+        const bool Transform=Out->Transforms.IsValidIndex(P)&&Out->Transforms[P].IsValid();
+        Out->bHasDirectionalDeformation|=Transform;Out->bHasProvinceDeformation|=Transform;Out->bHasPhysicalRelief|=Transform;
         Out->bHasProvinceDeformation|=Out->Rifts.IsValidIndex(P)&&Out->Rifts[P].IsValid();
         Out->bHasPhysicalRelief|=(Out->Rifts.IsValidIndex(P)&&Out->Rifts[P].IsValid())||Out->Palette[P].NoiseLayers.ContainsByPredicate([](const auto& L){return L.bEnabled;});
     }
@@ -376,7 +404,7 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
             if(!NativeInputs->Fields.IsValidIndex(P)||!NativeInputs->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+(NativeInputs->FieldErrors.IsValidIndex(P)?NativeInputs->FieldErrors[P]:TEXT("Native palette snapshot is missing")));
             Out->Fields[P]=NativeInputs->Fields[P];continue;
         }
-        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;if(!Out->Palette[P].Rift.IsActive()&&Out->Palette[P].Seed)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Seed)));if(Out->Palette[P].Rift.AlgorithmVersion>=2)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Rift.Seed)));Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
+        auto Child=Recipe;Child.SchemaVersion=8;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();if(Settings.AlgorithmVersion==4){Child.Rock=FCLRockLayer();Child.Watershed=FCLWatershedSettings();Child.Caves=FCLCaveSettings();Child.ElevationDistribution=FCLSurfaceDistributionSettings();Child.Volumes=FCLVolumeSettings();}Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.TerrainRegions.Reset();Child.NoiseLayers=Out->Palette[P].NoiseLayers;if(!Out->Palette[P].Rift.IsActive()&&!Out->Palette[P].Transform.IsActive()&&Out->Palette[P].Seed)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Seed)));if(Out->Palette[P].Rift.AlgorithmVersion>=2)for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Rift.Seed)));if(Out->Palette[P].Transform.IsActive())for(auto& L:Child.NoiseLayers)L.Seed=int32(uint32(L.Seed)^MixRegion(uint32(Out->Palette[P].Transform.Seed)));Child.AlgorithmVersion=Out->Palette[P].AlgorithmVersion;Child.SurfaceStack=Out->Palette[P].SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;Child.TerrainTypeId=Out->Palette[P].Id;Child.TerrainTypeName=Out->Palette[P].Name;
         Out->Fields[P]=FCLPlanetCompiler::Compile(Child,Error,Library);if(!Out->Fields[P])return Fail(Out->Palette[P].Name+TEXT(": ")+Error);
     }
     // A modest diagnostic contour atlas, independent of terrain mesh LOD. Shared
@@ -418,9 +446,9 @@ TSharedPtr<const FCLCompiledRegionGeneration> FCLCompiledRegionGeneration::Compi
 bool UCLPlanetRecipeAsset::AddPaletteSource(UCLTerrainTypeAsset* Source,FString& Error)
 {
     if(!Source||Source->TerrainType.Coordinates!=ECLTerrainCoordinates::SphericalSurface||!Source->TerrainType.Validate(Error)){if(Error.IsEmpty())Error=TEXT("Select a valid spherical-surface Landform");return false;}
-    auto Candidate=Recipe;Candidate.SchemaVersion=FMath::Max(12,Candidate.SchemaVersion);if(Candidate.RegionGeneration.Palette.IsEmpty()){Candidate.RegionGeneration.bEnabled=true;Candidate.RegionGeneration.AlgorithmVersion=2;}if(Source->TerrainType.PlacementSuitability.Province.IsActive())Candidate.RegionGeneration.AlgorithmVersion=FMath::Max(Candidate.RegionGeneration.AlgorithmVersion,Source->TerrainType.Rift.IsActive()?4:3);auto* Entry=Candidate.RegionGeneration.Palette.FindByPredicate([&](const auto& P){return P.Id==Source->TerrainType.Id;});
+    auto Candidate=Recipe;Candidate.SchemaVersion=FMath::Max(12,Candidate.SchemaVersion);if(Candidate.RegionGeneration.Palette.IsEmpty()){Candidate.RegionGeneration.bEnabled=true;Candidate.RegionGeneration.AlgorithmVersion=2;}if(Source->TerrainType.PlacementSuitability.Province.IsActive())Candidate.RegionGeneration.AlgorithmVersion=FMath::Max(Candidate.RegionGeneration.AlgorithmVersion,(Source->TerrainType.Rift.IsActive()||Source->TerrainType.Transform.IsActive())?4:3);auto* Entry=Candidate.RegionGeneration.Palette.FindByPredicate([&](const auto& P){return P.Id==Source->TerrainType.Id;});
     if(!Entry){if(Candidate.RegionGeneration.Palette.Num()>=32){Error=TEXT("The palette supports at most 32 Landforms");return false;}Entry=&Candidate.RegionGeneration.Palette.AddDefaulted_GetRef();}
-    Entry->Id=Source->TerrainType.Id;Entry->Name=Source->TerrainType.Name;Entry->Description=Source->TerrainType.Description;Entry->AlgorithmVersion=Source->TerrainType.AlgorithmVersion;Entry->Suitability=Source->TerrainType.PlacementSuitability;Entry->Rift=Source->TerrainType.Rift;Entry->NoiseLayers=Source->TerrainType.NoiseLayers;Entry->SurfaceStack=Source->TerrainType.SurfaceStack;
+    Entry->Id=Source->TerrainType.Id;Entry->Name=Source->TerrainType.Name;Entry->Description=Source->TerrainType.Description;Entry->AlgorithmVersion=Source->TerrainType.AlgorithmVersion;Entry->Suitability=Source->TerrainType.PlacementSuitability;Entry->Rift=Source->TerrainType.Rift;Entry->Transform=Source->TerrainType.Transform;Entry->NoiseLayers=Source->TerrainType.NoiseLayers;Entry->SurfaceStack=Source->TerrainType.SurfaceStack;
     if(Entry->SurfaceStack.IsActive()){Candidate.SchemaVersion=FMath::Max(13,Candidate.SchemaVersion);if(!Candidate.SurfaceStack.IsActive()){Candidate.SurfaceStack.DefaultSurfaceId=Entry->SurfaceStack.DefaultSurfaceId;Candidate.SurfaceStack.DefaultSurfaceRevision=Entry->SurfaceStack.DefaultSurfaceRevision;}}
     if(!FCLPlanetCompiler::Compile(Candidate,Error))return false;
     Modify();Recipe=MoveTemp(Candidate);PaletteSources.Add(Source->TerrainType.Id,Source);
