@@ -49,6 +49,14 @@ Re-running it can update its own unmodified installation. It records source and
 content hashes in `Saved/CatalystLandformInstall.json`. Build products and caches
 are generated locally, not committed.
 
+## UE 5.8.4 on Mac
+
+The current Planet editor also builds against stock VPP development source for
+UE 5.8.4. Use the same installer with VPP already compiled for that engine, then
+build the destination Editor target with `-NoHotReloadFromIDE -NoUBA`. Read the
+[installation checks and limits](Docs/UE58Installation.md); the UE 5.7 release
+requirement above is the original baseline, not a compatible VPP binary for 5.8.
+
 ## Included content
 
 The plugin supplies its own province catalogue, surfaces, materials, geological

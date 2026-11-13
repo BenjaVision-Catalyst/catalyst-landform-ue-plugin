@@ -34,7 +34,12 @@ UVoxelMegaMaterial* CaveInspectionMaterial()
 {
     static TWeakObjectPtr<UVoxelMegaMaterial> Shared;
     if(Shared.IsValid())return Shared.Get();
-    auto* Mega=UVoxelMegaMaterial::CreateTransient();Mega->bDetectNewSurfaces=false;
+    auto* Mega=UVoxelMegaMaterial::CreateTransient();
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+    Mega->bAutomaticallyDetectNewSurfaces=false;
+#else
+    Mega->bDetectNewSurfaces=false;
+#endif
     auto* M=NewObject<UMaterial>(Mega,NAME_None,RF_Transient);M->BlendMode=BLEND_Translucent;M->bDisableDepthTest=true;M->SetShadingModel(MSM_Unlit);
     M->GetEditorOnlyData()->Opacity.UseConstant=true;M->GetEditorOnlyData()->Opacity.Constant=1;
     auto* N=NewObject<UMaterialExpressionGetVoxelFlatNormal>(M);auto* Direction=NewObject<UMaterialExpressionConstant3Vector>(M);Direction->Constant=FLinearColor(.3,-.4,.85);
@@ -66,7 +71,7 @@ FCLNativePreview::FMaterialCoordinates FCLNativePreview::MaterialCoordinates(con
 }
 FVoxelVolumeTransform FCLNativePreview::StampToDisplay()const
 {
-    return FVoxelVolumeTransform::Create(Stamp->GetComponentTransform(),FTransform::Identity,FVoxelBox(-1,1),0);
+    return FCLNativeMaterialCoordinates::Transform(Stamp->GetComponentTransform());
 }
 FCLNativePreview::~FCLNativePreview(){Reset();}
 void FCLNativePreview::Reset()
@@ -158,7 +163,13 @@ bool FCLNativePreview::ApplyPending()
     FCLPlanetStamp Source;Source.bUseRecipe=true;Source.CompiledRecipe=Plan;Source.Radius=Plan->RadiusMeters*100;
     check(Plan->SourceRecipe);Source.Recipe=*Plan->SourceRecipe;
     Source.bCaveInspectionPreview=CaveInspection;Source.CaveInspectionDomain=CaveDomain;
-    Source.Layer=CaveInspection?Native->LayerStack->VolumeLayers[0].Get():UVoxelVolumeLayer::Default();Source.Behavior=CaveInspection?EVoxelStampBehavior::AffectShape:EVoxelStampBehavior::AffectAll;Source.Smoothness=0;Source.BoundsExtension=.05;
+    Source.Layer=CaveInspection?Native->LayerStack->VolumeLayers[0].Get():UVoxelVolumeLayer::Default();Source.Behavior=CaveInspection?EVoxelStampBehavior::AffectShape:EVoxelStampBehavior::AffectAll;Source.Smoothness=0;
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+    Source.BoundsExtensionMultiplier=.05;Source.MaximumBoundsExtension=TNumericLimits<float>::Max();
+#else
+    Source.BoundsExtension=.05;
+#endif
+
     Source.bSectionPreview=Section;Source.SectionWidthMeters=Width;Source.SectionReferenceRadiusMeters=FCLSectionGeometry::ReferenceSurfaceRadius(*Plan);
     // Inspection retains native SetupForPreview quality and chunk size.
     if(!CaveInspection)Native->LODQuality.EditorQuality=AppliedDraft?FFloatInterval(1,1):FFloatInterval(4,4);
@@ -358,7 +369,7 @@ bool FCLPreviewMaterialGPUTest::RunTest(const FString&)
     for(double Radius:{100.,1000.,3389500.,6371000.12345})for(bool Flat:{false,true})for(double Width:{100.,500.,1000.})
     {
         const double Reference=Radius*.45;const FVector Scale=Flat?FVector(1000./Width,1000./Width,1000./Radius):FVector(1000./Radius);
-        const auto Native=FVoxelVolumeTransform::Create(FTransform(FQuat::Identity,FVector::ZeroVector,Scale),FTransform::Identity,FVoxelBox(-1,1),0);
+        const auto Native=FCLNativeMaterialCoordinates::Transform(FTransform(FQuat::Identity,FVector::ZeroVector,Scale));
         const auto Config=FCLNativePreview::MaterialCoordinates(Native,Flat,Reference);
         for(const FVector3d World:{FVector3d(0,0,0),FVector3d(0,0,45000.123),FVector3d(12345.678,-23456.789,55000.123),FVector3d(-49999.125,49999.625,99999.5),FVector3d(.001,-.002,70000.111)})
         {

@@ -3,6 +3,9 @@
 #include "Heightmap/VoxelHeightmap.h"
 #include "Heightmap/VoxelHeightmap_Height.h"
 #include "Heightmap/VoxelHeightmap_HeightData.h"
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+#include "VoxelNode_SampleHeightmapImpl.ispc.generated.h"
+#endif
 #include "Heightmap/VoxelHeightmapFunctionLibrary.h"
 #include "Misc/FileHelper.h"
 #include "Misc/SecureHash.h"
@@ -193,7 +196,22 @@ struct FCLCompiledMeasuredTerrain::FNative
     };
     TStrongObjectPtr<UCLMeasuredTerrainLibrary> Owner;
     TArray<FRaster> Rasters;
-    const UVoxelHeightmapFunctionLibrary *Sampler = nullptr;
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 8
+    const UVoxelHeightmapFunctionLibrary* Sampler=nullptr;
+#endif
+    FVoxelFloatBuffer SampleHeightmap(const FVoxelHeightmapRef& Heightmap,const FVoxelVector2DBuffer& Position) const
+    {
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+        // NativeRef preflight admits identity-scaled float32 rasters only. Keep VPP's
+        // own bilinear/edge behavior instead of introducing a second interpolation.
+        FVoxelVector2DBuffer Local=Position;Local.ExpandConstants();FVoxelFloatBuffer Result;Result.Allocate(Local.Num());
+        ispc::VoxelNode_SampleHeightmap_float(Local.X.GetData(),Local.Y.GetData(),Result.GetData(),Local.Num(),false,1,0,1,
+            Heightmap.HeightData->SizeX,Heightmap.HeightData->SizeY,Heightmap.HeightData->RawData.View<float>().GetData());
+        return Result;
+#else
+        return Sampler->SampleHeightmap(Heightmap,Position,false);
+#endif
+    }
     UCLSurfaceLibraryAsset *SurfaceLibrary = nullptr;
     UVoxelMegaMaterial *Material = nullptr;
 };
@@ -246,10 +264,12 @@ TSharedPtr<const FCLCompiledMeasuredTerrain> FCLCompiledMeasuredTerrain::Compile
     }
     auto Out = MakeShared<FCLCompiledMeasuredTerrain>();
     auto Native = MakeShared<FNative>();
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 8
+    Native->Sampler=GetDefault<UVoxelHeightmapFunctionLibrary>();
+#endif
     Native->Owner.Reset(Library);
     Native->SurfaceLibrary = E->SurfaceLibrary;
     Native->Material = E->Material;
-    Native->Sampler = GetDefault<UVoxelHeightmapFunctionLibrary>();
     TArray<FCLMeasuredRaster> All = {E->Global};
     All.Append(E->Regions);
     Error = TEXT("Invalid measured raster metadata, dimensions or native data binding");
@@ -393,10 +413,10 @@ void FCLCompiledMeasuredTerrain::SampleHeights(TConstArrayView<FVector> Directio
         Positions.Allocate(Indices.Num());
         for (int32 K = 0; K < Indices.Num(); ++K)
             Positions.Set(K, Pixels[K]);
-        const auto Values = Native->Sampler->SampleHeightmap(N.Height, Positions, false);
+        const auto Values = Native->SampleHeightmap(N.Height, Positions);
         FVoxelFloatBuffer Mask;
         if (!R.bGlobal)
-            Mask = Native->Sampler->SampleHeightmap(N.Coverage, Positions, false);
+            Mask = Native->SampleHeightmap(N.Coverage, Positions);
         for (int32 K = 0; K < Indices.Num(); ++K)
         {
             const int32 I = Indices[K];

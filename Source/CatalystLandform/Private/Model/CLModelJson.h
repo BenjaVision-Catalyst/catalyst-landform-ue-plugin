@@ -7,10 +7,11 @@ inline bool CheckFields(const FJsonObject& Object, const UStruct& Struct, FStrin
 {
     for (const auto& Pair : Object.Values)
     {
+        const FString Key(*Pair.Key);
         const FProperty* Found = nullptr;
         for (TFieldIterator<FProperty> It(&Struct); It; ++It)
-            if (It->GetName().Equals(Pair.Key, ESearchCase::IgnoreCase)) { Found = *It; break; }
-        const FString Location = Path + TEXT("/") + Pair.Key;
+            if (It->GetName().Equals(Key, ESearchCase::IgnoreCase)) { Found = *It; break; }
+        const FString Location = Path + TEXT("/") + Key;
         if (!Found || Found->HasAnyPropertyFlags(CPF_Deprecated)) { Error = TEXT("Unknown recipe field: ") + Location; return false; }
         auto CheckStruct = [&](const FProperty* Property, const TSharedPtr<FJsonValue>& Value) -> bool
         {

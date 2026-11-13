@@ -1,5 +1,5 @@
-#include "VoxelQuery.h"
 #include "CLPlanetStamp.h"
+#include "VoxelQuery.h"
 #include "Misc/ScopeExit.h"
 #include "VoxelLinearColorMetadata.h"
 #include "UObject/StrongObjectPtr.h"

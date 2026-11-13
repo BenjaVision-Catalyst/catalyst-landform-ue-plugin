@@ -396,7 +396,11 @@ public:
     virtual FLinearColor GetBackgroundColor() const override {return FLinearColor(.007,.012,.02);}
     virtual void Tick(float Delta) override
     {FEditorViewportClient::Tick(Delta);if(Viewport&&Viewport->GetSizeXY()!=NavigationSize)Apply();}
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+    virtual bool InputGesture(FViewport*,FInputDeviceId,EGestureEvent Type, EGesturePhase,const FVector2D& Delta,bool Inverted,uint64) override
+#else
     virtual bool InputGesture(FViewport*,FInputDeviceId,EGestureEvent Type,const FVector2D& Delta,bool Inverted,uint64) override
+#endif
     {if(Type==EGestureEvent::Magnify)Navigation.Dolly(Delta.X*6);else if(Type==EGestureEvent::Scroll)Navigation.PanBy(Delta*(Inverted?-10:10));Apply();return true;}
     void Apply()
     {

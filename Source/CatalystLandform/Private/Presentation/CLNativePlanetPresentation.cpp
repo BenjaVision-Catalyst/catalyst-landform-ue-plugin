@@ -446,9 +446,9 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
         return nullptr;
     }
 #if VOXEL_CATALYST_PROJECTION_BOUNDS < 2
-    Error = TEXT("Run patch-vpp-projection-bounds.py for the bounds/lifecycle extension");
+    Error = TEXT("Native projection bounds/lifecycle support is unavailable in this VPP build");
     return nullptr;
-#endif
+#else
     auto Result = TUniquePtr<FCLNativePlanetPresentation>(new FCLNativePlanetPresentation());
     auto &I = *Result->Impl;
     I.bWorldAnchored = Options.bWorldAnchored;
@@ -544,6 +544,7 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
     I.SetProfile(TEXT("r.DistanceFieldShadowing"), TEXT("0"));
     Error.Reset();
     return Result;
+#endif
 }
 FCLNativePlanetPresentation::~FCLNativePlanetPresentation()
 {

@@ -30,3 +30,12 @@ bool FCLNativeMaterialCoordinates::Apply(FCLPlanetStamp &Stamp, FString &Error) 
     }
     return true;
 }
+
+FVoxelVolumeTransform FCLNativeMaterialCoordinates::Transform(const FTransform& StampToWorld)
+{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+    return FVoxelVolumeTransform::Create(StampToWorld,FTransform::Identity,FVoxelBox(-1,1),0,0);
+#else
+    return FVoxelVolumeTransform::Create(StampToWorld,FTransform::Identity,FVoxelBox(-1,1),0);
+#endif
+}

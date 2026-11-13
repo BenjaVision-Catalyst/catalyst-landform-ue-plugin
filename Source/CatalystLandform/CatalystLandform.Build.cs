@@ -6,6 +6,8 @@ public class CatalystLandform : ModuleRules
 {
     public CatalystLandform(ReadOnlyTargetRules Target) : base(Target)
     {
+        // Translation units own file-local helpers; correctness must not depend on the adaptive Git working set.
+        bUseUnity = false;
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "VoxelCore", "VoxelGraph", "Voxel", "CatalystFoundation", "DeveloperSettings" });
         PrivateDependencyModuleNames.AddRange(new[] { "GeometryCore", "Json", "JsonUtilities", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });

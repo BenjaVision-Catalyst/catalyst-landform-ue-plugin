@@ -1,7 +1,7 @@
+#include "Model/CLPlanetRecipe.h"
 #include "Model/CLSurfaceRange.h"
 #include "Model/CLCompileProgress.h"
 #include "Misc/ScopeExit.h"
-#include "Model/CLPlanetRecipe.h"
 #include "Model/CLRegionGeneration.h"
 #include "Model/CLTerrainType.h"
 #include "CLModelJson.h"
@@ -1137,12 +1137,12 @@ bool UCLPlanetRecipeAsset::ImportRecipeJsonPrepared(const FString& Json,FString&
             FString OldKey,NewKey;
             for(const auto& Pair:O.Values)
             {
-                if(Pair.Key.Equals(Old,ESearchCase::IgnoreCase))OldKey=Pair.Key;
-                if(Pair.Key.Equals(New,ESearchCase::IgnoreCase))NewKey=Pair.Key;
+                if(FString(*Pair.Key).Equals(Old,ESearchCase::IgnoreCase))OldKey=FString(*Pair.Key);
+                if(FString(*Pair.Key).Equals(New,ESearchCase::IgnoreCase))NewKey=FString(*Pair.Key);
             }
             if(OldKey.IsEmpty())return true;
             if(!NewKey.IsEmpty()){Error=TEXT("Ambiguous legacy and canonical radial guide fields");return false;}
-            auto Value=O.Values[OldKey];O.RemoveField(OldKey);O.SetField(New,Value);return true;
+            auto Value=O.TryGetField(OldKey);O.RemoveField(OldKey);O.SetField(New,Value);return true;
         };
         if(!Rename(*Object,TEXT("strata"),TEXT("radialGuides")))return false;
         const TSharedPtr<FJsonObject>* Set=nullptr;

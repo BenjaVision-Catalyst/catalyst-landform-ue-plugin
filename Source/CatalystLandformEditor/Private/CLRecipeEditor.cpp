@@ -182,7 +182,11 @@ public:
     virtual bool InputAxis(const FInputKeyEventArgs&) override { return true; }
     virtual void MouseMove(FViewport*, int32, int32) override {}
     virtual void CapturedMouseMove(FViewport*, int32, int32) override {}
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+    virtual bool InputGesture(FViewport*, FInputDeviceId, EGestureEvent Type, EGesturePhase, const FVector2D& Delta, bool Inverted, uint64) override
+#else
     virtual bool InputGesture(FViewport*, FInputDeviceId, EGestureEvent Type, const FVector2D& Delta, bool Inverted, uint64) override
+#endif
     {
         if (Type == EGestureEvent::Magnify) Navigation.Dolly(Delta.X * 6);
         else if (Type == EGestureEvent::Scroll) Navigation.PanBy(Delta * (Inverted ? -10 : 10));

@@ -115,7 +115,13 @@ void ACLPlanet::RebuildTerrain()
     Stamp.Layer = TerrainLayer ? TerrainLayer.Get() : UVoxelVolumeLayer::Default();
     Stamp.Behavior = RecipeAsset && RecipeAsset->Recipe.SurfaceStack.IsActive() ? EVoxelStampBehavior::AffectAll : EVoxelStampBehavior::AffectShape;
     Stamp.Smoothness = 0;
-    Stamp.BoundsExtension = .05;
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+    Stamp.BoundsExtensionMultiplier=.05;Stamp.MaximumBoundsExtension=TNumericLimits<float>::Max();
+#else
+    Stamp.BoundsExtension=.05;
+#endif
+
     TArray<ACLSphericalHeightmapStamp*> Actors;
     for (TActorIterator<ACLSphericalHeightmapStamp> It(GetWorld()); It; ++It)
         if (It->Planet == this && !It->IsActorBeingDestroyed()) Actors.Add(*It);
@@ -137,7 +143,7 @@ void ACLPlanet::RebuildTerrain()
     else if(bDisplayScaleApplied){TerrainStamp->SetRelativeScale3D(FVector::OneVector);bDisplayScaleApplied=false;}
     if(DisplayRadiusMeters>0)
     {
-        const auto Transform=FVoxelVolumeTransform::Create(TerrainStamp->GetRelativeTransform(),FTransform::Identity,FVoxelBox(-1,1),0);
+        const auto Transform=FCLNativeMaterialCoordinates::Transform(TerrainStamp->GetRelativeTransform());
         if(!FCLNativeMaterialCoordinates::Make(Transform,false,RadiusMeters).Apply(Stamp,RecipeStatus))return;
     }
     TerrainStamp->SetStamp(Stamp);

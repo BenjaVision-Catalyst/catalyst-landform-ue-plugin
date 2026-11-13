@@ -1,7 +1,7 @@
 # Current Landform documentation
 
 The plugin's supported assembly interface is the **Planet** editor. Begin with
-[installation](../README.md), [Planet authoring](PlanetLandforms.md),
+[installation](../README.md), [UE 5.8 Mac qualification](UE58Installation.md), [Planet authoring](PlanetLandforms.md),
 [province placement and geological preference relaxation](ProvinceLandforms.md),
 and [the packaged radial guides](RadialGuides.md).
 
