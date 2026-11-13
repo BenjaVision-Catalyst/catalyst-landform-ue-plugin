@@ -179,9 +179,20 @@ double FCLSphericalRegionMask::Weight(const FVector& D,double Radius) const
 }
 
 int32 FCLCompiledPlanetRecipe::GetDistributedStampCount()const
-{if(!SurfacePatches.IsEmpty()){TArray<FCLResolvedStampPlacement> P;GetStampPlacements(P);return P.Num();}int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();for(const auto& R:Regions)N+=R.Field->GetDistributedStampCount();if(GeneratedRegions)for(const auto& F:GeneratedRegions->Fields)if(F)N+=F->GetDistributedStampCount();return N;}
+{if(PlacedSurface||!SurfacePatches.IsEmpty()){TArray<FCLResolvedStampPlacement> P;GetStampPlacements(P);return P.Num();}int32 N=0;for(const auto& L:Layers)if(L.Distribution)N+=L.Distribution->Placements.Num();for(const auto& R:Regions)N+=R.Field->GetDistributedStampCount();if(GeneratedRegions)for(const auto& F:GeneratedRegions->Fields)if(F)N+=F->GetDistributedStampCount();return N;}
 void FCLCompiledPlanetRecipe::GetStampCoverage(const FVector& Direction,int32& Count,double& MinimumWeight)const
 {
+    if(PlacedSurface)
+    {
+        PlacedSurface->GetStampCoverage(Direction,Count,MinimumWeight);
+        for(const auto& R:Regions)if(R.bPlacedLandform)
+        {
+            const double W=R.Weight(Direction,RadiusMeters+BaseHeightMeters);if(W<=0)continue;
+            int32 C=0;double M=0;R.Field->GetStampCoverage(R.SourceDirection(Direction),C,M);
+            if(C){MinimumWeight=Count?FMath::Min(MinimumWeight,M*W):M*W;Count+=C;}
+        }
+        return;
+    }
     if(!SurfacePatches.IsEmpty()){SurfacePatches[FCLSphericalPatches::Owner(Direction)]->GetStampCoverage(Direction,Count,MinimumWeight);return;}
     Count=0;MinimumWeight=1;
     FVector Position=Direction;
@@ -223,13 +234,15 @@ void FCLCompiledPlanetRecipe::GetStampPlacements(TArray<FCLResolvedStampPlacemen
         }
         Placements.Sort([](const auto& A,const auto& B){return A.Id.ToString(EGuidFormats::Digits)<B.Id.ToString(EGuidFormats::Digits);});return;
     }
-    Placements.Reset();for(const auto& L:Layers)if(L.Distribution)Placements.Append(L.Distribution->Placements);
+    Placements.Reset();if(PlacedSurface)PlacedSurface->GetStampPlacements(Placements);
+    if(!PlacedSurface)for(const auto& L:Layers)if(L.Distribution)Placements.Append(L.Distribution->Placements);
     for(const auto& R:Regions)
     {
+        if(PlacedSurface&&!R.bPlacedLandform)continue;
         TArray<FCLResolvedStampPlacement> Child;R.Field->GetStampPlacements(Child);
         for(auto& P:Child){if(R.bPlacedLandform){P.Anchor=R.Placement.Orientation.RotateVector(P.Anchor);P.TangentX=R.Placement.Orientation.RotateVector(P.TangentX);}P.RegionId=R.Id;P.Id=FGuid::Combine(R.Id,P.Id);Placements.Add(MoveTemp(P));}
     }
-    if(GeneratedRegions)for(int32 I=0;I<GeneratedRegions->Fields.Num();++I)if(GeneratedRegions->Fields[I])
+    if(!PlacedSurface&&GeneratedRegions)for(int32 I=0;I<GeneratedRegions->Fields.Num();++I)if(GeneratedRegions->Fields[I])
     {
         TArray<FCLResolvedStampPlacement> Child;GeneratedRegions->Fields[I]->GetStampPlacements(Child);
         for(auto& P:Child){P.RegionId=GeneratedRegions->Palette[I].Id;P.Id=FGuid::Combine(P.RegionId,P.Id);Placements.Add(MoveTemp(P));}
@@ -268,6 +281,7 @@ bool FCLCompiledPlanetRecipe::TerrainPosition(const FVector& Direction, FVector2
 }
 void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights) const
 {
+    if(PlacedSurface){PlacedSurface->SampleHeightsMeters(Directions,Heights);BlendRegionHeights(Directions,Heights,false);return;}
     if(WatershedSurface){WatershedSurface->SampleHeightsMeters(Directions,Heights);Watershed->MapHeights(Directions,Heights);return;}
     if(MeasuredTerrain){MeasuredTerrain->SampleHeights(Directions,Heights);return;}
     if(ProvinceSurface){
@@ -343,6 +357,7 @@ void FCLCompiledPlanetRecipe::BlendRegionHeights(TConstArrayView<FVector> Direct
 {
     for(const FRegion& Region:Regions)
     {
+        if(PlacedSurface&&!Region.bPlacedLandform)continue;
         TArray<FVector> Positions;TArray<int32> Indices;TArray<double> Weights;
         for(int32 I=0;I<Directions.Num();++I)
         {
@@ -351,7 +366,12 @@ void FCLCompiledPlanetRecipe::BlendRegionHeights(TConstArrayView<FVector> Direct
         }
         if(Positions.IsEmpty())continue;
         TArray<double> Values;if(bLocal)Region.Field->SampleLocalHeightsMeters(Positions,Values);else Region.Field->SampleHeightsMeters(Positions,Values);
-        for(int32 I=0;I<Indices.Num();++I)Heights[Indices[I]]=FMath::Lerp(Heights[Indices[I]],Region.bPlacedLandform?BaseHeightMeters+(Values[I]-BaseHeightMeters)*Region.Placement.Strength:Values[I],Weights[I]);
+        for(int32 I=0;I<Indices.Num();++I)
+        {
+            auto& H=Heights[Indices[I]];
+            if(Region.bPlacedLandform)H=FMath::Clamp(H+(Values[I]-Region.ReliefDatumMeters)*Region.Placement.Strength*Weights[I],-RadiusMeters,0.);
+            else H=FMath::Lerp(H,Values[I],Weights[I]);
+        }
     }
 }
 void FCLCompiledPlanetRecipe::EvaluateHeightsMeters(TConstArrayView<FVector> Directions, TArray<double>& Heights, bool bLocal) const
@@ -464,6 +484,34 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=CompileRun?CompileRun->Prepared->Figure:MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());
         if(!FCLCompiledMaterialLayers::Compile(Recipe,*Out,Out->MaterialLayers,Error))return nullptr;return Out;
     };
+
+    if(Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface&&Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.bPlacedLandform;}))
+    {
+        if(Recipe.SchemaVersion<11||Recipe.TerrainRegions.Num()>8||Recipe.MeasuredTerrain.IsActive())
+        {Error=TEXT("Placed landforms require schema 11+, at most eight regions and a procedural planet");return nullptr;}
+        TSet<FGuid> RegionIds;
+        for(const auto& R:Recipe.TerrainRegions)
+        {
+            if(!R.Id.IsValid()||RegionIds.Contains(R.Id)||R.Name.TrimStartAndEnd().IsEmpty())
+            {Error=TEXT("Terrain region IDs must be valid and unique, with nonempty names");return nullptr;}
+            RegionIds.Add(R.Id);
+        }
+        auto Base=Recipe;Base.TerrainRegions.RemoveAll([](const auto& R){return R.bPlacedLandform;});
+        const auto Ground=Compile(Base,Error,Library,LocalRegion,SurfacePatch,SurfaceLibraryOverride);if(!Ground)return nullptr;
+        auto Instances=Recipe;Instances.SchemaVersion=18;Instances.RegionGeneration=FCLRegionGenerationSettings();
+        Instances.NoiseLayers.Reset();Instances.Tectonics=FCLTectonicPreset();Instances.Continents=FCLContinentalLayer();
+        Instances.TerrainRegions.RemoveAll([](const auto& R){return !R.bPlacedLandform;});
+        const auto Sources=CompileUnmapped(Instances,Error,Library,LocalRegion,FCLSphericalPatches::WholeSphere,SurfaceLibraryOverride);if(!Sources)return nullptr;
+        auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Ground);Out->PlacedSurface=Ground;Out->Regions.Append(Sources->Regions);Out->SurfacePatches.Reset();
+        for(const auto& R:Sources->Regions)
+        {
+            Out->MinimumHeightMeters+=FMath::Min(0.,(R.Field->MinimumHeightMeters-R.ReliefDatumMeters)*R.Placement.Strength);
+            Out->MaximumHeightMeters+=FMath::Max(0.,(R.Field->MaximumHeightMeters-R.ReliefDatumMeters)*R.Placement.Strength);
+        }
+        Out->MinimumHeightMeters=FMath::Max(-Out->RadiusMeters,Out->MinimumHeightMeters);Out->MaximumHeightMeters=FMath::Min(0.,Out->MaximumHeightMeters);
+        if(Out->GetDistributedStampCount()>1024){Error=TEXT("Composed planet exceeds the 1024 stamp-placement budget");return nullptr;}
+        return RetainInput(Out);
+    }
 
     const bool TypedHosts=Recipe.Rock.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Unknown||U.FracturePotential!=0||U.DissolutionPotential!=0;});
     if(Recipe.SchemaVersion<23&&TypedHosts&&!CompilingCaveBase&&!Recipe.Caves.bEnabled){Error=TEXT("Typed cave-host rock requires recipe schema 23");return nullptr;}
@@ -975,6 +1023,19 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
         if(!Field){Error=Region.Name+TEXT(": ")+Error;return nullptr;}
         FCLCompiledPlanetRecipe::FRegion CompiledRegion;CompiledRegion.Id=Region.Id;CompiledRegion.Mask=Region.Mask;CompiledRegion.SphericalMask=Region.SphericalMask;CompiledRegion.Field=Field;
         CompiledRegion.bPlacedLandform=Region.bPlacedLandform;
+        // Absolute source stacks carry their own floor. Additive layers retain
+        // their signed displacement, so a canyon still cuts and a mountain rises.
+        CompiledRegion.ReliefDatumMeters=Field->BaseHeightMeters;
+        for(const auto& L:Field->Layers)
+        {
+            if(L.Operation==ECLTerrainOperation::Terrace)CompiledRegion.ReliefDatumMeters=L.TerraceHeight(CompiledRegion.ReliefDatumMeters);
+            else if(L.Operation==ECLTerrainOperation::Noise)
+            {
+                if(L.Blend==ECLNoiseBlend::Override)CompiledRegion.ReliefDatumMeters=L.Minimum;
+                else if(L.Blend==ECLNoiseBlend::Max)CompiledRegion.ReliefDatumMeters=FMath::Max(CompiledRegion.ReliefDatumMeters,L.Minimum);
+                else if(L.Blend==ECLNoiseBlend::Min)CompiledRegion.ReliefDatumMeters=FMath::Min(CompiledRegion.ReliefDatumMeters,L.Minimum);
+            }
+        }
         if(Region.bPlacedLandform && !FCLCompiledLandformPlacement::Resolve(Region.Placement,Recipe.BaseStructure,CompiledRegion.Placement,Error))return nullptr;
         Plan->Regions.Add(MoveTemp(CompiledRegion));
         Plan->MinimumHeightMeters=FMath::Min(Plan->MinimumHeightMeters,Field->MinimumHeightMeters);

@@ -44,6 +44,7 @@
 #include "Framework/Application/IInputProcessor.h"
 #include "Layout/WidgetPath.h"
 #include "InputKeyEventArgs.h"
+#include "Framework/Commands/GenericCommands.h"
 #include "CLRadialGuideEditing.h"
 #include "CLRadialGuideMeasurements.h"
 #include "CLPlanet.h"
@@ -848,6 +849,8 @@ public:
             FTabManager::NewPrimaryArea()->SetOrientation(Orient_Horizontal)
             ->Split(FTabManager::NewStack()->SetSizeCoefficient(.34)->AddTab(PlanetTab,ETabState::OpenedTab)->SetForegroundTab(PlanetTab))
             ->Split(FTabManager::NewStack()->SetSizeCoefficient(.68)->AddTab(SectionTab,ETabState::OpenedTab)->SetHideTabWell(true)));
+        GetToolkitCommands()->MapAction(FGenericCommands::Get().Undo,FExecuteAction::CreateLambda([]{GEditor->UndoTransaction();}));
+        GetToolkitCommands()->MapAction(FGenericCommands::Get().Redo,FExecuteAction::CreateLambda([]{GEditor->RedoTransaction();}));
         InitAssetEditor(Mode, Host, GetToolkitFName(), Layout, true, true, EditingAsset.Get());
         const auto Extender = MakeShared<FExtender>();
         Extender->AddToolBarExtension(TEXT("Asset"), EExtensionHook::After, nullptr,
@@ -881,7 +884,7 @@ public:
         {
             if(!PlacedLandformList->IsItemSelected(*Item))PlacedLandformList->SetSelection(*Item,ESelectInfo::Direct);
             PlacedLandformList->RequestScrollIntoView(*Item);
-            ProvincesSubtab=2;SelectInspectorPage(2);
+            if(ProvincesSubtab!=2||InspectorPage!=2){ProvincesSubtab=2;SelectInspectorPage(2);}
         }
         else if(PlacedLandformList->GetNumItemsSelected())PlacedLandformList->ClearSelection();
     }
@@ -948,10 +951,11 @@ public:
                 {return SNew(STableRow<TSharedPtr<FGuid>>,Owner).Padding(6)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"))
                     .Text_Lambda([this,Id=*Item]{const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([Id](const auto& V){return V.Id==Id;});return FText::FromString(R?R->Name:FString());})];})
                 .OnSelectionChanged_Lambda([this](TSharedPtr<FGuid> Item,ESelectInfo::Type){if(!bSyncingPlacedSelection&&Globe)Globe->Select(Item?FCLGlobeSelection{*Item,false}:FCLGlobeSelection());})
-                .OnKeyDownHandler_Lambda([this](const FGeometry&,const FKeyEvent& Event){return Event.GetKey()==EKeys::Delete&&DeleteSelectedLandform()?FReply::Handled():FReply::Unhandled();})]
-            +SVerticalBox::Slot().AutoHeight().Padding(4)[SNew(SButton).Text(FText::FromString(TEXT("Delete selected landform")))
-                .IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
-                .OnClicked_Lambda([this]{DeleteSelectedLandform();return FReply::Handled();})];
+                .OnKeyDownHandler_Lambda([this](const FGeometry&,const FKeyEvent& Event)
+                {
+                    if(GetToolkitCommands()->ProcessCommandBindings(Event))return FReply::Handled();
+                    return (Event.GetKey()==EKeys::Delete||Event.GetKey()==EKeys::BackSpace)&&DeleteSelectedLandform()?FReply::Handled():FReply::Unhandled();
+                })];
         SyncPlacedLandforms();return Widget;
     }
     TSharedRef<SWidget> StructureMenu(FGuid Id)
@@ -1280,6 +1284,7 @@ public:
                 .OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateSP(this,&FCLRecipeToolkit::CommitGlobePlacement))
                 .OnSelectionChanged(FOnCLGlobeSelectionChanged::CreateSP(this,&FCLRecipeToolkit::SyncPlacedSelection))
                 .OnDeleteSelection(FSimpleDelegate::CreateLambda([this]{DeleteSelectedLandform();}))
+                .OnEditorKeyDown(FOnKeyDown::CreateLambda([this](const FGeometry&,const FKeyEvent& Event){return GetToolkitCommands()->ProcessCommandBindings(Event)?FReply::Handled():FReply::Unhandled();}))
                 .OnRegionSelected(FOnCLGlobeRegionSelected::CreateLambda([this](FGuid Id){if(GenerationPanel)GenerationPanel->SelectRegion(Id);}))
                 .Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
         const auto Content=SNew(SOverlay)
@@ -3084,11 +3089,31 @@ bool FCLPlacedLandformsEditorTest::RunTest(const FString&)
                 for(int32 I=0;I<3;++I){StaticCastSharedRef<SWidget>(E->Globe.ToSharedRef())->OnPreviewKeyDown(FGeometry(),FKeyEvent(Keys[I],FModifierKeysState(),0,false,0,0));Test->TestTrue(TEXT("W/E/R select the native transform modes"),E->Globe->PlacementMode()==Modes[I]);}
                 auto Targets=FCLGlobePlacementEditing::Resolve(A->Recipe);auto Target=*Targets.FindByPredicate([&](const auto& T){return T.Key.Id==Second;});
                 auto Moved=FCLGlobePlacementEditing::Drag(Target,ECLGlobePlacementHandle::Centre,Target.Frame.GetAxisZ(),FVector::XAxisVector);
+                Test->TestFalse(TEXT("Delete footer has been removed"),Text(E->PlanetInspectors[2].ToSharedRef()).Contains(TEXT("Delete selected landform")));
+                auto Shortcut=[&](bool Redo)
+                {
+                    const FModifierKeysState Mods(Redo,false,true,false,false,false,false,false,false);
+                    return StaticCastSharedRef<SWidget>(E->Globe.ToSharedRef())->OnPreviewKeyDown(FGeometry(),FKeyEvent(EKeys::Z,Mods,0,false,0,0)).IsEventHandled();
+                };
+                for(int32 Mode=0;Mode<3;++Mode)
+                {
+                    const auto BeforeTransform=A->Recipe;auto Changed=Target;
+                    if(Mode==0)Changed=Moved;
+                    else if(Mode==1)Changed.Frame=(Target.Frame*FQuat(FVector::ZAxisVector,.4)).GetNormalized();
+                    else Changed.HalfExtentDegrees*=1.2;
+                    E->CommitGlobePlacement(Changed,Mode==2);const auto AfterTransform=A->Recipe;
+                    Test->TestTrue(TEXT("Transform produces an asset edit"),!FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeTransform,&AfterTransform,0));
+                    Test->TestTrue(TEXT("Viewport handles standard Undo shortcut"),Shortcut(false));
+                    Test->TestTrue(TEXT("One keyboard Undo restores the complete transform"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeTransform,&A->Recipe,0));
+                    Test->TestTrue(TEXT("Viewport handles standard Redo shortcut"),Shortcut(true));
+                    Test->TestTrue(TEXT("Keyboard Redo restores the transform"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&AfterTransform,&A->Recipe,0));
+                    Shortcut(false);
+                }
                 E->CommitGlobePlacement(Moved,false);
                 auto After=FCLGlobePlacementEditing::Resolve(A->Recipe);
                 Test->TestTrue(TEXT("Widget commit updates only the selected instance placement"),After.FindByPredicate([&](const auto& T){return T.Key.Id==Second;})->Frame.GetAxisZ().Equals(FVector::XAxisVector,1.e-8));
                 const auto BeforeDelete=A->Recipe;
-                E->PlacedLandformList->OnKeyDown(FGeometry(),FKeyEvent(EKeys::Delete,FModifierKeysState(),0,false,0,0));
+                E->PlacedLandformList->OnKeyDown(FGeometry(),FKeyEvent(EKeys::BackSpace,FModifierKeysState(),0,false,0,0));
                 Test->TestEqual(TEXT("Delete in the list removes one placed instance"),A->Recipe.TerrainRegions.Num(),1);
                 Test->TestFalse(TEXT("Instance source link is removed with the instance"),A->LandformSources.Contains(Second));
                 GEditor->UndoTransaction();

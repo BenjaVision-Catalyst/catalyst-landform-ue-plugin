@@ -281,6 +281,8 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> SurfacePatches;
     /** Curated provinces add metre relief after the base landscape has been mapped. */
     TSharedPtr<const FCLCompiledPlanetRecipe> ProvinceSurface;
+    /** Manual instances add source-relative metre relief after geological calibration. */
+    TSharedPtr<const FCLCompiledPlanetRecipe> PlacedSurface;
     TSharedPtr<const FCLCompiledPlanetRecipe> UnmappedSurface;
     TSharedPtr<const struct FCLSurfaceRange> SurfaceRange;
     FBox2D EvaluationRegion;
@@ -297,6 +299,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     {
         FGuid Id;
         bool bPlacedLandform=false;
+        double ReliefDatumMeters=0;
         FCLCompiledLandformPlacement Placement;
         double Weight(const FVector& Direction,double Radius) const {return bPlacedLandform?Placement.Weight(Direction):SphericalMask.Weight(Direction,Radius);}
         FVector SourceDirection(const FVector& Direction) const {return bPlacedLandform?Placement.Orientation.UnrotateVector(Direction):Direction;}

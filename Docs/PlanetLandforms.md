@@ -170,9 +170,9 @@ Types. Selecting a row selects the same instance in the globe; selecting an
 instance in the globe focuses Provinces > Landforms and selects its row.
 The existing Unreal transform widget and W/E/R modes manipulate that selection:
 tangential movement on the sphere, rotation about radial up, and footprint scale.
-Delete works from the list or viewport, and the visible Delete action uses the
-same transaction. Undo/redo restores or removes the complete instance and its
-source link. These operations modify planet-owned instances, preserving reusable
+Delete (Backspace on Mac keyboards) works from the list or viewport. Standard
+Undo/Redo shortcuts restore each complete move, rotation or scale gesture, as
+well as instance additions/deletions and their source links. These operations modify planet-owned instances, preserving reusable
 source definitions.
 
 Manual base-structure creation, raw terrain/noise/override arrays, the global
@@ -180,3 +180,13 @@ relief multiplier and excavation controls are absent from these pages. Their
 saved recipe fields remain intact for compatibility. Province source actions
 focus Types in the existing Planet editor. No alternate authoring editor or
 level-actor proxy is introduced.
+
+Manual landforms add metre relief to the finished geological landscape, after
+its global surface-range calibration. Moving or resizing an instance cannot
+recalibrate terrain outside its footprint. Absolute noise overrides use their
+source floor as the relief datum; signed additive layers retain their sign, so
+mountains rise and deliberately subtractive valleys still cut into local ground.
+The footprint fades continuously to that local ground. Strength scales relief;
+W/E/R edit position, radial heading and footprint size respectively. Native
+rotation-arc hit targets have a small click tolerance and own their drag, so
+planet orbit cannot take over a handle gesture.

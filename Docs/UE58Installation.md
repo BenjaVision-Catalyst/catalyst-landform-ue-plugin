@@ -70,3 +70,25 @@ handles. This private viewport explicitly selects Unreal's axis widget path on
 5.8; the level editor's gizmo policy is untouched. All seven supported handle
 gestures commit once on mouse release, and Escape cancels a draft. No test or
 review authoring assets are saved.
+
+## Placed-landform editing — 13 November 2026
+
+The final 16-test rendered selection passes on UE 5.8.4 Mac arm64. It covers
+standard keyboard Undo/Redo for move/rotation/scale; one commit for each of seven
+routed HWidgetAxis gestures at 1200 × 800 without camera orbit; list
+Backspace/deletion, complete source-link restoration, native VPP parity,
+source ownership, assembly/structure bindings, fresh-project installation,
+province rows, new planets and Ecosystem's optional editor/asset selector.
+The enabled-cave minimum and scale/profile/access cases pass. Three installer
+checks pass independently. Reports are in VPPTest58 Saved/PlacedLandformFix.
+
+Mountain relief adds to the finished geological surface: 51 feature samples
+rise without excavation, all 2,595 outside-footprint samples retain the exact
+base height, the boundary fades continuously, and the VPP zero-set residual is
+less than 0.02 cm. Signed subtractive source relief still makes valleys.
+
+The initial selection also attempted the historical CurrentRift rendered test;
+its required /Game/LandformDesigner/Provinces/DA_ContinentalRiftReview fixture
+is absent in this host. It was excluded from the final selection, not counted as
+a pass. This update does not qualify a new cave anatomy or delivery backend.
+No source asset or authoring experiment was saved.

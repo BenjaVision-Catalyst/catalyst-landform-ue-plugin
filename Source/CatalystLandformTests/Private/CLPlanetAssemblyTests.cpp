@@ -22,15 +22,20 @@ bool FCLLandformPlacementTest::RunTest(const FString&)
 {
     auto* A=Assembly(this);if(!A)return false;auto R=A->Recipe;FString E;
     const auto P=FCLPlanetCompiler::Compile(R,E,nullptr,nullptr,FCLSphericalPatches::WholeSphere);if(!P){AddError(E);return false;}
-    // Independent blend oracle: source-local samples, planet-owned masks, then broad structure once.
+    // Independent composition oracle: finished geology plus source-relative relief.
+    auto Base=R;Base.TerrainRegions.Reset();const auto Ground=FCLPlanetCompiler::Compile(Base,E,nullptr,nullptr,FCLSphericalPatches::WholeSphere);if(!Ground){AddError(E);return false;}
     double Worst=0;TArray<FVector> D;
     for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<=12;++Y)for(int32 X=0;X<=12;++X)D.Add(FCLSphericalPatches::Direction(Face,FVector2D(X/6.-1,Y/6.-1)));
     TArray<double> H;P->SampleHeightsMeters(D,H);
     for(int32 I=0;I<D.Num();++I)
     {
-        double Expected=P->BaseHeightMeters;
-        for(const auto& Region:P->Regions){const double Source=Region.Field->SampleHeightMeters(Region.Placement.Orientation.UnrotateVector(D[I]));Expected=FMath::Lerp(Expected,P->BaseHeightMeters+(Source-P->BaseHeightMeters)*Region.Placement.Strength,Region.Placement.Weight(D[I]));}
-        for(const auto& F:P->BaseStructure)if(!F.Heightmap)Expected+=F.Weight(D[I])*F.ReliefMeters;
+        double Expected=Ground->SampleHeightMeters(D[I]);
+        for(const auto& Region:P->Regions)
+        {
+            const double Datum=Region.ReliefDatumMeters;
+            const double Source=Region.Field->SampleHeightMeters(Region.Placement.Orientation.UnrotateVector(D[I]));
+            Expected=FMath::Clamp(Expected+(Source-Datum)*Region.Placement.Strength*Region.Placement.Weight(D[I]),-P->RadiusMeters,0.);
+        }
         // Separate canyon below; avoid its support for this independent structure oracle.
         const FQuat C=FCLCompiledPlanetFeature::Frame(R.BaseStructure[1].LocationDegrees,R.BaseStructure[1].HeadingDegrees);
         if(C.UnrotateVector(D[I]).Z<0)Worst=FMath::Max(Worst,FMath::Abs(H[I]-FMath::Clamp(Expected,-P->RadiusMeters,0.)));

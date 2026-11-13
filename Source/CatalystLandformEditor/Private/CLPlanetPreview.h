@@ -43,7 +43,7 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport
 {
 public:
-    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_EVENT(FOnCLGlobeSelectionChanged,OnSelectionChanged) SLATE_EVENT(FSimpleDelegate,OnDeleteSelection) SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_EVENT(FOnCLGlobeSelectionChanged,OnSelectionChanged) SLATE_EVENT(FSimpleDelegate,OnDeleteSelection) SLATE_EVENT(FOnKeyDown,OnEditorKeyDown) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug=nullptr,bool PreserveWalk=false);
@@ -155,6 +155,8 @@ private:
     FOnCLGlobeRegionSelected OnRegionSelected;
     FOnCLGlobeSelectionChanged OnSelectionChanged;
     FSimpleDelegate OnDeleteSelection;
+    FOnKeyDown OnEditorKeyDown;
+    bool bWidgetPress=false;
     FGuid ClickGeneratedRegion;
     EAxisList::Type DragAxis=EAxisList::None;
     FCLGlobePlacementTarget DragStart;

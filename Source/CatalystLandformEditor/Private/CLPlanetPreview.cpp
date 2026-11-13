@@ -220,9 +220,19 @@ public:
         if(!Viewport||!SelectedTarget())return EAxisList::None;
         const auto Size=Viewport->GetSizeXY();const int32 X=FMath::FloorToInt(Normalized.X*Size.X),Y=FMath::FloorToInt(Normalized.Y*Size.Y);
         if(X<0||Y<0||X>=Size.X||Y>=Size.Y)return EAxisList::None;
-        HHitProxy* Proxy=Viewport->GetHitProxy(X,Y);
-        if(Proxy&&Proxy->IsA(HWidgetAxis::StaticGetType()))
-        {const auto* H=static_cast<HWidgetAxis*>(Proxy);if(!H->bDisabled)return H->Axis;}
+        // Thin rotation arcs need the same usable click tolerance as the other
+        // native handles. Search only actual HWidgetAxis proxies, nearest first.
+        auto AxisAt=[&](int32 PX,int32 PY)
+        {
+            if(PX<0||PY<0||PX>=Size.X||PY>=Size.Y)return EAxisList::None;
+            const auto* Proxy=Viewport->GetHitProxy(PX,PY);
+            if(Proxy&&Proxy->IsA(HWidgetAxis::StaticGetType()))
+            {const auto* H=static_cast<const HWidgetAxis*>(Proxy);if(!H->bDisabled)return H->Axis;}
+            return EAxisList::None;
+        };
+        if(const auto A=AxisAt(X,Y);A!=EAxisList::None)return A;
+        for(int32 R=1;R<=6;++R)for(int32 DY=-R;DY<=R;++DY)for(int32 DX=-R;DX<=R;++DX)
+            if(FMath::Max(FMath::Abs(DX),FMath::Abs(DY))==R)if(const auto A=AxisAt(X+DX,Y+DY);A!=EAxisList::None)return A;
         return EAxisList::None;
     }
     void HoverAxis(EAxisList::Type Axis)
@@ -395,7 +405,7 @@ public:
     virtual bool InputKey(const FInputKeyEventArgs& E) override
     {
         if(E.Event==IE_Pressed && (E.Key==EKeys::MouseScrollUp || E.Key==EKeys::MouseScrollDown))Dolly(E.Key==EKeys::MouseScrollUp?1:-1);
-        return true;
+        return E.Key.IsMouseButton()||E.Key==EKeys::MouseScrollUp||E.Key==EKeys::MouseScrollDown;
     }
     virtual bool InputAxis(const FInputKeyEventArgs&) override {return true;}
     virtual FLinearColor GetBackgroundColor() const override {return FLinearColor(.007,.012,.02);}
@@ -460,7 +470,7 @@ public:
 };
 void SCLPlanetPreview::Construct(const FArguments& Args)
 {
-    OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;OnSelectionChanged=Args._OnSelectionChanged;OnDeleteSelection=Args._OnDeleteSelection;
+    OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;OnSelectionChanged=Args._OnSelectionChanged;OnDeleteSelection=Args._OnDeleteSelection;OnEditorKeyDown=Args._OnEditorKeyDown;
     Scene=MakeUnique<FCLGlobeScene>();
     Ocean.Reset(NewObject<UStaticMeshComponent>(GetTransientPackage()));
     Ocean->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
@@ -558,6 +568,7 @@ TArray<FGuid> SCLPlanetPreview::HighlightedGeneratedRegions()const
 {TArray<FGuid> Result;if(Client->Plan&&Client->Plan->GeneratedRegions)for(int32 I=0;I<Client->Plan->GeneratedRegions->Cells.Num();++I)if(Client->IsHighlightedRegion(I))Result.Add(Client->Plan->GeneratedRegions->Cells[I].Id);return Result;}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
+    if(Client->bInspectRegions==Inspect)return;
     if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect){Client->Selected={};OnSelectionChanged.ExecuteIfBound(Client->Selected);}Client->UpdatePlacementOverlay();Client->Invalidate();}
 bool SCLPlanetPreview::IsInspectingRegions() const{return Client->bInspectRegions&&Client->Plan&&Client->Plan->GeneratedRegions.IsValid();}
 void SCLPlanetPreview::SelectGeneratedRegion(FGuid Id)
@@ -624,7 +635,8 @@ FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPoin
 {
     const FKey Key=E.GetEffectingButton();if(Key!=EKeys::LeftMouseButton&&Key!=EKeys::MiddleMouseButton&&Key!=EKeys::RightMouseButton)return FReply::Unhandled();
     if(DragAxis!=EAxisList::None){CancelPlacementDrag();Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
-    Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;bPressCanPick=CanPick();
+    Button=Key;Previous=MouseDown=E.GetScreenSpacePosition();bOrbitDrag=false;bPlacementMoved=false;bWidgetPress=false;bPressCanPick=CanPick();
+    if(!bPressCanPick&&Client->SelectedTarget()&&Key==EKeys::LeftMouseButton)bWidgetPress=true;
     if(bPressCanPick&&Key==EKeys::LeftMouseButton&&bWalkPicking)
     {
         ClickWalkLocation=FVector::ZeroVector;Client->CursorDirection(PointerPosition(G,E),ClickWalkLocation);ClickWalkPoint=Client->LastPickPoint;
@@ -636,7 +648,8 @@ FReply SCLPlanetPreview::OnPreviewMouseButtonDown(const FGeometry& G,const FPoin
     else if(bPressCanPick&&Key==EKeys::LeftMouseButton)
     {
         const auto P=PointerPosition(G,E);const auto Axis=Client->HitWidgetAxis(P);const auto* T=Client->SelectedTarget();FVector Point;
-        if(Axis!=EAxisList::None&&T&&Client->WidgetPoint(P,*T,Axis,Client->GetWidgetLocation(),Point))
+        bWidgetPress=Axis!=EAxisList::None&&T;
+        if(bWidgetPress&&Client->WidgetPoint(P,*T,Axis,Client->GetWidgetLocation(),Point))
         {DragAxis=Axis;DragStart=*T;DragStartPoint=Point;DragOrigin=Client->GetWidgetLocation();DragScale=Client->WidgetWorldSize();Client->HoverAxis(Axis);}
         else ClickSelection=Client->PickTarget(P);
     }
@@ -676,7 +689,7 @@ FReply SCLPlanetPreview::OnMouseMove(const FGeometry& G,const FPointerEvent& E)
             Client->UpdatePlacementOverlay();Client->Invalidate();
         }
     }
-    else if(Button==EKeys::LeftMouseButton){bOrbitDrag|=(E.GetScreenSpacePosition()-MouseDown).Size()>3;if(bOrbitDrag){Client->Navigation.Orbit(Delta);Client->Apply();}}
+    else if(Button==EKeys::LeftMouseButton&&!bWidgetPress){bOrbitDrag|=(E.GetScreenSpacePosition()-MouseDown).Size()>3;if(bOrbitDrag){Client->Navigation.Orbit(Delta);Client->Apply();}}
     else if(Button==EKeys::MiddleMouseButton){Client->Navigation.PanBy(Delta);Client->Apply();}
     else if(Button==EKeys::RightMouseButton)Client->Dolly(-Delta.Y*.05);return FReply::Handled();
 }
@@ -693,11 +706,13 @@ FReply SCLPlanetPreview::OnMouseButtonUp(const FGeometry&,const FPointerEvent& E
     Button=FKey();return FReply::Handled().ReleaseMouseCapture();
 }
 void SCLPlanetPreview::OnMouseCaptureLost(const FCaptureLostEvent&){Button=FKey();CancelPlacementDrag();}
-FReply SCLPlanetPreview::OnPreviewKeyDown(const FGeometry&,const FKeyEvent& E)
+FReply SCLPlanetPreview::OnPreviewKeyDown(const FGeometry& G,const FKeyEvent& E)
 {
+    if((E.IsControlDown()||E.IsCommandDown())&&OnEditorKeyDown.IsBound())
+    {CancelPlacementDrag();const auto Reply=OnEditorKeyDown.Execute(G,E);if(Reply.IsEventHandled())return Reply;}
     if(E.GetKey()==EKeys::Escape){const bool WasDragging=DragAxis!=EAxisList::None;CancelPlacementDrag();if(!WasDragging){if(IsInspectingRegions())SelectGeneratedRegion(FGuid());else Select({});}Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     if(E.IsControlDown()||E.IsCommandDown()||E.IsAltDown())return FReply::Unhandled();
-    if(E.GetKey()==EKeys::Delete&&Client->Selected.IsValid()&&!Client->Selected.bStructure&&OnDeleteSelection.IsBound()){CancelPlacementDrag();OnDeleteSelection.Execute();return FReply::Handled();}
+    if((E.GetKey()==EKeys::Delete||E.GetKey()==EKeys::BackSpace)&&Client->Selected.IsValid()&&!Client->Selected.bStructure&&OnDeleteSelection.IsBound()){CancelPlacementDrag();OnDeleteSelection.Execute();return FReply::Handled();}
     if(E.GetKey()==EKeys::SpaceBar)SetPlacementMode(Client->Mode==ECLGlobePlacementMode::Move?ECLGlobePlacementMode::Rotate:Client->Mode==ECLGlobePlacementMode::Rotate?ECLGlobePlacementMode::Resize:ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::W)SetPlacementMode(ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::E)SetPlacementMode(ECLGlobePlacementMode::Rotate);else if(E.GetKey()==EKeys::R)SetPlacementMode(ECLGlobePlacementMode::Resize);else return FReply::Unhandled();return FReply::Handled();
 }
 FReply SCLPlanetPreview::OnMouseWheel(const FGeometry&,const FPointerEvent& E){Client->Dolly(E.GetWheelDelta());return FReply::Handled();}
@@ -868,8 +883,8 @@ bool FCLGlobePlacementPointerTest::RunTest(const FString&)
     auto& App=FSlateApplication::Get();int32 Commits=0;
     const auto W=SNew(SCLPlanetPreview).OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateLambda([&](const auto& Target,bool Resize){++Commits;TestTrue(TEXT("Native widget commits a valid spherical placement"),FCLGlobePlacementEditing::Apply(Recipe,Target,Resize,Error));}));
     W->CreateReferenceMeshForTesting(); // Explicit isolated picking oracle.
-    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native globe widget proof"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
-    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
+    const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native globe widget proof"))).ClientSize(FVector2D(1200,800))[W];App.AddWindow(Window,false);Window->SlatePrepass();
+    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,1200,800,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const auto C=W->Client;C->Plan=Plan;C->SetViewLocation(FVector(80000,-60000,200000));C->SetViewRotation((FVector(0,0,45000)-C->GetViewLocation()).Rotation());C->StudioScene->AimLights(C->GetViewRotation());const auto B=FCLGlobeBuffers::Build(*Plan,32);CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.Colors,B.Tangents);W->SetAuthoringRecipe(Recipe);W->Select({Region.Id,false});
     FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(W->ViewportWidget.ToSharedRef(),Actual,EVisibility::All);
     const auto Geometry=Actual.Widgets.Last().Geometry;TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const FWidgetPath Path(MakeArrayView(Arranged));
@@ -891,12 +906,15 @@ bool FCLGlobePlacementPointerTest::RunTest(const FString&)
             FVector2D End=Start+FVector2D(36,-28);const int32 Before=Commits;
             if(Mode==ECLGlobePlacementMode::Move&&Axis==EAxisList::X)
             {Down(Start);Move(Start,End);App.ProcessKeyDownEvent(FKeyEvent(EKeys::Escape,FModifierKeysState(),0,false,0,0));Up(End);TestFalse(TEXT("Escape releases native widget pointer capture"),W->HasMouseCapture());TestEqual(TEXT("Escape cancels a native widget draft without a commit"),Commits,Before);TestTrue(TEXT("Cancelled native drag preserves the recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));}
+            const auto Camera=C->GetViewLocation();const auto CameraRotation=C->GetViewRotation();
             Down(Start);Move(Start,End);
+            W->SetRegionInspection(false); // Harmless sidebar synchronisation during a gesture.
             AddInfo(FString::Printf(TEXT("Routed actual axis %d, changed %d, commits %d"),int32(W->DragAxis),W->bPlacementMoved,Commits));
             TestTrue(TEXT("Routed native handle starts a changed draft"),W->DragAxis==Axis&&W->bPlacementMoved);
             TestEqual(TEXT("No per-move commit"),Commits,Before);TestFalse(TEXT("No per-move dense terrain work"),W->IsUpdating());
             TestTrue(TEXT("The recipe stays unchanged during a draft"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));
             Up(End);TestEqual(TEXT("One commit for each native widget gesture"),Commits,Before+1);
+            TestTrue(TEXT("Transform gestures never orbit the planet"),C->GetViewLocation()==Camera&&C->GetViewRotation()==CameraRotation);
             TestFalse(TEXT("Native gesture changes the placement"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Recipe,&Original,0));
         }
     }
