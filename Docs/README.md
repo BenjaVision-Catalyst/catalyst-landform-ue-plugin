@@ -15,6 +15,7 @@ Planet geology and delivery:
 
 - [Continental Character](ContinentalCharacter.md), [tectonic Character](TectonicCharacter.md)
 - [Metric rock bed thickness](RockBedThickness.md), [rock strata](CaveStrata.md)
+- [Geology, material ownership and cover](GeologyAndMaterials.md), [Rock material bindings](RockMaterials.md)
 - [Cave placement](CavePlacement.md), [enabled minimum](CaveEnabledMinimum.md)
 - [Native coordinate audit](NativeCoordinateAudit.md), [background evaluation](BackgroundEvaluation.md)
 - [Optional Planet Builder sections](PlanetBuilderExtensions.md)

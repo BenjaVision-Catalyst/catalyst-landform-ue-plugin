@@ -19,8 +19,7 @@ streamer, noise implementation, mesh generator, preview path or sculpt serialize
 
 The new distribution uses native UE `FRichCurve` and its clamped cubic tangents,
 through the existing surface-distribution helper. Native `FRandomStream` selects
-one thickness per actual bed. The former radius-scaled packet was split into a
-primary/weak pair; algorithm 5 does neither. Native geological palette/surface and
+one thickness per actual bed. Each sample is one complete bed; there is no radius-scaled primary/weak packet. Native geological palette/surface and
 full-float property bindings remain shared through mining, caves and fill.
 
 The research and mechanical limits in [RockFolding](RockFolding.md) and
@@ -44,8 +43,7 @@ curve; it is not an exact analytic Gaussian. The native curve is monotone.
 Character still changes dip, inherited plate displacement, folding, fault throw,
 onlap and lithology. It curates peak and spread across the default 2–5 m range;
 rare-tail percentages, edges, limits, seed, palette and rheology remain authored.
-Zero means quiet layered rock. Older profiles still provide their saved massive
-or periodic settings. In algorithm 5, Interbed Fraction is the weak-unit selection
+Zero means quiet layered rock. Interbed Fraction is the weak-unit selection
 probability before adjacency conditioning; it no longer splits bed thickness.
 Adjacent units are conditioned to differ so provisional artwork can expose a
 contact. It is not an exact weak-rock population guarantee.
@@ -63,7 +61,7 @@ not an outcrop-area or player-route histogram. The same data is available throug
 
 Each algorithm-5 contact is a double-precision radius and one palette byte.
 Indexed `GetBedCount()` / `GetBed()` inspect the immutable history without
-expanding it. `GetBeds()` is retained for legacy algorithms 2–4 only. The total
+expanding it. The total
 budget is 4,194,304 beds; exceeding it fails explicitly without thickening beds,
 repeating a sequence or silently dropping contacts. This bounds data, not streamed
 terrain. The Earth-radius qualification measures the actual allocation.
@@ -80,12 +78,14 @@ accommodation changes; it is no longer stretched from one short reference packet
 The floor can truncate a bed. These level-filled deposits assume sufficient
 sediment and do not reconstruct transported sediment mass or basin chronology.
 
-## Compatibility and qualification
+## Current model and qualification
 
-Saved algorithms 1–4, constructor defaults, random draw order and sculpt formats
-remain unchanged. Loading does not adopt algorithm 5. A new Character gesture or
-explicit enable of an older profile adopts it. Reauthoring an already mined world
-is not qualified migration. Rock edits retain schema-21 elevation settings.
+The metric model is the only supported development rock profile. Retired tags
+are rejected rather than routed to another implementation. No migration of mined
+worlds between development formats is promised. Product version 1 will be the
+first supported release. Material rebinding retains the current recipe's contacts,
+identities and physical properties. Native VPP remains the sculpt persistence
+owner. Rock edits retain the enclosing recipe's elevation settings.
 
 New review recipes and assets live in `LandformDesigner/RockBeds`, alongside
 unchanged earlier reviews. The cooked proof uses native 25 cm voxels to expose

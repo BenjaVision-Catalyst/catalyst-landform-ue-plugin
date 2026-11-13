@@ -11,6 +11,12 @@ geological process. It has no Target selector. It controls how much area occupie
 low, middle and high parts of SurfaceMin/Max; its independent rare-tail controls
 remain under Advanced. Opening an asset never changes its saved recipe.
 
+The editor has Planet, Geology, Landforms and Preview sections. The former
+Surface tab is removed. Its `SurfaceStack` data still supplies the fallback and
+slope/height/noise-based material weights to native preview and runtime terrain;
+removing that UI does not migrate or clear saved material bindings. Surface
+Distribution remains in Planet and surface walking remains in Preview.
+
 Geology lists **Tectonics, Continents, Rock and Watershed**, in that order. Each layer is one
 native expandable category header: chevron, Outliner eyeball, indicator toggle, name, Character
 slider/value and reseed icon. All Character readouts use the same native property

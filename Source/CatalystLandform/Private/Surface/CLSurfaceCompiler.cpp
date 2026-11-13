@@ -38,6 +38,12 @@ UCLSurfaceSettings::UCLSurfaceSettings()
     PlanetMaterial=TSoftObjectPtr<UVoxelMegaMaterial>(FSoftObjectPath(TEXT("/CatalystLandform/Surfaces/MM_LandformSurfaces.MM_LandformSurfaces")));
 }
 UCLSurfaceLibraryAsset* UCLSurfaceLibraryAsset::LoadConfigured(){return GetDefault<UCLSurfaceSettings>()->SurfaceLibrary.LoadSynchronous();}
+TArray<FString> UCLSurfaceLibraryAsset::GetSurfaceIds()
+{
+    TArray<FString> Ids;
+    if(const auto* Source=LoadConfigured())for(const auto& Entry:Source->Library.Entries)Ids.Add(Entry.Id.ToString());
+    Ids.Sort();return Ids;
+}
 bool UCLSurfaceLibraryAsset::ValidateLibrary(FString& Error) const
 {
     const auto& Entries=Library.Entries;TSet<FName> Ids;TSet<const UVoxelSurfaceTypeAsset*> Types;if(!Library.PreviewMaterial||Library.SchemaVersion!=1||Entries.IsEmpty()||Entries.Num()>8){Error=TEXT("Client surface library requires 1..8 surfaces");return false;}

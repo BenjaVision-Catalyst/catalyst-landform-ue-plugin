@@ -5,6 +5,11 @@ editor. Planet owns assembly, geology, Landforms, surface authoring, radial guid
 and preview. Landform asset actions focus that same editor. Voxel Plugin owns
 meshing, LOD, rendering, collision and edits.
 
+This is a development build. Version 1 will be the first supported product release.
+Development targets one current model, without backward-compatibility or migration
+guarantees. [Geology and material ownership](Docs/GeologyAndMaterials.md) defines
+rock, landform-deposit and biome-cover responsibilities.
+
 ## Install from source
 
 Use Unreal Engine **5.7**, a C++ toolchain for your platform, Python 3 and a licensed

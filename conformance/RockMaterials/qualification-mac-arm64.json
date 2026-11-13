@@ -1,0 +1,139 @@
+{
+  "date": "2026-11-13",
+  "platform": "macOS arm64",
+  "engine": "5.7",
+  "voxelPlugin": "2.0p8 stock",
+  "scope": "First Rock material binding slice; current metric model only. Landform deposits, biome cover and resource accounting are subsequent stages.",
+  "productReleasePolicy": "Version 1 is the first supported release. No backward compatibility or migrations during development.",
+  "build": "Succeeded",
+  "nativeTests": [
+    {
+      "fullTestPath": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Installation.FreshProject",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.CharacterPaletteAndDefaults",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.ControlsVersionsAndHeight",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.DesignerControlsAndUndo",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.MaterialBindings",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.MetricBasinAndFoldContacts",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.MetricBedDistribution",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.MetricScaleAndCompactHistory",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.NativePropertiesAndSurfaces",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.NativeRenderedReview",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.PlanetMaterialBindingsAndUndo",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Rock.VolumeAndCaveCoherence",
+      "state": "Success"
+    },
+    {
+      "fullTestPath": "Catalyst.Landform.Surfaces.ScannedBindingsAndDefaults",
+      "state": "Success"
+    }
+  ],
+  "pythonInstallerTests": {
+    "passed": 3,
+    "failed": 0
+  },
+  "nativeRenderedStrataCases": 24,
+  "nativeMaterialProbes": 512,
+  "nativeRockPropertyProbes": 2048,
+  "characterProfiles": 603,
+  "retiredRockTagsRejected": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "rockBindings": {
+    "StrongRock": 1,
+    "MixedRock": 1,
+    "WeakRock": 1
+  },
+  "fallbackGroundSurfaces": {
+    "Rock": 2,
+    "Scree": 2,
+    "Soil": 2
+  },
+  "checks": [
+    "Native Details dropdown supplies installed IDs and commits matching revision atomically",
+    "One Undo restores the complete material action and individual material/revision selection",
+    "Rebinding preserves bed contacts, geological IDs, physical properties and terrain height",
+    "Native VPP blend weights match canonical rock classification within uint16 quantization",
+    "Caves still generate with missing/unknown geology and on small planets",
+    "Current saved Rift publishes native terrain, cave pixels and close-up detail"
+  ],
+  "authoring": {
+    "filesHashChecked": 186,
+    "filesChanged": 0,
+    "experimentsSaved": false,
+    "normalEditorHasUnsavedEdits": true,
+    "normalEditorLeftOpen": true,
+    "reviewUsesTransientPlanet": true
+  },
+  "fixtureNote": "Isolated native host uses installed plugin content. CurrentRift regression additionally reads a copied authoring fixture; it is not a plugin installation dependency.",
+  "visualAcceptance": "Native Planet quarry capture is review evidence, not a claim of user visual acceptance. Cave anatomy is unchanged.",
+  "implementationSha256": {
+    "Source/CatalystLandform/Private/Model/CLRockLayer.cpp": "9d015c049dcd7dcf0daefff4cd9850500762560741077eb25184b30bf0627ac0",
+    "Source/CatalystLandform/Private/Surface/CLSurfaceCompiler.cpp": "cc18f3118d35169497458998b662cd5dd6433ebdd9a14fdae4ca870b861e751f",
+    "Source/CatalystLandform/Public/Model/CLRockLayer.h": "c9c74a6458c813580bd973dac3754cdaff30f4641cc87854e7b8bee3ece31f6f",
+    "Source/CatalystLandform/Public/Surface/CLSurfaceLibrary.h": "11aabd4f2c2db8c048e0a6e4970707c63fb92a5549ed4f393535a97cba874446",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "320b72eacac72cd0f5e1ee5f4869f280efd6a659c85fddfeb89f0a9abf471e62"
+  },
+  "captures": {
+    "PlanetQuarry.png": "1dfb8b4f0a9607f2323fe4ca4909e808d313b2d97b93c77bca9c3175c0e02cee"
+  }
+}

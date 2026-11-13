@@ -11,8 +11,7 @@ FCLRockLayer::FCLRockLayer()
     const TCHAR* Names[]={TEXT("Competent unit"),TEXT("Mixed unit"),TEXT("Weak interbed")};
     const TCHAR* Surfaces[]={TEXT("Rock"),TEXT("Scree"),TEXT("Soil")};
     for(int32 I=0;I<3;++I){auto& U=Units[I];U.Id=FGuid(0x434c524b,1,0,I+1);U.Name=Names[I];U.SurfaceId=Surfaces[I];U.MiningResistance=I==0?.85:I==1?.55:.25;U.Erodibility=1-U.MiningResistance;}
-    // Frozen published defaults: UE serialization may omit values equal to the
-    // default struct. Retuning authoring must not reinterpret those saved recipes.
+    // Current starting structure; independent of the Character progression.
     InterbedFraction=.39;
     DipDegrees=8.518518518518519;FoldAmplitudeRadiusFraction=.006;
     TectonicResponse=.32592592592592595;
@@ -20,15 +19,28 @@ FCLRockLayer::FCLRockLayer()
     FoldCompetentUnit=Units[0].Id;
 }
 const TCHAR* FCLCompiledRock::PropertiesAssetPath(){return TEXT("/CatalystLandform/Rock/MD_RockProperties.MD_RockProperties");}
+bool FCLRockLayer::BindBedrockMaterials(const FCLCompiledSurfaceLibrary& Library,FString& Error)
+{
+    static const FName Materials[]={TEXT("StrongRock"),TEXT("MixedRock"),TEXT("WeakRock")};
+    if(Units.Num()!=UE_ARRAY_COUNT(Materials)){Error=TEXT("Rock material bindings require the three geological units");return false;}
+    int32 Indices[UE_ARRAY_COUNT(Materials)];
+    for(int32 I=0;I<Units.Num();++I)
+    {
+        Indices[I]=Library.Ids.IndexOfByKey(Materials[I]);
+        if(Indices[I]==INDEX_NONE){Error=TEXT("The configured surface library has no rock material: ")+Materials[I].ToString();return false;}
+    }
+    for(int32 I=0;I<Units.Num();++I){Units[I].SurfaceId=Materials[I];Units[I].SurfaceRevision=Library.Revisions[Indices[I]];}
+    return true;
+}
 FLinearColor FCLCompiledRock::FillProperties(double Resistance,double Erosion)
 {return FLinearColor(FMath::Clamp(Resistance,0.,1.),FMath::Clamp(Erosion,0.,1.),1,1);}
 TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& Input,int32 Seed,double R,double Min,double Max,const FCLCompiledSurfaceLibrary* Surfaces,TSharedPtr<const FCLCompiledTectonics> T,FString& Error,TSharedPtr<const FCLCompiledContinents> Crust)
 {
-    auto L=Input; L.AlgorithmVersion=5;
+    const auto& L=Input;
     auto In=[](double V,double A,double B){return FMath::IsFinite(V)&&V>=A&&V<=B;};
-    if((Input.AlgorithmVersion<1||Input.AlgorithmVersion>5)||!In(L.Character,0,1)||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
+    if(L.AlgorithmVersion!=5||!In(L.Character,0,1)||!In(R,10,1.e7)||!In(Min,0,R)||!In(Max,Min,R)||L.Units.Num()!=3||
        !In(L.InterbedFraction,0,.8)||!In(L.DipDegrees,0,25)||!In(L.FoldAmplitudeRadiusFraction,0,.05)||!In(L.TectonicResponse,0,1)||!In(L.FaultThrowRadiusFraction,0,.05)||!In(L.FaultZoneRadiusFraction,.0001,.1)||!In(L.CrustDepthRadiusFraction,0,1)||!In(L.ContactFeatherFraction,0,.1)||!In(L.DepositionalVariation,0,1))
-    {Error=TEXT("Rock Character requires algorithm 1..5, three units and finite bounded structural controls");return nullptr;}
+    {Error=TEXT("Rock requires the current metric profile, three units and finite bounded structural controls");return nullptr;}
     if(!L.BedDistribution.Validate(Error))return nullptr;
     auto Out=MakeShared<FCLCompiledRock>();Out->Layer=L;Out->Radius=R;Out->Datum=Max;Out->Basement=FMath::Max(0.,Min-L.CrustDepthRadiusFraction*R);Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(Crust);
     TSet<FGuid> Ids;
@@ -44,9 +56,7 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& I
         {FCLRockFolding F;const int32 Competent=L.Units.IndexOfByPredicate([&](const auto& U){return U.Id==L.FoldCompetentUnit;});if(Competent==INDEX_NONE){Error=TEXT("Folding requires an explicit competent unit from the accepted rock palette");return nullptr;}if(!FCLRockFolding::Resolve(3,L.FoldViscosityContrast,L.FoldShorteningStrain,L.FoldAmplitudeRadiusFraction*R,F,Error))return nullptr;}
         return Out;
     }
-    FRandomStream Random(int32(uint32(Seed)^uint32(L.Seed)^0x434c5231U));Random.GetUnsignedInt();Out->Phase=Random.FRand();
-    // Retain the published sequence draws so existing metric bed identities stay exact.
-    Random.FRandRange(-45,45); Random.FRandRange(-180,180); Random.FRandRange(-180,180);
+    FRandomStream Random(int32(uint32(Seed)^uint32(L.Seed)^0x434c5231U));Out->Phase=Random.FRand();
     Out->Namespace=FGuid(0x434c5231,uint32(Seed),uint32(L.Seed),L.AlgorithmVersion);
     // Current metric deposition.
     {

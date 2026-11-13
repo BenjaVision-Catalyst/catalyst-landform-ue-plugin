@@ -78,13 +78,12 @@ bool FCLRockNativeTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRockPaletteTest,"Catalyst.Landform.Rock.CharacterPaletteAndDefaults",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLRockPaletteTest::RunTest(const FString&)
 {
-    // Default values are part of UE's saved-asset contract, independent of the
-    // current authoring curves. These came from the previous native binary.
+    // Current curated starting values, independent of the Character curves.
     FCLRockLayer Defaults;
-    TestEqual(TEXT("Published default interbeds"),Defaults.InterbedFraction,.39);
-    TestEqual(TEXT("Published default dip"),Defaults.DipDegrees,8.518518518518519);
-    TestEqual(TEXT("Published default response"),Defaults.TectonicResponse,.32592592592592595);
-    TestEqual(TEXT("Published default fault throw"),Defaults.FaultThrowRadiusFraction,.001056000000000001);
+    TestEqual(TEXT("Current starting interbeds"),Defaults.InterbedFraction,.39);
+    TestEqual(TEXT("Current starting dip"),Defaults.DipDegrees,8.518518518518519);
+    TestEqual(TEXT("Current starting response"),Defaults.TectonicResponse,.32592592592592595);
+    TestEqual(TEXT("Current starting fault throw"),Defaults.FaultThrowRadiusFraction,.001056000000000001);
     auto Authored=Defaults;Authored.Seed=817;Authored.FoldCompetentUnit=Authored.Units[1].Id;Authored.FoldViscosityContrast=48;Authored.CrustDepthRadiusFraction=.22;Authored.ContactFeatherFraction=.01;Authored.Units[1].MiningResistance=.63;
     TestEqual(TEXT("New rock uses metric deposition"),Defaults.AlgorithmVersion,5);
     const auto Before=Authored;Authored.ApplyProgression(.58);

@@ -62,6 +62,8 @@ public:
     UFUNCTION(CallInEditor,BlueprintCallable,Category="Landform|Surfaces") bool BakeAppearance(FString& Error);
 #endif
     static UCLSurfaceLibraryAsset* LoadConfigured();
+    /** Native Details options; IDs/revisions remain in the portable recipe. */
+    UFUNCTION() static TArray<FString> GetSurfaceIds();
     virtual FString GetSummaryText() const override {return FString::Printf(TEXT("%d client terrain surfaces"),Library.Entries.Num());}
 protected:
     virtual FString GetPluginNameForPaths() const override {return TEXT("CatalystLandform/Surfaces");}

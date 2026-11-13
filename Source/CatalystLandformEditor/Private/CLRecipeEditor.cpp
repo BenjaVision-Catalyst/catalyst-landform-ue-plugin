@@ -654,6 +654,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLTectonicLiveKnobTest;
     friend class FCLTectonicAdvancedTest;
     friend class FCLRockDesignerTest;
+    friend class FCLRockMaterialEditorTest;
     friend class FCLSurfaceDesignerTest;
     friend class FCLWatershedDesignerTest;
     friend class FCLProvinceEditorTest;
@@ -733,10 +734,12 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     IDetailCategoryBuilder* RockAdvanced=nullptr;
     TArray<TSharedPtr<IPropertyHandle>> ContinentalAdvancedProperties;
     TSharedPtr<SButton> ContinentalVariation,TectonicVariation;
+    TSharedPtr<SButton> RockMaterialsButton;
     TSharedPtr<FStructOnScope> ContinentalDraft;
     TSharedPtr<SSlider> ContinentalSlider;
     TArray<TSharedPtr<IDetailsView>> PlanetInspectors;
     TSharedPtr<SWidgetSwitcher> InspectorPages;
+    static constexpr int32 BuiltInInspectorCount=4;
     int32 InspectorPage=1;
     TArray<TSharedRef<ICLPlanetBuilderExtension>> BuilderExtensions;
     TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
@@ -744,7 +747,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     {
         InspectorPage=Page;
         if(Globe)Globe->SetBuilderOverlay(nullptr);
-        for(int32 I=0;I<BuilderExtensions.Num();++I)BuilderExtensions[I]->SetActive(Page==I+5);
+        for(int32 I=0;I<BuilderExtensions.Num();++I)BuilderExtensions[I]->SetActive(Page==I+BuiltInInspectorCount);
     }
     bool bContinentalDragging=false;
     double PendingContinentalStrength=.7,AppliedContinentalStrength=.7;
@@ -1069,7 +1072,12 @@ public:
         }
         else if((Property->GetOwnerStruct()==FCLRockLayer::StaticStruct()||Property->GetOwnerStruct()==FCLRockUnit::StaticStruct())&&RockDraft)
         {
-            if(!CommitRock(*reinterpret_cast<const FCLRockLayer*>(RockDraft->GetStructMemory())))
+            auto Layer=*reinterpret_cast<const FCLRockLayer*>(RockDraft->GetStructMemory());
+            if(Event.Property&&Event.Property->GetFName()==GET_MEMBER_NAME_CHECKED(FCLRockUnit,SurfaceId))
+                if(const auto* Library=UCLSurfaceLibraryAsset::LoadConfigured())for(int32 I=0;I<Layer.Units.Num();++I)
+                    if(LayeredRecipe().Rock.Units.IsValidIndex(I)&&Layer.Units[I].SurfaceId!=LayeredRecipe().Rock.Units[I].SurfaceId)
+                        if(const auto* Entry=Library->Library.Entries.FindByPredicate([&](const auto& E){return E.Id==Layer.Units[I].SurfaceId;}))Layer.Units[I].SurfaceRevision=Entry->Revision;
+            if(!CommitRock(MoveTemp(Layer)))
                 *reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
         }
     }
@@ -1301,6 +1309,12 @@ public:
         InspectorError.Reset();TUniquePtr<FScopedTransaction> Tx;if(!RockTransaction)Tx=MakeUnique<FScopedTransaction>(FText::FromString(TEXT("Change rock character")));
         A->Modify();A->Recipe=MoveTemp(R);A->MarkPackageDirty();A->PostEditChange();return true;
     }
+    bool BindRockMaterials()
+    {
+        FString Error;const auto Library=FCLCompiledSurfaceLibrary::Resolve(Error);auto Layer=LayeredRecipe().Rock;
+        if(!Library||!Layer.BindBedrockMaterials(*Library,Error)){InspectorError=Error;return false;}
+        return CommitRock(MoveTemp(Layer));
+    }
     void BeginRockDrag()
     {
         if(bRockDragging)return;bRockDragging=true;PendingRock=AppliedRock=LayeredRecipe().Rock.Character;LastRockApply=0;
@@ -1321,11 +1335,15 @@ public:
     }
     void BuildRockAdvanced(IDetailCategoryBuilder& Category)
     {
+        InspectorRow(Category,TEXT("Materials"),SAssignNew(RockMaterialsButton,SButton).Text(FText::FromString(TEXT("Use rock materials")))
+            .IsEnabled_Lambda([this]{return LayeredRecipe().Rock.bEnabled&&!bRockDragging;})
+            .ToolTipText(FText::FromString(TEXT("Bind the three units to solid-rock materials. Geological identity, beds and mining properties are preserved. Individual bindings remain editable below.")))
+            .OnClicked_Lambda([this]{BindRockMaterials();return FReply::Handled();}));
         RockDraft=MakeShared<FStructOnScope>(FCLRockLayer::StaticStruct());*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
         AddLayerAdvanced(Category,RockDraft.ToSharedRef(),{TEXT("AlgorithmVersion"),TEXT("bEnabled"),TEXT("Character"),TEXT("BedDistribution")},
             TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Rock.bEnabled&&!bRockDragging;}),RockAdvancedProperties,false);
         RockBedDraft=MakeShared<FStructOnScope>(FCLRockBedDistribution::StaticStruct());*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
-        AddLayerAdvanced(Category,RockBedDraft.ToSharedRef(),{},TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Rock.bEnabled&&LayeredRecipe().Rock.AlgorithmVersion>=5&&!bRockDragging;}),RockBedProperties,false);
+        AddLayerAdvanced(Category,RockBedDraft.ToSharedRef(),{},TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Rock.bEnabled&&!bRockDragging;}),RockBedProperties,false);
 
     }
     void BuildContinentalAdvanced(IDetailCategoryBuilder& Category)
@@ -1481,6 +1499,9 @@ public:
             InspectorRow(C,TEXT("Radial Guides"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::RadialGuidesMenu)
                 .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.RadialGuides.Name);})]);
             Add(C,TEXT("BaseSurfaceNormalized"),true);Add(C,TEXT("Seed"),true);
+            const auto Surfaces=Property(TEXT("SurfaceStack"));Surfaces->SetPropertyDisplayName(FText::FromString(TEXT("Fallback surface rules")));
+            Surfaces->SetToolTipText(FText::FromString(TEXT("Material rules used when Rock is disabled. Enabled Rock owns exposed geological materials.")));
+            C.AddProperty(Surfaces,EPropertyLocation::Advanced);
             C.AddProperty(B.GetProperty(GET_MEMBER_NAME_CHECKED(UCLPlanetRecipeAsset,RadialGuideLibrary)),EPropertyLocation::Advanced);
             InspectorRow(C,TEXT("Guide set"),SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().FillWidth(1)[SNew(SInlineEditableTextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"))
@@ -1524,7 +1545,7 @@ public:
             BuildTectonicAdvanced(T);T.SetShowAdvanced(false);
             auto& R=B.EditCategory(TEXT("RockLayer"),FText::FromString(TEXT("Rock")));R.SetSortOrder(2);RockAdvanced=&R;
             R.HeaderContent(GeologyHeader(2,TEXT("Rock"),TAttribute<bool>::CreateLambda([this]{return LayeredRecipe().Rock.bEnabled;}),
-                [this]{auto L=LayeredRecipe().Rock;L.bEnabled=!L.bEnabled;if(L.bEnabled&&L.AlgorithmVersion<5)L.ApplyProgression(L.Character);CommitRock(L);},
+                [this]{auto L=LayeredRecipe().Rock;L.bEnabled=!L.bEnabled;CommitRock(L);},
                 SNew(SHorizontalBox).IsEnabled_Lambda([this]{return LayeredRecipe().Rock.bEnabled;})
                 +SHorizontalBox::Slot().FillWidth(1).Padding(0,0,8,0)[SAssignNew(RockSlider,SSlider)
                     .Value_Lambda([this]{return float(bRockDragging?PendingRock:LayeredRecipe().Rock.Character);})
@@ -1584,8 +1605,6 @@ public:
             if(RecipeAsset()->Recipe.SchemaVersion>=18)
             {Add(C,TEXT("Volumes"),true);}
         }
-        else if(Page==3)
-        {auto& C=B.EditCategory(TEXT("GroundMaterials"),FText::FromString(TEXT("Surface")));Add(C,TEXT("SurfaceStack"));}
         else
         {
             auto& C=B.EditCategory(TEXT("Presentation"),FText::FromString(TEXT("View")));C.SetSortOrder(0);
@@ -1627,9 +1646,10 @@ public:
         GenerationPanel=SNew(SCLRegionGenerationPanel).Asset(RecipeAsset()).MenusOnly(true)
             .OnSelectRegion(FOnCLGeneratedRegionSelection::CreateLambda([this](FGuid Id){if(Globe)Globe->SelectGeneratedRegion(Id);}));
         const auto Tabs=SNew(SHorizontalBox);SAssignNew(InspectorPages,SWidgetSwitcher).WidgetIndex_Lambda([this]{return InspectorPage;});
-        const TCHAR* Names[]={TEXT("Planet"),TEXT("Geology"),TEXT("Landforms"),TEXT("Surface"),TEXT("Preview")};
+        const TCHAR* Names[]={TEXT("Planet"),TEXT("Geology"),TEXT("Landforms"),TEXT("Preview")};
+        static_assert(UE_ARRAY_COUNT(Names)==BuiltInInspectorCount);
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
-        for(int32 Page=0;Page<5;++Page)
+        for(int32 Page=0;Page<BuiltInInspectorCount;++Page)
         {
             Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
                 .IsChecked_Lambda([this,Page]{return InspectorPage==Page?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
@@ -1648,7 +1668,7 @@ public:
         BuilderExtensions.Reset();
         for(const auto& Provider:FCLPlanetBuilderExtensions::Providers())
         {
-            const int32 Page=5+BuilderExtensions.Num();
+            const int32 Page=BuiltInInspectorCount+BuilderExtensions.Num();
             FCLPlanetBuilderContext Context;Context.Planet=RecipeAsset();
             Context.GetPlan=[Weak]{if(auto E=Weak.Pin())return E->AcceptedSurfacePlan;return TSharedPtr<const FCLCompiledPlanetRecipe>();};
             Context.PublishOverlay=[Weak,Page](TSharedPtr<const FCLPlanetBuilderOverlay> Overlay)
@@ -1728,6 +1748,8 @@ UCLPlanetRecipeFactory::UCLPlanetRecipeFactory()
 { SupportedClass = UCLPlanetRecipeAsset::StaticClass(); bCreateNew = true; bEditAfterNew = true; }
 UObject* UCLPlanetRecipeFactory::FactoryCreateNew(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject*, FFeedbackContext*)
 { auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();A->Recipe.Caves.AlgorithmVersion=9;A->Recipe.SurfaceStack=FCLSurfaceStack::MakeDefault();
+    FString MaterialError;const auto Materials=FCLCompiledSurfaceLibrary::Resolve(MaterialError);
+    if(!Materials||!A->Recipe.Rock.BindBedrockMaterials(*Materials,MaterialError)){UE_LOG(LogTemp,Error,TEXT("Cannot create planet: %s"),*MaterialError);return nullptr;}
     if (auto* Library = UCLRadialGuideLibraryAsset::LoadExamples())
     {
         FString Error;
@@ -2334,6 +2356,62 @@ bool FCLRockDesignerTest::RunTest(const FString&)
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FLayoutReview>(this,E,A.Get()));return true;
 }
 }
+namespace {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRockMaterialEditorTest,"Catalyst.Landform.Rock.PlanetMaterialBindingsAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLRockMaterialEditorTest::RunTest(const FString&)
+{
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/RockBedsExcavation.json")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/RockMaterialReview_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));
+    if(!A->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    A->Recipe.Caves.bEnabled=false;const auto Original=A->Recipe;A->GetOutermost()->SetDirtyFlag(false);
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->AwaitEvaluationForTesting();
+    TestTrue(TEXT("Opening Planet preserves authored material bindings"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
+    TestFalse(TEXT("Opening the editor leaves authoring clean"),A->GetOutermost()->IsDirty());
+    TestEqual(TEXT("Material ownership stays in four built-in Planet sections"),E->PlanetInspectors.Num(),4);
+    E->RockMaterialsButton->SimulateClick();const auto Bound=A->Recipe;
+    TestEqual(TEXT("The native Rock action binds solid rock"),Bound.Rock.Units[0].SurfaceId,FName(TEXT("StrongRock")));
+    GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores the whole material action"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
+    const auto Units=*E->RockAdvancedProperties.FindByPredicate([](const auto& H){return H->GetProperty()->GetFName()==TEXT("Units");});
+    const auto Material=Units->GetChildHandle(0)->GetChildHandle(TEXT("SurfaceId"));
+    TArray<FString> Options;TArray<FText> Tips;TArray<bool> Restricted;
+    Material->GeneratePossibleValues(Options,Tips,Restricted,nullptr);
+    TestTrue(TEXT("The native material dropdown resolves installed rock choices"),Options.Contains(TEXT("StrongRock"))&&Options.Contains(TEXT("MixedRock"))&&Options.Contains(TEXT("WeakRock")));
+    TestEqual(TEXT("Native unit material selection succeeds"),Material->SetValue(FName(TEXT("WeakRock"))),FPropertyAccess::Success);
+    TestEqual(TEXT("Native selection commits the new material ID"),A->Recipe.Rock.Units[0].SurfaceId,FName(TEXT("WeakRock")));
+    TestEqual(TEXT("ID and resolved revision change atomically"),A->Recipe.Rock.Units[0].SurfaceRevision,1);
+    GEditor->UndoTransaction();TestTrue(TEXT("One Undo restores both material ID and revision"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Original,&A->Recipe,0));
+    GEditor->RedoTransaction();TestEqual(TEXT("Redo restores the resolved revision"),A->Recipe.Rock.Units[0].SurfaceRevision,1);
+    E->BindRockMaterials();
+    E->InspectorPage=1;E->PlanetInspectors[1]->SetRootExpansionStates(false,false);
+    auto Layer=FindFProperty<FProperty>(FCLRockLayer::StaticStruct(),TEXT("Units"));
+    FPropertyPath Path;Path.AddProperty(FPropertyInfo(Layer));E->PlanetInspectors[1]->ScrollPropertyIntoView(Path,true);
+    class FReview final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;
+        double Start=FPlatformTime::Seconds(),Stable=0;bool Framed=false;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A):Test(T),Editor(E),Asset(A){}
+        bool Update()override
+        {
+            auto Close=[&]{Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
+            const double Now=FPlatformTime::Seconds();if(Now-Start>150){Test->AddError(TEXT("Rock material Planet preview did not become ready"));return Close();}
+            if(Editor->EvaluationUpdating()){Stable=0;return false;}
+            if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){GShaderCompilingManager->FinishAllCompilation();Stable=0;return false;}
+            if(!Framed){Editor->Globe->SetGlobeGrid(false);Editor->Globe->SetGuides(Asset->Recipe.RadialGuides,false);Editor->Globe->FrameLandformForTesting(FVector::ZAxisVector,FVector::XAxisVector,30,FVector2D(.7,.7));Framed=true;return false;}
+            if(!Stable){Stable=Now;return false;}if(Now-Stable<1)return false;
+            auto* Native=Editor->Globe->NativeForTesting();int32 NativeVertices=0;
+            if(Native){const auto Probe=Native->SamplePublishedVerticesForTesting(NativeVertices,32);Test->TestTrue(TEXT("Bounded inspection samples the displayed native mesh"),!Probe.Vertices.IsEmpty());}
+            Test->TestTrue(TEXT("Planet shows native VPP rock geometry"),Native&&Native->UsesNativePresentation()&&NativeVertices>0&&Editor->Globe->IsSurfaceReady(Editor->AcceptedSurfacePlan));
+            TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Rebound quarry renders in Planet"),FSlateApplication::Get().TakeScreenshot(Editor->Globe.ToSharedRef(),Pixels,Size));
+            if(!Pixels.IsEmpty()){const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/rock-materials");IFileManager::Get().MakeDirectory(*Dir,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/TEXT("planet-quarry.png")));}
+            if(FParse::Param(FCommandLine::Get(),TEXT("KeepRockMaterialReview")))return true;
+            return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get()));return !HasAnyErrors();
+}
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLRockRenderedTest,"Catalyst.Landform.Rock.NativeRenderedReview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLRockRenderedTest::RunTest(const FString&)
 {
@@ -2568,7 +2646,7 @@ bool FCLAuthoringLayoutTest::RunTest(const FString&)
         bool Update()override
         {
             const double Now=FPlatformTime::Seconds();auto Close=[&]{Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
-            if(!Started){Editor->InspectorPage=Step==0||Step>=4?0:Step==3?4:1;Started=Now;return false;}if(Now-Started<.6)return false;
+            if(!Started){Editor->InspectorPage=Step==0||Step>=4?0:Step==3?3:1;Started=Now;return false;}if(Now-Started<.6)return false;
             const auto View=Editor->PlanetInspectors[Editor->InspectorPage];FWidgets W;Inspect(View.ToSharedRef(),W);TSharedPtr<SButton> Toggle;
             if(Step==0)
             {
@@ -2937,7 +3015,7 @@ bool FCLPlanetLandformInfoTest::RunTest(const FString&)
             }
             if(Stage==0)
             {
-                FString Text;TFunction<void(TSharedRef<SWidget>)> Collect=[&](TSharedRef<SWidget> W){if(W->GetType()==FName(TEXT("STextBlock")))Text+=StaticCastSharedRef<STextBlock>(W)->GetText().ToString()+TEXT(";");auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)Collect(C->GetChildAt(I));};Collect(E->LandformRows.ToSharedRef());Collect(E->PlanetInspectors[4].ToSharedRef());Test->TestFalse(TEXT("No Landforms instruction banner"),Text.Contains(TEXT("Choose Landforms"))||Text.Contains(TEXT("Eye and Solo affect")));Test->TestFalse(TEXT("Preview has no Province cells checkbox"),Text.Contains(TEXT("Province cells")));
+                FString Text;TFunction<void(TSharedRef<SWidget>)> Collect=[&](TSharedRef<SWidget> W){if(W->GetType()==FName(TEXT("STextBlock")))Text+=StaticCastSharedRef<STextBlock>(W)->GetText().ToString()+TEXT(";");auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)Collect(C->GetChildAt(I));};Collect(E->LandformRows.ToSharedRef());Collect(E->PlanetInspectors[3].ToSharedRef());Test->TestFalse(TEXT("No Landforms instruction banner"),Text.Contains(TEXT("Choose Landforms"))||Text.Contains(TEXT("Eye and Solo affect")));Test->TestFalse(TEXT("Preview has no Province cells checkbox"),Text.Contains(TEXT("Province cells")));
                 Evaluations=E->Evaluation.Started;Owner=N->WorldIdentity();Copies=N->Metrics.MeshCopies;
             }
             const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/landform-info");IFileManager::Get().MakeDirectory(*Dir,true);TArray<FColor> Pixels;FIntVector Size;

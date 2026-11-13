@@ -23,8 +23,8 @@ struct CATALYSTLANDFORM_API FCLRockUnit
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double FracturePotential=0;
     /** Declared soluble-host capability; the first dissolution family accepts carbonate only. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double DissolutionPotential=0;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite) FName SurfaceId=TEXT("Rock");
-    UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 SurfaceRevision=2;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(DisplayName="Exposed rock material",GetOptions="CatalystLandform.CLSurfaceLibraryAsset.GetSurfaceIds")) FName SurfaceId=TEXT("Rock");
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(DisplayName="Material revision")) int32 SurfaceRevision=2;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double MiningResistance=.8;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Erodibility=.2;
 };
@@ -75,15 +75,17 @@ struct CATALYSTLANDFORM_API FCLRockLayer
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double CrustDepthRadiusFraction=.15;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1")) double ContactFeatherFraction=.015;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLRockUnit> Units;
-    /** Algorithm 3: onlap over crust- and extension-conditioned basement relief. */
+    /** Onlap over crust- and extension-conditioned basement relief. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double DepositionalVariation=0;
     /** Effective competent-bed / weak-matrix Newtonian viscosity ratio; independent of mining hardness. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="1000")) double FoldViscosityContrast=64;
     /** Maximum shortening proxy under the existing local compression field. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.15")) double FoldShorteningStrain=.08;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion >= 4",EditConditionHides)) FGuid FoldCompetentUnit;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion >= 5",EditConditionHides)) FCLRockBedDistribution BedDistribution;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FGuid FoldCompetentUnit;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLRockBedDistribution BedDistribution;
     void ApplyProgression(double Position);
+    /** Explicit appearance-only rebind; structural and geological values stay exact. */
+    bool BindBedrockMaterials(const FCLCompiledSurfaceLibrary& Library,FString& Error);
 };
 
 USTRUCT(BlueprintType)

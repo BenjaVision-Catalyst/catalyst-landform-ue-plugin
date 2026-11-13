@@ -15,6 +15,15 @@ temporary checkout paths, retired editor, or superseded generator required.
 Keep one Planet editor. Remove obsolete implementation paths rather than
 retaining alternative editor/algorithm dispatch under compatibility aliases.
 
+## Development format
+
+The first supported product release will be version 1. During development there
+is one current model: do not retain old algorithms, compatibility aliases,
+migrations or frozen defaults for backward compatibility. Internal schema/profile
+tags identify current data; they are not promises to execute earlier models.
+Update maintained fixtures explicitly when formats change. Preserve the user's
+current authoring work and never save testing experiments.
+
 ## Cave generation
 
 When Caves is enabled, every valid planet recipe must produce at least one real,

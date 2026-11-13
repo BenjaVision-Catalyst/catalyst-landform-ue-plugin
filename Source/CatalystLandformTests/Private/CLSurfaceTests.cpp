@@ -63,7 +63,7 @@ bool FCLSurfaceParityTest::RunTest(const FString&)
     const double Start=FPlatformTime::Seconds();TArray<FCLSurfaceWeights> W;P->SampleSurfaceWeights(D,W);const double Seconds=FPlatformTime::Seconds()-Start;
     const auto Worker=Async(EAsyncExecution::ThreadPool,[P,D]{TArray<FCLSurfaceWeights> V;P->SampleSurfaceWeights(D,V);return V;});const auto Frozen=Worker.Get();
     double SumError=0,Repeat=0,Min=1,Max=0;int32 Counts[8]={};for(int32 I=0;I<D.Num();++I){double Sum=0;int32 Dominant=0;for(int32 K=0;K<8;++K){Sum+=W[I].Values[K];Min=FMath::Min(Min,W[I].Values[K]);Max=FMath::Max(Max,W[I].Values[K]);if(W[I].Values[K]>W[I].Values[Dominant])Dominant=K;}++Counts[Dominant];SumError=FMath::Max(SumError,FMath::Abs(Sum-1));Repeat=FMath::Max(Repeat,SurfaceDifference(W[I],Frozen[I]));}
-    TestTrue(TEXT("Every point has bounded normalized material ownership"),SumError<1.e-10&&Min>=0&&Max<=1.00000001);TestEqual(TEXT("Worker snapshots preserve exact surface decisions"),Repeat,0.);for(int32 I=0;I<3;++I)TestTrue(TEXT("Each authored surface dominates real terrain samples"),Counts[I]>0);
+    TestTrue(TEXT("Every point has bounded normalized material ownership"),SumError<1.e-10&&Min>=0&&Max<=1.00000001);TestEqual(TEXT("Worker snapshots preserve exact surface decisions"),Repeat,0.);for(const FName Id:{FName(TEXT("Rock")),FName(TEXT("Scree")),FName(TEXT("Soil"))})TestTrue(TEXT("Each authored surface dominates real terrain samples"),Counts[P->Surfaces->Find(Id,2)]>0);
     FCLPlanetStamp S;S.bUseRecipe=true;S.Radius=R.RadiusMeters*100;S.Recipe=R;S.Behavior=EVoxelStampBehavior::AffectAll;const auto Runtime=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr,FVoxelStampRef::New(S),nullptr));if(!Runtime){AddError(TEXT("Native surface stamp failed"));return false;}
     FVoxelDependencyCollector Dep(STATIC_FNAME("CL.Surfaces"));const auto Table=FVoxelSurfaceTypeTable::Get();const FVoxelQuery Query(0,FVoxelLayers::Empty(),*Table,Dep);TArray<double> H;P->SampleHeightsMeters(D,H);FVoxelDoubleVectorBuffer Points;Points.Allocate(D.Num());for(int32 I=0;I<D.Num();++I)Points.Set(I,D[I]*(R.RadiusMeters+H[I])*100);
     TVoxelArray<float> Distances;Distances.SetNumUninitialized(D.Num());for(float& V:Distances)V=1.e10f;TVoxelArray<FVoxelSurfaceTypeBlend> Native;Native.SetNum(D.Num());
@@ -75,7 +75,7 @@ bool FCLSurfaceParityTest::RunTest(const FString&)
     TestEqual(TEXT("Designer evaluates the same final field masks"),PreviewError,0.);
     // Material selection never depends on face owner or world Z: a flat sphere is equally gentle everywhere.
     auto Flat=R;Flat.BaseStructure.Reset();Flat.RegionGeneration.bEnabled=false;Flat.NoiseLayers.Reset();Flat.SurfaceStack=R.RegionGeneration.Palette[2].SurfaceStack;const auto F=FCLPlanetCompiler::Compile(Flat,E);if(!F){AddError(E);return false;}TArray<FCLSurfaceWeights> FW;F->SampleSurfaceWeights(D,FW);for(const auto& V:FW)TestTrue(TEXT("Radial up treats poles, equator and underside as flat"),V.Values[P->Surfaces->Find(TEXT("Soil"),2)]>.8);
-    AddInfo(FString::Printf(TEXT("Surface parity: %d spherical samples / %d section vertices, weights %.9g, native %.9g / %.9g cm field; %.3f seconds mask evaluation; dominant %d/%d/%d"),D.Num(),SW.Num(),PreviewError,Error,Residual,Seconds,Counts[0],Counts[1],Counts[2]));return true;
+    AddInfo(FString::Printf(TEXT("Surface parity: %d spherical samples / %d section vertices, weights %.9g, native %.9g / %.9g cm field; %.3f seconds mask evaluation; dominant %d/%d/%d"),D.Num(),SW.Num(),PreviewError,Error,Residual,Seconds,Counts[P->Surfaces->Find(TEXT("Rock"),2)],Counts[P->Surfaces->Find(TEXT("Scree"),2)],Counts[P->Surfaces->Find(TEXT("Soil"),2)]));return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSurfaceInheritanceTest,"Catalyst.Landform.Surfaces.LegacySourceInheritance",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLSurfaceInheritanceTest::RunTest(const FString&)
@@ -97,8 +97,9 @@ bool FCLScannedSurfacesTest::RunTest(const FString&)
     auto* Preview=CastChecked<UMaterialInstanceDynamic>(CLMakeSurfacePreviewMaterial(GetTransientPackage(),*L));
     for(int32 I=0;I<L->Ids.Num();++I)
     {
-        const auto& T=L->Textures[I];TestEqual(TEXT("Scanned artwork has an explicit new revision"),L->Revisions[I],2);
-        TestTrue(TEXT("Complete PBR maps retain physical scale"),T.BaseColor&&T.Normal&&T.Roughness&&T.TileMeters>=2&&T.TileMeters<=3);
+        const bool GroundSurface=L->Ids[I]==TEXT("Rock")||L->Ids[I]==TEXT("Scree")||L->Ids[I]==TEXT("Soil");
+        const auto& T=L->Textures[I];TestEqual(TEXT("Artwork keeps its explicit revision"),L->Revisions[I],GroundSurface?2:1);
+        TestTrue(TEXT("Complete PBR maps retain physical scale"),T.BaseColor&&T.Normal&&T.Roughness&&T.TileMeters>=(GroundSurface?2:1)&&T.TileMeters<=3);
         if(!T.BaseColor||!T.Normal||!T.Roughness)return false;
         TestTrue(TEXT("Colour is sRGB, normal and roughness are linear"),T.BaseColor->SRGB&&!T.Normal->SRGB&&!T.Roughness->SRGB);
         TestTrue(TEXT("Close range artwork retains 2K scan detail"),T.BaseColor->GetSizeX()==2048&&T.Normal->GetSizeX()==2048);

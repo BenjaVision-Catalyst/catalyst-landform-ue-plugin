@@ -29,3 +29,8 @@ silently rewritten.
 
 Qualification results and native captures are recorded in
 [the strata evidence](../conformance/CaveStrata/README.md).
+
+The current [rock-material authoring](RockMaterials.md) adds an explicit solid-rock
+rebind in Planet. The original study recipes and authored review assets keep the
+bindings above until explicitly edited. Its new artwork does not amend the
+approved cave anatomy or claim visual acceptance of a later cave family.
