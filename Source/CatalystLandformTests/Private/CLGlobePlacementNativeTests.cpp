@@ -46,6 +46,8 @@ bool FCLPlacedReliefTest::RunTest(const FString&)
     if(!TestNotNull(TEXT("Packaged mountain source"),Source))return false;
     const auto OriginalSource=Source->TerrainType;auto Recipe=Base;FCLTerrainRegion R;R.Id=FGuid::NewGuid();R.Name=TEXT("Grounded mountain");R.bPlacedLandform=true;R.Placement.HalfExtentDegrees=FVector2D(25,20);Recipe.TerrainRegions.Add(R);
     if(!Source->TerrainType.ApplyToRegion(Recipe,R.Id,Error)){AddError(Error);return false;}
+    // Isolate a purely additive mountain stamp from the carrier's signed ridges/valleys.
+    Recipe.TerrainRegions[0].NoiseLayers.RemoveAll([](const auto& L){return L.Operation!=ECLTerrainOperation::StampDistribution;});
     const auto Prepared=FCLPlanetCompiler::PrepareBackground(Recipe,Error);
     const auto Placed=Prepared?FCLPlanetCompiler::CompleteBackground(*Prepared,MakeShared<FCLCompileProgress>(),Error):nullptr;
     if(!Placed){AddError(Error);return false;}
@@ -74,5 +76,43 @@ bool FCLPlacedReliefTest::RunTest(const FString&)
     const FVector Centre=Region.Placement.Orientation.GetAxisZ();TestTrue(TEXT("Signed additive valley remains below the local geological surface"),Valley->SampleHeightMeters(Centre)<Ground->SampleHeightMeters(Centre)-5);
     AddInfo(FString::Printf(TEXT("Grounded relief: %d inside / %d outside; %.3f m peak; %.9g cm native residual"),Inside,Outside,Peak,Residual));return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlacedSignedBlendTest,"Catalyst.Landform.PlanetBuilder.SignedReliefPreservesTerrain",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlacedSignedBlendTest::RunTest(const FString&)
+{
+    auto R=FCLPlanetCompiler::TectonicBase();R.BaseSurfaceNormalized=.75;FString Error;
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/DA_MountainRidgesSpherical"));if(!Source)return false;
+    const auto Original=Source->TerrainType;FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=TEXT("Signed ridge field");Region.bPlacedLandform=true;R.TerrainRegions.Add(Region);
+    if(!Source->TerrainType.ApplyToRegion(R,Region.Id,Error)){AddError(Error);return false;}
+    // Isolate the absolute carrier; stamps and explicitly signed detail must not
+    // become part of the carrier datum or create a uniform elevation pedestal.
+    R.TerrainRegions[0].NoiseLayers.SetNum(1);
+    const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}const auto& Placed=P->Regions.Last();
+    TArray<FVector> D;TArray<double> W;constexpr int32 Side=97;
+    for(int32 Y=0;Y<Side;++Y)for(int32 X=0;X<Side;++X)
+    {
+        const FVector2D A=Placed.Placement.HalfExtentRadians*FVector2D(2.*(X+.37)/Side-1,2.*(Y+.63)/Side-1);
+        const FVector V=FCLGlobePlacementEditing::Direction(A);D.Add(Placed.Placement.Orientation.RotateVector(V));
+        W.Add(A.Size()>1.e-12?FMath::Sin(A.Size())/A.Size():1.);
+    }
+    TArray<double> H,B;P->SampleHeightsMeters(D,H);P->PlacedSurface->SampleHeightsMeters(D,B);
+    double Sum=0,Area=0,Low=0,High=0;int32 Outside=0;
+    for(int32 I=0;I<D.Num();++I)
+    {
+        const double Delta=H[I]-B[I];Sum+=Delta*W[I];Area+=Placed.Placement.Weight(D[I])*W[I];Low=FMath::Min(Low,Delta);High=FMath::Max(High,Delta);
+        if(Placed.Placement.Weight(D[I])==0){++Outside;TestEqual(TEXT("Zero influence leaves the original terrain exact"),H[I],B[I]);}
+    }
+    TestTrue(TEXT("Carrier adds ridges and removes valleys instead of raising an oval pedestal"),Low<-.5&&High>.5&&FMath::Abs(Sum/Area)<.15&&Outside>100);
+    // A uniform additive brush is relative to every individual ground sample.
+    for(double Delta:{-12.,12.})
+    {
+        auto Changed=R;auto& L=Changed.TerrainRegions[0].NoiseLayers[0];L.Blend=ECLNoiseBlend::Add;L.Minimum.Mode=L.Maximum.Mode=ECLHeightReferenceMode::IntervalDelta;L.Minimum.Fraction=L.Maximum.Fraction=0;L.Minimum.OffsetMeters=L.Maximum.OffsetMeters=Delta;
+        const auto Q=FCLPlanetCompiler::Compile(Changed,Error);if(!Q){AddError(Error);return false;}TArray<double> V;Q->SampleHeightsMeters(D,V);
+        for(int32 I=0;I<D.Num();++I)TestTrue(TEXT("Positive and negative brushes add signed relief to varying local terrain"),FMath::IsNearlyEqual(V[I],B[I]+Delta*Placed.Placement.Weight(D[I]),1.e-7));
+    }
+    TestTrue(TEXT("Relative fitting preserves the reusable source asset"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&Original,&Source->TerrainType,0));
+    AddInfo(FString::Printf(TEXT("Signed carrier: %.4f m mean change, %.3f..%.3f m relief; %d untouched exterior samples"),Sum/Area,Low,High,Outside));return true;
+}
+
 
 #endif

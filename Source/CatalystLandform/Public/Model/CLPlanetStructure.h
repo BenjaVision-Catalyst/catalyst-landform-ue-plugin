@@ -20,7 +20,7 @@ struct CATALYSTLANDFORM_API FCLLandformPlacement
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(DisplayName="Angular half extents",Units="deg")) FVector2D HalfExtentDegrees=FVector2D(35,25);
     /** Fraction of each half extent occupied by a smooth quintic transition. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.01",ClampMax="1")) double TransitionFraction=.4;
-    /** Source relief relative to the planet's neutral ground, before structure is added once. */
+    /** Signed source relief added to or removed from the finished local terrain. */
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Strength=1;
 };
 

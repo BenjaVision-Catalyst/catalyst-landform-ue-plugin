@@ -1,4 +1,5 @@
 #include "CLPlanetPreview.h"
+#include "Model/CLTerrainType.h"
 #include "PlanetBuilder/CLPlanetBuilderExtensions.h"
 #include "CLWatershedDebug.h"
 #include "Scene/CLScene.h"
@@ -1891,3 +1892,52 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
 #endif
 
 void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverlay> Overlay){if(Client){Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();}}
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLPlacedFitRenderedTest,"Catalyst.Landform.PlanetBuilder.TerrainRelativeBlendRendered",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+void FCLPlacedFitRenderedTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const
+{
+    Names.Add(TEXT("Reference"));Commands.Add(TEXT("reference"));
+    if(FPaths::FileExists(FPaths::ProjectSavedDir()/TEXT("LandformTerrainFit/session.json"))){Names.Add(TEXT("CurrentReview"));Commands.Add(TEXT("review"));}
+}
+bool FCLPlacedFitRenderedTest::RunTest(const FString& Parameter)
+{
+    FString Error;auto R=FCLPlanetCompiler::TectonicBase();R.BaseSurfaceNormalized=.75;
+    if(Parameter==TEXT("review"))
+    {
+        FString Text;FFileHelper::LoadFileToString(Text,*(FPaths::ProjectSavedDir()/TEXT("LandformTerrainFit/session.json")));TSharedPtr<FJsonObject> O;
+        if(!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text),O)||!FCLPlanetRecipe::StaticStruct()->ImportText(*O->GetStringField(TEXT("recipe")),&R,nullptr,PPF_None,GWarn,TEXT("Current terrain review")))return false;
+    }
+    else
+    {
+        auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/DA_MountainRidgesSpherical"));if(!Source)return false;
+        FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=TEXT("Relative mountain relief");Region.bPlacedLandform=true;R.TerrainRegions.Add(Region);
+        if(!Source->TerrainType.ApplyToRegion(R,Region.Id,Error)){AddError(Error);return false;}
+    }
+    const auto Plan=FCLPlanetCompiler::Compile(R,Error);if(!Plan){AddError(Error);return false;}
+    auto Before=MakeShared<FCLCompiledPlanetRecipe>(*Plan);
+    for(auto& Region:Before->Regions)if(Region.bPlacedLandform)
+    {
+        Region.ReliefDatumMeters=Region.Field->BaseHeightMeters;
+        for(const auto& L:Region.Field->Layers)if(L.Operation==ECLTerrainOperation::Noise&&L.Blend==ECLNoiseBlend::Override)Region.ReliefDatumMeters=L.Minimum;
+    }
+    const auto& Placement=Plan->Regions.Last().Placement;const FVector Up=Placement.Orientation.GetAxisZ(),Along=Placement.Orientation.GetAxisX();
+    const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native terrain-relative stamp comparison"))).ClientSize(FVector2D(1100,850))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
+    W->SetGuides(R.RadialGuides,false);W->SetGlobeGrid(false);
+    struct FState{int32 Stage=0;double Start=FPlatformTime::Seconds(),Ready=0;TArray<TSharedPtr<const FCLCompiledPlanetRecipe>> Plans;};auto State=MakeShared<FState>();State->Plans={Before,Plan,Plan->PlacedSurface};W->Rebuild(State->Plans[0]);
+    const FString Directory=FPaths::ProjectSavedDir()/TEXT("LandformTerrainFit")/Parameter;IFileManager::Get().MakeDirectory(*Directory,true);
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Directory,Up,Along]
+    {
+        const double Now=FPlatformTime::Seconds();if(Now-State->Start>180){AddError(TEXT("Native terrain contact review timed out"));FSlateApplication::Get().RequestDestroyWindow(Window);return true;}
+        const auto P=State->Plans[State->Stage];if(!W->IsSurfaceReady(P)||W->IsUpdating())return false;
+        if(State->Ready==0){W->FrameDirectionForTesting(Up,.7);State->Ready=Now;return false;}
+        if(Now-State->Ready<1)return false;
+        const auto V=W->GetSceneViewport();V->Invalidate();V->Draw(false);FlushRenderingCommands();TArray<FColor> Pixels;
+        if(!TestTrue(TEXT("Read native VPP terrain-contact render"),V->ReadPixels(Pixels)&&!Pixels.IsEmpty())){FSlateApplication::Get().RequestDestroyWindow(Window);return true;}
+        TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,Pixels,PNG);const TCHAR* Names[]={TEXT("before.png"),TEXT("after.png"),TEXT("ground.png")};
+        FFileHelper::SaveArrayToFile(PNG,*(Directory/Names[State->Stage]));
+        if(++State->Stage==State->Plans.Num()){FSlateApplication::Get().RequestDestroyWindow(Window);return true;}
+        State->Ready=0;W->Rebuild(State->Plans[State->Stage]);return false;
+    }));return true;
+}
+#endif

@@ -98,3 +98,25 @@ extra Move/Rotate/Scale buttons are removed; viewport W/E/R shortcuts remain.
 This follow-up passes the two existing placed-instance/native-handle editor
 checks and all three installer checks, with the current unsaved planet restored.
 Evidence is in VPPTest58 Saved/LandformToolbarRemoval.
+
+## Signed local terrain blending — 13 November 2026
+
+Placed landforms reference absolute carrier noise to its deterministic local
+footprint mean, excluding additive detail and heightmaps. This removes the
+artificial elevated oval introduced by the prior minimum-height datum. The
+resulting signed displacement adds ridges or removes valleys from the already
+calibrated geology. Heightmap relief, seeds, placement IDs and source assets are
+retained. There is no absolute-surface replacement or whole-planet refitting.
+
+The independent dense-grid regression measures -0.0443 m carrier mean change,
+-21.081..16.561 m local relief and 2,018 exact exterior samples. Positive and
+negative constant brushes retain the complete varying ground height beneath
+them. Native VPP before/after/ground captures cover a portable reference and the
+current unsaved review placement, using the same camera. The native source's
+steep crags remain; this change removes its inherited elevation pedestal rather
+than changing the heightmap anatomy. Evidence: VPPTest58 Saved/LandformTerrainFit.
+
+The final 19-test rendered selection and three installer checks pass on UE
+5.8.4 Mac arm64. The unsaved recipe, guides, Ecosystem settings and source links
+are restored exactly. The historical CurrentRift fixture exclusion recorded
+above remains; no cave anatomy or preview-delivery backend was changed.

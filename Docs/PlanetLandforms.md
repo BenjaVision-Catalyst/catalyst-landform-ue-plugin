@@ -184,9 +184,10 @@ level-actor proxy is introduced.
 
 Manual landforms add metre relief to the finished geological landscape, after
 its global surface-range calibration. Moving or resizing an instance cannot
-recalibrate terrain outside its footprint. Absolute noise overrides use their
-source floor as the relief datum; signed additive layers retain their sign, so
-mountains rise and deliberately subtractive valleys still cut into local ground.
+recalibrate terrain outside its footprint. Absolute noise carriers use a deterministic, area-weighted reference height
+over the placement footprint. Their variations add ridges and remove valleys
+without importing a raised source floor. Explicit additive layers and heightmap
+stamps retain their signed relief; zero relief leaves each ground sample exact.
 The footprint fades continuously to that local ground. Strength scales relief;
 W/E/R edit position, radial heading and footprint size respectively. Native
 rotation-arc hit targets have a small click tolerance and own their drag, so

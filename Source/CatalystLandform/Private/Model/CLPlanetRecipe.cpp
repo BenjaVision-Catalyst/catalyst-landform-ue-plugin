@@ -1023,20 +1023,28 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
         if(!Field){Error=Region.Name+TEXT(": ")+Error;return nullptr;}
         FCLCompiledPlanetRecipe::FRegion CompiledRegion;CompiledRegion.Id=Region.Id;CompiledRegion.Mask=Region.Mask;CompiledRegion.SphericalMask=Region.SphericalMask;CompiledRegion.Field=Field;
         CompiledRegion.bPlacedLandform=Region.bPlacedLandform;
-        // Absolute source stacks carry their own floor. Additive layers retain
-        // their signed displacement, so a canyon still cuts and a mountain rises.
         CompiledRegion.ReliefDatumMeters=Field->BaseHeightMeters;
-        for(const auto& L:Field->Layers)
-        {
-            if(L.Operation==ECLTerrainOperation::Terrace)CompiledRegion.ReliefDatumMeters=L.TerraceHeight(CompiledRegion.ReliefDatumMeters);
-            else if(L.Operation==ECLTerrainOperation::Noise)
-            {
-                if(L.Blend==ECLNoiseBlend::Override)CompiledRegion.ReliefDatumMeters=L.Minimum;
-                else if(L.Blend==ECLNoiseBlend::Max)CompiledRegion.ReliefDatumMeters=FMath::Max(CompiledRegion.ReliefDatumMeters,L.Minimum);
-                else if(L.Blend==ECLNoiseBlend::Min)CompiledRegion.ReliefDatumMeters=FMath::Min(CompiledRegion.ReliefDatumMeters,L.Minimum);
-            }
-        }
         if(Region.bPlacedLandform && !FCLCompiledLandformPlacement::Resolve(Region.Placement,Recipe.BaseStructure,CompiledRegion.Placement,Error))return nullptr;
+        if(Region.bPlacedLandform&&Field->Layers.ContainsByPredicate([](const auto& L){return L.Operation==ECLTerrainOperation::Noise&&L.Blend!=ECLNoiseBlend::Add;}))
+        {
+            // An absolute terrain carrier is not a local elevation pedestal.
+            // Reference its mean over this placement, excluding signed additive
+            // noise and stamps. The remaining field is a signed change to ground.
+            auto Carrier=*Field;
+            Carrier.Layers.RemoveAll([](const auto& L){return L.Operation==ECLTerrainOperation::StampDistribution||(L.Operation==ECLTerrainOperation::Noise&&L.Blend==ECLNoiseBlend::Add);});
+            TArray<FVector> D;TArray<double> W;const auto& P=CompiledRegion.Placement;
+            constexpr int32 Side=25;
+            for(int32 Y=0;Y<Side;++Y)for(int32 X=0;X<Side;++X)
+            {
+                const FVector2D A=P.HalfExtentRadians*FVector2D(2.*(X+.5)/Side-1,2.*(Y+.5)/Side-1);
+                const double Angle=A.Size(),S=Angle>1.e-12?FMath::Sin(Angle)/Angle:1.;const FVector V(A.X*S,A.Y*S,FMath::Cos(Angle));
+                const double Weight=P.Weight(P.Orientation.RotateVector(V))*(Angle>1.e-12?FMath::Sin(Angle)/Angle:1.);
+                if(Weight>0){D.Add(V);W.Add(Weight);}
+            }
+            TArray<double> Heights;Carrier.SampleHeightsMeters(D,Heights);double Sum=0,Total=0;
+            for(int32 I=0;I<Heights.Num();++I){Sum+=Heights[I]*W[I];Total+=W[I];}
+            if(Total>0)CompiledRegion.ReliefDatumMeters=Sum/Total;
+        }
         Plan->Regions.Add(MoveTemp(CompiledRegion));
         Plan->MinimumHeightMeters=FMath::Min(Plan->MinimumHeightMeters,Field->MinimumHeightMeters);
         Plan->MaximumHeightMeters=FMath::Max(Plan->MaximumHeightMeters,Field->MaximumHeightMeters);
