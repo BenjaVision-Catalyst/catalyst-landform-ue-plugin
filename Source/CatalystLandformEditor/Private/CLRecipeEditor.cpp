@@ -566,21 +566,17 @@ public:
     int32 StartedBuilds = 0, AppliedBuilds = 0;
     FKey NavigationButton;
     FVector2D PreviousMouse;
-    bool bWalkPicking=false;
-    double PointerTravel=0;
-    TFunction<void(FVector)> OnWalkPoint;
     virtual FReply OnPreviewMouseButtonDown(const FGeometry&, const FPointerEvent& E) override
     {
         const FKey Button = E.GetEffectingButton();
         if (Button != EKeys::LeftMouseButton && Button != EKeys::MiddleMouseButton && Button != EKeys::RightMouseButton) return FReply::Unhandled();
-        NavigationButton = Button; PreviousMouse = E.GetScreenSpacePosition();PointerTravel=0;
+        NavigationButton = Button; PreviousMouse = E.GetScreenSpacePosition();
         return FReply::Handled().CaptureMouse(SharedThis(this)).SetUserFocus(SharedThis(this));
     }
     virtual FReply OnMouseMove(const FGeometry&, const FPointerEvent& E) override
     {
         if (!HasMouseCapture()) return FReply::Unhandled();
         const FVector2D Delta = E.GetScreenSpacePosition() - PreviousMouse; PreviousMouse = E.GetScreenSpacePosition();
-        PointerTravel+=Delta.Size();
         if (NavigationButton == EKeys::LeftMouseButton) Client->Navigation.Orbit(Delta);
         else if (NavigationButton == EKeys::MiddleMouseButton) Client->Navigation.PanBy(Delta);
         else if (NavigationButton == EKeys::RightMouseButton) Client->Navigation.Dolly(-Delta.Y * .05);
@@ -589,13 +585,6 @@ public:
     virtual FReply OnMouseButtonUp(const FGeometry& G, const FPointerEvent& E) override
     {
         if (!HasMouseCapture() || E.GetEffectingButton() != NavigationButton) return FReply::Unhandled();
-        if(NavigationButton==EKeys::LeftMouseButton&&PointerTravel<4&&bWalkPicking&&NativePreview&&Client->bHasProjection)
-        {
-            const FVector2D Local=G.AbsoluteToLocal(E.GetScreenSpacePosition()),Size=G.GetLocalSize();FVector O,D;
-            const FVector2D Pixel=FVector2D(Client->ViewRect.Min)+Local/FVector2D(FMath::Max(1.,Size.X),FMath::Max(1.,Size.Y))*FVector2D(Client->ViewRect.Size());
-            FSceneView::DeprojectScreenToWorld(Pixel,Client->ViewRect,Client->ViewProjection.Inverse(),O,D);FVector P;
-            if(NativePreview->PickSection(O,D.GetSafeNormal(),P)&&OnWalkPoint)OnWalkPoint(P);
-        }
         NavigationButton = FKey(); return FReply::Handled().ReleaseMouseCapture();
     }
     virtual void OnMouseCaptureLost(const FCaptureLostEvent&) override { NavigationButton = FKey(); }
@@ -766,7 +755,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TArray<TSharedPtr<IPropertyHandle>> TectonicAdvancedProperties;
     TSharedPtr<FStructOnScope> TectonicDraft;
     FGuid WalkRequestId;
-    FString WalkStatus=TEXT("Choose a location on the globe, then walk there.");
+    FString WalkStatus=TEXT("Click the player marker to walk.");
     TSharedPtr<SCLHeightAnnotations> Annotations;
     TSharedPtr<FCLRadialGuideSession> RadialGuidesSession;
     TSharedPtr<FCLSelectionInput> SelectionInput;
@@ -1272,6 +1261,7 @@ public:
     {
         TSharedRef<SWidget> GlobeWidget = SNullWidget::NullWidget;
             GlobeWidget = SAssignNew(Globe,SCLPlanetPreview)
+                .OnWalkRequested(FSimpleDelegate::CreateLambda([this]{WalkHere();}))
                 .OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateSP(this,&FCLRecipeToolkit::CommitGlobePlacement))
                 .OnSelectionChanged(FOnCLGlobeSelectionChanged::CreateSP(this,&FCLRecipeToolkit::SyncPlacedSelection))
                 .OnDeleteSelection(FSimpleDelegate::CreateLambda([this]{DeleteSelectedLandform();}))
@@ -1292,8 +1282,6 @@ public:
                     .BorderBackgroundColor(FLinearColor(.12, .06, .025, .95))
                     [SNew(STextBlock).AutoWrapText(true).ColorAndOpacity(FLinearColor(1, .65, .3))
                         .Text_Lambda([this] { return FText::FromString(Status + TEXT("\nThe displayed terrain does not reflect the current layer settings.")); })]];
-        const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
-        Preview->OnWalkPoint=[Weak](FVector P){if(auto E=Weak.Pin();E&&E->Globe)E->Globe->SetWalkPoint(P);};
         return Content;
     }
     void WalkHere()
@@ -1655,12 +1643,8 @@ public:
                 +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(MeasuredRockBeds.Count?FString::Printf(TEXT("%.1f–%.1f m · %d older beds · mean %.2f m\nBlue: requested bed count · orange: measured count · green: depth share. Excludes terminal partial bed; before erosion/onlap."),MeasuredRockBeds.MinimumMeters,MeasuredRockBeds.MaximumMeters,MeasuredRockBeds.Count,MeasuredRockBeds.TotalMeters/MeasuredRockBeds.Count):TEXT("Move Character to adopt physical beds. Saved profiles retain their original thickness."));})]
                 +SVerticalBox::Slot().AutoHeight()[SNew(SCLRockThicknessPlot).Measured_Lambda([this]{return MeasuredRockBeds;}).Target_Lambda([this]{return TargetRockBeds;})]];
             C.SetShowAdvanced(false);
-            auto& S=B.EditCategory(TEXT("Walking"),FText::FromString(TEXT("Surface inspection")));S.SetSortOrder(1);
-            InspectorRow(S,TEXT("Pick location"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsWalkPicking()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(!bGlobe&&!RecipeAsset()->Recipe.Volumes.bEnabled){bGlobe=true;Refresh();}if(Globe)Globe->SetWalkPicking(V==ECheckBoxState::Checked);if(Preview)Preview->bWalkPicking=V==ECheckBoxState::Checked;}));
-            InspectorRow(S,TEXT("Walk"),SNew(SButton).Text(FText::FromString(TEXT("Walk here")))
-                .IsEnabled_Lambda([this]{return !EvaluationUpdating()&&!bPreviewInvalid&&(bGlobe||RecipeAsset()->Recipe.Volumes.bEnabled)&&Globe&&!Globe->WalkLocation().IsNearlyZero()&&FCLPlanetInspection::Launch.IsBound();})
-                .OnClicked_Lambda([this]{WalkHere();return FReply::Handled();}));
+            InspectorRow(C,TEXT("Player location"),SNew(SCheckBox).IsChecked_Lambda([this]{return Globe&&Globe->IsPlayerLocationVisible()?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(Globe)Globe->SetPlayerLocationVisible(V==ECheckBoxState::Checked);}));
         }
     }
     TSharedRef<SDockTab> SpawnPlanet(const FSpawnTabArgs&)

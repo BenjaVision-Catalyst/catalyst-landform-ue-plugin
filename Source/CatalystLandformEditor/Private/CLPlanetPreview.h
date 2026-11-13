@@ -43,7 +43,7 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport
 {
 public:
-    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_EVENT(FOnCLGlobeSelectionChanged,OnSelectionChanged) SLATE_EVENT(FSimpleDelegate,OnDeleteSelection) SLATE_EVENT(FOnKeyDown,OnEditorKeyDown) SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_EVENT(FOnCLGlobeSelectionChanged,OnSelectionChanged) SLATE_EVENT(FSimpleDelegate,OnWalkRequested) SLATE_EVENT(FSimpleDelegate,OnDeleteSelection) SLATE_EVENT(FOnKeyDown,OnEditorKeyDown) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug=nullptr,bool PreserveWalk=false);
@@ -73,8 +73,8 @@ public:
     bool IsInspectingRegions() const;
     void SelectGeneratedRegion(FGuid Id);
     FGuid GeneratedSelection() const;
-    void SetWalkPicking(bool Enabled);
-    bool IsWalkPicking() const;
+    void SetPlayerLocationVisible(bool Visible);
+    bool IsPlayerLocationVisible() const;
     void SetWalkLocation(FVector Direction);
     FVector WalkLocation() const;
     void SetWalkPoint(FVector BodyMeters);
@@ -127,7 +127,7 @@ private:
     friend class FCLGlobePublicationTest;
     friend class FCLGeologyRenderedTest;
     friend class FCLGlobeOceanTest;
-    friend class FCLGlobeWalkPickingTest;
+    friend class FCLPlayerLocationMarkerTest;
     friend class FCLTectonicGlobeTest;
     friend class FCLContinentalGlobeTest;
     friend class FCLGlobeGuidesTest;
@@ -154,7 +154,9 @@ private:
     FOnCLGlobePlacementCommitted OnPlacementCommitted;
     FOnCLGlobeRegionSelected OnRegionSelected;
     FOnCLGlobeSelectionChanged OnSelectionChanged;
-    FSimpleDelegate OnDeleteSelection;
+    FSimpleDelegate OnDeleteSelection,OnWalkRequested;
+    bool HitPlayerMarker(const FGeometry&,const FPointerEvent&) const;
+    void CancelPlayerDrag();
     FOnKeyDown OnEditorKeyDown;
     bool bWidgetPress=false;
     FGuid ClickGeneratedRegion;
@@ -164,9 +166,9 @@ private:
     double DragScale=1;
     FCLGlobeSelection ClickSelection;
     FVector2D MouseDown;
-    bool bOrbitDrag=false,bPlacementMoved=false,bWalkPicking=false;
-    FVector ClickWalkLocation=FVector::ZeroVector;
-    TOptional<FVector> ClickWalkPoint,WalkSurfacePoint;
+    bool bOrbitDrag=false,bPlacementMoved=false,bPlayerPress=false,bPlayerDragged=false;
+    FVector PlayerDragStart=FVector::ZAxisVector;
+    TOptional<FVector> PlayerDragStartPoint,WalkSurfacePoint;
     TUniquePtr<FPreviewScene> Scene;
     TUniquePtr<FCLNativePreview> NativePreview;
     TSharedPtr<FCLGlobeClient> Client;

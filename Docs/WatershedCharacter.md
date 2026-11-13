@@ -126,7 +126,7 @@ eye toggle, indicator toggle, Character slider and disabled reseed icon. Its cat
 the detailed property rows directly below; there is no separate Advanced button.
 Watershed-local seeded variation is the next separate task. Character dragging is coalesced and has one
 Undo. In **Preview**, **Focus largest channel** points the existing globe camera at a generated
-reach and marks it for the existing **Walk here** host. The indicator icon beside
+reach and positions the player marker for the existing walking host. The indicator icon beside
 the Watershed eye toggles the existing globe diagnostics (initially off), independently
 of terrain visibility. There is no duplicate Preview checkbox:
 blue splines mark active graded reaches, muted blue marks other selected final

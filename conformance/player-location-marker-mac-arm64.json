@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-14",
+  "platform": "UE 5.8.4 Mac arm64, rendered Metal SM6",
+  "previousPublishedRevision": "ceaa6c98f310491f7be22cb416cd4818fcff6d7b",
+  "change": "Plugin-owned player marker replaces walking pick mode/button",
+  "tests": [
+    {
+      "name": "Catalyst.Landform.Inspection.PluginWalkingHost",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.RadialLanding",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.GuideProjection",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.RoutedPlacementHandles",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.RoutedPointerOrbit",
+      "state": "Success"
+    }
+  ],
+  "passed": 6,
+  "failed": 0,
+  "sourceSHA256": {
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.cpp": "db5481d4f64c345a843f7964d956610adc40f7fc7178865b552b6d7244a98738",
+    "Source/CatalystLandformEditor/Private/CLPlanetPreview.h": "fcd48240d400685e81e24300c3ecf1d2649e0a7a8e39bbc8e845ad0a9230d4d4",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "bb663933ef5f43d4f1521b25c7f07b7d5bb3300076c91586a7c8162ab539abae"
+  },
+  "verified": [
+    "Visible north-pole default",
+    "Routed click launches once; drag moves location without launch or orbit",
+    "Escape cancellation, hidden marker, retained empty-space destination",
+    "Far-side discoverability",
+    "Existing native placement handles, orbit and guide projection",
+    "Existing plugin walking host and radial landing"
+  ],
+  "limits": [
+    "Editor rendered input qualification; packaged marker UI is not applicable",
+    "Live current-Planet/PIE acceptance recorded by the consumer host"
+  ]
+}

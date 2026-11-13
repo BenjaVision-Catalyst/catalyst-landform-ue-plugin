@@ -1,9 +1,18 @@
 # Globe-to-ground inspection
 
-In Planet Builder’s left **Surface inspection** panel, enable **Choose walking
-location**, click terrain, then **Walk here**. Picking does not edit Landform
-placements, regions, guides or geometry. Empty space clears the destination.
-Normal viewport orbit remains available.
+The Planet globe shows a **player location** icon by default, initially at the
+north pole. Drag the icon onto native terrain to move it. Release places it;
+clicking the icon without dragging starts walking. Drag elsewhere to orbit.
+Preview’s **Player location** checkbox controls visibility. Native Landform
+transform handles retain precedence where they overlap the icon. There is no picking
+mode or Walk button. The icon remains discoverable in a muted colour on the far
+side and at the viewport edge when its projection is outside the view.
+
+Dragging never launches PIE, or edits Landform placements, regions, guides or
+geometry. Off-surface drag motion keeps the last valid point. Esc or lost capture
+restores the drag start. Empty-space clicks retain the marker. Authoring rebuilds
+retain its body-space direction and invalidate an obsolete exact surface point.
+The returned walked position updates the same marker.
 
 The Landform plugin registers its walking host through `FCLPlanetInspection::Launch`.
 A request contains the explicit source asset, a portable JSON recipe snapshot,
@@ -47,8 +56,9 @@ and the spherical native presentation, rather than a projected sampling window.
   poles, equator and a patch boundary, plus invalid centre/local-patch requests.
 - `Catalyst.Landform.Inspection.PluginWalkingHost`: host registration and reusable
   player ownership without a project adapter.
-- `Catalyst.Landform.PlanetBuilder.WalkingLocationPicking`: routed Slate clicks
-  through the rendered viewport, recipe-space destination and empty-space clear.
+- `Catalyst.Landform.PlanetBuilder.PlayerLocationMarker`: routed Slate click/drag
+  separation, north-pole default, cancellation, hiding, far-side visibility,
+  retained location after empty-space clicks and unchanged camera during drag.
 - `LandformLab.Inspection.EditorRoundTrip`: real PIE launch from the source planet,
   overlapping launch refusal, collision walking, globe transition, exactly one
   return callback with the final location, unchanged source recipe.
