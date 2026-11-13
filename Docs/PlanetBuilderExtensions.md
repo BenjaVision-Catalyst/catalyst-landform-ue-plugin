@@ -2,7 +2,7 @@
 
 `FCLPlanetBuilderExtensions` is the editor-only registration seam for optional
 planet-authoring plugins. Register a unique provider ID, label and session factory
-at editor startup. Landform inserts providers after Planet, Geology and Landforms, before the final
+at editor startup. Landform inserts providers after Planet, Geology and Provinces, before the final
 Preview section. Provider activation follows the built-in section count. Registry ordering is
 stable by ID. Provider labels use the same native property font as built-in
 section labels. Internal section indices remain stable. Registration does not open a world or allocate a service/session.

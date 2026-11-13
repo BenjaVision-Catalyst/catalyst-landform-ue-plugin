@@ -14,6 +14,7 @@ void CLRegisterGlobePlacementMode();
 void CLUnregisterGlobePlacementMode();
 DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementTarget&,bool);
 DECLARE_DELEGATE_OneParam(FOnCLGlobeRegionSelected,FGuid);
+DECLARE_DELEGATE_OneParam(FOnCLGlobeSelectionChanged,FCLGlobeSelection);
 class FCLGlobeClient;
 class FPreviewScene;
 class UStaticMeshComponent;
@@ -42,7 +43,7 @@ struct CATALYSTLANDFORMEDITOR_API FCLGlobeBuffers
 class CATALYSTLANDFORMEDITOR_API SCLPlanetPreview : public SEditorViewport
 {
 public:
-    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_EVENT(FOnCLGlobeSelectionChanged,OnSelectionChanged) SLATE_EVENT(FSimpleDelegate,OnDeleteSelection) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
     void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug=nullptr,bool PreserveWalk=false);
@@ -152,6 +153,8 @@ private:
     FVector2D PointerPosition(const FGeometry& Geometry,const FPointerEvent& Event) const;
     FOnCLGlobePlacementCommitted OnPlacementCommitted;
     FOnCLGlobeRegionSelected OnRegionSelected;
+    FOnCLGlobeSelectionChanged OnSelectionChanged;
+    FSimpleDelegate OnDeleteSelection;
     FGuid ClickGeneratedRegion;
     EAxisList::Type DragAxis=EAxisList::None;
     FCLGlobePlacementTarget DragStart;

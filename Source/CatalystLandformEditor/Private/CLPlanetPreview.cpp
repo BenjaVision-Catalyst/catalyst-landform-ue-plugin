@@ -378,6 +378,11 @@ public:
     {
         StudioScene=static_cast<FCLGlobeScene*>(Scene);
         static_cast<FAssetEditorModeManager*>(ModeTools.Get())->SetPreviewScene(Scene);
+        // This private surface editor routes Unreal's HWidgetAxis handles itself.
+        // UE 5.8's actor-oriented ITF TRS widget would suppress those native handles.
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
+        ModeTools->SetSupportsViewportITF(false);
+#endif
         ModeTools->ActivateMode(GlobePlacementModeId);this->Widget->SetUsesEditorModeTools(ModeTools.Get());ShowWidget(false);
         SetViewMode(VMI_Lit);EngineShowFlags.SetGrid(false);EngineShowFlags.SetSelectionOutline(false);EngineShowFlags.SetTranslucency(true);
         // Every camera angle uses the same studio exposure; nothing adapts while
@@ -455,7 +460,7 @@ public:
 };
 void SCLPlanetPreview::Construct(const FArguments& Args)
 {
-    OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;
+    OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;OnSelectionChanged=Args._OnSelectionChanged;OnDeleteSelection=Args._OnDeleteSelection;
     Scene=MakeUnique<FCLGlobeScene>();
     Ocean.Reset(NewObject<UStaticMeshComponent>(GetTransientPackage()));
     Ocean->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
@@ -553,7 +558,7 @@ TArray<FGuid> SCLPlanetPreview::HighlightedGeneratedRegions()const
 {TArray<FGuid> Result;if(Client->Plan&&Client->Plan->GeneratedRegions)for(int32 I=0;I<Client->Plan->GeneratedRegions->Cells.Num();++I)if(Client->IsHighlightedRegion(I))Result.Add(Client->Plan->GeneratedRegions->Cells[I].Id);return Result;}
 void SCLPlanetPreview::SetRegionInspection(bool Inspect)
 {
-    if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect)Client->Selected={};Client->UpdatePlacementOverlay();Client->Invalidate();}
+    if(Inspect)bWalkPicking=false;CancelPlacementDrag();Client->bInspectRegions=Inspect;if(Inspect){Client->Selected={};OnSelectionChanged.ExecuteIfBound(Client->Selected);}Client->UpdatePlacementOverlay();Client->Invalidate();}
 bool SCLPlanetPreview::IsInspectingRegions() const{return Client->bInspectRegions&&Client->Plan&&Client->Plan->GeneratedRegions.IsValid();}
 void SCLPlanetPreview::SelectGeneratedRegion(FGuid Id)
 {
@@ -588,12 +593,12 @@ FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEve
 void SCLPlanetPreview::SetAuthoringRecipe(const FCLPlanetRecipe& R)
 {
     CancelPlacementDrag();Client->Targets=FCLGlobePlacementEditing::Resolve(R);
-    if(!Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Client->Selected;}))Client->Selected={};
+    if(Client->Selected.IsValid()&&!Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Client->Selected;})){Client->Selected={};OnSelectionChanged.ExecuteIfBound(Client->Selected);}
     Client->UpdatePlacementOverlay();Client->Invalidate();
 }
 void SCLPlanetPreview::Select(FCLGlobeSelection Key)
 {
-    CancelPlacementDrag();if(Key.IsValid()){bWalkPicking=false;Client->bInspectRegions=false;Client->SelectedRegion.Invalidate();OnRegionSelected.ExecuteIfBound(FGuid());}if(Key!=Client->Selected)Client->Mode=ECLGlobePlacementMode::Move;Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();
+    CancelPlacementDrag();if(Key.IsValid()){bWalkPicking=false;Client->bInspectRegions=false;Client->SelectedRegion.Invalidate();OnRegionSelected.ExecuteIfBound(FGuid());}if(Key!=Client->Selected)Client->Mode=ECLGlobePlacementMode::Move;Client->Selected=Client->Targets.ContainsByPredicate([&](const auto& T){return T.Key==Key;})?Key:FCLGlobeSelection();Client->UpdatePlacementOverlay();Client->Invalidate();OnSelectionChanged.ExecuteIfBound(Client->Selected);
 }
 FCLGlobeSelection SCLPlanetPreview::Selection() const{return Client->Selected;}
 FString SCLPlanetPreview::SelectionName() const{const auto* T=Client->SelectedTarget();return T?T->Name:TEXT("None");}
@@ -692,6 +697,7 @@ FReply SCLPlanetPreview::OnPreviewKeyDown(const FGeometry&,const FKeyEvent& E)
 {
     if(E.GetKey()==EKeys::Escape){const bool WasDragging=DragAxis!=EAxisList::None;CancelPlacementDrag();if(!WasDragging){if(IsInspectingRegions())SelectGeneratedRegion(FGuid());else Select({});}Button=FKey();return FReply::Handled().ReleaseMouseCapture();}
     if(E.IsControlDown()||E.IsCommandDown()||E.IsAltDown())return FReply::Unhandled();
+    if(E.GetKey()==EKeys::Delete&&Client->Selected.IsValid()&&!Client->Selected.bStructure&&OnDeleteSelection.IsBound()){CancelPlacementDrag();OnDeleteSelection.Execute();return FReply::Handled();}
     if(E.GetKey()==EKeys::SpaceBar)SetPlacementMode(Client->Mode==ECLGlobePlacementMode::Move?ECLGlobePlacementMode::Rotate:Client->Mode==ECLGlobePlacementMode::Rotate?ECLGlobePlacementMode::Resize:ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::W)SetPlacementMode(ECLGlobePlacementMode::Move);else if(E.GetKey()==EKeys::E)SetPlacementMode(ECLGlobePlacementMode::Rotate);else if(E.GetKey()==EKeys::R)SetPlacementMode(ECLGlobePlacementMode::Resize);else return FReply::Unhandled();return FReply::Handled();
 }
 FReply SCLPlanetPreview::OnMouseWheel(const FGeometry&,const FPointerEvent& E){Client->Dolly(E.GetWheelDelta());return FReply::Handled();}

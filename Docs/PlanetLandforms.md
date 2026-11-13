@@ -1,4 +1,4 @@
-# Planet editor — Landforms
+# Planet editor — Provinces
 
 ## Current authoring decision — 12 November 2026
 
@@ -10,11 +10,11 @@ shape; this province work does not claim cave visual approval.
 
 12 November 2026. User correction: there is one editor, **Planet**, where the world
 is assembled. Standalone Landform/source editors are retired. Terrain assets are
-source definitions; opening one focuses Planet's Landforms tab without applying
+source definitions; opening one focuses Planet's Provinces > Types tab without applying
 or replacing it. The obsolete window menu entry and Rift source UI are removed.
 Legacy console/API names route into Planet.
 
-Each catalogue or applied Landform occupies one row. The text cell contains its
+In **Provinces > Types**, each catalogue or applied province type occupies one row. The text cell contains its
 name and brief description; the same row contains:
 
 | Control | Effect |
@@ -58,7 +58,7 @@ seed offset; the original noise snapshot remains intact.
 
 `FCLPlanetLandforms` owns row actions, validation and preview composition.
 `SCLPlanetLandforms` supplies the native Slate rows inside `FCLRecipeToolkit`'s
-Landforms page. No external source editor is used for acceptance. Current review
+Provinces > Types page. No external source editor is used for acceptance. Current review
 must show the assembled Planet editor and exercise row disable, Character,
 reseed, eye and whole-planet Solo, plus unchanged generation/serialization.
 
@@ -147,13 +147,36 @@ Removing the former UI controls does not rewrite saved recipes or their authored
 geology, sources, layers or material settings.
 
 
-## Landforms sub-tabs
+## Provinces authoring
 
-The Landforms section has **Landforms** and **Advanced** sub-tabs, with the same
-compact section-button style as Ecosystem's Climate/Biomes sub-tabs. Landforms
-contains the province/landform rows. Advanced has the full-height native details
-view for manual placement, selection/transforms, base structures, generated
-region assignments and other composition settings. These controls are directly
-visible in that tab, rather than hidden under an Advanced expander below the
-rows. Tab switching changes editor presentation only. Source actions return to
-the Landforms rows in the existing Planet editor.
+The main section is **Provinces**, with **Placement**, **Types** and **Landforms**
+sub-tabs in that order. Labels use the compact native property-font section
+buttons, matching Ecosystem's sub-tabs.
+
+- **Placement** exposes cell count, placement seed, structure guidance and boundary
+  blending, plus cell selection and assignment overrides. Structure guidance
+  retains the existing algorithm's use of authored base-structure signatures;
+  this UI change does not implement a new geological cell-placement algorithm.
+- **Types** contains the existing province-type catalogue and its include,
+  Character, disclosure, eye, Info, reseed and Solo controls.
+- **Landforms** contains a standard UE asset selector and a native list of added
+  landform instances. Selecting an eligible existing asset adds a new instance.
+  The selector resets so the same source can be added more than once. Each
+  instance has its own stable GUID and distinct display name.
+
+The Landforms selector admits spherical landform definitions that support manual
+placement. Province definitions requiring generated-region placement remain in
+Types. Selecting a row selects the same instance in the globe; selecting an
+instance in the globe focuses Provinces > Landforms and selects its row.
+The existing Unreal transform widget and W/E/R modes manipulate that selection:
+tangential movement on the sphere, rotation about radial up, and footprint scale.
+Delete works from the list or viewport, and the visible Delete action uses the
+same transaction. Undo/redo restores or removes the complete instance and its
+source link. These operations modify planet-owned instances, preserving reusable
+source definitions.
+
+Manual base-structure creation, raw terrain/noise/override arrays, the global
+relief multiplier and excavation controls are absent from these pages. Their
+saved recipe fields remain intact for compatibility. Province source actions
+focus Types in the existing Planet editor. No alternate authoring editor or
+level-actor proxy is introduced.

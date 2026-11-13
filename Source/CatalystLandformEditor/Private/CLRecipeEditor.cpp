@@ -2,6 +2,9 @@
 #include "CLPreviewMesh.h"
 #include "CLRecipeEvaluation.h"
 #include "Widgets/Views/STableViewBase.h"
+#include "Widgets/Views/SListView.h"
+#include "Widgets/IToolTip.h"
+#include "PropertyCustomizationHelpers.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "CLSurfaceDistributionPlot.h"
 #include "CLRockThicknessPlot.h"
@@ -667,6 +670,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLVolcanicArcDesignerTest;
     friend class FCLPlanetSurfaceFirstTest;
     friend class FCLPlanetLandformRowsTest;
+    friend class FCLPlacedLandformsEditorTest;
     friend class FCLPlanetLandformInfoTest;
     friend class FCLCaveDesignerTest;
     friend class FCLAuthoringLayoutTest;
@@ -745,13 +749,17 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SWidgetSwitcher> InspectorPages;
     static constexpr int32 BuiltInInspectorCount=4;
     int32 InspectorPage=1;
-    int32 LandformsSubtab=0;
+    int32 ProvincesSubtab=0;
+    TArray<TSharedPtr<FGuid>> PlacedLandformItems;
+    TSharedPtr<SListView<TSharedPtr<FGuid>>> PlacedLandformList;
+    TSharedPtr<SObjectPropertyEntryBox> PlacedLandformPicker;
+    bool bSyncingPlacedSelection=false;
     TArray<TSharedRef<ICLPlanetBuilderExtension>> BuilderExtensions;
     TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
     void SelectInspectorPage(int32 Page)
     {
         InspectorPage=Page;
-        if(Globe)Globe->SetBuilderOverlay(nullptr);
+        if(Globe){Globe->SetBuilderOverlay(nullptr);Globe->SetRegionInspection(Page==2&&ProvincesSubtab==0);if(Page!=2)Globe->Select({});}
         for(int32 I=0;I<BuilderExtensions.Num();++I)BuilderExtensions[I]->SetActive(Page==I+BuiltInInspectorCount);
     }
     bool bContinentalDragging=false;
@@ -804,7 +812,7 @@ public:
     void SyncLandformHighlights()
     {if(!Globe||!Landforms)return;TSet<FGuid> Ids;for(FGuid Id:Landforms->Highlighted)if(Landforms->Included(Id))Ids.Add(Id);Globe->SetHighlightedLandforms(Ids);}
     void ShowLandforms(UCLTerrainTypeAsset* Source=nullptr)
-    {if(Source)Landforms->AddSource(Source);if(LandformRows){LandformRows->Refresh();if(Source)LandformRows->Focus(Source->TerrainType.Id);}InspectorPage=2;LandformsSubtab=0;FocusWindow(RecipeAsset());}
+    {if(Source)Landforms->AddSource(Source);if(LandformRows){LandformRows->Refresh();if(Source)LandformRows->Focus(Source->TerrainType.Id);}SelectInspectorPage(2);SelectProvincesSubtab(1);FocusWindow(RecipeAsset());}
     void Open(UCLPlanetRecipeAsset* Asset, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         EditingAsset = Asset;
@@ -859,34 +867,92 @@ public:
     }
     virtual void GetSaveableObjects(TArray<UObject*>& Objects) const override
     { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (RadialGuidesSession && !RadialGuidesSession->Library->IsPackaged()) Objects.AddUnique(RadialGuidesSession->Library.Get()); for(const auto& Extension:BuilderExtensions)Extension->GetSaveableObjects(Objects); }
-    TSharedRef<SWidget> AddLandformMenu()
+    void SelectProvincesSubtab(int32 Subtab)
     {
-        FMenuBuilder Menu(true, nullptr); TArray<FAssetData> Assets;
-        FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().GetAssetsByClass(UCLTerrainTypeAsset::StaticClass()->GetClassPathName(), Assets, true);
-        Assets.Sort([](const FAssetData& A, const FAssetData& B) { return A.AssetName.LexicalLess(B.AssetName); });
-        if (Assets.IsEmpty()) Menu.AddMenuEntry(FText::FromString(TEXT("No terrain types found")), FText(), FSlateIcon(), FUIAction());
-        for (const FAssetData& Data : Assets)
+        ProvincesSubtab=Subtab;
+        if(Globe){Globe->SetRegionInspection(Subtab==0);if(Subtab!=2)Globe->Select({});}
+    }
+    void SyncPlacedSelection(FCLGlobeSelection Key)
+    {
+        if(bSyncingPlacedSelection||!PlacedLandformList)return;
+        TGuardValue<bool> Guard(bSyncingPlacedSelection,true);
+        const auto* Item=PlacedLandformItems.FindByPredicate([&](const auto& Id){return !Key.bStructure&&*Id==Key.Id;});
+        if(Item)
         {
-            auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); if (!Source) continue;
-            if (Source->TerrainType.Coordinates != RecipeAsset()->Recipe.Coordinates) continue;
-            const TWeakObjectPtr<UCLTerrainTypeAsset> Weak(Source);
-            const bool bTemplate = Data.PackagePath.ToString().StartsWith(TEXT("/CatalystLandform/"));
-            Menu.AddMenuEntry(FText::FromString(Source->TerrainType.Name + (bTemplate ? TEXT(" (template)") : TEXT(""))),
-                FText::FromString(Source->TerrainType.Description + TEXT("\n") + Source->GetPathName()), FSlateIcon(),
-                FUIAction(FExecuteAction::CreateLambda([this, Weak]
-                {
-                    if (!Weak.IsValid()) return;
-                    auto Candidate=RecipeAsset()->Recipe;
-                    FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=Weak->TerrainType.Name;
-                    if(Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface){Candidate.SchemaVersion=FMath::Max(11,Candidate.SchemaVersion);Region.bPlacedLandform=true;}
-                    const FGuid Target=Region.Id;Candidate.TerrainRegions.Add(Region);
-                    FString Error;
-                    if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return Weak->TerrainType.ApplyToRegion(Candidate,Target,Error);})){Status=TEXT("Region was not applied: ")+Error;return;}
-                    const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyRegion", "Apply terrain to planet region"));
-                    RecipeAsset()->Modify();RecipeAsset()->Recipe=MoveTemp(Candidate);RecipeAsset()->LandformSources.Add(Target,Weak.Get());RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();
-                })));
+            if(!PlacedLandformList->IsItemSelected(*Item))PlacedLandformList->SetSelection(*Item,ESelectInfo::Direct);
+            PlacedLandformList->RequestScrollIntoView(*Item);
+            ProvincesSubtab=2;SelectInspectorPage(2);
         }
-        return Menu.MakeWidget();
+        else if(PlacedLandformList->GetNumItemsSelected())PlacedLandformList->ClearSelection();
+    }
+    void SyncPlacedLandforms()
+    {
+        if(!PlacedLandformList)return;
+        TArray<FGuid> Ids;for(const auto& Region:RecipeAsset()->Recipe.TerrainRegions)if(Region.bPlacedLandform)Ids.Add(Region.Id);
+        bool Same=Ids.Num()==PlacedLandformItems.Num();
+        if(Same)for(int32 I=0;I<Ids.Num();++I)if(Ids[I]!=*PlacedLandformItems[I]){Same=false;break;}
+        if(!Same)
+        {
+            TGuardValue<bool> Guard(bSyncingPlacedSelection,true);
+            PlacedLandformItems.Reset();for(FGuid Id:Ids)PlacedLandformItems.Add(MakeShared<FGuid>(Id));
+            PlacedLandformList->RequestListRefresh();
+        }
+        SyncPlacedSelection(Globe?Globe->Selection():FCLGlobeSelection());
+    }
+    bool AddPlacedLandform(UCLTerrainTypeAsset* Source)
+    {
+        if(!Source||Source->TerrainType.Coordinates!=ECLTerrainCoordinates::SphericalSurface||Source->TerrainType.PlacementSuitability.Province.IsActive()){Status=TEXT("Select a spherical landform asset. Province types belong in Types.");return false;}
+        auto* Asset=RecipeAsset();auto Candidate=Asset->Recipe;
+        FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=Source->TerrainType.Name;Region.bPlacedLandform=true;
+        for(int32 Suffix=2;Candidate.TerrainRegions.ContainsByPredicate([&](const auto& R){return R.Name==Region.Name;});++Suffix)
+            Region.Name=FString::Printf(TEXT("%s %d"),*Source->TerrainType.Name,Suffix);
+        const FGuid Id=Region.Id;const FString Name=Region.Name;Candidate.SchemaVersion=FMath::Max(11,Candidate.SchemaVersion);Candidate.TerrainRegions.Add(Region);
+        FString Error;if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return Source->TerrainType.ApplyToRegion(Candidate,Id,Error);}))
+        {Status=TEXT("Landform was not added: ")+Error;return false;}
+        Candidate.TerrainRegions.FindByPredicate([Id](const auto& R){return R.Id==Id;})->Name=Name;
+        const FScopedTransaction Tx(NSLOCTEXT("CL","AddPlacedLandform","Add planet landform"));
+        Asset->Modify();Asset->Recipe=MoveTemp(Candidate);Asset->LandformSources.Add(Id,Source);Asset->PostEditChange();Asset->MarkPackageDirty();
+        if(Globe){Globe->SetAuthoringRecipe(Asset->Recipe);SyncPlacedLandforms();Globe->Select({Id,false});}
+        Status.Reset();return true;
+    }
+    bool DeleteSelectedLandform()
+    {
+        auto* Asset=RecipeAsset();const auto Key=Globe?Globe->Selection():FCLGlobeSelection();
+        if(Key.bStructure||!Asset->Recipe.TerrainRegions.ContainsByPredicate([&](const auto& R){return R.bPlacedLandform&&R.Id==Key.Id;}))return false;
+        const FScopedTransaction Tx(NSLOCTEXT("CL","DeletePlacedLandform","Delete planet landform"));
+        Asset->Modify();if(Globe)Globe->Select({});
+        Asset->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.bPlacedLandform&&R.Id==Key.Id;});Asset->LandformSources.Remove(Key.Id);
+        Asset->PostEditChange();Asset->MarkPackageDirty();SyncPlacedLandforms();return true;
+    }
+    TSharedRef<SWidget> BuildPlacedLandforms()
+    {
+        auto Tools=SNew(SHorizontalBox);
+        const ECLGlobePlacementMode Modes[]={ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize};
+        const TCHAR* Labels[]={TEXT("Move (W)"),TEXT("Rotate (E)"),TEXT("Scale (R)")};
+        for(int32 I=0;I<UE_ARRAY_COUNT(Modes);++I)
+            Tools->AddSlot().FillWidth(1)[SNew(SButton).IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
+                .OnClicked_Lambda([this,Mode=Modes[I]]{Globe->SetPlacementMode(Mode);return FReply::Handled();})[InspectorLabel(Labels[I])]];
+        auto Widget=SNew(SVerticalBox)
+            +SVerticalBox::Slot().AutoHeight().Padding(4)[SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,8,0)[InspectorLabel(TEXT("Add Landform"))]
+                +SHorizontalBox::Slot().FillWidth(1)[SAssignNew(PlacedLandformPicker,SObjectPropertyEntryBox).AllowedClass(UCLTerrainTypeAsset::StaticClass())
+                    .AllowClear(false).AllowCreate(false).DisplayThumbnail(false).ObjectPath(FString())
+                    .OnShouldFilterAsset_Lambda([](const FAssetData& Data){const auto* A=Cast<UCLTerrainTypeAsset>(Data.GetAsset());return !A||A->TerrainType.Coordinates!=ECLTerrainCoordinates::SphericalSurface||A->TerrainType.PlacementSuitability.Province.IsActive();})
+                    .OnObjectChanged_Lambda([this](const FAssetData& Data){AddPlacedLandform(Cast<UCLTerrainTypeAsset>(Data.GetAsset()));})]]
+            +SVerticalBox::Slot().AutoHeight().Padding(4)[Tools]
+            +SVerticalBox::Slot().AutoHeight().Padding(4)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"))
+                .Visibility_Lambda([this]{return PlacedLandformItems.IsEmpty()?EVisibility::Visible:EVisibility::Collapsed;}).Text(FText::FromString(TEXT("No landforms added.")))]
+            +SVerticalBox::Slot().FillHeight(1).Padding(4)[SAssignNew(PlacedLandformList,SListView<TSharedPtr<FGuid>>)
+                .ListItemsSource(&PlacedLandformItems).SelectionMode(ESelectionMode::Single)
+                .OnGenerateRow_Lambda([this](TSharedPtr<FGuid> Item,const TSharedRef<STableViewBase>& Owner)
+                {return SNew(STableRow<TSharedPtr<FGuid>>,Owner).Padding(6)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"))
+                    .Text_Lambda([this,Id=*Item]{const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([Id](const auto& V){return V.Id==Id;});return FText::FromString(R?R->Name:FString());})];})
+                .OnSelectionChanged_Lambda([this](TSharedPtr<FGuid> Item,ESelectInfo::Type){if(!bSyncingPlacedSelection&&Globe)Globe->Select(Item?FCLGlobeSelection{*Item,false}:FCLGlobeSelection());})
+                .OnKeyDownHandler_Lambda([this](const FGeometry&,const FKeyEvent& Event){return Event.GetKey()==EKeys::Delete&&DeleteSelectedLandform()?FReply::Handled():FReply::Unhandled();})]
+            +SVerticalBox::Slot().AutoHeight().Padding(4)[SNew(SButton).Text(FText::FromString(TEXT("Delete selected landform")))
+                .IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
+                .OnClicked_Lambda([this]{DeleteSelectedLandform();return FReply::Handled();})];
+        SyncPlacedLandforms();return Widget;
     }
     TSharedRef<SWidget> StructureMenu(FGuid Id)
     {
@@ -1118,7 +1184,7 @@ public:
         if(RockBedDraft)*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
         if(ElevationDraft)*reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
         FString GuideError;const bool GuidesValid=Asset->SynchronizeRadialGuides(GuideError);
-        if(Globe){Globe->SetAuthoringRecipe(Asset->Recipe);Globe->SetGuides(Asset->Recipe.RadialGuides,Preview?Preview->Client->bGuides:true);}
+        if(Globe){Globe->SetAuthoringRecipe(Asset->Recipe);Globe->SetGuides(Asset->Recipe.RadialGuides,Preview?Preview->Client->bGuides:true);}SyncPlacedLandforms();
         if (Preview) Preview->Client->RadialGuides = Asset->Recipe.RadialGuides;
         FCLPlanetRecipe Input=Landforms?Landforms->PreviewRecipe():Asset->Recipe;const FGuid Solo=Landforms?Landforms->PreviewSolo():FGuid();TOptional<FBox2D> Region;
         const bool Same=Solo==RequestedSolo&&RequestedRecipe.IsSet()&&FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&RequestedRecipe.GetValue(),&Input,0)&&Region.IsSet()==RequestedRegion.IsSet()&&(!Region.IsSet()||(Region->Min==RequestedRegion->Min&&Region->Max==RequestedRegion->Max));
@@ -1212,6 +1278,8 @@ public:
         TSharedRef<SWidget> GlobeWidget = SNullWidget::NullWidget;
             GlobeWidget = SAssignNew(Globe,SCLPlanetPreview)
                 .OnPlacementCommitted(FOnCLGlobePlacementCommitted::CreateSP(this,&FCLRecipeToolkit::CommitGlobePlacement))
+                .OnSelectionChanged(FOnCLGlobeSelectionChanged::CreateSP(this,&FCLRecipeToolkit::SyncPlacedSelection))
+                .OnDeleteSelection(FSimpleDelegate::CreateLambda([this]{DeleteSelectedLandform();}))
                 .OnRegionSelected(FOnCLGlobeRegionSelected::CreateLambda([this](FGuid Id){if(GenerationPanel)GenerationPanel->SelectRegion(Id);}))
                 .Visibility_Lambda([this]{return bGlobe?EVisibility::Visible:EVisibility::Collapsed;});
         const auto Content=SNew(SOverlay)
@@ -1551,43 +1619,17 @@ public:
         }
         else if(Page==2)
         {
-            auto& C=B.EditCategory(TEXT("TerrainComposition"),FText::FromString(TEXT("Landforms")));C.SetSortOrder(0);auto& S=C;
-            InspectorRow(S,TEXT("Add"),SNew(SHorizontalBox)
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})],false);
-            Add(S,TEXT("BaseStructure"),false);
-            InspectorRow(C,TEXT("Add Landform"),SNew(SComboButton).OnGetMenuContent_Lambda([this]{return AddLandformMenu();})
-                .ButtonContent()[InspectorLabel(TEXT("Landform"))],false);
-            InspectorRow(C,TEXT("Selection"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::GlobeSelectionMenu)
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(Globe?Globe->SelectionName():TEXT("None"));})],false);
-            auto Modes=SNew(SHorizontalBox);
-            for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
-                Modes->AddSlot().AutoWidth()[SNew(SButton).Text(FText::FromString(Mode==ECLGlobePlacementMode::Move?TEXT("Move"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate"):TEXT("Scale")))
-                    .OnClicked_Lambda([this,Mode]{if(Globe)Globe->SetPlacementMode(Mode);return FReply::Handled();})];
-            InspectorRow(C,TEXT("Transform"),Modes,false);
-            InspectorRow(C,TEXT("Source"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return Globe&&!Globe->Selection().bStructure&&RecipeAsset()->LandformSources.Contains(Globe->Selection().Id);})
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Edit"))).OnClicked_Lambda([this]{if(auto* Source=RecipeAsset()->LandformSources.Find(Globe->Selection().Id))CLOpenPlanetLandform(Source->Get());return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);});return FReply::Handled();})],false);
-            InspectorRow(C,TEXT("Landform"),SNew(SButton).Text(FText::FromString(TEXT("Remove")))
-                .IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
-                .OnClicked_Lambda([this]{const auto Id=Globe->Selection().Id;const FScopedTransaction Tx(FText::FromString(TEXT("Remove Landform")));auto* A=RecipeAsset();A->Modify();A->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});A->LandformSources.Remove(Id);Globe->Select({});A->MarkPackageDirty();A->PostEditChange();return FReply::Handled();}),false);
-            InspectorRow(C,TEXT("Structure"),SNew(SComboButton).IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
-                .OnGetMenuContent_Lambda([this]{return StructureMenu(Globe->Selection().Id);})
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{if(Globe){const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Globe->Selection().Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}}return FText::FromString(TEXT("Planet frame"));})],false);
-            RegionProperties=Property(TEXT("TerrainRegions"));C.AddProperty(RegionProperties,EPropertyLocation::Default);Add(C,TEXT("NoiseLayers"),false);
-            auto& G=C;
-            const auto Settings=Property(TEXT("RegionGeneration"));G.AddProperty(Settings->GetChildHandle(TEXT("bEnabled")),EPropertyLocation::Default);
-
-            G.AddProperty(Settings->GetChildHandle(TEXT("ReliefStrength")),EPropertyLocation::Default);
-            for(const TCHAR* Name:{TEXT("RegionCount"),TEXT("Seed"),TEXT("StructureGuidance"),TEXT("BlendFraction"),TEXT("Overrides")})G.AddProperty(Settings->GetChildHandle(FName(Name)),EPropertyLocation::Default);
-            InspectorRow(G,TEXT("Region"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::RegionMenu)
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return GenerationPanel->SelectionText();})],false);
-            InspectorRow(G,TEXT("Assignment"),SNew(SHorizontalBox)
-                +SHorizontalBox::Slot().FillWidth(1)[SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::OverrideMenu).ButtonContent()[InspectorLabel(TEXT("Landform"))]]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Clear"))).OnClicked_Lambda([this]{GenerationPanel->ClearOverrides();return FReply::Handled();})],false);
-            if(RecipeAsset()->Recipe.SchemaVersion>=18)
-            {Add(C,TEXT("Volumes"),false);}
+            RegionProperties=Property(TEXT("TerrainRegions"));
+            auto& C=B.EditCategory(TEXT("ProvincePlacement"),FText::FromString(TEXT("Cell placement")));
+            const auto Settings=Property(TEXT("RegionGeneration"));
+            const TCHAR* Names[]={TEXT("RegionCount"),TEXT("Seed"),TEXT("StructureGuidance"),TEXT("BlendFraction")};
+            const TCHAR* Labels[]={TEXT("Cell count"),TEXT("Placement seed"),TEXT("Structure guidance"),TEXT("Boundary blending")};
+            for(int32 I=0;I<UE_ARRAY_COUNT(Names);++I)C.AddProperty(Settings->GetChildHandle(FName(Names[I]))).DisplayName(FText::FromString(Labels[I]));
+            InspectorRow(C,TEXT("Cell"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::RegionMenu)
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return GenerationPanel->SelectionText();})]);
+            InspectorRow(C,TEXT("Assignment"),SNew(SHorizontalBox)
+                +SHorizontalBox::Slot().FillWidth(1)[SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::OverrideMenu).ButtonContent()[InspectorLabel(TEXT("Province type"))]]
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Clear"))).OnClicked_Lambda([this]{GenerationPanel->ClearOverrides();return FReply::Handled();})]);
         }
         else
         {
@@ -1630,7 +1672,7 @@ public:
         GenerationPanel=SNew(SCLRegionGenerationPanel).Asset(RecipeAsset()).MenusOnly(true)
             .OnSelectRegion(FOnCLGeneratedRegionSelection::CreateLambda([this](FGuid Id){if(Globe)Globe->SelectGeneratedRegion(Id);}));
         const auto Tabs=SNew(SHorizontalBox);SAssignNew(InspectorPages,SWidgetSwitcher).WidgetIndex_Lambda([this]{return InspectorPage;});
-        const TCHAR* Names[]={TEXT("Planet"),TEXT("Geology"),TEXT("Landforms"),TEXT("Preview")};
+        const TCHAR* Names[]={TEXT("Planet"),TEXT("Geology"),TEXT("Provinces"),TEXT("Preview")};
         static_assert(UE_ARRAY_COUNT(Names)==BuiltInInspectorCount);
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
         for(int32 Page=0;Page<BuiltInInspectorCount;++Page)
@@ -1647,17 +1689,18 @@ public:
             if(Page==2)
             {
                 const auto Subtabs=SNew(SHorizontalBox);
-                const TCHAR* SubtabNames[]={TEXT("Landforms"),TEXT("Advanced")};
+                const TCHAR* SubtabNames[]={TEXT("Placement"),TEXT("Types"),TEXT("Landforms")};
                 for(int32 Subtab=0;Subtab<UE_ARRAY_COUNT(SubtabNames);++Subtab)
                     Subtabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
-                        .IsChecked_Lambda([this,Subtab]{return LandformsSubtab==Subtab?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                        .OnCheckStateChanged_Lambda([this,Subtab](ECheckBoxState State){if(State==ECheckBoxState::Checked)LandformsSubtab=Subtab;})
+                        .IsChecked_Lambda([this,Subtab]{return ProvincesSubtab==Subtab?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                        .OnCheckStateChanged_Lambda([this,Subtab](ECheckBoxState State){if(State==ECheckBoxState::Checked)SelectProvincesSubtab(Subtab);})
                         [InspectorLabel(SubtabNames[Subtab])]];
                 InspectorPages->AddSlot()[SNew(SVerticalBox)
                     +SVerticalBox::Slot().AutoHeight().Padding(4)[Subtabs]
-                    +SVerticalBox::Slot().FillHeight(1)[SNew(SWidgetSwitcher).WidgetIndex_Lambda([this]{return LandformsSubtab;})
+                    +SVerticalBox::Slot().FillHeight(1)[SNew(SWidgetSwitcher).WidgetIndex_Lambda([this]{return ProvincesSubtab;})
+                        +SWidgetSwitcher::Slot()[View]
                         +SWidgetSwitcher::Slot()[SAssignNew(LandformRows,SCLPlanetLandforms).Session(Landforms)]
-                        +SWidgetSwitcher::Slot()[View]]];
+                        +SWidgetSwitcher::Slot()[BuildPlacedLandforms()]]];
             }
             else InspectorPages->AddSlot()[View];
         }
@@ -2989,9 +3032,87 @@ bool FCLPlanetLandformRowsTest::RunTest(const FString&)
     TStrongObjectPtr<UCLPlanetRecipeAsset> Copy(NewObject<UCLPlanetRecipeAsset>());TestTrue(TEXT("Planet row settings export"),A->ExportJsonString(J,Error));TestFalse(TEXT("Solo is absent from portable JSON"),J.Contains(TEXT("soloPreview")));TestTrue(TEXT("Planet row settings import"),Copy->ImportRecipeJson(J,Error));TestTrue(TEXT("Row settings round-trip"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Authored,&Copy->Recipe,0));
     TStrongObjectPtr<UCLTerrainTypeAsset> Added(NewObject<UCLTerrainTypeAsset>());Added->TerrainType=Source->TerrainType;Added->TerrainType.Id=FGuid(8,7,6,5);Added->TerrainType.Name=TEXT("Custom Rift variant");
     TestTrue(TEXT("A custom source can be assembled without leaving Planet"),FCLPlanetCompiler::WithAuthoringValidation([&]{return A->AddPaletteSource(Added.Get(),Error);}));TestTrue(TEXT("New applied sources immediately appear as rows"),E->LandformRows->Controls.Contains(Added->TerrainType.Id));
-    const auto Toolkit=FCLRecipeToolkit::ActivePlanet.Pin();CLOpenPlanetLandform(Source.Get());TestTrue(TEXT("Source actions focus the existing planet"),Toolkit==FCLRecipeToolkit::ActivePlanet.Pin()&&E->InspectorPage==2);TestEqual(TEXT("The only toolkit is Planet"),E->GetToolkitFName(),FName(TEXT("CLRecipeDesigner")));TestTrue(TEXT("A source definition never gets a standalone editor"),GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->FindEditorForAsset(Source.Get(),false)==nullptr);
+    const auto Toolkit=FCLRecipeToolkit::ActivePlanet.Pin();CLOpenPlanetLandform(Source.Get());TestTrue(TEXT("Source actions focus the existing planet"),Toolkit==FCLRecipeToolkit::ActivePlanet.Pin()&&E->InspectorPage==2&&E->ProvincesSubtab==1);TestEqual(TEXT("The only toolkit is Planet"),E->GetToolkitFName(),FName(TEXT("CLRecipeDesigner")));TestTrue(TEXT("A source definition never gets a standalone editor"),GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->FindEditorForAsset(Source.Get(),false)==nullptr);
     A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return !HasAnyErrors();
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlacedLandformsEditorTest,"Catalyst.Landform.PlanetBuilder.ProvincesAndPlacedLandforms",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlacedLandformsEditorTest::RunTest(const FString&)
+{
+    auto* Factory=NewObject<UCLPlanetRecipeFactory>();
+    auto* Asset=CastChecked<UCLPlanetRecipeAsset>(Factory->FactoryCreateNew(UCLPlanetRecipeAsset::StaticClass(),
+        CreatePackage(*(TEXT("/Temp/CLPlacedLandforms_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),TEXT("PlacedLandforms"),RF_Transactional,nullptr,GWarn));
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/DA_MountainRidgesSpherical"));
+    if(!TestNotNull(TEXT("Packaged spherical landform is available"),Source))return false;
+    auto Editor=MakeShared<FCLRecipeToolkit>();Editor->Open(Asset,EToolkitMode::Standalone,nullptr);Editor->SelectInspectorPage(2);Editor->SelectProvincesSubtab(2);
+    class FReview final:public IAutomationLatentCommand
+    {
+        FCLPlacedLandformsEditorTest* Test;TSharedRef<FCLRecipeToolkit> E;TStrongObjectPtr<UCLPlanetRecipeAsset> A;
+        TStrongObjectPtr<UCLTerrainTypeAsset> Source;FCLTerrainType Original;double Start=FPlatformTime::Seconds();int32 Stage=0;
+        FString Text(TSharedRef<SWidget> W)
+        {FString S;if(W->GetType()==FName(TEXT("STextBlock")))S=StaticCastSharedRef<STextBlock>(W)->GetText().ToString()+TEXT(";");auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)S+=Text(C->GetChildAt(I));return S;}
+        TSharedPtr<SButton> Button(TSharedRef<SWidget> W)
+        {if(W->GetType()==FName(TEXT("SButton")))return StaticCastSharedRef<SButton>(W);auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)if(auto B=Button(C->GetChildAt(I)))return B;return nullptr;}
+        TSharedPtr<SButton> UseSelected(TSharedRef<SWidget> W)
+        {if(W->GetToolTip().IsValid()&&Text(W->GetToolTip()->AsWidget()).Contains(TEXT("Use Selected Asset")))return Button(W);auto* C=W->GetChildren();for(int32 I=0;I<C->Num();++I)if(auto B=UseSelected(C->GetChildAt(I)))return B;return nullptr;}
+        bool Close(){GEditor->GetSelectedObjects()->Deselect(Source.Get());A->GetOutermost()->SetDirtyFlag(false);E->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;}
+    public:
+        FReview(FCLPlacedLandformsEditorTest* T,TSharedRef<FCLRecipeToolkit> Editor,UCLPlanetRecipeAsset* Asset,UCLTerrainTypeAsset* S):Test(T),E(Editor),A(Asset),Source(S),Original(S->TerrainType)
+        {GEditor->SyncBrowserToObjects(TArray<UObject*>{S});}
+        bool Update() override
+        {
+            if(FPlatformTime::Seconds()-Start>45){Test->AddError(FString::Printf(TEXT("Provinces review timed out at stage %d: %s"),Stage,*E->Status));return Close();}
+            if(Stage==0)
+            {
+                if(FPlatformTime::Seconds()-Start<.5)return false;
+                Test->TestTrue(TEXT("Landforms uses the standard UE asset selector"),E->PlacedLandformPicker.IsValid());
+                auto Use=UseSelected(E->PlacedLandformPicker.ToSharedRef());
+                if(!Test->TestTrue(TEXT("Standard picker exposes Use Selected"),Use.IsValid()))return Close();
+                Use->SimulateClick();Use->SimulateClick();Stage=1;return false;
+            }
+            if(Stage==1)
+            {
+                if(!Test->TestEqual(TEXT("Selecting an existing asset twice adds two instances: ")+E->Status,A->Recipe.TerrainRegions.Num(),2))return Close();
+                Test->TestEqual(TEXT("Both instances appear in the added list"),E->PlacedLandformItems.Num(),2);
+                const FGuid First=A->Recipe.TerrainRegions[0].Id,Second=A->Recipe.TerrainRegions[1].Id;
+                Test->TestTrue(TEXT("Instances have distinct identities and names"),First!=Second&&A->Recipe.TerrainRegions[0].Name!=A->Recipe.TerrainRegions[1].Name);
+                Test->TestTrue(TEXT("Added instance is selected in viewport and list"),E->Globe->Selection().Id==Second&&E->PlacedLandformList->IsItemSelected(E->PlacedLandformItems[1]));
+                E->PlacedLandformList->SetSelection(E->PlacedLandformItems[0],ESelectInfo::OnMouseClick);
+                Test->TestEqual(TEXT("List selection selects the viewport instance"),E->Globe->Selection().Id,First);
+                E->Globe->Select({Second,false});
+                Test->TestTrue(TEXT("Viewport selection selects the list instance"),E->PlacedLandformList->IsItemSelected(E->PlacedLandformItems[1]));
+                const FKey Keys[]={EKeys::W,EKeys::E,EKeys::R};const ECLGlobePlacementMode Modes[]={ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize};
+                for(int32 I=0;I<3;++I){StaticCastSharedRef<SWidget>(E->Globe.ToSharedRef())->OnPreviewKeyDown(FGeometry(),FKeyEvent(Keys[I],FModifierKeysState(),0,false,0,0));Test->TestTrue(TEXT("W/E/R select the native transform modes"),E->Globe->PlacementMode()==Modes[I]);}
+                auto Targets=FCLGlobePlacementEditing::Resolve(A->Recipe);auto Target=*Targets.FindByPredicate([&](const auto& T){return T.Key.Id==Second;});
+                auto Moved=FCLGlobePlacementEditing::Drag(Target,ECLGlobePlacementHandle::Centre,Target.Frame.GetAxisZ(),FVector::XAxisVector);
+                E->CommitGlobePlacement(Moved,false);
+                auto After=FCLGlobePlacementEditing::Resolve(A->Recipe);
+                Test->TestTrue(TEXT("Widget commit updates only the selected instance placement"),After.FindByPredicate([&](const auto& T){return T.Key.Id==Second;})->Frame.GetAxisZ().Equals(FVector::XAxisVector,1.e-8));
+                const auto BeforeDelete=A->Recipe;
+                E->PlacedLandformList->OnKeyDown(FGeometry(),FKeyEvent(EKeys::Delete,FModifierKeysState(),0,false,0,0));
+                Test->TestEqual(TEXT("Delete in the list removes one placed instance"),A->Recipe.TerrainRegions.Num(),1);
+                Test->TestFalse(TEXT("Instance source link is removed with the instance"),A->LandformSources.Contains(Second));
+                GEditor->UndoTransaction();
+                Test->TestTrue(TEXT("Undo restores the complete placed-instance payload"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&BeforeDelete,&A->Recipe,0));
+                Test->TestTrue(TEXT("Undo restores list and source reference"),E->PlacedLandformItems.Num()==2&&A->LandformSources.FindRef(Second)==Source.Get());
+                E->Globe->Select({Second,false});StaticCastSharedRef<SWidget>(E->Globe.ToSharedRef())->OnPreviewKeyDown(FGeometry(),FKeyEvent(EKeys::Delete,FModifierKeysState(),0,false,0,0));
+                Test->TestEqual(TEXT("Delete in the viewport removes the selected instance"),A->Recipe.TerrainRegions.Num(),1);
+                GEditor->UndoTransaction();GEditor->RedoTransaction();
+                Test->TestEqual(TEXT("Redo restores deletion"),A->Recipe.TerrainRegions.Num(),1);
+                Test->TestTrue(TEXT("Placement and deletion preserve the reusable source"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&Original,&Source->TerrainType,0));
+                auto* Province=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_ContinentalRift"));
+                Test->TestFalse(TEXT("Province types cannot be silently converted into placed instances"),E->AddPlacedLandform(Province));
+                E->SelectProvincesSubtab(0);Stage=2;return false;
+            }
+            const FString Fields=Text(E->PlanetInspectors[2].ToSharedRef());
+            if(!Fields.Contains(TEXT("Cell count")))return false;
+            Test->TestTrue(TEXT("Placement contains cell-generation controls"),Fields.Contains(TEXT("Placement seed"))&&Fields.Contains(TEXT("Structure guidance"))&&Fields.Contains(TEXT("Boundary blending")));
+            Test->TestFalse(TEXT("Raw authoring and manual base tools are absent from Placement"),Fields.Contains(TEXT("Base Structure"))||Fields.Contains(TEXT("Terrain Regions"))||Fields.Contains(TEXT("Terrain layers"))||Fields.Contains(TEXT("Uplift"))||Fields.Contains(TEXT("Volumes")));
+            return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Editor,Asset,Source));return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLFreshProjectInstallTest,"Catalyst.Landform.Installation.FreshProject",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLFreshProjectInstallTest::RunTest(const FString&)
 {

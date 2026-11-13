@@ -21,7 +21,7 @@ file-local helpers cannot collide in installed unity builds. The optional native
 projection path remains unavailable where stock VPP lacks its lifecycle capability;
 the ordinary Planet editor does not require it.
 
-There is one current Planet editor: Planet, Geology, Landforms and Preview.
+There is one current Planet editor: Planet, Geology, Provinces and Preview.
 Optional plugins append their own sections through the generic extension registry.
 Ecosystem supplies its own Climate/Biomes panels; disabling Ecosystem removes its
 section. No Ecosystem dependency or climate/material implementation was added to
@@ -53,3 +53,20 @@ Evidence is retained in VPPTest58 `Saved/CurrentPlanetQualification`; its worksp
 conformance record contains individual test states and screenshot paths. The
 Ecosystem-enabled capture shows the current Planet editor with its climate panel;
 the disabled capture shows only the four built-in sections.
+
+
+## Provinces workflow — 13 November 2026
+
+The current UE 5.8.4 Mac arm64 Planet editor has Provinces with Placement, Types
+and Landforms pages. Nine rendered native checks pass, including added-instance
+asset-picker selection, duplicate instances, list/globe selection, deletion,
+undo/redo, source preservation, placement-frame mathematics, native VPP parity,
+real HWidgetAxis move/rotate/scale drags, province row controls, fresh installation,
+new-planet creation and Ecosystem integration. The installer suite also passes
+all three checks. Reports are retained in VPPTest58 Saved/ProvincesEditor.
+
+UE 5.8's actor-oriented ITF gizmo path suppressed the preview's HWidgetAxis
+handles. This private viewport explicitly selects Unreal's axis widget path on
+5.8; the level editor's gizmo policy is untouched. All seven supported handle
+gestures commit once on mouse release, and Escape cancels a draft. No test or
+review authoring assets are saved.

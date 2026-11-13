@@ -1,7 +1,7 @@
 # Catalyst Landform for Unreal Engine
 
 Catalyst Landform provides deterministic procedural planets and the **Planet**
-editor. Planet owns assembly, geology, Landforms, surface authoring, radial guides
+editor. Planet owns assembly, geology, Provinces, surface authoring, radial guides
 and preview. Landform asset actions focus that same editor. Voxel Plugin owns
 meshing, LOD, rendering, collision and edits.
 
@@ -41,8 +41,11 @@ project are not required.
 Generate project files and build your project's Editor target, then open the
 project. Create a **Planet Recipe**, or open an existing planet asset such as
 `DA_BasePlanet`. The **Window → Catalyst → Planet** action opens the same editor.
-Use the Landforms tab to include provinces, edit Character or expanded values,
-toggle preview visibility, highlight assigned cells, reseed and Solo.
+Use **Provinces > Placement** for cell-generation settings and assignments,
+**Types** for province inclusion, Character, expanded values, preview visibility,
+cell highlights, reseed and Solo, and **Landforms** to add existing landform assets
+as individual instances. Select an instance in the list or globe to use Unreal's
+Move/Rotate/Scale gizmo; Delete removes the instance with undo/redo support.
 
 The installer refuses to overwrite an unmanaged or locally edited plugin.
 Re-running it can update its own unmodified installation. It records source and
