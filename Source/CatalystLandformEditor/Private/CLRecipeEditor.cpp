@@ -1270,8 +1270,10 @@ public:
         InspectorError.Reset();WalkStatus=TEXT("Opening walking preview…");
         if(!FCLPlanetInspection::Launch.Execute(MoveTemp(Request),Error)){WalkStatus=Error;InspectorError=Error;}
     }
+    static TSharedRef<STextBlock> InspectorLabel(const FText& Text)
+    {return SNew(STextBlock).Text(Text).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"));}
     static TSharedRef<STextBlock> InspectorLabel(const TCHAR* Text)
-    {return SNew(STextBlock).Text(FText::FromString(Text)).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"));}
+    {return InspectorLabel(FText::FromString(Text));}
     static FDetailWidgetRow& InspectorRow(IDetailCategoryBuilder& Category,const TCHAR* Label,const TSharedRef<SWidget>& Widget,bool Advanced=false)
     {return Category.AddCustomRow(FText::FromString(Label),Advanced).NameContent()[InspectorLabel(Label)].ValueContent().MinDesiredWidth(220).MaxDesiredWidth(900)[Widget];}
     static TSharedRef<SWidget> CharacterReadout(TAttribute<double> Value)
@@ -1656,7 +1658,7 @@ public:
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
         for(int32 Page=0;Page<BuiltInInspectorCount;++Page)
         {
-            Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
+            if(Page!=BuiltInInspectorCount-1)Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
                 .IsChecked_Lambda([this,Page]{return InspectorPage==Page?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this,Page](ECheckBoxState V){if(V==ECheckBoxState::Checked)SelectInspectorPage(Page);})[InspectorLabel(Names[Page])]];
             FDetailsViewArgs Args;Args.bUpdatesFromSelection=false;Args.bHideSelectionTip=true;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;Args.ViewIdentifier=FName(*FString::Printf(TEXT("CLPlanetInspector%d"),Page));
@@ -1682,9 +1684,16 @@ public:
             Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
                 .IsChecked_Lambda([this,Page]{return InspectorPage==Page?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
                 .OnCheckStateChanged_Lambda([this,Page](ECheckBoxState V){if(V==ECheckBoxState::Checked)SelectInspectorPage(Page);})
-                [SNew(STextBlock).Text(Provider.Label)]];
+                [InspectorLabel(Provider.Label)]];
             InspectorPages->AddSlot()[Extension->Widget()];
         }
+        // Optional authoring sections precede Preview. Internal page indices stay
+        // stable, so providers and existing navigation retain their exact targets.
+        constexpr int32 PreviewPage=BuiltInInspectorCount-1;
+        Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
+            .IsChecked_Lambda([this]{return InspectorPage==PreviewPage?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+            .OnCheckStateChanged_Lambda([this](ECheckBoxState V){if(V==ECheckBoxState::Checked)SelectInspectorPage(PreviewPage);})
+            [InspectorLabel(TEXT("Preview"))]];
         return SNew(SDockTab).Label(FText::FromString(TEXT("Planet")))[SNew(SVerticalBox)
             +SVerticalBox::Slot().AutoHeight().Padding(4)[Tabs]
             +SVerticalBox::Slot().FillHeight(1)[InspectorPages.ToSharedRef()]
