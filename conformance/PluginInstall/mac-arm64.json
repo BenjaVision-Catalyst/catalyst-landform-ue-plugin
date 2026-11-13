@@ -59,7 +59,7 @@
     ],
     "originalAuthoringAssetsSaved": false
   },
-  "sourceProductSHA256": "c09ede67c78e7b35774f1bbe2a031db92b40728177429656c17aedacf8035640",
+  "sourceProductSHA256": "9cb1a416f25958e1409f7763612ac27cce724417ab71711ac1c406c412d0f8d2",
   "focusedTests": {
     "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes": "Success",
     "Catalyst.Landform.Caves.Placement.GuidesAndPersistence": "Success",
@@ -114,5 +114,11 @@
     "Catalyst.Landform.Regions.StructureAndPalette": "Success"
   },
   "pythonInstallerTests": 3,
-  "scope": "Installation, current code-path cleanup, guide authoring and native delivery. This is not cave morphology visual acceptance. No original authoring assets were saved."
+  "scope": "Installation, current code-path cleanup, guide authoring and native delivery. This is not cave morphology visual acceptance. No original authoring assets were saved.",
+  "portableRiftImportMetadata": {
+    "importPathIsRelative": true,
+    "resolvesPackagedPortableRecipe": true,
+    "terrainTypeUnchanged": true,
+    "authoringPlanetsSaved": false
+  }
 }
