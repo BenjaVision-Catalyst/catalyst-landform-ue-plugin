@@ -32,7 +32,8 @@ establishes ground contact. Controls are enabled after stable native contact.
 A 120 second collision limit or 8 second grounding limit stops the character with
 an error. No per-frame relocation is used after release.
 
-**WASD**, mouse and **Space** use local-gravity movement. **Esc** ends PIE and
+**WASD**, mouse and **Space** use local-gravity movement at **20 m/s** (2,000 cm/s).
+**Esc** ends PIE and
 marks the last walked surface in Planet. Walking uses a fixed snapshot; start a
 new inspection to see subsequent authoring changes. The reusable player, native
 collision invokers, HUD and inspection game mode belong to the runtime Landform

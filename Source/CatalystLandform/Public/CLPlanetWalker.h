@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "VoxelCharacter.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/HUD.h"
 #include "CLPlanetWalker.generated.h"
@@ -13,7 +13,7 @@ class UVoxelCollisionInvokerComponent;
 
 /** First-person inspection of one explicitly bound native planet. */
 UCLASS()
-class CATALYSTLANDFORM_API ACLPlanetWalker : public ACharacter
+class CATALYSTLANDFORM_API ACLPlanetWalker : public AVoxelCharacter
 {
     GENERATED_BODY()
 public:
@@ -42,12 +42,13 @@ private:
     double Started=0,Released=0,Grounded=0;
     float Pitch=-5;
     bool bFailed=false;
+    bool bForward=false,bBackward=false,bRight=false,bLeft=false;
     void Fail(const FString& Error);
     bool IsPlanetFloor(const FHitResult& Hit) const;
-    void Forward(float Value);
-    void Backward(float Value) {Forward(-Value);}
-    void Right(float Value);
-    void Left(float Value) {Right(-Value);}
+    void ForwardPressed(){bForward=true;} void ForwardReleased(){bForward=false;}
+    void BackwardPressed(){bBackward=true;} void BackwardReleased(){bBackward=false;}
+    void RightPressed(){bRight=true;} void RightReleased(){bRight=false;}
+    void LeftPressed(){bLeft=true;} void LeftReleased(){bLeft=false;}
     void LookYaw(float Value);
     void LookPitch(float Value);
     void StartJump();

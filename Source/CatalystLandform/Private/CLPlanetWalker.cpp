@@ -21,7 +21,7 @@ ACLPlanetWalker::ACLPlanetWalker(const FObjectInitializer& Initializer)
     bUseControllerRotationPitch=bUseControllerRotationYaw=bUseControllerRotationRoll=false;
     auto* Movement=RadialMovement();
     Movement->bOrientRotationToMovement=false;Movement->bUseControllerDesiredRotation=false;
-    Movement->MaxWalkSpeed=300;Movement->JumpZVelocity=350;Movement->AirControl=.2;
+    Movement->MaxWalkSpeed=2000;Movement->JumpZVelocity=350;Movement->AirControl=.2;
     Movement->SetWalkableFloorAngle(38);Movement->MaxStepHeight=45;
     Camera=CreateDefaultSubobject<UCameraComponent>(TEXT("InspectionCamera"));
     Camera->SetupAttachment(GetCapsuleComponent());Camera->SetRelativeLocation(FVector(0,0,64));
@@ -112,17 +112,19 @@ void ACLPlanetWalker::Tick(float DeltaSeconds)
         UE_LOG(LogTemp,Display,TEXT("LANDFORM_WALK_READY: %s | adjustment %.2f m | floor error %.2f cm"),*Planet->GetPathName(),LandingAdjustmentMeters,InitialFloorErrorCm);
     }
     Camera->SetRelativeRotation(FRotator(Pitch,0,0));
+    AddMovementInput(GetActorForwardVector(),float(bForward)-float(bBackward));
+    AddMovementInput(GetActorRightVector(),float(bRight)-float(bLeft));
 }
-void ACLPlanetWalker::Forward(float Value){if(bReady)AddMovementInput(GetActorForwardVector(),Value);}
-void ACLPlanetWalker::Right(float Value){if(bReady)AddMovementInput(GetActorRightVector(),Value);}
 void ACLPlanetWalker::LookYaw(float Value){if(bReady)AddActorLocalRotation(FRotator(0,Value*.15,0));}
 void ACLPlanetWalker::LookPitch(float Value){if(bReady)Pitch=FMath::Clamp(Pitch+Value*.15f,-85.f,85.f);}
 void ACLPlanetWalker::StartJump(){if(bReady)Jump();}
 void ACLPlanetWalker::SetupPlayerInputComponent(UInputComponent* Input)
 {
     Super::SetupPlayerInputComponent(Input);
-    Input->BindAxisKey(EKeys::W,this,&ACLPlanetWalker::Forward);Input->BindAxisKey(EKeys::S,this,&ACLPlanetWalker::Backward);
-    Input->BindAxisKey(EKeys::D,this,&ACLPlanetWalker::Right);Input->BindAxisKey(EKeys::A,this,&ACLPlanetWalker::Left);
+    Input->BindKey(EKeys::W,IE_Pressed,this,&ACLPlanetWalker::ForwardPressed);Input->BindKey(EKeys::W,IE_Released,this,&ACLPlanetWalker::ForwardReleased);
+    Input->BindKey(EKeys::S,IE_Pressed,this,&ACLPlanetWalker::BackwardPressed);Input->BindKey(EKeys::S,IE_Released,this,&ACLPlanetWalker::BackwardReleased);
+    Input->BindKey(EKeys::D,IE_Pressed,this,&ACLPlanetWalker::RightPressed);Input->BindKey(EKeys::D,IE_Released,this,&ACLPlanetWalker::RightReleased);
+    Input->BindKey(EKeys::A,IE_Pressed,this,&ACLPlanetWalker::LeftPressed);Input->BindKey(EKeys::A,IE_Released,this,&ACLPlanetWalker::LeftReleased);
     Input->BindAxisKey(EKeys::MouseX,this,&ACLPlanetWalker::LookYaw);Input->BindAxisKey(EKeys::MouseY,this,&ACLPlanetWalker::LookPitch);
     Input->BindKey(EKeys::SpaceBar,IE_Pressed,this,&ACLPlanetWalker::StartJump);
     Input->BindKey(EKeys::SpaceBar,IE_Released,this,&ACLPlanetWalker::StopJumping);

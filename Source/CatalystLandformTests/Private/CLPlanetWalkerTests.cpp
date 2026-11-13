@@ -2,6 +2,7 @@
 #include "CLPlanetInspection.h"
 #include "CLPlanetWalker.h"
 #include "CLRadialGravityMovement.h"
+#include "Components/InputComponent.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPluginWalkHostTest,"Catalyst.Landform.Inspection.PluginWalkingHost",
     EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -10,6 +11,9 @@ bool FCLPluginWalkHostTest::RunTest(const FString&)
     TestTrue(TEXT("The plugin registers walking without a host project adapter"),FCLPlanetInspection::Launch.IsBound());
     const auto* Pawn=GetDefault<ACLPlanetWalker>();
     TestTrue(TEXT("The plugin's reusable character uses native radial movement"),Pawn->GetCharacterMovement()->IsA<UCLRadialGravityMovement>());
+    TestTrue(TEXT("The player inherits VPP's native movement-base contract"),Pawn->IsA<AVoxelCharacter>());
+    auto* Input=NewObject<UInputComponent>(GetTransientPackage());
+    GetMutableDefault<ACLPlanetWalker>()->SetupPlayerInputComponent(Input);
     TestEqual(TEXT("The player is owned by Landform"),Pawn->GetClass()->GetOutermost()->GetName(),FString(TEXT("/Script/CatalystLandform")));
     TestNull(TEXT("Inspection waits for its explicit planet before creating a pawn"),GetDefault<ACLPlanetInspectionGameMode>()->DefaultPawnClass.Get());
     FCLPlanetInspectionRequest MissingSelection;FString Error;
