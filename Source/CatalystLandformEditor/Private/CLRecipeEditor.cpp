@@ -75,7 +75,6 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScrollBox.h"
-#include "Widgets/Layout/SExpandableArea.h"
 #include "Widgets/Layout/SWrapBox.h"
 #include "Misc/AutomationTest.h"
 #include "ImageUtils.h"
@@ -746,6 +745,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SWidgetSwitcher> InspectorPages;
     static constexpr int32 BuiltInInspectorCount=4;
     int32 InspectorPage=1;
+    int32 LandformsSubtab=0;
     TArray<TSharedRef<ICLPlanetBuilderExtension>> BuilderExtensions;
     TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
     void SelectInspectorPage(int32 Page)
@@ -804,7 +804,7 @@ public:
     void SyncLandformHighlights()
     {if(!Globe||!Landforms)return;TSet<FGuid> Ids;for(FGuid Id:Landforms->Highlighted)if(Landforms->Included(Id))Ids.Add(Id);Globe->SetHighlightedLandforms(Ids);}
     void ShowLandforms(UCLTerrainTypeAsset* Source=nullptr)
-    {if(Source)Landforms->AddSource(Source);if(LandformRows){LandformRows->Refresh();if(Source)LandformRows->Focus(Source->TerrainType.Id);}InspectorPage=2;FocusWindow(RecipeAsset());}
+    {if(Source)Landforms->AddSource(Source);if(LandformRows){LandformRows->Refresh();if(Source)LandformRows->Focus(Source->TerrainType.Id);}InspectorPage=2;LandformsSubtab=0;FocusWindow(RecipeAsset());}
     void Open(UCLPlanetRecipeAsset* Asset, EToolkitMode::Type Mode, TSharedPtr<IToolkitHost> Host)
     {
         EditingAsset = Asset;
@@ -1555,39 +1555,39 @@ public:
             InspectorRow(S,TEXT("Add"),SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Uplift"))).OnClicked_Lambda([this]{AddFeature(false);return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})],true);
-            Add(S,TEXT("BaseStructure"),true);S.SetShowAdvanced(false);
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})],false);
+            Add(S,TEXT("BaseStructure"),false);
             InspectorRow(C,TEXT("Add Landform"),SNew(SComboButton).OnGetMenuContent_Lambda([this]{return AddLandformMenu();})
-                .ButtonContent()[InspectorLabel(TEXT("Landform"))],true);
+                .ButtonContent()[InspectorLabel(TEXT("Landform"))],false);
             InspectorRow(C,TEXT("Selection"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::GlobeSelectionMenu)
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(Globe?Globe->SelectionName():TEXT("None"));})],true);
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(Globe?Globe->SelectionName():TEXT("None"));})],false);
             auto Modes=SNew(SHorizontalBox);
             for(auto Mode:{ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize})
                 Modes->AddSlot().AutoWidth()[SNew(SButton).Text(FText::FromString(Mode==ECLGlobePlacementMode::Move?TEXT("Move"):Mode==ECLGlobePlacementMode::Rotate?TEXT("Rotate"):TEXT("Scale")))
                     .OnClicked_Lambda([this,Mode]{if(Globe)Globe->SetPlacementMode(Mode);return FReply::Handled();})];
-            InspectorRow(C,TEXT("Transform"),Modes,true);
+            InspectorRow(C,TEXT("Transform"),Modes,false);
             InspectorRow(C,TEXT("Source"),SNew(SHorizontalBox).IsEnabled_Lambda([this]{return Globe&&!Globe->Selection().bStructure&&RecipeAsset()->LandformSources.Contains(Globe->Selection().Id);})
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Edit"))).OnClicked_Lambda([this]{if(auto* Source=RecipeAsset()->LandformSources.Find(Globe->Selection().Id))CLOpenPlanetLandform(Source->Get());return FReply::Handled();})]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);});return FReply::Handled();})],true);
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Refresh"))).OnClicked_Lambda([this]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh Landform source")));InspectorError.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return RecipeAsset()->RefreshLandformSource(Globe->Selection().Id,InspectorError);});return FReply::Handled();})],false);
             InspectorRow(C,TEXT("Landform"),SNew(SButton).Text(FText::FromString(TEXT("Remove")))
                 .IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
-                .OnClicked_Lambda([this]{const auto Id=Globe->Selection().Id;const FScopedTransaction Tx(FText::FromString(TEXT("Remove Landform")));auto* A=RecipeAsset();A->Modify();A->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});A->LandformSources.Remove(Id);Globe->Select({});A->MarkPackageDirty();A->PostEditChange();return FReply::Handled();}),true);
+                .OnClicked_Lambda([this]{const auto Id=Globe->Selection().Id;const FScopedTransaction Tx(FText::FromString(TEXT("Remove Landform")));auto* A=RecipeAsset();A->Modify();A->Recipe.TerrainRegions.RemoveAll([&](const auto& R){return R.Id==Id;});A->LandformSources.Remove(Id);Globe->Select({});A->MarkPackageDirty();A->PostEditChange();return FReply::Handled();}),false);
             InspectorRow(C,TEXT("Structure"),SNew(SComboButton).IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
                 .OnGetMenuContent_Lambda([this]{return StructureMenu(Globe->Selection().Id);})
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{if(Globe){const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Globe->Selection().Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}}return FText::FromString(TEXT("Planet frame"));})],true);
-            RegionProperties=Property(TEXT("TerrainRegions"));C.AddProperty(RegionProperties,EPropertyLocation::Advanced);Add(C,TEXT("NoiseLayers"),true);C.SetShowAdvanced(false);
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{if(Globe){const auto* R=RecipeAsset()->Recipe.TerrainRegions.FindByPredicate([&](const auto& V){return V.Id==Globe->Selection().Id;});if(R){const auto* F=RecipeAsset()->Recipe.BaseStructure.FindByPredicate([&](const auto& V){return V.Id==R->Placement.StructureFeatureId;});if(F)return FText::FromString(F->Name);}}return FText::FromString(TEXT("Planet frame"));})],false);
+            RegionProperties=Property(TEXT("TerrainRegions"));C.AddProperty(RegionProperties,EPropertyLocation::Default);Add(C,TEXT("NoiseLayers"),false);
             auto& G=C;
-            const auto Settings=Property(TEXT("RegionGeneration"));G.AddProperty(Settings->GetChildHandle(TEXT("bEnabled")),EPropertyLocation::Advanced);
+            const auto Settings=Property(TEXT("RegionGeneration"));G.AddProperty(Settings->GetChildHandle(TEXT("bEnabled")),EPropertyLocation::Default);
 
-            G.AddProperty(Settings->GetChildHandle(TEXT("ReliefStrength")),EPropertyLocation::Advanced);
-            for(const TCHAR* Name:{TEXT("RegionCount"),TEXT("Seed"),TEXT("StructureGuidance"),TEXT("BlendFraction"),TEXT("Overrides")})G.AddProperty(Settings->GetChildHandle(FName(Name)),EPropertyLocation::Advanced);
+            G.AddProperty(Settings->GetChildHandle(TEXT("ReliefStrength")),EPropertyLocation::Default);
+            for(const TCHAR* Name:{TEXT("RegionCount"),TEXT("Seed"),TEXT("StructureGuidance"),TEXT("BlendFraction"),TEXT("Overrides")})G.AddProperty(Settings->GetChildHandle(FName(Name)),EPropertyLocation::Default);
             InspectorRow(G,TEXT("Region"),SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::RegionMenu)
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return GenerationPanel->SelectionText();})],true);
+                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return GenerationPanel->SelectionText();})],false);
             InspectorRow(G,TEXT("Assignment"),SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().FillWidth(1)[SNew(SComboButton).OnGetMenuContent(GenerationPanel.ToSharedRef(),&SCLRegionGenerationPanel::OverrideMenu).ButtonContent()[InspectorLabel(TEXT("Landform"))]]
-                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Clear"))).OnClicked_Lambda([this]{GenerationPanel->ClearOverrides();return FReply::Handled();})],true);G.SetShowAdvanced(false);
+                +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Clear"))).OnClicked_Lambda([this]{GenerationPanel->ClearOverrides();return FReply::Handled();})],false);
             if(RecipeAsset()->Recipe.SchemaVersion>=18)
-            {Add(C,TEXT("Volumes"),true);}
+            {Add(C,TEXT("Volumes"),false);}
         }
         else
         {
@@ -1644,9 +1644,21 @@ public:
             {return MakeShared<FCLPlanetDetailsLayout>([Weak,Page](IDetailLayoutBuilder& B){if(auto E=Weak.Pin())E->BuildPlanetInspector(B,Page);});}));
             if(Page==0||Page==1)View->OnFinishedChangingProperties().AddSP(this,&FCLRecipeToolkit::FinishGeologyAdvanced);
             View->SetObject(RecipeAsset());PlanetInspectors.Add(View);
-            if(Page==2)InspectorPages->AddSlot()[SNew(SVerticalBox)
-                +SVerticalBox::Slot().FillHeight(1)[SAssignNew(LandformRows,SCLPlanetLandforms).Session(Landforms)]
-                +SVerticalBox::Slot().AutoHeight()[SNew(SExpandableArea).InitiallyCollapsed(true).HeaderContent()[InspectorLabel(TEXT("Advanced"))].BodyContent()[SNew(SBox).MaxDesiredHeight(340)[View]]]];
+            if(Page==2)
+            {
+                const auto Subtabs=SNew(SHorizontalBox);
+                const TCHAR* SubtabNames[]={TEXT("Landforms"),TEXT("Advanced")};
+                for(int32 Subtab=0;Subtab<UE_ARRAY_COUNT(SubtabNames);++Subtab)
+                    Subtabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
+                        .IsChecked_Lambda([this,Subtab]{return LandformsSubtab==Subtab?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                        .OnCheckStateChanged_Lambda([this,Subtab](ECheckBoxState State){if(State==ECheckBoxState::Checked)LandformsSubtab=Subtab;})
+                        [InspectorLabel(SubtabNames[Subtab])]];
+                InspectorPages->AddSlot()[SNew(SVerticalBox)
+                    +SVerticalBox::Slot().AutoHeight().Padding(4)[Subtabs]
+                    +SVerticalBox::Slot().FillHeight(1)[SNew(SWidgetSwitcher).WidgetIndex_Lambda([this]{return LandformsSubtab;})
+                        +SWidgetSwitcher::Slot()[SAssignNew(LandformRows,SCLPlanetLandforms).Session(Landforms)]
+                        +SWidgetSwitcher::Slot()[View]]];
+            }
             else InspectorPages->AddSlot()[View];
         }
         BuilderExtensions.Reset();

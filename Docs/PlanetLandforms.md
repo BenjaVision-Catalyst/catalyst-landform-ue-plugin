@@ -145,3 +145,15 @@ provide a separate global terrain-preset selector or base-definition edit action
 Landforms are applied over that base through generation or explicit placement.
 Removing the former UI controls does not rewrite saved recipes or their authored
 geology, sources, layers or material settings.
+
+
+## Landforms sub-tabs
+
+The Landforms section has **Landforms** and **Advanced** sub-tabs, with the same
+compact section-button style as Ecosystem's Climate/Biomes sub-tabs. Landforms
+contains the province/landform rows. Advanced has the full-height native details
+view for manual placement, selection/transforms, base structures, generated
+region assignments and other composition settings. These controls are directly
+visible in that tab, rather than hidden under an Advanced expander below the
+rows. Tab switching changes editor presentation only. Source actions return to
+the Landforms rows in the existing Planet editor.
