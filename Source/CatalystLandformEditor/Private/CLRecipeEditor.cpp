@@ -307,7 +307,6 @@ public:
     {
         Session = Args._Session; Client = Args._Client; Overlay = Args._Overlay;
         Index = Args._Index;HeightAtScreenY=Args._HeightAtScreenY;
-        SetToolTipText(FText::FromString(TEXT("Click to select; drag to move; Delete to remove; double-click a label or press F2 to rename")));
         if (Args._Label)
             ChildSlot[SNew(SBorder).Padding(FMargin(3, 0)).VAlign(VAlign_Center).BorderImage(FAppStyle::GetBrush("NoBorder"))
                 [SNew(SHorizontalBox)
@@ -495,7 +494,6 @@ public:
                     [SNew(SBox).WidthOverride(16).HeightOverride(16).VAlign(VAlign_Center)
                         .Visibility_Lambda([this] { return EVisibility::Visible; })
                         [SNew(SButton).ButtonStyle(FAppStyle::Get(), "SimpleButton").ContentPadding(0)
-                        .ToolTipText(FText::FromString(TEXT("Add a Radial Guide just above Core, then drag it to the desired height")))
                         .IsEnabled_Lambda([this] { return Session->Asset->Recipe.RadialGuides.Guides.Num() < 128; })
                         .OnClicked_Lambda([this]
                         {

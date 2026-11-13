@@ -22,3 +22,5 @@ No asset is automatically saved by opening, selecting or editing guides.
 Guide positions are fractions of the planet's sky-envelope radius. Resizing a
 planet retains these fractions. SurfaceMin/SurfaceMax guide surface composition;
 CavesMin/CavesMax guide cave placement independently of surface rendering.
+
+Guide labels, ticks and the add-guide control display without hover tooltips.
