@@ -763,7 +763,6 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<SCLHeightAnnotations> Annotations;
     TSharedPtr<FCLRadialGuideSession> RadialGuidesSession;
     TSharedPtr<FCLSelectionInput> SelectionInput;
-    TStrongObjectPtr<UCLTerrainTypeAsset> TerrainSource;
     TSharedPtr<SCLRegionGenerationPanel> GenerationPanel;
     TSharedPtr<FCLPlanetLandforms> Landforms;
     TSharedPtr<SCLPlanetLandforms> LandformRows;
@@ -860,8 +859,7 @@ public:
     }
     virtual void GetSaveableObjects(TArray<UObject*>& Objects) const override
     { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (RadialGuidesSession && !RadialGuidesSession->Library->IsPackaged()) Objects.AddUnique(RadialGuidesSession->Library.Get()); for(const auto& Extension:BuilderExtensions)Extension->GetSaveableObjects(Objects); }
-    TSharedRef<SWidget> TerrainMenu() { return TerrainSourceMenu(FGuid(), false); }
-    TSharedRef<SWidget> TerrainSourceMenu(FGuid RegionId, bool bNewRegion)
+    TSharedRef<SWidget> AddLandformMenu()
     {
         FMenuBuilder Menu(true, nullptr); TArray<FAssetData> Assets;
         FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().GetAssetsByClass(UCLTerrainTypeAsset::StaticClass()->GetClassPathName(), Assets, true);
@@ -870,31 +868,22 @@ public:
         for (const FAssetData& Data : Assets)
         {
             auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); if (!Source) continue;
-            if ((bNewRegion || RegionId.IsValid()) && Source->TerrainType.Coordinates != RecipeAsset()->Recipe.Coordinates) continue;
+            if (Source->TerrainType.Coordinates != RecipeAsset()->Recipe.Coordinates) continue;
             const TWeakObjectPtr<UCLTerrainTypeAsset> Weak(Source);
             const bool bTemplate = Data.PackagePath.ToString().StartsWith(TEXT("/CatalystLandform/"));
             Menu.AddMenuEntry(FText::FromString(Source->TerrainType.Name + (bTemplate ? TEXT(" (template)") : TEXT(""))),
                 FText::FromString(Source->TerrainType.Description + TEXT("\n") + Source->GetPathName()), FSlateIcon(),
-                FUIAction(FExecuteAction::CreateLambda([this, Weak, RegionId, bNewRegion]
+                FUIAction(FExecuteAction::CreateLambda([this, Weak]
                 {
                     if (!Weak.IsValid()) return;
-                    if(bNewRegion || RegionId.IsValid())
-                    {
-                        auto Candidate=RecipeAsset()->Recipe;FGuid Target=RegionId;
-                        if(bNewRegion)
-                        {
-                            FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=Weak->TerrainType.Name;
-                            if(Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface){Candidate.SchemaVersion=FMath::Max(11,Candidate.SchemaVersion);Region.bPlacedLandform=true;}
-                            Target=Region.Id;Candidate.TerrainRegions.Add(Region);
-                        }
-                        FString Error;
-                        if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return Weak->TerrainType.ApplyToRegion(Candidate,Target,Error);})){Status=TEXT("Region was not applied: ")+Error;return;}
-                        const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyRegion", "Apply terrain to planet region"));
-                        RecipeAsset()->Modify();RecipeAsset()->Recipe=MoveTemp(Candidate);RecipeAsset()->LandformSources.Add(Target,Weak.Get());RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();
-                        return;
-                    }
-                    const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyTerrainType", "Apply terrain type")); FString Error;
-                    if (!FCLPlanetCompiler::WithAuthoringValidation([&]{return Weak->ApplyToRecipe(RecipeAsset(),Error);})) Status = TEXT("Terrain type was not applied: ") + Error;
+                    auto Candidate=RecipeAsset()->Recipe;
+                    FCLTerrainRegion Region;Region.Id=FGuid::NewGuid();Region.Name=Weak->TerrainType.Name;
+                    if(Candidate.Coordinates==ECLTerrainCoordinates::SphericalSurface){Candidate.SchemaVersion=FMath::Max(11,Candidate.SchemaVersion);Region.bPlacedLandform=true;}
+                    const FGuid Target=Region.Id;Candidate.TerrainRegions.Add(Region);
+                    FString Error;
+                    if(!FCLPlanetCompiler::WithAuthoringValidation([&]{return Weak->TerrainType.ApplyToRegion(Candidate,Target,Error);})){Status=TEXT("Region was not applied: ")+Error;return;}
+                    const FScopedTransaction Tx(NSLOCTEXT("CL", "ApplyRegion", "Apply terrain to planet region"));
+                    RecipeAsset()->Modify();RecipeAsset()->Recipe=MoveTemp(Candidate);RecipeAsset()->LandformSources.Add(Target,Weak.Get());RecipeAsset()->PostEditChange();RecipeAsset()->MarkPackageDirty();
                 })));
         }
         return Menu.MakeWidget();
@@ -1128,14 +1117,6 @@ public:
         if(RockDraft)*reinterpret_cast<FCLRockLayer*>(RockDraft->GetStructMemory())=LayeredRecipe().Rock;
         if(RockBedDraft)*reinterpret_cast<FCLRockBedDistribution*>(RockBedDraft->GetStructMemory())=LayeredRecipe().Rock.BedDistribution;
         if(ElevationDraft)*reinterpret_cast<FCLSurfaceDistributionSettings*>(ElevationDraft->GetStructMemory())=ElevationSettings();
-        if (!Asset->Recipe.TerrainTypeId.IsValid()) TerrainSource.Reset();
-        else if (!TerrainSource || TerrainSource->TerrainType.Id != Asset->Recipe.TerrainTypeId)
-        {
-            TerrainSource.Reset(); TArray<FAssetData> Assets;
-            FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get().GetAssetsByClass(UCLTerrainTypeAsset::StaticClass()->GetClassPathName(), Assets, true);
-            for (const auto& Data : Assets) if (auto* Source = Cast<UCLTerrainTypeAsset>(Data.GetAsset()); Source && Source->TerrainType.Id == Asset->Recipe.TerrainTypeId)
-            { TerrainSource.Reset(Source); break; }
-        }
         FString GuideError;const bool GuidesValid=Asset->SynchronizeRadialGuides(GuideError);
         if(Globe){Globe->SetAuthoringRecipe(Asset->Recipe);Globe->SetGuides(Asset->Recipe.RadialGuides,Preview?Preview->Client->bGuides:true);}
         if (Preview) Preview->Client->RadialGuides = Asset->Recipe.RadialGuides;
@@ -1576,11 +1557,7 @@ public:
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Basin"))).OnClicked_Lambda([this]{AddFeature(true);return FReply::Handled();})]
                 +SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Canyon"))).OnClicked_Lambda([this]{AddFeature(true,true);return FReply::Handled();})],true);
             Add(S,TEXT("BaseStructure"),true);S.SetShowAdvanced(false);
-            InspectorRow(C,TEXT("Base terrain"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::TerrainMenu)
-                .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{const FString& Name=RecipeAsset()->Recipe.TerrainTypeName;return FText::FromString(Name.IsEmpty()?TEXT("None"):Name);})],true);
-            InspectorRow(C,TEXT("Base definition"),SNew(SButton).Text(FText::FromString(TEXT("Edit"))).IsEnabled_Lambda([this]{return TerrainSource.IsValid();})
-                .OnClicked_Lambda([this]{if(TerrainSource)CLOpenPlanetLandform(TerrainSource.Get());return FReply::Handled();}),true);
-            InspectorRow(C,TEXT("Add Landform"),SNew(SComboButton).OnGetMenuContent_Lambda([this]{return TerrainSourceMenu(FGuid(),true);})
+            InspectorRow(C,TEXT("Add Landform"),SNew(SComboButton).OnGetMenuContent_Lambda([this]{return AddLandformMenu();})
                 .ButtonContent()[InspectorLabel(TEXT("Landform"))],true);
             InspectorRow(C,TEXT("Selection"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::GlobeSelectionMenu)
                 .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(Globe?Globe->SelectionName():TEXT("None"));})],true);

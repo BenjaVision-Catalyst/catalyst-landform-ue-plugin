@@ -136,3 +136,12 @@ off clears its overlay; excluding the row disables and clears its Info state.
 The Preview tab no longer contains a Province cells checkbox. The globe grid
 retains its independent default and control. Info changes only display state:
 no recipe changes, native-world replacement, mesh extraction or rebuild.
+
+
+## Planetary base ownership
+
+The planetary base comes from tectonics and geology. The Landforms page does not
+provide a separate global terrain-preset selector or base-definition edit action.
+Landforms are applied over that base through generation or explicit placement.
+Removing the former UI controls does not rewrite saved recipes or their authored
+geology, sources, layers or material settings.
