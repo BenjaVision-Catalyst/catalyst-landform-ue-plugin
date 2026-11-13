@@ -19,6 +19,13 @@ FCLRockLayer::FCLRockLayer()
     FoldCompetentUnit=Units[0].Id;
 }
 const TCHAR* FCLCompiledRock::PropertiesAssetPath(){return TEXT("/CatalystLandform/Rock/MD_RockProperties.MD_RockProperties");}
+bool FCLRockUnit::Validate(FString& Error)const
+{
+    auto Normal=[](double V){return FMath::IsFinite(V)&&V>=0&&V<=1;};
+    if(!Id.IsValid()||Name.IsNone()||!Normal(MiningResistance)||!Normal(Erodibility)||uint8(Lithology)>uint8(ECLRockLithology::Ice)||!Normal(FracturePotential)||!Normal(DissolutionPotential)||(DissolutionPotential>0&&Lithology!=ECLRockLithology::Carbonate)||(Lithology==ECLRockLithology::Unknown&&FracturePotential>0)||SurfaceId.IsNone()||SurfaceRevision<1)
+    {Error=TEXT("Geological materials require identity, name, material revision and bounded physical properties");return false;}
+    return true;
+}
 bool FCLRockLayer::BindBedrockMaterials(const FCLCompiledSurfaceLibrary& Library,FString& Error)
 {
     static const FName Materials[]={TEXT("StrongRock"),TEXT("MixedRock"),TEXT("WeakRock")};
@@ -46,8 +53,8 @@ TSharedPtr<const FCLCompiledRock> FCLCompiledRock::Compile(const FCLRockLayer& I
     TSet<FGuid> Ids;
     for(const auto& U:L.Units)
     {
-        if(!U.Id.IsValid()||Ids.Contains(U.Id)||U.Name.IsNone()||!In(U.MiningResistance,0,1)||!In(U.Erodibility,0,1)||uint8(U.Lithology)>uint8(ECLRockLithology::Ice)||!In(U.FracturePotential,0,1)||!In(U.DissolutionPotential,0,1)||(U.DissolutionPotential>0&&U.Lithology!=ECLRockLithology::Carbonate)||(U.Lithology==ECLRockLithology::Unknown&&U.FracturePotential>0))
-        {Error=TEXT("Rock units require unique identities, names and normalized resistance/erodibility");return nullptr;}Ids.Add(U.Id);
+        if(!U.Validate(Error))return nullptr;
+        if(Ids.Contains(U.Id)){Error=TEXT("Rock units require unique identities");return nullptr;}Ids.Add(U.Id);
         const int32 Index=Surfaces?Surfaces->Find(U.SurfaceId,U.SurfaceRevision):INDEX_NONE;
         if(Index==INDEX_NONE){Error=TEXT("Rock unit requires a resolved native client surface: ")+U.SurfaceId.ToString();return nullptr;}Out->SurfaceIndices.Add(Index);
     }
@@ -178,8 +185,9 @@ FCLCompiledRock::FPoint FCLCompiledRock::ClassifyFinite(const FVector3d& P) cons
 FCLRockSample FCLCompiledRock::Sample(const FVector3d& P)const
 {
     FCLRockSample S;if(P.ContainsNaN()||!FMath::IsFinite(P.SizeSquared())||P.Length()>Radius)return S;
-    const auto C=Classify(P);const auto& U=Layer.Units[C.Unit];const auto& V=Layer.Units[C.Other];S.bValid=true;S.UnitId=U.Id;S.StratumIndex=C.Bed;
+    const auto C=Classify(P);const auto& U=Layer.Units[C.Unit];const auto& V=Layer.Units[C.Other];S.bValid=true;S.Origin=ECLMaterialOrigin::Rock;S.UnitId=U.Id;S.StratumIndex=C.Bed;
     S.StratumId=FGuid::Combine(FGuid::Combine(Namespace,U.Id),FGuid(0x53545241,0,uint32(uint64(C.Bed)>>32),uint32(C.Bed)));
+    S.SubstrateUnitId=S.UnitId;S.SubstrateStratumId=S.StratumId;
     S.Name=U.Name;S.SurfaceId=U.SurfaceId;S.SurfaceRevision=U.SurfaceRevision;S.MiningResistance=FMath::Lerp(V.MiningResistance,U.MiningResistance,C.Alpha);S.Erodibility=FMath::Lerp(V.Erodibility,U.Erodibility,C.Alpha);return S;
 }
 FLinearColor FCLCompiledRock::Properties(const FVector3d& P)const

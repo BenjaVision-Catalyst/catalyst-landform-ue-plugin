@@ -9,6 +9,9 @@ This is a development build. Version 1 will be the first supported product relea
 Development targets one current model, without backward-compatibility or migration
 guarantees. [Geology and material ownership](Docs/GeologyAndMaterials.md) defines
 rock, landform-deposit and biome-cover responsibilities.
+Finite [landform deposits](Docs/LandformDeposits.md) are edited inside each Planet
+landform row and compose over rock without changing terrain shape. That document
+also defines the handoff for optional Ecosystem cover.
 
 ## Install from source
 

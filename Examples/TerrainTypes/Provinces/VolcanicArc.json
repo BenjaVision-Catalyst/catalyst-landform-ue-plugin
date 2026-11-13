@@ -120,5 +120,28 @@
     "apronReach": 1.8,
     "breachStrength": 0.05,
     "asymmetry": 0.22
-  }
+  },
+  "deposits": [
+    {
+      "bEnabled": true,
+      "unit": {
+        "id": "434C4445000000010000000000000003",
+        "name": "Volcanic ash mantle",
+        "lithology": "SilicicVolcanic",
+        "surfaceId": "VolcanicAsh",
+        "surfaceRevision": 1,
+        "miningResistance": 0.12,
+        "erodibility": 0.9
+      },
+      "priority": 0,
+      "topDepthMeters": 0,
+      "thicknessMeters": 2,
+      "contactFeatherMeters": 0.5,
+      "thicknessVariation": 0.35,
+      "coverage": 0.8,
+      "patchSizeMeters": 100,
+      "maximumSlopeDegrees": 50,
+      "seed": 0
+    }
+  ]
 }

@@ -461,7 +461,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
     if(!FCLCompileProgress::Check(Error))return nullptr;
     const auto RetainInput=[&](TSharedPtr<const FCLCompiledPlanetRecipe> Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
     {
-        if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=CompileRun?CompileRun->Prepared->Figure:MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());return Out;
+        if(!Input)return nullptr;auto Out=MakeShared<FCLCompiledPlanetRecipe>(*Input);Out->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);Out->NativeFigure=CompileRun?CompileRun->Prepared->Figure:MakeShared<FCLNativeFigureKernel>(*GetDefault<UVoxelShapeFunctionLibrary>());
+        if(!FCLCompiledMaterialLayers::Compile(Recipe,*Out,Out->MaterialLayers,Error))return nullptr;return Out;
     };
 
     const bool TypedHosts=Recipe.Rock.Units.ContainsByPredicate([](const auto& U){return U.Lithology!=ECLRockLithology::Unknown||U.FracturePotential!=0||U.DissolutionPotential!=0;});
@@ -718,7 +719,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
     if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 18) || Recipe.AlgorithmVersion != 2 || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
-    const bool HasSurfaces=Recipe.SurfaceStack.IsActive()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.SurfaceStack.IsActive();})||Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.SurfaceStack.IsActive();});
+    const bool HasDeposits=(Recipe.RegionGeneration.bEnabled&&Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&!P.Deposits.IsEmpty();}))||Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.bEnabled&&!R.Deposits.IsEmpty();});
+    const bool HasSurfaces=HasDeposits||Recipe.SurfaceStack.IsActive()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.SurfaceStack.IsActive();})||Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.SurfaceStack.IsActive();});
     if(HasSurfaces&&(Recipe.SchemaVersion<13||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||!Recipe.SurfaceStack.IsActive()))return Fail(TEXT("Surface rules require schema 13 spherical terrain and a planet default surface"));
     if(!Recipe.SurfaceStack.Validate(Error))return nullptr;
     if(Recipe.RegionGeneration.bEnabled || !Recipe.RegionGeneration.Palette.IsEmpty() || !Recipe.RegionGeneration.Overrides.IsEmpty())
@@ -959,14 +961,14 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
     {
         if(!Region.Id.IsValid() || RegionIds.Contains(Region.Id) || Region.Name.TrimStartAndEnd().IsEmpty())
             return Fail(TEXT("Terrain region IDs must be valid and unique, with nonempty names"));
-        RegionIds.Add(Region.Id);
+        RegionIds.Add(Region.Id);if(!FCLLandformDeposit::ValidateList(Region.Deposits,Error))return nullptr;
         if(Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface)
         {if(Region.bPlacedLandform){FCLCompiledLandformPlacement P;if(Recipe.SchemaVersion<11){Error=TEXT("Placed Landforms require schema 11");return nullptr;}if(!FCLCompiledLandformPlacement::Resolve(Region.Placement,Recipe.BaseStructure,P,Error))return nullptr;}
         else if(!Region.bSphericalMask||!Region.SphericalMask.Validate(Plan->RadiusMeters+Plan->BaseHeightMeters,Error)){if(Error.IsEmpty())Error=TEXT("Spherical regions need spherical masks");return nullptr;}}
         else if(Region.bPlacedLandform || Region.bSphericalMask || !Region.Mask.Validate(Error)){if(Error.IsEmpty())Error=TEXT("Local regions need local masks");return nullptr;}
         if(!Region.bEnabled)continue;
         if(!Region.TerrainTypeId.IsValid() || Region.TerrainTypeName.IsEmpty())return Fail(TEXT("Terrain region requires an applied source snapshot: ")+Region.Name);
-        auto Child=Recipe;Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;Child.SurfaceStack=Region.SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;
+        auto Child=Recipe;Child.RegionGeneration=FCLRegionGenerationSettings();Child.BaseStructure.Reset();Child.Tectonics=FCLTectonicPreset();Child.Continents=FCLContinentalLayer();Child.SchemaVersion=Recipe.Coordinates==ECLTerrainCoordinates::SphericalSurface?8:6;Child.TerrainRegions.Reset();Child.AlgorithmVersion=Region.AlgorithmVersion;Child.SurfaceStack=Region.SurfaceStack;if(Child.SurfaceStack.IsActive())Child.SchemaVersion=13;
         Child.Seed=int32(uint32(Recipe.Seed)+uint32(Region.SeedOffset));Child.TerrainTypeId=Region.TerrainTypeId;
         Child.TerrainTypeName=Region.TerrainTypeName;Child.NoiseLayers=Region.NoiseLayers;
         const auto Field=CompileUnmappedBody(Child,Error,StampLibrary,Recipe.Coordinates==ECLTerrainCoordinates::LocalPatch?&Plan->EvaluationRegion:nullptr,Region.bPlacedLandform?FCLSphericalPatches::WholeSphere:SurfacePatch,SurfaceLibraryOverride);

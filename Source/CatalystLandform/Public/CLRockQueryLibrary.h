@@ -11,8 +11,10 @@ class CATALYSTLANDFORM_API UCLRockQueryLibrary : public UBlueprintFunctionLibrar
 {
     GENERATED_BODY()
 public:
-    /** Native VPP query of current solid + painted properties, bound to this
-     * planet's immutable geology snapshot. Uses VPP futures, layers and metadata. */
+    /** Native VPP query of current solid and physical properties, composed from
+     * the immutable rock/deposit snapshot plus native edits. SurfaceId identifies
+     * the physical material; VisibleSurfaceId reports the current visible paint.
+     * Substrate IDs retain the geological rock beneath a deposit or placed fill. */
     static TVoxelFuture<FCLRockSample> QueryRock(ACLPlanet* Planet,const FVector& WorldPosition);
     UFUNCTION(BlueprintCallable,Category="Landform|Rock")
     static FVoxelFuture QueryExposedRock(FCLRockSample& Result,ACLPlanet* Planet,FVector WorldPosition);

@@ -103,14 +103,15 @@ References: [material workflow](https://docs.voxelplugin.com/knowledgebase/mater
    choices under Geology / Rock. Existing assets retain their authored bindings;
    new planets require rock-only starter bindings. Explicit rebinding is one Undo step.
    Planet Advanced retains the fallback rules previously edited in Surface.
-2. **Composition:** introduce the single substrate/deposit/cover evaluator shared
-   by preview, native terrain and gameplay queries. The existing enabled Rock path
-   currently owns exposed materials and bypasses fallback surface rules. That path
-   does not yet implement biome cover. The current eight-entry client-library
-   budget is separate from VPP's per-position blend budget and must be revisited
-   before adding broad biome/rock catalogues.
-3. **Landform deposits:** add explicit bodies/volumes and their identity/properties;
-   preserve underlying strata outside them. Validate cross-region continuity.
+2. **Composition, implemented:** `FCLScene::SampleMaterials` composes the physical
+   substrate and finite landform deposits. Rendering, native properties and mining
+   queries share that result; authored/native paint retains its edit ordering.
+   It exposes an appearance-only compositor without changing physical identity.
+3. **Landform deposits, implemented:** explicit finite depth, footprint, slope,
+   variation, identity/properties and deterministic priority, edited in the same
+   Planet landform row. Substrate is retained independently. See
+   [Landform deposits and Ecosystem handoff](LandformDeposits.md). This slice adds
+   no terrain geometry, transport simulation, local cave sediments or intrusions.
 4. **Biome cover:** add finite-depth cover through optional Ecosystem contributions.
    The present Ecosystem classifier/PCG bridge does not supply terrain materials.
 5. **Mining/resources:** add controlled deposits and actual-removal accounting,

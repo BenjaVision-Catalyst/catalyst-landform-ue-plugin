@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Scene/CLSceneQuery.h"
 #include "Model/CLRockLayer.h"
+#include "Model/CLMaterialLayers.h"
 
 struct FCLCompiledPlanetRecipe;
 class FCLCompiledVolumes;
@@ -30,9 +31,13 @@ public:
     /** Negative inside generated cave air within the original solid, after authored backfill. */
     bool SampleCaveVoid(const FCLSceneQuery& Query,TArray<FCLSceneShapeSample>& Out,FString& Error,const FCLCompiledCaveVolume* SelectedCutters=nullptr)const;
     bool SampleGeology(const FCLSceneQuery& Query,TArray<FCLRockSample>& Out,FString& Error)const;
+    /** Shared physical/appearance composition, before live native sculpt edits.
+     * Substrate remains independently available even where deposits cover it. */
+    bool SampleMaterials(const FCLSceneQuery& Query,TArray<FCLMaterialSample>& Out,FString& Error,bool SurfaceTypes=true)const;
     bool SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurfaceSample>& Out, FString& Error) const;
 
 private:
+    bool SampleBaseSurfaces(const FCLSceneQuery&,TArray<FCLSceneSurfaceSample>&,FString&)const;
     explicit FCLScene(TSharedPtr<const FCLCompiledPlanetRecipe> InPlan);
     const TSharedPtr<const FCLCompiledPlanetRecipe> RadialPlan;
 };

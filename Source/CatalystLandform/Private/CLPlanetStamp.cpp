@@ -38,6 +38,19 @@ FVector FCLSphericalHeightmapPlacement::FromChart(double Radius, const FVector2D
     return Map.FromChart(Chart);
 }
 
+namespace {
+FVoxelSurfaceTypeBlendBuffer NativeMaterialTypes(TConstArrayView<FCLMaterialSample> Samples,const FCLCompiledSurfaceLibrary& Library)
+{
+    FVoxelSurfaceTypeBlendBuffer Out;Out.Allocate(Samples.Num());FVoxelSurfaceTypeBlendBuilder Builder;
+    for(int32 I=0;I<Samples.Num();++I)
+    {
+        Builder.Reset();for(int32 K=0;K<Library.NativeTypes.Num();++K)if(Samples[I].Surfaces.Values[K]>0)Builder.AddLayer(Library.NativeTypes[K],Samples[I].Surfaces.Values[K]);
+        FVoxelSurfaceTypeBlend Blend;Builder.Build(Blend);Out.Set(I,Blend);
+    }
+    return Out;
+}
+}
+
 class FCLRockMetadataBinding
 {
 public:
@@ -85,7 +98,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
         FString Error;
         RecipePlan = Stamp.CompiledRecipe ? Stamp.CompiledRecipe : FCLPlanetCompiler::Compile(Stamp.Recipe, Error);
         if (!RecipePlan) return false;
-        if(RecipePlan->Rock)
+        if(RecipePlan->Rock||(RecipePlan->MaterialLayers&&RecipePlan->MaterialLayers->HasDeposits()))
         {
             auto* Asset=LoadObject<UVoxelLinearColorMetadata>(nullptr,FCLCompiledRock::PropertiesAssetPath());if(!Asset)return false;
             RockBinding=MakeShared<FCLRockMetadataBinding>(Asset);RockMetadata=FVoxelMetadataRef(Asset);
@@ -131,7 +144,7 @@ bool FCLPlanetStampRuntime::Initialize(FVoxelDependencyCollector& Dependencies)
             Scene = FCLScene::FromPlanet(RecipePlan, Error);
             if (!Scene) return false;
         }
-        if((RecipePlan->Volumes||(RecipePlan->Caves&&RecipePlan->Caves->Cutters)||Stamp.Window.bEnabled)&&!Scene)return false; // No framed or volume fallback to a radial actor profile.
+        if((RecipePlan->MaterialLayers||RecipePlan->Volumes||(RecipePlan->Caves&&RecipePlan->Caves->Cutters)||Stamp.Window.bEnabled)&&!Scene)return false; // Shared body-space composition requires a whole-body scene.
     }
     if(Stamp.bCaveInspectionPreview&&Stamp.CaveInspectionDomain.IsValid())
     {
@@ -283,7 +296,14 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FV
     if(!AffectShape()&&!Surfaces&&!Metadata&&!Rock)return;
     const auto Positions=FVoxelStampUtilities::ComputePositions(Query,Transform);FVoxelFloatBuffer Alphas;
     FVoxelStampUtilities::ApplyDistances(*this,Query,Transform,SampleDistances(Query.Query,Positions),AffectShape(),(Surfaces||Metadata||Rock)?&Alphas:nullptr);
-    if(Surfaces)FVoxelStampUtilities::ApplySurfaceTypes(Query,SampleSurfaceTypes(Query.Query,Positions),Alphas);
+    TArray<FCLMaterialSample> Materials;
+    if(Scene&&(Surfaces||Rock))
+    {
+        TArray<FVector3d> Body;Body.Reserve(Positions.Num());
+        for(int32 I=0;I<Positions.Num();++I){const FVector P=SamplingFrame.NativeToBodyMeters(Positions[I]);Body.Add(Stamp.bSectionPreview?SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters):P);}
+        FString Error;const bool Sampled=Scene->SampleMaterials({Body},Materials,Error,Surfaces);checkf(Sampled,TEXT("Material composition failed: %s"),*Error);if(!Sampled)return;
+    }
+    if(Surfaces)FVoxelStampUtilities::ApplySurfaceTypes(Query,Scene?NativeMaterialTypes(Materials,*RecipePlan->Surfaces):SampleSurfaceTypes(Query.Query,Positions),Alphas);
     if(Metadata)FVoxelStampUtilities::ApplyMetadatas(Query,*RuntimeMetadata,{},Alphas);
     if(Rock)
     {
@@ -291,7 +311,7 @@ void FCLPlanetStampRuntime::Apply(const FVoxelVolumeSparseQuery& Query, const FV
         for(int32 I=0;I<Positions.Num();++I)
         {
             FVector P=SamplingFrame.NativeToBodyMeters(Positions[I]);if(Stamp.bSectionPreview)P=SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters);
-            Values.Set(I,RecipePlan->Rock->Properties(RecipePlan->RockPositionMeters(P)));
+            Values.Set(I,Scene?Materials[I].Properties:RecipePlan->Rock->Properties(RecipePlan->RockPositionMeters(P)));
         }
         RockMetadata.IndirectBlend(Query.Indirection,Values,Alphas,Query.IndirectMetadata.FindChecked(RockMetadata));
     }
@@ -303,37 +323,11 @@ FVoxelSurfaceTypeBlendBuffer FCLPlanetStampRuntime::SampleSurfaceTypes(const FVo
     if(!RecipePlan||!RecipePlan->Surfaces){for(int32 I=0;I<Positions.Num();++I)Out.Set(I,FVoxelSurfaceTypeBlend());return Out;}
     if (Scene)
     {
-        const FCLBodyFrame& Frame=SamplingFrame;
-        FVoxelSurfaceTypeBlendBuilder Builder;
-        for (int32 Start = 0; Start < Positions.Num(); Start += 512)
-        {
-            const int32 Count = FMath::Min(512, Positions.Num() - Start);
-            TArray<FVector3d> BodyPositions;
-            BodyPositions.Reserve(Count);
-            for (int32 I = 0; I < Count; ++I)
-            {
-                const FVector P=Frame.NativeToBodyMeters(Positions[Start+I]);
-                BodyPositions.Add(Stamp.bSectionPreview?SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters):P);
-            }
-            TArray<FCLSceneSurfaceSample> Samples;
-            FString Error;
-            const bool bSampled = Scene->SampleSurfaces({BodyPositions}, Samples, Error);
-            checkf(bSampled, TEXT("Compiled surface scene query failed: %s"), *Error);
-            for (int32 I = 0; I < Count; ++I)
-            {
-                Builder.Reset();
-                for (const auto& Weight : Samples[I].Weights)
-                {
-                    const int32 Index = RecipePlan->Surfaces->Find(Weight.Id, Weight.Revision);
-                    check(Index != INDEX_NONE);
-                    Builder.AddLayer(RecipePlan->Surfaces->NativeTypes[Index], Weight.Weight);
-                }
-                FVoxelSurfaceTypeBlend Blend;
-                Builder.Build(Blend);
-                Out.Set(Start + I, Blend);
-            }
-        }
-        return Out;
+        TArray<FVector3d> Body;Body.Reserve(Positions.Num());
+        for(int32 I=0;I<Positions.Num();++I){const FVector P=SamplingFrame.NativeToBodyMeters(Positions[I]);Body.Add(Stamp.bSectionPreview?SectionToBodyMeters(P,Stamp.SectionReferenceRadiusMeters):P);}
+        TArray<FCLMaterialSample> Samples;FString Error;
+        const bool Sampled=Scene->SampleMaterials({Body},Samples,Error);checkf(Sampled,TEXT("Compiled material query failed: %s"),*Error);if(!Sampled)return Out;
+        return NativeMaterialTypes(Samples,*RecipePlan->Surfaces);
     }
     TArray<FVector> D;D.SetNumUninitialized(Positions.Num());for(int32 I=0;I<D.Num();++I)D[I]=Positions[I].GetSafeNormal();
     TArray<FCLSurfaceWeights> Weights;

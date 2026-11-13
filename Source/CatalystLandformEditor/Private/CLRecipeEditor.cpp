@@ -655,6 +655,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     friend class FCLTectonicAdvancedTest;
     friend class FCLRockDesignerTest;
     friend class FCLRockMaterialEditorTest;
+    friend class FCLDepositRenderedTest;
     friend class FCLSurfaceDesignerTest;
     friend class FCLWatershedDesignerTest;
     friend class FCLProvinceEditorTest;
@@ -2405,6 +2406,57 @@ bool FCLRockMaterialEditorTest::RunTest(const FString&)
             TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Rebound quarry renders in Planet"),FSlateApplication::Get().TakeScreenshot(Editor->Globe.ToSharedRef(),Pixels,Size));
             if(!Pixels.IsEmpty()){const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/rock-materials");IFileManager::Get().MakeDirectory(*Dir,true);TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/TEXT("planet-quarry.png")));}
             if(FParse::Param(FCommandLine::Get(),TEXT("KeepRockMaterialReview")))return true;
+            return Close();
+        }
+    };
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,E,A.Get()));return !HasAnyErrors();
+}
+}
+
+namespace {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDepositRenderedTest,"Catalyst.Landform.MaterialLayers.PlanetRenderedReview",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLDepositRenderedTest::RunTest(const FString&)
+{
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/RockBedsExcavation.json")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(CreatePackage(*(TEXT("/Temp/DepositReview_")+FGuid::NewGuid().ToString(EGuidFormats::Digits))),NAME_None,RF_Transactional));
+    if(!A->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    A->Recipe.Caves.bEnabled=false;
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_ContinentalRift.DA_Province_ContinentalRift"));
+    if(!Source||!FCLPlanetCompiler::WithAuthoringValidation([&]{return A->AddPaletteSource(Source,Error);})){AddError(Error);return false;}
+    if(A->Recipe.RegionGeneration.Palette[0].Deposits.IsEmpty()){AddError(TEXT("Packaged Rift has no deposit"));return false;}
+    // Controlled unsaved excavation: full cover exposes a readable finite cap.
+    // The underlying province geometry is the actual packaged Rift evaluator.
+    auto& D=A->Recipe.RegionGeneration.Palette[0].Deposits[0];D.Coverage=1;D.MaximumSlopeDegrees=90;D.ThicknessVariation=0;D.ThicknessMeters=4;
+    const auto Library=FCLCompiledSurfaceLibrary::Resolve(Error);if(!Library||!A->Recipe.Rock.BindBedrockMaterials(*Library,Error)){AddError(Error);return false;}
+    auto Plan=FCLPlanetCompiler::Compile(A->Recipe,Error);if(!Plan){AddError(Error);return false;}
+    A->Recipe.Volumes.Operations[0].CenterMeters=FVector::ZAxisVector*(Plan->RadiusMeters+Plan->SampleHeightMeters(FVector::ZAxisVector)-8);
+    A->Recipe.Name=TEXT("Rift deposits over rock — unsaved review");
+    auto E=MakeShared<FCLRecipeToolkit>();E->Open(A.Get(),EToolkitMode::Standalone,nullptr);E->AwaitEvaluationForTesting();E->ShowLandforms(Source);
+    class FReview final:public IAutomationLatentCommand
+    {
+        FAutomationTestBase* Test;TSharedRef<FCLRecipeToolkit> Editor;TStrongObjectPtr<UCLPlanetRecipeAsset> Asset;
+        double Start=FPlatformTime::Seconds(),Stable=0;bool Framed=false;int32 Stage=0;
+    public:
+        FReview(FAutomationTestBase* T,TSharedRef<FCLRecipeToolkit> E,UCLPlanetRecipeAsset* A):Test(T),Editor(E),Asset(A){}
+        bool Update()override
+        {
+            auto Close=[&]{Asset->GetOutermost()->SetDirtyFlag(false);Editor->CloseWindow(EAssetEditorCloseReason::AssetEditorHostClosed);return true;};
+            const double Now=FPlatformTime::Seconds();if(Now-Start>200){Test->AddError(TEXT("Deposit Planet preview did not become ready"));return Close();}
+            if(Editor->EvaluationUpdating()){Stable=0;return false;}
+            if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){GShaderCompilingManager->FinishAllCompilation();Stable=0;return false;}
+            if(!Framed){Editor->Globe->SetGlobeGrid(false);Editor->Globe->SetGuides(Asset->Recipe.RadialGuides,false);Editor->Globe->FrameLandformForTesting(FVector::ZAxisVector,FVector::XAxisVector,30,FVector2D(.7,.7));Framed=true;return false;}
+            if(!Stable){Stable=Now;return false;}if(Now-Stable<1)return false;
+            auto* Native=Editor->Globe->NativeForTesting();int32 Vertices=0;if(Native)Native->SamplePublishedVerticesForTesting(Vertices,32);
+            Test->TestTrue(TEXT("Deposit review renders stock VPP in Planet"),Native&&Native->UsesNativePresentation()&&Vertices>0&&Editor->Globe->IsSurfaceReady(Editor->AcceptedSurfacePlan));
+            const FString Dir=FPaths::ProjectSavedDir()/TEXT("Verification/landform-deposits");IFileManager::Get().MakeDirectory(*Dir,true);
+            auto Capture=[&](TSharedRef<SWidget> Widget,const FString& Name)
+            {TArray<FColor> Pixels;FIntVector Size;Test->TestTrue(TEXT("Planet screenshot succeeds"),FSlateApplication::Get().TakeScreenshot(Widget,Pixels,Size));if(!Pixels.IsEmpty()){TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Dir/Name));}};
+            Capture(Editor->Globe.ToSharedRef(),Stage==0?TEXT("deposit-over-rock.png"):TEXT("rock-without-deposit.png"));
+            if(Stage==0)
+            {
+                if(const auto Window=FSlateApplication::Get().FindWidgetWindow(Editor->LandformRows.ToSharedRef()))Capture(Window.ToSharedRef(),TEXT("planet-landform-controls.png"));
+                Asset->Recipe.RegionGeneration.Palette[0].Deposits[0].bEnabled=false;Editor->Refresh();++Stage;Stable=0;Framed=false;return false;
+            }
             return Close();
         }
     };

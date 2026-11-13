@@ -24,6 +24,7 @@ struct CATALYSTLANDFORM_API FCLTerrainType
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLTransformLandform Transform;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLVolcanicArcLandform VolcanicArc;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Unit.Name")) TArray<FCLLandformDeposit> Deposits;
     bool Validate(FString& Error) const;
     /** Apply a validated snapshot atomically; never changes the planet's RadialGuides/radius/seed. */
     bool ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion = nullptr) const;

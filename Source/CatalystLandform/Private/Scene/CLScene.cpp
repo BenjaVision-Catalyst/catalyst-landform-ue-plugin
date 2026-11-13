@@ -153,7 +153,7 @@ bool FCLScene::SampleGeology(const FCLSceneQuery& Query,TArray<FCLRockSample>& O
     return true;
 }
 
-bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurfaceSample>& Out, FString& Error) const
+bool FCLScene::SampleBaseSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurfaceSample>& Out, FString& Error) const
 {
     Out.Reset();
     if (!ValidateQuery(Query, Error)) return false;
@@ -168,10 +168,6 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
             FCLSurfaceWeights W;
             if(!(RadialPlan->Caves&&RadialPlan->Caves->Spatial&&RadialPlan->Caves->Spatial->TryPreparedSurfaces(P,W)))
                 RadialPlan->Rock->ApplySurfaces(RadialPlan->RockPositionMeters(P),W);
-            if(RadialPlan->Volumes&&RadialPlan->Volumes->Operations.ContainsByPredicate([](const auto& O){return O.SurfaceIndex!=INDEX_NONE;}))
-            {
-                const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Base;RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Base);if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)Base[0]=RadialPlan->Caves->Cutters->Compose(P,Base[0]);RadialPlan->Volumes->Compose(P,Base[0],&W);
-            }
             S.State=ECLSceneSampleState::Known;
             for(int32 K=0;K<RadialPlan->Surfaces->Ids.Num();++K)if(W.Values[K]>0)S.Weights.Add({RadialPlan->Surfaces->Ids[K],RadialPlan->Surfaces->Revisions[K],W.Values[K]});
         }
@@ -207,9 +203,6 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
                     const double Alpha=U.Feather>0?Ramp((Radius-U.Low)/U.Feather)*Ramp((U.High-Radius)/U.Feather):double(Radius>=U.Low&&Radius<=U.High);
                     for(double& V:W.Values)V*=1-Alpha;W.Values[U.SurfaceIndex]+=Alpha;
                 }
-                const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Base;
-                RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Base);
-                if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)Base[0]=RadialPlan->Caves->Cutters->Compose(P,Base[0]);RadialPlan->Volumes->Compose(P,Base[0],&W);
                 Sample.State=ECLSceneSampleState::Known;
                 for(int32 J=0;J<RadialPlan->Surfaces->Ids.Num();++J)if(W.Values[J]>0)
                     Sample.Weights.Add({RadialPlan->Surfaces->Ids[J],RadialPlan->Surfaces->Revisions[J],W.Values[J]});
@@ -245,6 +238,59 @@ bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query, TArray<FCLSceneSurface
                 if (Weight > 0) Sample.Weights.Add({RadialPlan->Surfaces->Ids[K], RadialPlan->Surfaces->Revisions[K], Weight});
             }
         }
+    }
+    return true;
+}
+
+
+bool FCLScene::SampleMaterials(const FCLSceneQuery& Query,TArray<FCLMaterialSample>& Out,FString& Error,bool SurfaceTypes)const
+{
+    Out.Reset();if(!ValidateQuery(Query,Error))return false;Out.SetNum(Query.PositionsMeters.Num());
+    TArray<FCLSceneSurfaceSample> Base;
+    if(SurfaceTypes&&!SampleBaseSurfaces(Query,Base,Error)){Out.Reset();return false;}
+    for(int32 I=0;I<Out.Num();++I)
+    {
+        const auto& P=Query.PositionsMeters[I];auto& S=Out[I];
+        if(!IsFinitePosition(P)){S.State=ECLSceneSampleState::InvalidQuery;continue;}
+        if(P.Length()>OuterRadiusMeters()){S.State=ECLSceneSampleState::OutsideDomain;continue;}
+        S.State=SurfaceTypes?Base[I].State:(RadialPlan->Rock||RadialPlan->Surfaces?ECLSceneSampleState::Known:ECLSceneSampleState::NoContribution);
+        if(SurfaceTypes)for(const auto& W:Base[I].Weights)S.Surfaces.Values[RadialPlan->Surfaces->Find(W.Id,W.Revision)]=W.Weight;
+        if(RadialPlan->Rock)
+        {
+            S.Substrate=RadialPlan->Rock->Sample(RadialPlan->RockPositionMeters(P));S.Material=S.Substrate;
+            if(S.Substrate.bValid)S.Properties=FLinearColor(S.Substrate.MiningResistance,S.Substrate.Erodibility,1,0);
+        }
+    }
+    if(RadialPlan->MaterialLayers)RadialPlan->MaterialLayers->Apply(*RadialPlan,Query.PositionsMeters,Out);
+    const bool PaintedVolumes=SurfaceTypes&&RadialPlan->Volumes&&RadialPlan->Volumes->Operations.ContainsByPredicate([](const auto& O){return O.SurfaceIndex!=INDEX_NONE;});
+    for(int32 I=0;I<Out.Num();++I)
+    {
+        auto& S=Out[I];if(S.State!=ECLSceneSampleState::Known)continue;
+        if(PaintedVolumes)
+        {
+            const auto& P=Query.PositionsMeters[I];const double H=RadialPlan->SampleHeightMeters(P);TArray<double> Field;
+            RadialPlan->SampleRadialFields(MakeArrayView(&P,1),MakeArrayView(&H,1),Field);
+            if(RadialPlan->Caves&&RadialPlan->Caves->Cutters)Field[0]=RadialPlan->Caves->Cutters->Compose(P,Field[0]);
+            RadialPlan->Volumes->Compose(P,Field[0],&S.Surfaces);
+        }
+        if(SurfaceTypes&&RadialPlan->Surfaces)
+        {
+            int32 Dominant=INDEX_NONE;for(int32 K=0;K<RadialPlan->Surfaces->Ids.Num();++K)
+                if(S.Surfaces.Values[K]>0&&(Dominant==INDEX_NONE||S.Surfaces.Values[K]>S.Surfaces.Values[Dominant]))Dominant=K;
+            if(Dominant!=INDEX_NONE){S.Material.VisibleSurfaceId=RadialPlan->Surfaces->Ids[Dominant];S.Material.VisibleSurfaceRevision=RadialPlan->Surfaces->Revisions[Dominant];}
+        }
+    }
+    return true;
+}
+bool FCLScene::SampleSurfaces(const FCLSceneQuery& Query,TArray<FCLSceneSurfaceSample>& Out,FString& Error)const
+{
+    TArray<FCLMaterialSample> Samples;if(!SampleMaterials(Query,Samples,Error)){Out.Reset();return false;}
+    Out.SetNum(Samples.Num());
+    for(int32 I=0;I<Samples.Num();++I)
+    {
+        auto& S=Out[I];S.State=Samples[I].State;S.Weights.Reset();if(!RadialPlan->Surfaces)continue;
+        for(int32 K=0;K<RadialPlan->Surfaces->Ids.Num();++K)if(Samples[I].Surfaces.Values[K]>0)
+            S.Weights.Add({RadialPlan->Surfaces->Ids[K],RadialPlan->Surfaces->Revisions[K],Samples[I].Surfaces.Values[K]});
     }
     return true;
 }

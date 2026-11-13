@@ -1,4 +1,5 @@
 #include "CLPlanetLandforms.h"
+#include "Surface/CLSurfaceLibrary.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "ScopedTransaction.h"
 #include "Widgets/Input/SCheckBox.h"
@@ -66,11 +67,12 @@ bool FCLPlanetLandforms::Include(FGuid Id,bool Enabled)
     {
         const auto* Found=Sources.Find(Id);if(!Enabled||!Found)return false;Source=Found->Get();if(!Source->TerrainType.Validate(Error))return false;
         if(S.Palette.Num()>=32){Error=TEXT("The planet supports at most 32 Landforms");return false;}
-        const auto& T=Source->TerrainType;P=&S.Palette.AddDefaulted_GetRef();P->Id=T.Id;P->Name=T.Name;P->Description=T.Description;P->AlgorithmVersion=T.AlgorithmVersion;P->Suitability=T.PlacementSuitability;P->Rift=T.Rift;P->Transform=T.Transform;P->VolcanicArc=T.VolcanicArc;P->NoiseLayers=T.NoiseLayers;P->SurfaceStack=T.SurfaceStack;
+        const auto& T=Source->TerrainType;P=&S.Palette.AddDefaulted_GetRef();P->Id=T.Id;P->Name=T.Name;P->Description=T.Description;P->AlgorithmVersion=T.AlgorithmVersion;P->Suitability=T.PlacementSuitability;P->Rift=T.Rift;P->Transform=T.Transform;P->VolcanicArc=T.VolcanicArc;P->NoiseLayers=T.NoiseLayers;P->SurfaceStack=T.SurfaceStack;P->Deposits=T.Deposits;
+        if(!P->Deposits.IsEmpty()&&!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();
         if(P->SurfaceStack.IsActive()&&!R.SurfaceStack.IsActive())R.SurfaceStack=P->SurfaceStack;
     }
     if(Enabled&&!S.bEnabled)for(auto& Existing:S.Palette)Existing.bEnabled=false;
-    P->bEnabled=Enabled;R.SchemaVersion=FMath::Max(R.SchemaVersion,P->SurfaceStack.IsActive()?13:12);
+    P->bEnabled=Enabled;R.SchemaVersion=FMath::Max(R.SchemaVersion,(P->SurfaceStack.IsActive()||!P->Deposits.IsEmpty())?13:12);
     S.AlgorithmVersion=FMath::Max(S.AlgorithmVersion,(P->Rift.IsActive()||P->Transform.IsActive()||P->VolcanicArc.IsActive())?4:P->Suitability.Province.IsActive()?3:2);
     S.bEnabled=S.Palette.ContainsByPredicate([](const auto& V){return V.bEnabled;});
     if(!Enabled)S.Overrides.RemoveAll([&](const auto& O){return O.LandformId==Id;});
@@ -89,6 +91,16 @@ bool FCLPlanetLandforms::SetValues(FGuid Id,const FCLLandformPaletteEntry& Value
 {
     if(!Included(Id))return false;auto R=Asset->Recipe;auto* P=R.RegionGeneration.Palette.FindByPredicate([&](const auto& V){return V.Id==Id;});
     P->Rift=Values.Rift;P->Transform=Values.Transform;P->VolcanicArc=Values.VolcanicArc;P->NoiseLayers=Values.NoiseLayers;P->Suitability=Values.Suitability;P->SurfaceStack=Values.SurfaceStack;P->Seed=Values.Seed;
+    P->Deposits=Values.Deposits;
+    TSet<FGuid> Seen;const auto* Library=UCLSurfaceLibraryAsset::LoadConfigured();
+    for(auto& Deposit:P->Deposits)
+    {
+        if(!Deposit.Unit.Id.IsValid()||Seen.Contains(Deposit.Unit.Id))Deposit.Unit.Id=FGuid::NewGuid();Seen.Add(Deposit.Unit.Id);
+        const auto* Previous=Entry(Id)->Deposits.FindByPredicate([&](const auto& D){return D.Unit.Id==Deposit.Unit.Id;});
+        if(Library&&(!Previous||Previous->Unit.SurfaceId!=Deposit.Unit.SurfaceId))
+            if(const auto* Material=Library->Library.Entries.FindByPredicate([&](const auto& M){return M.Id==Deposit.Unit.SurfaceId;}))Deposit.Unit.SurfaceRevision=Material->Revision;
+    }
+    if(!P->Deposits.IsEmpty()){R.SchemaVersion=FMath::Max(13,R.SchemaVersion);if(!R.SurfaceStack.IsActive())R.SurfaceStack=FCLSurfaceStack::MakeDefault();}
     // A deliberate physical edit adopts additive delivery while retaining the
     // user's ranges. The knob's curated defaults are a separate action.
     if(P->Rift.IsActive())P->Rift.AlgorithmVersion=3;
@@ -180,12 +192,17 @@ void SCLPlanetLandforms::ToggleDetails(FGuid Id)
     C->Details->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda([RiftActive=Session->Entry(Id)->Rift.IsActive(),TransformActive=Session->Entry(Id)->Transform.IsActive(),ArcActive=Session->Entry(Id)->VolcanicArc.IsActive()](const FPropertyAndParent& P)
     {
         const FName N=P.Property.GetFName();if((N==TEXT("Rift")&&(TransformActive||ArcActive))||(N==TEXT("Transform")&&!TransformActive)||(N==TEXT("VolcanicArc")&&!ArcActive))return false;if((TransformActive||ArcActive)&&P.ParentProperties.IsEmpty()&&(N==TEXT("Seed")||N==TEXT("SurfaceStack")))return false;if(RiftActive&&P.ParentProperties.IsEmpty()&&(N==TEXT("Seed")||N==TEXT("SurfaceStack")))return false;if(N==TEXT("AlgorithmVersion")||N==TEXT("Character")||N==TEXT("Id")||N==TEXT("Type")||N==TEXT("bPlaceholder"))return false;
-        auto Allowed=[](FName Name){return Name==TEXT("VolcanicArc")||Name==TEXT("Transform")||Name==TEXT("Rift")||Name==TEXT("NoiseLayers")||Name==TEXT("Suitability")||Name==TEXT("SurfaceStack")||Name==TEXT("Seed");};
+        auto Allowed=[](FName Name){return Name==TEXT("VolcanicArc")||Name==TEXT("Transform")||Name==TEXT("Rift")||Name==TEXT("NoiseLayers")||Name==TEXT("Suitability")||Name==TEXT("SurfaceStack")||Name==TEXT("Deposits")||Name==TEXT("Seed");};
         if(Allowed(N))return true;for(const auto* Parent:P.ParentProperties)if(Allowed(Parent->GetFName()))return true;return false;
     }));
     const auto Draft=C->Draft;const auto State=Session;
     C->Details->GetOnFinishedChangingPropertiesDelegate().AddLambda([this,State,Draft,Id](const FPropertyChangedEvent&)
-    {ApplyingDetails=true;State->SetValues(Id,*reinterpret_cast<FCLLandformPaletteEntry*>(Draft->GetStructMemory()));ApplyingDetails=false;});
+    {
+        ApplyingDetails=true;State->SetValues(Id,*reinterpret_cast<FCLLandformPaletteEntry*>(Draft->GetStructMemory()));ApplyingDetails=false;
+        // Keep generated deposit IDs and resolved revisions in the editing draft.
+        // Rejected edits restore the last accepted values through the same path.
+        SyncControls();
+    });
     C->DetailsBox->SetContent(C->Details->GetWidget().ToSharedRef());
     // Visibility is bound after structure creation; rebuild the initial tree too.
     auto View=C->Details->GetDetailsView();View->ForceRefresh();View->SetRootExpansionStates(true,false);
@@ -198,6 +215,7 @@ void SCLPlanetLandforms::Focus(FGuid Id)
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"
 #include "Model/CLRegionGeneration.h"
+#include "Editor.h"
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetLandformNoiseTest,"Catalyst.Landform.Planet.LandformRows.GenericNoiseAndSeed",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLPlanetLandformNoiseTest::RunTest(const FString&)
 {
@@ -211,6 +229,35 @@ bool FCLPlanetLandformNoiseTest::RunTest(const FString&)
     for(int32 I=0;I<256;++I){const double Z=1-2*(I+.5)/256,Angle=I*2.399963229728653;const FVector D(FMath::Cos(Angle)*FMath::Sqrt(1-Z*Z),FMath::Sin(Angle)*FMath::Sqrt(1-Z*Z),Z);CharacterDelta+=FMath::Abs(Low->SampleHeightMeters(D)-High->SampleHeightMeters(D));SeedDelta+=FMath::Abs(High->SampleHeightMeters(D)-Seeded->SampleHeightMeters(D));}
     TestTrue(TEXT("Generic Character changes actual local relief"),CharacterDelta>1);TestTrue(TEXT("Generic reseed changes actual terrain"),SeedDelta>1);
     TestEqual(TEXT("Generic controls retain original source Character semantics"),T.NoiseLayers[0].Seed,195);
+    return !HasAnyErrors();
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetDepositEditorTest,"Catalyst.Landform.MaterialLayers.PlanetDetailsAndUndo",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlanetDepositEditorTest::RunTest(const FString&)
+{
+    auto* Source=LoadObject<UCLTerrainTypeAsset>(nullptr,TEXT("/CatalystLandform/TerrainTypes/Provinces/DA_Province_ContinentalRift.DA_Province_ContinentalRift"));
+    if(!Source){AddError(TEXT("Missing packaged Rift"));return false;}const auto OriginalSource=Source->TerrainType;
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>(GetTransientPackage(),NAME_None,RF_Transactional));A->Recipe=FCLPlanetCompiler::ContinentalBase();A->Recipe.UseGuidedGeology();A->Recipe.Caves.bEnabled=false;
+    auto State=MakeShared<FCLPlanetLandforms>(A.Get());State->AddSource(Source);const FGuid Id=Source->TerrainType.Id;
+    if(!State->Include(Id,true)){AddError(State->Error);return false;}
+    const auto Panel=SNew(SCLPlanetLandforms).Session(State);Panel->ToggleDetails(Id);auto& Row=Panel->Controls.FindChecked(Id);
+    auto Edit=[&](TFunction<void(FCLLandformPaletteEntry&)> Change)
+    {Change(*reinterpret_cast<FCLLandformPaletteEntry*>(Row.Draft->GetStructMemory()));Row.Details->GetOnFinishedChangingPropertiesDelegate().Broadcast(FPropertyChangedEvent(nullptr));};
+    const auto Before=A->Recipe;Edit([](auto& P){auto& D=P.Deposits.AddDefaulted_GetRef();D.Unit.SurfaceId=TEXT("StrongRock");});
+    if(!TestEqual(TEXT("Native row details commit a new deposit"),State->Entry(Id)->Deposits.Num(),Before.RegionGeneration.Palette[0].Deposits.Num()+1))return false;
+    const FGuid First=State->Entry(Id)->Deposits.Last().Unit.Id;
+    TestTrue(TEXT("Explicit addition assigns a stable physical identity"),First.IsValid());
+    TestEqual(TEXT("New material resolves its revision atomically"),State->Entry(Id)->Deposits.Last().Unit.SurfaceRevision,1);
+    TestEqual(TEXT("Editing draft retains the accepted stable identity"),reinterpret_cast<FCLLandformPaletteEntry*>(Row.Draft->GetStructMemory())->Deposits.Last().Unit.Id,First);
+    Edit([](auto& P){const auto Copy=P.Deposits.Last();P.Deposits.Add(Copy);});
+    TestTrue(TEXT("Duplicating creates a distinct physical deposit"),State->Entry(Id)->Deposits.Last().Unit.Id!=First);
+    GEditor->UndoTransaction();Panel->SyncControls();TestEqual(TEXT("One Undo removes one duplicated deposit"),State->Entry(Id)->Deposits.Last().Unit.Id,First);
+    const auto Good=A->Recipe;Edit([](auto& P){P.Deposits.Last().ThicknessMeters=0;});
+    TestTrue(TEXT("Rejected details preserve the accepted recipe"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Good,&A->Recipe,0));
+    TestTrue(TEXT("Rejected draft is restored"),reinterpret_cast<FCLLandformPaletteEntry*>(Row.Draft->GetStructMemory())->Deposits.Last().ThicknessMeters>0);
+    State->ToggleSolo(Id);FString E;const auto Plan=FCLPlanetCompiler::Compile(State->PreviewRecipe(),E);if(!Plan){AddError(E);return false;}
+    TestTrue(TEXT("Solo retains the actual shared deposit program"),Plan->MaterialLayers&&Plan->MaterialLayers->HasDeposits());
+    TestTrue(TEXT("Editing the planet never rewrites its source definition"),FCLTerrainType::StaticStruct()->CompareScriptStruct(&OriginalSource,&Source->TerrainType,0));
+    State->Include(Id,false);Panel->SyncControls();TestFalse(TEXT("Excluded row disables all deposit details"),Row.DetailsBox->IsEnabled());
     return !HasAnyErrors();
 }
 #endif

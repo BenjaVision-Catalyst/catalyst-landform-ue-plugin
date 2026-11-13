@@ -17,6 +17,7 @@
 #include "Scene/CLVolumes.h"
 #include "Model/CLMeasuredTerrain.h"
 #include "Model/CLRockLayer.h"
+#include "Model/CLMaterialLayers.h"
 #include "Model/CLWatershed.h"
 #include "Model/CLCaves.h"
 #include "CLPlanetRecipe.generated.h"
@@ -146,6 +147,7 @@ struct CATALYSTLANDFORM_API FCLLandformPaletteEntry
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLVolcanicArcLandform VolcanicArc;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) TArray<FCLNoiseLayer> NoiseLayers;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) FCLSurfaceStack SurfaceStack;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Unit.Name")) TArray<FCLLandformDeposit> Deposits;
 };
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRegionAssignmentOverride
@@ -191,6 +193,7 @@ struct CATALYSTLANDFORM_API FCLTerrainRegion
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 AlgorithmVersion = 2;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) TArray<FCLNoiseLayer> NoiseLayers;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FCLSurfaceStack SurfaceStack;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Unit.Name")) TArray<FCLLandformDeposit> Deposits;
 };
 
 USTRUCT(BlueprintType)
@@ -305,6 +308,7 @@ struct CATALYSTLANDFORM_API FCLCompiledPlanetRecipe
     TArray<FRegion> Regions;
     TSharedPtr<const FCLCompiledRegionGeneration> GeneratedRegions;
     TSharedPtr<const FCLCompiledSurfaceLibrary> Surfaces;
+    TSharedPtr<const FCLCompiledMaterialLayers> MaterialLayers;
     TSharedPtr<const FCLCompiledVolumes> Volumes;
     /** Accepted input values for native stamp hashing and authoring activation. */
     TSharedPtr<const FCLPlanetRecipe> SourceRecipe;

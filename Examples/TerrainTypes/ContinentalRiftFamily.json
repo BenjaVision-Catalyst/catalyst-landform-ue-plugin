@@ -116,5 +116,28 @@
     "maximumThrowMeters": 42,
     "minimumScarpWidthMeters": 8,
     "maximumScarpWidthMeters": 26
-  }
+  },
+  "deposits": [
+    {
+      "bEnabled": true,
+      "unit": {
+        "id": "434C4445000000010000000000000001",
+        "name": "Rift basin alluvium",
+        "lithology": "Clastic",
+        "surfaceId": "Alluvium",
+        "surfaceRevision": 1,
+        "miningResistance": 0.16,
+        "erodibility": 0.85
+      },
+      "priority": 0,
+      "topDepthMeters": 0,
+      "thicknessMeters": 3.5,
+      "contactFeatherMeters": 0.5,
+      "thicknessVariation": 0.35,
+      "coverage": 0.7,
+      "patchSizeMeters": 70,
+      "maximumSlopeDegrees": 32,
+      "seed": 0
+    }
+  ]
 }

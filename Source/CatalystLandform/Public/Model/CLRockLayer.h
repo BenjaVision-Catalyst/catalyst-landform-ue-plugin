@@ -12,6 +12,9 @@ struct FCLSurfaceWeights;
 UENUM(BlueprintType)
 enum class ECLRockLithology:uint8 {Unknown,Crystalline,Clastic,Carbonate,Evaporite,MaficVolcanic,SilicicVolcanic,Metamorphic,Ice};
 
+UENUM(BlueprintType)
+enum class ECLMaterialOrigin:uint8 {Unknown,Rock,LandformDeposit,PlacedFill};
+
 /** Geological identity is independent of the client artwork used to expose it. */
 USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLRockUnit
@@ -27,6 +30,7 @@ struct CATALYSTLANDFORM_API FCLRockUnit
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(DisplayName="Material revision")) int32 SurfaceRevision=2;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double MiningResistance=.8;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Erodibility=.2;
+    bool Validate(FString& Error)const;
 };
 
 /** Algorithm 5: probabilities are by deposited bed count, independently of planet radius. */
@@ -93,12 +97,21 @@ struct CATALYSTLANDFORM_API FCLRockSample
 {
     GENERATED_BODY()
     UPROPERTY(BlueprintReadOnly) bool bValid=false;
+    UPROPERTY(BlueprintReadOnly) ECLMaterialOrigin Origin=ECLMaterialOrigin::Unknown;
+    UPROPERTY(BlueprintReadOnly) FGuid SourceId;
+    UPROPERTY(BlueprintReadOnly) FGuid DepositId;
+    UPROPERTY(BlueprintReadOnly) FGuid SubstrateUnitId;
+    UPROPERTY(BlueprintReadOnly) FGuid SubstrateStratumId;
+    UPROPERTY(BlueprintReadOnly) double DepositDepthMeters=0;
+    UPROPERTY(BlueprintReadOnly) double DepositThicknessMeters=0;
     UPROPERTY(BlueprintReadOnly) FGuid UnitId;
     UPROPERTY(BlueprintReadOnly) FGuid StratumId;
     UPROPERTY(BlueprintReadOnly) int64 StratumIndex=0;
     UPROPERTY(BlueprintReadOnly) FName Name;
     UPROPERTY(BlueprintReadOnly) FName SurfaceId;
     UPROPERTY(BlueprintReadOnly) int32 SurfaceRevision=0;
+    UPROPERTY(BlueprintReadOnly) FName VisibleSurfaceId;
+    UPROPERTY(BlueprintReadOnly) int32 VisibleSurfaceRevision=0;
     UPROPERTY(BlueprintReadOnly) double MiningResistance=0;
     UPROPERTY(BlueprintReadOnly) double Erodibility=0;
     UPROPERTY(BlueprintReadOnly) double PlacedFraction=0;

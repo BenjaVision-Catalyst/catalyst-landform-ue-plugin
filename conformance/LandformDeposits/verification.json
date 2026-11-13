@@ -1,0 +1,271 @@
+{
+  "date": "2026-11-13",
+  "baseCommit": "11ed7c8a38f6b5bde118af9fdcd954c7fd14a2e8",
+  "platform": "UE 5.7 / macOS arm64 / stock VPP 2.0p8",
+  "nativeBuild": "Succeeded",
+  "tests": {
+    "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift": {
+      "state": "Success",
+      "seconds": 0.2151069939136505,
+      "messages": []
+    },
+    "Catalyst.Landform.Caves.AlwaysEnabledMinimum": {
+      "state": "Success",
+      "seconds": 0.03814316540956497,
+      "messages": [
+        "Enabled minimum: 72 scale/profile/access cases with real air and connected field probes"
+      ]
+    },
+    "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale": {
+      "state": "Success",
+      "seconds": 33.12907028198242,
+      "messages": [
+        "10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 73: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 74: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 75: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 76: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 77: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 78: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 79: 10 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels",
+        "seed 80: 11 seeded spatial networks; connected joint passages, asymmetric chambers and seed-varied floor levels"
+      ]
+    },
+    "Catalyst.Landform.Installation.FreshProject": {
+      "state": "Success",
+      "seconds": 1.736769199371338,
+      "messages": [
+        "Clean project: Rift 12, Volcanic arc 12; 17 catalogue rows; no authoring assets saved"
+      ]
+    },
+    "Catalyst.Landform.MaterialLayers.FiniteDepthAndIdentity": {
+      "state": "Success",
+      "seconds": 0.11445266753435135,
+      "messages": []
+    },
+    "Catalyst.Landform.MaterialLayers.FootprintAndNativeDelivery": {
+      "state": "Success",
+      "seconds": 0.035634707659482956,
+      "messages": [
+        "48 stock VPP material/property probes, Rock 1, surface error 1.45029477e-05",
+        "48 stock VPP material/property probes, Rock 0, surface error 1.06070391e-05"
+      ]
+    },
+    "Catalyst.Landform.MaterialLayers.PlacedFootprintsAndSeed": {
+      "state": "Success",
+      "seconds": 0.04381971061229706,
+      "messages": [
+        "512 near-surface composition probes 0.283 ms, 244 change on reseed"
+      ]
+    },
+    "Catalyst.Landform.MaterialLayers.PlanetDetailsAndUndo": {
+      "state": "Success",
+      "seconds": 0.1561337560415268,
+      "messages": []
+    },
+    "Catalyst.Landform.MaterialLayers.PlanetRenderedReview": {
+      "state": "Success",
+      "seconds": 68.80827331542969,
+      "messages": []
+    },
+    "Catalyst.Landform.NativeMaterials.StampMetadataOverrides": {
+      "state": "Success",
+      "seconds": 0.00750916451215744,
+      "messages": []
+    },
+    "Catalyst.Landform.Provinces.BalancedCoverage": {
+      "state": "Success",
+      "seconds": 3.2846264839172363,
+      "messages": [
+        "Rift + Volcanic arc: 24 cells, each receives 12 or 12",
+        "Rift + Volcanic arc: 25 cells, each receives 12 or 13",
+        "Rift + Volcanic arc: 128 cells, each receives 64 or 64"
+      ]
+    },
+    "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": {
+      "state": "Success",
+      "seconds": 8.550806045532227,
+      "messages": [
+        "24 selected assignments, 20 relaxed regions; max final-height change 0 m"
+      ]
+    },
+    "Catalyst.Landform.Provinces.DefinitionsAndEvidence": {
+      "state": "Success",
+      "seconds": 0.006850041449069977,
+      "messages": []
+    },
+    "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": {
+      "state": "Success",
+      "seconds": 6.342568874359131,
+      "messages": [
+        "{\"frames\":90,\"p95Ms\":25.792420,\"assignedRegions\":32,\"retainedBaseRegions\":0,\"counts\":{\"Crystalline shield\":2,\"Covered continental platform\":2,\"Clastic sedimentary basin\":2,\"Carbonate platform and reef province\":1,\"Evaporite basin\":2,\"Fold and thrust belt\":2,\"Metamorphic mountain core\":2,\"Continental rift and fault-block province\":2,\"Transform and shear belt\":2,\"Volcanic arc province\":2,\"Basaltic volcanic province\":2,\"Silicic volcanic province\":2,\"Plutonic and intrusive province\":1,\"Passive continental margin\":2,\"Oceanic crust province\":2,\"Impact province\":2,\"Icy-crust province\":2,\"Base geology\":0}}\n"
+      ]
+    },
+    "Catalyst.Landform.Provinces.PackagedLibrary": {
+      "state": "Success",
+      "seconds": 0.008152998983860016,
+      "messages": []
+    },
+    "Catalyst.Landform.Rock.MaterialBindings": {
+      "state": "Success",
+      "seconds": 0.1606059968471527,
+      "messages": [
+        "512 native 3D material probes; error 1.44813451e-05; unchanged beds, identity and mining properties"
+      ]
+    },
+    "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": {
+      "state": "Success",
+      "seconds": 0.07673832774162292,
+      "messages": [
+        "2048 native material/property probes; property error 0"
+      ]
+    },
+    "Catalyst.Landform.Scene.CurrentRecipeComposition": {
+      "state": "Success",
+      "seconds": 0.7769586443901062,
+      "messages": [
+        "3042 current-recipe exterior/material probes, field residual 2.73609612123e-06 m"
+      ]
+    },
+    "Catalyst.Landform.Scene.NativeBulkSparseParity": {
+      "state": "Success",
+      "seconds": 0.3951318860054016,
+      "messages": [
+        "Native 105-point current bulk/sparse parity: field 3.57627868652e-06 cm, material 2.22044604925e-16"
+      ]
+    },
+    "Catalyst.Landform.Scene.QueryAndFrameContract": {
+      "state": "Success",
+      "seconds": 0.008276663720607758,
+      "messages": [
+        "Body frame round-trip error 2.61963716753e-08 cm"
+      ]
+    },
+    "Catalyst.Landform.Surfaces.ScannedBindingsAndDefaults": {
+      "state": "Success",
+      "seconds": 0.009137872606515884,
+      "messages": []
+    },
+    "Catalyst.Landform.Volumes.AnalyticAndOrdering": {
+      "state": "Success",
+      "seconds": 0.008120667189359665,
+      "messages": []
+    },
+    "Catalyst.Landform.Volumes.GuidePolicyAndTwoFloors": {
+      "state": "Success",
+      "seconds": 0.008727125823497772,
+      "messages": []
+    },
+    "Catalyst.Landform.Volumes.IndexAndSmoothContacts": {
+      "state": "Success",
+      "seconds": 0.010335080325603485,
+      "messages": []
+    },
+    "Catalyst.Landform.Volumes.NativeBulkSparseAndMaterials": {
+      "state": "Success",
+      "seconds": 0.007817290723323822,
+      "messages": [
+        "297 native samples: field 0 cm, float rounding 2.86102295e-05 cm, material 6.22277391e-06, cavity crossings 2"
+      ]
+    },
+    "Catalyst.Landform.Volumes.NativePreview": {
+      "state": "Success",
+      "seconds": 1.8000860214233398,
+      "messages": [
+        "166414 native full-float mapping values checked",
+        "153106 native full-float mapping values checked",
+        "components 63, native producer/presenter 61377, ready 1, processing 0, tasks 0, inspected vertices 0, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/6",
+        "Source IsValid=true, Min=(X=-25682.971 Y=-25708.799 Z=0.000), Max=(X=25218.123 Y=25788.609 Z=82409.311) display IsValid=true, Min=(X=-50000.001 Y=-50000.001 Z=0.000), Max=(X=50000.000 Y=50000.000 Z=82899.456) radii 0.000..82899.456",
+        "Cutaway native triangles 151576, original body positions 79820; producer: components 40, native producer/presenter 61395, ready 1, processing 0, tasks 0, inspected vertices 79820, actor 4.0 config editor 1 quality 4.0/4.0 game 1.0/1.0 voxel 25 chunk 32 lod 5/6",
+        "Cutaway floor 631: hit 1, X=0.000 Y=44.863 Z=631.066",
+        "Cutaway floor 604: hit 1, X=0.000 Y=44.852 Z=604.010",
+        "Globe detached pick: hit 1, X=85.000 Y=-20.000 Z=823.565"
+      ]
+    },
+    "Catalyst.Landform.Volumes.NativeSectionDomain": {
+      "state": "Success",
+      "seconds": 0.006030291318893433,
+      "messages": [
+        "96 native section points: field error 0.00016784668 cm, chart error 2.27484671e-13 m"
+      ]
+    }
+  },
+  "pythonTests": {
+    "pluginInstaller": 3,
+    "workspaceStaging": 3
+  },
+  "review": {
+    "editor": "Planet, native VPP presentation",
+    "landform": "Packaged Continental Rift source",
+    "unsaved": true,
+    "controlledOverrides": {
+      "depositThicknessMeters": 4,
+      "coverage": 1,
+      "maximumSlopeDegrees": 90,
+      "thicknessVariation": 0,
+      "rockArtwork": "StrongRock/MixedRock/WeakRock",
+      "quarry": "Existing excavation fixture moved to generated surface"
+    },
+    "captures": [
+      "deposit-over-rock.png",
+      "rock-without-deposit.png"
+    ],
+    "approval": "Technical/render review evidence, not user visual acceptance"
+  },
+  "authoring": {
+    "normalEditorLeftRunning": true,
+    "experimentsSaved": false,
+    "normalProjectContentFiles": 186,
+    "contentChanges": []
+  },
+  "scope": {
+    "implemented": [
+      "finite landform material domains over rock",
+      "shared native appearance/properties and physical identity composition",
+      "Planet row deposit details and atomic Undo",
+      "packaged starter materials and province snapshots"
+    ],
+    "excluded": [
+      "ecosystem provider and biome cover",
+      "transport simulation",
+      "local cave sediments",
+      "intrusions/resource accounting",
+      "cold-reload mining qualification"
+    ]
+  },
+  "sourceSHA256": {
+    "Content/Surfaces/DA_SurfaceLibrary.uasset": "a7a6c8df4fdde31631cbb3fe20ad4403b0433df7c3511acc25ffc8b95da1875c",
+    "Content/Surfaces/MM_LandformSurfaces.uasset": "9c0d3aa985f13f12385f087f08e767828d0f12bd2fb687b333de6bd174547319",
+    "Content/TerrainTypes/Provinces/DA_Province_ContinentalRift.uasset": "5a5f501622ac1f55d013c7b0e08d037925c7eb1eb14ffa325c6782f296a9db54",
+    "Content/TerrainTypes/Provinces/DA_Province_TransformBelt.uasset": "255443b701293570c4e26d611483487741bc1c119c3073d769dc7ab2122b257e",
+    "Content/TerrainTypes/Provinces/DA_Province_VolcanicArc.uasset": "6a5af1ca0a2e58411e16c3bd22cc38de56dd6db20f32a35307c817d009e11d57",
+    "Examples/TerrainTypes/ContinentalRiftFamily.json": "0744effd1945898d60fc35f52b149d52faa4dacf6e6fd1a3ca02d7cb06fbb2c9",
+    "Examples/TerrainTypes/Provinces/ContinentalRift.json": "ee6ec266c049604cbd0184936cfe19ff44162a4b61065ffe1bf9aa9aee8877ba",
+    "Examples/TerrainTypes/Provinces/TransformBelt.json": "f70904cbe21c9fa09a390ffcee70042b769e195d710b9b9e25794c6c040c6d23",
+    "Examples/TerrainTypes/Provinces/VolcanicArc.json": "94d7908434b636d72d7b72b937dd676c16985fd9bdcb0fb5c4be7287899be286",
+    "Source/CatalystLandform/Private/CLPlanetStamp.cpp": "13f71af03d55ce88fcd6e0e572f7d3a1d99eed9d533356125f744e9ad060ed65",
+    "Source/CatalystLandform/Private/CLRockQueryLibrary.cpp": "452086e7496c379ee6114f4d4cb690bb39fa8e1f876a92f6df4d8c6d86697f49",
+    "Source/CatalystLandform/Private/Model/CLPlanetRecipe.cpp": "918ebed56218d6402409cba23dcaf6e70fadee757b0525d59d17a1651156de6d",
+    "Source/CatalystLandform/Private/Model/CLRegionGeneration.cpp": "5ea071848e95ff7833ea0da7ee3373900d16def3fa98c0d47d5357cf9e45d548",
+    "Source/CatalystLandform/Private/Model/CLRockLayer.cpp": "bb3817dc8cd76b6e5da55801a7d715bfaada29ec1ac8973a6598a31fb3accc80",
+    "Source/CatalystLandform/Private/Model/CLTerrainType.cpp": "30b1360ed3391dc17cbb926afec5ba2ce3f8844a5591ac004cf4f192baaa5527",
+    "Source/CatalystLandform/Private/Scene/CLScene.cpp": "0e0238f76d7472176164e150de34681f1cbfed8960d5adc2d1bb38d829a7ac1c",
+    "Source/CatalystLandform/Public/CLRockQueryLibrary.h": "eaf061f52659c169c5f7aa653389438694c728a5ee22f3e07cc39e4761b7c522",
+    "Source/CatalystLandform/Public/Model/CLPlanetRecipe.h": "fbadb43491c957c6a863594726e8af765f9ab37bf46f496542051257e64cb00c",
+    "Source/CatalystLandform/Public/Model/CLRockLayer.h": "e8bd071e4b5266689a9f77b51b9a401f45718d90ca0f0c69684935f116206c5f",
+    "Source/CatalystLandform/Public/Model/CLTerrainType.h": "7a8de3525a92c0029203b43715167bec9c14d3f81fb403d778c69d41c44309d4",
+    "Source/CatalystLandform/Public/Scene/CLScene.h": "1e1207d0be8381eb4ad196da9eb166b390c290bd21570d511f684c86f42154db",
+    "Source/CatalystLandformEditor/Private/CLPlanetLandforms.cpp": "31624a03156503d808ae52f37703612b788ffa2aaa8e58eb66450bf55b8fb347",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "22b2096fd68e1e965fff8b397a9dae763eeaa27dfd92f723b39bb312b5cf79f5",
+    "Source/CatalystLandformTests/Private/CLSceneTests.cpp": "d662a7c1b201343345f2055a7e16e15cda0c11d7103ef51d0ff094652859d584",
+    "Content/Surfaces/MI_Alluvium.uasset": "e58ea94ab865342515a5ae213dad073e2d48ca21ccd2c59b91661d3dae85fa55",
+    "Content/Surfaces/MI_VolcanicAsh.uasset": "04b996bfd972b3bd3674ce9c8b0c1c729afd3fa6fc873579d27b162e282b5e0e",
+    "Content/Surfaces/ST_Alluvium.uasset": "aea7afcc72abefc6f862708d72606e46015d34d1906efa6ca4ff1f7ad61708ee",
+    "Content/Surfaces/ST_VolcanicAsh.uasset": "573fc231d79adf2fb3803fc85aa1278df846614236b470812a037bd124dcab89",
+    "Source/CatalystLandform/Private/Model/CLMaterialLayers.cpp": "aac5bea1ef4ef0b9e785298e9bf3703ee360b0085c64f485e23f2b5a0ebf4f6e",
+    "Source/CatalystLandform/Public/Model/CLMaterialLayers.h": "672978732642efaa5c767952f24eb13e578939c05ef9c8975263976efb71b06c",
+    "Source/CatalystLandformTests/Private/CLMaterialLayerTests.cpp": "41a7c92f39b1b2ff81df6b8aa7a95fc5d65e3ee2db1dfef64a366fe6703ff548"
+  },
+  "fixtureInputs": "CurrentRift and province-navigation checks use copied review inputs. Standalone installation and current scene/material checks use plugin-owned assets/Examples; historical serialized conformance inputs are not consumed.",
+  "validationSequence": "27-test suite: 26 passed; the remaining current native parity fixture was given an explicit material stack and passed its rerun. Final contact-property consistency change passed the five affected deposit/native metadata/property tests."
+}

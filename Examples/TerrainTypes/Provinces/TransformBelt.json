@@ -110,5 +110,28 @@
     "basinWidthMeters": 65,
     "secondaryStrandWeight": 0.12,
     "dissectionMeters": 1
-  }
+  },
+  "deposits": [
+    {
+      "bEnabled": true,
+      "unit": {
+        "id": "434C4445000000010000000000000002",
+        "name": "Fault-slope colluvium",
+        "lithology": "Clastic",
+        "surfaceId": "Scree",
+        "surfaceRevision": 2,
+        "miningResistance": 0.24,
+        "erodibility": 0.75
+      },
+      "priority": 0,
+      "topDepthMeters": 0,
+      "thicknessMeters": 3,
+      "contactFeatherMeters": 0.5,
+      "thicknessVariation": 0.35,
+      "coverage": 0.6,
+      "patchSizeMeters": 45,
+      "maximumSlopeDegrees": 38,
+      "seed": 0
+    }
+  ]
 }

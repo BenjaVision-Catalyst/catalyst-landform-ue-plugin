@@ -33,6 +33,7 @@ fallback rules formerly shown in Surface are retained in Planet Advanced and
 apply when Rock is disabled. They do not implement biome cover.
 
 The accepted [ownership/composition contract](GeologyAndMaterials.md) records the
-remaining landform-deposit, biome-cover and mining/resource stages. Ordinary
+implemented [landform-deposit composition](LandformDeposits.md), followed by
+biome-cover and mining/resource stages. Ordinary
 review/test planets remain transient and unsaved. The material-building script
 only saves the explicitly named plugin product assets.

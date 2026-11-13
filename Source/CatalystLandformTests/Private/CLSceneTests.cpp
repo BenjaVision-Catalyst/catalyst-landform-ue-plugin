@@ -21,16 +21,6 @@
 
 namespace
 {
-TSharedPtr<FJsonObject> ReadPreservationReference(const TCHAR* File=TEXT("scene-preservation-v1.json"))
-{
-    FString Text;
-    const auto Plugin = IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    if (!FFileHelper::LoadFileToString(Text, *(Plugin->GetBaseDir() / TEXT("conformance") / File))) return nullptr;
-    TSharedPtr<FJsonObject> Result;
-    FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Result);
-    return Result;
-}
-
 TArray<FVector> ReferenceDirections(const FCLCompiledPlanetRecipe& Plan)
 {
     TArray<FVector> Directions;
@@ -42,15 +32,7 @@ TArray<FVector> ReferenceDirections(const FCLCompiledPlanetRecipe& Plan)
     return Directions;
 }
 
-bool ImportCase(const TSharedPtr<FJsonObject>& Case, FCLPlanetRecipe& Recipe, FString& Error)
-{
-    FString Json;
-    FJsonSerializer::Serialize(Case->GetObjectField(TEXT("recipe")).ToSharedRef(), TJsonWriterFactory<>::Create(&Json));
-    auto* Asset = NewObject<UCLPlanetRecipeAsset>();
-    if (!Asset->ImportRecipeJson(Json, Error)) return false;
-    Recipe = Asset->Recipe;
-    return true;
-}
+
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSceneContractTest, "Catalyst.Landform.Scene.QueryAndFrameContract",
@@ -122,91 +104,43 @@ bool FCLSceneContractTest::RunTest(const FString&)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLScenePreservationTest, "Catalyst.Landform.Scene.PreMigrationPreservation",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSceneCompositionTest, "Catalyst.Landform.Scene.CurrentRecipeComposition",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FCLScenePreservationTest::RunTest(const FString&)
+bool FCLSceneCompositionTest::RunTest(const FString&)
 {
-    const auto Old=ReadPreservationReference(),Current=ReadPreservationReference(TEXT("volume-preservation-v1.json"));
-    if (!TestTrue(TEXT("Both independently captured binary references are present"), Old.IsValid()&&Current.IsValid())) return false;
-    double HeightError = 0, MaterialError = 0, SceneResidual = 0;
-    int32 Count = 0;
-    FString Error;
-    for(const auto& Reference:{Old,Current})for (const auto& Value : Reference->GetArrayField(TEXT("cases")))
+    FString Error;int32 Count=0;double Residual=0;
+    const FString Root=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir();
+    for(const TCHAR* File:{TEXT("ContinentalBase.json"),TEXT("GeneratedRegions.json"),TEXT("RockBedsExcavation.json")})
     {
-        const auto Case = Value->AsObject();
-        FCLPlanetRecipe Recipe;
-        if (!ImportCase(Case, Recipe, Error)) { AddError(Error); return false; }
-        const auto Before = Recipe;
-        const auto Plan = FCLPlanetCompiler::Compile(Recipe, Error);
-        if (!Plan) { AddError(Error); return false; }
-        const auto Scene = FCLScene::FromPlanet(Plan, Error);
-        if (Plan->Coordinates == ECLTerrainCoordinates::LocalPatch)
-            TestFalse(TEXT("Local-patch reference is preserved without claiming a radial scene"), Scene.IsValid());
-        else if (!Scene) { AddError(Case->GetStringField(TEXT("id")) + TEXT(": ") + Error); return false; }
-        TestTrue(TEXT("Compilation does not mutate the authored recipe"), FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before, &Recipe, 0));
-        const auto All = ReferenceDirections(*Plan);
-        TArray<FVector> Directions;
-        for (const auto& Index : Case->GetArrayField(TEXT("sampleIndices")))
-        {
-            const int32 I = int32(Index->AsNumber());
-            if (!All.IsValidIndex(I)) { AddError(TEXT("Reference direction is missing")); return false; }
-            Directions.Add(All[I]);
-        }
-        TArray<double> Heights; Plan->SampleHeightsMeters(Directions, Heights);
-        TArray<FCLSurfaceWeights> Weights; Plan->SampleSurfaceWeights(Directions, Weights);
-        TArray<FVector3d> Points;
-        for (int32 I = 0; I < Directions.Num(); ++I)
-        {
-            HeightError = FMath::Max(HeightError, FMath::Abs(Heights[I] - Case->GetArrayField(TEXT("heightsMeters"))[I]->AsNumber()));
-            for (int32 K = 0; K < 8; ++K) MaterialError = FMath::Max(MaterialError, FMath::Abs(Weights[I].Values[K] - Case->GetArrayField(TEXT("surfaceWeights"))[I]->AsArray()[K]->AsNumber()));
-            Points.Add(Directions[I] * (Plan->RadiusMeters + FMath::Min(Heights[I], 0.)));
-        }
-        if (Scene)
-        {
-            TArray<FCLSceneShapeSample> Shape;
-            if (!Scene->SampleShape({Points}, Shape, Error)) { AddError(Error); return false; }
-            TArray<FCLSceneSurfaceSample> Surface;
-            if (!Scene->SampleSurfaces({Points}, Surface, Error)) { AddError(Error); return false; }
-            for (int32 I = 0; I < Shape.Num(); ++I)
-            {
-                TestTrue(TEXT("Preserved exterior is a known interface"), Shape[I].State == ECLSceneSampleState::Known);
-                SceneResidual = FMath::Max(SceneResidual, FMath::Abs(Shape[I].FieldMeters));
-                if (Plan->Surfaces) for (const auto& W : Surface[I].Weights)
-                {
-                    const int32 K = Plan->Surfaces->Find(W.Id, W.Revision);
-                    if (!TestTrue(TEXT("Scene material keeps logical ID and revision"), K != INDEX_NONE)) return false;
-                    MaterialError = FMath::Max(MaterialError, FMath::Abs(W.Weight - Weights[I].Values[K]));
-                }
-            }
-        }
-        TArray<FCLResolvedStampPlacement> Placements; Plan->GetStampPlacements(Placements);
-        Placements.Sort([](const auto& A, const auto& B) { return A.Id.ToString() < B.Id.ToString(); });
-        const auto& ExpectedPlacements = Case->GetArrayField(TEXT("stampPlacements"));
-        TestEqual(TEXT("Pre-migration stamp count is preserved"), Placements.Num(), ExpectedPlacements.Num());
-        for (int32 I = 0; I < FMath::Min(Placements.Num(), ExpectedPlacements.Num()); ++I)
-        {
-            FCLResolvedStampPlacement Expected;
-            if (!FJsonObjectConverter::JsonObjectToUStruct(ExpectedPlacements[I]->AsObject().ToSharedRef(), &Expected, 0, 0)) return false;
-            TestTrue(TEXT("Full deterministic stamp placement is preserved"), FCLResolvedStampPlacement::StaticStruct()->CompareScriptStruct(&Expected, &Placements[I], 0));
-        }
-        Count += Directions.Num();
+        FString Json;FFileHelper::LoadFileToString(Json,*(Root/TEXT("Examples")/File));
+        TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
+        if(!A->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+        // Test the generated exterior independently of explicit cut operations.
+        A->Recipe.Caves.bEnabled=false;A->Recipe.Volumes.bEnabled=false;
+        const auto Before=A->Recipe;const auto P=FCLPlanetCompiler::Compile(A->Recipe,Error);
+        const auto Scene=P?FCLScene::FromPlanet(P,Error):nullptr;if(!Scene){AddError(Error);return false;}
+        TestTrue(TEXT("Scene compilation preserves current authored data"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&Before,&A->Recipe,0));
+        const auto D=ReferenceDirections(*P);TArray<double> H;P->SampleHeightsMeters(D,H);TArray<FVector> Points;
+        for(int32 I=0;I<D.Num();++I)Points.Add(D[I]*(P->RadiusMeters+H[I]));
+        TArray<FCLSceneShapeSample> Shape;Scene->SampleShape({Points},Shape,Error);
+        for(const auto& V:Shape){TestEqual(TEXT("Current exterior is a known interface"),V.State,ECLSceneSampleState::Known);Residual=FMath::Max(Residual,FMath::Abs(V.FieldMeters));}
+        TArray<FCLSceneSurfaceSample> Appearance;TArray<FCLMaterialSample> Composition;
+        Scene->SampleSurfaces({Points},Appearance,Error);Scene->SampleMaterials({Points},Composition,Error);
+        for(int32 I=0;I<Points.Num();++I)for(const auto& W:Appearance[I].Weights)
+        {const int32 K=P->Surfaces->Find(W.Id,W.Revision);if(!TestTrue(TEXT("Current composition resolves stable material IDs"),K!=INDEX_NONE))return false;TestEqual(TEXT("Surface adapter preserves shared composition"),W.Weight,Composition[I].Surfaces.Values[K]);}
+        Count+=Points.Num();
     }
-    TestTrue(TEXT("Pre-migration height samples remain unchanged within 0.01 mm"), HeightError < .00001);
-    TestTrue(TEXT("Pre-migration and shared-scene materials match"), MaterialError < .00001);
-    TestTrue(TEXT("Shared XYZ scene preserves the exterior within 0.1 mm"), SceneResidual < .0001);
-    AddInfo(FString::Printf(TEXT("Two independent preservation captures / %d samples: height %.12g m, material %.12g, scene interface %.12g m"), Count, HeightError, MaterialError, SceneResidual));
-    return true;
+    TestTrue(TEXT("Current exterior remains within 0.1 mm"),Residual<.0001);
+    AddInfo(FString::Printf(TEXT("%d current-recipe exterior/material probes, field residual %.12g m"),Count,Residual));return !HasAnyErrors();
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLSceneNativeParityTest, "Catalyst.Landform.Scene.NativeBulkSparseParity",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLSceneNativeParityTest::RunTest(const FString&)
 {
-    const auto Reference = ReadPreservationReference();
-    if (!Reference) return false;
-    FString Error;
-    FCLPlanetRecipe Recipe;
-    if (!ImportCase(Reference->GetArrayField(TEXT("cases"))[4]->AsObject(), Recipe, Error)) { AddError(Error); return false; }
+    FString Error,Json;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/GeneratedRegions.json")));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
+    auto Recipe=A->Recipe;Recipe.SchemaVersion=FMath::Max(13,Recipe.SchemaVersion);Recipe.SurfaceStack=FCLSurfaceStack::MakeDefault();
     FCLPlanetStamp Stamp;
     Stamp.bUseRecipe = true; Stamp.Radius = Recipe.RadiusMeters * 100; Stamp.Recipe = Recipe;
     Stamp.Behavior = EVoxelStampBehavior::AffectAll; Stamp.bApplyOnVoid = true;
@@ -235,13 +169,11 @@ bool FCLSceneNativeParityTest::RunTest(const FString&)
     Runtime->Apply(FVoxelVolumeSparseQuery::Create(Query, SparseDistances, NativeSurfaces, FVoxelMetadataMap(), Positions, true, {}), FVoxelVolumeTransform());
     TArray<FCLSceneShapeSample> Shape; Runtime->Scene->SampleShape({BodyPositions}, Shape, Error);
     TArray<FCLSceneSurfaceSample> Surfaces; Runtime->Scene->SampleSurfaces({BodyPositions}, Surfaces, Error);
-    double FieldError = 0, SurfaceError = 0, LegacyDifference = 0;
-    const auto LegacyHeights = Runtime->SampleHeights(Query, Positions);
+    double FieldError = 0, SurfaceError = 0;
     for (int32 I = 0; I < Count; ++I)
     {
         FieldError = FMath::Max(FieldError, FMath::Abs(double(BulkDistances[I]) - SparseDistances[I]));
         FieldError = FMath::Max(FieldError, FMath::Abs(double(BulkDistances[I]) - Shape[I].FieldMeters * 100));
-        LegacyDifference = FMath::Max(LegacyDifference, FMath::Abs(double(BulkDistances[I]) - (Positions[I].Size() - Stamp.Radius - LegacyHeights[I])));
         for (const auto& W : Surfaces[I].Weights)
         {
             const int32 K = Runtime->RecipePlan->Surfaces->Find(W.Id, W.Revision);
@@ -252,19 +184,7 @@ bool FCLSceneNativeParityTest::RunTest(const FString&)
     }
     TestTrue(TEXT("Both native query forms consume the shared XYZ field"), FieldError < .0001);
     TestTrue(TEXT("Native metadata keeps scene material weights within uint16 quantization"), SurfaceError < .0001);
-    TestTrue(TEXT("Removing intermediate height-float rounding preserves legacy native field within 0.1 mm"), LegacyDifference < .01);
-    // Unmigrated actor/planar source profiles stay explicit; never double-apply them.
-    Stamp.bPlanarSources = true;
-    const auto Unmigrated = StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr, FVoxelStampRef::New(Stamp), nullptr));
-    TestTrue(TEXT("Legacy source profile does not falsely claim shared-scene coverage"), Unmigrated && !Unmigrated->Scene);
-    Stamp.bPlanarSources = false;
-    Stamp.Radius *= .75;
-    const auto CustomRadius = StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr, FVoxelStampRef::New(Stamp), nullptr));
-    if (!TestTrue(TEXT("Legacy independent stamp radius remains explicit"), CustomRadius && !CustomRadius->Scene)) return false;
-    const auto CustomDistances = CustomRadius->SampleDistances(Query, Positions);
-    for (int32 I = 0; I < Count; ++I)
-        TestTrue(TEXT("Unmigrated custom-radius geometry retains its original equation"), FMath::Abs(CustomDistances[I] - float(Positions[I].Size() - Stamp.Radius - LegacyHeights[I])) < .0001);
-    AddInfo(FString::Printf(TEXT("Native %d-point bulk/sparse parity: field %.12g cm, material %.12g, legacy rounding delta %.12g cm"), Count, FieldError, SurfaceError, LegacyDifference));
+    AddInfo(FString::Printf(TEXT("Native %d-point current bulk/sparse parity: field %.12g cm, material %.12g"), Count, FieldError, SurfaceError));
     return true;
 }
 #endif

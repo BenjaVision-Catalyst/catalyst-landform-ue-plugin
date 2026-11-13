@@ -34,6 +34,8 @@ bool FCLTerrainType::Validate(FString& Error) const
     if(Rift.AlgorithmVersion==2&&SchemaVersion<11){Error=TEXT("Rift profile 2 requires terrain schema 11");return false;}
     if(Rift.AlgorithmVersion==3&&SchemaVersion<12){Error=TEXT("Curated Rift profile 3 requires terrain schema 12");return false;}
     if(!Rift.ValidateNoise(NoiseLayers,Error))return false;
+    if(!FCLLandformDeposit::ValidateList(Deposits,Error))return false;
+    if(!Deposits.IsEmpty()&&(Coordinates!=ECLTerrainCoordinates::SphericalSurface||PlacementSuitability.Province.bPlaceholder)){Error=TEXT("Deposits require a spherical implemented landform");return false;}
     if(!SurfaceStack.Validate(Error))return false;
     if(SurfaceStack.IsActive()&&SchemaVersion<8){Error=TEXT("Surface rules require terrain schema 8");return false;}
     if(!PlacementSuitability.Validate(Error))return false;
@@ -45,6 +47,7 @@ bool FCLTerrainType::Validate(FString& Error) const
 bool FCLTerrainType::ApplyTo(FCLPlanetRecipe& Recipe, FString& Error, const FBox2D* LocalRegion) const
 {
     if (!Validate(Error)) return false;
+    if(!Deposits.IsEmpty()){Error=TEXT("Deposits require a placed or generated Landform in Planet");return false;}
     if(PlacementSuitability.Province.IsActive()){Error=TEXT("Province Landforms overlay base geology through the regional palette; they cannot replace the planet's base terrain");return false;}
     FCLPlanetRecipe Candidate = Recipe;
     Candidate.SchemaVersion = FMath::Max(9,Candidate.SchemaVersion); Candidate.Coordinates = Coordinates; Candidate.AlgorithmVersion = AlgorithmVersion; Candidate.TerrainTypeId = Id; Candidate.TerrainTypeName = Name;
@@ -82,7 +85,8 @@ bool FCLTerrainType::ApplyToRegion(FCLPlanetRecipe& Recipe, const FGuid& RegionI
     auto Candidate=Recipe;auto* Region=Candidate.TerrainRegions.FindByPredicate([&](const auto& R){return R.Id==RegionId;});
     if(!Region){Error=TEXT("Terrain region was not found");return false;}
     Region->bSphericalMask=Coordinates==ECLTerrainCoordinates::SphericalSurface;
-    Region->TerrainTypeId=Id;Region->TerrainTypeName=Name;Region->AlgorithmVersion=AlgorithmVersion;Region->NoiseLayers=NoiseLayers;Region->SurfaceStack=SurfaceStack;
+    Region->TerrainTypeId=Id;Region->TerrainTypeName=Name;Region->AlgorithmVersion=AlgorithmVersion;Region->NoiseLayers=NoiseLayers;Region->SurfaceStack=SurfaceStack;Region->Deposits=Deposits;
+    if(!Deposits.IsEmpty()){Candidate.SchemaVersion=FMath::Max(13,Candidate.SchemaVersion);if(!Candidate.SurfaceStack.IsActive())Candidate.SurfaceStack=FCLSurfaceStack::MakeDefault();}
     if(SurfaceStack.IsActive()){Candidate.SchemaVersion=FMath::Max(13,Candidate.SchemaVersion);if(!Candidate.SurfaceStack.IsActive()){Candidate.SurfaceStack.DefaultSurfaceId=SurfaceStack.DefaultSurfaceId;Candidate.SurfaceStack.DefaultSurfaceRevision=SurfaceStack.DefaultSurfaceRevision;}}
     Candidate.SchemaVersion=FMath::Max(9,Candidate.SchemaVersion);
     if(!FCLPlanetCompiler::Compile(Candidate,Error))return false;
