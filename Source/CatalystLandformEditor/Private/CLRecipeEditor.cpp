@@ -1752,7 +1752,7 @@ void CLOpenPlanetLandform(UCLTerrainTypeAsset* Terrain, EToolkitMode::Type Mode,
 UCLPlanetRecipeFactory::UCLPlanetRecipeFactory()
 { SupportedClass = UCLPlanetRecipeAsset::StaticClass(); bCreateNew = true; bEditAfterNew = true; }
 UObject* UCLPlanetRecipeFactory::FactoryCreateNew(UClass* Class, UObject* Parent, FName Name, EObjectFlags Flags, UObject*, FFeedbackContext*)
-{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();A->Recipe.Caves.AlgorithmVersion=9;A->Recipe.SurfaceStack=FCLSurfaceStack::MakeDefault();
+{ auto* A=NewObject<UCLPlanetRecipeAsset>(Parent, Class, Name, Flags);A->Recipe=FCLPlanetCompiler::BasePlanet();A->Recipe.UseGuidedGeology();A->Recipe.Caves.AlgorithmVersion=9;A->Recipe.SurfaceStack=FCLSurfaceStack::MakeDefault();
     FString MaterialError;const auto Materials=FCLCompiledSurfaceLibrary::Resolve(MaterialError);
     if(!Materials||!A->Recipe.Rock.BindBedrockMaterials(*Materials,MaterialError)){UE_LOG(LogTemp,Error,TEXT("Cannot create planet: %s"),*MaterialError);return nullptr;}
     if (auto* Library = UCLRadialGuideLibraryAsset::LoadExamples())
@@ -1890,6 +1890,7 @@ bool FCLPlanetGuideFactoryTest::RunTest(const FString&)
     TestEqual(TEXT("Resolved set has the referenced identity"),A->Recipe.RadialGuides.Id,A->RadialGuideSetId);
     TestTrue(TEXT("New planets contain no terrain layers or regions"),A->Recipe.NoiseLayers.IsEmpty()&&A->Recipe.TerrainRegions.IsEmpty());
     TestEqual(TEXT("Fresh factory planets explicitly use the current cave family"),A->Recipe.Caves.AlgorithmVersion,9);
+    TestTrue(TEXT("A fresh factory planet compiles without a preview-only schema upgrade"),FCLPlanetCompiler::Compile(A->Recipe,Error).IsValid());
     return true;
 }
 #endif

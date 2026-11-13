@@ -7,7 +7,31 @@
   "vpp": "58909934d4b680910cf1edc5114eee3183ccd263",
   "vppSourceModified": false,
   "build": "Succeeded",
-  "enabledTests": [
+  "excludedLabCase": {
+    "name": "Catalyst.Landform.Planet.LandformRows.AssignedCellHighlights",
+    "observedState": "Fail",
+    "reason": "Requires the Lab-only /Game/LandformDesigner/DA_BasePlanet authoring asset. The packaged-install test verifies catalogue and assigned highlights without it."
+  },
+  "distinctApplicableChecksPassed": 20,
+  "preservation": {
+    "files": 1021,
+    "unchangedAuthoredFiles": 1020,
+    "generatedCacheUpdates": [
+      "Content/Developers/jupiter/MegaMaterialCache.uasset"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "evidenceDirectory": "VPPTest58/Saved/CurrentPlanetQualification",
+  "captures": {
+    "enabled": "ecosystem-present.png",
+    "disabled": "ecosystem-disabled.png"
+  },
+  "limits": [
+    "The two launches verify an enabled/disabled Ecosystem plugin, not removal of licensed content.",
+    "The material/authoring checks do not qualify gameplay, wind, streaming or ecosystem ground-cover materials."
+  ],
+  "initialEnabledTests": [
     {
       "name": "Catalyst.Ecosystem.Climate.DeterminismAndSphericalFrame",
       "state": "Success"
@@ -85,7 +109,7 @@
       "state": "Success"
     }
   ],
-  "disabledTests": [
+  "initialDisabledTests": [
     {
       "name": "Catalyst.Landform.Installation.FreshProject",
       "state": "Success"
@@ -95,28 +119,102 @@
       "state": "Success"
     }
   ],
-  "excludedLabCase": {
-    "name": "Catalyst.Landform.Planet.LandformRows.AssignedCellHighlights",
-    "observedState": "Fail",
-    "reason": "Requires the Lab-only /Game/LandformDesigner/DA_BasePlanet authoring asset. The packaged-install test verifies catalogue and assigned highlights without it."
-  },
-  "distinctApplicableChecksPassed": 19,
-  "preservation": {
-    "files": 1021,
-    "unchangedAuthoredFiles": 1020,
-    "generatedCacheUpdates": [
-      "Content/Developers/jupiter/MegaMaterialCache.uasset"
-    ],
-    "added": [],
-    "removed": []
-  },
-  "evidenceDirectory": "VPPTest58/Saved/CurrentPlanetQualification",
-  "captures": {
-    "enabled": "ecosystem-present.png",
-    "disabled": "ecosystem-disabled.png"
-  },
-  "limits": [
-    "The two launches verify an enabled/disabled Ecosystem plugin, not removal of licensed content.",
-    "The material/authoring checks do not qualify gameplay, wind, streaming or ecosystem ground-cover materials."
-  ]
+  "enabledTests": [
+    {
+      "name": "Catalyst.Ecosystem.Climate.DeterminismAndSphericalFrame",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Ecosystem.Climate.ValidationAndModelRoundTrip",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Ecosystem.Editor.NativePlanetBuilder",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Ecosystem.Editor.PreviewVisibilityAndUndo",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Ecosystem.PCG.FieldsFilterAndPlanetTransform",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Caves.AlwaysEnabledMinimum",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Installation.FreshProject",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.MaterialLayers.FiniteDepthAndIdentity",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.MaterialLayers.FootprintAndNativeDelivery",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.MaterialLayers.PlacedFootprintsAndSeed",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.MaterialLayers.PlanetDetailsAndUndo",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.MaterialLayers.PlanetRenderedReview",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Measured.Coverage",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Measured.NativeSampling",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Measured.Recipe",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Measured.ResourceClosure",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.NativeMaterials.PreviewCoordinateGPU",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Planet.LandformRows.ControlsAndPersistence",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.Rock.MaterialBindings",
+      "state": "Success"
+    }
+  ],
+  "disabledTests": [
+    {
+      "name": "Catalyst.Landform.Installation.FreshProject",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.NativeMaterials.PreviewCoordinateGPU",
+      "state": "Success"
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.NewPlanetReference",
+      "state": "Success"
+    }
+  ],
+  "factoryRegression": "Fresh stored recipe compiles before any preview schema conversion",
+  "enabledCaveMinimumCases": 72
 }

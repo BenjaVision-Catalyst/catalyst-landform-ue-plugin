@@ -13,6 +13,8 @@ revision `58909934d4b680910cf1edc5114eee3183ccd263`: Editor target passed with
 
 The adapter handles UE's gesture phase and JSON shared-string keys, VPP's new
 bounds/volume-transform signatures and renamed surface-detection property.
+New planets select the current guided model before adding their surface settings;
+the factory regression now compiles the stored recipe directly.
 Measured rasters use VPP's exported native float bilinear ISPC kernel after the
 existing identity-scaling preflight. Translation units compile independently so
 file-local helpers cannot collide in installed unity builds. The optional native
@@ -27,13 +29,15 @@ Landform. [Material ownership](LandformDeposits.md) is unchanged.
 
 ## Checks and limits
 
-- 18 applicable tests passed with Ecosystem enabled: packaged-install rendering,
+- The final 20-test selection passed with Ecosystem enabled: packaged-install rendering,
   17 catalogue rows and balanced Rift/Volcanic Arc assignment; Planet row controls
   and persistence; new-planet guides; four measured-raster checks; five deposit
   checks including rendered review; rock bindings; five Ecosystem model/PCG/UI checks.
-- Two tests passed with Ecosystem disabled: the same native installation review
-  and GPU material-coordinate parity. This adds one distinct successful check,
-  for 19 distinct applicable checks across the two launches.
+- The final selection includes GPU material-coordinate parity and enabled-cave
+  minima across 72 scale/profile/access cases, including missing geology and
+  planets from 10 m to 10,000 km radius.
+- A separate Ecosystem-disabled launch checks the native installation review,
+  new-planet factory and GPU material-coordinate parity in the same host.
 - The initial 19-case selection also ran the Lab-only AssignedCellHighlights test.
   It failed because `/Game/LandformDesigner/DA_BasePlanet` is absent in this host.
   That project-specific case is not an end-user installation requirement; the
