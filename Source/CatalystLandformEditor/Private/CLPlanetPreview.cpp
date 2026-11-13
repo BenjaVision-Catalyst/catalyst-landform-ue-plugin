@@ -1,4 +1,5 @@
 #include "CLPlanetPreview.h"
+#include "PlanetBuilder/CLPlanetBuilderExtensions.h"
 #include "CLWatershedDebug.h"
 #include "Scene/CLScene.h"
 #include "Misc/ScopeExit.h"
@@ -257,6 +258,18 @@ public:
         for(const auto& T:Targets)if(T.Key.bStructure&&T.Weight(D)>.01)return T.Key;
         return {};
     }
+    TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
+    void DrawBuilderOverlay(FPrimitiveDrawInterface* PDI)
+    {
+        if(!Plan||!BuilderOverlay||!NativePreview||NativePreview->PublishedPlan()!=Plan)return;const double Scale=100000/Plan->RadiusMeters;
+        const int32 N=FMath::Min(8192,FMath::Min(BuilderOverlay->BodyMeters.Num(),BuilderOverlay->Colors.Num()));
+        for(int32 I=0;I<N;++I)
+        {
+            const FVector P=BuilderOverlay->BodyMeters[I]*Scale;
+            if(FVector::DotProduct(P.GetSafeNormal(),GetViewLocation()-P)<=0)continue;
+            PDI->DrawPoint(P+P.GetSafeNormal()*100,BuilderOverlay->Colors[I],7,SDPG_World);
+        }
+    }
     bool bWatershedOverlay=false;
     TSharedPtr<const FCLWatershedDebugGeometry> WatershedDebug;
     TSharedPtr<const FCLCompiledPlanetRecipe> DebugPlan;
@@ -369,7 +382,7 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(PDI);
         if(Plan&&!WalkDirection.IsNearlyZero())
         {
             const FVector P=WalkDirection*((Plan->RadiusMeters+Plan->SampleHeightMeters(WalkDirection))/Plan->RadiusMeters*100000+150);
@@ -1695,3 +1708,5 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
     }));return true;
 }
 #endif
+
+void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverlay> Overlay){if(Client){Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();}}

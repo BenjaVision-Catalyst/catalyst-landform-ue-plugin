@@ -1,3 +1,4 @@
+#include "PlanetBuilder/CLPlanetBuilderExtensions.h"
 #include "CLPreviewMesh.h"
 #include "CLRecipeEvaluation.h"
 #include "Widgets/Views/STableViewBase.h"
@@ -729,6 +730,14 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TArray<TSharedPtr<IDetailsView>> PlanetInspectors;
     TSharedPtr<SWidgetSwitcher> InspectorPages;
     int32 InspectorPage=1;
+    TArray<TSharedRef<ICLPlanetBuilderExtension>> BuilderExtensions;
+    TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
+    void SelectInspectorPage(int32 Page)
+    {
+        InspectorPage=Page;
+        if(Globe)Globe->SetBuilderOverlay(nullptr);
+        for(int32 I=0;I<BuilderExtensions.Num();++I)BuilderExtensions[I]->SetActive(Page==I+5);
+    }
     bool bContinentalDragging=false;
     double PendingContinentalStrength=.7,AppliedContinentalStrength=.7;
     TArray<TSharedPtr<IPropertyHandle>> TectonicAdvancedProperties;
@@ -864,7 +873,7 @@ public:
         Refresh();
     }
     virtual void GetSaveableObjects(TArray<UObject*>& Objects) const override
-    { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (RadialGuidesSession && !TerrainEditing) Objects.AddUnique(RadialGuidesSession->Library.Get()); }
+    { FCFModelEditorToolkit::GetSaveableObjects(Objects); if (RadialGuidesSession && !TerrainEditing) Objects.AddUnique(RadialGuidesSession->Library.Get()); for(const auto& Extension:BuilderExtensions)Extension->GetSaveableObjects(Objects); }
     TSharedRef<SWidget> TerrainMenu() { return TerrainSourceMenu(FGuid(), false); }
     TSharedRef<SWidget> TerrainSourceMenu(FGuid RegionId, bool bNewRegion)
     {
@@ -1675,13 +1684,28 @@ public:
         {
             Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
                 .IsChecked_Lambda([this,Page]{return InspectorPage==Page?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
-                .OnCheckStateChanged_Lambda([this,Page](ECheckBoxState V){if(V==ECheckBoxState::Checked)InspectorPage=Page;})[InspectorLabel(Names[Page])]];
+                .OnCheckStateChanged_Lambda([this,Page](ECheckBoxState V){if(V==ECheckBoxState::Checked)SelectInspectorPage(Page);})[InspectorLabel(Names[Page])]];
             FDetailsViewArgs Args;Args.bUpdatesFromSelection=false;Args.bHideSelectionTip=true;Args.NameAreaSettings=FDetailsViewArgs::HideNameArea;Args.ViewIdentifier=FName(*FString::Printf(TEXT("CLPlanetInspector%d"),Page));
             const auto View=FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor")).CreateDetailView(Args);
             View->RegisterInstancedCustomPropertyLayout(UCLPlanetRecipeAsset::StaticClass(),FOnGetDetailCustomizationInstance::CreateLambda([Weak,Page]
             {return MakeShared<FCLPlanetDetailsLayout>([Weak,Page](IDetailLayoutBuilder& B){if(auto E=Weak.Pin())E->BuildPlanetInspector(B,Page);});}));
             if(Page==0||Page==1)View->OnFinishedChangingProperties().AddSP(this,&FCLRecipeToolkit::FinishGeologyAdvanced);
             View->SetObject(RecipeAsset());PlanetInspectors.Add(View);InspectorPages->AddSlot()[View];
+        }
+        BuilderExtensions.Reset();
+        for(const auto& Provider:FCLPlanetBuilderExtensions::Providers())
+        {
+            const int32 Page=5+BuilderExtensions.Num();
+            FCLPlanetBuilderContext Context;Context.Planet=RecipeAsset();
+            Context.GetPlan=[Weak]{if(auto E=Weak.Pin())return E->AcceptedSurfacePlan;return TSharedPtr<const FCLCompiledPlanetRecipe>();};
+            Context.PublishOverlay=[Weak,Page](TSharedPtr<const FCLPlanetBuilderOverlay> Overlay)
+            {if(auto E=Weak.Pin())if(E->Globe&&E->InspectorPage==Page)E->Globe->SetBuilderOverlay(MoveTemp(Overlay));};
+            auto Extension=Provider.Create(MoveTemp(Context));BuilderExtensions.Add(Extension);
+            Tabs->AddSlot().FillWidth(1)[SNew(SCheckBox).Style(FAppStyle::Get(),"DetailsView.SectionButton")
+                .IsChecked_Lambda([this,Page]{return InspectorPage==Page?ECheckBoxState::Checked:ECheckBoxState::Unchecked;})
+                .OnCheckStateChanged_Lambda([this,Page](ECheckBoxState V){if(V==ECheckBoxState::Checked)SelectInspectorPage(Page);})
+                [SNew(STextBlock).Text(Provider.Label)]];
+            InspectorPages->AddSlot()[Extension->Widget()];
         }
         return SNew(SDockTab).Label(FText::FromString(TEXT("Planet")))[SNew(SVerticalBox)
             +SVerticalBox::Slot().AutoHeight().Padding(4)[Tabs]

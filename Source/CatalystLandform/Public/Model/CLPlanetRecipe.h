@@ -349,6 +349,8 @@ class CATALYSTLANDFORM_API UCLPlanetRecipeAsset : public UCFModelAsset
     GENERATED_BODY()
 public:
     UCLPlanetRecipeAsset();
+    /** Optional plugin-owned authoring assets. Soft paths survive an absent provider. */
+    UPROPERTY(VisibleAnywhere, Category="Landform|Extensions") TMap<FName,FSoftObjectPath> AuthoringExtensions;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Recipe") FCLPlanetRecipe Recipe;
     /** Authoring reference. Null means an imported/legacy self-contained recipe. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") TObjectPtr<UCLRadialGuideLibraryAsset> RadialGuideLibrary;
