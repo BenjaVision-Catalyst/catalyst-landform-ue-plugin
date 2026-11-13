@@ -929,12 +929,6 @@ public:
     }
     TSharedRef<SWidget> BuildPlacedLandforms()
     {
-        auto Tools=SNew(SHorizontalBox);
-        const ECLGlobePlacementMode Modes[]={ECLGlobePlacementMode::Move,ECLGlobePlacementMode::Rotate,ECLGlobePlacementMode::Resize};
-        const TCHAR* Labels[]={TEXT("Move (W)"),TEXT("Rotate (E)"),TEXT("Scale (R)")};
-        for(int32 I=0;I<UE_ARRAY_COUNT(Modes);++I)
-            Tools->AddSlot().FillWidth(1)[SNew(SButton).IsEnabled_Lambda([this]{return Globe&&Globe->Selection().IsValid()&&!Globe->Selection().bStructure;})
-                .OnClicked_Lambda([this,Mode=Modes[I]]{Globe->SetPlacementMode(Mode);return FReply::Handled();})[InspectorLabel(Labels[I])]];
         auto Widget=SNew(SVerticalBox)
             +SVerticalBox::Slot().AutoHeight().Padding(4)[SNew(SHorizontalBox)
                 +SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,8,0)[InspectorLabel(TEXT("Add Landform"))]
@@ -942,7 +936,6 @@ public:
                     .AllowClear(false).AllowCreate(false).DisplayThumbnail(false).ObjectPath(FString())
                     .OnShouldFilterAsset_Lambda([](const FAssetData& Data){const auto* A=Cast<UCLTerrainTypeAsset>(Data.GetAsset());return !A||A->TerrainType.Coordinates!=ECLTerrainCoordinates::SphericalSurface||A->TerrainType.PlacementSuitability.Province.IsActive();})
                     .OnObjectChanged_Lambda([this](const FAssetData& Data){AddPlacedLandform(Cast<UCLTerrainTypeAsset>(Data.GetAsset()));})]]
-            +SVerticalBox::Slot().AutoHeight().Padding(4)[Tools]
             +SVerticalBox::Slot().AutoHeight().Padding(4)[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont"))
                 .Visibility_Lambda([this]{return PlacedLandformItems.IsEmpty()?EVisibility::Visible:EVisibility::Collapsed;}).Text(FText::FromString(TEXT("No landforms added.")))]
             +SVerticalBox::Slot().FillHeight(1).Padding(4)[SAssignNew(PlacedLandformList,SListView<TSharedPtr<FGuid>>)

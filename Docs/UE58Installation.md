@@ -92,3 +92,9 @@ its required /Game/LandformDesigner/Provinces/DA_ContinentalRiftReview fixture
 is absent in this host. It was excluded from the final selection, not counted as
 a pass. This update does not qualify a new cave anatomy or delivery backend.
 No source asset or authoring experiment was saved.
+
+The Landforms page now contains only its asset selector and instance list. The
+extra Move/Rotate/Scale buttons are removed; viewport W/E/R shortcuts remain.
+This follow-up passes the two existing placed-instance/native-handle editor
+checks and all three installer checks, with the current unsaved planet restored.
+Evidence is in VPPTest58 Saved/LandformToolbarRemoval.

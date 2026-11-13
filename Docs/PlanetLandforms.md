@@ -168,7 +168,8 @@ The Landforms selector admits spherical landform definitions that support manual
 placement. Province definitions requiring generated-region placement remain in
 Types. Selecting a row selects the same instance in the globe; selecting an
 instance in the globe focuses Provinces > Landforms and selects its row.
-The existing Unreal transform widget and W/E/R modes manipulate that selection:
+The Landforms page contains the asset selector and instance list. Use the
+viewport's standard W/E/R shortcuts to select the Unreal transform widget mode:
 tangential movement on the sphere, rotation about radial up, and footprint scale.
 Delete (Backspace on Mac keyboards) works from the list or viewport. Standard
 Undo/Redo shortcuts restore each complete move, rotation or scale gesture, as
