@@ -15,8 +15,8 @@ also defines the handoff for optional Ecosystem cover.
 
 ## Install from source
 
-Use Unreal Engine **5.7**, a C++ toolchain for your platform, Python 3 and a licensed
-**Voxel Plugin 2.0p8 for UE 5.7** installation. Start with a C++ project, or add
+Use Unreal Engine **5.8.4**, a C++ toolchain for your platform, Python 3 and a licensed
+**Voxel Plugin build for UE 5.8** installation. Start with a C++ project, or add
 a C++ class to an existing Blueprint project. This revision is verified on macOS arm64. On that
 platform install **ISPC 1.31** on `PATH`, or set `LANDFORM_ISPC` to its executable.
 The plugin builds its SIMD kernel automatically. Other platforms use the scalar

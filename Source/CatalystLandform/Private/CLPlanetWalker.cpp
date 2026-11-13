@@ -4,6 +4,8 @@
 #include "CLSurfaceInspection.h"
 #include "Scene/CLScene.h"
 #include "Camera/CameraComponent.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/PlayerController.h"
 #include "Collision/VoxelCollisionInvoker.h"
 #include "Collision/VoxelCollisionComponent.h"
 #include "Collision/VoxelStaticMeshCollisionComponent.h"
@@ -49,7 +51,7 @@ bool ACLPlanetWalker::BeginInspection(ACLPlanet* Target,FVector Direction,bool H
     const bool Found=HasPoint&&Runtime.Scene?FCLSurfaceInspection::FindLandingPoint(*Runtime.Scene,Point,Landing):
         FCLSurfaceInspection::FindLanding(*Runtime.RecipePlan,Direction,Landing);
     if(!Found){Error=TEXT("No safe footing near the selected point. Choose another location.");return false;}
-    Planet=Target;LandingAdjustmentMeters=Landing.AdjustmentMeters;
+    Planet=Target;LandingAdjustmentMeters=Landing.AdjustmentMeters;PresentationRadiusCm=Landing.PositionCm.Length();
     const FVector Up=Target->GetActorQuat().RotateVector(Landing.Direction);
     FVector Heading=FVector::VectorPlaneProject(Target->GetActorForwardVector(),Up).GetSafeNormal();
     if(Heading.IsNearlyZero())Heading=FVector::CrossProduct(Up,FVector::YAxisVector).GetSafeNormal();
@@ -57,6 +59,8 @@ bool ACLPlanetWalker::BeginInspection(ACLPlanet* Target,FVector Direction,bool H
     auto* Movement=RadialMovement();Movement->StopMovementImmediately();Movement->DisableMovement();
     Movement->SetComponentTickEnabled(false);Movement->PlanetCenter=Target->BodyCenterWorld();Movement->CollisionWorld=Target;
     SetActorLocationAndRotation(HoldPosition,FRotationMatrix::MakeFromXZ(Heading,Up).ToQuat(),false,nullptr,ETeleportType::TeleportPhysics);
+    if(auto* PC=GetWorld()->GetFirstPlayerController();PC && PC->PlayerCameraManager)
+        PC->PlayerCameraManager->AddNewCameraModifier(UCLInspectionPresentationCamera::StaticClass());
     Started=FPlatformTime::Seconds();Status=TEXT("Loading terrain collision…");return true;
 }
 

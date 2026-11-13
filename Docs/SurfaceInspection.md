@@ -48,7 +48,10 @@ new inspection to see subsequent authoring changes. The reusable player, native
 collision invokers, HUD and inspection game mode belong to the runtime Landform
 module; PIE admission and return belong to its editor module. No host-project
 adapter or content is needed. This native walking host requires unit actor scale
-and the spherical native presentation, rather than a projected sampling window.
+and native canonical terrain, rather than a projected sampling window.
+Walking renders a flat local chart through the shared
+[terrain, scenery and camera presentation](WalkingPresentation.md); collision and
+radial gravity remain spherical.
 
 ## Qualification
 

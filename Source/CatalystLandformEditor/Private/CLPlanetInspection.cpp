@@ -1,4 +1,6 @@
 #include "CLPlanetInspection.h"
+#include "CLInspectionMaterials.h"
+#include "CLNaniteProjection.h"
 #include "CLPlanet.h"
 #include "CLPlanetWalker.h"
 #include "Surface/CLSurfaceLibrary.h"
@@ -26,6 +28,7 @@ class FCLInspectionHost
     TStrongObjectPtr<ULevelEditorPlaySettings> Settings;
     FDelegateHandle StartedHandle,EndedHandle,CancelledHandle;
     FString Result;
+    TUniquePtr<FCLInspectionMaterials> Materials;
 public:
     FCLInspectionHost()
     {
@@ -56,6 +59,11 @@ public:
             if(Target){Error=TEXT("More than one actor uses this Planet. Keep one inspection target in the world.");return false;}
             Target=*It;
         }
+        if(!CLNaniteProjectionShaderOverlayEnabled())
+        {Error=TEXT("Walking requires Landform projection shader setup. Run the plugin's stage-nanite-projection.py and enable bEnableProjectionShaders in CatalystLandform.Presentation.");return false;}
+        auto* Mega=Target?Target->MegaMaterial.Get():GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous();
+        Materials=MakeUnique<FCLInspectionMaterials>();
+        if(!Mega||!Materials->Prepare(*World,*Mega,Error)){Materials.Reset();return false;}
         Snapshot.Reset(DuplicateObject<UCLPlanetRecipeAsset>(Input.SourceAsset.Get(),GetTransientPackage()));
         if(!Snapshot->ImportRecipeJson(Input.RecipeJson,Error)){Snapshot.Reset();return false;}
         EditorWorld=World;EditorPlanet=Target;Request=MoveTemp(Input);
@@ -86,7 +94,10 @@ public:
         }
         PlayPlanet=Target;
         if(!Target){Fail(TEXT("Could not activate the Planet in this world."));return;}
-        Target->RecipeAsset=Snapshot.Get();Target->RebuildTerrain();FString Error;
+        Target->MegaMaterial=Materials->GetMegaMaterial();
+        FString Error;
+        if(!Materials->Apply(*World,Error)){Fail(Error);return;}
+        Target->RecipeAsset=Snapshot.Get();Target->RebuildTerrain();
         if(!Target->RecipeStatus.StartsWith(TEXT("Compiled recipe:"))){Fail(Target->RecipeStatus);return;}
         auto* Player=World->GetFirstPlayerController();
         if(!Player){Fail(TEXT("The walking play session has no local player."));return;}
@@ -119,7 +130,7 @@ public:
         }
         // Retire ownership before callbacks, so a return cannot be delivered twice.
         auto Previous=MoveTemp(Request);Request.Reset();Walker.Reset();PlayPlanet.Reset();PlayWorld.Reset();
-        EditorPlanet.Reset();EditorWorld.Reset();Snapshot.Reset();Settings.Reset();
+        EditorPlanet.Reset();EditorWorld.Reset();Snapshot.Reset();Settings.Reset();Materials.Reset();
         if(Previous->OnReturned)Previous->OnReturned(Previous->Id,Direction,Result);
         if(Point&&Previous->OnPositionReturned)Previous->OnPositionReturned(Previous->Id,*Point);
         UE_LOG(LogTemp,Display,TEXT("LANDFORM_WALK_RETURNED: %s"),*Result);

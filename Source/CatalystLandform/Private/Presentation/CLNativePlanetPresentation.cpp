@@ -6,6 +6,8 @@
 #include "Nanite/VoxelNaniteComponent.h"
 #include "Collision/VoxelCollisionComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Components/PrimitiveComponent.h"
+#include "Components/InstancedSkinnedMeshComponent.h"
 #include "EngineGlobals.h"
 #include "Materials/MaterialInterface.h"
 #include "Dom/JsonObject.h"
@@ -15,9 +17,6 @@
 #include "Misc/CoreDelegates.h"
 #include "ProfilingDebugging/CpuProfilerTrace.h"
 
-#ifndef VOXEL_CATALYST_PROJECTION_BOUNDS
-#define VOXEL_CATALYST_PROJECTION_BOUNDS 0
-#endif
 
 static TAutoConsoleVariable<float> CVarCLCurvature(
     TEXT("landform.Curvature"), 1, TEXT("Landform presentation curvature: 1 natural, 0 flat"));
@@ -37,7 +36,7 @@ struct FCLNativePlanetPresentation::FImpl
         EShadowCacheInvalidationBehavior ShadowBehavior;
         int32 WpoDistance = 0, SourceMaterialSlots = 0;
         uint64 BornFrame = 0;
-        float BoundsPadding = 0;
+        float BoundsScale = 1;
         FBox LocalBox{ForceInit};
     };
     struct FCVar
@@ -45,11 +44,23 @@ struct FCLNativePlanetPresentation::FImpl
         IConsoleVariable *Var;
         FString Before, Applied;
     };
+    struct FPrimitive
+    {
+        TWeakObjectPtr<UPrimitiveComponent> Component;
+        FBox Box{ForceInit}, SkinnedBounds{ForceInit};
+        FTransform Transform;
+        TArray<float> Data;
+        float BoundsScale=1;
+        bool Hidden=false,EvaluateWpo=true;
+        int32 WpoDistance=0;
+        EShadowCacheInvalidationBehavior ShadowBehavior;
+    };
+    TArray<FPrimitive> Primitives;
     TWeakObjectPtr<ACLPlanet> Planet;
     TStrongObjectPtr<UMaterialInterface> Material;
     TArray<FMesh> Meshes;
     TMap<uint32, int32> Index;
-    FDelegateHandle LifecycleHandle, OriginOffsetHandle;
+    FDelegateHandle SubmissionHandle, OriginOffsetHandle;
     int32 OriginOffsetEvents = 0, OriginTransformPublications = 0;
     TArray<FCVar> CVars;
     TArray<TPair<uint32, const void *>, TInlineAllocator<512>> Colliders;
@@ -90,9 +101,7 @@ struct FCLNativePlanetPresentation::FImpl
         C->SetHiddenInGame(M.bHidden);
         C->ShadowCacheInvalidationBehavior = M.ShadowBehavior;
         C->SetWorldPositionOffsetDisableDistance(M.WpoDistance);
-#if VOXEL_CATALYST_PROJECTION_BOUNDS >= 2
-        C->SetPresentationBoundsPadding(M.BoundsPadding);
-#endif
+        C->SetBoundsScale(M.BoundsScale);
         C->ResetCustomPrimitiveData();
         if (!M.Data.IsEmpty())
             C->SetCustomPrimitiveDataFloatArray(0, M.Data);
@@ -328,10 +337,11 @@ struct FCLNativePlanetPresentation::FImpl
         }
         M.LocalBox = C.GetStaticMesh()->GetBoundingBox();
         const auto Box = M.LocalBox.TransformBy(M.Transform);
-#if VOXEL_CATALYST_PROJECTION_BOUNDS >= 2
-        M.BoundsPadding = C.GetPresentationBoundsPadding();
-        C.SetPresentationBoundsPadding(bFramed ? Window.HalfExtentMeters.Length() * 200 : Radius * 4);
-#endif
+        M.BoundsScale = C.BoundsScale;
+        const double MinExtent = C.GetStaticMesh()->GetBoundingBox().GetExtent().GetMin() * Scale.GetMin();
+        // Public UE bounds scale supplies the coarse scene-culling envelope. The
+        // versioned shader overlay retains tight projected Nanite node bounds.
+        C.SetBoundsScale(M.BoundsScale + Radius * 4 / FMath::Max(1., MinExtent));
         const FVector Center =
             (bFramed || bWorldAnchored) && Planet.IsValid() ? Planet->BodyCenterWorld() : FVector::ZeroVector;
         const double MinRadius = FVector::Distance(Box.GetClosestPointTo(Center), Center);
@@ -364,38 +374,83 @@ struct FCLNativePlanetPresentation::FImpl
         Error.Reset();
         return true;
     }
-    void NativeChanged(UVoxelNaniteComponent &C, bool bBefore)
+    static void RestorePrimitive(FPrimitive& P)
     {
-        TRACE_CPUPROFILER_EVENT_SCOPE(CLProjection_NativeChanged);
-        check(IsInGameThread());
-        if (C.GetOwner() != Planet.Get())
-            return;
-        const double Started = FPlatformTime::Seconds();
-        if (bBefore)
+        if(auto* C=P.Component.Get())
         {
-            if (const auto *K = Index.Find(C.GetUniqueID()))
-            {
-                Retire(*K, true);
-                ++RetireEvents;
-            }
+            C->SetHiddenInGame(P.Hidden); C->SetBoundsScale(P.BoundsScale);
+            if(auto* Skinned=Cast<UInstancedSkinnedMeshComponent>(C))
+            {Skinned->SetPrimitiveBoundsOverride(P.SkinnedBounds);Skinned->UpdateBounds();Skinned->MarkRenderTransformDirty();}
+            if(auto* Static=Cast<UStaticMeshComponent>(C)) {Static->SetEvaluateWorldPositionOffset(P.EvaluateWpo);Static->SetWorldPositionOffsetDisableDistance(P.WpoDistance);}
+            if(auto* Skin=Cast<USkinnedMeshComponent>(C)) {Skin->SetEvaluateWorldPositionOffset(P.EvaluateWpo);Skin->SetWorldPositionOffsetDisableDistance(P.WpoDistance);}
+            C->ShadowCacheInvalidationBehavior=P.ShadowBehavior;
+            C->ResetCustomPrimitiveData();
+            if(!P.Data.IsEmpty()) C->SetCustomPrimitiveDataFloatArray(0,P.Data);
         }
-        else
-        {
-            ++ReadyEvents;
-            FString Why;
-            if (!Bind(C, Why))
-            {
-                bContractValid = false;
-                LifecycleError = Why;
-            }
-        }
-        if (bFixed && bInitialized)
-        {
-            LifecycleError = TEXT("Fixed-pose canonical mesh generation changed");
-            bContractValid = false;
-        }
-        CallbackCpuMs += (FPlatformTime::Seconds() - Started) * 1000;
     }
+    bool PresentPrimitives(FString& Error)
+    {
+        const FVector Center=Planet->BodyCenterWorld();
+        const FVector Origin=Center+Radius*CurrentAnchor,OldOrigin=Center+Radius*PreviousAnchor;
+        const FVector3f H(Origin),OH(OldOrigin),Lo(Origin-FVector(H)),OLo(OldOrigin-FVector(OH));
+        for(auto& P:Primitives)
+        {
+            auto* C=P.Component.Get(); if(!C) continue;
+            if(!C->GetComponentTransform().Equals(P.Transform,1.e-8))
+            { Error=TEXT("Canonical scenery component moved during inspection"); return false; }
+            const double MinRadius=FVector::Distance(P.Box.GetClosestPointTo(Center),Center);
+            bool Inside=MinRadius>=.6*Radius;
+            for(int32 J=0;J<8;++J)
+            {
+                FVector Corner(J&1?P.Box.Max.X:P.Box.Min.X,J&2?P.Box.Max.Y:P.Box.Min.Y,J&4?P.Box.Max.Z:P.Box.Min.Z);
+                const FVector D=Corner-Center;
+                Inside &= D.Length()<=1.3*Radius && FVector::DotProduct(D.GetSafeNormal(),CurrentAnchor)>=.500005;
+            }
+            C->SetHiddenInGame(P.Hidden||!Inside);
+            if(!Inside) continue;
+            const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,MinRadius))*1.21+2.e-6);
+            const float Data[28]={float(CurrentAnchor.X),float(CurrentAnchor.Y),float(CurrentAnchor.Z),float(CurrentCurvature),
+                float(PreviousAnchor.X),float(PreviousAnchor.Y),float(PreviousAnchor.Z),float(PreviousCurvature),
+                float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0};
+            C->SetCustomPrimitiveDataFloatArray(0,MakeArrayView(Data));
+        }
+        return true;
+    }
+    bool Synchronize(FString& Error)
+    {
+        // Stock VPP publishes and recycles components on the game thread. Observe
+        // completed generations before the camera and again before render submission.
+        // No producer hook, vendor patch, field rebuild or collision mutation.
+        TInlineComponentArray<UVoxelNaniteComponent*,512> Components;
+        Planet->GetComponents(Components);
+        for (int32 K=Meshes.Num()-1; K>=0; --K)
+        {
+            auto* C=Meshes[K].Component.Get();
+            if (!C || !C->IsRegistered() || C->GetStaticMesh()!=Meshes[K].Mesh.Get())
+            {
+                if (C)
+                {
+                    C->SetHiddenInGame(Meshes[K].bHidden);
+                    C->SetBoundsScale(Meshes[K].BoundsScale);
+                    C->ResetCustomPrimitiveData();
+                    if (!Meshes[K].Data.IsEmpty()) C->SetCustomPrimitiveDataFloatArray(0,Meshes[K].Data);
+                }
+                Retire(K,false); ++RetireEvents;
+            }
+        }
+        for (auto* C:Components)
+            if (C->IsRegistered() && C->GetStaticMesh())
+            {
+                if (!Index.Contains(C->GetUniqueID()))
+                { if(!Bind(*C,Error)) return false; ++ReadyEvents; }
+                else if(!C->GetComponentTransform().Equals(Meshes[Index.FindChecked(C->GetUniqueID())].Transform,1.e-8))
+                { Error=TEXT("Canonical native mesh transform changed during presentation"); return false; }
+            }
+        if(bFixed && bInitialized && (ReadyEvents || RetireEvents))
+        { Error=TEXT("Fixed-pose canonical mesh generation changed"); return false; }
+        return true;
+    }
+
 };
 FCLNativePlanetPresentation::FCLNativePlanetPresentation() : Impl(MakeShared<FImpl>())
 {
@@ -423,11 +478,11 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
         return nullptr;
     }
     if (Options.bWorldAnchored &&
-        (Planet.SamplingWindow.bEnabled || !Planet.GetActorQuat().Equals(FQuat::Identity, 1.e-12) ||
+        (Planet.SamplingWindow.bEnabled ||
          !Planet.GetActorScale3D().Equals(FVector::OneVector, 1.e-12)))
     {
-        Error = TEXT("World-anchored presentation requires a translated canonical planet with identity "
-                     "rotation/unit scale");
+        Error = TEXT("World-anchored presentation requires a rigid canonical planet with "
+                     "unit scale");
         return nullptr;
     }
     if (!Options.bWorldAnchored && !Planet.SamplingWindow.bEnabled &&
@@ -445,10 +500,6 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
                      "local origin range");
         return nullptr;
     }
-#if VOXEL_CATALYST_PROJECTION_BOUNDS < 2
-    Error = TEXT("Native projection bounds/lifecycle support is unavailable in this VPP build");
-    return nullptr;
-#else
     auto Result = TUniquePtr<FCLNativePlanetPresentation>(new FCLNativePlanetPresentation());
     auto &I = *Result->Impl;
     I.bWorldAnchored = Options.bWorldAnchored;
@@ -505,14 +556,16 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
         Error = TEXT("No native Nanite meshes are ready");
         return nullptr;
     }
-#if VOXEL_CATALYST_PROJECTION_BOUNDS >= 2
     TWeakPtr<FImpl> Weak = Result->Impl;
-    I.LifecycleHandle =
-        Planet.OnNanitePresentationChanged.AddLambda([Weak](UVoxelNaniteComponent &C, bool bBefore) {
-            if (auto State = Weak.Pin())
-                State->NativeChanged(C, bBefore);
+    I.SubmissionHandle = FWorldDelegates::OnWorldPreSendAllEndOfFrameUpdates.AddLambda(
+        [Weak](UWorld* World) {
+            if (auto State = Weak.Pin(); State && State->Planet.IsValid() && State->Planet->GetWorld() == World && State->bInitialized)
+            {
+                FString Why;
+                if (!State->Synchronize(Why)) { State->bContractValid = false; State->LifecycleError = Why; }
+                else for (auto& Mesh : State->Meshes) State->Present(Mesh);
+            }
         });
-#endif
     TWeakPtr<FImpl> OriginWeak = Result->Impl;
     I.OriginOffsetHandle = FCoreDelegates::PostWorldOriginOffset.AddLambda(
         [OriginWeak](UWorld *World, FIntVector Before, FIntVector After) {
@@ -544,21 +597,42 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
     I.SetProfile(TEXT("r.DistanceFieldShadowing"), TEXT("0"));
     Error.Reset();
     return Result;
-#endif
 }
 FCLNativePlanetPresentation::~FCLNativePlanetPresentation()
 {
     auto &I = *Impl;
     FCoreDelegates::PostWorldOriginOffset.Remove(I.OriginOffsetHandle);
-#if VOXEL_CATALYST_PROJECTION_BOUNDS >= 2
-    if (auto *Planet = I.Planet.Get())
-        Planet->OnNanitePresentationChanged.Remove(I.LifecycleHandle);
-#endif
+    FWorldDelegates::OnWorldPreSendAllEndOfFrameUpdates.Remove(I.SubmissionHandle);
     for (auto &M : I.Meshes)
         FImpl::Restore(M);
+    for(auto& P:I.Primitives) FImpl::RestorePrimitive(P);
     for (auto &V : I.CVars)
         if (V.Var->GetString() == V.Applied)
             V.Var->Set(*V.Before, ECVF_SetByCode);
+}
+bool FCLNativePlanetPresentation::AddPrimitive(UPrimitiveComponent& C,FString& Error)
+{
+    auto& I=*Impl;
+    if(!I.bWorldAnchored || C.GetWorld()!=I.Planet->GetWorld() || !C.IsRegistered() || I.Primitives.Num()>=512)
+    { Error=TEXT("Scenery presentation requires a registered component in this planet world (maximum 512)"); return false; }
+    for(const auto& P:I.Primitives) if(P.Component.Get()==&C) return true;
+    for(float Value:C.GetCustomPrimitiveData().Data) if(Value!=0)
+    { Error=TEXT("Scenery uses the reserved projection custom-primitive-data range"); return false; }
+    auto& P=I.Primitives.AddDefaulted_GetRef();
+    P.Component=&C; P.Box=C.Bounds.GetBox(); P.Transform=C.GetComponentTransform();
+    P.Data=C.GetCustomPrimitiveData().Data; P.BoundsScale=C.BoundsScale;
+    P.Hidden=C.bHiddenInGame; P.ShadowBehavior=C.ShadowCacheInvalidationBehavior;
+    if(auto* Static=Cast<UStaticMeshComponent>(&C)) {P.EvaluateWpo=Static->bEvaluateWorldPositionOffset;P.WpoDistance=Static->WorldPositionOffsetDisableDistance;Static->SetEvaluateWorldPositionOffset(true);Static->SetWorldPositionOffsetDisableDistance(0);}
+    if(auto* Skin=Cast<USkinnedMeshComponent>(&C)) {P.EvaluateWpo=Skin->bEvaluateWorldPositionOffset;P.WpoDistance=Skin->WorldPositionOffsetDisableDistance;Skin->SetEvaluateWorldPositionOffset(true);Skin->SetWorldPositionOffsetDisableDistance(0);}
+    if(auto* Skinned=Cast<UInstancedSkinnedMeshComponent>(&C))
+    {
+        P.SkinnedBounds=Skinned->GetPrimitiveBoundsOverride();
+        Skinned->SetPrimitiveBoundsOverride(P.Box.ExpandBy(I.Radius*4));
+        Skinned->UpdateBounds();Skinned->MarkRenderTransformDirty();
+    }
+    else C.SetBoundsScale(P.BoundsScale+I.Radius*4/FMath::Max(1.,P.Box.GetExtent().GetMin()));
+    C.ShadowCacheInvalidationBehavior=EShadowCacheInvalidationBehavior::Always;
+    Error.Reset(); return true;
 }
 bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, bool bMeasure, FString &Error)
 {
@@ -609,6 +683,7 @@ bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, 
         I.PreviousCurvature = C;
         I.bInitialized = true;
     }
+    else { I.PreviousAnchor=I.CurrentAnchor;I.PreviousCurvature=I.CurrentCurvature; }
     I.CurrentAnchor = Anchor;
     I.CurrentCurvature = C;
     auto Ratio = [](double Curvature) {
@@ -617,22 +692,8 @@ bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, 
     };
     I.CurrentRatio = Ratio(C);
     I.PreviousRatio = Ratio(I.PreviousCurvature);
-    TInlineComponentArray<UVoxelNaniteComponent *, 512> Components;
-    Planet->GetComponents(Components);
-    int32 Active = 0;
-    for (auto *Comp : Components)
-        if (Comp->IsRegistered() && Comp->GetStaticMesh())
-        {
-            ++Active;
-            const auto *K = I.Index.Find(Comp->GetUniqueID());
-            if (!K || Comp->GetStaticMesh() != I.Meshes[*K].Mesh.Get() ||
-                !Comp->GetComponentTransform().Equals(I.Meshes[*K].Transform, 1.e-8))
-            {
-                I.bContractValid = false;
-                Error = TEXT("Native Nanite generation changed outside the presentation lifecycle contract");
-                return false;
-            }
-        }
+    if (!I.Synchronize(Error)) { I.bContractValid=false; I.LifecycleError=Error; return false; }
+    const int32 Active=I.Meshes.Num();
     if (I.bNativeMaterials)
     {
         TRACE_CPUPROFILER_EVENT_SCOPE(CLProjection_AuditNativeSlots);
@@ -707,8 +768,7 @@ bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, 
         Error = TEXT("Stationary render sweep changed active canonical collider identities");
         return false;
     }
-    I.PreviousAnchor = Anchor;
-    I.PreviousCurvature = C;
+    if(!I.PresentPrimitives(Error)) return false;
     I.MinCurvature = FMath::Min(I.MinCurvature, C);
     I.MaxCurvature = FMath::Max(I.MaxCurvature, C);
     ++I.Frames;
@@ -724,10 +784,12 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
     const auto &I = *Impl;
     auto O = MakeShared<FJsonObject>();
     O->SetStringField(TEXT("profile"), I.bNativeMaterials
-                                           ? TEXT("Native VPP canonical scanned-rock fixture; direct "
-                                                  "lighting, no authored WPO or tessellation")
+                                           ? TEXT("Native VPP and scenery material presentation; direct "
+                                                  "lighting and sky ambient")
                                            : TEXT("Experimental direct-light diagnostic material; Lumen and "
                                                   "distance-field lighting disabled"));
+    O->SetNumberField(TEXT("sceneryComponents"),I.Primitives.Num());
+    O->SetBoolField(TEXT("stockVPP"),true);
     O->SetBoolField(TEXT("worldAnchored"), I.bWorldAnchored);
     O->SetBoolField(TEXT("nativeWindow"), I.bFramed);
     O->SetNumberField(TEXT("originOffsetEvents"), I.OriginOffsetEvents);

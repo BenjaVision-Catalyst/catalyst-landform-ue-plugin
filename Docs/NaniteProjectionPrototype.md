@@ -1,5 +1,9 @@
 # Experimental render-only Nanite projection
 
+The current UE 5.8.4 walking integration is documented in
+[WalkingPresentation](WalkingPresentation.md). It supersedes the historical
+host-owned staging and patched-VPP lifecycle requirements below.
+
 This opt-in UE 5.7.4 prototype deforms cached VPP 2.0p8 Nanite terrain from natural curvature to a tangent plane. Canonical vertices, actor transforms, field/runtime objects and collision remain authoritative. It is a bounded render experiment, not yet the gameplay presentation adapter.
 
 ## Render contract

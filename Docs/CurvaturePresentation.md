@@ -1,5 +1,9 @@
 # Curvature presentation implementation
 
+The current UE 5.8.4 walking integration is documented in
+[WalkingPresentation](WalkingPresentation.md). It supersedes the historical
+host-owned staging and patched-VPP lifecycle requirements below.
+
 Landform owns the presentation projection; the compiled planet, native VPP
 field, collision, gravity and authoritative gameplay positions remain canonical.
 The first target is one local player and one bounded chart on a Nanite planet.

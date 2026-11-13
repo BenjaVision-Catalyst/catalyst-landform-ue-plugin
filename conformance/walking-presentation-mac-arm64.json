@@ -1,0 +1,123 @@
+{
+  "engine": "5.8.4 CL58902052",
+  "platform": "Mac arm64",
+  "baseRevision": "a66eba58115ac29e4d85244ea7b6f8385132c7c3",
+  "renderedTests": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.MaterialComposition",
+      "state": "Success",
+      "warnings": 17,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.PluginWalkingHost",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.RadialLanding",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.Endpoints",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.GPUParity",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.InverseRayBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.LocalFrames",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.WorldAnchorGPU",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "pythonTests": 7,
+  "existingForestWalk": "Pending installed-host acceptance; not qualified by isolated tests",
+  "engineFilesChanged": false,
+  "vendorSourceChanged": false,
+  "sourceHashes": {
+    "Source/CatalystLandform/Private/CLPlanetWalker.cpp": "df7343d2673b700489cd666ec06fb5352f4dfc01d6542bcd999e140caf6e0969",
+    "Source/CatalystLandform/Private/CLSurfaceInspection.cpp": "3a4a2db0831464a5e01192bed1e5f5399ea75ba7d1e518d1c95853486a30b536",
+    "Source/CatalystLandform/Private/CLWalkingPresentation.cpp": "a4406ec181e86088e0f078657f463334ffaf0fa194a6750c9b872a7e92b56822",
+    "Source/CatalystLandform/Private/Presentation/CLNativePlanetPresentation.cpp": "17c39aa3ead063529c98f86fbef52414c16e6986a9c90ededd6fc045ee735e01",
+    "Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "d4902ad4ad1dfbdef7db78db7d6e9ae74aee1e2ee30c81f3f82464a375c64bd7",
+    "Source/CatalystLandform/Private/Presentation/CLPresentationTransform.cpp": "22ce22c14d956a59a59e038d52b2c86de7ac79e419803aad51772cb7d6838c15",
+    "Source/CatalystLandform/Private/Presentation/CLProjectionChunk.cpp": "43395af89d9833bfbce6b02a0554b96e805487539e7e5ecda614c05152377ea5",
+    "Source/CatalystLandform/Private/Presentation/CLProjectionGPUVerification.cpp": "dd836178f6b4842fd3e09847635beef251bacdc99f0c48509dbe1854d443db35",
+    "Source/CatalystLandform/Private/Presentation/CLProjectionRay.cpp": "86f48fc44a4a70f4d98e7abfca31b87d8233ae083856f0a00d5270cace83c027",
+    "Source/CatalystLandform/Private/Presentation/CLProjectionTrace.cpp": "31d9946b5d6594edb59f7b599acb2b55b772631253f8a6727b07b3438aefeba1",
+    "Source/CatalystLandform/Public/CLPlanetWalker.h": "734ffec7c9603977b43170da3c94a75468ccb606dead9eef1c7ea32e0047b56b",
+    "Source/CatalystLandform/Public/CLSurfaceInspection.h": "79c8480c6ff3f8bedf7e3b1b33a2337b0018728007b1e7436d27c8e2fd0d13bb",
+    "Source/CatalystLandform/Public/Presentation/CLNativePlanetPresentation.h": "edc5002639f0a0cf7cf61a31443045cd64f2586d113046594f6e65649048f476",
+    "Source/CatalystLandform/Public/Presentation/CLPlanetProjection.h": "66f601f43b98f5a36dcb6cf420e0308c41aa5ec451bd710709e1b8b1932262ed",
+    "Source/CatalystLandform/Public/Presentation/CLPresentationTransform.h": "ace6c6cd959f9b6feaa21d684f697a8686d6f52c68e6c4439af166169a4b3022",
+    "Source/CatalystLandform/Public/Presentation/CLProjectionChunk.h": "cb347debf54b6454bd74c9d46d69de0926d0ee9d4da96c550da97e83e2d2114f",
+    "Source/CatalystLandform/Public/Presentation/CLProjectionGPUVerification.h": "aa2fe90e22def7d5c542f3b3664e9ffb2a60fb89849834ea6b7cf6cab39428f2",
+    "Source/CatalystLandform/Public/Presentation/CLProjectionRay.h": "eff1e1800c06ded510c78741594a56d9b85c67b64ce88cba588126b368d7a3b1",
+    "Source/CatalystLandform/Public/Presentation/CLProjectionTrace.h": "497ab53bcfc4e9990b1c4a331de4efba4deb6cab9e3a0bbca79f771c2793bb40",
+    "Source/CatalystLandformEditor/Private/CLInspectionMaterials.cpp": "74980f7e1aa69ca14a1521d8c2a3a15c28d072683f98fa54db34cdc2dfc79495",
+    "Source/CatalystLandformEditor/Private/CLInspectionMaterials.h": "53179fc3f7deba35b3b0dddff7e8d30288063d8a6804692cfd27a9aa6326ddec",
+    "Source/CatalystLandformEditor/Private/CLPlanetInspection.cpp": "9754ebfd5875b6c0ce4caa2fdca364ad143334d23c7c5e64f9f8c5b0ccd1dfbf",
+    "Source/CatalystLandformEditor/Public/CLPlanetInspection.h": "662a073126f79dc986a1eb60c56d161e8e68a8c003297ff8a384790e86258f39",
+    "Source/CatalystLandformTests/Private/CLPlanetWalkerTests.cpp": "4ae9526d654a008f0f4819587f8deb59d45d83953105ba40fed00e07025722f7",
+    "Source/CatalystLandformTests/Private/CLPresentationTransformTests.cpp": "03999a3d64f8deb769d7b7b43c9e132a4e3d2a3681d016953109f2533ddb6dcd",
+    "Source/CatalystLandformTests/Private/CLSurfaceInspectionTests.cpp": "fa624cf92d797308f7bd8fb63ee70e8e6263f94b2f8881e4c77aecb5c1978faf"
+  }
+}

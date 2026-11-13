@@ -3,6 +3,7 @@
 class ACLPlanet;
 class FJsonObject;
 class UMaterialInterface;
+class UPrimitiveComponent;
 struct FCLCompiledPlanetRecipe;
 class FCLPlanetProjection;
 
@@ -29,6 +30,7 @@ public:
                                                              const FCLNanitePresentationOptions &Options,
                                                              FString &Error);
     ~FCLNativePlanetPresentation();
+    bool AddPrimitive(UPrimitiveComponent& Component, FString& Error);
     bool Tick(const FVector &Anchor, double Elapsed, bool bMeasure, FString &Error);
     bool SetCurvature(double Value);
     bool GetCurrentProjection(FCLPlanetProjection &Out) const;

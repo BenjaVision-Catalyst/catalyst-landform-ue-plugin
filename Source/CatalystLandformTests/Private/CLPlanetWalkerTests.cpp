@@ -24,3 +24,24 @@ bool FCLPluginWalkHostTest::RunTest(const FString&)
     }
     return true;
 }
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "HAL/IConsoleManager.h"
+#include "Model/CLPlanetRecipe.h"
+#include "Misc/DefaultValueHelper.h"
+// Development-only entry into the exact editor host used by the marker. The
+// asset and body-space direction are explicit; no fixture/world is substituted.
+static FAutoConsoleCommand CLVerifyExistingWorldWalk(
+    TEXT("landform.VerifyWalk"),TEXT("VerifyWalk <Planet asset path> <body direction X> <Y> <Z>"),
+    FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+    {
+        FString Error;double X,Y,Z;
+        if(Args.Num()!=4||!FDefaultValueHelper::ParseDouble(Args[1],X)||!FDefaultValueHelper::ParseDouble(Args[2],Y)||!FDefaultValueHelper::ParseDouble(Args[3],Z))
+        {UE_LOG(LogTemp,Error,TEXT("LANDFORM_VERIFY_WALK: expected explicit Planet asset and body direction"));return;}
+        auto* Asset=LoadObject<UCLPlanetRecipeAsset>(nullptr,*Args[0]);FCLPlanetInspectionRequest Request;
+        Request.SourceAsset=Asset;Request.Direction=FVector(X,Y,Z);
+        if(!Asset||!Asset->ExportJsonString(Request.RecipeJson,Error)||!FCLPlanetInspection::Launch.IsBound()||
+            !FCLPlanetInspection::Launch.Execute(MoveTemp(Request),Error))
+            UE_LOG(LogTemp,Error,TEXT("LANDFORM_VERIFY_WALK: %s"),*Error);
+    }));
+#endif

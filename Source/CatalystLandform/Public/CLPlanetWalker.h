@@ -4,12 +4,15 @@
 #include "VoxelCharacter.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/HUD.h"
+#include "Camera/CameraModifier.h"
 #include "CLPlanetWalker.generated.h"
 
 class ACLPlanet;
 class UCameraComponent;
 class UCLRadialGravityMovement;
 class UVoxelCollisionInvokerComponent;
+class FCLWalkingPresentation;
+struct FMinimalViewInfo;
 
 /** First-person inspection of one explicitly bound native planet. */
 UCLASS()
@@ -31,13 +34,19 @@ public:
     double LandingAdjustmentMeters=0;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Inspection")
     double InitialFloorErrorCm=0;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Landform|Inspection") bool bPresented=false;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Landform|Inspection") double PresentationRadiusCm=0;
     UCLRadialGravityMovement* RadialMovement() const;
+    bool PresentCamera(FMinimalViewInfo& View);
+    UFUNCTION(BlueprintPure,Category="Landform|Inspection") FString GetPresentationReport() const;
+    virtual void EndPlay(const EEndPlayReason::Type Reason) override;
     virtual void Tick(float DeltaSeconds) override;
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
 private:
     UPROPERTY() TObjectPtr<UCameraComponent> Camera;
     UPROPERTY() TObjectPtr<UVoxelCollisionInvokerComponent> CollisionInvoker;
     UPROPERTY() TObjectPtr<UVoxelCollisionInvokerComponent> FootCollisionInvoker;
+    TSharedPtr<FCLWalkingPresentation> Presentation;
     FVector HoldPosition=FVector::ZeroVector;
     double Started=0,Released=0,Grounded=0;
     float Pitch=-5;
@@ -69,4 +78,14 @@ class CATALYSTLANDFORM_API ACLPlanetInspectionHUD : public AHUD
     GENERATED_BODY()
 public:
     virtual void DrawHUD() override;
+};
+
+/** Same-frame terrain/scenery/camera chart; simulation stays canonical. */
+UCLASS()
+class CATALYSTLANDFORM_API UCLInspectionPresentationCamera : public UCameraModifier
+{
+    GENERATED_BODY()
+public:
+    UCLInspectionPresentationCamera();
+    virtual bool ModifyCamera(float DeltaTime,FMinimalViewInfo& View) override;
 };

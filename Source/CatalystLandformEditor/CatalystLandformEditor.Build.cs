@@ -7,7 +7,7 @@ public class CatalystLandformEditor : ModuleRules
         bUseUnity = false;
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "UnrealEd", "AssetDefinition", "CatalystFoundationEditor", "CatalystLandform" });
-        PrivateDependencyModuleNames.AddRange(new[] { "CatalystLandformRender", "Voxel", "VoxelCore", "VoxelGraph", "EditorFramework", "CatalystFoundation", "Slate", "SlateCore", "PropertyEditor", "ToolMenus", "AdvancedPreviewScene", "ProceduralMeshComponent", "GeometryFramework", "GeometryCore", "RenderCore", "InputCore", "AssetRegistry", "AssetTools", "Projects", "Json", "JsonUtilities" });
+        PrivateDependencyModuleNames.AddRange(new[] { "CatalystLandformRender", "Voxel", "VoxelCore", "VoxelGraph", "EditorFramework", "CatalystFoundation", "Slate", "SlateCore", "PropertyEditor", "ToolMenus", "AdvancedPreviewScene", "ProceduralMeshComponent", "GeometryFramework", "GeometryCore", "RenderCore", "RHI", "MaterialEditor", "InputCore", "AssetRegistry", "AssetTools", "Projects", "Json", "JsonUtilities" });
         PrivateIncludePaths.Add(System.IO.Path.Combine(GetModuleDirectory("Voxel"), "Private"));
     }
 }
