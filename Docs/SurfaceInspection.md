@@ -5,11 +5,16 @@ location**, click terrain, then **Walk here**. Picking does not edit Landform
 placements, regions, guides or geometry. Empty space clears the destination.
 Normal viewport orbit remains available.
 
-LandformLab registers one host through `FCLPlanetInspection::Launch`. A request
-contains a portable JSON recipe snapshot, a planet-local unit direction, an
-identity and a weak editor callback. The host starts one standalone PIE instance
-using Engine Entry and the runtime recipe game mode. The open map, authoring
-assets and project play settings are preserved. Overlapping launches are refused.
+The Landform plugin registers its walking host through `FCLPlanetInspection::Launch`.
+A request contains the explicit source asset, a portable JSON recipe snapshot,
+a planet-local unit direction, an identity and a weak editor callback. The host
+starts one standalone PIE instance by duplicating the **current world**, including
+its existing biome instances. It never replaces the map with Engine Entry or
+requires LandformLab code/content. The existing actor using that source asset is
+reused in PIE; multiple matching actors are refused. If no actor is placed, only
+the PIE world receives an ephemeral actor for the same source Planet. The source
+world and authoring assets are untouched. Play settings are duplicated, not saved.
+Overlapping launches are refused.
 Closing or cancelling PIE retires the request. Return callbacks are fenced to the
 requesting editor identity. Other projects can register their own walking host.
 
@@ -27,16 +32,20 @@ establishes ground contact. Controls are enabled after stable native contact.
 A 120 second collision limit or 8 second grounding limit stops the character with
 an error. No per-frame relocation is used after release.
 
-**WASD**, mouse and **Space** use normal local-gravity movement. The fixed proof
-auto-route is disabled. **Tab** frames the globe around the current location with
-a gold marker; Tab again returns to the character. **Esc** ends PIE and marks the
-last walked location in Planet Builder. Walking uses a fixed snapshot; start a
-new inspection to see subsequent authoring changes.
+**WASD**, mouse and **Space** use local-gravity movement. **Esc** ends PIE and
+marks the last walked surface in Planet. Walking uses a fixed snapshot; start a
+new inspection to see subsequent authoring changes. The reusable player, native
+collision invokers, HUD and inspection game mode belong to the runtime Landform
+module; PIE admission and return belong to its editor module. No host-project
+adapter or content is needed. This native walking host requires unit actor scale
+and the spherical native presentation, rather than a projected sampling window.
 
 ## Qualification
 
 - `Catalyst.Landform.Inspection.RadialLanding`: radial positions and normals at
   poles, equator and a patch boundary, plus invalid centre/local-patch requests.
+- `Catalyst.Landform.Inspection.PluginWalkingHost`: host registration and reusable
+  player ownership without a project adapter.
 - `Catalyst.Landform.PlanetBuilder.WalkingLocationPicking`: routed Slate clicks
   through the rendered viewport, recipe-space destination and empty-space clear.
 - `LandformLab.Inspection.EditorRoundTrip`: real PIE launch from the source planet,

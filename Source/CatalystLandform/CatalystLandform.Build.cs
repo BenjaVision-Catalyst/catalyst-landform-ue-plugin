@@ -10,7 +10,7 @@ public class CatalystLandform : ModuleRules
         bUseUnity = false;
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "VoxelCore", "VoxelGraph", "Voxel", "CatalystFoundation", "DeveloperSettings" });
-        PrivateDependencyModuleNames.AddRange(new[] { "GeometryCore", "Json", "JsonUtilities", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });
+        PrivateDependencyModuleNames.AddRange(new[] { "GeometryCore", "Json", "JsonUtilities", "InputCore", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });
         FPSemantics = FPSemanticsMode.Precise;
         bool SpatialSIMD = Target.Platform == UnrealTargetPlatform.Mac && !Target.Architectures.bIsMultiArch && Target.Architecture == UnrealArch.Arm64;
         PrivateDefinitions.Add("CL_SPATIAL_SIMD=" + (SpatialSIMD ? "1" : "0"));

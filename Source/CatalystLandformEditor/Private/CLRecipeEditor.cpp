@@ -1300,7 +1300,7 @@ public:
     {
         if(EvaluationUpdating()||bPreviewInvalid)return;
         if(!Globe||Globe->WalkLocation().IsNearlyZero()||!FCLPlanetInspection::Launch.IsBound())return;
-        FCLPlanetInspectionRequest Request;FString Error;
+        FCLPlanetInspectionRequest Request;Request.SourceAsset=RecipeAsset();FString Error;
         if(!RecipeAsset()->ExportJsonString(Request.RecipeJson,Error)){WalkStatus=Error;InspectorError=Error;return;}
         Request.Direction=Globe->WalkLocation();Request.SurfacePointMeters=Globe->WalkPoint();WalkRequestId=Request.Id;
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
@@ -1760,6 +1760,7 @@ public:
     virtual void StartupModule() override
     {
         FCLRecipeEvaluation::Startup();
+        FCLPlanetInspection::Startup();
         CLRegisterGlobePlacementMode();
         Command = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.Designer"), TEXT("Open the planet Landforms tab"), FConsoleCommandDelegate::CreateStatic(&OpenLandformDesigner));
         PlanetCommand = MakeUnique<FAutoConsoleCommand>(TEXT("Landform.PlanetRecipe"), TEXT("Open selected planet recipe or rolling-plains recipe"), FConsoleCommandDelegate::CreateStatic(&OpenPlanetRecipe));
@@ -1775,7 +1776,7 @@ public:
         }));
     }
     virtual void ShutdownModule() override
-    { FCLRecipeEvaluation::Shutdown(); CLUnregisterGlobePlacementMode(); Command.Reset();  PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
+    { FCLPlanetInspection::Shutdown(); FCLRecipeEvaluation::Shutdown(); CLUnregisterGlobePlacementMode(); Command.Reset();  PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
 };
 }
 
