@@ -10,7 +10,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLCaveSettings
 {
     GENERATED_BODY()
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=7;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=9;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
@@ -34,12 +34,11 @@ struct CATALYSTLANDFORM_API FCLCaveSettings
 
 /** Placement data and native cutters share one immutable result. No preview-only cave geometry. */
 class FCLNativeNoiseKernel;
-class FCLCaveVolumeData;
 class FCLSpatialCave;
 class FCLCompiledRock;
 
 /** Geological section families, lowered through native VPP shape kernels. */
-enum class ECLCaveForm:uint8 {LegacyOval,JointCleft,BeddingSlot,Phreatic,Keyhole,Canyon,FractureHall,KarstHall,RoofScar,KarstPassage,KarstChamber,BeddedPassage,BeddedChamber};
+enum class ECLCaveForm:uint8 {BeddedPassage=11,BeddedChamber=12};
 
 /** A passage's correlated sections and curve are geological construction data, not a mesh. */
 struct CATALYSTLANDFORM_API FCLCavePassage
@@ -52,7 +51,7 @@ struct CATALYSTLANDFORM_API FCLCavePassage
     /** Lower narrow vadose slot relative to the upper half height; zero for round/oval conduits. */
     double Incision=0;
     bool Entrance=false;
-    ECLCaveForm Form=ECLCaveForm::LegacyOval,EndForm=ECLCaveForm::LegacyOval;
+    ECLCaveForm Form=ECLCaveForm::BeddedPassage,EndForm=ECLCaveForm::BeddedPassage;
     TArray<FVector> BeddingUps;
     double Development=0;
     /** Profile 6: restored bedding floor at each control, independent of roof size. */
@@ -68,43 +67,25 @@ struct CATALYSTLANDFORM_API FCLCaveChamber
     int32 Node=INDEX_NONE;
     FVector Center,HalfExtents;
     FQuat Rotation;
-    ECLCaveForm Form=ECLCaveForm::LegacyOval;
+    ECLCaveForm Form=ECLCaveForm::BeddedPassage;
     int32 GeometryProfile=0;
     double FloorReliefScale=0;
     double FloorRadius=0;
     TSharedPtr<const FCLCompiledRock> FloorRock;
 };
-/** Native solid cave features; transported blocks retain their roof-rock source. */
-struct CATALYSTLANDFORM_API FCLCaveInfill
-{
-    FGuid Network;
-    FVector Center,SourceCenter,HalfExtents;
-    FQuat Rotation,SourceRotation;
-    /** In-place bedrock remnant; its provenance transform is identity. */
-    bool BedrockPier=false;
-    bool BeddedRemnant=false;
-    FVector WallOutward=FVector::ZeroVector;
-    bool BeddedBreakdown=false;
-};
-
-/** Native VPP spline sampling, shape kernels, smooth blends and spatial index. */
+/** Native VPP composition of the current spatial cave field. */
 class CATALYSTLANDFORM_API FCLCompiledCaveVolume
 {
 public:
-    static TSharedPtr<const FCLCompiledCaveVolume> Compile(TConstArrayView<FCLCavePassage>,TConstArrayView<FCLCaveChamber>,TSharedPtr<const FCLNativeNoiseKernel>,int32 Seed,FString& Error,TConstArrayView<FCLCaveInfill> Infills={});
     static TSharedPtr<const FCLCompiledCaveVolume> CompileSpatial(TSharedPtr<const FCLSpatialCave>,FGuid Network);
     double Compose(const FVector3d& P,double Field,FCLSurfaceWeights* Weights=nullptr)const;
     void ComposeBatch(TConstArrayView<FVector3d>,TArrayView<double>)const;
-    /** Opt-in delivery prototype: identical ordered field with query-local floor reuse. */
-    void ComposeBatchOptimized(TConstArrayView<FVector3d>,TArrayView<double>)const;
     TSharedPtr<const FCLCompiledCaveVolume> Select(FGuid Network)const;
     TSharedPtr<const FCLCompiledCaveVolume> Select(TConstArrayView<FGuid> Networks)const;
     FBox Bounds(FGuid Network=FGuid())const;
     double MinimumHalfWidth(FGuid Network=FGuid())const;
     FVector GeologicalPosition(const FVector& Position)const;
 private:
-    void ComposeBatchInternal(TConstArrayView<FVector3d>,TArrayView<double>,bool IncludeInfills,bool Optimized=false)const;
-    TSharedPtr<const FCLCaveVolumeData> Data;
     TSharedPtr<const FCLSpatialCave> Spatial;
     FGuid SpatialNetwork;
     TSet<FGuid> SelectedNetworks;
@@ -120,7 +101,6 @@ public:
     TArray<FNode> Nodes;
     TArray<FCLCavePassage> Passages;
     TArray<FCLCaveChamber> Chambers;
-    TArray<FCLCaveInfill> Infills;
     /** Actual broad terrain intersections of the existing spatial field; no appended cutters. */
     struct FEntrance {FGuid Network;FVector SurfacePoint,InteriorPoint;double WidthMeters=0;};
     TArray<FEntrance> SurfaceOpenings;

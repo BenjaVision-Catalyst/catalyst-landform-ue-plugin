@@ -1,5 +1,5 @@
 #include "CLRecipeAssetTools.h"
-#include "CLTerrainDesigner.h"
+#include "CLPlanetEditor.h"
 #include "Model/CLTerrainType.h"
 #include "Toolkits/CFModelEditorToolkit.h"
 #include "Framework/Docking/TabManager.h"
@@ -19,7 +19,7 @@ TSoftClassPtr<UObject> UCLTerrainTypeAssetDefinition::GetAssetClass() const { re
 EAssetCommandResult UCLTerrainTypeAssetDefinition::OpenAssets(const FAssetOpenArgs& Args) const
 {
     for (auto* Asset : Args.LoadObjects<UCLTerrainTypeAsset>())
-        CLOpenTerrainDesigner(Asset, nullptr, Args.ToolkitHost.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone, Args.ToolkitHost);
+        CLOpenPlanetLandform(Asset, Args.ToolkitHost.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone, Args.ToolkitHost);
     return EAssetCommandResult::Handled;
 }
 

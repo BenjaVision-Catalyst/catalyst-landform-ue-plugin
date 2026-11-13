@@ -71,16 +71,13 @@ void FCLRockLayer::ApplyProgression(double Position)
     BedDistribution.PeakMeters=FMath::Lerp(BedDistribution.ThinTailUpperMeters,BedDistribution.ThickTailLowerMeters,Track(Character,{{0,.45},{.18,.35},{.38,.2},{.58,.3},{.78,.45},{1,.25}}));
     BedDistribution.SpreadMeters=FMath::Max(.1,(BedDistribution.ThickTailLowerMeters-BedDistribution.ThinTailUpperMeters)*Track(Character,{{0,.175},{.18,.2},{.38,.1375},{.58,.2125},{.78,.225},{1,.1875}}));
     // Keep the author's unit palette, rheology, crust depth and contact feather.
-    BedThicknessRadiusFraction=Track(Character,{{0,.8},{.18,.09},{.38,.012},{.58,.045},{.78,.028},{1,.018}});
     InterbedFraction=Track(Character,{{0,0},{.18,.08},{.38,.64},{.58,.18},{.78,.32},{1,.52}});
     DipDegrees=Track(Character,{{0,0},{.18,1},{.38,4},{.58,14},{.78,7},{1,2}});
     FoldAmplitudeRadiusFraction=Track(Character,{{0,0},{.18,.0005},{.38,.002},{.58,.03},{.78,.012},{1,.004}});
     // Compatibility-only artistic wavelength; algorithm 4 derives it from beds.
-    FoldWavelengthRadiusFraction=Track(Character,{{0,.8},{.38,.35},{.58,.65},{1,.18}});
     TectonicResponse=Track(Character,{{0,0},{.18,.03},{.38,.12},{.58,.5},{.78,.95},{1,.65}});
     FaultThrowRadiusFraction=Track(Character,{{0,0},{.38,0},{.58,.001},{.78,.024},{1,.004}});
     FaultZoneRadiusFraction=Track(Character,{{0,.01},{.18,.01},{.38,.006},{.58,.005},{.78,.0008},{1,.006}});
-    YoungerCoverRadiusFraction=Track(Character,{{0,0},{.18,0},{.38,.003},{.58,.006},{.78,.014},{1,.055}});
     DepositionalVariation=Track(Character,{{0,0},{.18,.08},{.38,.25},{.58,.35},{.78,.7},{1,1}});
     FoldShorteningStrain=Track(Character,{{0,0},{.18,.005},{.38,.025},{.58,.15},{.78,.08},{1,.025}});
 }

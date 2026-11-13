@@ -7,7 +7,7 @@ USTRUCT(BlueprintType)
 struct CATALYSTLANDFORM_API FCLContinentalLayer
 {
     GENERATED_BODY()
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Strength=.7;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
@@ -40,7 +40,7 @@ class CATALYSTLANDFORM_API FCLCompiledContinents
 {
 public:
     double MaximumDeltaMeters=0;
-    bool HasEffect()const{return AlgorithmVersion<3||Relief>1.e-12;}
+    bool HasEffect()const{return Relief>1.e-12;}
     double Continentalness(const FVector& UnitDirection) const;
     double CrustContext(const FVector& UnitDirection,double NeutralCrust) const;
     double SampleDeltaMeters(const FVector& UnitDirection) const;
@@ -50,11 +50,8 @@ private:
     struct FDomain {TArray<FLobe> Lobes;double Weight=1;};
     TArray<FDomain> Domains;
     TSharedPtr<const FCLNativeNoiseKernel> NativePerlin;
-    int32 AlgorithmVersion=1,NoiseSeed=0;
+    int32 NoiseSeed=0;
     double SampleContinentalness(const FVector& LocalDirection)const;
-    TSharedPtr<const FCLCompiledTectonics> LegacyCrust;
-    TArray<FVector> Centres;
-    FVector NoiseOffset;
     FQuat Frame;
     double Extent=1,CoastWarp=.22,InteriorRoughness=.035,CoastSharpness=1;
     double Relief=1,SpanMeters=0,DatumOffsetMeters=0;

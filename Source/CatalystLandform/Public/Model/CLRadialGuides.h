@@ -42,6 +42,9 @@ class CATALYSTLANDFORM_API UCLRadialGuideLibraryAsset : public UCFModelAsset
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform") FCLRadialGuideLibrary Library;
     const FCLRadialGuideSet* FindSet(FGuid Id) const;
+    /** The exact guide styles shipped with the example planets. */
+    static UCLRadialGuideLibraryAsset* LoadExamples();
+    bool IsPackaged() const;
     UFUNCTION(BlueprintCallable, Category="Landform|Radial Guides") bool SeedStarterSets();
 #if WITH_EDITOR
     FSimpleMulticastDelegate OnGuidesChanged;

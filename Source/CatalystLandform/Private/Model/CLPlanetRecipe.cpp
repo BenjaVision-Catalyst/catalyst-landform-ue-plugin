@@ -249,35 +249,7 @@ double FCLCompiledPlanetRecipe::FLayer::TerraceHeight(double Height) const
 
 double FCLCompiledPlanetRecipe::SampleHeightMeters(const FVector& Direction) const
 {
-    if(MeasuredTerrain){TArray<double> H;MeasuredTerrain->SampleHeights(MakeArrayView(&Direction,1),H);return H[0];}
-
-    if (Coordinates != ECLTerrainCoordinates::Sphere || NativePerlin || Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
-    {
-        TArray<double> Heights; SampleHeightsMeters(MakeArrayView(&Direction, 1), Heights); return Heights[0];
-    }
-    if (Direction.ContainsNaN() || Direction.IsNearlyZero()) return 0;
-    const FVector Position = Direction.GetSafeNormal() * RadiusMeters;
-    double Height = BaseHeightMeters;
-    for (const FLayer& Layer : Layers)
-    {
-        if (Layer.Operation == ECLTerrainOperation::Terrace) { Height = Layer.TerraceHeight(Height); continue; }
-        double Sum = 0, Weight = 1, Total = 0, Frequency = 1;
-        for (int32 I = 0; I < Layer.Octaves; ++I)
-        {
-            const double N = FMath::PerlinNoise3D(Position * (Frequency / Layer.Wavelength) + Layer.Offset);
-            Sum += (Layer.Shape == ECLNoiseShape::Ridged ? 1 - FMath::Abs(N) : .5 + .5 * N) * Weight;
-            Total += Weight; Weight *= Layer.Persistence; Frequency *= 2;
-        }
-        const double Value = FMath::Lerp(Layer.Minimum, Layer.Maximum, FMath::Clamp(Sum / Total, 0.0, 1.0));
-        switch (Layer.Blend)
-        {
-        case ECLNoiseBlend::Override: Height = Value; break;
-        case ECLNoiseBlend::Add: Height += Value; break;
-        case ECLNoiseBlend::Max: Height = FMath::Max(Height, Value); break;
-        case ECLNoiseBlend::Min: Height = FMath::Min(Height, Value); break;
-        }
-    }
-    return FMath::Min(Height, 0.0);
+    TArray<double> Heights;SampleHeightsMeters(MakeArrayView(&Direction,1),Heights);return Heights[0];
 }
 
 FVector FCLCompiledPlanetRecipe::TerrainDirection(const FVector2D& Meters) const
@@ -341,11 +313,6 @@ void FCLCompiledPlanetRecipe::SampleHeightsMeters(TConstArrayView<FVector> Direc
         return;
     }
     Heights.SetNumUninitialized(Directions.Num());
-    if (!NativePerlin && !Layers.ContainsByPredicate([](const auto& L){return L.Operation == ECLTerrainOperation::StampDistribution;}))
-    {
-        for (int32 I = 0; I < Directions.Num(); ++I) Heights[I] = SampleHeightMeters(Directions[I]);
-        return;
-    }
     EvaluateHeightsMeters(Directions, Heights, false);
 }
 void FCLCompiledPlanetRecipe::ApplyBaseStructure(TConstArrayView<FVector> Directions,TArray<double>& Heights) const
@@ -428,11 +395,10 @@ void FCLCompiledPlanetRecipe::EvaluateHeightsMeters(TConstArrayView<FVector> Dir
                 }
                 const ispc::FVoxelInputBuffer Inputs[] = {
                     {X, false}, {Y, false}, {Z, false}, {&One, true}, {&One, true}, {&Layer.Seed, true}};
-                if(NativePerlin) { void* Outputs[] = {Noise}; NativePerlin->Evaluate(Inputs, Outputs, Num); }
+                { void* Outputs[] = {Noise}; NativePerlin->Evaluate(Inputs, Outputs, Num); }
                 for (int32 I = 0; I < Num; ++I)
                 {
-                    const double N = NativePerlin ? Noise[I] : FMath::PerlinNoise3D(
-                        (Unit[I] * (bLocal ? 1. : Coordinates==ECLTerrainCoordinates::SphericalSurface ? RadiusMeters+BaseHeightMeters : RadiusMeters)) * (Frequency / Layer.Wavelength) + Layer.Offset);
+                    const double N = Noise[I];
                     Sum[I] += (Layer.Shape == ECLNoiseShape::Ridged ? 1 - FMath::Abs(N) : .5 + .5 * N) * Weight;
                 }
                 Total += Weight; Weight *= Layer.Persistence; Frequency *= 2;
@@ -507,7 +473,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         if(!Recipe.Caves.Validate(Error))return nullptr;
         if(Recipe.Rock.bEnabled&&!Recipe.Volumes.GeologicalUnits.IsEmpty()){Error=TEXT("Caves retain one canonical geological source");return nullptr;}
         auto Base=Recipe;Base.SchemaVersion=Recipe.MeasuredTerrain.IsActive()?19:
-            Recipe.AlgorithmVersion==1?18:Recipe.SchemaVersion==23?22:Recipe.SchemaVersion;
+            Recipe.SchemaVersion==23?22:Recipe.SchemaVersion;
         Base.Caves=FCLCaveSettings();Base.Volumes=FCLVolumeSettings();
         Base.Caves.MinimumGuide=Recipe.Caves.MinimumGuide;Base.Caves.MaximumGuide=Recipe.Caves.MaximumGuide;
         TSharedPtr<const FCLCompiledPlanetRecipe> Core;
@@ -593,7 +559,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         // A neutral/no-eligible selection must retain the exact prior field.
         if(!Generated->HasPhysicalRelief())
         {Geology->GeneratedRegions=Generated;return RetainInput(Geology);}
-        if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&(P.Rift.AlgorithmVersion==3||P.Transform.IsActive()||P.VolcanicArc.IsActive());}))
+        if(Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&(P.Rift.IsActive()||P.Transform.IsActive()||P.VolcanicArc.IsActive());}))
         {
             // Local metre relief belongs on the already calibrated landscape.
             // Re-fitting the whole planet after adding it makes local features
@@ -606,12 +572,9 @@ TSharedPtr<const FCLCompiledPlanetRecipe> FCLPlanetCompiler::Compile(const FCLPl
         }
         auto Raw=MakeShared<FCLCompiledPlanetRecipe>(*(Core->UnmappedSurface?Core->UnmappedSurface:Core));
         Raw->GeneratedRegions=Generated;Raw->Rock=Geology->Rock?Geology->Rock->WithProvinceDeformation(Generated):nullptr;
-        // Native surface stacks route geometry through their six spherical
-        // fields. Profile 2 must compose local relief in those fields too;
-        // attaching it only to the atlas root leaves it out of height queries.
-        // Saved profile-1 generation retains its previous field; an explicit
-        // Solo preview must deliver that source to the spherical fields too.
-        if(FCLCompileProgress::SoloPreviewLandform().IsValid()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.bEnabled&&P.Rift.AlgorithmVersion==2;}))
+        // Generic noise Landforms retain their range composition. Whole-planet
+        // Solo delivers that local field to each native spherical face.
+        if(FCLCompileProgress::SoloPreviewLandform().IsValid())
         {
             TFunction<TSharedPtr<const FCLCompiledPlanetRecipe>(const TSharedPtr<const FCLCompiledPlanetRecipe>&)> Compose;
             Compose=[&](const auto& Input)->TSharedPtr<const FCLCompiledPlanetRecipe>
@@ -754,7 +717,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
 {
     Error.Reset();
     auto Fail = [&Error](const FString& Message) -> TSharedPtr<const FCLCompiledPlanetRecipe> { Error = Message; return nullptr; };
-    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 18) || (Recipe.AlgorithmVersion != 1 && Recipe.AlgorithmVersion != 2) || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
+    if ((Recipe.SchemaVersion < 2 || Recipe.SchemaVersion > 18) || Recipe.AlgorithmVersion != 2 || (Recipe.AlgorithmVersion == 2 && Recipe.SchemaVersion < 3)) return Fail(TEXT("Unsupported recipe schema or algorithm version"));
     const bool HasSurfaces=Recipe.SurfaceStack.IsActive()||Recipe.RegionGeneration.Palette.ContainsByPredicate([](const auto& P){return P.SurfaceStack.IsActive();})||Recipe.TerrainRegions.ContainsByPredicate([](const auto& R){return R.SurfaceStack.IsActive();});
     if(HasSurfaces&&(Recipe.SchemaVersion<13||Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface||!Recipe.SurfaceStack.IsActive()))return Fail(TEXT("Surface rules require schema 13 spherical terrain and a planet default surface"));
     if(!Recipe.SurfaceStack.Validate(Error))return nullptr;
@@ -809,11 +772,7 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
     if(!Recipe.BaseStructure.IsEmpty() && (Recipe.SchemaVersion<10 || Recipe.Coordinates!=ECLTerrainCoordinates::SphericalSurface))return Fail(TEXT("Base structure requires schema 10 spherical surface coordinates"));
     if(Recipe.BaseStructure.Num()>64)return Fail(TEXT("Base structure exceeds 64 broad features"));
     auto Plan = MakeShared<FCLCompiledPlanetRecipe>();
-    if (Recipe.AlgorithmVersion == 2)
-    {
-        Plan->NativePerlin = FCLNativeNoiseKernel::Create(Error);
-        if (!Plan->NativePerlin) return nullptr;
-    }
+    Plan->NativePerlin=FCLNativeNoiseKernel::Create(Error);if(!Plan->NativePerlin)return nullptr;
     Plan->bDeferRadialBounds=Recipe.SchemaVersion>=17;
     Plan->RadiusMeters = Recipe.RadiusMeters;
     if (!FMath::IsFinite(Recipe.BaseSurfaceNormalized) || Recipe.BaseSurfaceNormalized <= 0 || Recipe.BaseSurfaceNormalized > 1)
@@ -1053,10 +1012,10 @@ FCLPlanetRecipe FCLPlanetCompiler::BasePlanet()
 }
 
 FCLPlanetRecipe FCLPlanetCompiler::TectonicBase()
-{auto R=BasePlanet();R.SchemaVersion=14;R.Name=TEXT("Tectonic rocky world");R.Tectonics.bEnabled=true;R.Tectonics.AlgorithmVersion=2;return R;}
+{auto R=BasePlanet();R.UseGuidedGeology();R.Name=TEXT("Tectonic rocky world");R.Tectonics.bEnabled=true;R.Tectonics.ApplyProgression(R.Tectonics.Activity);return R;}
 
 FCLPlanetRecipe FCLPlanetCompiler::ContinentalBase()
-{auto R=TectonicBase();R.Name=TEXT("Continental rocky world");R.Tectonics.AlgorithmVersion=3;R.Tectonics.Activity=.7;R.SurfaceStack=FCLSurfaceStack::MakeDefault();return R;}
+{auto R=TectonicBase();R.Name=TEXT("Continental rocky world");R.Tectonics.ApplyProgression(.7);R.Continents.bEnabled=true;R.Continents.ApplyProgression(.7);R.SurfaceStack=FCLSurfaceStack::MakeDefault();return R;}
 
 void FCLPlanetRecipe::MigrateLegacyGuides()
 {
@@ -1334,23 +1293,7 @@ bool UCLPlanetRecipeAsset::RefreshLandformSource(FGuid Id,FString& Error)
 }
 
 void FCLPlanetRecipe::SeparateGeologyLayers()
-{
-    if(SchemaVersion>=16)return;
-    if(SchemaVersion==15){SchemaVersion=16;return;}
-    // A deliberate geology edit adopts separated semantics in one transaction.
-    // Pinned schema 14 continues to evaluate through its original combined field.
-    if(Tectonics.bEnabled)
-    {
-        Continents.bEnabled=true;Continents.LowerGuide=Tectonics.LowerGuide;Continents.UpperGuide=Tectonics.UpperGuide;
-        if(Tectonics.AlgorithmVersion==3)
-        {
-            Continents.bOverrideExtent=true;Continents.Extent=Tectonics.ContinentalExtent;
-            Continents.Strength=1;Continents.Orientation=Tectonics.FoundationOrientation;
-            Continents.bCoastalMargin=Tectonics.Setting==ECLContinentalSetting::Subduction;
-        }
-    }
-    SchemaVersion=16;
-}
+{SchemaVersion=FMath::Max(16,SchemaVersion);}
 
 void FCLPlanetRecipe::UseGuidedGeology()
 {

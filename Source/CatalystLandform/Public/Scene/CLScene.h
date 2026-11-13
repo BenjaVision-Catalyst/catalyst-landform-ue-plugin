@@ -14,12 +14,9 @@ class CATALYSTLANDFORM_API FCLScene final
 {
 public:
     static constexpr int32 QueryContractVersion = 1;
-    static constexpr int32 LegacyRadialProviderVersion = 1;
 
     /** Only compiled whole-body spherical plans are accepted, not local/face
      * evaluation views. No authoring/world UObject state is read here; native shape kernels are stateless. */
-    static TSharedPtr<const FCLScene> FromLegacyRadial(
-        TSharedPtr<const FCLCompiledPlanetRecipe> Plan, FString& Error);
     static TSharedPtr<const FCLScene> FromPlanet(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,FString& Error);
     bool IsHeightOnly() const;
 

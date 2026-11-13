@@ -1,4 +1,5 @@
 #include "Model/CLRadialGuides.h"
+#include "UObject/Package.h"
 
 bool FCLRadialGuideSet::Validate(FString& Error) const
 {
@@ -79,3 +80,13 @@ void UCLRadialGuideLibraryAsset::PostEditUndo()
 { Super::PostEditUndo();OnGuidesChanged.Broadcast(); }
 #endif
 bool UCLRadialGuideLibraryAsset::SeedStarterSets(){return FCLRadialGuidePresets::Seed(Library);}
+
+UCLRadialGuideLibraryAsset* UCLRadialGuideLibraryAsset::LoadExamples()
+{
+    return LoadObject<UCLRadialGuideLibraryAsset>(nullptr,
+        TEXT("/CatalystLandform/RadialGuides/DA_ExampleRadialGuides.DA_ExampleRadialGuides"));
+}
+bool UCLRadialGuideLibraryAsset::IsPackaged() const
+{
+    return GetOutermost()->GetName().StartsWith(TEXT("/CatalystLandform/"));
+}

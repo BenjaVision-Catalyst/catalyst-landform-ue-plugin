@@ -1,9 +1,9 @@
 {
   "FileVersion": 3,
-  "Version": 1,
-  "VersionName": "0.1.0",
+  "Version": 2,
+  "VersionName": "0.2.0",
   "FriendlyName": "Catalyst:Landform",
-  "Description": "Server-defined planetary terrain presented through Voxel Plugin.",
+  "Description": "Deterministic procedural planets and the Planet editor, presented through Voxel Plugin.",
   "Category": "BenjaVision",
   "CreatedBy": "BenjaVision",
   "CanContainContent": true,
@@ -12,10 +12,6 @@
   "Plugins": [
     {
       "Name": "CatalystFoundation",
-      "Enabled": true
-    },
-    {
-      "Name": "CatalystConnect",
       "Enabled": true
     },
     {

@@ -95,15 +95,7 @@
     "interiorFrequency": 2.3,
     "foldStrength": 0.07178812922614577,
     "arcStrength": 0.41265965439519153,
-    "trenchStrength": 0.05319754210286752,
-    "setting": "Collision",
-    "foundationOrientation": {
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    },
-    "motionDirection": 1,
-    "continentalExtent": 1
+    "trenchStrength": 0.05319754210286752
   },
   "continents": {
     "algorithmVersion": 3,
@@ -758,16 +750,9 @@
     "bEnabled": true,
     "character": 0.55,
     "seed": 0,
-    "orientation": {
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    },
-    "bedThicknessRadiusFraction": 0.04990661443148686,
     "interbedFraction": 0.39,
     "dipDegrees": 4.444444444444445,
     "foldAmplitudeRadiusFraction": 0.006,
-    "foldWavelengthRadiusFraction": 0.42777777777777776,
     "tectonicResponse": 0.32592592592592595,
     "faultThrowRadiusFraction": 0.001056000000000001,
     "faultZoneRadiusFraction": 0.006,
@@ -805,7 +790,6 @@
         "fracturePotential": 0.6
       }
     ],
-    "youngerCoverRadiusFraction": 0.004224,
     "depositionalVariation": 0.5793002915451896,
     "foldViscosityContrast": 64,
     "foldShorteningStrain": 0.08,
@@ -843,11 +827,11 @@
     "closedBasinDirections": []
   },
   "caves": {
-    "algorithmVersion": 1,
+    "algorithmVersion": 9,
     "bEnabled": true,
     "character": 0.65,
     "seed": 73,
-    "networksPerSquareKilometer": 0.52,
+    "networksPerSquareKilometer": 2.535,
     "lengthMeters": 66.1,
     "radiusMeters": 1.065,
     "minimumCoverMeters": 5,

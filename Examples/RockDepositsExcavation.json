@@ -3,19 +3,16 @@
 	"algorithmVersion": 2,
 	"name": "Regional deposition excavation",
 	"radiusMeters": 200,
-	"baseSurfaceNormalized": 0.69999999999999996,
+	"baseSurfaceNormalized": 0.7,
 	"seed": 1729,
 	"coordinates": "SphericalSurface",
-	"terrainPatch":
-	{
-		"anchor":
-		{
+	"terrainPatch": {
+		"anchor": {
 			"x": 0,
 			"y": 0,
 			"z": 1
 		},
-		"tangentX":
-		{
+		"tangentX": {
 			"x": 1,
 			"y": 0,
 			"z": 0
@@ -23,52 +20,47 @@
 		"halfWidthMeters": 750,
 		"transitionMeters": 100
 	},
-	"radialGuides":
-	{
+	"radialGuides": {
 		"id": "434C4343000000000000000000000001",
 		"name": "Continental character guides",
 		"guides": [
 			{
 				"name": "SurfaceMin",
-				"normalizedHeight": 0.69999999999999996,
-				"color":
-				{
-					"r": 0.69999998807907104,
-					"g": 0.69999998807907104,
-					"b": 0.69999998807907104,
+				"normalizedHeight": 0.7,
+				"color": {
+					"r": 0.699999988079071,
+					"g": 0.699999988079071,
+					"b": 0.699999988079071,
 					"a": 1
 				}
 			},
 			{
 				"name": "SurfaceMax",
 				"normalizedHeight": 0.75,
-				"color":
-				{
-					"r": 0.69999998807907104,
-					"g": 0.69999998807907104,
-					"b": 0.69999998807907104,
+				"color": {
+					"r": 0.699999988079071,
+					"g": 0.699999988079071,
+					"b": 0.699999988079071,
 					"a": 1
 				}
 			},
 			{
 				"name": "OceanHeight",
-				"normalizedHeight": 0.74881132119060079,
-				"color":
-				{
-					"r": 0.69999998807907104,
-					"g": 0.69999998807907104,
-					"b": 0.69999998807907104,
+				"normalizedHeight": 0.7488113211906008,
+				"color": {
+					"r": 0.699999988079071,
+					"g": 0.699999988079071,
+					"b": 0.699999988079071,
 					"a": 1
 				}
 			},
 			{
 				"name": "AtmosphereMax",
-				"normalizedHeight": 0.90000000000000002,
-				"color":
-				{
-					"r": 0.69999998807907104,
-					"g": 0.69999998807907104,
-					"b": 0.69999998807907104,
+				"normalizedHeight": 0.9,
+				"color": {
+					"r": 0.699999988079071,
+					"g": 0.699999988079071,
+					"b": 0.699999988079071,
 					"a": 1
 				}
 			}
@@ -78,11 +70,10 @@
 	"terrainTypeName": "",
 	"noiseLayers": [],
 	"terrainRegions": [],
-	"tectonics":
-	{
+	"tectonics": {
 		"bEnabled": true,
 		"algorithmVersion": 6,
-		"activity": 0.84999999999999998,
+		"activity": 0.85,
 		"seed": 26,
 		"lowerGuide": "SurfaceMin",
 		"upperGuide": "SurfaceMax",
@@ -94,37 +85,26 @@
 		"bOverrideRelief": false,
 		"relief": 1,
 		"beltWidthDegrees": 18,
-		"crustThickness": 0.042592592592592599,
-		"boundaryWarp": 0.34000000000000002,
-		"roughness": 0.51964334705075443,
-		"collisionStrength": 0.59999999999999998,
+		"crustThickness": 0.0425925925925926,
+		"boundaryWarp": 0.34,
+		"roughness": 0.5196433470507544,
+		"collisionStrength": 0.6,
 		"riftStrength": 2,
-		"transformStrength": 1.1499999999999999,
+		"transformStrength": 1.15,
 		"interiorRelief": 0,
-		"interiorFrequency": 3.8153643876784371,
-		"foldStrength": 0.99999999999999978,
+		"interiorFrequency": 3.815364387678437,
+		"foldStrength": 0.9999999999999998,
 		"arcStrength": 1.2420166015625,
-		"trenchStrength": 1.0246431254695718,
-		"setting": "Collision",
-		"foundationOrientation":
-		{
-			"pitch": 0,
-			"yaw": 0,
-			"roll": 0
-		},
-		"motionDirection": 1,
-		"continentalExtent": 1
+		"trenchStrength": 1.0246431254695718
 	},
-	"continents":
-	{
+	"continents": {
 		"algorithmVersion": 3,
 		"bEnabled": false,
-		"strength": 0.59999999999999998,
+		"strength": 0.6,
 		"seed": 0,
 		"lowerGuide": "SurfaceMin",
 		"upperGuide": "SurfaceMax",
-		"orientation":
-		{
+		"orientation": {
 			"pitch": 0,
 			"yaw": 0,
 			"roll": 0
@@ -132,31 +112,29 @@
 		"bOverrideExtent": false,
 		"extent": 1.2660557245006987,
 		"bOverrideRelief": false,
-		"relief": 0.78518518518518521,
+		"relief": 0.7851851851851852,
 		"bCoastalMargin": false,
 		"domainCount": 3,
-		"domainTransition": 0.53714157448180522,
-		"elongation": 2.1688000000000001,
+		"domainTransition": 0.5371415744818052,
+		"elongation": 2.1688,
 		"fragmentation": 0.22768595041322315,
-		"coastWarp": 0.27206997084548101,
+		"coastWarp": 0.272069970845481,
 		"interiorRoughness": 0.02481748615632913,
 		"coastSharpness": 1.211111111111111
 	},
 	"baseStructure": [],
-	"regionGeneration":
-	{
+	"regionGeneration": {
 		"bEnabled": false,
 		"algorithmVersion": 1,
 		"regionCount": 24,
 		"seed": 73,
-		"structureGuidance": 0.80000000000000004,
-		"blendFraction": 0.55000000000000004,
+		"structureGuidance": 0.8,
+		"blendFraction": 0.55,
 		"reliefStrength": 1,
 		"palette": [],
 		"overrides": []
 	},
-	"surfaceStack":
-	{
+	"surfaceStack": {
 		"algorithmVersion": 1,
 		"defaultSurfaceId": "Rock",
 		"defaultSurfaceRevision": 2,
@@ -166,30 +144,27 @@
 				"bEnabled": true,
 				"surfaceId": "Scree",
 				"surfaceRevision": 2,
-				"slopeDegrees":
-				{
+				"slopeDegrees": {
 					"x": 18,
 					"y": 46
 				},
 				"slopeFeatherDegrees": 7,
 				"bUseHeightRange": false,
-				"lowerHeight":
-				{
+				"lowerHeight": {
 					"mode": "Height",
 					"guide": "None",
 					"upperGuide": "None",
 					"fraction": 0,
 					"offsetMeters": 0
 				},
-				"upperHeight":
-				{
+				"upperHeight": {
 					"mode": "Height",
 					"guide": "None",
 					"upperGuide": "None",
 					"fraction": 0,
 					"offsetMeters": 0
 				},
-				"heightFeatherRadiusFraction": 0.0050000000000000001,
+				"heightFeatherRadiusFraction": 0.005,
 				"strength": 1,
 				"noiseAmount": 0.25,
 				"noiseWavelengthMeters": 55,
@@ -200,73 +175,59 @@
 				"bEnabled": true,
 				"surfaceId": "Soil",
 				"surfaceRevision": 2,
-				"slopeDegrees":
-				{
+				"slopeDegrees": {
 					"x": 0,
 					"y": 14
 				},
 				"slopeFeatherDegrees": 5,
 				"bUseHeightRange": true,
-				"lowerHeight":
-				{
+				"lowerHeight": {
 					"mode": "Height",
 					"guide": "SurfaceMin",
 					"upperGuide": "None",
 					"fraction": 0,
 					"offsetMeters": -50
 				},
-				"upperHeight":
-				{
+				"upperHeight": {
 					"mode": "Height",
 					"guide": "SurfaceMax",
 					"upperGuide": "None",
 					"fraction": 0,
 					"offsetMeters": 0
 				},
-				"heightFeatherRadiusFraction": 0.014999999999999999,
+				"heightFeatherRadiusFraction": 0.015,
 				"strength": 1,
-				"noiseAmount": 0.14999999999999999,
+				"noiseAmount": 0.15,
 				"noiseWavelengthMeters": 85,
 				"noiseSeed": 31
 			}
 		]
 	},
-	"measuredTerrain":
-	{
+	"measuredTerrain": {
 		"id": "None",
 		"revision": 1,
 		"digest": ""
 	},
-	"rock":
-	{
-		"algorithmVersion": 3,
+	"rock": {
+		"algorithmVersion": 5,
 		"bEnabled": true,
-		"character": 0.80000000000000004,
+		"character": 0.8,
 		"seed": 0,
-		"orientation":
-		{
-			"pitch": 0,
-			"yaw": 0,
-			"roll": 0
-		},
-		"bedThicknessRadiusFraction": 0.012500000000000001,
-		"interbedFraction": 0.40000000000000002,
+		"interbedFraction": 0.4,
 		"dipDegrees": 25,
 		"foldAmplitudeRadiusFraction": 0,
-		"foldWavelengthRadiusFraction": 0.28309037900874634,
 		"tectonicResponse": 1,
-		"faultThrowRadiusFraction": 0.0050000000000000001,
+		"faultThrowRadiusFraction": 0.005,
 		"faultZoneRadiusFraction": 0.0036680384087791496,
-		"crustDepthRadiusFraction": 0.29999999999999999,
-		"contactFeatherFraction": 0.014999999999999999,
-		"youngerCoverRadiusFraction": 0.10000000000000001,
+		"crustDepthRadiusFraction": 0.3,
+		"contactFeatherFraction": 0.015,
 		"units": [
 			{
 				"id": "434C524B000000010000000000000001",
 				"name": "Competent unit",
 				"surfaceId": "Rock",
 				"surfaceRevision": 2,
-				"miningResistance": 0.84999999999999998,
+				"miningResistance": 0.85,
 				"erodibility": 0.15000000000000002
 			},
 			{
@@ -274,7 +235,7 @@
 				"name": "Mixed unit",
 				"surfaceId": "Scree",
 				"surfaceRevision": 2,
-				"miningResistance": 0.55000000000000004,
+				"miningResistance": 0.55,
 				"erodibility": 0.44999999999999996
 			},
 			{
@@ -288,8 +249,7 @@
 		],
 		"depositionalVariation": 0.25
 	},
-	"volumes":
-	{
+	"volumes": {
 		"bEnabled": true,
 		"algorithmVersion": 1,
 		"heightPolicy": "BaseTerrainOnly",
@@ -301,28 +261,24 @@
 				"algorithmVersion": 1,
 				"primitive": "Box",
 				"composition": "Subtract",
-				"centerMeters":
-				{
+				"centerMeters": {
 					"x": 0,
 					"y": 0,
 					"z": 130
 				},
-				"rotation":
-				{
+				"rotation": {
 					"pitch": 0,
 					"yaw": 0,
 					"roll": 0
 				},
-				"scale":
-				{
+				"scale": {
 					"x": 1,
 					"y": 1,
 					"z": 1
 				},
 				"radiusMeters": 5,
 				"halfLengthMeters": 5,
-				"halfExtentsMeters":
-				{
+				"halfExtentsMeters": {
 					"x": 8,
 					"y": 8,
 					"z": 20

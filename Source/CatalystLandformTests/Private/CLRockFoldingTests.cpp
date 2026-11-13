@@ -45,12 +45,12 @@ bool FCLRockFoldVolumeTest::RunTest(const FString&)
 {
     FString Error;auto R=FCLPlanetCompiler::ContinentalBase();R.UseGuidedGeology();
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
-    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.9);L.AlgorithmVersion=4;L.DepositionalVariation=0;
-    L.BedThicknessRadiusFraction=.02;L.FoldViscosityContrast=48;L.FoldShorteningStrain=.15;
+    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.9);L.AlgorithmVersion=5;L.DepositionalVariation=0;
+    L.FoldViscosityContrast=48;L.FoldShorteningStrain=.15;
     L.FoldAmplitudeRadiusFraction=.05;L.TectonicResponse=L.DipDegrees=L.FaultThrowRadiusFraction=0;
     const auto Compression=CLRockSectionPlates(true,Error,2,1,1),Extension=CLRockSectionPlates(false,Error,2,1,1);
     const auto Thin=FCLCompiledRock::Compile(L,1729,1000,640,800,P->Surfaces.Get(),Compression,Error);
-    auto T=L;T.BedThicknessRadiusFraction=.04;const auto Thick=FCLCompiledRock::Compile(T,1729,1000,640,800,P->Surfaces.Get(),Compression,Error);
+    auto T=L;T.BedDistribution.MinimumMeters*=2;T.BedDistribution.ThinTailUpperMeters*=2;T.BedDistribution.PeakMeters*=2;T.BedDistribution.SpreadMeters*=2;T.BedDistribution.ThickTailLowerMeters*=2;T.BedDistribution.MaximumMeters*=2;const auto Thick=FCLCompiledRock::Compile(T,1729,1000,640,800,P->Surfaces.Get(),Compression,Error);
     auto S=L;S.FoldViscosityContrast=384;const auto Strong=FCLCompiledRock::Compile(S,1729,1000,640,800,P->Surfaces.Get(),Compression,Error);
     auto N=L;N.FoldViscosityContrast=1;const auto Neutral=FCLCompiledRock::Compile(N,1729,1000,640,800,P->Surfaces.Get(),Compression,Error);
     const auto Rift=FCLCompiledRock::Compile(L,1729,1000,640,800,P->Surfaces.Get(),Extension,Error);
@@ -79,10 +79,11 @@ bool FCLRockFoldVolumeTest::RunTest(const FString&)
     }
     TestTrue(TEXT("A compressed layered sequence actually folds"),Bent>100);
     const FVector Interior(1,0,0);TestEqual(TEXT("No added fold outside the finite compression belts"),Thin->RestoredRadiusMeters(Interior*700),700.);
-    const auto& Beds=Thin->GetBeds();int32 Checked=0;
-    for(int32 I=0;I<Beds.Num();++I)if(!Beds[I].bYounger&&Beds[I].UpperMeters<760)
+    int32 Checked=0;
+    for(int32 I=0;I<Thin->GetOlderBedCount();++I)
     {
-        const double Mid=(Beds[I].LowerMeters+Beds[I].UpperMeters)*.5;
+        const auto Bed=Thin->GetBed(I); if(Bed.UpperMeters>=760)continue;
+        const double Mid=(Bed.LowerMeters+Bed.UpperMeters)*.5;
         for(double A:{-.15,0.,.15})
         {
             const FVector D(FMath::Sin(A),0,FMath::Cos(A));const double Shift=700-Thin->RestoredRadiusMeters(D*700);
@@ -109,26 +110,4 @@ bool FCLRockFoldVolumeTest::RunTest(const FString&)
     AddInfo(FString::Printf(TEXT("513 radial-order/neutral/extension probes; %d material-bed probes; effective h %.6f m, wavelength %.6f m, %d bent probes"),Checked,Thin->GetFolding().CompetentThicknessMeters,Thin->GetFolding().WavelengthMeters,Bent));return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLFoldingFixtureTest,"Catalyst.Landform.Rock.FoldingExcavationFixture",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLFoldingFixtureTest::RunTest(const FString&)
-{
-    FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    TestTrue(TEXT("Resolved folded fixture exists"),FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/RockFoldsExcavation.json"))));
-    FCLPlanetRecipe R;if(!FJsonObjectConverter::JsonObjectStringToUStruct(Json,&R,0,0)){AddError(TEXT("Invalid folded fixture"));return false;}
-    TestEqual(TEXT("Fixture uses material-aware folding"),R.Rock.AlgorithmVersion,4);
-    const auto Full=FCLPlanetCompiler::Compile(R,Error);if(!Full){AddError(Error);return false;}
-    auto N=R;N.Rock.FoldViscosityContrast=1;const auto Neutral=FCLPlanetCompiler::Compile(N,Error);if(!Neutral){AddError(Error);return false;}
-    int32 Changed=0;double Largest=0;TSet<FGuid> Units,Beds;TArray<FVector> Points;
-    for(int32 I=0;I<48;++I)
-    {
-        const FVector V(8.05,2,112.5+I*.5);Points.Add(V);const auto A=Full->Rock->Sample(V),B=Neutral->Rock->Sample(V);
-        Units.Add(A.UnitId);Beds.Add(A.StratumId);Changed+=FMath::Abs(A.MiningResistance-B.MiningResistance)>1.e-4;
-        Largest=FMath::Max(Largest,FMath::Abs(Full->Rock->RestoredRadiusMeters(V)-Neutral->Rock->RestoredRadiusMeters(V)));
-    }
-    TestTrue(TEXT("Native wall fixture has observable material-aware folds and multiple beds"),Changed>=5&&Largest>=.05&&Units.Num()==3&&Beds.Num()>=12);
-    const auto A=FCLScene::FromPlanet(Full,Error),B=FCLScene::FromPlanet(Neutral,Error);if(!A||!B){AddError(Error);return false;}
-    TArray<FCLSceneShapeSample> FoldedShape,NeutralShape;A->SampleShape({Points},FoldedShape,Error);B->SampleShape({Points},NeutralShape,Error);
-    for(int32 I=0;I<Points.Num();++I){TestTrue(TEXT("Mechanical wall probes begin inside actual solid"),FoldedShape[I].FieldMeters<0);TestEqual(TEXT("Changing mechanical geology adds no terrain shape"),FoldedShape[I].FieldMeters,NeutralShape[I].FieldMeters);}
-    AddInfo(FString::Printf(TEXT("Resolved seed %d: %d rheology-sensitive wall properties; %.6f m fold displacement; %d strata; 48 initially solid and shape-identical wall probes"),R.Tectonics.Seed,Changed,Largest,Beds.Num()));return true;
-}
 #endif

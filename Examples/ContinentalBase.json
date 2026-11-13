@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 14,
+  "schemaVersion": 17,
   "algorithmVersion": 2,
   "name": "Continental rocky world",
   "radiusMeters": 1000,
@@ -143,17 +143,9 @@
   },
   "tectonics": {
     "bEnabled": true,
-    "algorithmVersion": 3,
+    "algorithmVersion": 6,
     "activity": 0.7,
     "lowerGuide": "SurfaceMin",
-    "upperGuide": "SurfaceMax",
-    "setting": "Collision",
-    "foundationOrientation": {
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    },
-    "motionDirection": 1,
-    "continentalExtent": 1
+    "upperGuide": "SurfaceMax"
   }
 }

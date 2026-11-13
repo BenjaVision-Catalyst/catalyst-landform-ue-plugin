@@ -7,7 +7,6 @@
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLSpatialCave.h"
 #include "CLPlanetStamp.h"
-#include "CLDeliveryPrototype.h"
 #include "VoxelQuery.h"
 #include "VoxelLayers.h"
 #include "Surface/VoxelSurfaceTypeTable.h"
@@ -22,11 +21,18 @@ bool FCLSpatialCaveTest::RunTest(const FString&)
     FString E,J;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/SpatialCave.json")));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
     if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}
-    FCLPlanetStamp Stamp;Stamp.bUseRecipe=true;Stamp.Recipe=A->Recipe;Stamp.Radius=A->Recipe.RadiusMeters*100;Stamp.Behavior=EVoxelStampBehavior::AffectAll;
+    auto CompileReference=[&](const FCLPlanetRecipe& Recipe)->TSharedPtr<const FCLCompiledPlanetRecipe>
+    {
+        auto Surface=Recipe;Surface.Caves.bEnabled=false;const auto Base=FCLPlanetCompiler::Compile(Surface,E);if(!Base)return nullptr;
+        auto Plan=MakeShared<FCLCompiledPlanetRecipe>(*Base);Plan->SourceRecipe=MakeShared<const FCLPlanetRecipe>(Recipe);
+        Plan->Caves=FCLSpatialCave::BuildReference(*Plan,Recipe.Seed^Recipe.Caves.Seed,E);if(!Plan->Caves)return nullptr;return Plan;
+    };
+    const auto ReferencePlan=CompileReference(A->Recipe);if(!ReferencePlan){AddError(E);return false;}
+    FCLPlanetStamp Stamp;Stamp.bUseRecipe=true;Stamp.Recipe=A->Recipe;Stamp.CompiledRecipe=ReferencePlan;Stamp.Radius=A->Recipe.RadiusMeters*100;Stamp.Behavior=EVoxelStampBehavior::AffectAll;
     const auto R=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr,FVoxelStampRef::New(Stamp),nullptr));
     if(!R||!R->RecipePlan||!R->RecipePlan->Caves||!R->RecipePlan->Caves->Spatial){AddError(TEXT("Missing spatial cave runtime: ")+E);return false;}
     const auto& P=*R->RecipePlan;const auto& C=*P.Caves->Spatial;
-    TestEqual(TEXT("Existing UI default is preserved"),FCLCaveSettings().AlgorithmVersion,7);
+    TestEqual(TEXT("New planets use the current procedural family"),FCLCaveSettings().AlgorithmVersion,9);
     TestEqual(TEXT("One connected composition"),P.Caves->Networks,1);
     double MinFloor=MAX_dbl,MaxFloor=-MAX_dbl,MaxGrade=0,MinClearance=MAX_dbl,InverseError=0;
     auto Floor=[&](double X,double Y)
@@ -80,16 +86,16 @@ bool FCLSpatialCaveTest::RunTest(const FString&)
     auto Edited=A->Recipe;Edited.Volumes.bEnabled=true;
     FCLSolidOperation Fill;Fill.Name=TEXT("Spatial backfill");Fill.Id=FGuid(1,2,3,8);Fill.Composition=ECLSolidComposition::Union;Fill.CenterMeters=C.BodyPoint({-40,-3,2});Fill.RadiusMeters=3;Edited.Volumes.Operations.Add(Fill);
     FCLSolidOperation Cut;Cut.Name=TEXT("Spatial excavation");Cut.Id=FGuid(1,2,3,9);Cut.Composition=ECLSolidComposition::Subtract;Cut.CenterMeters=Fill.CenterMeters;Cut.RadiusMeters=1;Edited.Volumes.Operations.Add(Cut);
-    const auto EP=FCLPlanetCompiler::Compile(Edited,E);if(!EP){AddError(E);return false;}
+    const auto EP=CompileReference(Edited);if(!EP){AddError(E);return false;}
     TArray<FVector> EditPoints={Fill.CenterMeters,Fill.CenterMeters+Fill.CenterMeters.GetSafeNormal()*2};TArray<double> EF;EP->Caves->Spatial->SamplePlanet(*EP,EditPoints,EF);
     TestTrue(TEXT("Ordered authored cut remains air after filling cave"),EF[0]>0);
     TestTrue(TEXT("Ordered authored backfill restores solid cave rock"),EF[1]<0);
     const auto Worker=Async(EAsyncExecution::ThreadPool,[&C,Points]{TArray<double> V;C.Sample(Points,V);return V;}).Get();double WorkerError=0;for(int32 I=0;I<Cave.Num();++I)WorkerError=FMath::Max(WorkerError,FMath::Abs(Worker[I]-Cave[I]));TestEqual(TEXT("Immutable worker field parity"),WorkerError,0.);
     // Native delivery uses the unchanged planet stamp, not diagnostic meshes.
     FVoxelDependencyCollector D(STATIC_FNAME("CL.SpatialPrototype"));FVoxelQuery Q(0,FVoxelLayers::Empty(),*FVoxelSurfaceTypeTable::Get(),D);
-    FCLDeliveryBinding Binding;Binding.Source=R;Binding.Snapshot=FGuid::NewGuid();FVoxelDoubleVectorBuffer XYZ;XYZ.Allocate(Points.Num());for(int32 I=0;I<Points.Num();++I)XYZ.Set(I,Points[I]*100);
-    const auto Native=R->SampleDistances(Q,XYZ),Cpp=Binding.Distances(Q,XYZ);double DeliveryError=0;
-    for(int32 I=0;I<Points.Num();++I)DeliveryError=FMath::Max(DeliveryError,FMath::Abs(double(Native[I])-Cpp[I]));TestEqual(TEXT("Native default and direct stamp delivery parity"),DeliveryError,0.);
+    FVoxelDoubleVectorBuffer XYZ;XYZ.Allocate(Points.Num());for(int32 I=0;I<Points.Num();++I)XYZ.Set(I,Points[I]*100);
+    const auto Native=R->SampleDistances(Q,XYZ);double DeliveryError=0;
+    for(int32 I=0;I<Points.Num();++I)DeliveryError=FMath::Max(DeliveryError,FMath::Abs(double(Native[I])-Fast[I]*100));TestTrue(TEXT("Native VPP delivery matches the approved spatial field within a millimetre"),DeliveryError<.1);
     auto O=MakeShared<FJsonObject>();O->SetNumberField(TEXT("floorProbes"),Contacts);O->SetNumberField(TEXT("floorReliefMeters"),MaxFloor-MinFloor);O->SetNumberField(TEXT("maximumRouteGrade"),MaxGrade);O->SetNumberField(TEXT("minimumHeadClearanceFieldMeters"),MinClearance);O->SetNumberField(TEXT("beddingInverseErrorMeters"),InverseError);O->SetNumberField(TEXT("heightPoints"),HeightPoints);O->SetNumberField(TEXT("fieldProbes"),Points.Num());O->SetNumberField(TEXT("pruningMaxErrorMeters"),Worst);O->SetNumberField(TEXT("deliveryMaxErrorCm"),DeliveryError);
     TArray<TSharedPtr<FJsonValue>> W,Hs;for(double V:Widths)W.Add(MakeShared<FJsonValueNumber>(V));for(double V:Ceilings)Hs.Add(MakeShared<FJsonValueNumber>(V));O->SetArrayField(TEXT("openingWidthsMeters"),W);O->SetArrayField(TEXT("ceilingHeightsMeters"),Hs);
     FString Path;if(FParse::Value(FCommandLine::Get(),TEXT("CLSpatialReport="),Path)){FString Json;FJsonSerializer::Serialize(O,TJsonWriterFactory<>::Create(&Json));FFileHelper::SaveStringToFile(Json,*Path);}

@@ -95,18 +95,10 @@
     "interiorFrequency": 2.3,
     "foldStrength": 0.07178812922614577,
     "arcStrength": 0.41265965439519153,
-    "trenchStrength": 0.05319754210286752,
-    "setting": "Collision",
-    "foundationOrientation": {
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    },
-    "motionDirection": 1,
-    "continentalExtent": 1
+    "trenchStrength": 0.05319754210286752
   },
   "continents": {
-    "algorithmVersion": 2,
+    "algorithmVersion": 3,
     "bEnabled": false,
     "strength": 0,
     "seed": 0,

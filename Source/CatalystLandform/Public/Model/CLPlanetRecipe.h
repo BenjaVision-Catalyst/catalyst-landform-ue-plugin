@@ -198,7 +198,7 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
 {
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 11;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 1;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 AlgorithmVersion = 2;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Rolling plains");
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Radius", Units="m", ClampMin="10")) double RadiusMeters = 100;
     /** Initial solid sphere before ordered operations; fraction of outer radius. */
@@ -361,6 +361,8 @@ class CATALYSTLANDFORM_API UCLPlanetRecipeAsset : public UCFModelAsset
     GENERATED_BODY()
 public:
     UCLPlanetRecipeAsset();
+    /** Optional plugin-owned authoring assets. Soft paths survive an absent provider. */
+    UPROPERTY(VisibleAnywhere, Category="Landform|Extensions") TMap<FName,FSoftObjectPath> AuthoringExtensions;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Recipe") FCLPlanetRecipe Recipe;
     /** Authoring reference. Null means an imported/legacy self-contained recipe. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") TObjectPtr<UCLRadialGuideLibraryAsset> RadialGuideLibrary;

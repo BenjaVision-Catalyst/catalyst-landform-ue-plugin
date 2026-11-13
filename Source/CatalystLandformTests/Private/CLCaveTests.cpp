@@ -40,7 +40,7 @@ bool FCLCaveFieldTest::RunTest(const FString&)
 {
     FString E;const auto R=CaveRecipe(E);const auto P=FCLPlanetCompiler::Compile(R,E);if(!P||!P->Caves||!P->Caves->Cutters){AddError(E);return false;}
     auto Off=R;Off.Caves.bEnabled=false;const auto Base=FCLPlanetCompiler::Compile(Off,E);const auto Scene=FCLScene::FromPlanet(P,E),Natural=FCLScene::FromPlanet(Base,E);
-    TestFalse(TEXT("Caves use a volume scene"),Scene->IsHeightOnly());TestFalse(TEXT("Radial fallback is refused"),FCLScene::FromLegacyRadial(P,E).IsValid());
+    TestFalse(TEXT("Caves use a volume scene"),Scene->IsHeightOnly());
     TArray<FVector3d> Points;for(const auto& S:P->Caves->Segments)Points.Add((S.A+S.B)*.5);
     TArray<FCLSceneShapeSample> C,B;Scene->SampleShape({Points},C,E);Natural->SampleShape({Points},B,E);
     TArray<FVector> ExteriorFeet;

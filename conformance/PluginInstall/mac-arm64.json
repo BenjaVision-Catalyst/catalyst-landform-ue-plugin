@@ -1,0 +1,118 @@
+{
+  "engine": "Unreal Engine 5.7 / Mac arm64",
+  "voxel": "2.0p8 for UE 5.7",
+  "foundationRevision": "9610a33966a23fd1a863b0e2256c6255c39a7b8a",
+  "cleanProject": {
+    "plugins": [
+      "CatalystFoundation",
+      "CatalystLandform",
+      "Voxel"
+    ],
+    "labContentRequired": false,
+    "connectRequired": false,
+    "catalogueRows": 17,
+    "riftCells": 12,
+    "arcCells": 12,
+    "editor": "Planet"
+  },
+  "packagedGuides": {
+    "asset": "/CatalystLandform/RadialGuides/DA_ExampleRadialGuides",
+    "sets": 6,
+    "default": "1km guides",
+    "exactExampleRadiiAndColoursPreserved": true,
+    "authoringVariant100mRetained": true,
+    "copyOnEditCancelAndUndo": "passed"
+  },
+  "examples": {
+    "sets": 6,
+    "examples": [
+      {
+        "asset": "/Game/Planets/DA_Asteroid.DA_Asteroid",
+        "set": "asteroid guides",
+        "exactRadiiAndColorsPreserved": true,
+        "otherRecipeValuesPreserved": true
+      },
+      {
+        "asset": "/Game/Planets/DA_Mars.DA_Mars",
+        "set": "Mars measured radius bounds",
+        "exactRadiiAndColorsPreserved": true,
+        "otherRecipeValuesPreserved": true
+      },
+      {
+        "asset": "/Game/Planets/DA_Planet10km.DA_Planet10km",
+        "set": "10km guides",
+        "exactRadiiAndColorsPreserved": true,
+        "otherRecipeValuesPreserved": true
+      },
+      {
+        "asset": "/Game/Planets/DA_Planet1km.DA_Planet1km",
+        "set": "1km guides",
+        "exactRadiiAndColorsPreserved": true,
+        "otherRecipeValuesPreserved": true
+      },
+      {
+        "asset": "/Game/Planets/DA_Planet100m.DA_Planet100m",
+        "set": "100m example guides",
+        "exactRadiiAndColorsPreserved": true,
+        "otherRecipeValuesPreserved": true
+      }
+    ],
+    "originalAuthoringAssetsSaved": false
+  },
+  "sourceProductSHA256": "c09ede67c78e7b35774f1bbe2a031db92b40728177429656c17aedacf8035640",
+  "focusedTests": {
+    "Catalyst.Landform.Caves.Placement.DepthRangeAndShapes": "Success",
+    "Catalyst.Landform.Caves.Placement.GuidesAndPersistence": "Success",
+    "Catalyst.Landform.Caves.Placement.RiftSurfaceOpenings": "Success",
+    "Catalyst.Landform.Caves.SpatialPrototype.GeometryAndDelivery": "Success",
+    "Catalyst.Landform.Caves.AlwaysEnabledMinimum": "Success",
+    "Catalyst.Landform.Caves.RiftNaturalFamily": "Success",
+    "Catalyst.Landform.Caves.SmallPlanetMinimumAndScale": "Success",
+    "Catalyst.Landform.ContinentalCharacter.DenseContinuity": "Success",
+    "Catalyst.Landform.ContinentalCharacter.VersionAndZero": "Success",
+    "Catalyst.Landform.Designer.DeferredGesture": "Success",
+    "Catalyst.Landform.Installation.FreshProject": "Success",
+    "Catalyst.Landform.NativeGeneration.KernelAndVersioning": "Success",
+    "Catalyst.Landform.RadialGuides.PackagedExamples": "Success",
+    "Catalyst.Landform.Rock.CharacterPaletteAndDefaults": "Success",
+    "Catalyst.Landform.Rock.ControlsVersionsAndHeight": "Success",
+    "Catalyst.Landform.Rock.DesignerControlsAndUndo": "Success",
+    "Catalyst.Landform.Rock.FoldThicknessAndViscosityLaw": "Success",
+    "Catalyst.Landform.Rock.MetricBasinAndFoldContacts": "Success",
+    "Catalyst.Landform.Rock.MetricBedDistribution": "Success",
+    "Catalyst.Landform.Rock.MetricScaleAndCompactHistory": "Success",
+    "Catalyst.Landform.Rock.NativePropertiesAndSurfaces": "Success",
+    "Catalyst.Landform.Rock.NativeRenderedReview": "Success",
+    "Catalyst.Landform.Rock.RegionalOnlapAndBasinFill": "Success",
+    "Catalyst.Landform.Rock.SharedFoldCoordinateAndSections": "Success",
+    "Catalyst.Landform.Rock.VolumeAndCaveCoherence": "Success",
+    "Catalyst.Landform.TectonicCharacter.DensePathContinuity": "Success",
+    "Catalyst.Landform.TectonicCharacter.FinalSurfacePortfolio": "Success",
+    "Catalyst.Landform.TectonicCharacter.RenderedPortfolio": "Success",
+    "Catalyst.Landform.TectonicCharacter.ZeroAndChannelTiming": "Success",
+    "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift": "Success",
+    "Catalyst.Landform.GuidedGeology.CharacterProgression": "Success",
+    "Catalyst.Landform.GuidedGeology.DirectAdvancedAndPersistence": "Success",
+    "Catalyst.Landform.GuidedGeology.FinalExtremaAndPatches": "Success",
+    "Catalyst.Landform.GuidedGeology.LateRidgeDevelopment": "Success",
+    "Catalyst.Landform.GuidedGeology.StampsRegionsAndNativeParity": "Success",
+    "Catalyst.Landform.Planet.LandformRows.AssignedCellHighlights": "Success",
+    "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Continental": "Success",
+    "Catalyst.Landform.Tectonics.LiveKnobAndUndo.ContinentalLayer": "Success",
+    "Catalyst.Landform.Tectonics.LiveKnobAndUndo.Tectonic": "Success",
+    "Catalyst.Landform.Tectonics.InlineAdvanced": "Success",
+    "Catalyst.Landform.Tectonics.KnobContinuityAndIdentity": "Success",
+    "Catalyst.Landform.Tectonics.NativeFieldAndPersistence": "Success",
+    "Catalyst.Landform.Tectonics.ProgressionAndTopology": "Success",
+    "Catalyst.Landform.Provinces.BalancedCoverage": "Success",
+    "Catalyst.Landform.Provinces.BaseGeologyAndNeutrality": "Success",
+    "Catalyst.Landform.Provinces.DefinitionsAndEvidence": "Success",
+    "Catalyst.Landform.Provinces.NativeDesignerAndNavigation": "Success",
+    "Catalyst.Landform.Provinces.PackagedLibrary": "Success",
+    "Catalyst.Landform.Regions.BlendAndNativeParity": "Success",
+    "Catalyst.Landform.Regions.PortabilityAndOverrides": "Success",
+    "Catalyst.Landform.Regions.StructureAndPalette": "Success"
+  },
+  "pythonInstallerTests": 3,
+  "scope": "Installation, current code-path cleanup, guide authoring and native delivery. This is not cave morphology visual acceptance. No original authoring assets were saved."
+}

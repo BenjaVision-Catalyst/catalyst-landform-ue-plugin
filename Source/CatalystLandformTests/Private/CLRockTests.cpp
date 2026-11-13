@@ -55,13 +55,6 @@ bool FCLRockControlTest::RunTest(const FString&)
     auto R=RockRecipe();R.SchemaVersion=18;TestFalse(TEXT("Old schemas cannot acquire new geology silently"),FCLPlanetCompiler::Compile(R,Error).IsValid());R.SchemaVersion=20;
     R.Rock.Units[1].Id=R.Rock.Units[0].Id;TestFalse(TEXT("Duplicate identities fail closed"),FCLPlanetCompiler::Compile(R,Error).IsValid());R=RockRecipe();R.Rock.Units[1].SurfaceId=TEXT("MissingRockSurface");TestFalse(TEXT("Missing native surfaces fail closed"),FCLPlanetCompiler::Compile(R,Error).IsValid());
     R=RockRecipe();R.Rock.BedDistribution.MinimumMeters=0;TestFalse(TEXT("Zero bed thickness fails closed"),FCLPlanetCompiler::Compile(R,Error).IsValid());
-    R=RockRecipe();R.Rock.AlgorithmVersion=1;R.Tectonics.bEnabled=false;R.Rock.DipDegrees=R.Rock.FoldAmplitudeRadiusFraction=R.Rock.FaultThrowRadiusFraction=R.Rock.TectonicResponse=0;R.Rock.BedThicknessRadiusFraction=.04;
-    const auto Parallel=FCLPlanetCompiler::Compile(R,Error);if(!Parallel){AddError(Error);return false;}const auto Low=Parallel->Rock->Sample(FVector(0,0,700)),High=Parallel->Rock->Sample(FVector(0,0,740));
-    TestTrue(TEXT("Independent planar-bed period oracle: one 40 m cycle repeats the unit, advances three beds and has a distinct identity"),Low.UnitId==High.UnitId&&High.StratumIndex-Low.StratumIndex==3&&Low.StratumId!=High.StratumId&&FMath::IsNearlyEqual(Low.MiningResistance,High.MiningResistance));
-    auto Center=RockRecipe();Center.Rock.AlgorithmVersion=2;Center.Rock.CrustDepthRadiusFraction=0;
-    const auto LegacyCenter=FCLCompiledRock::Compile(Center.Rock,Center.Seed,1000,0,800,Parallel->Surfaces.Get(),nullptr,Error);
-    if(!LegacyCenter){AddError(Error);return false;}
-    TestEqual(TEXT("V2 with zero basement retains its original finite-bed result at the exact origin"),LegacyCenter->Sample(FVector::ZeroVector).StratumIndex,int64(0));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>()),B(NewObject<UCLPlanetRecipeAsset>());A->Recipe=RockRecipe();FString Json;TestTrue(TEXT("Resolved geology exports"),A->ExportJsonString(Json,Error));TestTrue(TEXT("Resolved geology imports"),B->ImportRecipeJson(Json,Error));TestTrue(TEXT("All resolved data and IDs round-trip"),FCLPlanetRecipe::StaticStruct()->CompareScriptStruct(&A->Recipe,&B->Recipe,0));
     AddInfo(TEXT("24 seed/character cases retain exact terrain heights; zero, unit closure, versions and portable data pass"));return true;
 }
@@ -87,16 +80,13 @@ bool FCLRockPaletteTest::RunTest(const FString&)
 {
     // Default values are part of UE's saved-asset contract, independent of the
     // current authoring curves. These came from the previous native binary.
-    FCLRockLayer Legacy;
-    TestEqual(TEXT("Omitted algorithm retains the original profile"),Legacy.AlgorithmVersion,1);
-    TestEqual(TEXT("Published default bed thickness"),Legacy.BedThicknessRadiusFraction,.04990661443148686);
-    TestEqual(TEXT("Published default interbeds"),Legacy.InterbedFraction,.39);
-    TestEqual(TEXT("Published default dip"),Legacy.DipDegrees,8.518518518518519);
-    TestEqual(TEXT("Published default wavelength"),Legacy.FoldWavelengthRadiusFraction,.42777777777777776);
-    TestEqual(TEXT("Published default response"),Legacy.TectonicResponse,.32592592592592595);
-    TestEqual(TEXT("Published default fault throw"),Legacy.FaultThrowRadiusFraction,.001056000000000001);
-    TestTrue(TEXT("Published default deposition stays absent"),Legacy.YoungerCoverRadiusFraction==0&&Legacy.DepositionalVariation==0);
-    auto Authored=Legacy;Authored.AlgorithmVersion=4;Authored.Seed=817;Authored.FoldCompetentUnit=Authored.Units[1].Id;Authored.FoldViscosityContrast=48;Authored.CrustDepthRadiusFraction=.22;Authored.ContactFeatherFraction=.01;Authored.Units[1].MiningResistance=.63;
+    FCLRockLayer Defaults;
+    TestEqual(TEXT("Published default interbeds"),Defaults.InterbedFraction,.39);
+    TestEqual(TEXT("Published default dip"),Defaults.DipDegrees,8.518518518518519);
+    TestEqual(TEXT("Published default response"),Defaults.TectonicResponse,.32592592592592595);
+    TestEqual(TEXT("Published default fault throw"),Defaults.FaultThrowRadiusFraction,.001056000000000001);
+    auto Authored=Defaults;Authored.Seed=817;Authored.FoldCompetentUnit=Authored.Units[1].Id;Authored.FoldViscosityContrast=48;Authored.CrustDepthRadiusFraction=.22;Authored.ContactFeatherFraction=.01;Authored.Units[1].MiningResistance=.63;
+    TestEqual(TEXT("New rock uses metric deposition"),Defaults.AlgorithmVersion,5);
     const auto Before=Authored;Authored.ApplyProgression(.58);
     TestTrue(TEXT("Character preserves authored palette, seed, rheology and independent depth/contact controls"),Authored.Seed==817&&Authored.FoldCompetentUnit==Before.FoldCompetentUnit&&Authored.FoldViscosityContrast==48&&Authored.CrustDepthRadiusFraction==.22&&Authored.ContactFeatherFraction==.01&&Authored.Units[1].MiningResistance==.63);
     const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/rock-character");IFileManager::Get().MakeDirectory(*Folder,true);

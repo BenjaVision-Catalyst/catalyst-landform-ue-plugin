@@ -118,15 +118,7 @@
     "interiorFrequency": 3.815364387678437,
     "foldStrength": 0.9999999999999998,
     "arcStrength": 1.2420166015625,
-    "trenchStrength": 1.0246431254695718,
-    "setting": "Collision",
-    "foundationOrientation": {
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    },
-    "motionDirection": 1,
-    "continentalExtent": 1
+    "trenchStrength": 1.0246431254695718
   },
   "continents": {
     "algorithmVersion": 3,
@@ -240,26 +232,18 @@
     "digest": ""
   },
   "rock": {
-    "algorithmVersion": 4,
+    "algorithmVersion": 5,
     "bEnabled": true,
     "character": 0.9,
     "seed": 0,
-    "orientation": {
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    },
-    "bedThicknessRadiusFraction": 0.0125,
     "interbedFraction": 0.4,
     "dipDegrees": 0,
     "foldAmplitudeRadiusFraction": 0.02,
-    "foldWavelengthRadiusFraction": 0.21370262390670552,
     "tectonicResponse": 0,
     "faultThrowRadiusFraction": 0,
     "faultZoneRadiusFraction": 0.00250480109739369,
     "crustDepthRadiusFraction": 0.3,
     "contactFeatherFraction": 0.015,
-    "youngerCoverRadiusFraction": 0.1,
     "units": [
       {
         "id": "434C524B000000010000000000000001",

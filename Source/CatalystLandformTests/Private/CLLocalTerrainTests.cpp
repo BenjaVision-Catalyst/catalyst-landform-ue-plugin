@@ -1,7 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Model/CLTerrainType.h"
 #include "CLSectionGeometry.h"
-#include "CLTerrainEditing.h"
 #include "CLRecipeAssetTools.h"
 #include "CLPlanetStamp.h"
 #include "Misc/AutomationTest.h"
@@ -161,39 +160,5 @@ bool FCLLocalSphereTest::RunTest(const FString&)
     AddInfo(FString::Printf(TEXT("Local Designer/native sphere: %d vertices, %.9f cm residual, %.12g normalized display error"),Count,MaxError,DisplayError));
     return true;
 }
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLLocalEditorTest,"Catalyst.Landform.LocalTerrain.LayerControls",
-    EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLLocalEditorTest::RunTest(const FString&)
-{
-    auto* Factory=NewObject<UCLTerrainTypeFactory>();
-    auto* Created=Cast<UCLTerrainTypeAsset>(Factory->FactoryCreateNew(UCLTerrainTypeAsset::StaticClass(),GetTransientPackage(),NAME_None,RF_Transient,nullptr,nullptr));
-    if(!TestNotNull(TEXT("New terrain factory creates a source"),Created))return false;
-    TestEqual(TEXT("New sources use metric local coordinates"),Created->TerrainType.Coordinates,ECLTerrainCoordinates::LocalPatch);
-    TestEqual(TEXT("New sources use native VPP noise"),Created->TerrainType.AlgorithmVersion,2);
-    FString Error;FCLTerrainEditing NewEditing;NewEditing.Open(Created);
-    TestTrue(TEXT("New source evaluates without spherical distribution"),NewEditing.CompilePreview(Error).IsValid());
-    auto* T=LocalMountains(Error);if(!T){AddError(Error);return false;}
-    FCLTerrainEditing Editing;Editing.Open(T);
-    const auto Full=Editing.CompilePreview(Error,500);if(!Full){AddError(Error);return false;}
-    const auto Small=Editing.CompilePreview(Error,100);if(!Small){AddError(Error);return false;}
-    TestTrue(TEXT("Designer compiles the requested metric window"),Small->EvaluationRegion.GetSize().Equals(FVector2D(100),1.e-9));
-    const TArray<FVector> XY={FVector(0,0,0),FVector(30,20,0)};
-    const auto A=LocalSamples(*Full,XY),B=LocalSamples(*Small,XY);
-    for(int32 I=0;I<A.Num();++I)TestEqual(TEXT("Designer area control preserves common heights"),A[I],B[I]);
-    for(int32 I=0;I<3;++I)
-    {
-        Editing.SetSolo(I);const auto Solo=Editing.CompilePreview(Error);
-        if(!TestTrue(TEXT("Each local layer solos without upstream interference"),Solo.IsValid())){AddError(Error);return false;}
-        TestEqual(TEXT("Noise and stamp Solo each evaluate one operation"),Solo->Layers.Num(),1);
-        TestEqual(TEXT("Solo preserves the selected operation"),Solo->Layers[0].Operation,T->TerrainType.NoiseLayers[I].Operation);
-    }
-    Editing.SetSolo(INDEX_NONE);
-    for(int32 I=0;I<3;++I)TestTrue(TEXT("Layer can be disabled"),Editing.Enable(I,false));
-    const auto Empty=Editing.CompilePreview(Error);if(!Empty){AddError(Error);return false;}
-    for(double H:LocalSamples(*Empty,XY))TestEqual(TEXT("All muted leaves the flat guide midpoint"),H,-450.);
-    TestTrue(TEXT("Re-enable stamps alone"),Editing.Enable(1,true));
-    const auto Stamps=Editing.CompilePreview(Error);if(!Stamps){AddError(Error);return false;}
-    TestTrue(TEXT("Stamps-only retains a neutral surface with usable headroom"),FMath::IsNearlyEqual(Stamps->BaseHeightMeters,-450.,1.e-9)&&Stamps->GetDistributedStampCount()>0);
-    return true;
-}
+
 #endif

@@ -13,7 +13,7 @@ struct CATALYSTLANDFORM_API FCLTerrainType
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SchemaVersion = 5;
     /** 1 preserves the original CPU field; 2 is the pinned native VPP kernel. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay) int32 AlgorithmVersion = 1;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay) int32 AlgorithmVersion = 2;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay) FGuid Id;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name = TEXT("Untitled terrain type");

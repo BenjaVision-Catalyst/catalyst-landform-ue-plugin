@@ -22,17 +22,17 @@ public:
     UCLPlanetRecipeAsset* Asset = nullptr;
     TStrongObjectPtr<UCLRadialGuideLibraryAsset> Library;
     int32 Selected = INDEX_NONE;
-    bool bReadOnly = false; // terrain-type preview uses an independent context snapshot
     TUniquePtr<FScopedTransaction> Gesture;
     FCLPlanetRecipe BeforeRecipe;
     FCLRadialGuideLibrary BeforeLibrary;
     UCLRadialGuideLibraryAsset* BeforeGuideLibrary=nullptr;
     FGuid BeforeGuideSetId;
+    TStrongObjectPtr<UCLRadialGuideLibraryAsset> BeforeSessionLibrary;
+    bool bCreatedLibrary = false;
+    void EnsureEditableLibrary();
     TFunction<void()> OnPreviewChanged;
     bool bPendingChange = false;
     void Open(UCLPlanetRecipeAsset* InAsset);
-    bool OpenPreview(UCLPlanetRecipeAsset* TransientPreview, const FCLRadialGuideSet* InitialRadialGuides = nullptr);
-    void UsePreviewRadialGuides(const FCLRadialGuideSet& RadialGuides);
     void Begin(const FText& Text);
     void End(bool bCancel = false);
     void Changed();

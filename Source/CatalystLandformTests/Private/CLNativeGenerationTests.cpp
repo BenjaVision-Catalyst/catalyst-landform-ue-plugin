@@ -36,8 +36,7 @@ bool FCLNativeKernelTest::RunTest(const FString&)
 {
     FString Error, Json;
     auto R = FCLPlanetCompiler::RollingPlains();
-    const auto Legacy = FCLPlanetCompiler::Compile(R, Error);
-    TestTrue(TEXT("Existing recipes retain UE algorithm 1"), Legacy && !Legacy->NativePerlin);
+    auto Retired=R;Retired.AlgorithmVersion=1;TestFalse(TEXT("The retired UE-noise generator is unavailable"),FCLPlanetCompiler::Compile(Retired,Error).IsValid());
     R.AlgorithmVersion = 2;
     const auto Native = FCLPlanetCompiler::Compile(R, Error);
     if (!TestTrue(TEXT("Native VPP kernel available, no fallback"), Native && Native->NativePerlin)) { AddError(Error); return false; }
@@ -49,7 +48,7 @@ bool FCLNativeKernelTest::RunTest(const FString&)
     R.NoiseLayers = {L}; const auto Plan = FCLPlanetCompiler::Compile(R, Error);
     if (!TestTrue(TEXT("Oracle recipe compiles"), Plan.IsValid())) return false;
     const auto Kernel = GVoxelNodeISPCPtrs.FindRef(TEXT("VoxelComputeNode_PerlinNoise3D"));
-    bool bDifferent = false; double MaxOracleError = 0;
+    double MaxOracleError = 0;
     for (int32 Count : {0, 1, 31, 512, 513, 1025})
     {
         TArray<FVector> D; for (int32 I = 0; I < Count; ++I) D.Add(SphereDirection(I, Count));
@@ -65,14 +64,12 @@ bool FCLNativeKernelTest::RunTest(const FString&)
             const double Expected = -40 + 30 * FMath::Clamp(1.0 - FMath::Abs(double(N)), 0.0, 1.0);
             MaxOracleError = FMath::Max(MaxOracleError, FMath::Abs(H[I] - Expected));
             TestEqual(TEXT("Scalar and batch generation match"), Plan->SampleHeightMeters(D[I]), H[I]);
-            bDifferent |= FMath::Abs(Native->SampleHeightMeters(D[I]) - Legacy->SampleHeightMeters(D[I])) > .01;
         }
     }
     AddInfo(FString::Printf(TEXT("Native single-node oracle maximum error: %.12f metres"), MaxOracleError));
     // VPP coordinates are floats; the independently compiled test's vector
     // normalization can round across a float boundary. Qualify to 0.01 cm.
     TestTrue(TEXT("Batched field equals native graph-node kernel oracle within 0.01 cm"), MaxOracleError < .0001);
-    TestTrue(TEXT("Native path is distinct from legacy UE noise"), bDifferent);
     TArray<double> Invalid;
     const TArray<FVector> InvalidDirections = {FVector::ZeroVector, FVector(std::numeric_limits<double>::quiet_NaN(),0,0)};
     Plan->SampleHeightsMeters(InvalidDirections, Invalid);

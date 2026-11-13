@@ -143,18 +143,10 @@
   },
   "tectonics": {
     "bEnabled": true,
-    "algorithmVersion": 5,
+    "algorithmVersion": 6,
     "activity": 0.55,
     "lowerGuide": "SurfaceMin",
     "upperGuide": "SurfaceMax",
-    "setting": "Collision",
-    "foundationOrientation": {
-      "pitch": 0,
-      "yaw": 0,
-      "roll": 0
-    },
-    "motionDirection": 1,
-    "continentalExtent": 1,
     "seed": 0,
     "plateCount": 5,
     "motion": 0.41375999999999996,
@@ -184,7 +176,7 @@
     "bOverrideExtent": false,
     "bOverrideRelief": false,
     "bCoastalMargin": false,
-    "algorithmVersion": 2,
+    "algorithmVersion": 3,
     "domainCount": 5,
     "coastWarp": 0.38752,
     "interiorRoughness": 0.052919999999999995,

@@ -1,4 +1,5 @@
 #include "CLPlanetPreview.h"
+#include "PlanetBuilder/CLPlanetBuilderExtensions.h"
 #include "CLWatershedDebug.h"
 #include "Scene/CLScene.h"
 #include "Misc/ScopeExit.h"
@@ -287,6 +288,18 @@ public:
         for(const auto& T:Targets)if(T.Key.bStructure&&T.Weight(D)>.01)return T.Key;
         return {};
     }
+    TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
+    void DrawBuilderOverlay(FPrimitiveDrawInterface* PDI)
+    {
+        if(!Plan||!BuilderOverlay||!NativePreview||NativePreview->PublishedPlan()!=Plan)return;const double Scale=100000/Plan->RadiusMeters;
+        const int32 N=FMath::Min(8192,FMath::Min(BuilderOverlay->BodyMeters.Num(),BuilderOverlay->Colors.Num()));
+        for(int32 I=0;I<N;++I)
+        {
+            const FVector P=BuilderOverlay->BodyMeters[I]*Scale;
+            if(FVector::DotProduct(P.GetSafeNormal(),GetViewLocation()-P)<=0)continue;
+            PDI->DrawPoint(P+P.GetSafeNormal()*100,BuilderOverlay->Colors[I],7,SDPG_World);
+        }
+    }
     bool bWatershedOverlay=false;
     TSharedPtr<const FCLWatershedDebugGeometry> WatershedDebug;
     TSharedPtr<const FCLCompiledPlanetRecipe> DebugPlan;
@@ -414,7 +427,7 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(PDI);
         if(NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&DrawnSurfacePlan!=Plan){DrawnSurfacePlan=Plan;SurfaceDrawFrame=GFrameCounter;Invalidate();}
         if(Plan&&!WalkDirection.IsNearlyZero())
         {
@@ -1030,91 +1043,6 @@ bool FCLGlobeWalkPickingTest::RunTest(const FString&)
 #endif
 
 #if WITH_DEV_AUTOMATION_TESTS
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicGlobeTest,"Catalyst.Landform.Tectonics.RenderedProgression",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLTectonicGlobeTest::RunTest(const FString&)
-{
-    // The comparison owns its input; editing the user's planet may legitimately
-    // remove its material stack or pin controls that invalidate a progression test.
-    FString Json,ImportError;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
-    if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/TectonicBase.json")))||!A->ImportRecipeJson(Json,ImportError))
-    {AddError(TEXT("Cannot load the owned tectonic comparison: ")+ImportError);return false;}
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic activity progression"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
-    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
-    auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
-    const double Started=FPlatformTime::Seconds();
-    for(int32 I=0;I<4;++I)
-    {
-        auto R=A->Recipe;R.Tectonics.Activity=I==0?0:I==1?.55:1.;R.Tectonics.AlgorithmVersion=I==3?1:2;FString Error;const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);App.RequestDestroyWindow(Window);return false;}
-        if(!P->Surfaces){AddError(TEXT("The owned comparison requires its geological material stack"));App.RequestDestroyWindow(Window);return false;}
-        Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
-    }
-    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));
-    const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];CLSetPreviewMesh(*W->Mesh.Get(),Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents);
-    if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();
-    AddInfo(FString::Printf(TEXT("Four 192-cell tectonic globe buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
-    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Buffers,Plans]
-    {
-        IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-preset")),true);
-        TArray<FColor> First;int32 MostClipped=0,Earthy=0;double Difference=0;
-        for(int32 I=0;I<3;++I)
-        {
-            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
-            const FVector Eye=FVector(1,-1,.65).GetSafeNormal()*165000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
-            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
-            TestEqual(TEXT("Globe frame is rendered"),Pixels.Num(),800*600);int32 Clipped=0;for(const auto& C:Pixels){Clipped+=C.R>250&&C.G>250&&C.B>250;Earthy+=C.R>C.G+5&&C.G>C.B+3;}MostClipped=FMath::Max(MostClipped,Clipped);
-            if(I==0)First=Pixels;else if(I==2)for(int32 K=0;K<Pixels.Num()&&K<First.Num();++K)Difference+=FMath::Abs(int32(Pixels[K].R)-First[K].R)+FMath::Abs(int32(Pixels[K].G)-First[K].G)+FMath::Abs(int32(Pixels[K].B)-First[K].B);
-            TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/tectonic-preset/globe-%d.png"),I)));
-        }
-        TestTrue(TEXT("Scanned geological materials actually render"),Earthy>1000);TestTrue(TEXT("Activity changes the rendered surface visibly"),Difference/(800*600*3)>2);TestTrue(TEXT("Exposure remains legible"),MostClipped<800*600/100);
-        IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-organic")),true);
-        const FVector Views[]={FVector(1,-1,.65),FVector(-1,.2,-.8),FVector(.2,1,.3)};
-        for(int32 Version=1;Version<=2;++Version)for(int32 Angle=0;Angle<3;++Angle)
-        {
-            const int32 I=Version==1?3:2;const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
-            const FVector Eye=Views[Angle].GetSafeNormal()*165000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
-            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
-            TestEqual(TEXT("Full-activity comparison frame is rendered"),Pixels.Num(),800*600);
-            TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/tectonic-organic/v%d-angle%d.png"),Version,Angle)));
-        }
-        AddInfo(FString::Printf(TEXT("Rendered quiet/intense mean difference %.3f/255; clipped pixels %d"),Difference/(800*600*3),MostClipped));FSlateApplication::Get().RequestDestroyWindow(Window);
-    },.6f));return true;
-}
-#endif
-
-#if WITH_DEV_AUTOMATION_TESTS
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLContinentalGlobeTest,"Catalyst.Landform.Continental.RenderedSettings",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLContinentalGlobeTest::RunTest(const FString&)
-{
-    FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
-    if(!Plugin||!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/ContinentalBase.json")))||!Source->ImportRecipeJson(Json,Error)){AddError(Error);return false;}
-    auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Continental foundation settings"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
-    const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
-    auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
-    const double Started=FPlatformTime::Seconds();
-    for(int32 I=0;I<6;++I)
-    {
-        auto R=Source->Recipe;R.Tectonics.MotionDirection=I==1?0:I==2?-1:1;R.Tectonics.Setting=I==3?ECLContinentalSetting::Subduction:I==4?ECLContinentalSetting::Rift:I==5?ECLContinentalSetting::Transform:ECLContinentalSetting::Collision;
-        auto P=FCLPlanetCompiler::Compile(R,Error);if(!P||!P->Surfaces){AddError(Error);App.RequestDestroyWindow(Window);return false;}Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,192));
-    }
-    W->Mesh->SetMaterial(0,CLMakeSurfacePreviewMaterial(W->Mesh.Get(),*(*Plans)[0]->Surfaces,true));const auto& Initial=(*Buffers)[0];W->Client->Plan=(*Plans)[0];CLSetPreviewMesh(*W->Mesh.Get(),Initial.Vertices,Initial.Triangles,Initial.Normals,Initial.UV,Initial.UV1,Initial.UV2,Initial.UV3,Initial.Colors,Initial.Tangents);
-    if(GShaderCompilingManager)GShaderCompilingManager->FinishAllCompilation();AddInfo(FString::Printf(TEXT("Six continental 192-cell buffers: %.3f seconds"),FPlatformTime::Seconds()-Started));
-    ADD_LATENT_AUTOMATION_COMMAND(FDelayedFunctionLatentCommand([this,W,Window,V,Buffers,Plans]
-    {
-        const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/continental-settings");IFileManager::Get().MakeDirectory(*Folder,true);const TCHAR* Names[]={TEXT("collision"),TEXT("stationary"),TEXT("reversed"),TEXT("subduction"),TEXT("rift"),TEXT("transform")};
-        for(int32 I=0;I<6;++I)for(int32 Angle=0;Angle<2;++Angle)
-        {
-            const auto& B=(*Buffers)[I];W->Client->Plan=(*Plans)[I];CLSetPreviewMesh(*W->Mesh.Get(),B.Vertices,B.Triangles,B.Normals,B.UV,B.UV1,B.UV2,B.UV3,B.Colors,B.Tangents);
-            const FVector Eye=(Angle==0?FVector(1,.35,.55):FVector(-1,-.35,.4)).GetSafeNormal()*130000;W->Client->SetViewLocation(Eye);W->Client->SetViewRotation((-Eye).Rotation());W->Client->StudioScene->AimLights(W->Client->GetViewRotation());W->Scene->UpdateCaptureContents();TArray<FColor> Pixels;
-            for(int32 K=0;K<4;++K){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();V->ReadPixels(Pixels);}
-            TestEqual(TEXT("Continental comparison renders a complete frame"),Pixels.Num(),800*600);TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("%s-%d.png"),Names[I],Angle)));
-        }
-        FSlateApplication::Get().RequestDestroyWindow(Window);
-    },.6f));return true;
-}
-#endif
-
-#if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGlobeOceanTest,"Catalyst.Landform.PlanetBuilder.DisplayOcean",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLGlobeOceanTest::RunTest(const FString&)
 {
@@ -1342,27 +1270,23 @@ bool FCLPreviewPrecisionTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTectonicRenderedPortfolioTest,"Catalyst.Landform.TectonicCharacter.RenderedPortfolio",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLTectonicRenderedPortfolioTest::RunTest(const FString&)
 {
-    FString Json,Error;TSharedPtr<FJsonObject> Reference;
-    const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("conformance/tectonic-character-v5-reference.json")))||
-        !FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json),Reference))
-    {AddError(TEXT("Missing pre-change tectonic character reference"));return false;}
+    FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
+    if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/TectonicCharacter.json")))||!Source->ImportRecipeJson(Json,Error))
+    {AddError(Error);return false;}
+    const double Positions[]={0,.08,.18,.36,.45,.65,.85,1};
     auto& App=FSlateApplication::Get();const auto W=SNew(SCLPlanetPreview);W->CreateReferenceMeshForTesting();
     const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Tectonic character portfolio"))).ClientSize(FVector2D(800,600))[W];App.AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/tectonic-character/frames-final");IFileManager::Get().MakeDirectory(*Folder,true);
     auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();auto Buffers=MakeShared<TArray<FCLGlobeBuffers>>();
-    for(int32 Group=0;Group<4;++Group)for(const auto& Value:Reference->GetArrayField(TEXT("cases")))
+    for(int32 Group=0;Group<4;++Group)for(const double Position:Positions)
     {
-        const auto Case=Value->AsObject();FString Input;
-        FJsonSerializer::Serialize(Case->GetObjectField(TEXT("recipe")).ToSharedRef(),TJsonWriterFactory<>::Create(&Input));
-        TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
-        if(!Source->ImportRecipeJson(Input,Error)){AddError(Error);App.RequestDestroyWindow(Window);return false;}
         auto R=Source->Recipe;
-        if(Group>0)R.Tectonics.ApplyProgression(Case->GetNumberField(TEXT("position")));
+        if(Group>0)R.Tectonics.ApplyProgression(Position);
         if(Group==2){R.Continents.bEnabled=true;R.Continents.ApplyProgression(.55);}
         if(Group==3)R.Tectonics.Seed+=817;
-        if(Group==1&&FMath::IsNearlyEqual(Case->GetNumberField(TEXT("position")),.45))
+        if(Group==1&&FMath::IsNearlyEqual(Position,.45))
         {
             R.Name=TEXT("Tectonic character");R.RadialGuides.Id=FGuid(0x434C5443,0,0,1);R.RadialGuides.Name=TEXT("Character review guides");Source->Recipe=R;FString Review;
             if(!Source->ExportJsonString(Review,Error)){AddError(Error);App.RequestDestroyWindow(Window);return false;}
@@ -1370,7 +1294,7 @@ bool FCLTectonicRenderedPortfolioTest::RunTest(const FString&)
         }
         const auto P=FCLPlanetCompiler::Compile(R,Error);
         if(!P||!P->Surfaces){AddError(Error);App.RequestDestroyWindow(Window);return false;}
-        const int32 Resolution=Group==1&&Case->GetNumberField(TEXT("position"))>=.75?384:128;
+        const int32 Resolution=Group==1&&Position>=.75?384:128;
         Plans->Add(P);Buffers->Add(FCLGlobeBuffers::Build(*P,Resolution));
     }
     auto Previous=MakeShared<TArray<FColor>>();auto Differences=MakeShared<FString>(TEXT("group,step,angle,mean_pixel_difference\n"));
@@ -1402,7 +1326,7 @@ bool FCLTectonicRenderedPortfolioTest::RunTest(const FString&)
                 if(Group>0&&Step>0)TestTrue(TEXT("Every reviewed new-profile interval visibly changes the rendered planet"),Difference>.2);
                 *Previous=Pixels;
             }
-            const TCHAR* Names[]={TEXT("v5"),TEXT("v6"),TEXT("v6-continents"),TEXT("v6-variation")};
+            const TCHAR* Names[]={TEXT("reference"),TEXT("v6"),TEXT("v6-continents"),TEXT("v6-variation")};
             TArray<uint8> PNG;FImageUtils::CompressImageArray(800,600,Pixels,PNG);
             FFileHelper::SaveArrayToFile(PNG,*(Folder/FString::Printf(TEXT("%s-%d-%d.png"),Names[Group],Step,Angle)));
             if(Group==1&&Step==7&&Angle==0)
@@ -1432,23 +1356,24 @@ bool FCLTectonicRenderedPortfolioTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLContinentalRenderedPortfolioTest,"Catalyst.Landform.ContinentalCharacter.NativeRenderedPortfolio",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLContinentalRenderedPortfolioTest::RunTest(const FString&)
 {
-    FString Json,Error;TSharedPtr<FJsonObject> Reference;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("conformance/continental-character-v2-reference.json")))||!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json),Reference)){AddError(TEXT("Missing pre-change continental reference"));return false;}
+    FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
+    TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());
+    if(!FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/ContinentalCharacter.json")))||!Source->ImportRecipeJson(Json,Error))
+    {AddError(Error);return false;}
+    const double Positions[]={0,.08,.18,.36,.60,.74,.9,1};
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Native continental character review"))).ClientSize(FVector2D(800,600))[W];FSlateApplication::Get().AddWindow(Window,false);Window->SlatePrepass();
     const auto V=W->GetSceneViewport();V->UpdateViewportRHI(false,800,600,EWindowMode::Windowed,PF_Unknown);FlushRenderingCommands();
     const FString Folder=FPaths::ProjectSavedDir()/TEXT("Verification/continental-character/frames");IFileManager::Get().MakeDirectory(*Folder,true);
     auto Plans=MakeShared<TArray<TSharedPtr<const FCLCompiledPlanetRecipe>>>();
-    for(int32 Group=0;Group<5;++Group)for(const auto& Value:Reference->GetArrayField(TEXT("cases")))
+    for(int32 Group=0;Group<5;++Group)for(const double Position:Positions)
     {
-        const auto Case=Value->AsObject();FString Input;FJsonSerializer::Serialize(Case->GetObjectField(TEXT("recipe")).ToSharedRef(),TJsonWriterFactory<>::Create(&Input));
-        TStrongObjectPtr<UCLPlanetRecipeAsset> Source(NewObject<UCLPlanetRecipeAsset>());if(!Source->ImportRecipeJson(Input,Error)){AddError(Error);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}
         auto R=Source->Recipe;
         if(Group>0)
         {
-            R.Continents.ApplyProgression(Case->GetNumberField(TEXT("position")));R.Tectonics.bEnabled=Group!=1;R.Tectonics.ApplyProgression(Group==3?.85:.45);
+            R.Continents.ApplyProgression(Position);R.Tectonics.bEnabled=Group!=1;R.Tectonics.ApplyProgression(Group==3?.85:.45);
             if(Group>=3)R.Seed=Group==3?817:529;
         }
-        if(Group==2&&FMath::IsNearlyEqual(Case->GetNumberField(TEXT("position")),.60))
+        if(Group==2&&FMath::IsNearlyEqual(Position,.60))
         {
             R.Name=TEXT("Continental character");R.RadialGuides.Id=FGuid(0x434C4343,0,0,1);R.RadialGuides.Name=TEXT("Continental character guides");Source->Recipe=R;FString Review;
             if(!Source->ExportJsonString(Review,Error)){AddError(Error);FSlateApplication::Get().RequestDestroyWindow(Window);return false;}
@@ -1635,16 +1560,15 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
 #endif
 
 #if WITH_DEV_AUTOMATION_TESTS
-#include "Testing/CLCaveIntersections.h"
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLCaveDebugRenderedTest,"Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 void FCLCaveDebugRenderedTest::GetTests(TArray<FString>& Names,TArray<FString>& Commands)const
-{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1"),TEXT("CarbonateKarst"),TEXT("MixedFamilies"),TEXT("IntersectingVolumes"),TEXT("MorphFissure"),TEXT("MorphKarst"),TEXT("MorphMixed"),TEXT("NaturalKarst"),TEXT("BeddedKarst"),TEXT("OrganicKarst"),TEXT("CurrentRift")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low"),TEXT("karst"),TEXT("mixed"),TEXT("joined"),TEXT("morph-fissure"),TEXT("morph-karst"),TEXT("morph-mixed"),TEXT("natural-karst"),TEXT("bedded-karst"),TEXT("organic-karst"),TEXT("current-rift")};}
+{Names={TEXT("Reference2km"),TEXT("Saved500m100"),TEXT("Saved500m1"),TEXT("CarbonateKarst"),TEXT("MixedFamilies"),TEXT("MorphFissure"),TEXT("MorphKarst"),TEXT("MorphMixed"),TEXT("NaturalKarst"),TEXT("BeddedKarst"),TEXT("OrganicKarst"),TEXT("CurrentRift")};Commands={TEXT("reference"),TEXT("small"),TEXT("small-low"),TEXT("karst"),TEXT("mixed"),TEXT("morph-fissure"),TEXT("morph-karst"),TEXT("morph-mixed"),TEXT("natural-karst"),TEXT("bedded-karst"),TEXT("organic-karst"),TEXT("current-rift")};}
 bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
 {
     const bool CurrentRift=Parameters==TEXT("current-rift");
     const bool Organic=Parameters==TEXT("organic-karst"),Bedded=Parameters==TEXT("bedded-karst")||Organic,Natural=Parameters==TEXT("natural-karst")||Bedded,Morph=Parameters.StartsWith(TEXT("morph-"))||Natural;
-    const bool Mixed=Parameters==TEXT("mixed"),Joined=Parameters==TEXT("joined"),Karst=Parameters==TEXT("karst"),Small=Parameters==TEXT("small")||Parameters==TEXT("small-low"),Low=Parameters==TEXT("small-low");
-    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Organic?TEXT("Examples/OrganicKarst.json"):Bedded?TEXT("Examples/BeddedKarst.json"):Parameters==TEXT("natural-karst")?TEXT("Examples/NaturalKarst.json"):Morph?(Parameters==TEXT("morph-fissure")?TEXT("Examples/FissureMorphology.json"):Parameters==TEXT("morph-karst")?TEXT("Examples/KarstMorphology.json"):TEXT("Examples/CaveMorphology.json")):(Mixed||Joined)?TEXT("Examples/MixedCaves.json"):Karst?TEXT("Examples/KarstCaves.json"):Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
+    const bool Mixed=Parameters==TEXT("mixed"),Karst=Parameters==TEXT("karst"),Small=Parameters==TEXT("small")||Parameters==TEXT("small-low"),Low=Parameters==TEXT("small-low");
+    FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Organic?TEXT("Examples/OrganicKarst.json"):Bedded?TEXT("Examples/BeddedKarst.json"):Parameters==TEXT("natural-karst")?TEXT("Examples/NaturalKarst.json"):Morph?(Parameters==TEXT("morph-fissure")?TEXT("Examples/FissureMorphology.json"):Parameters==TEXT("morph-karst")?TEXT("Examples/KarstMorphology.json"):TEXT("Examples/CaveMorphology.json")):Mixed?TEXT("Examples/MixedCaves.json"):Karst?TEXT("Examples/KarstCaves.json"):Small?TEXT("Examples/CavesSmall.json"):TEXT("Examples/Caves.json"))));
     TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());
     if(CurrentRift){const auto* Review=LoadObject<UCLPlanetRecipeAsset>(nullptr,TEXT("/Game/LandformDesigner/Provinces/DA_ContinentalRiftReview"));if(!TestNotNull(TEXT("Current saved Rift"),Review))return false;A->Recipe=Review->Recipe;A->Recipe.Caves.bEnabled=true;}
     else if(!A->ImportRecipeJson(J,E)){AddError(E);return false;}
@@ -1652,13 +1576,13 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
     const auto W=SNew(SCLPlanetPreview);const auto Window=SNew(SWindow).Title(FText::FromString(TEXT("Planet-wide native cave surfaces"))).ClientSize(FVector2D(1000,800))[W];FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
     struct FState {FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;int32 Phase=0,Frames=0,Networks=0,Vertices=0,Cyan=0;double Start=FPlatformTime::Seconds(),Last=0,ReadySince=0,OffLuma=0,DimLuma=0,Residual=0;TArray<double> Times;TArray<FColor> Off;uint32 Terrain=0;TArray<uint32> Inspection;TMap<FGuid,uint32> DomainOwners;uint64 Copies=0,Starts=0;FVector Eye;FRotator Rotation;};
     const auto State=MakeShared<FState>();const auto Prepared=State->Evaluation.Prepare(A->Recipe,E);if(!Prepared){AddError(E);return false;}State->Evaluation.Request(A->Recipe,Prepared);
-    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst,Mixed,Joined,Morph,Natural,Bedded,Organic,CurrentRift]
+    FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FCLGlobeAwait>([this,W,Window,State,Small,Low,Karst,Mixed,Morph,Natural,Bedded,Organic,CurrentRift]
     {
         auto& S=*State;W->Pump();const double Now=FPlatformTime::Seconds();auto Close=[&]{S.Evaluation.Cancel();W->Cancel();FSlateApplication::Get().RequestDestroyWindow(Window);return true;};
         // Close native refinement can outlive the overview; retain stock quality
         // and measure both phases under the same deadline as the other fixtures.
         if(Now-S.Start>300){AddError(W->NativePreviewStatus());if(W->CavePreview)AddError(W->CavePreview->Status());return Close();}
-        const FString Dir=FPaths::ProjectSavedDir()/(CurrentRift?TEXT("Verification/current-rift-caves"):Natural?(Organic?TEXT("Verification/organic-karst"):Bedded?TEXT("Verification/bedded-karst"):TEXT("Verification/natural-karst")):Morph?(S.Plan&&S.Plan->Caves&&S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::CarbonateKarst;})?(S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::Structural;})?TEXT("Verification/morph-mixed"):TEXT("Verification/morph-karst")):TEXT("Verification/morph-fissure")):Joined?TEXT("Verification/cave-joined"):Mixed?TEXT("Verification/cave-mixed"):Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
+        const FString Dir=FPaths::ProjectSavedDir()/(CurrentRift?TEXT("Verification/current-rift-caves"):Natural?(Organic?TEXT("Verification/organic-karst"):Bedded?TEXT("Verification/bedded-karst"):TEXT("Verification/natural-karst")):Morph?(S.Plan&&S.Plan->Caves&&S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::CarbonateKarst;})?(S.Plan->Caves->NetworkInfo.ContainsByPredicate([](const auto& N){return N.Family==FCLCompiledCaves::EFamily::Structural;})?TEXT("Verification/morph-mixed"):TEXT("Verification/morph-karst")):TEXT("Verification/morph-fissure")):Mixed?TEXT("Verification/cave-mixed"):Karst?TEXT("Verification/cave-karst"):Low?TEXT("Verification/cave-small-low"):Small?TEXT("Verification/cave-small-render"):TEXT("Verification/cave-overview"));IFileManager::Get().MakeDirectory(*Dir,true);
         auto Capture=[&](const TCHAR* Name,TArray<FColor>& Pixels)
         {
             auto* V=W->Client->Viewport;if(!V)return;W->Scene->UpdateCaptureContents();
@@ -1684,7 +1608,6 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
         };
         if(S.Phase==0)
         {
-            if(auto Done=S.Evaluation.Pump()){if(!Done->Plan||!Done->Plan->Caves||!Done->Plan->Caves->Cutters){AddError(Done->Error);return Close();}TestTrue(TEXT("Caves use the existing background worker"),Done->WorkerThread);S.Plan=Done->Plan;if(Joined){FString Error;S.Plan=CLTesting::IntersectingCaves(S.Plan,Error);if(!S.Plan){AddError(Error);return Close();}}W->Rebuild(S.Plan);W->SetGuides({},false);W->SetRegionInspection(false);W->SetOceanVisible(false);S.Phase=1;}return false;
         }
         if(S.Phase==1)
         {
@@ -1763,14 +1686,7 @@ bool FCLCaveDebugRenderedTest::RunTest(const FString& Parameters)
                 }
                 W->Client->SetViewLocation(OverviewEye);W->Client->SetViewRotation(OverviewRotation);
             }
-            if(Joined)
-            {
-                // Test-only junction anatomy capture, with no product focus UI.
-                const FVector Center=(S.Plan->Caves->Passages[0].Points[0]+S.Plan->Caves->Passages[0].Points[1])*.5;
-                const FVector Up=Center.GetSafeNormal(),Eye=Center+Up*90;
-                W->Client->SetViewLocation(Eye*(100000/S.Plan->RadiusMeters));W->Client->SetViewRotation((Center-Eye).Rotation());TArray<FColor> Detail;Capture(TEXT("joined-detail"),Detail);
-                return Close();
-            }
+
             S.Eye=W->Client->GetViewLocation();S.Rotation=W->Client->GetViewRotation();auto Changed=*S.Plan->SourceRecipe;Changed.Caves.bSurfaceEntrances=false;FString Error;const auto Prepared=S.Evaluation.Prepare(Changed,Error);if(!Prepared){AddError(Error);return Close();}S.Evaluation.Request(Changed,Prepared);S.Phase=4;return false;
         }
         if(S.Phase==4){if(auto Done=S.Evaluation.Pump()){if(!Done->Plan){AddError(Done->Error);return Close();}S.Plan=Done->Plan;W->Rebuild(S.Plan);S.Phase=5;}return false;}
@@ -1945,3 +1861,5 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
 }
 
 #endif
+
+void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverlay> Overlay){if(Client){Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();}}

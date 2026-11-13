@@ -1,16 +1,31 @@
 {
-  "schemaVersion": 10,
+  "schemaVersion": 12,
   "algorithmVersion": 2,
+  "coordinates": "SphericalSurface",
   "id": "434C5052000000010000000000000008",
   "name": "Continental rift and fault-block province",
   "description": "Extended continental crust expressed as finite fault-block ranges, asymmetric half-grabens and normal-fault escarpments. Base tectonics supplies the rift belts; one physical displacement field is shared by topography and Rock. No volcanic, sediment or cave history is invented.",
-  "coordinates": "SphericalSurface",
   "noiseLayers": [],
   "placementSuitability": {
     "bUsePreferences": true,
     "selectionWeight": 1,
     "upliftAffinity": 0,
     "basinAffinity": 0,
+    "structuralEdgeAffinity": 0,
+    "lowerElevationGuide": "SurfaceMin",
+    "upperElevationGuide": "SurfaceMax",
+    "preferredElevation": {
+      "x": 0,
+      "y": 1
+    },
+    "preferredSlopeDegrees": {
+      "x": 0,
+      "y": 90
+    },
+    "preferredScale": {
+      "x": 0.01,
+      "y": 4
+    },
     "province": {
       "algorithmVersion": 1,
       "type": "ContinentalRift",
@@ -19,6 +34,7 @@
         "ContinentalCrust",
         "Extension"
       ],
+      "placementPreferences": [],
       "minimumCoverage": 0.35,
       "regionalForms": [
         "Fault-block ranges",
@@ -28,11 +44,13 @@
       "subsurfacePotential": [
         "Fissure",
         "Formation-dependent caves"
-      ]
+      ],
+      "relaxations": [],
+      "maximumRelaxedRegions": 1
     }
   },
   "rift": {
-    "algorithmVersion": 1,
+    "algorithmVersion": 3,
     "character": 0.6,
     "seed": 37,
     "minimumSpacingMeters": 100,
@@ -41,5 +59,43 @@
     "maximumThrowMeters": 80,
     "minimumScarpWidthMeters": 2,
     "maximumScarpWidthMeters": 15
+  },
+  "transform": {
+    "algorithmVersion": 0,
+    "character": 0,
+    "seed": 73,
+    "featureLengthMeters": 650,
+    "valleyDepthMeters": 12,
+    "valleyWidthMeters": 75,
+    "ridgeHeightMeters": 5,
+    "ridgeWidthMeters": 55,
+    "lateralOffsetMeters": 5,
+    "basinDepthMeters": 2,
+    "basinWidthMeters": 65,
+    "secondaryStrandWeight": 0.12,
+    "dissectionMeters": 1
+  },
+  "volcanicArc": {
+    "algorithmVersion": 0,
+    "character": 0,
+    "seed": 137,
+    "baseRadiusMeters": 280,
+    "heightMeters": 32,
+    "flankExponent": 1.45,
+    "secondaryHeight": 0.24,
+    "craterRadiusMeters": 38,
+    "craterDepthMeters": 6,
+    "incisionMeters": 7,
+    "lavaShoulderMeters": 2,
+    "apronHeightMeters": 5,
+    "apronReach": 1.8,
+    "breachStrength": 0.05,
+    "asymmetry": 0.22
+  },
+  "surfaceStack": {
+    "algorithmVersion": 1,
+    "defaultSurfaceId": "None",
+    "defaultSurfaceRevision": 1,
+    "layers": []
   }
 }

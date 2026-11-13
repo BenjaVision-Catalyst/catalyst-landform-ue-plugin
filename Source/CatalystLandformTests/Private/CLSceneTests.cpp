@@ -79,7 +79,7 @@ bool FCLSceneContractTest::RunTest(const FString&)
     Recipe.BaseSurfaceNormalized = .5;
     Recipe.NoiseLayers.Reset();
     auto Plan = FCLPlanetCompiler::Compile(Recipe, Error);
-    const auto Scene = FCLScene::FromLegacyRadial(Plan, Error);
+    const auto Scene = FCLScene::FromPlanet(Plan, Error);
     if (!TestTrue(TEXT("Closed radial scene compiles"), Scene.IsValid())) { AddError(Error); return false; }
     TestTrue(TEXT("Radial field is not misrepresented as a Euclidean SDF"), Scene->FieldMetric() == ECLSceneFieldMetric::SignedImplicit && !Scene->HasConservativeStepBound());
     TestEqual(TEXT("Bounds use the outer sky radius"), Scene->SolidBoundsMeters().Max, FVector3d(1000));
@@ -115,9 +115,9 @@ bool FCLSceneContractTest::RunTest(const FString&)
         return Scene->SampleShape({Points}, Result, WorkerError) && Result[1].FieldMeters == -1.;
     });
     TestTrue(TEXT("Immutable scene evaluates on a worker without authoring state"), Worker.Get());
-    TestFalse(TEXT("A missing plan cannot masquerade as an empty planet"), FCLScene::FromLegacyRadial(nullptr, Error).IsValid());
+    TestFalse(TEXT("A missing plan cannot masquerade as an empty planet"), FCLScene::FromPlanet(nullptr, Error).IsValid());
     const auto Face = FCLPlanetCompiler::Compile(Recipe, Error, nullptr, nullptr, 0);
-    TestTrue(TEXT("A face-scoped provider cannot masquerade as a complete body"), Face && !FCLScene::FromLegacyRadial(Face, Error) && !Error.IsEmpty());
+    TestTrue(TEXT("A face-scoped provider cannot masquerade as a complete body"), Face && !FCLScene::FromPlanet(Face, Error) && !Error.IsEmpty());
     AddInfo(FString::Printf(TEXT("Body frame round-trip error %.12g cm"), RoundTripError));
     return true;
 }
@@ -139,7 +139,7 @@ bool FCLScenePreservationTest::RunTest(const FString&)
         const auto Before = Recipe;
         const auto Plan = FCLPlanetCompiler::Compile(Recipe, Error);
         if (!Plan) { AddError(Error); return false; }
-        const auto Scene = FCLScene::FromLegacyRadial(Plan, Error);
+        const auto Scene = FCLScene::FromPlanet(Plan, Error);
         if (Plan->Coordinates == ECLTerrainCoordinates::LocalPatch)
             TestFalse(TEXT("Local-patch reference is preserved without claiming a radial scene"), Scene.IsValid());
         else if (!Scene) { AddError(Case->GetStringField(TEXT("id")) + TEXT(": ") + Error); return false; }

@@ -8,6 +8,7 @@
 #include "CLGlobePlacement.h"
 #include "Model/CLRegionGeneration.h"
 #include "UnrealWidgetFwd.h"
+struct FCLPlanetBuilderOverlay;
 struct FCLWatershedDebugGeometry;
 void CLRegisterGlobePlacementMode();
 void CLUnregisterGlobePlacementMode();
@@ -49,6 +50,7 @@ public:
     void SetGlobeGrid(bool Visible);
     bool IsGlobeGridVisible()const;
     void Cancel();
+    void SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverlay> Overlay);
     void SetEvaluationPending(bool Pending);
     void SetAuthoringValid(bool Valid);
     bool CanPick()const{return !bAuthoringInvalid&&!IsUpdating();}

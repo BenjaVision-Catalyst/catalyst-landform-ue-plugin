@@ -6,7 +6,6 @@ class FCLCompiledRegionGeneration;
 #include "CLRockLayer.generated.h"
 class FCLCompiledTectonics;
 class FCLCompiledContinents;
-class FCLNativeNoiseKernel;
 struct FCLCompiledSurfaceLibrary;
 struct FCLSurfaceWeights;
 
@@ -63,30 +62,25 @@ struct CATALYSTLANDFORM_API FCLRockLayer
 {
     GENERATED_BODY()
     FCLRockLayer();
-    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=1;
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly) int32 AlgorithmVersion=5;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) bool bEnabled=false;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double Character=.55;
     UPROPERTY(EditAnywhere,BlueprintReadWrite) int32 Seed=0;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion == 1",EditConditionHides)) FRotator Orientation=FRotator::ZeroRotator;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.00001",ClampMax="1",EditCondition="AlgorithmVersion < 5",EditConditionHides)) double BedThicknessRadiusFraction=.04;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.8")) double InterbedFraction=.3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="25",Units="deg")) double DipDegrees=8;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.05")) double FoldAmplitudeRadiusFraction=.005;
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.01",ClampMax="2",EditCondition="AlgorithmVersion < 4",EditConditionHides)) double FoldWavelengthRadiusFraction=.4;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double TectonicResponse=.3;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.05")) double FaultThrowRadiusFraction=.004;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0.0001",ClampMax="0.1")) double FaultZoneRadiusFraction=.002;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double CrustDepthRadiusFraction=.15;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1")) double ContactFeatherFraction=.015;
-    /** V2 cover thickness; V3 reference thickness controls the finite younger bed sequence, not sediment supply. */
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.1",EditCondition="AlgorithmVersion >= 2 && AlgorithmVersion < 5",EditConditionHides)) double YoungerCoverRadiusFraction=0;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(TitleProperty="Name")) TArray<FCLRockUnit> Units;
     /** Algorithm 3: onlap over crust- and extension-conditioned basement relief. */
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1",EditCondition="AlgorithmVersion >= 3",EditConditionHides)) double DepositionalVariation=0;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="1")) double DepositionalVariation=0;
     /** Effective competent-bed / weak-matrix Newtonian viscosity ratio; independent of mining hardness. */
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="1000",EditCondition="AlgorithmVersion >= 4",EditConditionHides)) double FoldViscosityContrast=64;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="1",ClampMax="1000")) double FoldViscosityContrast=64;
     /** Maximum shortening proxy under the existing local compression field. */
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.15",EditCondition="AlgorithmVersion >= 4",EditConditionHides)) double FoldShorteningStrain=.08;
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(ClampMin="0",ClampMax="0.15")) double FoldShorteningStrain=.08;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion >= 4",EditConditionHides)) FGuid FoldCompetentUnit;
     UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(EditCondition="AlgorithmVersion >= 5",EditConditionHides)) FCLRockBedDistribution BedDistribution;
     void ApplyProgression(double Position);
@@ -152,13 +146,11 @@ public:
     bool TryStableSurfaces(const FVector3d&,double Deformation,double BasementRadius,double InputTolerance,FCLSurfaceWeights&)const;
     const FCLRockFolding& GetFolding() const {return Folding;}
     FCLRockColumn SampleColumn(const FVector3d& UnitDirection) const;
-    /** Legacy expanded histories only. Use indexed access for current compact histories. */
-    const TArray<FCLRockBed>& GetBeds() const {return Beds;}
-    int32 GetBedCount() const {return Layer.AlgorithmVersion>=5?MetricUnits.Num():Beds.Num();}
+    int32 GetBedCount() const {return MetricUnits.Num();}
     int32 GetOlderBedCount() const {return OlderBedCount;}
     FCLRockBed GetBed(int32 Index) const;
     FCLRockBedStatistics ThicknessStatistics() const;
-    uint64 HistoryBytes() const {return MetricUppers.GetAllocatedSize()+MetricUnits.GetAllocatedSize()+Beds.GetAllocatedSize();}
+    uint64 HistoryBytes() const {return MetricUppers.GetAllocatedSize()+MetricUnits.GetAllocatedSize();}
     static constexpr int32 MaximumMetricBeds=4194304;
     TSharedPtr<const FCLCompiledRock> WithProvinceDeformation(TSharedPtr<const FCLCompiledRegionGeneration>)const;
     /** Restored pre-deformation radius; also used for geological section inspection. */
@@ -170,7 +162,6 @@ private:
     FPoint Classify(const FVector3d&)const;
     FPoint ClassifyFinite(const FVector3d&)const;
     double DeformationMeters(const FVector3d& UnitDirection,double* Extension=nullptr) const;
-    TArray<FCLRockBed> Beds;
     // Immutable double-precision contacts + palette indices; no per-view state.
     TArray<double> MetricUppers;
     TArray<uint8> MetricUnits;
@@ -178,14 +169,11 @@ private:
     FCLRockLayer Layer;
     FCLRockFolding Folding;
     TArray<int32> SurfaceIndices;
-    TSharedPtr<const FCLNativeNoiseKernel> NativeNoise;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
     TSharedPtr<const FCLCompiledRegionGeneration> Province;
     TSharedPtr<const FCLCompiledRock> ProvinceBase;
     FVector3d ProvinceReferencePosition(const FVector3d&)const;
     TSharedPtr<const FCLCompiledContinents> Crust;
-    FQuat Frame=FQuat::Identity;
     FGuid Namespace;
-    double Radius=1,Datum=1,Basement=0,Phase=0,Unconformity=0;
-    int32 NoiseSeed=0;
+    double Radius=1,Datum=1,Basement=0,Phase=0;
 };

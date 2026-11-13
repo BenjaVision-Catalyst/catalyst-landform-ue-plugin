@@ -5,9 +5,7 @@
 #include "Model/CLProvinceDefinition.h"
 #include "Model/CLTectonics.h"
 #include "Model/CLWatershed.h"
-#include "CLCaveKarst.h"
 #include "Model/CLSpatialCave.h"
-#include "CLCaveMorphology.h"
 #include "VoxelAABBTree.h"
 #include "Util/SizedDisjointSet.h"
 
@@ -46,12 +44,12 @@ void FCLCaveSettings::UpgradeAbundanceProfile()
 void FCLCaveSettings::ApplyProgression(double Value)
 {
     Character=FMath::Clamp(Value,0.,1.);
-    const bool Spatial=AlgorithmVersion>=8;AlgorithmVersion=Spatial?9:7;NetworksPerSquareKilometer=6*Character*Character;
+    AlgorithmVersion=9;NetworksPerSquareKilometer=6*Character*Character;
     LengthMeters=FMath::Lerp(35.,140.,Character);
     RadiusMeters=FMath::Lerp(1.1,3.2,Character);
     DepthMeters=FMath::Lerp(10.,42.,Character);
     Branching=FMath::Lerp(.15,1.,Character);
-    if(Spatial){LengthMeters=FMath::Lerp(150.,500.,Character);RadiusMeters=FMath::Lerp(2.5,5.5,Character);}
+    LengthMeters=FMath::Lerp(150.,500.,Character);RadiusMeters=FMath::Lerp(2.5,5.5,Character);
 }
 bool FCLCaveSettings::Validate(FString& Error)const
 {
@@ -64,15 +62,6 @@ TSharedPtr<const FCLCompiledCaves> FCLCompiledCaves::Compile(const FCLCaveSettin
     Error.Reset();
     if(!Settings.Validate(Error)||!FCLCompileProgress::Check(Error))return nullptr;
     if(!Settings.bEnabled)return MakeShared<FCLCompiledCaves>();
-    // Profile 8 remains the exact accepted review fixture. Every other saved
-    // selector now places that same anatomy; none can select the retired ring.
-    if(Settings.AlgorithmVersion==8)
-    {
-        const auto Reference=FCLSpatialCave::BuildPrototype(Base,Seed^Settings.Seed,Error);
-        if(Reference)return Reference;
-        if(!FCLCompileProgress::Check(Error))return nullptr;
-        Error.Reset();
-    }
     return FCLSpatialCave::BuildFamily(Base,Settings,Seed^Settings.Seed,Error);
 }
 

@@ -27,19 +27,13 @@ bool IsFinitePosition(const FVector3d& P)
 
 FCLScene::FCLScene(TSharedPtr<const FCLCompiledPlanetRecipe> InPlan) : RadialPlan(MoveTemp(InPlan)) {}
 
-TSharedPtr<const FCLScene> FCLScene::FromLegacyRadial(TSharedPtr<const FCLCompiledPlanetRecipe> Plan, FString& Error)
-{
-    if(Plan&&(Plan->Volumes||(Plan->Caves&&Plan->Caves->Cutters))){Error=TEXT("A volume scene cannot use the radial-only provider");return nullptr;}
-    return FromPlanet(MoveTemp(Plan),Error);
-}
-
 TSharedPtr<const FCLScene> FCLScene::FromPlanet(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,FString& Error)
 {
     Error.Reset();
     if (!Plan || !FMath::IsFinite(Plan->RadiusMeters) || Plan->RadiusMeters <= 0 ||
         Plan->Coordinates == ECLTerrainCoordinates::LocalPatch || FCLSphericalPatches::IsFace(Plan->SurfacePatch))
     {
-        Error = TEXT("Legacy radial scene requires a compiled whole spherical planet, not a local or face-scoped plan");
+        Error = TEXT("Planet scene requires a compiled whole spherical planet, not a local or face-scoped plan");
         return nullptr;
     }
     return MakeShareable(new FCLScene(MoveTemp(Plan)));

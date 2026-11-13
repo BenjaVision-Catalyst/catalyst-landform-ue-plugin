@@ -29,14 +29,12 @@ FRichCurve FCLRockBedDistribution::QuantileCurve() const
 }
 FCLRockBed FCLCompiledRock::GetBed(int32 I) const
 {
-    if(Layer.AlgorithmVersion<5)return Beds[I];
     check(MetricUnits.IsValidIndex(I));
     return {MetricUnits[I],I==0?Basement:I==OlderBedCount?0:MetricUppers[I-1],MetricUppers[I],I>=OlderBedCount};
 }
 FCLRockBedStatistics FCLCompiledRock::ThicknessStatistics() const
 {
     FCLRockBedStatistics S;
-    if(Layer.AlgorithmVersion<5)return S;
     S.MinimumMeters=Layer.BedDistribution.MinimumMeters;S.MaximumMeters=Layer.BedDistribution.MaximumMeters;
     for(int32 I=0;I<OlderBedCount-1;++I)
     {

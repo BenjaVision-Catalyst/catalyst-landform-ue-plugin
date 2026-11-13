@@ -339,10 +339,10 @@ void FCLSpatialCave::SamplePlanet(const FCLCompiledPlanetRecipe& P,TConstArrayVi
     if(P.Volumes)P.Volumes->ComposeBatch(Positions,Fields);
     Data->EvaluationCycles[3].fetch_add(FPlatformTime::Cycles64()-Stage,std::memory_order_relaxed);
 }
-TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildPrototype(const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
+TSharedPtr<const FCLCompiledCaves> FCLSpatialCave::BuildReference(const FCLCompiledPlanetRecipe& Base,int32 Seed,FString& Error)
 {
     if(!Base.Rock||!Base.Rock->HasKarstHosts()||!Base.Watershed||!Base.GeneratedRegions)
-    {Error=TEXT("Spatial cave prototype requires canonical carbonate Rock, Watershed and eligible Landforms");return nullptr;}
+    {Error=TEXT("Approved cave reference requires canonical carbonate Rock, Watershed and eligible Landforms");return nullptr;}
     auto Data=MakeShared<FCLSpatialCaveData>();Data->Rock=Base.Rock;Data->Noise=FCLNativeNoiseKernel::Create(Error);if(!Data->Noise)return nullptr;Data->Seed=Seed^0x53504138;
     // This one-composition study deliberately does not replace planet-wide
     // network placement. Select a real eligible terrestrial carbonate site.

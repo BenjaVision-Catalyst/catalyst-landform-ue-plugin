@@ -32,7 +32,6 @@ bool FCLVolumeAnalyticTest::RunTest(const FString&)
     FString Error;auto R=VolumeRecipe();auto A=Solid(1,FVector(0,0,730));A.RadiusMeters=10;A.Scale=FVector(2,1,.5);A.Rotation=FRotator(0,35,0);R.Volumes.Operations={A};
     auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
     const auto S=FCLScene::FromPlanet(P,Error);TestFalse(TEXT("A general scene does not claim height-only coverage"),S->IsHeightOnly());
-    TestFalse(TEXT("The radial provider refuses a volume plan"),FCLScene::FromLegacyRadial(P,Error).IsValid());
     const FTransform Pose(A.Rotation,A.CenterMeters,A.Scale);
     for(const FVector Local:{FVector(10,0,0),FVector(0,10,0),FVector(0,0,10)})
         TestTrue(TEXT("Nonuniform analytic solid keeps its transformed zero set"),FMath::Abs(Field(*S,Pose.TransformPosition(Local)))<1.e-9);

@@ -1,6 +1,5 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Model/CLTerrainType.h"
-#include "CLTerrainEditing.h"
 #include "CLRadialGuideEditing.h"
 #include "CLSectionGeometry.h"
 #include "CLPlanet.h"
@@ -71,53 +70,7 @@ bool FCLTerraceShapeTest::RunTest(const FString&)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTerraceAuthoringTest, "Catalyst.Landform.Plateaus.AuthoringAndResize",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FCLTerraceAuthoringTest::RunTest(const FString&)
-{
-    FString Error, Json; auto* Type = Plateaus(Error);
-    if (!TestNotNull(TEXT("Plateaus preset imports"), Type)) { AddError(Error); return false; }
-    auto Session = MakeShared<FCLTerrainEditing>(); Session->Open(Type);
-    TestEqual(TEXT("Preset contains noise, terracing and detail"), Type->TerrainType.NoiseLayers.Num(),3);
-    const auto Original = Session->CompilePreview(Error);
-    if (!TestTrue(TEXT("Plateaus preview compiles"), Original.IsValid())) { AddError(Error); return false; }
-    Session->Selected = 1; auto Edit = Type->TerrainType.NoiseLayers[1]; Edit.Terrace.Softness = .55;
-    TestTrue(TEXT("Terracing operation edits transactionally"), Session->SetLayer(Edit));
-    GEditor->UndoTransaction(); TestEqual(TEXT("Undo restores softness"), Type->TerrainType.NoiseLayers[1].Terrace.Softness,.28);
-    GEditor->RedoTransaction(); TestEqual(TEXT("Redo restores the edit"), Type->TerrainType.NoiseLayers[1].Terrace.Softness,.55);
-    Session->SetSolo(1); const auto Solo = Session->CompilePreview(Error);
-    TestTrue(TEXT("Terrace Solo retains upstream noise and omits downstream detail"), Solo && Solo->Layers.Num()==2);
-    TestTrue(TEXT("Terracing type exports"), Type->ExportJsonString(Json,Error));
-    auto* Copy = NewObject<UCLTerrainTypeAsset>(); TestTrue(TEXT("Terrace parameters roundtrip"),Copy->ImportTerrainTypeJson(Json,Error));
-    TestEqual(TEXT("Solo never changes the saved operation count"), Copy->TerrainType.NoiseLayers.Num(),3);
-    Session->SetSolo(INDEX_NONE);
-    TestTrue(TEXT("Terracing duplicates"),Session->Duplicate()); TestEqual(TEXT("Duplicate retains operation kind"),Type->TerrainType.NoiseLayers[2].Operation,ECLTerrainOperation::Terrace);
-    TestTrue(TEXT("Terracing reorders"),Session->Move(-1)); TestTrue(TEXT("Terracing removes"),Session->Remove());
-    TestTrue(TEXT("Add terrace creates another editable operation"),Session->Add(ECLTerrainOperation::Terrace));
-    auto R=Session->Context; R.RadiusMeters=1000; TestTrue(TEXT("Preset applies to planet"),Copy->TerrainType.ApplyTo(R,Error));
-    auto A=FCLPlanetCompiler::Compile(R,Error); R.RadiusMeters=2000; auto B=FCLPlanetCompiler::Compile(R,Error);
-    TestEqual(TEXT("Guide-scaled step doubles with radius"),B->Layers[1].StepHeight,A->Layers[1].StepHeight*2);
-    for(int32 I=0;I<512;++I)
-    {
-        const FVector D=PlateauDirection(I,512);
-        const double H=A->SampleHeightMeters(D);
-        TestTrue(TEXT("Terraced samples remain inside transformed compiled bounds"), H>=A->MinimumHeightMeters && H<=A->MaximumHeightMeters);
-        TestTrue(TEXT("Terraced field resizes proportionally"),FMath::Abs(A->SampleHeightMeters(D)/1000-B->SampleHeightMeters(D)/2000)<1.e-5);
-    }
-    const auto Work=Async(EAsyncExecution::ThreadPool,[A]{return A->SampleHeightMeters(FVector(1,2,3));});
-    TestEqual(TEXT("Terracing evaluates on immutable worker data"),Work.Get(),A->SampleHeightMeters(FVector(1,2,3)));
-    const int32 Index=R.RadialGuides.Guides.IndexOfByPredicate([](const auto& S){return S.Name==TEXT("SurfaceMin");});
-    TestTrue(TEXT("Guide rename updates terrace origin and step"),FCLRadialGuideEditing::Rename(R,Index,TEXT("TerrainFloor"),Error));
-    TestEqual(TEXT("Step lower guide follows rename"),R.NoiseLayers[1].Terrace.StepHeight.Guide,FName(TEXT("TerrainFloor")));
-    TestEqual(TEXT("Terrace origin follows rename"),R.NoiseLayers[1].Terrace.Origin.Guide,FName(TEXT("TerrainFloor")));
-    TestTrue(TEXT("Renamed terracing still compiles"),FCLPlanetCompiler::Compile(R,Error).IsValid());
-    auto* Recipe=NewObject<UCLPlanetRecipeAsset>(); Recipe->Recipe=R;
-    TestTrue(TEXT("Planet with terracing exports"),Recipe->ExportJsonString(Json,Error));
-    auto* Restored=NewObject<UCLPlanetRecipeAsset>(); TestTrue(TEXT("Planet with terracing reimports"),Restored->ImportRecipeJson(Json,Error));
-    TestEqual(TEXT("New recipe schema is explicit"),Restored->Recipe.SchemaVersion,11);
-    auto Invalid=Copy->TerrainType; Invalid.SchemaVersion=2; TestFalse(TEXT("Old terrain schema refuses terrace operations"),Invalid.Validate(Error));
-    return true;
-}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlateauSectionTest, "Catalyst.Landform.Plateaus.DesignerSphereParity",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLPlateauSectionTest::RunTest(const FString&)

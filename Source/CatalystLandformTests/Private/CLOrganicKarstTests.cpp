@@ -51,7 +51,7 @@ bool FCLOrganicKarstTest::RunTest(const FString&)
     TestTrue(TEXT("Floor has visible large-scale relief rather than one broad plane"),HighRelief-LowRelief>.50);
     TestTrue(TEXT("Continuous walking floor grades stay below 35 degrees at junction probes"),MaxGrade<FMath::Tan(FMath::DegreesToRadians(35.)));
     TestTrue(TEXT("Actual passage openings have unequal lateral extents"),Widths>0&&Asymmetry/Widths>.30);
-    AddInfo(FString::Printf(TEXT("ORGANIC_KARST %d networks, %d passages, %d rooms, %d native solid features; %d floor probes; relief %.3f..%.3f m; maximum grade %.3f; mean opening asymmetry %.3f m"),C.Networks,C.Passages.Num(),C.Chambers.Num(),C.Infills.Num(),Floors,LowRelief,HighRelief,MaxGrade,Widths?Asymmetry/Widths:0));
+    AddInfo(FString::Printf(TEXT("ORGANIC_KARST %d networks, %d passages, %d rooms; %d floor probes; relief %.3f..%.3f m; maximum grade %.3f; mean opening asymmetry %.3f m"),C.Networks,C.Passages.Num(),C.Chambers.Num(),Floors,LowRelief,HighRelief,MaxGrade,Widths?Asymmetry/Widths:0));
     return !HasAnyErrors();
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLOrganicKarstPackageTest,"Catalyst.Landform.Caves.OrganicKarst.NativePackage",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)

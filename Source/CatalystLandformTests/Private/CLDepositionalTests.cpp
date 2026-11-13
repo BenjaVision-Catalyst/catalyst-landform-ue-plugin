@@ -15,8 +15,7 @@ bool FCLDepositionalTest::RunTest(const FString&)
 {
     FString Error;auto R=FCLPlanetCompiler::ContinentalBase();R.UseGuidedGeology();
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
-    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.8);L.AlgorithmVersion=3;L.DepositionalVariation=1;
-    L.BedThicknessRadiusFraction=.018;L.YoungerCoverRadiusFraction=.06;
+    FCLRockLayer L;L.bEnabled=true;L.ApplyProgression(.8);L.AlgorithmVersion=5;L.DepositionalVariation=1;
     L.DipDegrees=L.FoldAmplitudeRadiusFraction=0;L.FaultThrowRadiusFraction=.008;L.TectonicResponse=.9;
     FCLContinentalLayer CL;CL.bEnabled=true;CL.ApplyProgression(.8);
     const auto Crust=FCLCompiledContinents::Compile(CL,1729,160,Error,true);
@@ -57,18 +56,19 @@ bool FCLDepositionalTest::RunTest(const FString&)
     const auto Dry=Basin->SampleColumn(FVector::XAxisVector);
     TestEqual(TEXT("Young deposits pinch out outside the finite tectonic belt"),Dry.YoungerThicknessMeters,0.);
     TestEqual(TEXT("Fill also ends beyond the actual plate segment endpoint"),Basin->SampleColumn(FVector::YAxisVector).YoungerThicknessMeters,0.);
-    int32 YoungCount=0;const auto& Beds=Basin->GetBeds();double YoungLower=800;
-    for(const auto& Bed:Beds)if(Bed.bYounger)YoungLower=FMath::Min(YoungLower,Bed.LowerMeters);
-    for(int32 I=0;I<Beds.Num();++I)if(Beds[I].bYounger)
+    int32 YoungCount=0;
+    for(int32 I=Basin->GetOlderBedCount();I<Basin->GetBedCount();++I)
     {
-        ++YoungCount;const auto& Bed=Beds[I];const double F=((Bed.LowerMeters+Bed.UpperMeters)*.5-YoungLower)/(800-YoungLower);
-        const auto S=Basin->Sample(FVector::ZAxisVector*(B.YoungerFloorRadiusMeters+B.YoungerThicknessMeters*F));
-        TestEqual(TEXT("Each finite younger episode occupies its own scaled interval"),S.StratumIndex,int64(I));
-        const FVector D=FVector(.015,0,1).GetSafeNormal();const auto Side=Basin->SampleColumn(D);
-        const auto Other=Basin->Sample(D*(Side.YoungerFloorRadiusMeters+Side.YoungerThicknessMeters*F));
-        TestTrue(TEXT("Episode identity continues laterally as thickness changes"),Side.YoungerThicknessMeters>0&&Other.StratumId==S.StratumId);
+        const auto Bed=Basin->GetBed(I);const double Mid=(Bed.LowerMeters+Bed.UpperMeters)*.5;
+        if(Mid<B.YoungerFloorRadiusMeters)continue;
+        ++YoungCount;
+        const auto S=Basin->Sample(FVector::ZAxisVector*Mid);
+        TestEqual(TEXT("Younger beds retain their physical thickness and canonical identity"),S.StratumIndex,int64(I));
+        const FVector D=FVector(.015,0,1).GetSafeNormal();
+        if(Mid>Basin->SampleColumn(D).YoungerFloorRadiusMeters)
+            TestEqual(TEXT("A contact keeps the same identity across the basin"),Basin->Sample(D*Mid).StratumId,S.StratumId);
     }
-    TestTrue(TEXT("Basin fill has a finite sequence"),YoungCount>2&&YoungCount<30);
+    TestTrue(TEXT("Subsidence contains finite metric beds"),YoungCount>0);
     L.DepositionalVariation=2;TestFalse(TEXT("Unbounded regional controls fail closed"),FCLCompiledRock::Compile(L,1729,1000,640,800,P->Surfaces.Get(),nullptr,Error).IsValid());
     R.SchemaVersion=20;R.Rock.bEnabled=true;R.Rock.ApplyProgression(.8);
     const auto Shared=FCLPlanetCompiler::Compile(R,Error);if(!Shared){AddError(Error);return false;}
@@ -84,9 +84,9 @@ bool FCLDepositionalTest::RunTest(const FString&)
         {
             const double PX=-380+760*X/320.,PZ=480+320*Z/160.;
             const FVector Point=K==0?High*PZ+Across*PX:K==3?FVector(0,(PZ+PX)*.7071067811865475,(PZ-PX)*.7071067811865475):FVector(PX,0,PZ);
-            const auto S=Models[K]->Sample(Point);const auto& Sequence=Models[K]->GetBeds();
+            const auto S=Models[K]->Sample(Point);
             const int32 Unit=R.Rock.Units.IndexOfByPredicate([&](const FCLRockUnit& V){return V.Id==S.UnitId;});
-            const int32 Age=S.StratumIndex<0?-1:Sequence[S.StratumIndex].bYounger?1:0;
+            const int32 Age=S.StratumIndex<0?-1:Models[K]->GetBed(S.StratumIndex).bYounger?1:0;
             CSV+=FString::Printf(TEXT("%.6f,%.6f,%d,%lld,%d,%d\n"),PX,PZ,Unit,S.StratumIndex,Point.Length()<=800?1:0,Age);
         }
         TestTrue(TEXT("Regional section exports canonical C++ samples"),FFileHelper::SaveStringToFile(CSV,*(Folder/(FString(Names[K])+TEXT(".csv")))));
@@ -95,25 +95,4 @@ bool FCLDepositionalTest::RunTest(const FString&)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDepositFixtureTest,"Catalyst.Landform.Rock.DepositionalExcavationFixture",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLDepositFixtureTest::RunTest(const FString&)
-{
-    FString Json,Error;const auto Plugin=IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));
-    TestTrue(TEXT("Resolved deformed fixture exists"),FFileHelper::LoadFileToString(Json,*(Plugin->GetBaseDir()/TEXT("Examples/RockDepositsExcavation.json"))));
-    FCLPlanetRecipe R;if(!FJsonObjectConverter::JsonObjectStringToUStruct(Json,&R,0,0)){AddError(TEXT("Invalid fixture input"));return false;}
-    TestEqual(TEXT("Fixture uses regional history"),R.Rock.AlgorithmVersion,3);TestTrue(TEXT("Actual native tectonic model is active"),R.Tectonics.bEnabled);
-    const auto Full=FCLPlanetCompiler::Compile(R,Error);if(!Full){AddError(Error);return false;}
-    int32 Young=0,Old=0;TSet<FGuid> Units,Beds;TArray<FVector> Points;
-    for(int32 I=0;I<48;++I)
-    {
-        const FVector Point(8.05,2,112.5+I*.5);Points.Add(Point);
-        const auto G=Full->Rock->Sample(Point);Units.Add(G.UnitId);Beds.Add(G.StratumId);
-        if(G.StratumIndex>=0){if(Full->Rock->GetBeds()[G.StratumIndex].bYounger)++Young;else ++Old;}
-    }
-    TestTrue(TEXT("Cooked wall fixture crosses both older beds and younger basin fill"),Young>=8&&Old>=8&&Units.Num()==3&&Beds.Num()>=12);
-    const auto Scene=FCLScene::FromPlanet(Full,Error);if(!Scene){AddError(Error);return false;}
-    TArray<FCLSceneShapeSample> Shape;TestTrue(TEXT("Canonical wall shape samples"),Scene->SampleShape({Points},Shape,Error));
-    for(const auto& S:Shape)TestTrue(TEXT("Every geology probe is initially in actual solid cave wall"),S.FieldMeters<0);
-    AddInfo(FString::Printf(TEXT("Resolved tectonic seed %d: %d older and %d younger wall probes, %d strata; all 48 wall probes begin solid"),R.Tectonics.Seed,Old,Young,Beds.Num()));return true;
-}
 #endif

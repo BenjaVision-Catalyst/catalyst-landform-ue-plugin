@@ -4,7 +4,6 @@
 #include "Model/CLRegionGeneration.h"
 #include "Model/CLProvinceDefinition.h"
 #include "Scene/CLScene.h"
-#include "Testing/CLCaveIntersections.h"
 #include "CLPlanetStamp.h"
 #include "VoxelQuery.h"
 #include "VoxelLayers.h"
@@ -106,23 +105,5 @@ bool FCLCaveLegacyAssetTest::RunTest(const FString&)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLCaveIntersectionTest,"Catalyst.Landform.Caves.IntersectingNativeVolumes",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLCaveIntersectionTest::RunTest(const FString&)
-{
-    FString E;const auto R=MixedRecipe(E);const auto Base=FCLPlanetCompiler::Compile(R,E);if(!Base){AddError(E);return false;}const auto P=CLTesting::IntersectingCaves(Base,E);if(!P){AddError(E);return false;}
-    const auto C=P->Caves;TestEqual(TEXT("Intersecting support is grouped without rejecting source caves"),C->Networks,5);TestEqual(TEXT("One local union and one remote diagnostic domain"),C->InspectionDomains.Num(),2);
-    const FVector Center=(C->Passages[0].Points[0]+C->Passages[0].Points[1])*.5,X=(C->Passages[0].Points[1]-C->Passages[0].Points[0]).GetSafeNormal(),Y=(C->Passages[1].Points[1]-C->Passages[1].Points[0]).GetSafeNormal(),Up=Center.GetSafeNormal();
-    TArray<FVector> Probes;for(const auto Join:{Center,Center+X*10})for(const auto Direction:{X,Y,Up})for(int32 K=-6;K<=6;++K)Probes.Add(Join+Direction*(K*.1));
-    const auto Scene=FCLScene::FromPlanet(P,E);TArray<FCLSceneShapeSample> Air;Scene->SampleShape({Probes},Air,E);for(const auto& A:Air)TestTrue(TEXT("Same-type and cross-type junctions have real traversable volumetric clearance"),A.FieldMeters>.5);
-    const FVector Gap=Center+Up*3.2;Scene->SampleShape({MakeArrayView(&Gap,1)},Air,E);TestTrue(TEXT("Overlapping bounds do not fabricate a connection across solid rock"),Air[0].FieldMeters<-.1);
-    Scene->SampleCaveVoid({Probes},Air,E);for(const auto& A:Air)TestTrue(TEXT("Inspection shows the combined cavity interior, not internal tube walls"),A.FieldMeters<-.5);
-    const auto* Domain=C->InspectionDomains.FindByPredicate([](const auto& D){return D.Networks.Num()==4;});if(!TestNotNull(TEXT("All potentially intersecting sources share one native presenter"),Domain))return false;
-    FCLPlanetStamp Stamp;Stamp.bUseRecipe=true;Stamp.Recipe=*P->SourceRecipe;Stamp.CompiledRecipe=P;Stamp.Radius=P->RadiusMeters*100;Stamp.bCaveInspectionPreview=true;Stamp.CaveInspectionDomain=Domain->Id;Stamp.bApplyOnVoid=true;
-    const auto Native=StaticCastSharedPtr<FCLPlanetStampRuntime>(FVoxelStampRuntime::Create(nullptr,FVoxelStampRef::New(Stamp),nullptr));if(!TestTrue(TEXT("Native joined inspection stamp initializes"),Native&&!Native->FailedToInitialize()&&Native->InspectionCutters))return false;
-    TestEqual(TEXT("Native VPP retains its normal combined-domain bound without interval query fragmentation"),Native->GetChildren().Num(),1);
-    FVoxelDependencyCollector Dependencies(STATIC_FNAME("CL.CaveJoins"));const auto Table=FVoxelSurfaceTypeTable::Get();FVoxelQuery Query(0,FVoxelLayers::Empty(),*Table,Dependencies);
-    FVoxelDoubleVectorBuffer Points;Points.Allocate(Probes.Num());for(int32 I=0;I<Probes.Num();++I)Points.Set(I,Probes[I]*100);const auto Values=Native->SampleDistances(Query,Points);for(int32 I=0;I<Probes.Num();++I)TestTrue(TEXT("Native VPP sees open joined voids without an internal wall"),Values[I]<-50);
-    auto Fill=*P->SourceRecipe;Fill.Volumes.bEnabled=true;FCLSolidOperation O;O.Id=FGuid(1,1,1,1);O.Name=TEXT("Joined cave backfill");O.CenterMeters=Center;O.RadiusMeters=1.5;Fill.Volumes.Operations={O};const auto V=FCLCompiledVolumes::Compile(Fill.Volumes,P->RadiusMeters,P->Surfaces.Get(),E);if(!V){AddError(E);return false;}auto Filled=MakeShared<FCLCompiledPlanetRecipe>(*P);Filled->Volumes=V;FCLScene::FromPlanet(Filled,E)->SampleCaveVoid({MakeArrayView(&Center,1)},Air,E);TestTrue(TEXT("Later native earthworks can backfill the shared junction"),Air[0].FieldMeters>.5);
-    AddInfo(TEXT("Five source formations retained; four share one support domain; same-family and cross-family intersections remain open; separate solid barrier remains intact."));return true;
-}
+
 #endif

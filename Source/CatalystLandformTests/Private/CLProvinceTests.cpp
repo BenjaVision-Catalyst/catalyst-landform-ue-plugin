@@ -83,7 +83,7 @@ bool FCLProvinceDefinitionsTest::RunTest(const FString&)
     TSet<FGuid> Ids;TSet<uint8> Kinds;
     for(const auto& T:Types)
     {
-        TestTrue(TEXT("Province definitions use the existing Landform type and native algorithm"),T.SchemaVersion==(T.VolcanicArc.IsActive()?14:T.Transform.IsActive()?13:T.Rift.IsActive()?10:9)&&T.AlgorithmVersion==2&&T.Coordinates==ECLTerrainCoordinates::SphericalSurface);
+        TestTrue(TEXT("Province definitions use the existing Landform type and native algorithm"),T.SchemaVersion==(T.VolcanicArc.IsActive()?14:T.Transform.IsActive()?13:T.Rift.IsActive()?12:9)&&T.AlgorithmVersion==2&&T.Coordinates==ECLTerrainCoordinates::SphericalSurface);
         TestTrue(TEXT("Every placeholder keeps base relief and material"),T.PlacementSuitability.Province.bPlaceholder==!(T.Rift.IsActive()||T.Transform.IsActive()||T.VolcanicArc.IsActive())&&(!T.PlacementSuitability.Province.bPlaceholder||T.NoiseLayers.IsEmpty())&&!T.SurfaceStack.IsActive());
         TestFalse(TEXT("Landform identity is unique"),Ids.Contains(T.Id));Ids.Add(T.Id);Kinds.Add(uint8(T.PlacementSuitability.Province.Type));
         FCLProvinceGeology Context;TestEqual(TEXT("Unknown geology cannot place a province"),T.PlacementSuitability.Province.Match(Context),ECLProvinceMatch::Unknown);

@@ -13,7 +13,7 @@ struct FCLCaveSettings;
 class CATALYSTLANDFORM_API FCLSpatialCave
 {
 public:
-    static TSharedPtr<const FCLCompiledCaves> BuildPrototype(const FCLCompiledPlanetRecipe&,int32 Seed,FString& Error);
+    static TSharedPtr<const FCLCompiledCaves> BuildReference(const FCLCompiledPlanetRecipe&,int32 Seed,FString& Error);
     static TSharedPtr<const FCLCompiledCaves> BuildFamily(const FCLCompiledPlanetRecipe&,const FCLCaveSettings&,int32 Seed,FString& Error);
     bool IsProceduralFamily()const;
     bool TryPreparedSurfaces(const FVector&,FCLSurfaceWeights&)const;

@@ -26,7 +26,6 @@ bool FCLRiftLandform::Validate(FString& Error)const
 bool FCLRiftLandform::ValidateNoise(TConstArrayView<FCLNoiseLayer> Layers,FString& Error)const
 {
     if(!IsActive())return true;
-    if(AlgorithmVersion==1&&!Layers.IsEmpty()){Error=TEXT("Frozen Rift profile 1 has no surface noise layers");return false;}
     for(const auto& L:Layers)if(L.Operation!=ECLTerrainOperation::Noise||L.Blend!=ECLNoiseBlend::Add||L.Scale!=ECLNoiseScale::Meters||!L.Minimum.Guide.IsNone()||!L.Maximum.Guide.IsNone()||!L.Minimum.UpperGuide.IsNone()||!L.Maximum.UpperGuide.IsNone())
     {Error=TEXT("Rift surface noise uses additive metre-scale relief; planet guides and base geology retain their own owners");return false;}
     return true;
@@ -34,10 +33,8 @@ bool FCLRiftLandform::ValidateNoise(TConstArrayView<FCLNoiseLayer> Layers,FStrin
 TSharedPtr<const FCLCompiledRiftLandform> FCLCompiledRiftLandform::Compile(const FCLRiftLandform& S,int32 PlanetSeed,double R,double Span,TSharedPtr<const FCLCompiledTectonics> T,TSharedPtr<const FCLCompiledContinents> C,FString& Error)
 {
     if(!S.Validate(Error)||!S.IsActive()||!FMath::IsFinite(R)||R<=0||!FMath::IsFinite(Span)||Span<0){if(Error.IsEmpty())Error=TEXT("Invalid rift reference radius or surface interval");return nullptr;}
-    auto Out=MakeShared<FCLCompiledRiftLandform>();Out->Radius=R;Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(C);Out->Character=S.AlgorithmVersion==3?FMath::Lerp(.15,.72,S.Character):S.Character;Out->Seed=Mix(uint32(PlanetSeed))^Mix(uint32(S.Seed));
+    auto Out=MakeShared<FCLCompiledRiftLandform>();Out->Radius=R;Out->Tectonics=MoveTemp(T);Out->Crust=MoveTemp(C);Out->Character=FMath::Lerp(.15,.72,S.Character);Out->Seed=Mix(uint32(PlanetSeed))^Mix(uint32(S.Seed));
     const double Curation=Smooth(S.Character);
-    Out->ProfileVersion=S.AlgorithmVersion;
-    if(Out->ProfileVersion>=2)
     {
         Out->Noise=FCLNativeNoiseKernel::Create(Error);if(!Out->Noise)return nullptr;
         FRandomStream Random(int32(Out->Seed));const FVector Axis=Random.VRand();Axis.FindBestAxisVectors(Out->FallbackX,Out->FallbackY);
@@ -48,7 +45,6 @@ TSharedPtr<const FCLCompiledRiftLandform> FCLCompiledRiftLandform::Compile(const
 }
 double FCLCompiledRiftLandform::SampleMeters(const FVector& Direction)const
 {
-    if(ProfileVersion==1)return StructuralMeters(Direction);
     if(Direction.ContainsNaN()||Direction.IsNearlyZero()||Throw==0)return 0;
     double Confidence=0;const double Structural=StructuralMeters(Direction,&Confidence);
     const FVector P=Direction.GetSafeNormal()*Radius;

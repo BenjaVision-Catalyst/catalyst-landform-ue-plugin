@@ -78,3 +78,5 @@ DerivedDataCache/*
 
 .DS_Store
 !SourceArt/Stamps/MotionForgeStructuresV1/*.png
+
+__pycache__/

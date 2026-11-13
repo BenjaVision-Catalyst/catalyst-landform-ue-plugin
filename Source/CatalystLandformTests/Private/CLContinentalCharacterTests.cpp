@@ -58,25 +58,6 @@ bool FCLContinentalCharacterVersionTest::RunTest(const FString&)
     R.SchemaVersion=16;TestFalse(TEXT("New profile cannot enter legacy guide semantics"),FCLPlanetCompiler::Compile(R,Error).IsValid());
     return true;
 }
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLContinentalCharacterLegacyTest,"Catalyst.Landform.ContinentalCharacter.LegacyReference",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
-bool FCLContinentalCharacterLegacyTest::RunTest(const FString&)
-{
-    FString Text,Error;TSharedPtr<FJsonObject> Reference;
-    if(!FFileHelper::LoadFileToString(Text,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("conformance/continental-character-v2-reference.json")))||!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text),Reference)){AddError(TEXT("Missing independently captured v2 baseline"));return false;}
-    TArray<FVector> D;for(int32 Face=0;Face<6;++Face)for(int32 Y=0;Y<=12;++Y)for(int32 X=0;X<=12;++X)D.Add(FCLSphericalPatches::Direction(Face,FVector2D(X/6.-1,Y/6.-1)));
-    double Worst=0,WeightError=0;int32 Samples=0;
-    for(const auto& V:Reference->GetArrayField(TEXT("cases")))
-    {
-        const auto Case=V->AsObject();FJsonSerializer::Serialize(Case->GetObjectField(TEXT("recipe")).ToSharedRef(),TJsonWriterFactory<>::Create(&Text));
-        TStrongObjectPtr<UCLPlanetRecipeAsset> Asset(NewObject<UCLPlanetRecipeAsset>());if(!Asset->ImportRecipeJson(Text,Error)){AddError(Error);return false;}
-        TestEqual(TEXT("Import keeps the pinned continental version"),Asset->Recipe.Continents.AlgorithmVersion,2);
-        const auto P=FCLPlanetCompiler::Compile(Asset->Recipe,Error);if(!P){AddError(Error);return false;}
-        TArray<double> H;TArray<FCLSurfaceWeights> W;P->SampleHeightsMeters(D,H);P->SampleSurfaceWeights(D,W);
-        for(const auto& S:Case->GetArrayField(TEXT("samples")))
-        {const auto Q=S->AsObject();const int32 I=Q->GetIntegerField(TEXT("index"));Worst=FMath::Max(Worst,FMath::Abs(H[I]-Q->GetNumberField(TEXT("heightMeters"))));const auto& Expected=Q->GetArrayField(TEXT("surfaceWeights"));for(int32 K=0;K<8;++K)WeightError=FMath::Max(WeightError,FMath::Abs(W[I].Values[K]-Expected[K]->AsNumber()));++Samples;}
-    }
-    TestTrue(TEXT("Pre-change heights and materials remain unchanged"),Worst<1.e-8&&WeightError<1.e-8);AddInfo(FString::Printf(TEXT("%d original-binary probes: height %.12g m, material %.12g"),Samples,Worst,WeightError));return true;
-}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLContinentalCharacterSweepTest,"Catalyst.Landform.ContinentalCharacter.DenseContinuity",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLContinentalCharacterSweepTest::RunTest(const FString&)
 {

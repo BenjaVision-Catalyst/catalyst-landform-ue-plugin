@@ -1,5 +1,5 @@
 #include "CLRegionGenerationPanel.h"
-#include "CLTerrainDesigner.h"
+#include "CLPlanetEditor.h"
 #include "Model/CLTerrainType.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -84,7 +84,7 @@ void SCLRegionGenerationPanel::Refresh(TSharedPtr<const FCLCompiledRegionGenerat
                 [SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(FString::Printf(TEXT("%s · %d regions"),*Entry.Name,Count)))]]
             +SVerticalBox::Slot().AutoHeight().Padding(0,4,0,0)[SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4,4))
                 +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Edit Landform"))).IsEnabled(Asset->PaletteSources.Contains(Id))
-                    .OnClicked_Lambda([this,Id]{if(const auto* Source=Asset->PaletteSources.Find(Id))CLOpenTerrainDesigner(Source->Get(),&Asset->Recipe.RadialGuides);return FReply::Handled();})]
+                    .OnClicked_Lambda([this,Id]{if(const auto* Source=Asset->PaletteSources.Find(Id))CLOpenPlanetLandform(Source->Get());return FReply::Handled();})]
                 +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Refresh source"))).IsEnabled(Asset->PaletteSources.Contains(Id))
                     .OnClicked_Lambda([this,Id]{const FScopedTransaction Tx(FText::FromString(TEXT("Refresh regional Landform")));Error.Reset();FCLPlanetCompiler::WithAuthoringValidation([&]{return Asset->RefreshPaletteSource(Id,Error);});return FReply::Handled();})]
                 +SWrapBox::Slot()[SNew(SButton).Text(FText::FromString(TEXT("Remove"))).OnClicked_Lambda([this,Id]

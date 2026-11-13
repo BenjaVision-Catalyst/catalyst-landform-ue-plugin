@@ -35,14 +35,14 @@ public:
     double MaximumDisplacementMeters()const{return Throw;}
     double SpacingMeters()const{return Spacing;}
     double ScarpWidthMeters()const{return Width;}
-    double SurfaceDetailStrength()const{return ProfileVersion==3?FMath::Lerp(.8,.55,Character):ProfileVersion==2?FMath::Lerp(1.,.25,Character):1.;}
+    double SurfaceDetailStrength()const{return FMath::Lerp(.8,.55,Character);}
 private:
     double StructuralMeters(const FVector& Direction,double* Confidence=nullptr)const;
     TSharedPtr<const FCLCompiledTectonics> Tectonics;
     TSharedPtr<const FCLCompiledContinents> Crust;
     double Radius=1,Spacing=1,Throw=0,Width=1,Character=.5;
     uint32 Seed=0;
-    int32 ProfileVersion=1;
+
     FVector FallbackX,FallbackY;
     TSharedPtr<const FCLNativeNoiseKernel> Noise;
 };

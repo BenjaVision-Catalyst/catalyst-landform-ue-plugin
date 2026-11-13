@@ -1,5 +1,22 @@
 # Cave generation contract
 
+## Publication and end-user installation
+
+Publish the complete current plugin to GitHub `main` and verify a clean-project
+installation when the user requests publication/install verification, or before
+moving to a new feature. These checks are not required for every individual
+change during work on the same feature. Reconcile concurrent `main` changes;
+never force-push over another contributor's work. Publish the component before
+the workspace pointer. Keep ordinary authoring/test experiments unsaved.
+
+The repository is the end-user source of truth. Installation must use this
+repository and documented dependencies, with no LandformLab assets, private
+temporary checkout paths, retired editor, or superseded generator required.
+Keep one Planet editor. Remove obsolete implementation paths rather than
+retaining alternative editor/algorithm dispatch under compatibility aliases.
+
+## Cave generation
+
 When Caves is enabled, every valid planet recipe must produce at least one real,
 nonempty cave in the shared terrain volume. Only disabling Caves requests zero.
 Character zero and density zero retain the enabled minimum.
