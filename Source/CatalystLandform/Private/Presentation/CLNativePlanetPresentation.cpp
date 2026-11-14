@@ -66,6 +66,7 @@ struct FCLNativePlanetPresentation::FImpl
     TArray<TPair<uint32, const void *>, TInlineAllocator<512>> Colliders;
     const void *Runtime = nullptr;
     const void *Sampling = nullptr;
+    double MaxArcRadians = UE_PI / 3;
     double Radius = 0, InitialCurvature = 1, PreviousCurvature = 1, CurrentCurvature = 1;
     double CurrentRatio = 1, PreviousRatio = 1;
     FVector PreviousAnchor = FVector::ZAxisVector, CurrentAnchor = FVector::ZAxisVector;
@@ -143,7 +144,7 @@ struct FCLNativePlanetPresentation::FImpl
         {
             bInside = M.bHeightValid;
             for (const auto &U : M.Corners)
-                bInside &= FVector::DotProduct(U, CurrentAnchor) >= .500005;
+                bInside &= FVector::DotProduct(U, CurrentAnchor) >= FMath::Cos(MaxArcRadians)+5.e-6;
         }
         const bool bShown = bInside && !M.bHidden;
         if (C->bHiddenInGame == bShown)
@@ -404,11 +405,11 @@ struct FCLNativePlanetPresentation::FImpl
             {
                 FVector Corner(J&1?P.Box.Max.X:P.Box.Min.X,J&2?P.Box.Max.Y:P.Box.Min.Y,J&4?P.Box.Max.Z:P.Box.Min.Z);
                 const FVector D=Corner-Center;
-                Inside &= D.Length()<=1.3*Radius && FVector::DotProduct(D.GetSafeNormal(),CurrentAnchor)>=.500005;
+                Inside &= D.Length()<=1.3*Radius && FVector::DotProduct(D.GetSafeNormal(),CurrentAnchor)>=FMath::Cos(MaxArcRadians)+5.e-6;
             }
             C->SetHiddenInGame(P.Hidden||!Inside);
             if(!Inside) continue;
-            const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,MinRadius))*1.21+2.e-6);
+            const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,MinRadius))*FMath::Max(CurrentRatio,PreviousRatio)+2.e-6);
             const float Data[28]={float(CurrentAnchor.X),float(CurrentAnchor.Y),float(CurrentAnchor.Z),float(CurrentCurvature),
                 float(PreviousAnchor.X),float(PreviousAnchor.Y),float(PreviousAnchor.Z),float(PreviousCurvature),
                 float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0};
@@ -505,6 +506,7 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
     I.bWorldAnchored = Options.bWorldAnchored;
     I.bConsoleCurvature = Options.bConsoleCurvature;
     I.RequestedCurvature = Options.InitialCurvature;
+    I.MaxArcRadians = Options.MaxArcRadians;
     I.bFramed = Planet.SamplingWindow.bEnabled;
     I.Window = Planet.SamplingWindow;
     I.bGameplay = Options.bGameplay;
@@ -531,7 +533,8 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
         Error = TEXT("Native control requires native materials at fixed natural curvature");
         return nullptr;
     }
-    if (!FMath::IsFinite(I.InitialCurvature) || I.InitialCurvature < 0 || I.InitialCurvature > 1 ||
+    if (!FMath::IsFinite(I.MaxArcRadians) || I.MaxArcRadians<=0 || I.MaxArcRadians>=UE_HALF_PI ||
+        !FMath::IsFinite(I.InitialCurvature) || I.InitialCurvature < 0 || I.InitialCurvature > 1 ||
         (I.Mode != 1 && I.Mode != 2) || I.Radius <= 0)
     {
         Error = TEXT("Invalid prototype curvature/bounds/radius");
@@ -686,9 +689,10 @@ bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, 
     else { I.PreviousAnchor=I.CurrentAnchor;I.PreviousCurvature=I.CurrentCurvature; }
     I.CurrentAnchor = Anchor;
     I.CurrentCurvature = C;
-    auto Ratio = [](double Curvature) {
-        return (Curvature == 0 ? 1 : FMath::Sin(Curvature * UE_PI / 3) / (Curvature * UE_PI / 3)) /
-               (FMath::Sin(UE_PI / 3) / (UE_PI / 3));
+    auto Ratio = [&I](double Curvature) {
+        const double Arc=I.MaxArcRadians;
+        return (Curvature == 0 ? 1 : FMath::Sin(Curvature * Arc) / (Curvature * Arc)) /
+               (FMath::Sin(Arc) / Arc);
     };
     I.CurrentRatio = Ratio(C);
     I.PreviousRatio = Ratio(I.PreviousCurvature);
@@ -818,6 +822,9 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
     O->SetNumberField(TEXT("nativeMeshReadyEvents"), I.ReadyEvents);
     O->SetNumberField(TEXT("nativeMeshRetireEvents"), I.RetireEvents);
     O->SetNumberField(TEXT("frames"), I.Frames);
+    O->SetNumberField(TEXT("chartMaxArcDegrees"), FMath::RadiansToDegrees(I.MaxArcRadians));
+    O->SetNumberField(TEXT("physicalReferenceRadiusCm"), I.Radius);
+    if(I.CurrentCurvature>0) O->SetNumberField(TEXT("visualReferenceRadiusCm"), I.Radius/I.CurrentCurvature);
     O->SetNumberField(TEXT("minCurvature"), I.MinCurvature);
     O->SetNumberField(TEXT("maxCurvature"), I.MaxCurvature);
     O->SetNumberField(TEXT("activeCanonicalColliders"), I.Colliders.Num());
@@ -851,6 +858,7 @@ bool FCLNativePlanetPresentation::GetCurrentProjection(FCLPlanetProjection &Out)
     S.ReferenceRadiusCm = I.Radius;
     S.AnchorDirection = I.CurrentAnchor;
     S.Curvature = I.CurrentCurvature;
+    S.MaxArcRadians = I.MaxArcRadians;
     if ((I.bFramed || I.bWorldAnchored) && I.Planet.IsValid())
         S.Center = I.Planet->BodyCenterWorld();
     S.MinAltitudeCm = (I.bFramed ? -.45 : -.4) * I.Radius;

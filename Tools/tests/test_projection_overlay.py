@@ -19,6 +19,13 @@ class OverlayTests(unittest.TestCase):
   self.assertEqual(a,b);self.assertEqual(before,{p.name:p.read_bytes() for p in self.source.iterdir()})
   target=self.project/'Saved/NaniteProjection/EngineShaders/Nanite'
   self.assertIn('CLNaniteProjectNode',(target/overlay.CLUSTER).read_text());self.assertEqual((target/'Other.ush').read_bytes(),before['Other.ush'])
+ def test_tessellation_patch_projection_precedes_bounds(self):
+  overlay.stage(self.project,self.engine)
+  text=(self.project/'Saved/NaniteProjection/EngineShaders/Nanite'/overlay.SPLIT).read_text()
+  projection=text.index('Verts[CLVertex].Position=CLNaniteProjectLocalPosition')
+  self.assertLess(projection,text.index('BoundsMin = min( BoundsMin, PointPostDeform )'))
+  self.assertLess(projection,text.index('PointView[i] = mul'))
+  self.assertIn('CLNaniteProjection.ush',text)
  def test_unknown_source_refused(self):
   (self.source/overlay.CLUSTER).write_text('// changed source\n')
   with self.assertRaises(ValueError):overlay.stage(self.project,self.engine)

@@ -18,6 +18,9 @@
 #include "Serialization/JsonSerializer.h"
 #include "HAL/IConsoleManager.h"
 
+static TAutoConsoleVariable<float> CVarCLWalkingCurvature(
+    TEXT("landform.WalkingCurvature"), .05f, TEXT("Walking visual curvature: .05 gives 20x physical radius; 1 natural, 0 diagnostic flat"));
+
 class FCLWalkingPresentation
 {
 public:
@@ -56,7 +59,8 @@ public:
         if(!Material){Error=TEXT("Missing Landform surface material");return false;}
         FCLNanitePresentationOptions Options;
         Options.bWorldAnchored=true;Options.bNativeMaterials=true;Options.bConsoleCurvature=false;
-        Options.InitialCurvature=0;Options.ReferenceRadiusCm=Walker.PresentationRadiusCm;
+        Options.bGameplay=true;Options.InitialCurvature=CVarCLWalkingCurvature.GetValueOnGameThread();
+        Options.MaxArcRadians=FMath::DegreesToRadians(80.);Options.ReferenceRadiusCm=Walker.PresentationRadiusCm;
         Terrain=FCLNativePlanetPresentation::TryCreate(Planet,*Planet.GetSamplingRuntime()->RecipePlan,*Material,Options,Error);
         if(!Terrain) return false;
         for(TActorIterator<AActor> It(Walker.GetWorld());It;++It)
@@ -88,6 +92,8 @@ public:
         auto& Planet=*Walker.Planet;
         if(!Planet.GetActorTransform().Equals(PlanetPose,0))
         {Error=TEXT("Walking presentation changed its canonical Planet pose");return false;}
+        if(!Terrain->SetCurvature(CVarCLWalkingCurvature.GetValueOnGameThread()))
+        {Error=TEXT("Walking curvature must be finite and between zero and one");return false;}
         const FVector Up=(View.Location-Planet.BodyCenterWorld()).GetSafeNormal();
         if(!Terrain->Tick(Up,FPlatformTime::Seconds(),false,Error)) return false;
         FCLPlanetProjection Projection;
@@ -111,7 +117,8 @@ public:
         if(Terrain) Terrain->WriteReport(*Json);
         Json->SetNumberField(TEXT("presentedCameraFrames"),CameraFrames);
         Json->SetNumberField(TEXT("maxCameraInverseErrorCm"),MaxCameraInverseError);
-        Json->SetNumberField(TEXT("curvature"),0);
+        FCLPlanetProjection Projection;
+        if(Terrain && Terrain->GetCurrentProjection(Projection)) Json->SetNumberField(TEXT("curvature"),Projection.GetSettings().Curvature);
         Json->SetNumberField(TEXT("outdoorExposureBiasEV"),-.75);
         Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
         Json->SetBoolField(TEXT("fogAndHazeDisabled"),true);

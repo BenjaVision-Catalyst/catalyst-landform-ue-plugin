@@ -15,9 +15,18 @@ shader compilation; cooking and execution must use the same projection setting.
 `[CatalystLandform.Presentation] bEnableProjectionShaders` defaults to true.
 No personal checkout, Lab asset or host C++ adapter is required.
 
-The existing `FCLPlanetProjection` chart maps curvature zero to a tangent plane,
-preserving radial terrain relief and canonical field/collision/gravity. Current
-and previous packets drive WPO, normals and projected Nanite culling bounds.
+Walking uses `FCLPlanetProjection` at curvature **0.05**: the spherical carrier
+has 20 times the physical reference radius, while radial terrain relief stays
+1:1 and canonical field/collision/gravity remain unchanged. This retains a real
+horizon and extends the eye-level horizon distance by about 4.47 times. The
+walking chart admits directions within 80 degrees of its moving anchor; it is
+still finite. `landform.WalkingCurvature` supports a smooth two-second change
+from zero (diagnostic tangent plane) to one (natural curvature).
+Current and previous packets drive WPO, normals and conservative projected
+Nanite instance, node and tessellation-patch bounds. The split stage projects
+the same base triangle vertices as the raster domain before patch interpolation,
+culling and dicing, retaining native tessellation/displacement. Bounding boxes
+use a conservative sphere envelope when projection rotates source axes.
 Rigid Planet rotation/translation and unit scale are supported. The native VPP
 components retain their mesh/material/transform ownership; Landform observes
 completed generations before camera evaluation and again before render submission.

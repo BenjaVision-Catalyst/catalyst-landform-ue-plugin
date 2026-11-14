@@ -187,4 +187,44 @@ bool FCLProjectionDomainTest::RunTest(const FString&)
 
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGentleVistaTest,"Catalyst.Landform.Presentation.GentleVistaHorizon",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLGentleVistaTest::RunTest(const FString&)
+{
+    FCLPlanetProjectionSettings S;S.ReferenceRadiusCm=64725.59;
+    S.MaxArcRadians=FMath::DegreesToRadians(80.);S.MinAltitudeCm=-.4*S.ReferenceRadiusCm;S.MaxAltitudeCm=.3*S.ReferenceRadiusCm;
+    const double EyeHeight=170,Distance=55000,PeakHeight=10000;
+    const FVector Eye(0,0,S.ReferenceRadiusCm+EyeHeight);
+    auto Visible=[&](FVector Point,FVector Center,double Radius)
+    {
+        const FVector Ray=Point-Eye;
+        const double T=FMath::Clamp(FVector::DotProduct(Center-Eye,Ray)/Ray.SizeSquared(),0.,1.);
+        return FVector::Distance(Eye+T*Ray,Center)>=Radius-.001;
+    };
+    bool NaturalPeakVisible=false,GentlePeakVisible=false;
+    double NaturalHorizon=0,GentleHorizon=0;
+    for(double C:{1.,.05})
+    {
+        S.Curvature=C;FCLPlanetProjection P;
+        if(!TestTrue(TEXT("Vista chart accepted"),FCLPlanetProjection::TryCreate(S,P)))return false;
+        const double VisualRadius=S.ReferenceRadiusCm/C;
+        const FVector Center(0,0,S.ReferenceRadiusCm-VisualRadius);
+        const double Theta=Distance/S.ReferenceRadiusCm;
+        const FVector U(FMath::Sin(Theta),0,FMath::Cos(Theta));
+        FVector Surface,Peak,Recovered;
+        TestTrue(TEXT("Distant reference surface projects"),P.TryProjectPosition(U*S.ReferenceRadiusCm,Surface));
+        TestTrue(TEXT("Distant peak projects"),P.TryProjectPosition(U*(S.ReferenceRadiusCm+PeakHeight),Peak));
+        TestTrue(TEXT("Presentation retains a spherical horizon"),FMath::IsNearlyEqual((Surface-Center).Length(),VisualRadius,1.e-6));
+        TestTrue(TEXT("Peak altitude retained at full physical scale"),FMath::IsNearlyEqual((Peak-Surface).Length(),PeakHeight,1.e-6));
+        TestTrue(TEXT("Distant peak round trip"),P.TryUnprojectPosition(Peak,Recovered) && Recovered.Equals(U*(S.ReferenceRadiusCm+PeakHeight),1.e-6));
+        const double Horizon=VisualRadius*FMath::Acos(VisualRadius/(VisualRadius+EyeHeight));
+        if(C==1){NaturalPeakVisible=Visible(Peak,Center,VisualRadius);NaturalHorizon=Horizon;}
+        else{GentlePeakVisible=Visible(Peak,Center,VisualRadius);GentleHorizon=Horizon;}
+    }
+    TestFalse(TEXT("Natural small-planet horizon occludes the distant peak"),NaturalPeakVisible);
+    TestTrue(TEXT("Gentle curvature reveals a real peak above the horizon"),GentlePeakVisible);
+    TestTrue(TEXT("Reference-surface sight line extends over fourfold without becoming flat"),GentleHorizon>4.4*NaturalHorizon && GentleHorizon<4.5*NaturalHorizon);
+    AddInfo(FString::Printf(TEXT("Natural horizon %.2f m; gentle horizon %.2f m; 100 m peak at 550 m emerges"),NaturalHorizon/100,GentleHorizon/100));
+    return true;
+}
 #endif

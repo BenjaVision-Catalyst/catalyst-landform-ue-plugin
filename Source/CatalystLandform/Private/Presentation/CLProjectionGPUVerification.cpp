@@ -18,14 +18,15 @@ struct FCLProjectionGPUVerification::FImpl
 
     bool StartChart(FString& Error)
     {
-        const double Curvatures[] = {0, 1.e-12, 1.e-6, .1, .5, 1};
+        const double Curvatures[] = {0, 1.e-12, 1.e-6, .05, .1, .5, 1};
         const double Radii[] = {1000, 100000, 1000000};
         FRandomStream Random(0x434C4750 + Result.Charts);
         FCLPlanetProjectionSettings S;
         S.Center = FVector(1.e9, -2.e9, 3.e9);
-        S.ReferenceRadiusCm = Radii[Result.Charts / 6];
+        S.ReferenceRadiusCm = Radii[Result.Charts / 7];
         S.AnchorDirection = Random.VRand();
-        S.Curvature = Curvatures[Result.Charts % 6];
+        S.Curvature = Curvatures[Result.Charts % 7];
+        if(S.Curvature==.05) S.MaxArcRadians=FMath::DegreesToRadians(80.);
         S.MinAltitudeCm = -.4 * S.ReferenceRadiusCm;
         S.MaxAltitudeCm = .3 * S.ReferenceRadiusCm;
         // GPU input is FP32. Test the exact CPU mapping with the shader's documented
@@ -159,7 +160,7 @@ bool FCLProjectionGPUVerification::Tick()
     else if (Status == ECLProjectionReadbackStatus::Pending) return false;
     else if (I.Check(Outputs))
     {
-        if (I.Result.Charts == 18)
+        if (I.Result.Charts == 21)
         {
             I.Result.bComplete = I.Result.bPassed = true;
             I.Result.Message = TEXT("CPU/GPU position, inverse, vector, normal and rejection parity passed");

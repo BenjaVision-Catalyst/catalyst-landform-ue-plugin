@@ -5,8 +5,9 @@ from pathlib import Path
 
 CLUSTER='NaniteClusterCulling.usf'
 INSTANCE='NaniteInstanceCulling.usf'
+SPLIT='NaniteSplit.usf'
 # Filled from the qualified installed UE 5.8.4 source; no engine source is distributed.
-QUALIFIED={'NaniteClusterCulling.usf': 'f0b346d438bdb6341dbf7c2c1f22eea128ec317906ac1cef1a0abf52cac1d4e3', 'NaniteInstanceCulling.usf': 'f214ee73b1270693035a1d03f1ea4d15c39fc20e228ca718f42c0e80c8d4654a'}
+QUALIFIED={'NaniteClusterCulling.usf': 'f0b346d438bdb6341dbf7c2c1f22eea128ec317906ac1cef1a0abf52cac1d4e3', 'NaniteInstanceCulling.usf': 'f214ee73b1270693035a1d03f1ea4d15c39fc20e228ca718f42c0e80c8d4654a', 'NaniteSplit.usf':'70ead0045a88b225dfcc9120f5c12f08da57700f98a3c997b0df5e4c403a3a9a'}
 
 def digest(data):return hashlib.sha256(data).hexdigest()
 def patched(name,data):
@@ -26,6 +27,22 @@ def patched(name,data):
         anchor='#include "NaniteCullingCommon.ush"'
         assert s.count(anchor)==1
         s=s.replace(anchor,anchor+'\n#include "/Plugin/CatalystLandform/Private/CLNaniteProjection.ush"')
+    elif name==SPLIT:
+        anchor='#include "NaniteCullingCommon.ush"'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,anchor+'\n#include "/Plugin/CatalystLandform/Private/CLNaniteProjection.ush"')
+        anchor='\t// TODO: Handle PrimitiveData.MaxWPOExtent?'
+        assert s.count(anchor)==1
+        # Match raster-domain geometry before interpolation/displacement. Previous
+        # positions join the culling envelope because projection moves without
+        # changing the native instance transform used by temporal HZB tests.
+        s=s.replace(anchor,'\tfloat3 CLPreviousPositions[3];\n\tif (CLHasProjection(PrimitiveData))\n\t{\n\t\tUNROLL\n\t\tfor (int CLVertex=0; CLVertex<3; ++CLVertex)\n\t\t{\n\t\t\tCLPreviousPositions[CLVertex]=CLNaniteProjectLocalPosition(PrimitiveData,InstanceData,Verts[CLVertex].Position,true);\n\t\t\tVerts[CLVertex].Position=CLNaniteProjectLocalPosition(PrimitiveData,InstanceData,Verts[CLVertex].Position,false);\n\t\t}\n\t}\n\n'+anchor)
+        anchor='\t\tBoundsMax = max( BoundsMax, PointPostDeform );'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,anchor+'\n\t\tif (CLHasProjection(PrimitiveData))\n\t\t{\n\t\t\tconst float3 PreviousPoint=CLPreviousPositions[0]*Patch.Barycentrics[i].x+CLPreviousPositions[1]*Patch.Barycentrics[i].y+CLPreviousPositions[2]*Patch.Barycentrics[i].z;\n\t\t\tBoundsMin=min(BoundsMin,PreviousPoint);BoundsMax=max(BoundsMax,PreviousPoint);\n\t\t}')
+        anchor='\tBoundsExtent += GetLocalMaxWPOExtent( PrimitiveData, InstanceData, bWPOEnabled );'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,anchor+'\n\tif (CLHasProjection(PrimitiveData)) BoundsExtent += mul((PrimitiveData.CustomPrimitiveData[2].x*2.e-6f).xxx,abs((float3x3)DFHackToFloat(InstanceData.WorldToLocal)));')
     return s.replace('\n',newline).encode()
 
 def stage(project,engine):
@@ -35,7 +52,7 @@ def stage(project,engine):
     for name,sha in QUALIFIED.items():
         if digest((source/name).read_bytes())!=sha:raise ValueError('Unknown engine shader: '+name)
     # Validate every modification before creating any output.
-    changes={name:patched(name,(source/name).read_bytes()) for name in [CLUSTER,INSTANCE]}
+    changes={name:patched(name,(source/name).read_bytes()) for name in [CLUSTER,INSTANCE,SPLIT]}
     target=project/'Saved/NaniteProjection/EngineShaders/Nanite'
     manifest_path=target.parent.parent/'manifest.json'
     if target.exists():
@@ -51,8 +68,8 @@ def stage(project,engine):
         shutil.rmtree(target)
     shutil.copytree(source,target)
     for name,data in changes.items():(target/name).write_bytes(data)
-    (target/'CLProjectionOverlayMarker.ush').write_text('#define CL_NANITE_PROJECTION_OVERLAY_VERSION 1\n')
-    manifest=dict(overlay_version=1,engine_version='5.8.4',original_sha256=QUALIFIED,patched_sha256={n:digest(d) for n,d in changes.items()})
+    (target/'CLProjectionOverlayMarker.ush').write_text('#define CL_NANITE_PROJECTION_OVERLAY_VERSION 2\n')
+    manifest=dict(overlay_version=2,engine_version='5.8.4',original_sha256=QUALIFIED,patched_sha256={n:digest(d) for n,d in changes.items()})
     manifest['output_sha256']={p.relative_to(target).as_posix():digest(p.read_bytes()) for p in sorted(target.rglob('*')) if p.is_file()}
     (target.parent.parent/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     return manifest

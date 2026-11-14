@@ -17,6 +17,29 @@ FCLProjectionFrame CLNaniteFrame(float4 Data)
     F.MaxAltitude = .3f;
     return F;
 }
+// Project the same base vertices used by the material WPO before tessellation
+// patch bounds and edge factors are evaluated. Coordinates remain instance-local.
+float3 CLNaniteProjectLocalPosition(FPrimitiveSceneData P,FInstanceSceneData I,float3 Local,bool Previous)
+{
+    const float4 Frame=Previous?P.CustomPrimitiveData[1]:P.CustomPrimitiveData[0];
+    if(!CLHasProjection(P) || Frame.w==1) return Local;
+    const float4 Packet=P.CustomPrimitiveData[2];
+    const float4x4 L2W=DFHackToFloat(I.LocalToWorld),W2L=DFHackToFloat(I.WorldToLocal);
+    const float3 World=mul(float4(Local,1),L2W).xyz;
+    float3 Target;
+    if(Packet.w==9150)
+    {
+        const float3 Origin=Previous?P.CustomPrimitiveData[5].xyz+P.CustomPrimitiveData[6].xyz:P.CustomPrimitiveData[3].xyz+P.CustomPrimitiveData[4].xyz;
+        Target=CLAnchoredPosition(Packet.x,normalize(Frame.xyz),Frame.w,World-Origin)+Origin;
+    }
+    else if(Packet.w==9140)
+    {
+        const float3 Root=DFDemote(P.ActorWorldPosition),Origin=Previous?P.CustomPrimitiveData[4].xyz:P.CustomPrimitiveData[3].xyz;
+        Target=CLAnchoredPosition(Packet.x,normalize(Frame.xyz),Frame.w,World-Root-Origin)+Origin+Root;
+    }
+    else Target=CLProjectionPosition(CLNaniteFrame(Frame),World/Packet.x)*Packet.x;
+    return mul(float4(Target,1),W2L).xyz;
+}
 void CLNaniteProjectBox(FPrimitiveSceneData P, FInstanceSceneData I, inout float3 Center, inout float3 Extent)
 {
     if (!CLHasProjection(P) || (P.CustomPrimitiveData[0].w == 1 && P.CustomPrimitiveData[1].w == 1)) return;
@@ -29,7 +52,8 @@ void CLNaniteProjectBox(FPrimitiveSceneData P, FInstanceSceneData I, inout float
         const float3 Origin=P.CustomPrimitiveData[3].xyz+P.CustomPrimitiveData[4].xyz;
         const float3 OldOrigin=P.CustomPrimitiveData[5].xyz+P.CustomPrimitiveData[6].xyz;
         const float3 World=mul(float4(Center,1),L2W).xyz;
-        const float3 E=mul(Extent,abs((float3x3)L2W))*Packet.y;
+        // A nonlinear rotation can move any source axis into any target axis.
+        const float3 E=(length(mul(Extent,abs((float3x3)L2W)))*Packet.y+Packet.x*2.e-6f).xxx;
         const float3 C0=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[0].xyz),P.CustomPrimitiveData[0].w,World-Origin)+Origin;
         const float3 C1=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[1].xyz),P.CustomPrimitiveData[1].w,World-OldOrigin)+OldOrigin;
         const float3 Low=min(C0,C1)-E,High=max(C0,C1)+E;
@@ -39,7 +63,8 @@ void CLNaniteProjectBox(FPrimitiveSceneData P, FInstanceSceneData I, inout float
     {
         const float3 Root=DFDemote(P.ActorWorldPosition);
         const float3 Source=mul(float4(Center,1),L2W).xyz-Root;
-        const float3 E=mul(Extent,abs((float3x3)L2W))*Packet.y;
+        // A nonlinear rotation can move any source axis into any target axis.
+        const float3 E=(length(mul(Extent,abs((float3x3)L2W)))*Packet.y+Packet.x*2.e-6f).xxx;
         float3 C0=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[0].xyz),P.CustomPrimitiveData[0].w,Source-P.CustomPrimitiveData[3].xyz)+P.CustomPrimitiveData[3].xyz;
         float3 C1=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[1].xyz),P.CustomPrimitiveData[1].w,Source-P.CustomPrimitiveData[4].xyz)+P.CustomPrimitiveData[4].xyz;
         const float3 Low=min(C0,C1)-E,High=max(C0,C1)+E;
