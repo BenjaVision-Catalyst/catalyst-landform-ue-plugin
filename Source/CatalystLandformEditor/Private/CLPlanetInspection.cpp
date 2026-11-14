@@ -17,11 +17,14 @@
 #include "Engine/GameViewportClient.h"
 #include "UnrealClient.h"
 #include "Widgets/SWindow.h"
+#include "HAL/IConsoleManager.h"
 
 FCLLaunchPlanetInspection FCLPlanetInspection::Launch;
 
 namespace
 {
+TAutoConsoleVariable<int32> CVarWalkPreviewWidth(TEXT("landform.WalkingPreviewWidth"),2560,TEXT("Walking preview width in rendered pixels; applied on launch"));
+TAutoConsoleVariable<int32> CVarWalkPreviewHeight(TEXT("landform.WalkingPreviewHeight"),1440,TEXT("Walking preview height in rendered pixels; applied on launch"));
 class FCLInspectionHost
 {
     TOptional<FCLPlanetInspectionRequest> Request;
@@ -34,7 +37,8 @@ class FCLInspectionHost
     FTSTicker::FDelegateHandle SizingHandle;
     int32 SizingAttempts=0;
     double SizingStarted=0;
-    FVector2D RequestedClient=FVector2D(3840,2160);
+    FIntPoint TargetSize=FIntPoint(2560,1440);
+    FVector2D RequestedClient=FVector2D::ZeroVector;
     FString Result;
     TUniquePtr<FCLInspectionMaterials> Materials;
 public:
@@ -57,6 +61,9 @@ public:
         Error.Reset();
         if(!GEditor||GEditor->PlayWorld||GEditor->GetPlaySessionRequest().IsSet()||Request)
         {Error=TEXT("Finish the current play session before starting another walk.");return false;}
+        TargetSize=FIntPoint(CVarWalkPreviewWidth.GetValueOnGameThread(),CVarWalkPreviewHeight.GetValueOnGameThread());
+        if(TargetSize.X<320||TargetSize.Y<180||TargetSize.X>8192||TargetSize.Y>8192)
+        {Error=TEXT("Walking preview dimensions must be between 320x180 and 8192x8192 pixels.");return false;}
         UWorld* World=GEditor->GetEditorWorldContext().World();
         if(!World||!Input.SourceAsset.IsValid()||Input.Direction.ContainsNaN()||Input.Direction.IsNearlyZero()||Input.RecipeJson.IsEmpty())
         {Error=TEXT("Choose a location on the open Planet first.");return false;}
@@ -79,7 +86,7 @@ public:
         Settings.Reset(DuplicateObject<ULevelEditorPlaySettings>(GetDefault<ULevelEditorPlaySettings>(),GetTransientPackage()));
         Settings->SetPlayNetMode(PIE_Standalone);Settings->SetPlayNumberOfClients(1);
         Settings->SetRunUnderOneProcess(true);Settings->bLaunchSeparateServer=false;
-        Settings->NewWindowWidth=3840;Settings->NewWindowHeight=2160;
+        Settings->NewWindowWidth=TargetSize.X;Settings->NewWindowHeight=TargetSize.Y;
         Settings->CenterNewWindow=true;
         FRequestPlaySessionParams Params;Params.EditorPlaySettings=Settings.Get();Params.bAllowOnlineSubsystem=false;
         Params.GameModeOverride=ACLPlanetInspectionGameMode::StaticClass();
@@ -92,7 +99,7 @@ public:
     {
         auto* World=PlayWorld.Get();auto* Viewport=World?World->GetGameViewport():nullptr;
         if(!Request||!Viewport||!Viewport->Viewport) {SizingHandle.Reset();return false;}
-        const FIntPoint Actual=Viewport->Viewport->GetSizeXY(),Wanted(3840,2160);
+        const FIntPoint Actual=Viewport->Viewport->GetSizeXY(),Wanted=TargetSize;
         if(Actual==Wanted)
         {
             UE_LOG(LogTemp,Display,TEXT("LANDFORM_WALK_VIEWPORT: %dx%d"),Actual.X,Actual.Y);
@@ -100,7 +107,7 @@ public:
         }
         if(SizingAttempts>=8||FPlatformTime::Seconds()-SizingStarted>10)
         {
-            UE_LOG(LogTemp,Warning,TEXT("LANDFORM_WALK_VIEWPORT: requested 3840x2160, got %dx%d"),Actual.X,Actual.Y);
+            UE_LOG(LogTemp,Warning,TEXT("LANDFORM_WALK_VIEWPORT: requested %dx%d, got %dx%d"),Wanted.X,Wanted.Y,Actual.X,Actual.Y);
             SizingHandle.Reset();return false;
         }
         if(auto Window=Viewport->GetWindow();Window&&Actual.X>0&&Actual.Y>0)
@@ -120,7 +127,7 @@ public:
         if(Simulating||!GEditor||!GEditor->PlayWorld||!EditorWorld.IsValid()||EditorWorld.Get()!=GEditor->GetEditorWorldContext().World())
         {Fail(TEXT("The source world changed before walking could start."));return;}
         UWorld* World=GEditor->PlayWorld;PlayWorld=World;
-        SizingAttempts=0;SizingStarted=FPlatformTime::Seconds();RequestedClient=FVector2D(3840,2160);
+        SizingAttempts=0;SizingStarted=FPlatformTime::Seconds();RequestedClient=FVector2D(TargetSize.X,TargetSize.Y);
         SizingHandle=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateRaw(this,&FCLInspectionHost::SizeWindow),.25f);
         ACLPlanet* Target=EditorPlanet.IsValid()?Cast<ACLPlanet>(EditorUtilities::GetSimWorldCounterpartActor(EditorPlanet.Get())):nullptr;
         if(EditorPlanet.IsValid()&&(!Target||Target->GetWorld()!=World))

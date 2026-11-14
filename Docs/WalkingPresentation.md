@@ -2,7 +2,9 @@
 
 Landform owns the existing-world inspection host, VPP character, 20 m/s radial
 movement and shared terrain/scenery/camera presentation. Walking starts from the
-Planet editor's player marker in a centered 3840 × 2160 client window.
+Planet editor's player marker in a centered 2560 × 1440 client window.
+`landform.WalkingPreviewWidth` and `landform.WalkingPreviewHeight` configure
+the next launch without rebuilding; startup sizing verifies the requested pixels.
 The editor world and its unsaved recipe, guides, instances and materials remain authoritative. PIE duplicates that world.
 
 ## UE 5.8 integration
