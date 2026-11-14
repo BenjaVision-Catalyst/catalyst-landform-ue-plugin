@@ -6,6 +6,8 @@
 #include "PCGContext.h"
 #include "Data/PCGPointData.h"
 #include "GameFramework/Actor.h"
+#include "Scene/CLGroundSurface.h"
+#include "Async/Async.h"
 #include "Metadata/PCGMetadata.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 
@@ -17,6 +19,7 @@ UCLPlanetSurfaceRegion* Region(FPCGContext* C)
     const auto* Component=Cast<UPCGComponent>(C->ExecutionSource.GetObject());
     return Component&&Component->GetOwner()?Component->GetOwner()->FindComponentByClass<UCLPlanetSurfaceRegion>():nullptr;
 }
+struct FCLGroundBatch {TArray<FCLGroundSurfaceSample> Samples;FString Error;bool bSuccess=false;};
 struct FCLSurfaceContext : FPCGContext
 {
     bool Initialized=false;
@@ -27,6 +30,9 @@ struct FCLSurfaceContext : FPCGContext
     int32 PlanetSeed=0;
     double SeaLevel=0;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
+    TSharedPtr<const FCLGroundSurfaceSampler> Ground;
+    TFuture<FCLGroundBatch> Pending;
+    TArray<int32> PendingSeeds;
 };
 class FCLSurfaceElement : public IPCGElementWithCustomContext<FCLSurfaceContext>
 {
@@ -47,6 +53,7 @@ protected:
             {UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface requires a valid configured region and positive density."));return true;}
             const auto Runtime=R->Planet->GetSamplingRuntime();C->Plan=Runtime?Runtime->RecipePlan:nullptr;
             if(!C->Plan){UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface has no accepted terrain plan."));return true;}
+            FString Error;C->Ground=FCLGroundSurfaceSampler::Make(C->Plan,Error);if(!C->Ground){UE_LOG(LogCLSurfacePCG,Error,TEXT("%s"),*Error);return true;}
             C->Reference=C->Plan->RadiusMeters+C->Plan->BaseHeightMeters;C->Pose=R->Planet->GetActorTransform();
             if(const auto& Recipe=C->Plan->SourceRecipe)
             {
@@ -63,25 +70,31 @@ protected:
             C->X=C->X0;C->Y=C->Y0;
         }
         if(!C->Plan||C->X0>=C->X1||C->Y0>=C->Y1)return true;
-        TArray<FVector> Directions;TArray<int32> Seeds;Directions.Reserve(1536);Seeds.Reserve(512);
-        // Yield between bounded native sampling batches, keeping the editor responsive.
-        for(int32 Count=0;C->X<C->X1&&Count<512;++Count)
+        if(!C->Pending.IsValid())
         {
-            const int32 X=C->X,Y=C->Y;
-            if(++C->Y>=C->Y1){C->Y=C->Y0;++C->X;}
-            FRandomStream Random(HashCombineFast(uint32(C->SampleSeed),HashCombineFast(uint32(C->Face),HashCombineFast(uint32(X),uint32(Y)))));
-            const double U=-1+2*(X+Random.FRand())/C->Grid,V=-1+2*(Y+Random.FRand())/C->Grid;
-            const double J=1/FMath::Pow(1+U*U+V*V,1.5);
-            if(Random.FRand()>J)continue;
-            const FVector D=UCLPlanetSurfacePCGSettings::FaceDirection(C->Face,U,V);
-            const FVector T=FVector::CrossProduct(D,FMath::Abs(D.Z)<.9?FVector::ZAxisVector:FVector::XAxisVector).GetSafeNormal();
-            const FVector B=FVector::CrossProduct(D,T);
-            Directions.Add(D);Directions.Add((D+T*.001).GetSafeNormal());Directions.Add((D+B*.001).GetSafeNormal());Seeds.Add(Random.GetCurrentSeed());
+            TArray<FVector> Directions;C->PendingSeeds.Reset();
+            // Pure immutable scene queries run off-thread; publish point UObjects
+            // on the PCG game-thread lane only after the bounded batch completes.
+            for(int32 Count=0;C->X<C->X1&&Count<64;++Count)
+            {
+                const int32 X=C->X,Y=C->Y;if(++C->Y>=C->Y1){C->Y=C->Y0;++C->X;}
+                FRandomStream Random(HashCombineFast(uint32(C->SampleSeed),HashCombineFast(uint32(C->Face),HashCombineFast(uint32(X),uint32(Y)))));
+                const double U=-1+2*(X+Random.FRand())/C->Grid,V=-1+2*(Y+Random.FRand())/C->Grid;
+                if(Random.FRand()>1/FMath::Pow(1+U*U+V*V,1.5))continue;
+                Directions.Add(UCLPlanetSurfacePCGSettings::FaceDirection(C->Face,U,V));C->PendingSeeds.Add(Random.GetCurrentSeed());
+            }
+            if(Directions.IsEmpty())return C->X>=C->X1;
+            C->Pending=Async(EAsyncExecution::ThreadPool,[Ground=C->Ground,Directions=MoveTemp(Directions)]
+            {FCLGroundBatch B;B.bSuccess=Ground->Sample(Directions,B.Samples,B.Error);return B;});
+            return false;
         }
-        TArray<double> H;C->Plan->SampleHeightsMeters(Directions,H);
+        if(!C->Pending.IsReady())return false;
+        auto Batch=C->Pending.Get();C->Pending=TFuture<FCLGroundBatch>();
+        if(!Batch.bSuccess){UE_LOG(LogCLSurfacePCG,Error,TEXT("Ground query failed: %s"),*Batch.Error);C->OutputData.TaggedData.Reset();return true;}
         UPCGPointData* Data=nullptr;
-        for(int32 I=0;I<Seeds.Num();++I)
+        for(int32 I=0;I<Batch.Samples.Num();++I)
         {
+            const auto& Ground=Batch.Samples[I];if(!Ground.bSupported)continue;
             if(!Data||Data->GetPoints().Num()>=65536)
             {
                 // Reuse the last incomplete data set. Output remains owned by the PCG context across yields.
@@ -94,12 +107,9 @@ protected:
                     Data->Metadata->CreateAttribute<double>(TEXT("Planet_SeaLevelMeters"),C->SeaLevel,false,true);
                     auto& O=C->OutputData.TaggedData.AddDefaulted_GetRef();O.Data=Data;O.Pin=PCGPinConstants::DefaultOutputLabel;}
             }
-            const int32 K=I*3;const FVector P=Directions[K]*(C->Plan->RadiusMeters+H[K]);
-            const FVector A=Directions[K+1]*(C->Plan->RadiusMeters+H[K+1]),B=Directions[K+2]*(C->Plan->RadiusMeters+H[K+2]);
-            const FVector N=C->Pose.TransformVectorNoScale(FVector::CrossProduct(A-P,B-P).GetSafeNormal());
             auto& Point=Data->GetMutablePoints().AddDefaulted_GetRef();
-            Point.Transform=FTransform(FRotationMatrix::MakeFromZ(N).ToQuat(),C->Pose.TransformPosition(P*100));
-            Point.Seed=Seeds[I];Point.Density=1;Point.SetLocalBounds(FBox(FVector(-50),FVector(50)));
+            Point.Transform=FTransform(FRotationMatrix::MakeFromZ(C->Pose.TransformVectorNoScale(Ground.Normal)).ToQuat(),C->Pose.TransformPosition(Ground.PositionMeters*100));
+            Point.Seed=C->PendingSeeds[I];Point.Density=1;Point.SetLocalBounds(FBox(FVector(-50),FVector(50)));
         }
         return C->X>=C->X1;
     }

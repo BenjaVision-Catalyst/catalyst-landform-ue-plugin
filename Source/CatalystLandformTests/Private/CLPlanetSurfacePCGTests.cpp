@@ -9,6 +9,7 @@
 #include "PCGNode.h"
 #include "PCGContext.h"
 #include "Data/PCGPointData.h"
+#include "HAL/PlatformProcess.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Interfaces/IPluginManager.h"
@@ -32,7 +33,7 @@ bool FCLPlanetSurfaceTilesTest::RunTest(const FString&)
         UCLPlanetSurfacePCGSettings::ConfigureRegion(Owner,Planet,Face,X,Y,N);
         FPCGDataCollection Input;auto E=Settings->GetElement();
         TUniquePtr<FPCGContext> C(E->Initialize(FPCGInitializeElementParams(&Input,TWeakInterfacePtr<IPCGGraphExecutionSource>(Component),Node)));if(!TestNotNull(TEXT("Configured PCG execution context"),C.Get()))return TArray<FString>();C->AsyncState.NumAvailableTasks=1;
-        int32 Steps=0;while(!E->Execute(C.Get())&&++Steps<10000){}
+        int32 Steps=0;while(!E->Execute(C.Get())&&++Steps<10000){FPlatformProcess::Sleep(.001f);}
         TestTrue(TEXT("Surface node completes within bounded batches"),Steps<10000);
         TArray<FString> Keys;
         for(const auto& Tag:C->OutputData.TaggedData)

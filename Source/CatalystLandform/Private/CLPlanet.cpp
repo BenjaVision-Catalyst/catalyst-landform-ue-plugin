@@ -1,5 +1,6 @@
 #include "CLPlanet.h"
 #include "Misc/SecureHash.h"
+#include "Scene/CLGroundSurface.h"
 #include "Surface/CLNativeMaterialCoordinates.h"
 #include "Surface/CLSurfaceLibrary.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
@@ -150,7 +151,8 @@ void ACLPlanet::RebuildTerrain()
     TerrainStamp->SetStamp(Stamp);
     SamplingRuntime = StaticCastSharedPtr<FCLPlanetStampRuntime>(
         FVoxelStampRuntime::Create(GetWorld(), TerrainStamp->GetStamp(), TerrainStamp));
-    FString SurfaceInput;
+    FString GroundError;GroundSampler=SamplingRuntime&&SamplingRuntime->RecipePlan?FCLGroundSurfaceSampler::Make(SamplingRuntime->RecipePlan,GroundError):nullptr;
+    FString SurfaceInput=FString::Printf(TEXT("GroundSurface=%d|"),FCLGroundSurfaceSampler::Profile);
     FCLPlanetRecipe::StaticStruct()->ExportText(SurfaceInput,&Stamp.Recipe,nullptr,this,PPF_None,nullptr);
     SurfaceInput+=FString::Printf(TEXT("|%.17g|"),Stamp.Radius);
     for(const auto& P:Stamp.Placements)FCLSphericalHeightmapPlacement::StaticStruct()->ExportText(SurfaceInput,&P,nullptr,this,PPF_None,nullptr);
@@ -410,4 +412,13 @@ void ACLSphericalHeightmapStamp::Tick(float DeltaSeconds)
             DrawDebugLine(GetWorld(), FootprintPoints[A], FootprintPoints[B],
                 FootprintColor, false, -1, 0, 3);
         }
+}
+
+
+bool ACLPlanet::SampleGroundSurface(const TArray<FVector>& D,TArray<FVector>& Positions,TArray<FVector>& Normals,TArray<bool>& Supported,FString& Error)const
+{
+    Positions.Reset();Normals.Reset();Supported.Reset();
+    if(!GroundSampler){Error=TEXT("No accepted whole-body ground sampler");return false;}
+    TArray<FCLGroundSurfaceSample> Samples;if(!GroundSampler->Sample(D,Samples,Error))return false;
+    for(const auto& S:Samples){Positions.Add(S.PositionMeters);Normals.Add(S.Normal);Supported.Add(S.bSupported);}return true;
 }

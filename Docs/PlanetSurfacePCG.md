@@ -1,20 +1,23 @@
 # Planetary surface PCG
 
-`Landform Planet Surface` samples the accepted outer-surface plan in canonical
-planet coordinates. It does not sample a world-Z rectangle or change the planet.
+`Landform Planet Surface` samples supported ground after accepted cave/volume
+composition in canonical planet coordinates. It does not sample a world-Z rectangle or change the planet.
 `UCLPlanetSurfaceRegion` binds a PCG owner to one disjoint cube-sphere tile and
 its explicit `ACLPlanet`. `ConfigureRegion` installs that component on an owner.
 The same seeded lattice survives changes in tile count without omissions or
 repeat candidates. Cube-face area correction keeps reference-area density
-consistent around the body. Native height and finite-difference normal queries
-match the Planet Ecosystem preview's surface convention.
+consistent around the body. Outside conservative cave/cut/addition supports, the unchanged radial exterior
+retains its seeded height/normal sampling. Inside affected supports, contact
+positions and normals come from the same composed `FCLScene` used by VPP.
+The optional classifier receives those resolved positions/normals, so slope and
+altitude selection follow the actual support rather than the removed surface.
 
 Feed these points into an optional classifier before asset selection/spawning.
 For trees and upright shrubs, put `Landform Radial Orientation` after slope
 classification and before local yaw/scale variation. Ground scatter can keep
 its surface-normal orientation. Landform has no Ecosystem dependency.
 
-Surface work yields after 512 candidates and publishes data sets of at most
+Surface work yields after 64 candidates and publishes data sets of at most
 65,536 points. A region refuses more than two million lattice candidates rather
 than silently reducing density. The current grid has at most 200,000 cells per
 face axis and up to 64 tiles per axis. These are explicit generation limits,
@@ -69,3 +72,36 @@ These values supersede stale graph-authoring snapshots; they do not modify
 classifier assets or geological ownership. Native tests exercise disjoint
 sampling, stable/change-sensitive identity, a live accepted radius edit followed
 by automatic PCG regeneration, and optional classifier context consumption.
+
+
+## Cave-aware support contract
+
+`FCLGroundSurfaceSampler` owns the shared immutable query. It starts outside the
+affected ground, probes radially in fixed 0.125 m increments, brackets the first
+air-to-solid contact with at least 0.5 m of radial solid support, and bisects the
+contact ten times. Thin, sub-voxel roof slivers cannot anchor foliage above the
+visible cave floor; a closed cave with substantial cover retains its exterior
+roof. Added volume bounds extend the search above the old height surface.
+Normals use six composed-field probes at a 5 cm baseline. The field is signed
+implicit, not a conservative distance estimate: no sphere-tracing step is taken
+from a field magnitude. The search is resolution-qualified and capped at 2,048
+spatial steps (256 m per affected ray). Missing support, exhausted rays and
+non-outward/degenerate contacts emit no vegetation point. Sub-resolution contacts
+and deeper supports are not claimed as resolved.
+
+The PCG node runs pure query batches on the native worker pool, retaining the
+immutable plan until completion and publishing point UObjects on the main PCG
+lane. Cancellation can discard a batch without publishing stale products.
+`ACLPlanet::SampleGroundSurface` exposes the same positions/normals/support flags
+for classifier/floor bakes and qualification. This is the accepted recipe's
+whole-body composed scene; live sculpt edits and arbitrary external stamp stacks
+are not qualified by this adapter. The sampler profile participates in accepted
+scenery identity, so older height-only generated regions invalidate automatically.
+
+Ground-contact acceptance must include independent native VPP collision at an
+open cave. Agreement with `SampleRadialHeights` alone is a height-envelope check,
+not final-ground qualification. Analytic regressions cover an open cavity floor,
+a closed roof, a sub-voxel roof, a higher added ledge, a sloped cut and unresolved
+deep air. The existing rendered CurrentRift and walking regressions remain part
+of qualification. No cave morphology, VPP code, engine files, world or recipe
+is changed by this placement correction.

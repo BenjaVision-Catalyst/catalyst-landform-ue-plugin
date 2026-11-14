@@ -6,6 +6,7 @@
 #include "CLPlanetStamp.h"
 #include "CLPlanet.generated.h"
 
+class FCLGroundSurfaceSampler;
 class UVoxelStampComponent;
 class UVoxelVolumeLayer;
 class UArrowComponent;
@@ -70,6 +71,11 @@ public:
     UFUNCTION(BlueprintCallable, Category="Planet")
     int32 GetNativeStampCount() const;
 
+    /** Final composed, exposed support surface; unsupported rays are explicitly marked. Body-space metres. */
+    UFUNCTION(BlueprintCallable, Category="Landform|PCG")
+    bool SampleGroundSurface(const TArray<FVector>& LocalDirections,TArray<FVector>& PositionsMeters,TArray<FVector>& Normals,TArray<bool>& Supported,FString& Error)const;
+
+
     UFUNCTION(BlueprintCallable, Category="Planet|Recipe")
     TArray<FCLResolvedStampPlacement> GetDistributedStampPlacements() const;
 
@@ -89,6 +95,7 @@ private:
     bool bRuntimeRecipeApplied = false;
     TSharedPtr<const FCLPlanetStampRuntime> SamplingRuntime;
     FString SurfaceGenerationKey;
+    TSharedPtr<const FCLGroundSurfaceSampler> GroundSampler;
 #if WITH_EDITOR
     TWeakObjectPtr<UCLPlanetRecipeAsset> BoundRecipe;
     FDelegateHandle RecipeChangedHandle;

@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-15",
+  "platform": "UE 5.8.4 Mac arm64 Metal SM6",
+  "samplerProfile": 3,
+  "nativePassed": 24,
+  "nativeFailed": 0,
+  "installerAdapterAndOverlayPassed": 12,
+  "groundContactTest": "Catalyst.Landform.PCG.ComposedGroundContact",
+  "analyticCases": [
+    "unchanged exterior",
+    "surface-open cavity floor",
+    "closed cave roof",
+    "sub-voxel roof rejected as support",
+    "higher added ledge",
+    "sloped cut normal",
+    "unsupported deep air"
+  ],
+  "queryContract": {
+    "probeStepMeters": 0.125,
+    "minimumAffectedSupportDepthMeters": 0.5,
+    "maximumProbeStepsPerRay": 2048,
+    "bisectionIterations": 10,
+    "normalProbeBaselineMeters": 0.05,
+    "usesFieldMagnitudeAsConservativeStep": false,
+    "unsupportedRaysEmitVegetation": false,
+    "workerCandidateBatch": 64
+  },
+  "nativeReport": "/private/tmp/cave-ground-native-support-report/index.json",
+  "hostEvidence": "VPPTest58/conformance/cave-aware-ground-placement-mac-arm64.json",
+  "scope": "Immutable whole-body compiled cave/volume scene; resolution-qualified support, not arbitrary live sculpt or packaged streaming.",
+  "engineAndVPPFilesEdited": false,
+  "caveGeneratorChanged": false,
+  "landformHasEcosystemDependency": false
+}
