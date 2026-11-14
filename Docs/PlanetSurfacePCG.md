@@ -105,3 +105,12 @@ a closed roof, a sub-voxel roof, a higher added ledge, a sloped cut and unresolv
 deep air. The existing rendered CurrentRift and walking regressions remain part
 of qualification. No cave morphology, VPP code, engine files, world or recipe
 is changed by this placement correction.
+
+Consumers with classification or content state beyond terrain can call
+`CLInvalidatePlanetSurfaceRegion` on the game thread. It clears the derived
+surface validity and resets that region's queue attempt so the existing single
+queue hides/cancels old products and regenerates after its normal debounce.
+Landform stores no consumer model and starts no second queue. Ecosystems uses
+this hook for biome assignment changes; a live property edit invalidates all 96
+configured review regions immediately. Terrain changes continue to use the
+accepted surface key and the same completion fences.

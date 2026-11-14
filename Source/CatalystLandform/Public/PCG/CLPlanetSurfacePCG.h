@@ -26,6 +26,10 @@ public:
 CATALYSTLANDFORM_API void CLStartPlanetSurfaceRefresh();
 CATALYSTLANDFORM_API void CLStopPlanetSurfaceRefresh();
 CATALYSTLANDFORM_API bool CLPlanetSurfaceRegionsReady(const ACLPlanet* Planet,FString& Status);
+/** Invalidate derived scenery after a consumer's classification/content changes.
+ * Uses the same fenced queue as terrain edits; no consumer-specific state enters Landform.
+ */
+CATALYSTLANDFORM_API void CLInvalidatePlanetSurfaceRegion(UCLPlanetSurfaceRegion* Region);
 
 /** Samples the accepted Landform outer surface, rather than a rectangular world-Z patch.
  * Each region has a disjoint portion of one shared seeded, area-corrected lattice.

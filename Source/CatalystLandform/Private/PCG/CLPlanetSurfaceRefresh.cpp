@@ -111,3 +111,9 @@ void CLStartPlanetSurfaceRefresh()
 }
 void CLStopPlanetSurfaceRefresh()
 {FTSTicker::RemoveTicker(Handle);Handle.Reset();Active.Reset();Work.Reset();}
+void CLInvalidatePlanetSurfaceRegion(UCLPlanetSurfaceRegion* R)
+{
+    if(!IsValid(R)||!IsInGameThread())return;
+    R->Modify();R->GeneratedSurfaceKey.Reset();
+    auto& State=Work.FindOrAdd(R);State.Desired.Reset();State.Attempt.Reset();
+}
