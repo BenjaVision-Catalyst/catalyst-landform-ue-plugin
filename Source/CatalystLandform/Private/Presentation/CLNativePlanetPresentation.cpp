@@ -2,17 +2,21 @@
 #include "CLPlanet.h"
 #include "CLNaniteProjection.h"
 #include "Presentation/CLPlanetProjection.h"
+#include "Presentation/CLSceneryRenderPolicy.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Nanite/VoxelNaniteComponent.h"
 #include "Collision/VoxelCollisionComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/InstancedSkinnedMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/SkinnedAsset.h"
 #include "EngineGlobals.h"
 #include "Materials/MaterialInterface.h"
 #include "Dom/JsonObject.h"
 #include "HAL/IConsoleManager.h"
 #include "UObject/StrongObjectPtr.h"
+#include "UObject/UnrealType.h"
 #include "Misc/CommandLine.h"
 #include "Misc/CoreDelegates.h"
 #include "ProfilingDebugging/CpuProfilerTrace.h"
@@ -58,6 +62,11 @@ struct FCLNativePlanetPresentation::FImpl
         bool Hidden=false,EvaluateWpo=true;
         int32 WpoDistance=0;
         EShadowCacheInvalidationBehavior ShadowBehavior;
+        FCLSceneryRenderPolicy Budget;
+        FBox RenderBounds{ForceInit};
+        int32 CullStart=0,CullEnd=0;
+        float AnimationScreenSize=0;
+        bool CastShadow=true,TickEnabled=false,TickSuppressed=false;
     };
     TArray<FPrimitive> Primitives;
     TWeakObjectPtr<ACLPlanet> Planet;
@@ -387,10 +396,12 @@ struct FCLNativePlanetPresentation::FImpl
         {
             C->SetHiddenInGame(P.Hidden); C->SetBoundsScale(P.BoundsScale);
             if(auto* Skinned=Cast<UInstancedSkinnedMeshComponent>(C))
-            {Skinned->SetPrimitiveBoundsOverride(P.SkinnedBounds);Skinned->UpdateBounds();Skinned->MarkRenderTransformDirty();}
+            {if(P.TickSuppressed)Skinned->SetComponentTickEnabled(P.TickEnabled);Skinned->SetPrimitiveBoundsOverride(P.SkinnedBounds);Skinned->SetCullDistances(P.CullStart,P.CullEnd);Skinned->SetAnimationMinScreenSize(P.AnimationScreenSize);Skinned->UpdateBounds();Skinned->MarkRenderTransformDirty();}
+            if(auto* Static=Cast<UInstancedStaticMeshComponent>(C))Static->SetCullDistances(P.CullStart,P.CullEnd);
             if(auto* Static=Cast<UStaticMeshComponent>(C)) {Static->SetEvaluateWorldPositionOffset(P.EvaluateWpo);Static->SetWorldPositionOffsetDisableDistance(P.WpoDistance);}
             if(auto* Skin=Cast<USkinnedMeshComponent>(C)) {Skin->SetEvaluateWorldPositionOffset(P.EvaluateWpo);Skin->SetWorldPositionOffsetDisableDistance(P.WpoDistance);}
             C->ShadowCacheInvalidationBehavior=P.ShadowBehavior;
+            C->SetCastShadow(P.CastShadow);
             C->ResetCustomPrimitiveData();
             if(!P.Data.IsEmpty()) C->SetCustomPrimitiveDataFloatArray(0,P.Data);
         }
@@ -400,6 +411,12 @@ struct FCLNativePlanetPresentation::FImpl
         const FVector Center=Planet->BodyCenterWorld();
         const FVector Origin=Center+Radius*CurrentAnchor,OldOrigin=Center+Radius*PreviousAnchor;
         const FVector3f H(Origin),OH(OldOrigin),Lo(Origin-FVector(H)),OLo(OldOrigin-FVector(OH));
+        FCLPlanetProjectionSettings Settings;Settings.Center=Center;Settings.AnchorDirection=CurrentAnchor;Settings.ReferenceRadiusCm=Radius;
+        Settings.Curvature=CurrentCurvature;Settings.MaxArcRadians=MaxArcRadians;Settings.MinAltitudeCm=(MinRadiusRatio-1)*Radius;Settings.MaxAltitudeCm=(MaxRadiusRatio-1)*Radius;
+        FCLPlanetProjection Projection,PreviousProjection;
+        if(!FCLPlanetProjection::TryCreate(Settings,Projection)){Error=TEXT("Invalid scenery projection");return false;}
+        Settings.AnchorDirection=PreviousAnchor;Settings.Curvature=PreviousCurvature;
+        if(!FCLPlanetProjection::TryCreate(Settings,PreviousProjection)){Error=TEXT("Invalid scenery history");return false;}
         for(auto& P:Primitives)
         {
             auto* C=P.Component.Get(); if(!C) continue;
@@ -420,6 +437,31 @@ struct FCLNativePlanetPresentation::FImpl
                 float(PreviousAnchor.X),float(PreviousAnchor.Y),float(PreviousAnchor.Z),float(PreviousCurvature),
                 float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0,float(CVarCLVoxelProjection.GetValueOnGameThread()!=0),0,0,0};
             C->SetCustomPrimitiveDataFloatArray(0,MakeArrayView(Data));
+            FBox Bounds,OldBounds;
+            if(!FCLSceneryRenderPolicy::ProjectBounds(P.Box,Projection,L,Bounds)){Error=TEXT("Scenery bounds left their admitted chart");return false;}
+            if(FCLSceneryRenderPolicy::ProjectBounds(P.Box,PreviousProjection,L,OldBounds))Bounds+=OldBounds;
+            if(!P.RenderBounds.IsValid||!P.RenderBounds.IsInside(Bounds)||(C->IsA<UInstancedSkinnedMeshComponent>()&&P.RenderBounds.GetVolume()>Bounds.GetVolume()*2))
+            {
+                const FBox Envelope=Bounds.ExpandBy(200.);
+                if(auto* Skin=Cast<UInstancedSkinnedMeshComponent>(C))
+                {Skin->SetPrimitiveBoundsOverride(Envelope);Skin->UpdateBounds();Skin->MarkRenderTransformDirty();P.RenderBounds=Envelope;}
+                else
+                {
+                    const double Scale=FCLSceneryRenderPolicy::CenteredBoundsScale(P.Box,Envelope);
+                    C->SetBoundsScale(P.BoundsScale*Scale);
+                    P.RenderBounds=FBox(P.Box.GetCenter()-P.Box.GetExtent()*Scale,P.Box.GetCenter()+P.Box.GetExtent()*Scale);
+                }
+            }
+            if(bGameplay)
+            {
+                const double Distance=FVector::Distance(P.Box.GetClosestPointTo(Origin),Origin);
+                const bool Shadows=P.CastShadow && Distance<P.Budget.ShadowEndCm;
+                C->SetCastShadow(Shadows);
+                // Only local casters invalidate for changing projection and wind. Keep
+                // this policy stable across multiple camera evaluations in one frame.
+                const auto Behavior=Shadows?EShadowCacheInvalidationBehavior::Always:EShadowCacheInvalidationBehavior::Rigid;
+                if(C->ShadowCacheInvalidationBehavior!=Behavior){C->ShadowCacheInvalidationBehavior=Behavior;C->MarkRenderStateDirty();}
+            }
         }
         return true;
     }
@@ -635,16 +677,25 @@ bool FCLNativePlanetPresentation::AddPrimitive(UPrimitiveComponent& C,FString& E
     P.Component=&C; P.Box=C.Bounds.GetBox(); P.Transform=C.GetComponentTransform();
     P.Data=C.GetCustomPrimitiveData().Data; P.BoundsScale=C.BoundsScale;
     P.Hidden=C.bHiddenInGame; P.ShadowBehavior=C.ShadowCacheInvalidationBehavior;
-    if(auto* Static=Cast<UStaticMeshComponent>(&C)) {P.EvaluateWpo=Static->bEvaluateWorldPositionOffset;P.WpoDistance=Static->WorldPositionOffsetDisableDistance;Static->SetEvaluateWorldPositionOffset(true);Static->SetWorldPositionOffsetDisableDistance(0);}
-    if(auto* Skin=Cast<USkinnedMeshComponent>(&C)) {P.EvaluateWpo=Skin->bEvaluateWorldPositionOffset;P.WpoDistance=Skin->WorldPositionOffsetDisableDistance;Skin->SetEvaluateWorldPositionOffset(true);Skin->SetWorldPositionOffsetDisableDistance(0);}
+    P.CastShadow=C.CastShadow;
+    double Size=0;
+    if(const auto* Static=Cast<UStaticMeshComponent>(&C);Static&&Static->GetStaticMesh())Size=Static->GetStaticMesh()->GetBounds().BoxExtent.GetMax()*2;
+    if(const auto* Skin=Cast<USkinnedMeshComponent>(&C);Skin&&Skin->GetSkinnedAsset())Size=Skin->GetSkinnedAsset()->GetBounds().BoxExtent.GetMax()*2;
+    P.Budget=FCLSceneryRenderPolicy::ForSize(Size*C.GetComponentScale().GetAbsMax());
+    if(auto* Static=Cast<UStaticMeshComponent>(&C)) {P.EvaluateWpo=Static->bEvaluateWorldPositionOffset;P.WpoDistance=Static->WorldPositionOffsetDisableDistance;Static->SetEvaluateWorldPositionOffset(true);Static->SetWorldPositionOffsetDisableDistance(I.bGameplay?P.Budget.WpoEndCm:P.WpoDistance);}
+    if(auto* Skin=Cast<USkinnedMeshComponent>(&C)) {P.EvaluateWpo=Skin->bEvaluateWorldPositionOffset;P.WpoDistance=Skin->WorldPositionOffsetDisableDistance;Skin->SetEvaluateWorldPositionOffset(true);Skin->SetWorldPositionOffsetDisableDistance(I.bGameplay?P.Budget.WpoEndCm:P.WpoDistance);}
     if(auto* Skinned=Cast<UInstancedSkinnedMeshComponent>(&C))
     {
         P.SkinnedBounds=Skinned->GetPrimitiveBoundsOverride();
-        Skinned->SetPrimitiveBoundsOverride(P.Box.ExpandBy(I.Radius*4));
-        Skinned->UpdateBounds();Skinned->MarkRenderTransformDirty();
+        if(const FFloatProperty* Property=FindFProperty<FFloatProperty>(Skinned->GetClass(),TEXT("AnimationMinScreenSize")))P.AnimationScreenSize=Property->GetPropertyValue_InContainer(Skinned);Skinned->GetCullDistances(P.CullStart,P.CullEnd);
+        if(I.bGameplay){
+            // GPU transform providers animate independently of the inherited CPU
+            // bone-refresh tick, which otherwise republishes unchanged instance bounds.
+            if(Skinned->GetTransformProvider()){P.TickEnabled=Skinned->IsComponentTickEnabled();P.TickSuppressed=true;Skinned->SetComponentTickEnabled(false);}
+            Skinned->SetCullDistances(P.Budget.FadeStartCm,P.Budget.DrawEndCm);Skinned->SetAnimationMinScreenSize(FMath::Max(.1f,P.AnimationScreenSize));}
     }
-    else C.SetBoundsScale(P.BoundsScale+I.Radius*4/FMath::Max(1.,P.Box.GetExtent().GetMin()));
-    C.ShadowCacheInvalidationBehavior=EShadowCacheInvalidationBehavior::Always;
+    if(auto* Static=Cast<UInstancedStaticMeshComponent>(&C))
+    {P.CullStart=Static->InstanceStartCullDistance;P.CullEnd=Static->InstanceEndCullDistance;if(I.bGameplay)Static->SetCullDistances(P.Budget.FadeStartCm,P.Budget.DrawEndCm);}
     Error.Reset(); return true;
 }
 bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, bool bMeasure, FString &Error)

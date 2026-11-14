@@ -191,3 +191,36 @@ regions contained zero black hole pixels. Sixteen rendered and eight installer/
 overlay checks pass. Escape restores the existing editor world and scoped
 rendering state; all 26 protected original hashes and 26,734 forest instances
 remain intact. The chart remains finite; no sky, fog or haze is added.
+
+## Planetary vegetation rendering budgets
+
+Walking uses regional projected bounds in place of planet-sized scenery bounds.
+The enclosure includes curved box interiors and both presentation frames. Bounds
+updates have a margin; static-instance bounds are kept until their enclosure is
+exceeded, avoiding a render-state update every frame merely because their fixed
+canonical centre requires a larger box.
+
+Physical mesh size supplies generic inspection budgets, independent of biome or
+asset names. Large vegetation (at least 6 m maximum asset dimension) has unlimited
+draw distance, with wind deformation limited to 150 m and shadows to 180 m.
+Medium scenery fades from 300–400 m, with deformation to 80 m and shadows to 100 m.
+Small ground detail fades from 75–100 m, with deformation/shadows to 40 m. These
+are rendering limits; canonical instances, ecosystem assignment and collisions
+are retained. Visibility also remains subject to terrain occlusion and the finite
+89-degree presentation chart.
+
+Native instanced-skinned scenery with a GPU transform provider does not run the
+inherited CPU bone-refresh tick during inspection. That tick republishes instance
+bounds even when stationary; GPU animation uses the provider and scene time
+independently. Landform owns the inspection bounds and restores the component's
+original tick state, culling, bounds, deformation and shadow settings on return.
+CPU-driven skinned components retain their ticks.
+
+The sun is established at landing and stays fixed during that walk. Directional
+virtual-shadow clipmaps end at 327.68 m, with directional resolution bias 1;
+Nanite uses a four-pixel geometric error budget. Nearby shadow casters keep a
+stable invalidation policy across camera evaluations. Scoped console values and
+the original sun pose are restored when walking ends. The window remains
+2560 × 1440; the host's chosen curvature 0.15, subtle wind and raw no-sky/fog/haze
+view are unchanged. No forest generation restriction or distant-canopy cutoff is
+introduced.

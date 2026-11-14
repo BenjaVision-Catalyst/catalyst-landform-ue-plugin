@@ -36,9 +36,15 @@ public:
     bool OldAtmosphere=true,OldCloud=true;
     double MaxCameraInverseError=0;
     int32 CameraFrames=0;
+    struct FCVar {IConsoleVariable* Variable;FString Before,Applied;};
+    TArray<FCVar> RenderCVars;
+    void RenderSetting(const TCHAR* Name,const TCHAR* Value)
+    {if(auto* V=IConsoleManager::Get().FindConsoleVariable(Name)){const FString Before=V->GetString();V->Set(Value,ECVF_SetByCode);RenderCVars.Add({V,Before,V->GetString()});}}
     ~FCLWalkingPresentation()
     {
         Terrain.Reset();
+        for(auto& C:RenderCVars)if(C.Variable->GetString()==C.Applied)C.Variable->Set(*C.Before,ECVF_SetByCode);
+        for(auto& Sun:Suns)if(auto* C=Sun.Component.Get())C->SetWorldRotation(Sun.Rotation);
         if(auto* V=Viewport.Get())
         {
             if(!V->EngineShowFlags.Atmosphere) V->EngineShowFlags.SetAtmosphere(OldAtmosphere);
@@ -66,6 +72,11 @@ public:
         Options.MinRadiusRatio=.1;Options.MaxRadiusRatio=2;
         Terrain=FCLNativePlanetPresentation::TryCreate(Planet,*Planet.GetSamplingRuntime()->RecipePlan,*Material,Options,Error);
         if(!Terrain) return false;
+        // Keep the distant Nanite canopy, using a four-pixel geometric error budget.
+        // Shadow clipmaps stop at 327.68 m instead of covering tens of kilometres.
+        RenderSetting(TEXT("r.Nanite.MaxPixelsPerEdge"),TEXT("4"));
+        RenderSetting(TEXT("r.Shadow.Virtual.Clipmap.LastLevel"),TEXT("14"));
+        RenderSetting(TEXT("r.Shadow.Virtual.ResolutionLodBiasDirectional"),TEXT("1"));
         for(TActorIterator<AActor> It(Walker.GetWorld());It;++It)
         {
             TInlineComponentArray<UActorComponent*> Components;It->GetComponents(Components);
@@ -108,7 +119,9 @@ public:
         MaxCameraInverseError=FMath::Max(MaxCameraInverseError,FVector::Distance(Back,View.Location));
         View.Location=Position;View.Rotation=Rotation.Rotator();
         const FQuat LocalSky=FQuat::FindBetweenNormals(FVector::ZAxisVector,Up);
-        for(auto& Sun:Suns) if(auto* C=Sun.Component.Get()) C->SetWorldRotation(LocalSky*Sun.Rotation);
+        // Establish daylight at the selected landing once. A walking camera must
+        // not rotate a directional light and evict every cached shadow page.
+        if(CameraFrames==0)for(auto& Sun:Suns) if(auto* C=Sun.Component.Get()) C->SetWorldRotation(LocalSky*Sun.Rotation);
         for(auto& Sky:Atmospheres) if(auto* C=Sky.Get())
         {C->SetWorldLocationAndRotation(Planet.BodyCenterWorld()+Up*Walker.PresentationRadiusCm,LocalSky);}
         for(auto& SkyLight:SkyLights) if(auto* C=SkyLight.Get();C && FVector::DistSquared(C->GetComponentLocation(),Position)>1000.*1000.) C->SetWorldLocation(Position);
@@ -124,6 +137,9 @@ public:
         if(Terrain && Terrain->GetCurrentProjection(Projection)) Json->SetNumberField(TEXT("curvature"),Projection.GetSettings().Curvature);
         Json->SetNumberField(TEXT("outdoorExposureBiasEV"),-.75);
         Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
+        Json->SetStringField(TEXT("directionalLighting"),TEXT("Stable at landing; does not rotate with each walking step"));
+        Json->SetNumberField(TEXT("nanitePixelError"),4);
+        Json->SetNumberField(TEXT("maximumShadowClipmapRadiusMeters"),327.68);
         Json->SetBoolField(TEXT("fogAndHazeDisabled"),true);
         const auto* V=Viewport.Get();
         Json->SetBoolField(TEXT("skyBackgroundDisabled"),V && !V->EngineShowFlags.Atmosphere && !V->EngineShowFlags.Cloud);
