@@ -10,6 +10,7 @@
 #include "Components/InstancedSkinnedMeshComponent.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
+#include "Components/SkyLightComponent.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "Materials/MaterialInterface.h"
 #include "Dom/JsonObject.h"
@@ -24,6 +25,7 @@ public:
     struct FSun {TWeakObjectPtr<UDirectionalLightComponent> Component; FQuat Rotation;};
     TArray<FSun> Suns;
     TArray<TWeakObjectPtr<USkyAtmosphereComponent>> Atmospheres;
+    TArray<TWeakObjectPtr<USkyLightComponent>> SkyLights;
     IConsoleVariable* CachedEV=nullptr;
     FString OldEV;
     double MaxCameraInverseError=0;
@@ -51,6 +53,7 @@ public:
                 if(auto* P=Cast<UPrimitiveComponent>(Component);P &&
                     (P->IsA<UInstancedStaticMeshComponent>()||P->IsA<UInstancedSkinnedMeshComponent>()))
                     if(!Terrain->AddPrimitive(*P,Error)) return false;
+                if(auto* SkyLight=Cast<USkyLightComponent>(Component)) SkyLights.Add(SkyLight);
                 if(auto* Sun=Cast<UDirectionalLightComponent>(Component)) Suns.Add({Sun,Sun->GetComponentQuat()});
                 if(auto* Sky=Cast<USkyAtmosphereComponent>(Component))
                 {Sky->TransformMode=ESkyAtmosphereTransformMode::PlanetTopAtComponentTransform;Sky->MarkRenderStateDirty();Atmospheres.Add(Sky);}
@@ -83,6 +86,7 @@ public:
         for(auto& Sun:Suns) if(auto* C=Sun.Component.Get()) C->SetWorldRotation(LocalSky*Sun.Rotation);
         for(auto& Sky:Atmospheres) if(auto* C=Sky.Get())
         {C->SetWorldLocationAndRotation(Planet.BodyCenterWorld()+Up*Walker.PresentationRadiusCm,LocalSky);}
+        for(auto& SkyLight:SkyLights) if(auto* C=SkyLight.Get();C && FVector::DistSquared(C->GetComponentLocation(),Position)>1000.*1000.) C->SetWorldLocation(Position);
         ++CameraFrames; return true;
     }
     FString Report() const
@@ -92,6 +96,8 @@ public:
         Json->SetNumberField(TEXT("presentedCameraFrames"),CameraFrames);
         Json->SetNumberField(TEXT("maxCameraInverseErrorCm"),MaxCameraInverseError);
         Json->SetNumberField(TEXT("curvature"),0);
+        Json->SetNumberField(TEXT("outdoorExposureBiasEV"),-.75);
+        Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
         Json->SetStringField(TEXT("heightFog"),TEXT("Walking uses atmosphere aerial perspective; world-Z height fog is scoped out"));
         FString Text;auto Writer=TJsonWriterFactory<>::Create(&Text);FJsonSerializer::Serialize(Json,Writer);return Text;
     }

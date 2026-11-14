@@ -788,6 +788,19 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
                                                   "lighting and sky ambient")
                                            : TEXT("Experimental direct-light diagnostic material; Lumen and "
                                                   "distance-field lighting disabled"));
+    int32 SceneryPackets=0,TerrainPackets=0;
+    for(const auto& P:I.Primitives) if(const auto* C=P.Component.Get())
+    {
+        const auto& D=C->GetCustomPrimitiveData().Data;
+        SceneryPackets+=D.Num()>=28 && D[3]==I.CurrentCurvature && D[11]==9150;
+    }
+    for(const auto& M:I.Meshes) if(const auto* C=M.Component.Get();C && M.bWasShown)
+    {
+        const auto& D=C->GetCustomPrimitiveData().Data;
+        TerrainPackets+=D.Num()>=28 && D[3]==I.CurrentCurvature && D[11]==9150;
+    }
+    O->SetNumberField(TEXT("sceneryProjectionPackets"),SceneryPackets);
+    O->SetNumberField(TEXT("visibleTerrainProjectionPackets"),TerrainPackets);
     O->SetNumberField(TEXT("sceneryComponents"),I.Primitives.Num());
     O->SetBoolField(TEXT("stockVPP"),true);
     O->SetBoolField(TEXT("worldAnchored"), I.bWorldAnchored);

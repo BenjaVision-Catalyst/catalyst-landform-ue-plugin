@@ -4,7 +4,8 @@ import importlib.util,json,shutil,tempfile,unittest,os
 from pathlib import Path
 script=Path(__file__).resolve().parents[1]/'stage-nanite-projection.py'
 spec=importlib.util.spec_from_file_location('overlay',script);overlay=importlib.util.module_from_spec(spec);spec.loader.exec_module(overlay)
-engine_source=Path(os.environ.get('UE_ENGINE_ROOT','/Users/jupiter/UnrealEngine/UE_5.8'))/'Engine/Shaders/Private/Nanite'
+engine_source=Path(os.environ.get('UE_ENGINE_ROOT','/path/to/UnrealEngine'))/'Engine/Shaders/Private/Nanite'
+@unittest.skipUnless(engine_source.is_dir(),"Set UE_ENGINE_ROOT to test the licensed local shader source")
 class OverlayTests(unittest.TestCase):
  def setUp(self):
   self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name)

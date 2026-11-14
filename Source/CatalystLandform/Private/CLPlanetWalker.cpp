@@ -28,6 +28,8 @@ ACLPlanetWalker::ACLPlanetWalker(const FObjectInitializer& Initializer)
     Camera=CreateDefaultSubobject<UCameraComponent>(TEXT("InspectionCamera"));
     Camera->SetupAttachment(GetCapsuleComponent());Camera->SetRelativeLocation(FVector(0,0,64));
     Camera->bUsePawnControlRotation=false;
+    Camera->PostProcessSettings.bOverride_AutoExposureBias=true;
+    Camera->PostProcessSettings.AutoExposureBias=-.75;
     CollisionInvoker=CreateDefaultSubobject<UVoxelCollisionInvokerComponent>(TEXT("InspectionCollision"));
     CollisionInvoker->SetupAttachment(GetCapsuleComponent());CollisionInvoker->Radius=2500;
     CollisionInvoker->bWaitForVoxelWorld=true;
@@ -71,7 +73,7 @@ bool ACLPlanetWalker::IsPlanetFloor(const FHitResult& Hit) const
 }
 void ACLPlanetWalker::Fail(const FString& Error)
 {
-    bFailed=true;bReady=false;Status=Error;
+    bFailed=true;bReady=false;bPresented=false;Status=Error;
     RadialMovement()->StopMovementImmediately();RadialMovement()->DisableMovement();
     RadialMovement()->SetComponentTickEnabled(false);
     UE_LOG(LogTemp,Warning,TEXT("LANDFORM_WALK_FAILED: %s"),*Error);

@@ -39,10 +39,14 @@ Errors stop inspection instead of silently presenting an unflattened world.
 
 ## Walking lighting
 
-The PIE sun and sky atmosphere follow the local tangent. The authored sun's
+The PIE sun and sky atmosphere follow the local tangent. The realtime skylight
+capture tracks the presented player eye at 10 m intervals, allowing its
+time-sliced updates to finish. The authored sun's
 local elevation is retained. Global-Z exponential height fog cannot represent an
 arbitrary planetary tangent and is hidden in the walking copy; sky atmosphere
 aerial perspective supplies depth. Authored source-world lighting is untouched.
+The outdoor walking camera uses a -0.75 EV exposure offset to retain sunlit
+organic-floor colour, while the authored auto-exposure range remains active.
 Cached lighting pre-exposure is scoped to EV10 for the outdoor exposure range and
 restored on exit; the native presentation's supported direct-light/sky profile
 scopes out canonical Lumen and distance-field representations.

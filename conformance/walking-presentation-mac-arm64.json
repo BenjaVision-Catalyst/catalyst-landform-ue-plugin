@@ -93,10 +93,10 @@
   "engineFilesChanged": false,
   "vendorSourceChanged": false,
   "sourceHashes": {
-    "Source/CatalystLandform/Private/CLPlanetWalker.cpp": "df7343d2673b700489cd666ec06fb5352f4dfc01d6542bcd999e140caf6e0969",
+    "Source/CatalystLandform/Private/CLPlanetWalker.cpp": "f2ab8a5f0eb0e2b7d5ad0c6ae1d0aeb7a99f49625602c1321abaf0425b22b170",
     "Source/CatalystLandform/Private/CLSurfaceInspection.cpp": "3a4a2db0831464a5e01192bed1e5f5399ea75ba7d1e518d1c95853486a30b536",
-    "Source/CatalystLandform/Private/CLWalkingPresentation.cpp": "a4406ec181e86088e0f078657f463334ffaf0fa194a6750c9b872a7e92b56822",
-    "Source/CatalystLandform/Private/Presentation/CLNativePlanetPresentation.cpp": "17c39aa3ead063529c98f86fbef52414c16e6986a9c90ededd6fc045ee735e01",
+    "Source/CatalystLandform/Private/CLWalkingPresentation.cpp": "23a6325bc6aa29ddd86c47076fedf27999a1d609e02ca18874388876066c86af",
+    "Source/CatalystLandform/Private/Presentation/CLNativePlanetPresentation.cpp": "d249ce39cb7575ad836163714567b3ff394002ecf2ed8179731fb28129229fa0",
     "Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "d4902ad4ad1dfbdef7db78db7d6e9ae74aee1e2ee30c81f3f82464a375c64bd7",
     "Source/CatalystLandform/Private/Presentation/CLPresentationTransform.cpp": "22ce22c14d956a59a59e038d52b2c86de7ac79e419803aad51772cb7d6838c15",
     "Source/CatalystLandform/Private/Presentation/CLProjectionChunk.cpp": "43395af89d9833bfbce6b02a0554b96e805487539e7e5ecda614c05152377ea5",
@@ -112,12 +112,28 @@
     "Source/CatalystLandform/Public/Presentation/CLProjectionGPUVerification.h": "aa2fe90e22def7d5c542f3b3664e9ffb2a60fb89849834ea6b7cf6cab39428f2",
     "Source/CatalystLandform/Public/Presentation/CLProjectionRay.h": "eff1e1800c06ded510c78741594a56d9b85c67b64ce88cba588126b368d7a3b1",
     "Source/CatalystLandform/Public/Presentation/CLProjectionTrace.h": "497ab53bcfc4e9990b1c4a331de4efba4deb6cab9e3a0bbca79f771c2793bb40",
-    "Source/CatalystLandformEditor/Private/CLInspectionMaterials.cpp": "74980f7e1aa69ca14a1521d8c2a3a15c28d072683f98fa54db34cdc2dfc79495",
+    "Source/CatalystLandformEditor/Private/CLInspectionMaterials.cpp": "b1b248e70f2443f4e743917b3973c41fa31b250f520edc0b83e8430bbf3a9dde",
     "Source/CatalystLandformEditor/Private/CLInspectionMaterials.h": "53179fc3f7deba35b3b0dddff7e8d30288063d8a6804692cfd27a9aa6326ddec",
     "Source/CatalystLandformEditor/Private/CLPlanetInspection.cpp": "9754ebfd5875b6c0ce4caa2fdca364ad143334d23c7c5e64f9f8c5b0ccd1dfbf",
     "Source/CatalystLandformEditor/Public/CLPlanetInspection.h": "662a073126f79dc986a1eb60c56d161e8e68a8c003297ff8a384790e86258f39",
     "Source/CatalystLandformTests/Private/CLPlanetWalkerTests.cpp": "4ae9526d654a008f0f4819587f8deb59d45d83953105ba40fed00e07025722f7",
     "Source/CatalystLandformTests/Private/CLPresentationTransformTests.cpp": "03999a3d64f8deb769d7b7b43c9e132a4e3d2a3681d016953109f2533ddb6dcd",
     "Source/CatalystLandformTests/Private/CLSurfaceInspectionTests.cpp": "fa624cf92d797308f7bd8fb63ee70e8e6263f94b2f8881e4c77aecb5c1978faf"
+  },
+  "initialInstalledWalk": {
+    "revision": "56a818ddac5780dbce3385e727fad7517912540a",
+    "world": "/Engine/Maps/Entry.Entry",
+    "sourcePlanet": "/Game/PlanetReview/Planet.Planet",
+    "canonicalInstancesUnchanged": true,
+    "instances": 11660,
+    "sceneryComponents": 204,
+    "curvature": 0,
+    "cameraInverseErrorCm": 4.547473508864641e-13,
+    "stationaryMeshAndRuntimeIdentitiesUnchanged": true,
+    "canopyMaskGPU": {
+      "dense": 255,
+      "glade": 0
+    },
+    "finalLightingAcceptance": "Pending refined installed revision"
   }
 }

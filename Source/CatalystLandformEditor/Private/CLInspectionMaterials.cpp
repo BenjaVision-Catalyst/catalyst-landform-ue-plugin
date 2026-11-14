@@ -21,6 +21,7 @@
 #include "MegaMaterial/VoxelMegaMaterialGeneratedData.h"
 #include "UObject/UnrealType.h"
 #include "ShaderCompiler.h"
+#include "MaterialShared.h"
 
 namespace
 {
@@ -104,7 +105,8 @@ UMaterialInterface* FCLInspectionMaterials::ProjectMaterial(UMaterialInterface* 
         Set->ConnectInputAttribute(MP_Normal,ProjectedNormal); Set->ConnectInputAttribute(MP_WorldPositionOffset,Offset);
     }
     else {Data->Normal.Connect(0,ProjectedNormal);Data->WorldPositionOffset.Connect(0,Offset);}
-    UMaterialEditingLibrary::RecompileMaterial(M);
+    const auto Errors=UMaterialEditingLibrary::RecompileMaterial(M);
+    if(!Errors.IsEmpty()){Error=Source->GetPathName()+TEXT(": ")+FString::Join(Errors,TEXT("; "));return nullptr;}
     return M;
 }
 bool FCLInspectionMaterials::Prepare(UWorld& World,UVoxelMegaMaterial& Source,FString& Error)
@@ -143,6 +145,15 @@ bool FCLInspectionMaterials::Prepare(UWorld& World,UVoxelMegaMaterial& Source,FS
             if(M && !ProjectMaterial(M,Error)) return false;
     }
     if(GShaderCompilingManager) GShaderCompilingManager->FinishAllCompilation();
+    TArray<UMaterialInterface*> Validate;
+    for(const auto& Pair:Materials) Validate.Add(Pair.Value.Get());
+    for(const auto& Pair:Mega->GetGeneratedData_EditorOnly().TargetToMaterial) Validate.Add(Pair.Value.Get());
+    for(auto* Material:Validate) if(Material)
+    {
+        const auto* Resource=Material->GetMaterialResource(GMaxRHIShaderPlatform);
+        if(!Resource || !Resource->GetCompileErrors().IsEmpty())
+        {Error=TEXT("Walking material did not compile: ")+Material->GetPathName();return false;}
+    }
     Error.Reset();return true;
 }
 bool FCLInspectionMaterials::Apply(UWorld& World,FString& Error)
