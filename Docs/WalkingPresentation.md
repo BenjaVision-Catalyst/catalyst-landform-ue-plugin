@@ -42,9 +42,11 @@ Errors stop inspection instead of silently presenting an unflattened world.
 The PIE sun and sky atmosphere follow the local tangent. The realtime skylight
 capture tracks the presented player eye at 10 m intervals, allowing its
 time-sliced updates to finish. The authored sun's
-local elevation is retained. Global-Z exponential height fog cannot represent an
-arbitrary planetary tangent and is hidden in the walking copy; sky atmosphere
-aerial perspective supplies depth. Authored source-world lighting is untouched.
+local elevation is retained. The walking copy disables exponential height fog, volumetric fog, atmospheric
+aerial perspective and Mie haze. The sky and clouds remain visible. This exposes
+the raw terrain/scenery rendering, including the finite chart boundary; there
+is no fog veil, generated distant terrain or repeated vista. Authored
+source-world lighting is untouched.
 The outdoor walking camera uses a -0.75 EV exposure offset to retain sunlit
 organic-floor colour, while the authored auto-exposure range remains active.
 Cached lighting pre-exposure is scoped to EV10 for the outdoor exposure range and

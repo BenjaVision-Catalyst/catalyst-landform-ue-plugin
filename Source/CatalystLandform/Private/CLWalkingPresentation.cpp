@@ -56,11 +56,13 @@ public:
                 if(auto* SkyLight=Cast<USkyLightComponent>(Component)) SkyLights.Add(SkyLight);
                 if(auto* Sun=Cast<UDirectionalLightComponent>(Component)) Suns.Add({Sun,Sun->GetComponentQuat()});
                 if(auto* Sky=Cast<USkyAtmosphereComponent>(Component))
-                {Sky->TransformMode=ESkyAtmosphereTransformMode::PlanetTopAtComponentTransform;Sky->MarkRenderStateDirty();Atmospheres.Add(Sky);}
+                {Sky->TransformMode=ESkyAtmosphereTransformMode::PlanetTopAtComponentTransform;
+                 Sky->SetAerialPespectiveViewDistanceScale(0);Sky->SetMieScatteringScale(0);Sky->SetMieAbsorptionScale(0);
+                 Sky->MarkRenderStateDirty();Atmospheres.Add(Sky);}
                 // Height fog is fixed to global Z in UE. Its authored layer cannot
-                // follow arbitrary planetary tangents; walking uses sky aerial
-                // perspective instead. The editor world's rig is untouched.
-                if(auto* Fog=Cast<UExponentialHeightFogComponent>(Component)) Fog->SetVisibility(false);
+                // follow arbitrary planetary tangents. Raw inspection also disables
+                // atmospheric distance haze; the editor world's rig is untouched.
+                if(auto* Fog=Cast<UExponentialHeightFogComponent>(Component)) {Fog->SetVolumetricFog(false);Fog->SetVisibility(false);}
             }
         }
         CachedEV=IConsoleManager::Get().FindConsoleVariable(TEXT("r.EyeAdaptation.CachedLightingPreExposure"));
@@ -98,7 +100,8 @@ public:
         Json->SetNumberField(TEXT("curvature"),0);
         Json->SetNumberField(TEXT("outdoorExposureBiasEV"),-.75);
         Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
-        Json->SetStringField(TEXT("heightFog"),TEXT("Walking uses atmosphere aerial perspective; world-Z height fog is scoped out"));
+        Json->SetBoolField(TEXT("fogAndHazeDisabled"),true);
+        Json->SetStringField(TEXT("heightFog"),TEXT("Disabled: height fog, volumetric fog, aerial perspective and Mie haze"));
         FString Text;auto Writer=TJsonWriterFactory<>::Create(&Text);FJsonSerializer::Serialize(Json,Writer);return Text;
     }
 };

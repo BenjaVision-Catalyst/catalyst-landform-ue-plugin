@@ -95,7 +95,7 @@
   "sourceHashes": {
     "Source/CatalystLandform/Private/CLPlanetWalker.cpp": "f2ab8a5f0eb0e2b7d5ad0c6ae1d0aeb7a99f49625602c1321abaf0425b22b170",
     "Source/CatalystLandform/Private/CLSurfaceInspection.cpp": "3a4a2db0831464a5e01192bed1e5f5399ea75ba7d1e518d1c95853486a30b536",
-    "Source/CatalystLandform/Private/CLWalkingPresentation.cpp": "23a6325bc6aa29ddd86c47076fedf27999a1d609e02ca18874388876066c86af",
+    "Source/CatalystLandform/Private/CLWalkingPresentation.cpp": "582282e11558fdde4beced4353a27cb8eed87b4d3ca4c044c661445ad910ad55",
     "Source/CatalystLandform/Private/Presentation/CLNativePlanetPresentation.cpp": "d249ce39cb7575ad836163714567b3ff394002ecf2ed8179731fb28129229fa0",
     "Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "d4902ad4ad1dfbdef7db78db7d6e9ae74aee1e2ee30c81f3f82464a375c64bd7",
     "Source/CatalystLandform/Private/Presentation/CLPresentationTransform.cpp": "22ce22c14d956a59a59e038d52b2c86de7ac79e419803aad51772cb7d6838c15",
@@ -135,5 +135,13 @@
       "glade": 0
     },
     "finalLightingAcceptance": "Pending refined installed revision"
+  },
+  "fogPolicy": {
+    "heightFog": false,
+    "volumetricFog": false,
+    "aerialPerspectiveScale": 0,
+    "mieScatteringScale": 0,
+    "mieAbsorptionScale": 0,
+    "rawChartBoundary": "Exposed local-chart edge remains an open rendering limit"
   }
 }
