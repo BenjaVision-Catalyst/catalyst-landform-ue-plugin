@@ -17,6 +17,7 @@ struct FRegionWork
     FString Desired,Attempt;
     double ChangedAt=0;
     bool Cleaned=false,Generating=false;
+    int32 FailedAttempts=0;
 };
 TMap<TWeakObjectPtr<UCLPlanetSurfaceRegion>,FRegionWork> Work;
 TWeakObjectPtr<UCLPlanetSurfaceRegion> Active;
@@ -52,7 +53,7 @@ bool Tick(float)
         Live.Add(R);auto& S=Work.FindOrAdd(R);const FString Key=R->Planet->GetSurfaceGenerationKey();
         if(S.Desired!=Key)
         {
-            S.Desired=Key;S.Attempt.Reset();S.ChangedAt=Now;S.Cleaned=false;S.Generating=false;
+            S.Desired=Key;S.Attempt.Reset();S.ChangedAt=Now;S.Cleaned=false;S.Generating=false;S.FailedAttempts=0;
             if(R->GeneratedSurfaceKey!=Key)
             {
                 HideStale(R);
@@ -75,7 +76,14 @@ bool Tick(float)
                 R->Modify();R->GeneratedSurfaceKey=S->Attempt;
                 UE_LOG(LogTemp,Display,TEXT("LANDFORM_SURFACE_REGION_READY: %s | %s"),*R->GetPathName(),*S->Attempt);
             }
-            else UE_LOG(LogTemp,Warning,TEXT("Landform surface PCG did not publish: %s"),*R->GetPathName());
+            else if(S->Attempt==R->Planet->GetSurfaceGenerationKey()&&++S->FailedAttempts<=1)
+            {
+                // A cancelled native generation must not strand this surface
+                // forever. Retry once through the same cleanup/debounce queue.
+                S->Attempt.Reset();S->Cleaned=false;S->ChangedAt=Now;
+                UE_LOG(LogTemp,Display,TEXT("LANDFORM_SURFACE_REGION_RETRY: %s"),*R->GetPathName());
+            }
+            else UE_LOG(LogTemp,Warning,TEXT("Landform surface PCG did not publish after its bounded retry: %s"),*R->GetPathName());
         }
         Active.Reset();
     }

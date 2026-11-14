@@ -83,13 +83,14 @@ class FCLWaitForSurfaceRefresh final : public IAutomationLatentCommand
     double Started=FPlatformTime::Seconds();
     FString FirstKey;
     int32 Phase=0;
+    TSharedRef<int32> GenerationStarts;
     void Cleanup()
     {
         if(Planet.IsValid())Planet->DestroyRuntime();
         World->DestroyWorld(false);GEngine->DestroyWorldContext(World);
     }
 public:
-    FCLWaitForSurfaceRefresh(FAutomationTestBase* T,UWorld* W,ACLPlanet* P,UCLPlanetSurfaceRegion* R):Test(T),World(W),Planet(P),Region(R){}
+    FCLWaitForSurfaceRefresh(FAutomationTestBase* T,UWorld* W,ACLPlanet* P,UCLPlanetSurfaceRegion* R,TSharedRef<int32> Starts):Test(T),World(W),Planet(P),Region(R),GenerationStarts(Starts){}
     bool Update() override
     {
         World->Tick(LEVELTICK_All,.033f);
@@ -100,13 +101,24 @@ public:
         if(Phase++==0)
         {
             FirstKey=Region->GeneratedSurfaceKey;
+            Test->TestEqual(TEXT("A cancelled native generation is retried once before publication"),*GenerationStarts,2);
+            if(auto* ConsumerState=FindObject<UClass>(nullptr,TEXT("/Script/CatalystEcosystemPCG.CEBiomePlacementState")))
+                Test->TestNull(TEXT("An unlinked generic surface graph is not adopted by the optional ecosystem consumer"),Region->GetOwner()->GetComponentByClass(ConsumerState));
             Planet->RecipeAsset->Recipe.RadiusMeters+=10;
             Planet->RebuildTerrain();
             Test->TestNotEqual(TEXT("Accepted shape edit changes the surface identity"),Planet->GetSurfaceGenerationKey(),FirstKey);
             Test->TestFalse(TEXT("Walking blocks stale scenery immediately after editing"),CLPlanetSurfaceRegionsReady(Planet.Get(),Status));
             return false;
         }
-        Test->TestNotEqual(TEXT("The native queue regenerated after a live shape edit"),Region->GeneratedSurfaceKey,FirstKey);
+        if(Phase==2)
+        {
+            Test->TestNotEqual(TEXT("The native queue regenerated after a live shape edit"),Region->GeneratedSurfaceKey,FirstKey);
+            FirstKey=Region->GeneratedSurfaceKey;CLInvalidatePlanetSurfaceRegion(Region.Get());
+            Test->TestEqual(TEXT("Consumer invalidation preserves physical terrain identity"),Planet->GetSurfaceGenerationKey(),FirstKey);
+            Test->TestFalse(TEXT("Consumer invalidation blocks stale products"),CLPlanetSurfaceRegionsReady(Planet.Get(),Status));return false;
+        }
+        Test->TestEqual(TEXT("Consumer regeneration preserves accepted identity"),Region->GeneratedSurfaceKey,FirstKey);
+        Test->TestEqual(TEXT("Exactly one initial retry, one shape regeneration and one consumer regeneration"),*GenerationStarts,4);
         Test->TestEqual(TEXT("Completed products carry the new accepted identity"),Region->GeneratedSurfaceKey,Planet->GetSurfaceGenerationKey());
         Test->AddInfo(TEXT("Native editor PCG generated, accepted a radius edit, and automatically regenerated without manual Generate."));
         Cleanup();return true;
@@ -127,5 +139,7 @@ bool FCLPlanetSurfaceRefreshTest::RunTest(const FString&)
     auto* Graph=NewObject<UPCGGraph>(Owner);UCLPlanetSurfacePCGSettings* Settings=nullptr;auto* Node=Graph->AddNodeOfType(Settings);Settings->PointsPerSquaredMeter=.001;
     Graph->AddEdge(Node,PCGPinConstants::DefaultOutputLabel,Graph->GetOutputNode(),PCGPinConstants::DefaultOutputLabel);Component->SetGraph(Graph);
     auto* Region=UCLPlanetSurfacePCGSettings::ConfigureRegion(Owner,P,0,0,0,4);
-    ADD_LATENT_AUTOMATION_COMMAND(FCLWaitForSurfaceRefresh(this,W,P,Region));return true;
+    auto Starts=MakeShared<int32>(0);
+    Component->OnPCGGraphStartGeneratingDelegate.AddLambda([Starts](UPCGComponent* C){if(++*Starts==1)C->CancelGeneration();});
+    ADD_LATENT_AUTOMATION_COMMAND(FCLWaitForSurfaceRefresh(this,W,P,Region,Starts));return true;
 }

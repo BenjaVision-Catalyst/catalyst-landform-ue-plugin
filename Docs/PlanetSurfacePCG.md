@@ -114,3 +114,10 @@ Landform stores no consumer model and starts no second queue. Ecosystems uses
 this hook for biome assignment changes; a live property edit invalidates all 96
 configured review regions immediately. Terrain changes continue to use the
 accepted surface key and the same completion fences.
+
+A native generation that ends without publishing is retried once for the current
+accepted key, through the same cleanup/debounce queue. A second failure stays
+invalid and is reported; no empty result is marked successful. New terrain or an
+explicit consumer invalidation starts a new bounded attempt. The native regression
+cancels the first generation, observes the retry, edits terrain and invalidates
+a consumer without changing physical identity.
