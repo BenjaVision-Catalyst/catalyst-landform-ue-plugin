@@ -13,6 +13,7 @@ struct FCLNanitePresentationOptions
     bool bGameplay = false, bNativeMaterials = false, bNativeControl = false, bSweep = false, bFixed = false;
     double InitialCurvature = 1;
     double MaxArcRadians = UE_PI / 3;
+    double MinRadiusRatio = .6, MaxRadiusRatio = 1.3;
     double ReferenceRadiusCm = 0; // Zero retains the recipe's physical base reference.
     int32 BoundsMode = 1;
 };

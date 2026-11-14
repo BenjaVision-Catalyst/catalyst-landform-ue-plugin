@@ -60,7 +60,10 @@ public:
         FCLNanitePresentationOptions Options;
         Options.bWorldAnchored=true;Options.bNativeMaterials=true;Options.bConsoleCurvature=false;
         Options.bGameplay=true;Options.InitialCurvature=CVarCLWalkingCurvature.GetValueOnGameThread();
-        Options.MaxArcRadians=FMath::DegreesToRadians(80.);Options.ReferenceRadiusCm=Walker.PresentationRadiusCm;
+        Options.MaxArcRadians=FMath::DegreesToRadians(89.);Options.ReferenceRadiusCm=Walker.PresentationRadiusCm;
+        // Coarse native chunks have boxes wider than the thin surface shell.
+        // Admit their full bounds so mountain/distant chunks are not discarded.
+        Options.MinRadiusRatio=.1;Options.MaxRadiusRatio=2;
         Terrain=FCLNativePlanetPresentation::TryCreate(Planet,*Planet.GetSamplingRuntime()->RecipePlan,*Material,Options,Error);
         if(!Terrain) return false;
         for(TActorIterator<AActor> It(Walker.GetWorld());It;++It)

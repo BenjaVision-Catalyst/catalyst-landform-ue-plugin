@@ -67,6 +67,7 @@ struct FCLNativePlanetPresentation::FImpl
     const void *Runtime = nullptr;
     const void *Sampling = nullptr;
     double MaxArcRadians = UE_PI / 3;
+    double MinRadiusRatio = .6, MaxRadiusRatio = 1.3;
     double Radius = 0, InitialCurvature = 1, PreviousCurvature = 1, CurrentCurvature = 1;
     double CurrentRatio = 1, PreviousRatio = 1;
     FVector PreviousAnchor = FVector::ZAxisVector, CurrentAnchor = FVector::ZAxisVector;
@@ -355,7 +356,7 @@ struct FCLNativePlanetPresentation::FImpl
             M.Corners[J] = (Corner - Center).GetSafeNormal();
         }
         M.bHeightValid =
-            MinRadius >= Radius * (bFramed ? .55 : .6) && MaxRadius <= Radius * (bFramed ? 1.5 : 1.3);
+            MinRadius >= Radius * MinRadiusRatio && MaxRadius <= Radius * MaxRadiusRatio;
         M.RadiusRatio = M.bHeightValid ? Radius / MinRadius : 1;
         C.ShadowCacheInvalidationBehavior = EShadowCacheInvalidationBehavior::Always;
         C.SetWorldPositionOffsetDisableDistance(0);
@@ -400,12 +401,12 @@ struct FCLNativePlanetPresentation::FImpl
             if(!C->GetComponentTransform().Equals(P.Transform,1.e-8))
             { Error=TEXT("Canonical scenery component moved during inspection"); return false; }
             const double MinRadius=FVector::Distance(P.Box.GetClosestPointTo(Center),Center);
-            bool Inside=MinRadius>=.6*Radius;
+            bool Inside=MinRadius>=MinRadiusRatio*Radius;
             for(int32 J=0;J<8;++J)
             {
                 FVector Corner(J&1?P.Box.Max.X:P.Box.Min.X,J&2?P.Box.Max.Y:P.Box.Min.Y,J&4?P.Box.Max.Z:P.Box.Min.Z);
                 const FVector D=Corner-Center;
-                Inside &= D.Length()<=1.3*Radius && FVector::DotProduct(D.GetSafeNormal(),CurrentAnchor)>=FMath::Cos(MaxArcRadians)+5.e-6;
+                Inside &= D.Length()<=MaxRadiusRatio*Radius && FVector::DotProduct(D.GetSafeNormal(),CurrentAnchor)>=FMath::Cos(MaxArcRadians)+5.e-6;
             }
             C->SetHiddenInGame(P.Hidden||!Inside);
             if(!Inside) continue;
@@ -508,6 +509,8 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
     I.RequestedCurvature = Options.InitialCurvature;
     I.MaxArcRadians = Options.MaxArcRadians;
     I.bFramed = Planet.SamplingWindow.bEnabled;
+    I.MinRadiusRatio=I.bFramed?.55:Options.MinRadiusRatio;
+    I.MaxRadiusRatio=I.bFramed?1.5:Options.MaxRadiusRatio;
     I.Window = Planet.SamplingWindow;
     I.bGameplay = Options.bGameplay;
     I.bNativeMaterials = Options.bNativeMaterials;
@@ -533,7 +536,9 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
         Error = TEXT("Native control requires native materials at fixed natural curvature");
         return nullptr;
     }
-    if (!FMath::IsFinite(I.MaxArcRadians) || I.MaxArcRadians<=0 || I.MaxArcRadians>=UE_HALF_PI ||
+    if (!FMath::IsFinite(I.MinRadiusRatio) || !FMath::IsFinite(I.MaxRadiusRatio) ||
+        I.MinRadiusRatio<=0 || I.MaxRadiusRatio<I.MinRadiusRatio ||
+        !FMath::IsFinite(I.MaxArcRadians) || I.MaxArcRadians<=0 || I.MaxArcRadians>=UE_HALF_PI ||
         !FMath::IsFinite(I.InitialCurvature) || I.InitialCurvature < 0 || I.InitialCurvature > 1 ||
         (I.Mode != 1 && I.Mode != 2) || I.Radius <= 0)
     {
@@ -823,6 +828,8 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
     O->SetNumberField(TEXT("nativeMeshRetireEvents"), I.RetireEvents);
     O->SetNumberField(TEXT("frames"), I.Frames);
     O->SetNumberField(TEXT("chartMaxArcDegrees"), FMath::RadiansToDegrees(I.MaxArcRadians));
+    O->SetNumberField(TEXT("chartMinRadiusRatio"),I.MinRadiusRatio);
+    O->SetNumberField(TEXT("chartMaxRadiusRatio"),I.MaxRadiusRatio);
     O->SetNumberField(TEXT("physicalReferenceRadiusCm"), I.Radius);
     if(I.CurrentCurvature>0) O->SetNumberField(TEXT("visualReferenceRadiusCm"), I.Radius/I.CurrentCurvature);
     O->SetNumberField(TEXT("minCurvature"), I.MinCurvature);
@@ -861,8 +868,8 @@ bool FCLNativePlanetPresentation::GetCurrentProjection(FCLPlanetProjection &Out)
     S.MaxArcRadians = I.MaxArcRadians;
     if ((I.bFramed || I.bWorldAnchored) && I.Planet.IsValid())
         S.Center = I.Planet->BodyCenterWorld();
-    S.MinAltitudeCm = (I.bFramed ? -.45 : -.4) * I.Radius;
-    S.MaxAltitudeCm = I.bFramed ? 50000 : .3 * I.Radius;
+    S.MinAltitudeCm = (I.MinRadiusRatio-1) * I.Radius;
+    S.MaxAltitudeCm = I.bFramed ? 50000 : (I.MaxRadiusRatio-1) * I.Radius;
     return FCLPlanetProjection::TryCreate(S, Out);
 }
 

@@ -71,6 +71,8 @@ public:
         Settings.Reset(DuplicateObject<ULevelEditorPlaySettings>(GetDefault<ULevelEditorPlaySettings>(),GetTransientPackage()));
         Settings->SetPlayNetMode(PIE_Standalone);Settings->SetPlayNumberOfClients(1);
         Settings->SetRunUnderOneProcess(true);Settings->bLaunchSeparateServer=false;
+        Settings->NewWindowWidth=3840;Settings->NewWindowHeight=2160;
+        Settings->CenterNewWindow=true;
         FRequestPlaySessionParams Params;Params.EditorPlaySettings=Settings.Get();Params.bAllowOnlineSubsystem=false;
         Params.GameModeOverride=ACLPlanetInspectionGameMode::StaticClass();
         // No map override: PIE duplicates the existing world, including its biome actors.

@@ -2,7 +2,7 @@
 
 Landform owns the existing-world inspection host, VPP character, 20 m/s radial
 movement and shared terrain/scenery/camera presentation. Walking starts from the
-Planet editor's player marker. The editor world and its unsaved recipe, guides,
+Planet editor's player marker in a centered 3840 × 2160 client window. The editor world and its unsaved recipe, guides,
 instances and materials remain authoritative. PIE duplicates that world.
 
 ## UE 5.8 integration
@@ -19,8 +19,11 @@ Walking uses `FCLPlanetProjection` at curvature **0.05**: the spherical carrier
 has 20 times the physical reference radius, while radial terrain relief stays
 1:1 and canonical field/collision/gravity remain unchanged. This retains a real
 horizon and extends the eye-level horizon distance by about 4.47 times. The
-walking chart admits directions within 80 degrees of its moving anchor; it is
-still finite. `landform.WalkingCurvature` supports a smooth two-second change
+walking chart admits directions within 89 degrees of its moving anchor; it is
+still finite. Walking admits native chunk/scenery boxes from 0.1 to 2 times
+the landing reference radius so coarse boxes enclosing mountains are not
+rejected by a narrow surface shell. This is render admission, not a terrain-height
+change. `landform.WalkingCurvature` supports a smooth two-second change
 from zero (diagnostic tangent plane) to one (natural curvature).
 Current and previous packets drive WPO, normals and conservative projected
 Nanite instance, node and tessellation-patch bounds. The split stage projects

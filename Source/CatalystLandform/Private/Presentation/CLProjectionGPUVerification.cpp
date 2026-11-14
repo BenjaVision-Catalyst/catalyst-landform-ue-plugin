@@ -26,9 +26,10 @@ struct FCLProjectionGPUVerification::FImpl
         S.ReferenceRadiusCm = Radii[Result.Charts / 7];
         S.AnchorDirection = Random.VRand();
         S.Curvature = Curvatures[Result.Charts % 7];
-        if(S.Curvature==.05) S.MaxArcRadians=FMath::DegreesToRadians(80.);
+        if(S.Curvature==.05) S.MaxArcRadians=FMath::DegreesToRadians(89.);
         S.MinAltitudeCm = -.4 * S.ReferenceRadiusCm;
         S.MaxAltitudeCm = .3 * S.ReferenceRadiusCm;
+        if(S.Curvature==.05) {S.MinAltitudeCm=-.9*S.ReferenceRadiusCm;S.MaxAltitudeCm=S.ReferenceRadiusCm;}
         // GPU input is FP32. Test the exact CPU mapping with the shader's documented
         // admission band; do not mistake world-origin rounding at an exact edge for a math error.
         auto Oracle = S;
@@ -57,9 +58,9 @@ struct FCLProjectionGPUVerification::FImpl
             E.Source = (Source - S.Center) / S.ReferenceRadiusCm;
             const double H=E.Source.Length()-1;
             const double Cos=FVector::DotProduct(E.Source.GetSafeNormal(),S.AnchorDirection);
-            E.Extent=E.bPosition&&H>-.395&&H<.295&&Cos>FMath::Cos(.95*S.MaxArcRadians)?1.e-4:0;
+            E.Extent=E.bPosition&&H>S.MinAltitudeCm/S.ReferenceRadiusCm+.005&&H<S.MaxAltitudeCm/S.ReferenceRadiusCm-.005&&Cos>FMath::Cos(.95*S.MaxArcRadians)?1.e-4:0;
             const double Ratio=S.Curvature==0?1:FMath::Sin(S.Curvature*S.MaxArcRadians)/(S.Curvature*S.MaxArcRadians);
-            const double L=FMath::Max(1.,(S.Curvature+(1-S.Curvature)/.6)*Ratio/(FMath::Sin(S.MaxArcRadians)/S.MaxArcRadians));
+            const double L=FMath::Max(1.,(S.Curvature+(1-S.Curvature)/(1+S.MinAltitudeCm/S.ReferenceRadiusCm))*Ratio/(FMath::Sin(S.MaxArcRadians)/S.MaxArcRadians));
             Q.Source.W=E.Extent;Q.Presented.W=L+2.e-6;
             Inputs.Add(Q);
             Expected.Add(E);
@@ -68,7 +69,7 @@ struct FCLProjectionGPUVerification::FImpl
         {
             const double Theta = I == 0 ? 0 : (I == 1 ? S.MaxArcRadians : Random.FRandRange(0, .98) * S.MaxArcRadians);
             const double Phi = Random.FRandRange(-UE_PI, UE_PI);
-            const double H = I == 1 ? S.MinAltitudeCm : Random.FRandRange(-.39, .29) * S.ReferenceRadiusCm;
+            const double H = I == 1 ? S.MinAltitudeCm : Random.FRandRange(S.MinAltitudeCm/S.ReferenceRadiusCm+.01, S.MaxAltitudeCm/S.ReferenceRadiusCm-.01) * S.ReferenceRadiusCm;
             const FVector U = FMath::Cos(Theta) * S.AnchorDirection + FMath::Sin(Theta) * (FMath::Cos(Phi) * D1 + FMath::Sin(Phi) * D2);
             Add(S.Center + (S.ReferenceRadiusCm + H) * U, Random.VRand(), Random.VRand());
         }

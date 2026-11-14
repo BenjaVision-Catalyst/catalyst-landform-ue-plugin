@@ -187,6 +187,26 @@ bool FCLProjectionDomainTest::RunTest(const FString&)
 
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWalkingCoverageTest,"Catalyst.Landform.Presentation.WalkingDistantCoverage",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLWalkingCoverageTest::RunTest(const FString&)
+{
+    FCLPlanetProjectionSettings S;S.ReferenceRadiusCm=65914.62;S.Curvature=.05;
+    S.MaxArcRadians=FMath::DegreesToRadians(89.);S.MinAltitudeCm=-.9*S.ReferenceRadiusCm;S.MaxAltitudeCm=S.ReferenceRadiusCm;
+    FCLPlanetProjection P;if(!TestTrue(TEXT("Wide walking shell admitted"),FCLPlanetProjection::TryCreate(S,P)))return false;
+    FBox Bounds;TestTrue(TEXT("Conservative chart bounds available"),P.TryGetChartBounds(Bounds));
+    for(double Angle:{0.,60.,80.,88.9})for(double Ratio:{.1,.55,.75,1.,1.4,1.6,2.})
+    {
+        const double A=FMath::DegreesToRadians(Angle);
+        const FVector Source=Ratio*S.ReferenceRadiusCm*FVector(FMath::Sin(A),0,FMath::Cos(A));
+        FVector Projected,Back;
+        TestTrue(TEXT("Coarse distant/mountain bounds project"),P.TryProjectPosition(Source,Projected));
+        TestTrue(TEXT("Projected bounds contain distant geometry"),Bounds.IsInsideOrOn(Projected));
+        TestTrue(TEXT("Wide-shell inverse agrees"),P.TryUnprojectPosition(Projected,Back)&&Back.Equals(Source,1.e-6));
+    }
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGentleVistaTest,"Catalyst.Landform.Presentation.GentleVistaHorizon",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLGentleVistaTest::RunTest(const FString&)
