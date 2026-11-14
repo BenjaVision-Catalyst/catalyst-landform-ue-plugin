@@ -26,6 +26,16 @@ class OverlayTests(unittest.TestCase):
   self.assertLess(projection,text.index('BoundsMin = min( BoundsMin, PointPostDeform )'))
   self.assertLess(projection,text.index('PointView[i] = mul'))
   self.assertIn('CLNaniteProjection.ush',text)
+ def test_voxel_projection_covers_raster_material_and_velocity(self):
+  overlay.stage(self.project,self.engine)
+  target=self.project/'Saved/NaniteProjection/EngineShaders/Nanite'
+  raster=(target/overlay.RASTER).read_text();deform=(target/overlay.DEFORM).read_text();factory=(target/overlay.FACTORY).read_text();cluster=(target/overlay.CLUSTER).read_text()
+  self.assertLess(raster.index('SkinningTransform4x3 = CLVoxelProjectTransform'),raster.index('float3x3 SkinningTransform3x3'))
+  self.assertIn('SampleVoxelPerBrickSkinningTransform( InstanceData, SkinningHeader, Brick )',raster)
+  self.assertIn('CLVoxelReconstruct(PrimitiveData,InstanceData',deform)
+  self.assertIn('return CLVoxelVelocity',deform)
+  self.assertIn('if(Cluster.bVoxel&&CLVoxelProjected(PrimitiveData)) bEvaluateWPO=true;',factory)
+  self.assertGreater(cluster.index('CLNaniteProjectNode(PrimitiveData'),cluster.index('SkinningTransform'))
  def test_unknown_source_refused(self):
   (self.source/overlay.CLUSTER).write_text('// changed source\n')
   with self.assertRaises(ValueError):overlay.stage(self.project,self.engine)

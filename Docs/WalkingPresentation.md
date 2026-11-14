@@ -51,6 +51,30 @@ It checks the inverse and canonical Planet pose. The inspection report includes
 native binding state, scenery components, camera frames and inverse error.
 Errors stop inspection instead of silently presenting an unflattened world.
 
+## Nanite foliage voxels
+
+UE 5.8 MegaPlants use near triangles and distant Nanite voxel bricks. Their native
+voxel rasterizer bypasses material WPO. Projecting only triangles and culling bounds
+therefore leaves distant foliage in canonical coordinates while the camera walks
+through the presented chart.
+
+The isolated overlay also qualifies NaniteRasterizer, NaniteVertexDeformation and
+NaniteVertexFactory. Each world-anchored brick receives an affine projection at its
+center using the chart's analytic Jacobian, composed after native per-brick skinning
+or assembly transforms. That same affine map drives screen bounds, inverse rays,
+depth, voxel attribute lookup and current/previous velocity. Deferred material
+evaluation reconstructs canonical positions before applying Landform WPO once;
+native source attributes, skinning, materials and subtle wind remain owned by UE.
+The existing bounds projection now follows native skinning.
+
+This path uses the walking world-anchor packet (9150). Its final float4 contains
+the voxel enable flag; all 32 floats are restored with the component's original
+custom primitive data on retirement. `landform.VoxelProjection` defaults to 1.
+Setting it to 0 is a diagnostic bypass for a same-pose comparison; it does not
+change triangle projection, native voxel support, cull distances or LOD settings.
+The production path retains Epic's voxel representation. It does not substitute
+billboards or force near-triangle detail at long distances.
+
 ## Walking lighting
 
 The PIE sun and sky atmosphere follow the local tangent. The realtime skylight

@@ -1,0 +1,88 @@
+#ifndef CL_NANITE_VOXEL_PROJECTION_USH
+#define CL_NANITE_VOXEL_PROJECTION_USH
+#include "/Plugin/CatalystLandform/Public/CLWorldAnchor.ush"
+
+// World-anchored presentation is render-only. Keep canonical instance/bone data.
+bool CLVoxelProjected(FPrimitiveSceneData P) { return P.CustomPrimitiveData[2].w==9150&&P.CustomPrimitiveData[7].x>0; }
+float4x3 CLVoxelIdentity() {return float4x3(float3(1,0,0),float3(0,1,0),float3(0,0,1),float3(0,0,0));}
+float4x3 CLVoxelProjectTransform(FPrimitiveSceneData P,FInstanceSceneData I,float3 Center,float4x3 Native,bool Previous)
+{
+    const float4 F=Previous?P.CustomPrimitiveData[1]:P.CustomPrimitiveData[0];
+    if(!CLVoxelProjected(P)||F.w==1) return Native;
+    const float3 High=Previous?P.CustomPrimitiveData[5].xyz:P.CustomPrimitiveData[3].xyz;
+    const float3 Low=Previous?P.CustomPrimitiveData[6].xyz:P.CustomPrimitiveData[4].xyz;
+    const float3 PostSkin=mul(float4(Center,1),Native);
+    FDFMatrix L2W=I.LocalToWorld;
+    if(Previous) L2W=I.PrevLocalToWorld;
+    const float3x3 Basis=DFToFloat3x3(L2W),InvBasis=Inverse(Basis);
+    const float3 Source=CLWorldAnchorRelative(High,Low,DFMultiplyAffine(PostSkin,L2W));
+    const float Radius=P.CustomPrimitiveData[2].x;
+    const float3 Anchor=normalize(F.xyz);
+    const float3 Target=PostSkin+mul(CLAnchoredPosition(Radius,Anchor,F.w,Source)-Source,InvBasis);
+    float4x3 Result;
+    UNROLL for(uint Axis=0;Axis<3;++Axis)
+        Result[Axis]=mul(CLAnchoredVector(Radius,Anchor,F.w,Source,mul(Native[Axis],Basis)),InvBasis);
+    Result[3]=Target-mul(Center,(float3x3)Result);
+    return Result;
+}
+float3 CLVoxelCenter(FCluster Cluster,FBrick Brick)
+{return (float3(Brick.StartPos)+float3(Brick.BrickMax)*.5f)*Cluster.LODError;}
+void CLVoxelNativeTransforms(FPrimitiveSceneData P,FInstanceSceneData I,FInstanceViewData V,FVisibleCluster Visible,FCluster Cluster,FBrick Brick,out float4x3 Current,out float4x3 Previous)
+{
+    Current=Previous=CLVoxelIdentity();
+    const bool Active=Cluster.bSkinning&&V.bIsDeforming&&((P.Flags&PRIMITIVE_SCENE_DATA_FLAG_SKINNED_MESH)!=0);
+    if(IsAssemblyPartCluster(Visible))
+    {
+        const float4x4 Part=LoadNaniteAssemblyTransform(Visible.AssemblyTransformIndex);
+        Current=(float4x3)Part;
+        Previous=Active?(float4x3)LoadNaniteAssemblyTransform(Visible.AssemblyTransformIndex+1):Current;
+    }
+#if USE_SKINNING
+    else if(Active) SampleVoxelPerBrickSkinningTransforms(I,LoadSkinningHeader(I.PrimitiveId),Brick,Current,Previous);
+#endif
+}
+// Invert exactly the same per-brick affine map used by rasterization. The
+// linearization error is sub-voxel; canonical attributes remain undeformed.
+float3 CLVoxelRestPosition(FPrimitiveSceneData P,FInstanceSceneData I,FCluster Cluster,FBrick Brick,float3 Presented,float4x3 Native)
+{
+    const float4x3 Projected=CLVoxelProjectTransform(P,I,CLVoxelCenter(Cluster,Brick),Native,false);
+    return mul(Presented-Projected[3],Inverse((float3x3)Projected));
+}
+FReconstructedVoxelData CLVoxelReconstruct(FPrimitiveSceneData P,FInstanceSceneData I,FInstanceViewData V,FVisibleCluster Visible,FCluster Cluster,FBrick Brick,float3 Presented)
+{
+    float4x3 Native,PrevNative;CLVoxelNativeTransforms(P,I,V,Visible,Cluster,Brick,Native,PrevNative);
+    const float3 Rest=CLVoxelRestPosition(P,I,Cluster,Brick,Presented,Native);
+    FReconstructedVoxelData D=(FReconstructedVoxelData)0;
+    D.PostDeformPosition=mul(float4(Rest,1),Native);
+    D.PrevPostDeformPosition=mul(float4(Rest,1),PrevNative);
+    const bool Part=IsAssemblyPartCluster(Visible);
+    D.LocalPosition=Part?D.PostDeformPosition:Rest;
+    D.bActiveSkinning=!Part&&Cluster.bSkinning&&V.bIsDeforming&&((P.Flags&PRIMITIVE_SCENE_DATA_FLAG_SKINNED_MESH)!=0);
+#if USE_SKINNING
+    D.SkinningTransform=Native;
+#endif
+    const uint3 Cell=(uint3)clamp(floor(Rest/Cluster.LODError)-float3(Brick.StartPos),0,float3(Brick.BrickMax)-1);
+    const uint Index=Cell.x+Cell.y*4+Cell.z*16,Mask=(1u<<(Index&31))-1u;
+    const uint2 Bits=reversebits(Brick.ReverseBrickBits.yx);
+    D.VertIndex=Brick.VertOffset+countbits(Bits.x&(Index<32?Mask:~0u))+countbits(Bits.y&(Index<32?0u:Mask));
+    return D;
+}
+#if VELOCITY_EXPORT
+ENCODED_VELOCITY_TYPE CLVoxelVelocity(FNaniteView View,FPrimitiveSceneData P,FInstanceSceneData I,FCluster Cluster,FVisibleCluster Visible,float4 SvPosition,uint BrickIndex)
+{
+    const FBrick Brick=DecodeBrick(Cluster,BrickIndex);
+    const FInstanceViewData V=GetInstanceViewData(I.InstanceId,View.SceneRendererPrimaryViewId);
+    float4x3 Native,PrevNative;CLVoxelNativeTransforms(P,I,V,Visible,Cluster,Brick,Native,PrevNative);
+    const float4 Hom=mul(float4(SvPosition.xyz,1),View.SVPositionToTranslatedWorld);
+    const FDFVector3 World=DFFastSubtract(Hom.xyz/Hom.w,View.PreViewTranslation);
+    const float3 Presented=DFMultiplyAffineDemote(World,I.WorldToLocal);
+    const float3 Rest=CLVoxelRestPosition(P,I,Cluster,Brick,Presented,Native);
+    const float4x3 Previous=CLVoxelProjectTransform(P,I,CLVoxelCenter(Cluster,Brick),PrevNative,true);
+    const float3 PrevLocal=mul(float4(Rest,1),Previous);
+    const FInstanceDynamicData Dynamic=CalculateInstanceDynamicData(View,I);
+    const float3 PrevWorld=mul(float4(PrevLocal,1),Dynamic.PrevLocalToTranslatedWorld).xyz;
+    const float4 PrevClip=mul(float4(PrevWorld,1),View.PrevTranslatedWorldToClip);
+    return EncodeVelocityToTexture(Calculate3DVelocity(SvPositionToScreenPosition(SvPosition),PrevClip),(P.Flags&PRIMITIVE_SCENE_DATA_FLAG_HAS_PIXEL_ANIMATION)!=0);
+}
+#endif
+#endif

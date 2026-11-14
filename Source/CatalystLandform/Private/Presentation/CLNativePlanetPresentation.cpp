@@ -21,6 +21,10 @@
 static TAutoConsoleVariable<float> CVarCLCurvature(
     TEXT("landform.Curvature"), 1, TEXT("Landform presentation curvature: 1 natural, 0 flat"));
 
+// Qualification bypass: triangles keep their normal presentation for a same-pose voxel comparison.
+static TAutoConsoleVariable<int32> CVarCLVoxelProjection(
+    TEXT("landform.VoxelProjection"), 1, TEXT("Project Nanite voxel bricks into the walking chart (0: diagnostic bypass)"));
+
 struct FCLNativePlanetPresentation::FImpl
 {
     struct FMesh
@@ -168,7 +172,7 @@ struct FCLNativePlanetPresentation::FImpl
                               OldOrigin = Center + Radius * Previous;
                 const FVector3f H(Origin), OH(OldOrigin);
                 const FVector3f Lo(Origin - FVector(H)), OLo(OldOrigin - FVector(OH));
-                const float Data[28] = {float(CurrentAnchor.X),
+                const float Data[32] = {float(CurrentAnchor.X),
                                         float(CurrentAnchor.Y),
                                         float(CurrentAnchor.Z),
                                         float(CurrentCurvature),
@@ -195,7 +199,8 @@ struct FCLNativePlanetPresentation::FImpl
                                         OLo.X,
                                         OLo.Y,
                                         OLo.Z,
-                                        0};
+                                        0,
+                                        float(CVarCLVoxelProjection.GetValueOnGameThread()!=0),0,0,0};
                 C->SetCustomPrimitiveDataFloatArray(0, MakeArrayView(Data));
                 M.bWasShown = bShown;
                 return;
@@ -411,9 +416,9 @@ struct FCLNativePlanetPresentation::FImpl
             C->SetHiddenInGame(P.Hidden||!Inside);
             if(!Inside) continue;
             const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,MinRadius))*FMath::Max(CurrentRatio,PreviousRatio)+2.e-6);
-            const float Data[28]={float(CurrentAnchor.X),float(CurrentAnchor.Y),float(CurrentAnchor.Z),float(CurrentCurvature),
+            const float Data[32]={float(CurrentAnchor.X),float(CurrentAnchor.Y),float(CurrentAnchor.Z),float(CurrentCurvature),
                 float(PreviousAnchor.X),float(PreviousAnchor.Y),float(PreviousAnchor.Z),float(PreviousCurvature),
-                float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0};
+                float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0,float(CVarCLVoxelProjection.GetValueOnGameThread()!=0),0,0,0};
             C->SetCustomPrimitiveDataFloatArray(0,MakeArrayView(Data));
         }
         return true;
@@ -811,6 +816,7 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
     O->SetNumberField(TEXT("sceneryProjectionPackets"),SceneryPackets);
     O->SetNumberField(TEXT("visibleTerrainProjectionPackets"),TerrainPackets);
     O->SetNumberField(TEXT("sceneryComponents"),I.Primitives.Num());
+    O->SetBoolField(TEXT("voxelProjectionEnabled"),CVarCLVoxelProjection.GetValueOnGameThread()!=0);
     O->SetBoolField(TEXT("stockVPP"),true);
     O->SetBoolField(TEXT("worldAnchored"), I.bWorldAnchored);
     O->SetBoolField(TEXT("nativeWindow"), I.bFramed);

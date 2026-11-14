@@ -32,6 +32,23 @@ float3 CLAnchoredPosition(float Radius,float3 Anchor,float C,float3 Source)
     float SH=abs(A)<.001?1-A*A/24:sin(.5*A)/(.5*A);
     return Along*((Radius+C*H)*Theta*Sinc)+Anchor*(H*cos(A)-.5*C*Radius*Theta*Theta*SH*SH);
 }
+// Analytic forward differential of the anchored map (vectors, not normals).
+float3 CLAnchoredVector(float Radius,float3 Anchor,float C,float3 Source,float3 V)
+{
+    if(C==1)return V;
+    const float Z=dot(Source,Anchor),RZ=Radius+Z;
+    const float3 T=Source-Anchor*Z;
+    const float S=length(T),R=length(float3(S,0,RZ));
+    const float H=Z+S*S/max(R+RZ,1.e-6f),M=(Radius+C*H)/max(R,1.e-6f);
+    if(S<1.e-5f)return dot(V,Anchor)*Anchor+(V-dot(V,Anchor)*Anchor)*M;
+    const float Theta=atan2(S,RZ),A=C*Theta;
+    const float3 Along=T/S,Az=cross(Anchor,Along);
+    const float3 SR=Anchor*cos(Theta)+Along*sin(Theta),SM=Along*cos(Theta)-Anchor*sin(Theta);
+    const float3 PR=Anchor*cos(A)+Along*sin(A),PM=Along*cos(A)-Anchor*sin(A);
+    const float SA=abs(A)<.001f?1-A*A/6:sin(A)/A;
+    const float ST=abs(Theta)<.001f?1-Theta*Theta/6:sin(Theta)/Theta;
+    return dot(V,SR)*PR+dot(V,SM)*M*PM+dot(V,Az)*(M*SA/ST)*Az;
+}
 float3 CLAnchoredNormal(float Radius,float3 Anchor,float C,float3 Source,float3 N)
 {
     if(C==1)return N;

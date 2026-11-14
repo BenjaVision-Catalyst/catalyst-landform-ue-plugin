@@ -3,7 +3,8 @@
 #include "CLProjectionGPU.h"
 /** ProjectionOrigin.W=9150 selects world-anchor qualification: SourceCurvature.xyz
  * is source high, BodyFromLocal.xyz source low, OriginHighScale/OriginLow anchor
- * high/low. Output position is relative to that world anchor; phases are unused. */
+ * high/low. Output position is relative to that world anchor; Phase is the forward
+ * differential of Normal.xyz, MacroPhase is the affine residual for Normal.w cm. */
 struct FCLAnchoredGPUInput
 {
     FVector4f SourceCurvature,AnchorRadius,OriginHighScale,OriginLow,BodyFromLocal,Normal,ProjectionOrigin;

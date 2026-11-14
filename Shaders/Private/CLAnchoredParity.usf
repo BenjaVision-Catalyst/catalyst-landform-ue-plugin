@@ -17,7 +17,11 @@ void MainCS(uint3 Index:SV_DispatchThreadID)
         float3 Source=CLWorldAnchorRelative(Q.OriginHighScale.xyz,Q.OriginLow.xyz,MakeDFVector3(Q.SourceCurvature.xyz,Q.BodyFromLocal.xyz));
         R.Position=float4(CLAnchoredPosition(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Source),1);
         R.Normal=float4(CLAnchoredNormal(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Source,normalize(Q.Normal.xyz)),1);
-        R.Phase=R.MacroPhase=0;Outputs[Index.x]=R;return;
+        R.Phase=float4(CLAnchoredVector(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Source,Q.Normal.xyz),1);
+        const float3 Delta=Q.Normal.xyz*Q.Normal.w;
+        const float3 Linear=CLAnchoredVector(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Source,Delta);
+        R.MacroPhase=float4(CLAnchoredPosition(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Source+Delta)-R.Position.xyz-Linear,0);
+        Outputs[Index.x]=R;return;
     }
     R.Position=float4(CLAnchoredPosition(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Q.SourceCurvature.xyz-Q.ProjectionOrigin.xyz)+Q.ProjectionOrigin.xyz,1);
     R.Normal=float4(CLAnchoredNormal(Q.AnchorRadius.w,A,Q.SourceCurvature.w,Q.SourceCurvature.xyz-Q.ProjectionOrigin.xyz,normalize(Q.Normal.xyz)),1);

@@ -6,8 +6,12 @@ from pathlib import Path
 CLUSTER='NaniteClusterCulling.usf'
 INSTANCE='NaniteInstanceCulling.usf'
 SPLIT='NaniteSplit.usf'
+RASTER='NaniteRasterizer.usf'
+DEFORM='NaniteVertexDeformation.ush'
+FACTORY='NaniteVertexFactory.ush'
 # Filled from the qualified installed UE 5.8.4 source; no engine source is distributed.
 QUALIFIED={'NaniteClusterCulling.usf': 'f0b346d438bdb6341dbf7c2c1f22eea128ec317906ac1cef1a0abf52cac1d4e3', 'NaniteInstanceCulling.usf': 'f214ee73b1270693035a1d03f1ea4d15c39fc20e228ca718f42c0e80c8d4654a', 'NaniteSplit.usf':'70ead0045a88b225dfcc9120f5c12f08da57700f98a3c997b0df5e4c403a3a9a'}
+QUALIFIED.update({RASTER:'dcaacb83fa783de248fdc9520f735807c2800a3136407bfe19d9b6a80b871094',DEFORM:'3a84d28118722010935fff299b366727d7c6ba698f215bdbc337ef0f522d293d',FACTORY:'3e90b65214073e5b4ef95caa506b9c6fe47bfc32e3cadb2b7fcac5a33540e947'})
 
 def digest(data):return hashlib.sha256(data).hexdigest()
 def patched(name,data):
@@ -16,7 +20,7 @@ def patched(name,data):
         anchor='#define NANITE_DEPTH_BUCKETING\tNANITE_EXTENDED_VISIBLE_CLUSTERS'
         assert s.count(anchor)==1
         s=s.replace(anchor,'#include "/Plugin/CatalystLandform/Private/CLNaniteProjection.ush"\n\n'+anchor)
-        anchor='\t// Extend the bounds for WPO or displacement'
+        anchor='#if SUPPORT_FIRST_PERSON_RENDERING'
         assert s.count(anchor)==1
         s=s.replace(anchor,'\tCLNaniteProjectNode(PrimitiveData, InstanceData, Bounds);\n\n'+anchor)
     elif name==INSTANCE:
@@ -43,6 +47,32 @@ def patched(name,data):
         anchor='\tBoundsExtent += GetLocalMaxWPOExtent( PrimitiveData, InstanceData, bWPOEnabled );'
         assert s.count(anchor)==1
         s=s.replace(anchor,anchor+'\n\tif (CLHasProjection(PrimitiveData)) BoundsExtent += mul((PrimitiveData.CustomPrimitiveData[2].x*2.e-6f).xxx,abs((float3x3)DFHackToFloat(InstanceData.WorldToLocal)));')
+    elif name==RASTER:
+        # One composed transform controls brick bounds, inverse rays and depth.
+        anchor='\t\tconst float4x3 SkinningTransform4x3 = SampleVoxelPerBrickSkinningTransform( InstanceData, SkinningHeader, Brick );'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,'\t\tfloat4x3 SkinningTransform4x3 = SampleVoxelPerBrickSkinningTransform( InstanceData, SkinningHeader, Brick );\n\t#else\n\t\tfloat4x3 SkinningTransform4x3 = CLVoxelIdentity();\n\t#endif\n\t\tSkinningTransform4x3 = CLVoxelProjectTransform(GetPrimitiveData(InstanceData.PrimitiveId),InstanceData,LocalVoxelBoundsCenter*Cluster.LODError,SkinningTransform4x3,false);\n\t\t{')
+        anchor='\t#endif\n\t\tBrick_RayBase.Origin -= LocalVoxelPosition;'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,'\t\t}\n\t\tBrick_RayBase.Origin -= LocalVoxelPosition;')
+    elif name==DEFORM:
+        anchor='ENCODED_VELOCITY_TYPE CalculateNaniteVelocity('
+        assert s.count(anchor)==1
+        s=s.replace(anchor,'#include "/Plugin/CatalystLandform/Private/CLNaniteVoxelProjection.ush"\n\n'+anchor)
+        anchor='\tconst bool bOutputVelocity = !bWPOEnabled'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,'\tconst FPrimitiveSceneData CLPrimitive=GetPrimitiveData(InstanceData.PrimitiveId);\n\tif(Cluster.bVoxel&&CLVoxelProjected(CLPrimitive)) return CLVoxelVelocity(NaniteView,CLPrimitive,InstanceData,Cluster,VisibleCluster,SvPosition,TriIndex);\n'+anchor)
+        anchor='\tFBrick Brick\t\t\t\t= DecodeBrick(Cluster, BrickIndex);'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,anchor+'\n\tif(CLVoxelProjected(PrimitiveData)) return CLVoxelReconstruct(PrimitiveData,InstanceData,InstanceViewData,VisibleCluster,Cluster,Brick,LocalPos);')
+    elif name==FACTORY:
+        anchor='\tbool bEvaluateWPO = true;'
+        assert s.count(anchor)==1
+        # Voxel bins are fixed-function. Deferred material evaluation still needs
+        # the Landform offset once, from reconstructed canonical source positions.
+        anchor='\tbool bEvaluateWPO = true;\n#if !ALWAYS_EVALUATE_WORLD_POSITION_OFFSET\n\tbEvaluateWPO &= (VisibleCluster.Flags & NANITE_CULLING_FLAG_ENABLE_WPO) != 0;\n#endif'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,anchor+'\n\tif(Cluster.bVoxel&&CLVoxelProjected(PrimitiveData)) bEvaluateWPO=true;')
     return s.replace('\n',newline).encode()
 
 def stage(project,engine):
@@ -52,7 +82,7 @@ def stage(project,engine):
     for name,sha in QUALIFIED.items():
         if digest((source/name).read_bytes())!=sha:raise ValueError('Unknown engine shader: '+name)
     # Validate every modification before creating any output.
-    changes={name:patched(name,(source/name).read_bytes()) for name in [CLUSTER,INSTANCE,SPLIT]}
+    changes={name:patched(name,(source/name).read_bytes()) for name in QUALIFIED}
     target=project/'Saved/NaniteProjection/EngineShaders/Nanite'
     manifest_path=target.parent.parent/'manifest.json'
     if target.exists():
@@ -68,8 +98,8 @@ def stage(project,engine):
         shutil.rmtree(target)
     shutil.copytree(source,target)
     for name,data in changes.items():(target/name).write_bytes(data)
-    (target/'CLProjectionOverlayMarker.ush').write_text('#define CL_NANITE_PROJECTION_OVERLAY_VERSION 2\n')
-    manifest=dict(overlay_version=2,engine_version='5.8.4',original_sha256=QUALIFIED,patched_sha256={n:digest(d) for n,d in changes.items()})
+    (target/'CLProjectionOverlayMarker.ush').write_text('#define CL_NANITE_PROJECTION_OVERLAY_VERSION 3\n')
+    manifest=dict(overlay_version=3,engine_version='5.8.4',original_sha256=QUALIFIED,patched_sha256={n:digest(d) for n,d in changes.items()})
     manifest['output_sha256']={p.relative_to(target).as_posix():digest(p.read_bytes()) for p in sorted(target.rglob('*')) if p.is_file()}
     (target.parent.parent/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     return manifest
