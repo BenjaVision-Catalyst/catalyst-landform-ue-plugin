@@ -1,0 +1,398 @@
+{
+  "engine": "5.8.4 CL58902052",
+  "platform": "Mac arm64",
+  "installed": {
+    "sourceRevision": "b36eb2965ccd8a7ab410b363cf8fa90e233aa53d",
+    "installedSHA256": "020e28e798131a590b690b436a4023c1ac86da5d140cf6ebdaf2d34e456af5ba",
+    "dependencies": {
+      "CatalystFoundation": "dde041e7611a2c6da2adcba7f804a76cff44c988b73b3c8c315b8e3afff6742e",
+      "Voxel": "235cd9c0971e78b47a704cf305a66e69ac37e7bc925d06763d201a0e2b491b8c"
+    }
+  },
+  "planet": "/Game/PlanetReview/Planet.Planet",
+  "world": "/Engine/Maps/Entry.Entry",
+  "status": "Passed installed existing-world retreat and same-pose voxel comparison",
+  "owner": "CatalystLandform",
+  "overlayVersion": 3,
+  "qualifiedEngineShaderSHA256": {
+    "NaniteClusterCulling.usf": "f0b346d438bdb6341dbf7c2c1f22eea128ec317906ac1cef1a0abf52cac1d4e3",
+    "NaniteInstanceCulling.usf": "f214ee73b1270693035a1d03f1ea4d15c39fc20e228ca718f42c0e80c8d4654a",
+    "NaniteSplit.usf": "70ead0045a88b225dfcc9120f5c12f08da57700f98a3c997b0df5e4c403a3a9a",
+    "NaniteRasterizer.usf": "dcaacb83fa783de248fdc9520f735807c2800a3136407bfe19d9b6a80b871094",
+    "NaniteVertexDeformation.ush": "3a84d28118722010935fff299b366727d7c6ba698f215bdbc337ef0f522d293d",
+    "NaniteVertexFactory.ush": "3e90b65214073e5b4ef95caa506b9c6fe47bfc32e3cadb2b7fcac5a33540e947"
+  },
+  "engineAndVPPUnmodified": true,
+  "implementation": "Compose per-brick native skinning/assembly and analytic world-anchor projection; share map for raster bounds, inverse rays, depth, attribute reconstruction and previous-frame velocity. Preserve native Nanite voxel LODs.",
+  "diagnosticBypass": "landform.VoxelProjection=0 reproduces the previous missing voxel projection; final value 1. Triangle presentation unchanged.",
+  "walking": {
+    "distanceMeters": 110.65167357056569,
+    "maximumSpeedMetersPerSecond": 20.000000000000714,
+    "allPresented": true,
+    "allGrounded": true,
+    "position": [
+      10307.26815825645,
+      -11779.735043544371,
+      64553.603485206884
+    ],
+    "presentation": {
+      "projectionPrototype": {
+        "profile": "Native VPP and scenery material presentation; direct lighting and sky ambient",
+        "sceneryProjectionPackets": 212,
+        "visibleTerrainProjectionPackets": 189,
+        "sceneryComponents": 212,
+        "voxelProjectionEnabled": true,
+        "stockVPP": true,
+        "worldAnchored": true,
+        "nativeWindow": false,
+        "originOffsetEvents": 0,
+        "originTransformPublications": 0,
+        "nativeMaterialsPreserved": true,
+        "nativeMaterialControl": false,
+        "presentationMaterialSlotOverrides": 0,
+        "boundsMode": 1,
+        "meshBindingLimit": 2048,
+        "trackedNaniteMeshes": 220,
+        "peakTrackedNaniteMeshes": 262,
+        "visibleNaniteMeshes": 189,
+        "nativeMeshReadyEvents": 1166,
+        "nativeMeshRetireEvents": 1202,
+        "frames": 562,
+        "chartMaxArcDegrees": 89,
+        "chartMinRadiusRatio": 0.1,
+        "chartMaxRadiusRatio": 2,
+        "physicalReferenceRadiusCm": 68481.62292608549,
+        "visualReferenceRadiusCm": 1369632.438112596,
+        "minCurvature": 0.05000000074505806,
+        "maxCurvature": 0.05000000074505806,
+        "activeCanonicalColliders": 251,
+        "collisionIdentityChangesAfterWarmup": 0,
+        "maxPendingNativeTasks": 77,
+        "canonicalRuntimeIdentitiesUnchanged": true,
+        "bindingContractValid": true,
+        "canonicalMeshAndRuntimeIdentitiesUnchanged": false,
+        "sweep": false,
+        "cpuTimingScope": "Game-thread tick plus native lifecycle callback work since the preceding tick"
+      },
+      "presentedCameraFrames": 562,
+      "maxCameraInverseErrorCm": 2.1978932588525954e-11,
+      "curvature": 0.05000000074505806,
+      "outdoorExposureBiasEV": -0.75,
+      "localSkyCaptures": 1,
+      "fogAndHazeDisabled": true,
+      "skyBackgroundDisabled": true,
+      "heightFog": "Disabled: height fog, volumetric fog, aerial perspective and Mie haze"
+    }
+  },
+  "movementSamples": 264,
+  "baselineRetreatMeters": 100.10853758439148,
+  "previewPixels": [
+    2560,
+    1440
+  ],
+  "wind": {
+    "dynamicWindAmplitude": 0.07999999821186066,
+    "dynamicWindSpeed": 3.0,
+    "grassMaterials": [
+      {
+        "material": "/Engine/Transient.grass_a",
+        "intensity": 0.10000000149011612,
+        "speed": 0.15000000596046448
+      },
+      {
+        "material": "/Engine/Transient.grass_a_cheap_distant",
+        "intensity": 0.10000000149011612,
+        "speed": 0.15000000596046448
+      }
+    ]
+  },
+  "preservation": {
+    "canonicalInstances": 26734,
+    "canonicalInstancesUnchanged": true,
+    "sceneryComponents": 212,
+    "sourceActorTransformsExactAfterEscape": true,
+    "protectedOriginalFileHashesUnchanged": 26,
+    "sourceAssetStagingModified": false,
+    "licensedBinaryAssetsPublished": false
+  },
+  "lighting": {
+    "heightFogAndVolumetric": [
+      {
+        "visible": false,
+        "volumetric": false
+      }
+    ],
+    "atmospheres": [
+      {
+        "aerial_pespective_view_distance_scale": 0.0,
+        "mie_scattering_scale": 0.0,
+        "mie_absorption_scale": 0.0
+      }
+    ],
+    "rawBoundaryVisible": true
+  },
+  "forestFloor": {
+    "world": "/Engine/Maps/Entry.Entry",
+    "planet": "/Game/PlanetReview/Planet.Planet",
+    "mega": "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/OakHornbeam/MM_ForestAppearance.MM_ForestAppearance",
+    "function": "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/OakHornbeam/MF_ForestFloorAppearance.MF_ForestFloorAppearance",
+    "surfaceTypes": 8,
+    "inputs": 1,
+    "outputs": 1,
+    "textures": [
+      "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/Ground_Forest_2x2_M_sihnehqa_surface/Albedo_8K_sihnehqa.Albedo_8K_sihnehqa",
+      "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/Ground_Forest_2x2_M_sihnehqa_surface/Normal_8K_sihnehqa.Normal_8K_sihnehqa",
+      "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/Ground_Forest_2x2_M_sihnehqa_surface/Roughness_8K_sihnehqa.Roughness_8K_sihnehqa",
+      "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/Beech_Forest_Floor_2x2_M_tebpdeps_surface/Albedo_8K_tebpdeps.Albedo_8K_tebpdeps",
+      "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/Beech_Forest_Floor_2x2_M_tebpdeps_surface/Normal_8K_tebpdeps.Normal_8K_tebpdeps",
+      "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/Beech_Forest_Floor_2x2_M_tebpdeps_surface/Roughness_8K_tebpdeps.Roughness_8K_tebpdeps",
+      "/Game/Catalyst/MaterialsTextures/Surfaces/ForestFloor/OakHornbeam/T_CanopyCover.T_CanopyCover"
+    ],
+    "normalTransforms": 2
+  },
+  "voxelPixelAudit": {
+    "canopyROI": [
+      1000,
+      150,
+      1850,
+      350
+    ],
+    "definition": "G > R+50 and G > B+50 and G>100, native Voxels visualization; upper canopy above terrain",
+    "cases": [
+      {
+        "image": "voxel-compare-enabled-voxels.png",
+        "sha256": "67d948bbac299183c9a0571958793566c542a6ed97a5769019bb8faf0f189751",
+        "greenVoxelPixels": 85563
+      },
+      {
+        "image": "voxel-compare-disabled-voxels.png",
+        "sha256": "ddc525aeaaece550cd66378cbefc7a828cf273d555f85aa9c9352336de1c590f",
+        "greenVoxelPixels": 16864
+      }
+    ],
+    "canonicalCameraLocationIdenticalAcrossComparison": true
+  },
+  "samePoseComparison": [
+    {
+      "image": "voxel-compare-disabled.png",
+      "projectionEnabled": 0,
+      "visualize": "off",
+      "position": [
+        10307.26815825645,
+        -11779.735043544371,
+        64553.603485206884
+      ]
+    },
+    {
+      "image": "voxel-compare-enabled.png",
+      "projectionEnabled": 1,
+      "visualize": "off",
+      "position": [
+        10307.26815825645,
+        -11779.735043544371,
+        64553.603485206884
+      ]
+    },
+    {
+      "image": "voxel-compare-enabled-voxels.png",
+      "projectionEnabled": 1,
+      "visualize": "Voxels",
+      "position": [
+        10307.26815825645,
+        -11779.735043544371,
+        64553.603485206884
+      ]
+    },
+    {
+      "image": "voxel-compare-disabled-voxels.png",
+      "projectionEnabled": 0,
+      "visualize": "Voxels",
+      "position": [
+        10307.26815825645,
+        -11779.735043544371,
+        64553.603485206884
+      ]
+    },
+    {
+      "image": "voxel-compare-restored.png",
+      "projectionEnabled": 1,
+      "visualize": "off",
+      "position": [
+        10307.26815825645,
+        -11779.735043544371,
+        64553.603485206884
+      ]
+    }
+  ],
+  "renderedTests": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.MaterialComposition",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.PluginWalkingHost",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.RadialLanding",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.Endpoints",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.GentleVistaHorizon",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.GPUParity",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.InverseRayBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.LocalFrames",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.WalkingDistantCoverage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.WorldAnchorGPU",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "renderedTestsPassed": 16,
+  "installerOverlayTestsPassed": 9,
+  "voxelGPUQualification": {
+    "witnesses": 1280,
+    "maximumDifferentialError": 2.05719446151e-07,
+    "maximumAffineResidualDividedByProbe": 0.00525408897893,
+    "scope": "Curvature 0/.05/.5/1, small through planetary radii, translated/rotated anchors, near and +/-88-degree queries; original near-anchor position budget retained."
+  },
+  "captureEvidence": [
+    {
+      "image": "voxel-walk-00.png",
+      "sha256": "7fa75b72f5ef28906efd6cc1c054ee7aae4525cd17d299a7834934ca662bde99"
+    },
+    {
+      "image": "voxel-walk-01.png",
+      "sha256": "af70d9f8a085a4b16af84272236b9344f19f0c3c477b77aa37163e4f1af71edb"
+    },
+    {
+      "image": "voxel-walk-02.png",
+      "sha256": "caf04d8a5952f232242cc421ecc13ed286e405cf98e2b7be07ea1d34076a9804"
+    },
+    {
+      "image": "voxel-walk-03.png",
+      "sha256": "9119b71a29d3eab5b1aadc5a3b13aa4ae2a43b0232bc30fd95fd607a8b303810"
+    },
+    {
+      "image": "voxel-walk-04.png",
+      "sha256": "67487f1b5538aec1522c02e2c6e0af538413fe92b30b49c268942d0f5f5c3239"
+    },
+    {
+      "image": "voxel-walk-05.png",
+      "sha256": "2531436f00a4231985989fdcdc23534e96bd90243a3135ff435f1e542052a4ca"
+    },
+    {
+      "image": "voxel-forest-near.png",
+      "sha256": "0835d34450d3ac94fa86a7fda71efac3efc8918d58d0df31740e8e1b98cd467f"
+    },
+    {
+      "image": "voxel-settled-enabled.png",
+      "sha256": "7b65f1b8ebe163d67ea314003378d8c71f19de786893cab5e83faaade8a0afd5"
+    },
+    {
+      "image": "voxel-compare-disabled.png",
+      "sha256": "8127a076c583fa63e2a2b498b3881511f32c460ebdebdb72b3c326ac33edcd86"
+    },
+    {
+      "image": "voxel-compare-enabled.png",
+      "sha256": "e8017460c2f4d646a2f2dcba957924265541c460b2e7f91fefe89f25eb458f4c"
+    },
+    {
+      "image": "voxel-compare-enabled-voxels.png",
+      "sha256": "67d948bbac299183c9a0571958793566c542a6ed97a5769019bb8faf0f189751"
+    },
+    {
+      "image": "voxel-compare-disabled-voxels.png",
+      "sha256": "ddc525aeaaece550cd66378cbefc7a828cf273d555f85aa9c9352336de1c590f"
+    },
+    {
+      "image": "voxel-compare-restored.png",
+      "sha256": "3baf451da20df9d0ac85c7cfb32c251bd2df478f608f2cbb75d43b2edc131dd2"
+    }
+  ],
+  "privateEvidenceDirectory": "VPPTest58/Saved/WalkInspection",
+  "repeatableChecks": [
+    "Tools/forest-proof/verify-nanite-voxel-walk.py",
+    "Tools/forest-proof/compare-nanite-voxel-projection.py",
+    "Tools/forest-proof/audit-nanite-voxel-pixels.py"
+  ],
+  "limits": [
+    "Finite 89-degree walking chart; terrain/horizon occlusion remains legitimate.",
+    "Existing VPP startup material-pipeline ensure remains; not introduced or fixed by this change.",
+    "Packaged performance, 60 fps, other engine versions and arbitrary material-only voxel deformations are not qualified."
+  ]
+}
