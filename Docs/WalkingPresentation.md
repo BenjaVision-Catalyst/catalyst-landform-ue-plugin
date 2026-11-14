@@ -121,3 +121,24 @@ no-sky/no-cloud/no-fog walk contains 26,734 unchanged canonical instances, inclu
 packets match. Movement reached 20 m/s over 38 grounded/presented samples, followed
 by Escape restoration. All 26 protected original file hashes remained exact.
 The VPP startup ensure and finite-chart/runtime qualification limits remain open.
+
+## Gentle vistas and tessellation qualification
+
+The [vista record](../conformance/walking-vistas-mac-arm64.json) supersedes the
+earlier flat walking default. The installed existing-world walk reproduced the
+black diamond holes and isolated them to the tessellated software raster path.
+The split stage had been omitted from projected culling: canonical patch bounds
+and dicing factors disagreed with material-projected raster vertices. The
+isolated overlay now includes that stage; native tessellation, software
+rasterization and normal HZB/frustum culling remain enabled.
+
+Fifteen rendered regressions and eight installer/overlay tests passed without
+test warnings. A 77 m vista route captured 13 normal frames with zero dark
+terrain-hole pixels in the audited region (5,018 before), plus a natural/gentle
+curvature comparison at one canonical viewpoint. The forest retains all 26,734
+instance transforms, 212 scenery packets and native leaf-litter texture bindings.
+A grounded forest walk reached 20 m/s. Both walks restored the editor state on
+Escape; private checkpoint and normal quit exited 0 with all 26 protected disk
+hashes exact. The existing world reopened successfully. No sky/cloud background,
+fog or haze is rendered. The VPP startup ensure and finite-chart/runtime limits
+remain open.

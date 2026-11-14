@@ -1,0 +1,243 @@
+{
+  "engine": "5.8.4 CL58902052",
+  "platform": "Mac arm64",
+  "implementationRevision": "ba797b350ceafa1bb17f68772ff42b7d4f5221ba",
+  "status": "Passed rendered regressions, installed existing-world walking and normal quit",
+  "renderedTests": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.MaterialComposition",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.PluginWalkingHost",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.RadialLanding",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.Endpoints",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.GentleVistaHorizon",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.GPUParity",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.InverseRayBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.LocalFrames",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.WorldAnchorGPU",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "renderedProcessExitCode": 0,
+  "pythonInstallerOverlayTestsPassed": 8,
+  "projectionGPU": {
+    "charts": 21,
+    "queries": 2940,
+    "maximumPositionErrorRadii": 3.74285125523e-07
+  },
+  "walkingDefaults": {
+    "curvature": 0.05,
+    "visualRadiusMultiplier": 20,
+    "chartMaxArcDegrees": 80,
+    "terrainHeightMultiplier": 1,
+    "visibleSky": false,
+    "fog": false,
+    "haze": false
+  },
+  "installed": {
+    "sourceRevision": "ba797b350ceafa1bb17f68772ff42b7d4f5221ba",
+    "installedSHA256": "d211ba9c7e0cce92873411af267966079107a03d4368b99710474baf8cf8df29",
+    "dependencies": {
+      "CatalystFoundation": "dde041e7611a2c6da2adcba7f804a76cff44c988b73b3c8c315b8e3afff6742e",
+      "Voxel": "235cd9c0971e78b47a704cf305a66e69ac37e7bc925d06763d201a0e2b491b8c"
+    }
+  },
+  "existingWorld": {
+    "planet": "/Game/PlanetReview/Planet.Planet",
+    "world": "/Engine/Maps/Entry.Entry",
+    "instances": 26734,
+    "canonicalInstancesUnchanged": true,
+    "originalFileHashesUnchanged": 26,
+    "sourceActorTransformsRestored": true
+  },
+  "diagnosis": {
+    "rootCause": "Nanite tessellation split/patch culling used canonical positions while the raster domain used Landform-projected positions",
+    "baseline": "Disabling HZB/frustum/min-LOD culling and finer LOD retained holes; hardware-only rasterization or tessellation disabled removed them",
+    "fix": "Project base vertices before split-stage patch bounds, view factors and dicing; union current/previous envelopes; use conservative sphere envelope for rotated bounds",
+    "engineAndVoxelSourceModified": false
+  },
+  "vistaWalk": {
+    "distanceMeters": 76.8067215464618,
+    "frames": 363,
+    "allPresented": true,
+    "groundedFrames": 302,
+    "note": "The route crossed a slope with 61 airborne samples; separate forest walks stayed grounded. Native mesh generations changed during normal streaming.",
+    "maximumGroundedSpeedMetersPerSecond": 20.0000000000002,
+    "rendererSettings": {
+      "landform.WalkingCurvature": 0.05000000074505806,
+      "r.Nanite.ComputeRasterization": 1.0,
+      "r.Nanite.Tessellation": 1.0,
+      "r.Nanite.ProgrammableRaster": 1.0,
+      "r.Nanite.Culling.HZB": 1.0,
+      "r.Nanite.Culling.Frustum": 1.0,
+      "r.Nanite.MaxPixelsPerEdge": 1.0
+    },
+    "captures": 13,
+    "terrainPixelAudit": {
+      "roi": [
+        250,
+        350,
+        1100,
+        650
+      ],
+      "threshold": "red < 24",
+      "baselineBlackPixels": 5018,
+      "eachWalkingCaptureBlackPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "bindingContractValid": true,
+    "canonicalRuntimeIdentitiesUnchanged": true,
+    "canonicalColliderIdentityChanges": 0
+  },
+  "curvatureComparison": {
+    "sameCanonicalViewpoint": true,
+    "naturalCurvature": 1,
+    "finalCurvature": 0.05,
+    "gentlePhysicalReferenceRadiusCm": 64270.65752902679,
+    "gentleVisualReferenceRadiusCm": 1285413.1314263875,
+    "heightMultiplier": 1,
+    "chartMaxArcDegrees": 80,
+    "cpuHorizonWitness": "A 100 m peak at 550 m is hidden by the natural carrier and visible above the gentle carrier; reference horizon extends about 4.47x."
+  },
+  "forestWalk": {
+    "instances": 26734,
+    "canonicalInstancesUnchanged": true,
+    "sceneryPackets": 212,
+    "visibleTerrainPackets": 218,
+    "allGrounded": true,
+    "allPresented": true,
+    "movementFrames": 27,
+    "distanceMeters": 12.777564656724316,
+    "maximumSpeedMetersPerSecond": 20.000000000000078,
+    "additionalMovingCaptures": [
+      "forest-moving-00.png",
+      "forest-moving-01.png",
+      "forest-moving-02.png"
+    ],
+    "denseFloorAlbedoNormalRoughnessBoundInNativeNaniteMID": true,
+    "fogAndHazeDisabled": true,
+    "skyAndCloudBackgroundDisabled": true,
+    "localSkyCaptureIlluminationRetained": true
+  },
+  "shutdown": {
+    "privateCheckpointPackages": 17,
+    "normalGUIQuit": true,
+    "processExitCode": 0,
+    "lateSlateCleanupMarker": true,
+    "originalFileHashesUnchanged": 26,
+    "reopenedExistingWorld": true,
+    "recoveryReadersDetached": true
+  },
+  "knownLimits": [
+    "Finite 80-degree local chart; global vistas, packaged performance and streaming budgets remain unqualified.",
+    "Pre-existing VPP ExistingShadingPipeline.ComputeShader assertion at VoxelNaniteMaterialRendererImpl.cpp:449 still occurs on startup; not suppressed or fixed here.",
+    "Private screenshots and detailed samples remain under project Saved/WalkInspection; licensed content is not published."
+  ],
+  "evidence": [
+    "vista-before00000.png",
+    "vista-fixed-initial.png",
+    "vista-walking-00.png through vista-walking-12.png",
+    "vista-curvature-natural.png",
+    "vista-curvature-gentle.png",
+    "final-forest-walk.png",
+    "forest-moving-00.png through forest-moving-02.png",
+    "vista-motion-acceptance.json",
+    "vista-curvature-acceptance.json",
+    "vista-pixel-audit.json",
+    "integrated-walking.json",
+    "motion-acceptance.json",
+    "forest-motion-acceptance.json",
+    "pie-floor-materials.json",
+    "return-acceptance.json"
+  ]
+}
