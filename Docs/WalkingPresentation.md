@@ -61,3 +61,14 @@ the existing forest world. A terrain-only image or successful movement does not
 qualify scenery alignment, material coverage or lighting. Current/previous
 projection packets retain motion history; packaged performance and broader
 multi-chart content remain separate qualification gates.
+
+The installed UE 5.8.4 Mac arm64 raw forest walk is recorded in
+[`walking-presentation-mac-arm64.json`](../conformance/walking-presentation-mac-arm64.json):
+11,660 canonical instances unchanged, 204 scenery and 205 visible terrain packets,
+35 grounded/presented movement samples reaching 20 m/s, and Escape restoration.
+Height/volumetric fog, aerial perspective and Mie scales were checked directly in
+the installed walking world without test-script overrides. The raw distant chart
+edge and a pre-existing VPP startup shading-pipeline ensure remain open. Fourteen
+rendered checks passed; MaterialComposition retained 17 isolated fixture cache
+warnings. Seven installer/overlay tests passed. This does not qualify packaged
+performance or global/distant biome presentation.

@@ -89,7 +89,138 @@
     }
   ],
   "pythonTests": 7,
-  "existingForestWalk": "Pending installed-host acceptance; not qualified by isolated tests",
+  "existingForestWalk": {
+    "scope": "Local raw editor walking preview in the existing Planet/world; not global or packaged qualification",
+    "world": "/Engine/Maps/Entry.Entry",
+    "sourcePlanet": "/Game/PlanetReview/Planet.Planet",
+    "integrated": {
+      "projectionPrototype": {
+        "profile": "Native VPP and scenery material presentation; direct lighting and sky ambient",
+        "sceneryProjectionPackets": 204,
+        "visibleTerrainProjectionPackets": 205,
+        "sceneryComponents": 204,
+        "stockVPP": true,
+        "worldAnchored": true,
+        "nativeWindow": false,
+        "originOffsetEvents": 0,
+        "originTransformPublications": 0,
+        "nativeMaterialsPreserved": true,
+        "nativeMaterialControl": false,
+        "presentationMaterialSlotOverrides": 0,
+        "boundsMode": 1,
+        "meshBindingLimit": 2048,
+        "trackedNaniteMeshes": 256,
+        "peakTrackedNaniteMeshes": 256,
+        "visibleNaniteMeshes": 205,
+        "nativeMeshReadyEvents": 0,
+        "nativeMeshRetireEvents": 0,
+        "frames": 303,
+        "minCurvature": 0,
+        "maxCurvature": 0,
+        "activeCanonicalColliders": 285,
+        "collisionIdentityChangesAfterWarmup": 0,
+        "maxPendingNativeTasks": 0,
+        "canonicalRuntimeIdentitiesUnchanged": true,
+        "bindingContractValid": true,
+        "canonicalMeshAndRuntimeIdentitiesUnchanged": true,
+        "sweep": false,
+        "cpuTimingScope": "Game-thread tick plus native lifecycle callback work since the preceding tick"
+      },
+      "presentedCameraFrames": 303,
+      "maxCameraInverseErrorCm": 4.547473508864641e-13,
+      "curvature": 0,
+      "outdoorExposureBiasEV": -0.75,
+      "localSkyCaptures": 1,
+      "fogAndHazeDisabled": true,
+      "heightFog": "Disabled: height fog, volumetric fog, aerial perspective and Mie haze",
+      "time": 1794616673.0092978,
+      "world": "/Engine/Maps/UEDPIE_0_Entry.Entry",
+      "ready": true,
+      "presented": true,
+      "status": "WASD \u00b7 Mouse look \u00b7 Space jump \u00b7 Esc return",
+      "maxWalkSpeedCmPerSecond": 2000.0,
+      "nativeGrounded": true,
+      "floorErrorCm": 0.0890043971594423,
+      "cachedEV": 10.0,
+      "instanceCount": 11660,
+      "canonicalInstancesUnchanged": true
+    },
+    "motion": {
+      "distanceMeters": 12.683210097725718,
+      "frames": 35,
+      "allGrounded": true,
+      "allPresented": true,
+      "maximumSpeedMetersPerSecond": 20.000000000000032
+    },
+    "noFog": {
+      "heightFogAndVolumetric": [
+        {
+          "visible": false,
+          "volumetric": false
+        }
+      ],
+      "atmospheres": [
+        {
+          "aerial_pespective_view_distance_scale": 0.0,
+          "mie_scattering_scale": 0.0,
+          "mie_absorption_scale": 0.0
+        }
+      ],
+      "rawBoundaryVisible": true
+    },
+    "return": {
+      "world": "/Engine/Maps/Entry.Entry",
+      "originalActorTransformsExact": true,
+      "restoredCVars": {
+        "r.EyeAdaptation.CachedLightingPreExposure": 4.0,
+        "r.Lumen.DiffuseIndirect.Allow": 1.0,
+        "r.Lumen.Reflections.Allow": 1.0,
+        "r.DistanceFieldAO": 1.0,
+        "r.DistanceFieldShadowing": 1.0
+      },
+      "sourceFog": {
+        "visible": true,
+        "volumetric": true,
+        "density": 0.003000000026077032,
+        "falloff": 0.25
+      },
+      "sourceAerialPerspective": 1.0,
+      "sourceMieScattering": 0.003996000159531832,
+      "returnedByEsc": true
+    },
+    "maskSourcePixels": {
+      "size": [
+        512,
+        512
+      ],
+      "pixelsIdentical": true,
+      "rawSHA256": "0115f80b6ac0c63ad2a8c38524f1db8066df870dba0bc925a8eaca0550ea04f7"
+    },
+    "maskGPU": {
+      "dense": [
+        255.0,
+        255.0,
+        255.0,
+        0.0
+      ],
+      "glade": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "authoringPreserved": {
+      "recipeUnchanged": true,
+      "guidesUnchanged": true,
+      "originalProfileUnchanged": true,
+      "recipeNumbersExact": true,
+      "guideNumbersExact": true,
+      "allLayersPresent": true,
+      "totalInstances": 11660
+    },
+    "protectedPackageFilesUnchanged": 26
+  },
   "engineFilesChanged": false,
   "vendorSourceChanged": false,
   "sourceHashes": {
@@ -134,7 +265,7 @@
       "dense": 255,
       "glade": 0
     },
-    "finalLightingAcceptance": "Pending refined installed revision"
+    "finalLightingAcceptance": "Superseded by installedCodeRevision raw no-fog acceptance"
   },
   "fogPolicy": {
     "heightFog": false,
@@ -143,5 +274,13 @@
     "mieScatteringScale": 0,
     "mieAbsorptionScale": 0,
     "rawChartBoundary": "Exposed local-chart edge remains an open rendering limit"
-  }
+  },
+  "installedCodeRevision": "c4643f3a806c38e0274cb8888517fcb2d246d1da",
+  "installedCodeSHA256": "5c4a8564f56c6c9edb08a0de186501c2fc7becedfe5c0e18a03b9eb1816b91bf",
+  "testWarningContext": "MaterialComposition reported 17 warnings from an isolated fixture MegaMaterialCache with missing functions; the test assertions passed. This is not a warning-free test run.",
+  "openIssues": [
+    "Raw finite 60 degree projection chart exposes a distant terrain edge; distant vistas remain unqualified.",
+    "Pre-existing VPP startup ensure: ExistingShadingPipeline.ComputeShader == ShadingPipeline.ComputeShader, VoxelNaniteMaterialRendererImpl.cpp:449. VPP source remains unchanged.",
+    "Packaged performance, multi-chart/global biome rendering and automatic biome-wide generation remain unqualified."
+  ]
 }
