@@ -1,6 +1,9 @@
 #include "CLInspectionRecoveryLibrary.h"
 #include "AssetCompilingManager.h"
 #include "Editor.h"
+#include "Containers/Ticker.h"
+#include "Misc/CoreDelegates.h"
+#include "Misc/EngineVersion.h"
 #include "Misc/PackageName.h"
 #include "UObject/Linker.h"
 #include "UObject/LinkerLoad.h"
@@ -34,4 +37,25 @@ bool UCLInspectionRecoveryLibrary::DetachRecoveryPackages(const TArray<FString>&
         if(FLinkerLoad::FindExistingLinkerForPackage(Object->GetPackage()))
         {Error=TEXT("Recovery package still has a live reader: ")+Object->GetName();return false;}
     return true;
+}
+
+FDelegateHandle UCLInspectionRecoveryLibrary::InstallSlateShutdownGuard()
+{
+#if PLATFORM_MAC
+    const auto& Version=FEngineVersion::Current();
+    if(Version.GetMajor()==5 && Version.GetMinor()==8 && Version.GetPatch()==4)
+        return FCoreDelegates::OnExit.AddLambda([]
+        {
+            // UE resets the ticker at exit entry, then asset shutdown queues more
+            // notification updates. OnExit follows notification-manager shutdown
+            // and still precedes ICU teardown. Release their retained text now.
+            FTSTicker::GetCoreTicker().Reset();
+            UE_LOG(LogTemp,Display,TEXT("LANDFORM_SLATE_SHUTDOWN: retired deferred notification resources before text teardown"));
+        });
+#endif
+    return {};
+}
+void UCLInspectionRecoveryLibrary::RemoveSlateShutdownGuard(FDelegateHandle Handle)
+{
+    if(Handle.IsValid()) FCoreDelegates::OnExit.Remove(Handle);
 }

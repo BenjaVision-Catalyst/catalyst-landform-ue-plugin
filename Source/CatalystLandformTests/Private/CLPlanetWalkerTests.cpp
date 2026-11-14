@@ -45,3 +45,25 @@ static FAutoConsoleCommand CLVerifyExistingWorldWalk(
             UE_LOG(LogTemp,Error,TEXT("LANDFORM_VERIFY_WALK: %s"),*Error);
     }));
 #endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Editor.h"
+#include "Misc/AsyncTaskNotification.h"
+// Reproduce a notification update queued after the engine's initial ticker
+// reset, just before Slate shutdown. The fixture must then exit normally.
+static FAutoConsoleCommand CLVerifyLateSlateNotification(
+    TEXT("landform.VerifyLateSlateNotification"),TEXT("Queue a development-only Slate shutdown regression notification"),
+    FConsoleCommandDelegate::CreateLambda([]
+    {
+        FEditorDelegates::OnEditorPreExit.AddLambda([]
+        {
+            FAsyncTaskNotificationConfig Config;
+            Config.TitleText=FText::FromString(TEXT("Landform shutdown regression"));
+            Config.bKeepOpenOnSuccess=false;Config.bKeepOpenOnFailure=false;
+            FAsyncTaskNotification Notification(Config);
+            Notification.SetProgressText(FText::FromString(TEXT("Queued after the initial exit ticker reset")));
+            Notification.SetComplete(true);
+            UE_LOG(LogTemp,Display,TEXT("LANDFORM_LATE_NOTIFICATION_QUEUED"));
+        });
+    }));
+#endif

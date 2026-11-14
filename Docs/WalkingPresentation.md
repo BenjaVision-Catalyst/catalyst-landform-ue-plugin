@@ -92,3 +92,12 @@ Pre-saving thumbnails alone did not remove that reader. Engine and VPP source
 remain unchanged. The two scripts under `Tools/tests/fixtures/*recovery-probe.py`
 exercise the reader-release/save-after-restore boundary in an independent
 `LandformWalkBuild` project with a deliberately enlarged package.
+
+A second Mac 5.8.4 exit issue retained a deferred async-notification widget until
+static ticker destruction, after ICU teardown (`ubidi_close_64` invalid free).
+On this exact version/profile, the editor module repeats the engine's exit-time core-ticker reset on `OnExit`,
+after the notification manager has shut down and before ICU teardown.
+The engine's initial reset precedes asset shutdown, which can queue more updates.
+This guard changes shutdown only; it does not discard live-session tickers.
+The development command `landform.VerifyLateSlateNotification` deliberately
+queues an async notification during `OnEditorPreExit` for process-exit validation.

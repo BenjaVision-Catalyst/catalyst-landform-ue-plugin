@@ -1,3 +1,4 @@
+#include "CLInspectionRecoveryLibrary.h"
 #include "PlanetBuilder/CLPlanetBuilderExtensions.h"
 #include "CLPreviewMesh.h"
 #include "CLRecipeEvaluation.h"
@@ -1740,9 +1741,11 @@ class FCLDesignerModule : public IModuleInterface
     TUniquePtr<FAutoConsoleCommand> PlanetCommand;
     TUniquePtr<FAutoConsoleCommand> BuilderCommand;
     FDelegateHandle MenuHandle;
+    FDelegateHandle ShutdownGuardHandle;
 public:
     virtual void StartupModule() override
     {
+        ShutdownGuardHandle=UCLInspectionRecoveryLibrary::InstallSlateShutdownGuard();
         FCLRecipeEvaluation::Startup();
         FCLPlanetInspection::Startup();
         CLRegisterGlobePlacementMode();
@@ -1760,7 +1763,7 @@ public:
         }));
     }
     virtual void ShutdownModule() override
-    { FCLPlanetInspection::Shutdown(); FCLRecipeEvaluation::Shutdown(); CLUnregisterGlobePlacementMode(); Command.Reset();  PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
+    { UCLInspectionRecoveryLibrary::RemoveSlateShutdownGuard(ShutdownGuardHandle); FCLPlanetInspection::Shutdown(); FCLRecipeEvaluation::Shutdown(); CLUnregisterGlobePlacementMode(); Command.Reset();  PlanetCommand.Reset(); BuilderCommand.Reset(); UToolMenus::UnRegisterStartupCallback(MenuHandle); UToolMenus::UnregisterOwner(TEXT("CatalystLandformDesigner")); }
 };
 }
 
