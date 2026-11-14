@@ -1,0 +1,23 @@
+#ifndef CL_NANITE_PROJECTED_CHUNK_USH
+#define CL_NANITE_PROJECTED_CHUNK_USH
+// A spatial hash chunk can mix primitives. Inspect actual members, never assume
+// the first member represents the chunk. Early exit keeps projected foliage cheap.
+// Only the invalid canonical chunk test is deferred. Instance, node and cluster
+// tests still use CLNaniteProjection bounds and retain native HZB/frustum culling.
+bool CLChunkNeedsProjectedInstanceTests(uint ChunkId)
+{
+    const uint Packed=InstanceHierarchyItemChunks[ChunkId];
+    bool Compressed=false;
+    const uint Count=UnpackChunkInstanceCount(Packed,Compressed);
+    for(uint Index=0;Index<Count;++Index)
+    {
+        const FInstanceSceneData I=GetInstanceSceneData(UnpackChunkInstanceId(Compressed,Packed,Index));
+        if(!I.ValidInstance) continue;
+        const FPrimitiveSceneData P=GetPrimitiveData(I.PrimitiveId);
+        // Packet slot 29 marks instanced scenery; native VPP terrain keeps zero.
+        if(P.CustomPrimitiveData[2].w==9150.0f && P.CustomPrimitiveData[7].y==1.0f &&
+           (P.CustomPrimitiveData[0].w!=1.0f || P.CustomPrimitiveData[1].w!=1.0f)) return true;
+    }
+    return false;
+}
+#endif

@@ -37,9 +37,15 @@ class OverlayTests(unittest.TestCase):
   self.assertIn('if(Cluster.bVoxel&&CLVoxelProjected(PrimitiveData)) bEvaluateWPO=true;',factory)
   self.assertGreater(cluster.index('CLNaniteProjectNode(PrimitiveData'),cluster.index('SkinningTransform'))
  def test_unknown_source_refused(self):
-  (self.source/overlay.CLUSTER).write_text('// changed source\n')
-  with self.assertRaises(ValueError):overlay.stage(self.project,self.engine)
-  self.assertFalse((self.project/'Saved').exists())
+  # Every qualified hook, including early instance hierarchy admission, must
+  # refuse an unknown vendor source before creating any generated files.
+  for name in overlay.QUALIFIED:
+   with self.subTest(shader=name):
+    source=self.source/name;original=source.read_bytes()
+    source.write_text('// changed source\n')
+    with self.assertRaises(ValueError):overlay.stage(self.project,self.engine)
+    self.assertFalse((self.project/'Saved').exists())
+    source.write_bytes(original)
  def test_unrelated_overlay_edit_preserved(self):
   overlay.stage(self.project,self.engine);p=self.project/'Saved/NaniteProjection/EngineShaders/Nanite'/overlay.CLUSTER
   p.write_text('user edit\n')

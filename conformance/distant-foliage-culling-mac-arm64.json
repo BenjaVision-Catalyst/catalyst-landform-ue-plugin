@@ -1,0 +1,172 @@
+{
+  "date": "2026-11-14",
+  "platform": "UE 5.8.4 Mac arm64 Metal SM6",
+  "scope": "Projected instanced scenery coarse Nanite chunk admission",
+  "problem": "The canonical spatial hash chunk rejects projected foliage before projected per-instance culling runs. No Niagara components are present.",
+  "change": "CPD slot 29 marks instanced scenery. Mixed chunks containing nonidentity projected scenery delegate admission to native per-instance tests. Terrain and unprojected chunks retain coarse admission. Native instance/node/cluster culling stays enabled.",
+  "controls": {
+    "repeatcell_baseA": {
+      "leftForest": {
+        "meanAbsRgb8": 2.3564083576202393,
+        "fractionAbove10": 0.027674765558397273
+      },
+      "canopy": {
+        "meanAbsRgb8": 1.8481042385101318,
+        "fractionAbove10": 0.043002343794660725
+      },
+      "ground": {
+        "meanAbsRgb8": 0.3211978077888489,
+        "fractionAbove10": 1.2549019607843137e-05
+      }
+    },
+    "repeatcell_projectA": {
+      "leftForest": {
+        "meanAbsRgb8": 0.5220584869384766,
+        "fractionAbove10": 0.0010091645353793692
+      },
+      "canopy": {
+        "meanAbsRgb8": 0.5875660181045532,
+        "fractionAbove10": 0.0010461327388098097
+      },
+      "ground": {
+        "meanAbsRgb8": 0.3150158226490021,
+        "fractionAbove10": 7.450980392156862e-06
+      }
+    },
+    "repeatcell_baseB": {
+      "leftForest": {
+        "meanAbsRgb8": 3.291994333267212,
+        "fractionAbove10": 0.03891837169650469
+      },
+      "canopy": {
+        "meanAbsRgb8": 1.754424810409546,
+        "fractionAbove10": 0.03848396501457726
+      },
+      "ground": {
+        "meanAbsRgb8": 0.32469412684440613,
+        "fractionAbove10": 8.627450980392157e-06
+      }
+    },
+    "repeatcell_projectB": {
+      "leftForest": {
+        "meanAbsRgb8": 0.5166915059089661,
+        "fractionAbove10": 0.0009111253196930946
+      },
+      "canopy": {
+        "meanAbsRgb8": 0.5867630839347839,
+        "fractionAbove10": 0.0010575658834962556
+      },
+      "ground": {
+        "meanAbsRgb8": 0.3150334656238556,
+        "fractionAbove10": 9.803921568627451e-06
+      }
+    },
+    "repeatcell_restored": {
+      "leftForest": {
+        "meanAbsRgb8": 3.0358667373657227,
+        "fractionAbove10": 0.03715686274509804
+      },
+      "canopy": {
+        "meanAbsRgb8": 1.9319186210632324,
+        "fractionAbove10": 0.04290744869376322
+      },
+      "ground": {
+        "meanAbsRgb8": 0.3282923996448517,
+        "fractionAbove10": 9.019607843137255e-06
+      }
+    }
+  },
+  "controlsExclusions": "First/last diagnostic captures excluded: the final screenshot can execute after a phase mutation. Accepted samples have constant camera poses.",
+  "scopedWalking": {
+    "distanceMeters": 61.22029192089996,
+    "counts": {
+      "components": 7586,
+      "instances": 1762876,
+      "providers": 1502
+    },
+    "samples": 297,
+    "allGrounded": true,
+    "allPresented": true,
+    "maxSpeedMetersPerSecond": 20.00000000000105,
+    "movingMedianMilliseconds": 33.26104208827019,
+    "stationaryPixels": {
+      "before": {
+        "leftForest": {
+          "meanAbsRgb8": 0.5144155025482178,
+          "fractionAbove10": 0.0009420289855072464
+        },
+        "canopy": {
+          "meanAbsRgb8": 0.5874097347259521,
+          "fractionAbove10": 0.0010659301314510767
+        },
+        "ground": {
+          "meanAbsRgb8": 0.3096808195114136,
+          "fractionAbove10": 5.964912280701754e-06
+        }
+      },
+      "after": {
+        "leftForest": {
+          "meanAbsRgb8": 0.343268483877182,
+          "fractionAbove10": 0.0006502669717772693
+        },
+        "canopy": {
+          "meanAbsRgb8": 0.4609963595867157,
+          "fractionAbove10": 0.0008991867423661194
+        },
+        "ground": {
+          "meanAbsRgb8": 0.30760738253593445,
+          "fractionAbove10": 1.1228070175438597e-05
+        }
+      }
+    }
+  },
+  "tests": {
+    "installerAndOverlayPassed": 9,
+    "nativePassed": 17,
+    "nativeFailed": 0,
+    "nativeTests": [
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "Catalyst.Landform.Inspection.MaterialComposition",
+      "Catalyst.Landform.Inspection.PluginWalkingHost",
+      "Catalyst.Landform.Inspection.RadialLanding",
+      "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+      "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+      "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+      "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "Catalyst.Landform.Presentation.Endpoints",
+      "Catalyst.Landform.Presentation.GentleVistaHorizon",
+      "Catalyst.Landform.Presentation.GPUParity",
+      "Catalyst.Landform.Presentation.InverseRayBounds",
+      "Catalyst.Landform.Presentation.LocalFrames",
+      "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "Catalyst.Landform.Presentation.SceneryBudgetsAndBounds",
+      "Catalyst.Landform.Presentation.WalkingDistantCoverage",
+      "Catalyst.Landform.Presentation.WorldAnchorGPU"
+    ]
+  },
+  "settings": {
+    "width": 2560,
+    "height": 1440,
+    "curvature": 0.15,
+    "windAmplitude": 0.08,
+    "windSpeed": 3,
+    "sky": false,
+    "fog": false,
+    "haze": false,
+    "HZB": true,
+    "frustum": true,
+    "hierarchicalCPU": true
+  },
+  "ownership": {
+    "engineSourcesEdited": false,
+    "VPPChanged": false,
+    "assetBinariesPublished": false,
+    "authoringAssetsSaved": false
+  },
+  "limits": [
+    "Qualifies this distant-foliage case, not general terrain correctness.",
+    "14 Voxel asset GUID diagnostics and stock-VPP material pipeline ensure remain separate open issues.",
+    "Published clean-install walking verification is recorded by the host conformance report."
+  ],
+  "privateEvidence": "VPPTest58/Saved/FoliageFlicker/Scoped/"
+}

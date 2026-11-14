@@ -433,9 +433,10 @@ struct FCLNativePlanetPresentation::FImpl
             C->SetHiddenInGame(P.Hidden||!Inside);
             if(!Inside) continue;
             const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,MinRadius))*FMath::Max(CurrentRatio,PreviousRatio)+2.e-6);
+            // Slot 29 delegates canonical scenery chunks to projected instance tests.
             const float Data[32]={float(CurrentAnchor.X),float(CurrentAnchor.Y),float(CurrentAnchor.Z),float(CurrentCurvature),
                 float(PreviousAnchor.X),float(PreviousAnchor.Y),float(PreviousAnchor.Z),float(PreviousCurvature),
-                float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0,float(CVarCLVoxelProjection.GetValueOnGameThread()!=0),0,0,0};
+                float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0,float(CVarCLVoxelProjection.GetValueOnGameThread()!=0),1,0,0};
             C->SetCustomPrimitiveDataFloatArray(0,MakeArrayView(Data));
             FBox Bounds,OldBounds;
             if(!FCLSceneryRenderPolicy::ProjectBounds(P.Box,Projection,L,Bounds)){Error=TEXT("Scenery bounds left their admitted chart");return false;}

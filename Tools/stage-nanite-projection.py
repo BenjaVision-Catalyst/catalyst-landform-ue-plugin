@@ -5,12 +5,14 @@ from pathlib import Path
 
 CLUSTER='NaniteClusterCulling.usf'
 INSTANCE='NaniteInstanceCulling.usf'
+HIERARCHY='NaniteInstanceHierarchyCulling.usf'
 SPLIT='NaniteSplit.usf'
 RASTER='NaniteRasterizer.usf'
 DEFORM='NaniteVertexDeformation.ush'
 FACTORY='NaniteVertexFactory.ush'
 # Filled from the qualified installed UE 5.8.4 source; no engine source is distributed.
 QUALIFIED={'NaniteClusterCulling.usf': 'f0b346d438bdb6341dbf7c2c1f22eea128ec317906ac1cef1a0abf52cac1d4e3', 'NaniteInstanceCulling.usf': 'f214ee73b1270693035a1d03f1ea4d15c39fc20e228ca718f42c0e80c8d4654a', 'NaniteSplit.usf':'70ead0045a88b225dfcc9120f5c12f08da57700f98a3c997b0df5e4c403a3a9a'}
+QUALIFIED[HIERARCHY]='2dfadc8ee7903405120b35ae09cacbe2fb130018d3defe56d374ffed19917e86'
 QUALIFIED.update({RASTER:'dcaacb83fa783de248fdc9520f735807c2800a3136407bfe19d9b6a80b871094',DEFORM:'3a84d28118722010935fff299b366727d7c6ba698f215bdbc337ef0f522d293d',FACTORY:'3e90b65214073e5b4ef95caa506b9c6fe47bfc32e3cadb2b7fcac5a33540e947'})
 
 def digest(data):return hashlib.sha256(data).hexdigest()
@@ -31,6 +33,17 @@ def patched(name,data):
         anchor='#include "NaniteCullingCommon.ush"'
         assert s.count(anchor)==1
         s=s.replace(anchor,anchor+'\n#include "/Plugin/CatalystLandform/Private/CLNaniteProjection.ush"')
+    elif name==HIERARCHY:
+        anchor='#include "NaniteHZBCull.ush"'
+        assert s.count(anchor)==1
+        s=s.replace(anchor,anchor+'\n#include "/Plugin/CatalystLandform/Private/CLNaniteProjectedChunk.ush"')
+        anchor='\tFAabb CellRelativeBounds = ChunkAttributes.Aabb;'
+        assert s.count(anchor)==1
+        # Spatial hash chunks retain canonical instance bounds. A projected member
+        # invalidates that coarse test, including its screen rectangle/VSM pages.
+        # Submit the chunk to the existing projected per-instance tests instead.
+        code='\tif(CLChunkNeedsProjectedInstanceTests(ChunkId))\n\t{\n\t\tuint CLViews=ViewDrawGroup.NumViews>=32u?~0u:((1u<<ViewDrawGroup.NumViews)-1u);\n#if CULLING_PASS == CULLING_PASS_OCCLUSION_POST\n\t\tCLViews &= InOccludedViewMask;\n#endif\n\t\tif(CLViews!=0u) AppendInstanceCullingWorkGroup(ChunkId,ViewGroupId,CLViews,bIsStaticSceneGeometry);\n\t\treturn;\n\t}\n\n'
+        s=s.replace(anchor,code+anchor)
     elif name==SPLIT:
         anchor='#include "NaniteCullingCommon.ush"'
         assert s.count(anchor)==1

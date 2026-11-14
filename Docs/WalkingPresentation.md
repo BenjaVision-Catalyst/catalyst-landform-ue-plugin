@@ -17,10 +17,10 @@ shader compilation; cooking and execution must use the same projection setting.
 `[CatalystLandform.Presentation] bEnableProjectionShaders` defaults to true.
 No personal checkout, Lab asset or host C++ adapter is required.
 
-Walking uses `FCLPlanetProjection` at curvature **0.05**: the spherical carrier
-has 20 times the physical reference radius, while radial terrain relief stays
+Walking uses `FCLPlanetProjection` at curvature **0.15**: the spherical carrier
+has 6.67 times the physical reference radius, while radial terrain relief stays
 1:1 and canonical field/collision/gravity remain unchanged. This retains a real
-horizon and extends the eye-level horizon distance by about 4.47 times. The
+horizon and extends the eye-level horizon distance by about 2.58 times. The
 walking chart admits directions within 89 degrees of its moving anchor; it is
 still finite. Walking admits native chunk/scenery boxes from 0.1 to 2 times
 the landing reference radius so coarse boxes enclosing mountains are not
@@ -74,6 +74,31 @@ Setting it to 0 is a diagnostic bypass for a same-pose comparison; it does not
 change triangle projection, native voxel support, cull distances or LOD settings.
 The production path retains Epic's voxel representation. It does not substitute
 billboards or force near-triangle detail at long distances.
+
+## Distant foliage visibility
+
+The isolated overlay also qualifies UE 5.8.4's instance hierarchy chunk shader.
+Those spatial hash chunks keep canonical globe-space bounds, before the projected
+instance/node/cluster hooks run. Testing a projected tree against that canonical
+chunk can reject an entire group intermittently as the temporal depth buffer changes.
+
+Walking marks instanced scenery in custom primitive data slot 29. When a chunk
+contains any such member with nonidentity current or previous curvature, the
+chunk delegates admission to the existing projected instance tests. The scan
+handles compressed and explicit instance lists and mixed chunks. Native hidden,
+shadow/far-field filters and post-pass view masks remain effective. Per-instance,
+node and cluster frustum/HZB tests, native LOD and distance limits remain enabled.
+Unprojected chunks and VPP terrain retain native coarse admission; terrain uses
+the same world-anchor tag but deliberately leaves slot 29 zero. All packet data
+is restored on retirement. There is no global culling bypass or diagnostic toggle.
+
+At a fixed 2K walking pose, repeated uncorrected canopy captures changed more
+than 10 RGB8 levels in 3.8–4.3% of crop pixels per adjacent frame. Corrected
+captures measured about 0.1%; the large group dropout returned when the old chunk
+test was restored. A subsequent 61 m grounded walk retained all 1,762,876 instances
+and distant canopy silhouettes, at curve 0.15 with subtle wind and no sky/fog/haze.
+These checks qualify that foliage case; they do not establish general terrain
+correctness or eliminate the separately recorded VPP startup diagnostics.
 
 ## Walking lighting
 
