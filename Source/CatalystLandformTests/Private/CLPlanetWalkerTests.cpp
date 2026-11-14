@@ -48,7 +48,32 @@ static FAutoConsoleCommand CLVerifyExistingWorldWalk(
 
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Editor.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "Misc/AsyncTaskNotification.h"
+// Exercise the walker's actual mouse-look binding instead of changing its camera
+// component, whose rotation the character replaces every tick.
+static FAutoConsoleCommand CLVerifyWalkingPitch(
+    TEXT("landform.VerifyWalkPitch"),TEXT("VerifyWalkPitch <local pitch degrees> (development qualification only)"),
+    FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+    {
+        double Pitch;
+        if(Args.Num()!=1||!FDefaultValueHelper::ParseDouble(Args[0],Pitch)||!FMath::IsFinite(Pitch)||Pitch < -85||Pitch > 85)
+        {UE_LOG(LogTemp,Error,TEXT("LANDFORM_VERIFY_PITCH: expected pitch in [-85,85]"));return;}
+        auto* World=GEditor?GEditor->PlayWorld.Get():nullptr;
+        auto* Player=World?World->GetFirstPlayerController():nullptr;
+        auto* Walker=Player?Cast<ACLPlanetWalker>(Player->GetPawn()):nullptr;
+        auto* Camera=Walker?Walker->FindComponentByClass<UCameraComponent>():nullptr;
+        auto* Input=Walker?Walker->FindComponentByClass<UInputComponent>():nullptr;
+        if(!Camera||!Input||!Walker->bReady)
+        {UE_LOG(LogTemp,Error,TEXT("LANDFORM_VERIFY_PITCH: requires the active walking preview"));return;}
+        for(auto& Binding:Input->AxisKeyBindings)if(Binding.AxisKey==EKeys::MouseY)
+        {
+            Binding.AxisDelegate.Execute((Pitch-Camera->GetRelativeRotation().Pitch)/.15);
+            return;
+        }
+        UE_LOG(LogTemp,Error,TEXT("LANDFORM_VERIFY_PITCH: missing native mouse-look binding"));
+    }));
 // Reproduce a notification update queued after the engine's initial ticker
 // reset, just before Slate shutdown. The fixture must then exit normally.
 static FAutoConsoleCommand CLVerifyLateSlateNotification(

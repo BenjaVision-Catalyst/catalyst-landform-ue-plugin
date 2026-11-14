@@ -259,3 +259,23 @@ the original sun pose are restored when walking ends. The window remains
 2560 × 1440; the host's chosen curvature 0.15, subtle wind and raw no-sky/fog/haze
 view are unchanged. No forest generation restriction or distant-canopy cutoff is
 introduced.
+
+Close, downward-looking projected terrain can exhaust Nanite's default 2,097,152
+candidate split patches and discard child patches, producing flashing black
+triangles. Walking reserves at least 8,388,608 candidates without changing native
+tessellation, dicing, materials or distant-canopy visibility. The 16-byte candidate
+buffer is 128 MiB at this budget, 96 MiB above the default. Larger host budgets
+are preserved. This process-wide renderer setting is scoped to the existing
+walking presentation lifetime and restored on exit unless another writer changed
+its value. `GetPresentationReport` exposes the effective capacity. This is a
+bounded budget for the qualified view, not a guarantee for arbitrary resolutions
+or displacement workloads.
+
+The UE 5.8.4 Mac qualification walks more than 12 m at each local pitch -43.15,
+-65 and -85 degrees; all 15 native 2560x1440 captures have intact foreground
+terrain. A separate 100.28 m native grounded walk retains the canopy in exposed
+views; terrain still occludes trees normally. Exiting restores 2,097,152 candidates
+and the existing Planet recipe/actor transforms. The development test module's
+`landform.VerifyWalkPitch` drives the real MouseY binding for these checks; it
+adds no authoring control or shipping camera API. Higher resolutions and more
+extreme displacement workloads need their own budget qualification.

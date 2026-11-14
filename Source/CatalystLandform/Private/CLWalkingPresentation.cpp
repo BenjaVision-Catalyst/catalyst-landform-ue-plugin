@@ -75,6 +75,12 @@ public:
         // Keep the distant Nanite canopy, using a four-pixel geometric error budget.
         // Shadow clipmaps stop at 327.68 m instead of covering tens of kilometres.
         RenderSetting(TEXT("r.Nanite.MaxPixelsPerEdge"),TEXT("4"));
+        // Close, downward-looking projected terrain can exhaust Nanite's 2M
+        // split queue and discard child patches. Keep native tessellation/detail
+        // and reserve 8M candidates for this walk (128 MiB, 96 MiB above default).
+        // Preserve a host's larger budget; RenderCVars restores our value on exit.
+        if(auto* Candidates=IConsoleManager::Get().FindConsoleVariable(TEXT("r.Nanite.MaxCandidatePatches")))
+            RenderSetting(TEXT("r.Nanite.MaxCandidatePatches"),*FString::FromInt(FMath::Max(Candidates->GetInt(),8*1024*1024)));
         RenderSetting(TEXT("r.Shadow.Virtual.Clipmap.LastLevel"),TEXT("14"));
         RenderSetting(TEXT("r.Shadow.Virtual.ResolutionLodBiasDirectional"),TEXT("1"));
         for(TActorIterator<AActor> It(Walker.GetWorld());It;++It)
@@ -139,6 +145,8 @@ public:
         Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
         Json->SetStringField(TEXT("directionalLighting"),TEXT("Stable at landing; does not rotate with each walking step"));
         Json->SetNumberField(TEXT("nanitePixelError"),4);
+        if(auto* Candidates=IConsoleManager::Get().FindConsoleVariable(TEXT("r.Nanite.MaxCandidatePatches")))
+            Json->SetNumberField(TEXT("naniteCandidatePatchCapacity"),Candidates->GetInt());
         Json->SetNumberField(TEXT("maximumShadowClipmapRadiusMeters"),327.68);
         Json->SetBoolField(TEXT("fogAndHazeDisabled"),true);
         const auto* V=Viewport.Get();
