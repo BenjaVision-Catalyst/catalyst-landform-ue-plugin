@@ -291,7 +291,7 @@
     "visibleSky": false,
     "visibleClouds": false,
     "scope": "Walking game viewport; previous Atmosphere/Cloud show flags restored on exit",
-    "installedAcceptance": "Pending this change; prior results remain historical",
+    "installedAcceptance": "Passed existing-world native flag checks and raw rendered capture",
     "renderedTests": [
       {
         "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
@@ -388,7 +388,7 @@
     "originalHashUnchanged": true,
     "dirtyPackagesPreserved": true,
     "emptyAndUnloadedRefused": true,
-    "hostSaveAndQuit": "Pending installed existing-world acceptance",
+    "hostSaveAndQuit": "Passed private checkpoint after restoration and normal GUI quit, including after walking",
     "renderedTestsPassed": 14,
     "renderedTestWarnings": 0
   },
@@ -404,6 +404,36 @@
       "processExitCode": 1,
       "outcome": "Guard executed but late notification still crashed at static ticker destruction; not fixed"
     },
-    "hostAcceptance": "Pending installed existing-world quit"
+    "hostAcceptance": "Passed normal GUI quit before and after walking; both process exit 0"
+  },
+  "latestInstalledForest": {
+    "installed": {
+      "sourceRevision": "598a730b89adbaa6d5cd3c1caec110fb0463534c",
+      "installedSHA256": "fe4a57e5173a3cf0c6b418709033b0b30a11dfbca15c4d7b34545b0054cf74ff",
+      "dependencies": {
+        "CatalystFoundation": "dde041e7611a2c6da2adcba7f804a76cff44c988b73b3c8c315b8e3afff6742e",
+        "Voxel": "235cd9c0971e78b47a704cf305a66e69ac37e7bc925d06763d201a0e2b491b8c"
+      }
+    },
+    "instances": 26734,
+    "grass": 12509,
+    "woodAnemones": 2565,
+    "sceneryPackets": 212,
+    "terrainPackets": 205,
+    "canonicalTransformsUnchanged": true,
+    "skyBackgroundDisabled": true,
+    "fogAndHazeDisabled": true,
+    "nativeGroundContact": true,
+    "curvature": 0,
+    "motion": {
+      "distanceMeters": 13.420146351143444,
+      "frames": 38,
+      "allGrounded": true,
+      "allPresented": true,
+      "maximumSpeedMetersPerSecond": 20.000000000000128
+    },
+    "escapeRestoration": true,
+    "sourceOriginalFilesUnchanged": 26,
+    "normalGuiQuitAfterWalkingExitCode": 0
   }
 }

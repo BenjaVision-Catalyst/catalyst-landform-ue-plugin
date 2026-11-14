@@ -104,3 +104,11 @@ notification exited with code 0. The development command
 `landform.VerifyLateSlateNotification` and fixture
 `Tools/tests/fixtures/verify-graceful-shutdown.py` reproduce that path. Automated
 `-TestExit` uses forced exit and does not qualify graceful shutdown.
+
+The installed existing-world follow-up passed private checkpoint save after
+restoration and normal GUI quit both before and after walking (exit 0). The raw
+no-sky/no-cloud/no-fog walk contains 26,734 unchanged canonical instances, including
+12,509 grass clumps and 2,565 wood anemones; all 212 scenery and 205 visible terrain
+packets match. Movement reached 20 m/s over 38 grounded/presented samples, followed
+by Escape restoration. All 26 protected original file hashes remained exact.
+The VPP startup ensure and finite-chart/runtime qualification limits remain open.
