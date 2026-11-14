@@ -626,8 +626,8 @@ FCLNativePlanetPresentation::~FCLNativePlanetPresentation()
 bool FCLNativePlanetPresentation::AddPrimitive(UPrimitiveComponent& C,FString& Error)
 {
     auto& I=*Impl;
-    if(!I.bWorldAnchored || C.GetWorld()!=I.Planet->GetWorld() || !C.IsRegistered() || I.Primitives.Num()>=512)
-    { Error=TEXT("Scenery presentation requires a registered component in this planet world (maximum 512)"); return false; }
+    if(!I.bWorldAnchored || C.GetWorld()!=I.Planet->GetWorld() || !C.IsRegistered() || I.Primitives.Num()>=32768)
+    { Error=TEXT("Scenery presentation requires a registered component in this planet world (maximum 32768)"); return false; }
     for(const auto& P:I.Primitives) if(P.Component.Get()==&C) return true;
     for(float Value:C.GetCustomPrimitiveData().Data) if(Value!=0)
     { Error=TEXT("Scenery uses the reserved projection custom-primitive-data range"); return false; }

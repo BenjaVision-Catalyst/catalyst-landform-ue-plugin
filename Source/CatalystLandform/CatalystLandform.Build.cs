@@ -9,7 +9,7 @@ public class CatalystLandform : ModuleRules
         // Translation units own file-local helpers; correctness must not depend on the adaptive Git working set.
         bUseUnity = false;
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "VoxelCore", "VoxelGraph", "Voxel", "CatalystFoundation", "DeveloperSettings" });
+        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "VoxelCore", "VoxelGraph", "Voxel", "CatalystFoundation", "DeveloperSettings", "PCG" });
         PrivateDependencyModuleNames.AddRange(new[] { "GeometryCore", "Json", "JsonUtilities", "InputCore", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });
         FPSemantics = FPSemanticsMode.Precise;
         bool SpatialSIMD = Target.Platform == UnrealTargetPlatform.Mac && !Target.Architectures.bIsMultiArch && Target.Architecture == UnrealArch.Arm64;

@@ -102,3 +102,5 @@ python3 Tools/verify-install.py --engine /absolute/path/UE_5.7 \
 
 The test host and logs are generated outside the plugin. Runtime, editor and
 explicitly loaded automation modules are separate.
+
+Planetary foliage geometry: [tiled surface PCG](Docs/PlanetSurfacePCG.md).

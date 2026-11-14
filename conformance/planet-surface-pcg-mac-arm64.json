@@ -1,0 +1,42 @@
+{
+  "engine": "5.8.4 CL58902052",
+  "platform": "Mac arm64",
+  "nativeSurfaceTest": {
+    "passed": true,
+    "candidates": 8511,
+    "wholeFacesComparedWith4x4Tiles": 6,
+    "maximumScalarSurfaceResidualMeters": 1.669775952e-05,
+    "candidateDirectionsAndSeedsIdentical": true
+  },
+  "renderedWalkingProjectionRegressions": {
+    "passed": 15,
+    "failed": 0
+  },
+  "hostIntegration": {
+    "planet": "/Game/PlanetReview/Planet.Planet",
+    "world": "/Engine/Maps/Entry.Entry",
+    "tiles": 96,
+    "instances": 1762876,
+    "sceneryComponents": 7586,
+    "canopyTrees": 10012,
+    "nativeClassifierProbes": 2247,
+    "wrongHabitatProbes": 0,
+    "minimumRadialUpDot": 0.9999975954127921,
+    "firstWalkingDistanceMeters": 11.810870191388906,
+    "grounded": true,
+    "speedMetersPerSecond": 20,
+    "curvature": 0.15,
+    "viewport": [
+      2560,
+      1440
+    ],
+    "skyFogHaze": false
+  },
+  "limits": [
+    "Outer-surface placement, not cave or authored external-stamp scatter.",
+    "Generation is explicit; automatic classification invalidation and production streaming remain unqualified.",
+    "Existing close-up native terrain dropout and finite-chart horizon admission remain separate recorded issues."
+  ],
+  "stockEngineAndVPP": true,
+  "licensedAssetsCommitted": false
+}
