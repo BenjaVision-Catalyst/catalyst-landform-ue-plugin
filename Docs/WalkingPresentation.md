@@ -74,3 +74,21 @@ edge and a pre-existing VPP startup shading-pipeline ensure remain open. Fourtee
 rendered checks passed; MaterialComposition retained 17 isolated fixture cache
 warnings. Seven installer/overlay tests passed. This does not qualify packaged
 performance or global/distant biome presentation.
+
+## Recovery file readers
+
+Before a recovery controller restores original package files, call
+`CLInspectionRecoveryLibrary.detach_recovery_packages` with the exact recovered
+package names while their checkpoint files are still active. The editor-only
+API refuses PIE, empty/invalid paths and unloaded packages. It fully loads the
+packages, finishes compilation, reads deferred thumbnails and calls Unreal's
+`ResetLoaders`, then verifies that the readers are gone. It does not save assets
+or clear their dirtiness. The controller must verify its manifest acknowledgement
+before replacing files; original/checkpoint hashes remain separate evidence.
+
+Restoring an 18 MB original map underneath a reader holding offsets from a larger
+checkpoint caused seek-past-end crashes during private checkpoint/save/quit work.
+Pre-saving thumbnails alone did not remove that reader. Engine and VPP source
+remain unchanged. The two scripts under `Tools/tests/fixtures/*recovery-probe.py`
+exercise the reader-release/save-after-restore boundary in an independent
+`LandformWalkBuild` project with a deliberately enlarged package.

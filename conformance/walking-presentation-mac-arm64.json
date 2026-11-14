@@ -249,7 +249,9 @@
     "Source/CatalystLandformEditor/Public/CLPlanetInspection.h": "662a073126f79dc986a1eb60c56d161e8e68a8c003297ff8a384790e86258f39",
     "Source/CatalystLandformTests/Private/CLPlanetWalkerTests.cpp": "4ae9526d654a008f0f4819587f8deb59d45d83953105ba40fed00e07025722f7",
     "Source/CatalystLandformTests/Private/CLPresentationTransformTests.cpp": "03999a3d64f8deb769d7b7b43c9e132a4e3d2a3681d016953109f2533ddb6dcd",
-    "Source/CatalystLandformTests/Private/CLSurfaceInspectionTests.cpp": "fa624cf92d797308f7bd8fb63ee70e8e6263f94b2f8881e4c77aecb5c1978faf"
+    "Source/CatalystLandformTests/Private/CLSurfaceInspectionTests.cpp": "fa624cf92d797308f7bd8fb63ee70e8e6263f94b2f8881e4c77aecb5c1978faf",
+    "Source/CatalystLandformEditor/Public/CLInspectionRecoveryLibrary.h": "df342c5c0fa547bb3537051da91352f597fdeb132b18b34e256ce2284a411867",
+    "Source/CatalystLandformEditor/Private/CLInspectionRecoveryLibrary.cpp": "046524adb7a1e5d7b824351338b89356190a56672e0dcd388f1b8115adc6bb60"
   },
   "initialInstalledWalk": {
     "revision": "56a818ddac5780dbce3385e727fad7517912540a",
@@ -375,5 +377,17 @@
       }
     ],
     "pythonTestsPassed": 7
+  },
+  "recoveryReaderRegression": {
+    "loadedCheckpointBytes": 1054626,
+    "restoredOriginalBytes": 5967,
+    "privateSaveAfterRestoreSucceeded": true,
+    "inMemoryMetadataPreserved": true,
+    "originalHashUnchanged": true,
+    "dirtyPackagesPreserved": true,
+    "emptyAndUnloadedRefused": true,
+    "hostSaveAndQuit": "Pending installed existing-world acceptance",
+    "renderedTestsPassed": 14,
+    "renderedTestWarnings": 0
   }
 }
