@@ -394,12 +394,13 @@
   "slateShutdownRegression": {
     "engine": "5.8.4 CL58902052",
     "platform": "Mac arm64",
-    "normalGuiQuit": true,
+    "normalGuiQuit": false,
     "lateNotificationQueuedAfterInitialTickerReset": true,
     "guardRanBeforeTextTeardown": true,
-    "processExitCode": 0,
+    "processExitCode": 1,
     "renderedTestsPassed": 14,
     "testWarnings": 0,
-    "hostAcceptance": "Pending installed existing-world quit"
+    "hostAcceptance": "Pending installed existing-world quit",
+    "outcome": "Guard executed but late notification still crashed at static ticker destruction; not fixed"
   }
 }
