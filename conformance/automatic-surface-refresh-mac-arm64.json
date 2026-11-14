@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-14",
+  "platform": "UE 5.8.4 Mac arm64 Metal SM6",
+  "nativePassed": 22,
+  "nativeFailed": 0,
+  "installerAdapterAndOverlayPassed": 12,
+  "automaticEditTest": "Catalyst.Landform.PCG.AutomaticAcceptedSurfaceRefresh",
+  "automaticEditOutcome": "A real native editor-world PCG generation completes, a radius edit invalidates readiness, and the native queue regenerates without a manual Generate call.",
+  "coverage": "Existing configured editor regions only; no packaged streaming or automatic biome deployment qualification.",
+  "nativeReport": "/private/tmp/planet-surface-refresh-native-qualified-report/index.json",
+  "hostEvidence": "VPPTest58/conformance/automatic-surface-scenery-mac-arm64.json",
+  "landformHasEcosystemDependency": false,
+  "engineOrVPPFilesEdited": false
+}

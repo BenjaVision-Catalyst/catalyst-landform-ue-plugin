@@ -4,6 +4,7 @@
 #include "CLPlanetStamp.h"
 #include "Model/CLPlanetRecipe.h"
 #include "PCGComponent.h"
+#include "Components/BoxComponent.h"
 #include "PCGGraph.h"
 #include "PCGNode.h"
 #include "PCGContext.h"
@@ -47,6 +48,16 @@ bool FCLPlanetSurfaceTilesTest::RunTest(const FString&)
         }
         Keys.Sort();return Keys;
     };
+    Planet->RebuildTerrain();const FString InitialKey=Planet->GetSurfaceGenerationKey();
+    Planet->RebuildTerrain();TestEqual(TEXT("Identical accepted inputs keep their surface identity"),Planet->GetSurfaceGenerationKey(),InitialKey);
+    auto* Region=Owner->FindComponentByClass<UCLPlanetSurfaceRegion>();
+    if(!Region)Region=UCLPlanetSurfacePCGSettings::ConfigureRegion(Owner,Planet,0,0,0,4);
+    FString Status;TestFalse(TEXT("Old products without an accepted identity block walking"),CLPlanetSurfaceRegionsReady(Planet,Status));
+    Component->bGenerated=true;Region->GeneratedSurfaceKey=InitialKey;TestTrue(TEXT("Current region permits walking"),CLPlanetSurfaceRegionsReady(Planet,Status));
+    Planet->SetActorLocation(Pose.GetLocation()+FVector(1,0,0));Planet->RebuildTerrain();
+    TestNotEqual(TEXT("Frame change invalidates accepted scenery"),Planet->GetSurfaceGenerationKey(),InitialKey);
+    TestFalse(TEXT("Stale region blocks walking"),CLPlanetSurfaceRegionsReady(Planet,Status));
+    Planet->SetActorTransform(Pose);Planet->RebuildTerrain();
     int32 Count=0;
     for(int32 Face=0;Face<6;++Face)
     {
@@ -58,4 +69,62 @@ bool FCLPlanetSurfaceTilesTest::RunTest(const FString&)
     TestTrue(TEXT("Roots agree with independently resampled native surface within one millimetre"),WorstResidual<.001);
     AddInfo(FString::Printf(TEXT("%d unique planetary candidates; worst native scalar resampling residual %.12g metres"),Count,WorstResidual));
     Planet->DestroyRuntime();Owner->Destroy();Planet->Destroy();W->DestroyWorld(false);GEngine->DestroyWorldContext(W);return !HasAnyErrors();
+}
+
+namespace
+{
+class FCLWaitForSurfaceRefresh final : public IAutomationLatentCommand
+{
+    FAutomationTestBase* Test;
+    UWorld* World;
+    TWeakObjectPtr<ACLPlanet> Planet;
+    TWeakObjectPtr<UCLPlanetSurfaceRegion> Region;
+    double Started=FPlatformTime::Seconds();
+    FString FirstKey;
+    int32 Phase=0;
+    void Cleanup()
+    {
+        if(Planet.IsValid())Planet->DestroyRuntime();
+        World->DestroyWorld(false);GEngine->DestroyWorldContext(World);
+    }
+public:
+    FCLWaitForSurfaceRefresh(FAutomationTestBase* T,UWorld* W,ACLPlanet* P,UCLPlanetSurfaceRegion* R):Test(T),World(W),Planet(P),Region(R){}
+    bool Update() override
+    {
+        World->Tick(LEVELTICK_All,.033f);
+        if(FPlatformTime::Seconds()-Started>60)
+        {Test->AddError(TEXT("Automatic native region regeneration timed out"));Cleanup();return true;}
+        FString Status;
+        if(!CLPlanetSurfaceRegionsReady(Planet.Get(),Status))return false;
+        if(Phase++==0)
+        {
+            FirstKey=Region->GeneratedSurfaceKey;
+            Planet->RecipeAsset->Recipe.RadiusMeters+=10;
+            Planet->RebuildTerrain();
+            Test->TestNotEqual(TEXT("Accepted shape edit changes the surface identity"),Planet->GetSurfaceGenerationKey(),FirstKey);
+            Test->TestFalse(TEXT("Walking blocks stale scenery immediately after editing"),CLPlanetSurfaceRegionsReady(Planet.Get(),Status));
+            return false;
+        }
+        Test->TestNotEqual(TEXT("The native queue regenerated after a live shape edit"),Region->GeneratedSurfaceKey,FirstKey);
+        Test->TestEqual(TEXT("Completed products carry the new accepted identity"),Region->GeneratedSurfaceKey,Planet->GetSurfaceGenerationKey());
+        Test->AddInfo(TEXT("Native editor PCG generated, accepted a radius edit, and automatically regenerated without manual Generate."));
+        Cleanup();return true;
+    }
+};
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPlanetSurfaceRefreshTest,"Catalyst.Landform.PCG.AutomaticAcceptedSurfaceRefresh",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLPlanetSurfaceRefreshTest::RunTest(const FString&)
+{
+    FString Json,Error;FFileHelper::LoadFileToString(Json,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/TEXT("Examples/TerrainSurfaces.json")));
+    const auto Values=UWorld::InitializationValues().AllowAudioPlayback(false).CreatePhysicsScene(true).CreateNavigation(false).CreateAISystem(false).ShouldSimulatePhysics(false);
+    auto* W=UWorld::CreateWorld(EWorldType::Editor,false,TEXT("CLAutomaticSurfaceTest"),nullptr,true,ERHIFeatureLevel::Num,&Values);GEngine->CreateNewWorldContext(EWorldType::Editor).SetCurrentWorld(W);
+    auto* P=W->SpawnActor<ACLPlanet>();
+    if(!P->ApplyRecipeJson(Json,Error)){AddError(Error);W->DestroyWorld(false);GEngine->DestroyWorldContext(W);return false;}
+    P->CreateRuntime();
+    auto* Owner=W->SpawnActor<AActor>();auto* Root=NewObject<UBoxComponent>(Owner);Root->SetBoxExtent(FVector(20000));Owner->SetRootComponent(Root);Owner->AddInstanceComponent(Root);Root->RegisterComponent();
+    auto* Component=NewObject<UPCGComponent>(Owner);Owner->AddInstanceComponent(Component);Component->RegisterComponent();
+    auto* Graph=NewObject<UPCGGraph>(Owner);UCLPlanetSurfacePCGSettings* Settings=nullptr;auto* Node=Graph->AddNodeOfType(Settings);Settings->PointsPerSquaredMeter=.001;
+    Graph->AddEdge(Node,PCGPinConstants::DefaultOutputLabel,Graph->GetOutputNode(),PCGPinConstants::DefaultOutputLabel);Component->SetGraph(Graph);
+    auto* Region=UCLPlanetSurfacePCGSettings::ConfigureRegion(Owner,P,0,0,0,4);
+    ADD_LATENT_AUTOMATION_COMMAND(FCLWaitForSurfaceRefresh(this,W,P,Region));return true;
 }

@@ -75,6 +75,9 @@ public:
 
     uint32 GetFootprintMask(const FVector& LocalDirection) const;
     const TSharedPtr<const FCLPlanetStampRuntime>& GetSamplingRuntime() const { return SamplingRuntime; }
+    /** Identity of the last accepted terrain input and canonical actor frame. */
+    UFUNCTION(BlueprintPure, Category="Landform|PCG")
+    const FString& GetSurfaceGenerationKey() const { return SurfaceGenerationKey; }
     virtual void OnConstruction(const FTransform& Transform) override;
     virtual void PostRegisterAllComponents() override;
     virtual void BeginPlay() override;
@@ -85,6 +88,7 @@ private:
     bool bDisplayScaleApplied = false;
     bool bRuntimeRecipeApplied = false;
     TSharedPtr<const FCLPlanetStampRuntime> SamplingRuntime;
+    FString SurfaceGenerationKey;
 #if WITH_EDITOR
     TWeakObjectPtr<UCLPlanetRecipeAsset> BoundRecipe;
     FDelegateHandle RecipeChangedHandle;

@@ -1,4 +1,5 @@
 #include "CLPlanet.h"
+#include "Misc/SecureHash.h"
 #include "Surface/CLNativeMaterialCoordinates.h"
 #include "Surface/CLSurfaceLibrary.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
@@ -149,6 +150,12 @@ void ACLPlanet::RebuildTerrain()
     TerrainStamp->SetStamp(Stamp);
     SamplingRuntime = StaticCastSharedPtr<FCLPlanetStampRuntime>(
         FVoxelStampRuntime::Create(GetWorld(), TerrainStamp->GetStamp(), TerrainStamp));
+    FString SurfaceInput;
+    FCLPlanetRecipe::StaticStruct()->ExportText(SurfaceInput,&Stamp.Recipe,nullptr,this,PPF_None,nullptr);
+    SurfaceInput+=FString::Printf(TEXT("|%.17g|"),Stamp.Radius);
+    for(const auto& P:Stamp.Placements)FCLSphericalHeightmapPlacement::StaticStruct()->ExportText(SurfaceInput,&P,nullptr,this,PPF_None,nullptr);
+    SurfaceInput+=GetActorTransform().ToString();
+    SurfaceGenerationKey=FMD5::HashAnsiString(*SurfaceInput);
     for (ACLSphericalHeightmapStamp* Actor : Actors) Actor->UpdateFootprint();
 }
 

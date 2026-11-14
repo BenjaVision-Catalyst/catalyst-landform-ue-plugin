@@ -2,6 +2,7 @@
 #include "CLInspectionMaterials.h"
 #include "CLNaniteProjection.h"
 #include "CLPlanet.h"
+#include "PCG/CLPlanetSurfacePCG.h"
 #include "CLPlanetWalker.h"
 #include "Surface/CLSurfaceLibrary.h"
 #include "MegaMaterial/VoxelMegaMaterial.h"
@@ -74,6 +75,7 @@ public:
             if(Target){Error=TEXT("More than one actor uses this Planet. Keep one inspection target in the world.");return false;}
             Target=*It;
         }
+        if(Target&&!CLPlanetSurfaceRegionsReady(Target,Error))return false;
         if(!CLNaniteProjectionShaderOverlayEnabled())
         {Error=TEXT("Walking requires Landform projection shader setup. Run the plugin's stage-nanite-projection.py and enable bEnableProjectionShaders in CatalystLandform.Presentation.");return false;}
         auto* Mega=Target?Target->MegaMaterial.Get():GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous();

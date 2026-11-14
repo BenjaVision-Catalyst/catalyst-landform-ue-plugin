@@ -3,6 +3,7 @@
 #include "Components/ActorComponent.h"
 #include "CLPlanetSurfacePCG.generated.h"
 class ACLPlanet;
+class UTransformProviderData;
 
 /** A disjoint cube-sphere generation domain, expressed in the canonical planet frame. */
 UCLASS(BlueprintType, ClassGroup=(Landform), meta=(BlueprintSpawnableComponent))
@@ -15,7 +16,16 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface") int32 TileX=0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface") int32 TileY=0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface", meta=(ClampMin="1",ClampMax="64")) int32 TilesPerFace=4;
+    /** Derived scenery is valid only for this accepted surface. Serialized with the region. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Surface") FString GeneratedSurfaceKey;
+    /** Preserve the region's authored native animation provider across PCG regeneration. */
+    UPROPERTY() TObjectPtr<UTransformProviderData> TransformProvider;
 };
+
+/** One bounded, editor-only queue shared by all configured regions. */
+CATALYSTLANDFORM_API void CLStartPlanetSurfaceRefresh();
+CATALYSTLANDFORM_API void CLStopPlanetSurfaceRefresh();
+CATALYSTLANDFORM_API bool CLPlanetSurfaceRegionsReady(const ACLPlanet* Planet,FString& Status);
 
 /** Samples the accepted Landform outer surface, rather than a rectangular world-Z patch.
  * Each region has a disjoint portion of one shared seeded, area-corrected lattice.

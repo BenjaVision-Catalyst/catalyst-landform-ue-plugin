@@ -6,6 +6,8 @@
 #include "PCGContext.h"
 #include "Data/PCGPointData.h"
 #include "GameFramework/Actor.h"
+#include "Metadata/PCGMetadata.h"
+#include "Metadata/PCGMetadataAttributeTpl.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogCLSurfacePCG,Log,All);
 namespace
@@ -22,6 +24,8 @@ struct FCLSurfaceContext : FPCGContext
     int32 Face=0,SampleSeed=0;
     double Reference=0;
     FTransform Pose;
+    int32 PlanetSeed=0;
+    double SeaLevel=0;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
 };
 class FCLSurfaceElement : public IPCGElementWithCustomContext<FCLSurfaceContext>
@@ -44,6 +48,11 @@ protected:
             const auto Runtime=R->Planet->GetSamplingRuntime();C->Plan=Runtime?Runtime->RecipePlan:nullptr;
             if(!C->Plan){UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface has no accepted terrain plan."));return true;}
             C->Reference=C->Plan->RadiusMeters+C->Plan->BaseHeightMeters;C->Pose=R->Planet->GetActorTransform();
+            if(const auto& Recipe=C->Plan->SourceRecipe)
+            {
+                C->PlanetSeed=Recipe->Seed;
+                for(const auto& G:Recipe->RadialGuides.Guides)if(G.Name==TEXT("OceanHeight"))C->SeaLevel=G.NormalizedHeight*Recipe->RadiusMeters-C->Reference;
+            }
             if(C->Reference<=0||!C->Pose.GetScale3D().Equals(FVector::OneVector,1.e-6))return true;
             const double Cells=FMath::CeilToDouble(2*C->Reference*FMath::Sqrt(S->PointsPerSquaredMeter));
             if(Cells<1||Cells>200000){UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface density exceeds lattice budget."));return true;}
@@ -78,7 +87,12 @@ protected:
                 // Reuse the last incomplete data set. Output remains owned by the PCG context across yields.
                 if(!C->OutputData.TaggedData.IsEmpty())Data=const_cast<UPCGPointData*>(Cast<UPCGPointData>(C->OutputData.TaggedData.Last().Data));
                 if(!Data||Data->GetPoints().Num()>=65536)
-                {Data=NewObject<UPCGPointData>();auto& O=C->OutputData.TaggedData.AddDefaulted_GetRef();O.Data=Data;O.Pin=PCGPinConstants::DefaultOutputLabel;}
+                {Data=NewObject<UPCGPointData>();
+                    Data->Metadata->CreateAttribute<FTransform>(TEXT("Planet_ToWorld"),C->Pose,false,true);
+                    Data->Metadata->CreateAttribute<double>(TEXT("Planet_ReferenceRadiusMeters"),C->Reference,false,true);
+                    Data->Metadata->CreateAttribute<int32>(TEXT("Planet_Seed"),C->PlanetSeed,false,true);
+                    Data->Metadata->CreateAttribute<double>(TEXT("Planet_SeaLevelMeters"),C->SeaLevel,false,true);
+                    auto& O=C->OutputData.TaggedData.AddDefaulted_GetRef();O.Data=Data;O.Pin=PCGPinConstants::DefaultOutputLabel;}
             }
             const int32 K=I*3;const FVector P=Directions[K]*(C->Plan->RadiusMeters+H[K]);
             const FVector A=Directions[K+1]*(C->Plan->RadiusMeters+H[K+1]),B=Directions[K+2]*(C->Plan->RadiusMeters+H[K+2]);
