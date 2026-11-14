@@ -35,3 +35,40 @@ bool UCLInspectionRecoveryLibrary::DetachRecoveryPackages(const TArray<FString>&
         {Error=TEXT("Recovery package still has a live reader: ")+Object->GetName();return false;}
     return true;
 }
+
+
+#include "ObjectTools.h"
+#include "AssetToolsModule.h"
+#include "IAssetTools.h"
+#include "UObject/SavePackage.h"
+#include "UObject/ObjectRedirector.h"
+bool UCLInspectionRecoveryLibrary::RenameAssetPreservingUnsavedReferences(UObject* Asset,const FString& NewName,const TArray<FString>& ReferencingPackages,FString& Error)
+{
+ Error.Reset();
+ if(!GEditor||GEditor->PlayWorld||!IsValid(Asset)||!Asset->GetOutermost()->GetName().StartsWith(TEXT("/Game/"))||NewName.IsEmpty()||!FName::IsValidXName(NewName,INVALID_OBJECTNAME_CHARACTERS))
+ {Error=TEXT("Rename requires an explicit game asset, valid name and no PIE");return false;}
+ TArray<UPackage*> Packages;
+ for(const auto& Name:ReferencingPackages)
+ {
+  if(!Name.StartsWith(TEXT("/Game/"))&&!Name.StartsWith(TEXT("/Engine/"))){Error=TEXT("Invalid explicit referencer: ")+Name;return false;}
+  auto* P=FindPackage(nullptr,*Name);if(!P){Error=TEXT("Referencer is not loaded: ")+Name;return false;}Packages.AddUnique(P);
+ }
+ auto* OldPackage=Asset->GetOutermost();const FSoftObjectPath OldPath(Asset);
+ ObjectTools::FPackageGroupName Target;Target.ObjectName=NewName;Target.PackageName=FPackageName::GetLongPackagePath(OldPackage->GetName())/NewName;
+ if(FindObject<UObject>(nullptr,*(Target.PackageName+TEXT(".")+NewName))||FPackageName::DoesPackageExist(Target.PackageName))
+ {Error=TEXT("Rename destination already exists");return false;}
+ TSet<UPackage*> Refused;FText NativeError;
+ if(!ObjectTools::RenameSingleObject(Asset,Target,Refused,NativeError,nullptr,true))
+ {Error=NativeError.ToString();return false;}
+ TMap<FSoftObjectPath,FSoftObjectPath> Redirects;Redirects.Add(OldPath,FSoftObjectPath(Asset));
+ FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get().RenameReferencingSoftObjectPaths(Packages,Redirects);
+ FSavePackageArgs Args;Args.TopLevelFlags=RF_Public|RF_Standalone;Args.SaveFlags=SAVE_NoError;
+ for(auto* Package:{Asset->GetOutermost(),OldPackage})
+ {
+  const FString Filename=FPackageName::LongPackageNameToFilename(Package->GetName(),FPackageName::GetAssetPackageExtension());
+  if(!UPackage::SavePackage(Package,Package==Asset->GetOutermost()?Asset:nullptr,*Filename,Args))
+  {Error=TEXT("Rename applied in memory but definition/redirector save failed: ")+Filename;return false;}
+ }
+ for(auto* Package:Packages)if(Package!=Asset->GetOutermost()&&Package!=OldPackage)Package->MarkPackageDirty();
+ return true;
+}

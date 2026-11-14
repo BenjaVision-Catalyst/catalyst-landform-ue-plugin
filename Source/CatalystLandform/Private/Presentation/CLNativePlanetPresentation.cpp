@@ -651,6 +651,11 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
     I.SetProfile(TEXT("r.Lumen.Reflections.Allow"), TEXT("0"));
     I.SetProfile(TEXT("r.DistanceFieldAO"), TEXT("0"));
     I.SetProfile(TEXT("r.DistanceFieldShadowing"), TEXT("0"));
+    if(I.bGameplay)
+    {
+        I.SetProfile(TEXT("DynamicWind.OverrideAmplitude"),TEXT("0.08"));
+        I.SetProfile(TEXT("DynamicWind.OverrideSpeed"),TEXT("-1"));
+    }
     Error.Reset();
     return Result;
 }

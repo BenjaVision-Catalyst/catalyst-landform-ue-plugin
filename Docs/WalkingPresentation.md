@@ -100,6 +100,16 @@ and distant canopy silhouettes, at curve 0.15 with subtle wind and no sky/fog/ha
 These checks qualify that foliage case; they do not establish general terrain
 correctness or eliminate the separately recorded VPP startup diagnostics.
 
+## Gentle wind, natural timing
+
+Walking scopes Dynamic Wind amplitude to 0.08 and leaves speed at the native
+actor/subsystem setting (`DynamicWind.OverrideSpeed=-1`; Epic's default is 15).
+Both overrides are restored on exit. Projected grass material copies scale the
+source `wind_intensity` by 0.08 and retain authored `wind_speed`, weights and time.
+The source assets remain unchanged. For the woodland grass intake that is speed
+0.35 and source intensity 1.25, yielding walking intensity 0.1. Do not tune breeze
+strength by slowing animation or changing walking speed (20 m/s).
+
 ## Walking lighting
 
 The PIE sun and sky atmosphere follow the local tangent. The realtime skylight

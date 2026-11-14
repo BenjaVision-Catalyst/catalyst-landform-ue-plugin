@@ -1,0 +1,128 @@
+{
+  "date": "2026-11-14",
+  "platform": "UE 5.8.4 Mac arm64 Metal SM6",
+  "changes": [
+    "Native re-save of 14 packaged Surface Type/Metadata assets with persisted valid GUID fields/tags.",
+    "Qualified Landform material-selection adapter retains VPP shader/bindings and filters unrelated scene proxies.",
+    "Walking breeze changes amplitude only; native Dynamic Wind timing and source grass timing retained.",
+    "Native asset rename helper saves only the renamed definition and redirector; referencers remain dirty."
+  ],
+  "guidDefinitions": [
+    {
+      "asset": "/CatalystLandform/Measured/ST_MarsScree.ST_MarsScree",
+      "guid": "5B108A198A401B7145D99A8AD6D80257",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "5B108A198A401B7145D99A8AD6D80257"
+    },
+    {
+      "asset": "/CatalystLandform/Measured/ST_MarsRock.ST_MarsRock",
+      "guid": "5F9151B056402BE8FA1860BAD0A0021F",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "5F9151B056402BE8FA1860BAD0A0021F"
+    },
+    {
+      "asset": "/CatalystLandform/Measured/ST_MarsSoil.ST_MarsSoil",
+      "guid": "90C76B861049ACC2BB0B8E87A21F156A",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "90C76B861049ACC2BB0B8E87A21F156A"
+    },
+    {
+      "asset": "/CatalystLandform/Rock/MD_RockProperties.MD_RockProperties",
+      "guid": "83DBEC7009443AB8C298A3A9E46BFA08",
+      "tag": "VoxelMetadataGuid",
+      "value": "83DBEC7009443AB8C298A3A9E46BFA08"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_Soil.ST_Soil",
+      "guid": "736E2CE69F451CC00F6B85B96BA865E4",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "736E2CE69F451CC00F6B85B96BA865E4"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/MD_PreviewMappingLow.MD_PreviewMappingLow",
+      "guid": "FA7CDBA1834F8D205DE8BC94EAFE80C7",
+      "tag": "VoxelMetadataGuid",
+      "value": "FA7CDBA1834F8D205DE8BC94EAFE80C7"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_Alluvium.ST_Alluvium",
+      "guid": "D205204FBA49BAAF61D270B6B232CB0B",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "D205204FBA49BAAF61D270B6B232CB0B"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/MD_PreviewMappingHigh.MD_PreviewMappingHigh",
+      "guid": "77C56B93034F0C89A1E52D94FC834F60",
+      "tag": "VoxelMetadataGuid",
+      "value": "77C56B93034F0C89A1E52D94FC834F60"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_VolcanicAsh.ST_VolcanicAsh",
+      "guid": "03371296C84EF5634B87D2A737CA91E5",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "03371296C84EF5634B87D2A737CA91E5"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_Scree.ST_Scree",
+      "guid": "EE8C1E04A240C2EA0E818B979E0BD90F",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "EE8C1E04A240C2EA0E818B979E0BD90F"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_MixedRock.ST_MixedRock",
+      "guid": "9F7A78B0B24D09D54F13CD8AAB79EECB",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "9F7A78B0B24D09D54F13CD8AAB79EECB"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_Rock.ST_Rock",
+      "guid": "75654A702741B07F6FA7E6A33EC7EE03",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "75654A702741B07F6FA7E6A33EC7EE03"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_WeakRock.ST_WeakRock",
+      "guid": "CBB81F2E4D43F5046D1F268A8538E982",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "CBB81F2E4D43F5046D1F268A8538E982"
+    },
+    {
+      "asset": "/CatalystLandform/Surfaces/ST_StrongRock.ST_StrongRock",
+      "guid": "D735C1179A4821AE138ACE82FA54850B",
+      "tag": "VoxelSurfaceTypeGuid",
+      "value": "D735C1179A4821AE138ACE82FA54850B"
+    }
+  ],
+  "legacyGuidFieldAbsentCount": 14,
+  "tests": {
+    "nativePassed": 18,
+    "nativeFailed": 0,
+    "installerAndAdapterPassed": 12,
+    "nativeTests": [
+      "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "Catalyst.Landform.Inspection.MaterialComposition",
+      "Catalyst.Landform.Inspection.PackagedVoxelGuids",
+      "Catalyst.Landform.Inspection.PluginWalkingHost",
+      "Catalyst.Landform.Inspection.RadialLanding",
+      "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+      "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+      "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+      "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "Catalyst.Landform.Presentation.Endpoints",
+      "Catalyst.Landform.Presentation.GentleVistaHorizon",
+      "Catalyst.Landform.Presentation.GPUParity",
+      "Catalyst.Landform.Presentation.InverseRayBounds",
+      "Catalyst.Landform.Presentation.LocalFrames",
+      "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "Catalyst.Landform.Presentation.SceneryBudgetsAndBounds",
+      "Catalyst.Landform.Presentation.WalkingDistantCoverage",
+      "Catalyst.Landform.Presentation.WorldAnchorGPU"
+    ]
+  },
+  "qualificationLimits": [
+    "Existing-world startup/forest/wind and rename evidence is retained in the host conformance record.",
+    "Packaged execution and other engine versions are not qualified."
+  ],
+  "engineAndVPPFilesEdited": false,
+  "generatedVendorSourceDistributed": false
+}

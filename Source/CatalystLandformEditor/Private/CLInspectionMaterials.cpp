@@ -11,6 +11,7 @@
 #include "Materials/MaterialExpressionSetMaterialAttributes.h"
 #include "Materials/MaterialExpressionCustom.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionScalarParameter.h"
 #include "Materials/MaterialExpressionPreviousFrameSwitch.h"
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionFunctionInput.h"
@@ -50,6 +51,10 @@ UMaterialInterface* FCLInspectionMaterials::ProjectMaterial(UMaterialInterface* 
         auto* Copy=DuplicateObject<UMaterialInstanceConstant>(Instance,GetTransientPackage());
         Materials.Emplace(Source,TStrongObjectPtr<UMaterialInterface>(Copy));
         Copy->SetParentEditorOnly(Parent);
+        // A gentle breeze changes displacement amplitude, never authored timing.
+        float WindIntensity=0;
+        if(Instance->GetScalarParameterValue(FMaterialParameterInfo(TEXT("wind_intensity")),WindIntensity))
+            Copy->SetScalarParameterValueEditorOnly(FMaterialParameterInfo(TEXT("wind_intensity")),WindIntensity*.08f);
         if(Instance->NaniteOverrideMaterial.bEnableOverride)
         {
             auto* Override=Instance->NaniteOverrideMaterial.GetOverrideMaterial();
@@ -191,12 +196,18 @@ bool FCLInspectionMaterialCompositionTest::RunTest(const FString&)
     auto* Component=NewObject<UInstancedStaticMeshComponent>(Actor);Actor->AddInstanceComponent(Component);
     Component->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube")));
     Component->RegisterComponent();
-    auto* Plain=NewObject<UMaterial>(GetTransientPackage());
+    auto* Plain=NewObject<UMaterial>(GetTransientPackage());TStrongObjectPtr<UMaterial> KeepPlain(Plain);
     auto* Color=Node<UMaterialExpressionConstant3Vector>(*Plain);Color->Constant=FLinearColor(.2,.4,.1);
     Plain->GetEditorOnlyData()->BaseColor.Connect(0,Color);
-    auto* Attributes=NewObject<UMaterial>(GetTransientPackage());Attributes->bUseMaterialAttributes=true;
+    auto* Attributes=NewObject<UMaterial>(GetTransientPackage());TStrongObjectPtr<UMaterial> KeepAttributes(Attributes);Attributes->bUseMaterialAttributes=true;
     auto* Make=Node<UMaterialExpressionMakeMaterialAttributes>(*Attributes);Make->BaseColor.Connect(0,Node<UMaterialExpressionConstant3Vector>(*Attributes));
     Attributes->GetEditorOnlyData()->MaterialAttributes.Connect(0,Make);
+    auto* WindAmplitude=Node<UMaterialExpressionScalarParameter>(*Plain);WindAmplitude->ParameterName=TEXT("wind_intensity");WindAmplitude->DefaultValue=1.25f;
+    auto* WindSpeed=Node<UMaterialExpressionScalarParameter>(*Plain);WindSpeed->ParameterName=TEXT("wind_speed");WindSpeed->DefaultValue=.35f;
+    Plain->GetEditorOnlyData()->Roughness.Connect(0,WindAmplitude);Plain->GetEditorOnlyData()->Metallic.Connect(0,WindSpeed);
+    Plain->UpdateCachedExpressionData();
+    auto* WindInstance=NewObject<UMaterialInstanceConstant>(GetTransientPackage());TStrongObjectPtr<UMaterialInstanceConstant> KeepWind(WindInstance);WindInstance->SetParentEditorOnly(Plain);WindInstance->PostEditChange();
+    auto* WindComponent=NewObject<UInstancedStaticMeshComponent>(Actor);Actor->AddInstanceComponent(WindComponent);WindComponent->SetStaticMesh(Component->GetStaticMesh());WindComponent->RegisterComponent();WindComponent->SetMaterial(0,WindInstance);
     Component->SetMaterial(0,Plain);
     auto* AttributeComponent=NewObject<UInstancedStaticMeshComponent>(Actor);Actor->AddInstanceComponent(AttributeComponent);
     AttributeComponent->SetStaticMesh(Component->GetStaticMesh());AttributeComponent->RegisterComponent();AttributeComponent->SetMaterial(0,Attributes);
@@ -210,6 +221,12 @@ bool FCLInspectionMaterialCompositionTest::RunTest(const FString&)
         TestTrue(TEXT("Geological catalogue is retained"),Prepared.GetMegaMaterial()->SurfaceTypes==OriginalSurfaces);
         TestTrue(TEXT("Original MegaMaterial postprocess is untouched"),Source->AttributePostProcess==OriginalProcess);
         TestTrue(TEXT("Projected scenery copies apply"),Prepared.Apply(*World,Error));
+        if(auto* WindCopy=Cast<UMaterialInstanceConstant>(WindComponent->GetMaterial(0)))
+        {
+            float Value=0;WindCopy->GetScalarParameterValue(FMaterialParameterInfo(TEXT("wind_intensity")),Value);TestEqual(TEXT("Grass sway amplitude is gentle"),Value,.1f);
+            WindCopy->GetScalarParameterValue(FMaterialParameterInfo(TEXT("wind_speed")),Value);TestEqual(TEXT("Authored grass timing is retained"),Value,.35f);
+            WindInstance->GetScalarParameterValue(FMaterialParameterInfo(TEXT("wind_intensity")),Value);TestEqual(TEXT("Authored grass amplitude is untouched"),Value,1.25f);
+        }else AddError(TEXT("No walking grass material instance"));
         for(int32 Slot=0;Slot<2;++Slot)
         {
             auto* Copy=Cast<UMaterial>((Slot?AttributeComponent:Component)->GetMaterial(0));TestNotNull(TEXT("Projected material"),Copy);

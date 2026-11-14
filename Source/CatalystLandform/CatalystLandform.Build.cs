@@ -11,6 +11,20 @@ public class CatalystLandform : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "VoxelCore", "VoxelGraph", "Voxel", "CatalystFoundation", "DeveloperSettings", "PCG" });
         PrivateDependencyModuleNames.AddRange(new[] { "GeometryCore", "Json", "JsonUtilities", "InputCore", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });
+        PrivateDependencyModuleNames.AddRange(new[] { "Renderer", "RenderCore", "RHI" });
+        PrivateIncludePaths.Add(Path.Combine(EngineDirectory,"Source/Runtime/Renderer/Private"));
+        PrivateIncludePaths.Add(Path.Combine(EngineDirectory,"Source/Runtime/Renderer/Internal"));
+        string VoxelPlugin=Path.Combine(Directory.GetParent(PluginDirectory).FullName,"Voxel");
+        PrivateIncludePaths.Add(Path.Combine(VoxelPlugin,"Source/Voxel/Private"));
+        string BridgeScript=Path.Combine(PluginDirectory,"Tools/stage-vpp-material-bridge.py");
+        ExternalDependencies.Add(BridgeScript);
+        ExternalDependencies.Add(Path.Combine(VoxelPlugin,"Source/Voxel/Private/Nanite/VoxelNaniteMaterialRendererImpl.cpp"));
+        var BridgeStart=new ProcessStartInfo("python3"){UseShellExecute=false};
+        BridgeStart.ArgumentList.Add(BridgeScript);BridgeStart.ArgumentList.Add("--plugin");BridgeStart.ArgumentList.Add(PluginDirectory);
+        BridgeStart.ArgumentList.Add("--voxel");BridgeStart.ArgumentList.Add(VoxelPlugin);
+        using(var Bridge=Process.Start(BridgeStart))
+        {if(Bridge==null)throw new BuildException("Cannot stage Landform VPP material adapter");Bridge.WaitForExit();if(Bridge.ExitCode!=0)throw new BuildException("VPP material adapter source qualification failed");}
+        PrivateIncludePaths.Add(Path.Combine(PluginDirectory,"Intermediate/VPPMaterialBridge"));
         FPSemantics = FPSemanticsMode.Precise;
         bool SpatialSIMD = Target.Platform == UnrealTargetPlatform.Mac && !Target.Architectures.bIsMultiArch && Target.Architecture == UnrealArch.Arm64;
         PrivateDefinitions.Add("CL_SPATIAL_SIMD=" + (SpatialSIMD ? "1" : "0"));
