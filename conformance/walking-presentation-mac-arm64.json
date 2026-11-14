@@ -250,9 +250,10 @@
     "Source/CatalystLandformTests/Private/CLPlanetWalkerTests.cpp": "9d21d4e253048fcf70368841cf7b5bd2c8540acc7b83f0d36239c6f30a841a4b",
     "Source/CatalystLandformTests/Private/CLPresentationTransformTests.cpp": "03999a3d64f8deb769d7b7b43c9e132a4e3d2a3681d016953109f2533ddb6dcd",
     "Source/CatalystLandformTests/Private/CLSurfaceInspectionTests.cpp": "fa624cf92d797308f7bd8fb63ee70e8e6263f94b2f8881e4c77aecb5c1978faf",
-    "Source/CatalystLandformEditor/Public/CLInspectionRecoveryLibrary.h": "83c7fe106d2539531a2a1bf123a4fb61e5a34970e08d391e34473e1a2ca709ea",
-    "Source/CatalystLandformEditor/Private/CLInspectionRecoveryLibrary.cpp": "0d4d209f0d4435df52e82dc976cb02f234fe5b83f2aa4acc3e1edbe8f24f55eb",
-    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "f5ee1f1e6c63724680e97dd2e868b0d7dd5873820c11abb83f54145f3fe4a812"
+    "Source/CatalystLandformEditor/Public/CLInspectionRecoveryLibrary.h": "df342c5c0fa547bb3537051da91352f597fdeb132b18b34e256ce2284a411867",
+    "Source/CatalystLandformEditor/Private/CLInspectionRecoveryLibrary.cpp": "046524adb7a1e5d7b824351338b89356190a56672e0dcd388f1b8115adc6bb60",
+    "Source/CatalystLandformEditor/Private/CLRecipeEditor.cpp": "bb663933ef5f43d4f1521b25c7f07b7d5bb3300076c91586a7c8162ab539abae",
+    "Source/CatalystLandformRender/Private/CLLandformRenderModule.cpp": "3b806214a84e34a91b30ab8017c134501971d4ed84174b2becc219d816b4759f"
   },
   "initialInstalledWalk": {
     "revision": "56a818ddac5780dbce3385e727fad7517912540a",
@@ -394,13 +395,15 @@
   "slateShutdownRegression": {
     "engine": "5.8.4 CL58902052",
     "platform": "Mac arm64",
-    "normalGuiQuit": false,
+    "normalGuiQuit": true,
     "lateNotificationQueuedAfterInitialTickerReset": true,
-    "guardRanBeforeTextTeardown": true,
-    "processExitCode": 1,
-    "renderedTestsPassed": 14,
-    "testWarnings": 0,
-    "hostAcceptance": "Pending installed existing-world quit",
-    "outcome": "Guard executed but late notification still crashed at static ticker destruction; not fixed"
+    "lateRenderModuleCleanupRan": true,
+    "processExitCode": 0,
+    "outcome": "Passed normal GUI quit after editor/Slate module retirement",
+    "earlyOnExitAttempt": {
+      "processExitCode": 1,
+      "outcome": "Guard executed but late notification still crashed at static ticker destruction; not fixed"
+    },
+    "hostAcceptance": "Pending installed existing-world quit"
   }
 }

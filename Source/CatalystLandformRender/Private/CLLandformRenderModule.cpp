@@ -7,6 +7,8 @@
 #include "Misc/CommandLine.h"
 #include "Misc/EngineVersion.h"
 #include "Misc/ConfigCacheIni.h"
+#include "Containers/Ticker.h"
+#include "CoreGlobals.h"
 
 static bool GCLNaniteProjectionOverlay = false;
 bool CLNaniteProjectionShaderOverlayEnabled() { return GCLNaniteProjectionOverlay; }
@@ -14,6 +16,21 @@ bool CLNaniteProjectionShaderOverlayEnabled() { return GCLNaniteProjectionOverla
 class FCLLandformRenderModule final : public IModuleInterface
 {
 public:
+    void ShutdownModule() override
+    {
+#if WITH_EDITOR && PLATFORM_MAC
+        const auto Version=FEngineVersion::Current();
+        if(GIsEditor && IsEngineExitRequested() && Version.GetMajor()==5 && Version.GetMinor()==8 && Version.GetPatch()==4)
+        {
+            // This PostConfigInit module retires after editor/Slate modules.
+            // Their shutdown can queue notifications after the engine's first
+            // ticker reset. Release captures while ICU is still initialized.
+            FTSTicker::GetCoreTicker().Reset();
+            FTSTicker::GetCoreTicker().Reset();
+            UE_LOG(LogTemp,Display,TEXT("LANDFORM_LATE_SLATE_SHUTDOWN: released deferred text before ICU teardown"));
+        }
+#endif
+    }
     void StartupModule() override
     {
         const auto Plugin = IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"));

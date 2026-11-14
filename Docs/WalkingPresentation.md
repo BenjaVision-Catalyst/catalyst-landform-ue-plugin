@@ -95,9 +95,12 @@ exercise the reader-release/save-after-restore boundary in an independent
 
 A second Mac 5.8.4 exit issue retained a deferred async-notification widget until
 static ticker destruction, after ICU teardown (`ubidi_close_64` invalid free).
-On this exact version/profile, the editor module repeats the engine's exit-time core-ticker reset on `OnExit`,
-after the notification manager has shut down and before ICU teardown.
-The engine's initial reset precedes asset shutdown, which can queue more updates.
-This guard changes shutdown only; it does not discard live-session tickers.
-The development command `landform.VerifyLateSlateNotification` deliberately
-queues an async notification during `OnEditorPreExit` for process-exit validation.
+An early `OnExit` ticker cleanup was insufficient. On this editor/version profile,
+the PostConfigInit render module releases remaining ticker captures during its
+late module retirement, after editor/Slate modules and before ICU teardown. It
+uses public ticker reset APIs only when the engine is exiting; live-session and
+hot-unload tickers are untouched. Normal GUI quit with a deliberately late
+notification exited with code 0. The development command
+`landform.VerifyLateSlateNotification` and fixture
+`Tools/tests/fixtures/verify-graceful-shutdown.py` reproduce that path. Automated
+`-TestExit` uses forced exit and does not qualify graceful shutdown.
