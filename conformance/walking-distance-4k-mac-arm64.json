@@ -1,0 +1,224 @@
+{
+  "engine": "5.8.4 CL58902052",
+  "platform": "Mac arm64",
+  "installed": {
+    "sourceRevision": "2322a00818c9263b8ea779f73ff5ff968aee175f",
+    "installedSHA256": "31b6d6952034fab650e563f1961c8ba699428757fc8e741d29b8e95b3f9b0bf5",
+    "dependencies": {
+      "CatalystFoundation": "dde041e7611a2c6da2adcba7f804a76cff44c988b73b3c8c315b8e3afff6742e",
+      "Voxel": "235cd9c0971e78b47a704cf305a66e69ac37e7bc925d06763d201a0e2b491b8c"
+    }
+  },
+  "planet": "/Game/PlanetReview/Planet.Planet",
+  "world": "/Engine/Maps/Entry.Entry",
+  "walking": {
+    "curvature": 0.05,
+    "chartMaxArcDegrees": 89,
+    "minimumRadiusRatio": 0.1,
+    "maximumRadiusRatio": 2,
+    "terrainHeightMultiplier": 1,
+    "viewportPixels": [
+      3840,
+      2160
+    ],
+    "visibleSky": false,
+    "fog": false,
+    "haze": false
+  },
+  "coverage": {
+    "oldCapDegrees": 80,
+    "oldRadiusRatio": [
+      0.6,
+      1.3
+    ],
+    "oldPolicyVisibleOnSameGeneratedMeshes": 177,
+    "newPolicyVisibleOnSameGeneratedMeshes": 189,
+    "actualVisibleMeshes": 189,
+    "physicalReferenceRadiusCm": 67759.55920492654,
+    "reason": "Conservative boxes for coarse distant native chunks exceeded the previous thin radial shell and caused whole chunks to be hidden. Walking now admits the larger boxes and extends the angular cap.",
+    "stockVoxelSourceAndNativeLODSettingsRetained": true
+  },
+  "windowSizing": {
+    "initialMacObservedPixels": [
+      3840,
+      2180
+    ],
+    "nativeCorrection": "Measure viewport pixels and adjust requested Slate client size during startup; stop when matched, on return, or at the bounded retry/time limit. Supports title-bar/DPI differences without a hardcoded 20-pixel offset.",
+    "finalViewportAndRegularPNGPixels": [
+      3840,
+      2160
+    ],
+    "userCanResizeAfterStartup": true
+  },
+  "renderedTests": [
+    {
+      "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.MaterialComposition",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.PluginWalkingHost",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Inspection.RadialLanding",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.Endpoints",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.GentleVistaHorizon",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.GPUParity",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.InverseRayBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.LocalFrames",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.WalkingDistantCoverage",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "name": "Catalyst.Landform.Presentation.WorldAnchorGPU",
+      "state": "Success",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "renderedTestsPassed": 16,
+  "renderedProcessExitCode": 0,
+  "installerOverlayTestsPassed": 8,
+  "walkingRoute": {
+    "samples": 49,
+    "distanceMeters": 47.105903584762025,
+    "allPresented": true,
+    "groundedSamples": 26,
+    "note": "The route crossed a drop and includes airborne samples. Frame capture stalls make this unsuitable as a performance benchmark.",
+    "maximumGroundedSpeedMetersPerSecond": 14.454845740670779,
+    "rendererSettings": {
+      "landform.WalkingCurvature": 0.05000000074505806,
+      "r.Nanite.ComputeRasterization": 1.0,
+      "r.Nanite.Tessellation": 1.0,
+      "r.Nanite.ProgrammableRaster": 1.0,
+      "r.Nanite.Culling.HZB": 1.0,
+      "r.Nanite.Culling.Frustum": 1.0,
+      "r.Nanite.MaxPixelsPerEdge": 1.0
+    },
+    "regular4KFrames": [
+      "distance-moving-00.png",
+      "distance-moving-01.png",
+      "distance-moving-02.png",
+      "distance-moving-03.png",
+      "distance-moving-04.png"
+    ],
+    "terrainPixelChecks": [
+      {
+        "image": "distance-moving-00.png",
+        "roi": [
+          1000,
+          1300,
+          3300,
+          2000
+        ],
+        "redBelow24Pixels": 0
+      },
+      {
+        "image": "distance-moving-04.png",
+        "roi": [
+          1000,
+          1300,
+          3300,
+          2000
+        ],
+        "redBelow24Pixels": 0
+      }
+    ]
+  },
+  "preservation": {
+    "sourceActorTransformsExactAfterEsc": true,
+    "scopedRendererCVarsRestored": true,
+    "forestInstances": 26734,
+    "originalFileHashesUnchanged": 26,
+    "canopyMaskPixelsIdentical": true,
+    "canonicalForestInstanceTransformsUnchanged": true
+  },
+  "knownLimits": [
+    "Finite 89-degree chart; this does not add or repeat terrain beyond the actual planet.",
+    "Packaged and sustained 4K performance remain unqualified.",
+    "The pre-existing VPP shading-pipeline startup ensure remains open."
+  ],
+  "privateEvidenceDirectory": "VPPTest58/Saved/WalkInspection",
+  "evidence": [
+    "distance-before.json",
+    "distance-before.png",
+    "distance-after.json",
+    "distance-after-4k.png",
+    "distance-admission-after.json",
+    "distance-motion-acceptance.json",
+    "distance-pixel-audit.json",
+    "return-acceptance.json"
+  ]
+}

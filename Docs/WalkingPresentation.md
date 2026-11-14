@@ -2,8 +2,8 @@
 
 Landform owns the existing-world inspection host, VPP character, 20 m/s radial
 movement and shared terrain/scenery/camera presentation. Walking starts from the
-Planet editor's player marker in a centered 3840 × 2160 client window. The editor world and its unsaved recipe, guides,
-instances and materials remain authoritative. PIE duplicates that world.
+Planet editor's player marker in a centered 3840 × 2160 client window.
+The editor world and its unsaved recipe, guides, instances and materials remain authoritative. PIE duplicates that world.
 
 ## UE 5.8 integration
 
@@ -145,3 +145,23 @@ Escape; private checkpoint and normal quit exited 0 with all 26 protected disk
 hashes exact. The existing world reopened successfully. No sky/cloud background,
 fog or haze is rendered. The VPP startup ensure and finite-chart/runtime limits
 remain open.
+
+## Distant coverage and 4K walking window
+
+The [installed 4K record](../conformance/walking-distance-4k-mac-arm64.json)
+qualifies the 89-degree cap and wider radial bounds. At the captured existing-world
+location, the old policy admitted 177 of the same native generations; the new
+policy admits and renders 189. VPP's LOD quality, chunk size and unlimited maximum
+LOD remain unchanged. Terrain height and curvature stay at 1:1 and 0.05.
+
+Native walking launch requests 3840 × 2160, then measures and corrects the
+viewport's rendered pixels during startup. This handles the observed Mac
+3840 × 2180 result and DPI/title-bar differences without a fixed platform offset.
+The correction stops when matched, when walking returns or at its retry/time
+limit; subsequent user resizing is allowed. Both the viewport API and five
+regular walking PNGs measured exactly 3840 × 2160. The 47 m route remained
+presented across 49 samples, including a terrain drop; the inspected ground
+regions contained zero black hole pixels. Sixteen rendered and eight installer/
+overlay checks pass. Escape restores the existing editor world and scoped
+rendering state; all 26 protected original hashes and 26,734 forest instances
+remain intact. The chart remains finite; no sky, fog or haze is added.
