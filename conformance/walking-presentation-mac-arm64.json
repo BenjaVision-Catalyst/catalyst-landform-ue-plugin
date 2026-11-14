@@ -226,7 +226,7 @@
   "sourceHashes": {
     "Source/CatalystLandform/Private/CLPlanetWalker.cpp": "f2ab8a5f0eb0e2b7d5ad0c6ae1d0aeb7a99f49625602c1321abaf0425b22b170",
     "Source/CatalystLandform/Private/CLSurfaceInspection.cpp": "3a4a2db0831464a5e01192bed1e5f5399ea75ba7d1e518d1c95853486a30b536",
-    "Source/CatalystLandform/Private/CLWalkingPresentation.cpp": "582282e11558fdde4beced4353a27cb8eed87b4d3ca4c044c661445ad910ad55",
+    "Source/CatalystLandform/Private/CLWalkingPresentation.cpp": "5d60df789b99517cc8c7f39b2e780ec9c6a7f0940235c4032b684601ceebdec1",
     "Source/CatalystLandform/Private/Presentation/CLNativePlanetPresentation.cpp": "d249ce39cb7575ad836163714567b3ff394002ecf2ed8179731fb28129229fa0",
     "Source/CatalystLandform/Private/Presentation/CLPlanetProjection.cpp": "d4902ad4ad1dfbdef7db78db7d6e9ae74aee1e2ee30c81f3f82464a375c64bd7",
     "Source/CatalystLandform/Private/Presentation/CLPresentationTransform.cpp": "22ce22c14d956a59a59e038d52b2c86de7ac79e419803aad51772cb7d6838c15",
@@ -282,5 +282,98 @@
     "Raw finite 60 degree projection chart exposes a distant terrain edge; distant vistas remain unqualified.",
     "Pre-existing VPP startup ensure: ExistingShadingPipeline.ComputeShader == ShadingPipeline.ComputeShader, VoxelNaniteMaterialRendererImpl.cpp:449. VPP source remains unchanged.",
     "Packaged performance, multi-chart/global biome rendering and automatic biome-wide generation remain unqualified."
-  ]
+  ],
+  "skyPolicy": {
+    "visibleSky": false,
+    "visibleClouds": false,
+    "scope": "Walking game viewport; previous Atmosphere/Cloud show flags restored on exit",
+    "installedAcceptance": "Pending this change; prior results remain historical",
+    "renderedTests": [
+      {
+        "name": "Catalyst.Landform.Caves.PlanetWideNativeDebugAndNavigation.CurrentRift",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Inspection.MaterialComposition",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Inspection.PluginWalkingHost",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Inspection.RadialLanding",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.PlanetBuilder.PlayerLocationMarker",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.ChunkResidualAndStretchBounds",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.CurvedCollisionTrace",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.DomainAndFailureIsolation",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.Endpoints",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.GPUParity",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.InverseRayBounds",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.LocalFrames",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.RoundTripDifferentialAndBounds",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      },
+      {
+        "name": "Catalyst.Landform.Presentation.WorldAnchorGPU",
+        "state": "Success",
+        "warnings": 0,
+        "errors": 0
+      }
+    ],
+    "pythonTestsPassed": 7
+  }
 }

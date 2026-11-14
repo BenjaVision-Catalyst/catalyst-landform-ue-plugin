@@ -43,7 +43,9 @@ The PIE sun and sky atmosphere follow the local tangent. The realtime skylight
 capture tracks the presented player eye at 10 m intervals, allowing its
 time-sliced updates to finish. The authored sun's
 local elevation is retained. The walking copy disables exponential height fog, volumetric fog, atmospheric
-aerial perspective and Mie haze. The sky and clouds remain visible. This exposes
+aerial perspective and Mie haze. Its game viewport also disables atmosphere and
+cloud background rendering, restoring the previous view flags on exit. Existing
+sky capture illumination remains independent of the visible background. This exposes
 the raw terrain/scenery rendering, including the finite chart boundary; there
 is no fog veil, generated distant terrain or repeated vista. Authored
 source-world lighting is untouched.

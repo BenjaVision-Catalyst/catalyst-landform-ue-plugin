@@ -6,6 +6,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
+#include "Engine/GameViewportClient.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/InstancedSkinnedMeshComponent.h"
 #include "Components/DirectionalLightComponent.h"
@@ -28,16 +29,29 @@ public:
     TArray<TWeakObjectPtr<USkyLightComponent>> SkyLights;
     IConsoleVariable* CachedEV=nullptr;
     FString OldEV;
+    TWeakObjectPtr<UGameViewportClient> Viewport;
+    bool OldAtmosphere=true,OldCloud=true;
     double MaxCameraInverseError=0;
     int32 CameraFrames=0;
     ~FCLWalkingPresentation()
     {
         Terrain.Reset();
+        if(auto* V=Viewport.Get())
+        {
+            if(!V->EngineShowFlags.Atmosphere) V->EngineShowFlags.SetAtmosphere(OldAtmosphere);
+            if(!V->EngineShowFlags.Cloud) V->EngineShowFlags.SetCloud(OldCloud);
+        }
         if(CachedEV && CachedEV->GetFloat()==10.f) CachedEV->Set(*OldEV,ECVF_SetByCode);
     }
     bool Start(ACLPlanetWalker& Walker,FString& Error)
     {
         auto& Planet=*Walker.Planet; PlanetPose=Planet.GetActorTransform();
+        auto* V=Walker.GetWorld()->GetGameViewport();
+        if(!V){Error=TEXT("Walking inspection requires its game viewport");return false;}
+        Viewport=V;OldAtmosphere=V->EngineShowFlags.Atmosphere;OldCloud=V->EngineShowFlags.Cloud;
+        // Hide the background in this walking view. Sky capture illumination is
+        // independent; no atmosphere/cloud backdrop is added to the raw preview.
+        V->EngineShowFlags.SetAtmosphere(false);V->EngineShowFlags.SetCloud(false);
         auto* Material=LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Surfaces/M_Surface.M_Surface"));
         if(!Material){Error=TEXT("Missing Landform surface material");return false;}
         FCLNanitePresentationOptions Options;
@@ -101,6 +115,8 @@ public:
         Json->SetNumberField(TEXT("outdoorExposureBiasEV"),-.75);
         Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
         Json->SetBoolField(TEXT("fogAndHazeDisabled"),true);
+        const auto* V=Viewport.Get();
+        Json->SetBoolField(TEXT("skyBackgroundDisabled"),V && !V->EngineShowFlags.Atmosphere && !V->EngineShowFlags.Cloud);
         Json->SetStringField(TEXT("heightFog"),TEXT("Disabled: height fog, volumetric fog, aerial perspective and Mie haze"));
         FString Text;auto Writer=TJsonWriterFactory<>::Create(&Text);FJsonSerializer::Serialize(Json,Writer);return Text;
     }
