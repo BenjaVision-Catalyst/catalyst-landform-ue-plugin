@@ -13,6 +13,10 @@
 #include "PlayInEditorDataTypes.h"
 #include "Settings/LevelEditorPlaySettings.h"
 #include "UObject/StrongObjectPtr.h"
+#include "Containers/Ticker.h"
+#include "Engine/GameViewportClient.h"
+#include "UnrealClient.h"
+#include "Widgets/SWindow.h"
 
 FCLLaunchPlanetInspection FCLPlanetInspection::Launch;
 
@@ -27,6 +31,10 @@ class FCLInspectionHost
     TStrongObjectPtr<UCLPlanetRecipeAsset> Snapshot;
     TStrongObjectPtr<ULevelEditorPlaySettings> Settings;
     FDelegateHandle StartedHandle,EndedHandle,CancelledHandle;
+    FTSTicker::FDelegateHandle SizingHandle;
+    int32 SizingAttempts=0;
+    double SizingStarted=0;
+    FVector2D RequestedClient=FVector2D(3840,2160);
     FString Result;
     TUniquePtr<FCLInspectionMaterials> Materials;
 public:
@@ -80,12 +88,40 @@ public:
         UE_LOG(LogTemp,Display,TEXT("LANDFORM_WALK_REQUESTED: %s | source %s"),*World->GetPathName(),*Request->SourceAsset->GetPathName());
         return true;
     }
+    bool SizeWindow(float)
+    {
+        auto* World=PlayWorld.Get();auto* Viewport=World?World->GetGameViewport():nullptr;
+        if(!Request||!Viewport||!Viewport->Viewport) {SizingHandle.Reset();return false;}
+        const FIntPoint Actual=Viewport->Viewport->GetSizeXY(),Wanted(3840,2160);
+        if(Actual==Wanted)
+        {
+            UE_LOG(LogTemp,Display,TEXT("LANDFORM_WALK_VIEWPORT: %dx%d"),Actual.X,Actual.Y);
+            SizingHandle.Reset();return false;
+        }
+        if(SizingAttempts>=8||FPlatformTime::Seconds()-SizingStarted>10)
+        {
+            UE_LOG(LogTemp,Warning,TEXT("LANDFORM_WALK_VIEWPORT: requested 3840x2160, got %dx%d"),Actual.X,Actual.Y);
+            SizingHandle.Reset();return false;
+        }
+        if(auto Window=Viewport->GetWindow();Window&&Actual.X>0&&Actual.Y>0)
+        {
+            // Measure rendered pixels instead of assuming that Slate client units
+            // exclude the platform title bar or match the display's DPI scale.
+            const FVector2D Client=Window->GetClientSizeInScreen();
+            RequestedClient-=FVector2D(Client.X*(Actual.X-Wanted.X)/Actual.X,Client.Y*(Actual.Y-Wanted.Y)/Actual.Y);
+            Window->Resize(RequestedClient);
+            ++SizingAttempts;
+        }
+        return true;
+    }
     void Started(bool Simulating)
     {
         if(!Request)return;
         if(Simulating||!GEditor||!GEditor->PlayWorld||!EditorWorld.IsValid()||EditorWorld.Get()!=GEditor->GetEditorWorldContext().World())
         {Fail(TEXT("The source world changed before walking could start."));return;}
         UWorld* World=GEditor->PlayWorld;PlayWorld=World;
+        SizingAttempts=0;SizingStarted=FPlatformTime::Seconds();RequestedClient=FVector2D(3840,2160);
+        SizingHandle=FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateRaw(this,&FCLInspectionHost::SizeWindow),.25f);
         ACLPlanet* Target=EditorPlanet.IsValid()?Cast<ACLPlanet>(EditorUtilities::GetSimWorldCounterpartActor(EditorPlanet.Get())):nullptr;
         if(EditorPlanet.IsValid()&&(!Target||Target->GetWorld()!=World))
         {Fail(TEXT("The source Planet was not duplicated into this play world."));return;}
@@ -121,6 +157,7 @@ public:
     void Return()
     {
         if(!Request)return;
+        FTSTicker::RemoveTicker(SizingHandle);SizingHandle.Reset();
         FVector Direction=Request->Direction;TOptional<FVector> Point=Request->SurfacePointMeters;
         if(Walker.IsValid())Result=Walker->Status;
         if(Walker.IsValid()&&Walker->bReady&&PlayPlanet.IsValid())
