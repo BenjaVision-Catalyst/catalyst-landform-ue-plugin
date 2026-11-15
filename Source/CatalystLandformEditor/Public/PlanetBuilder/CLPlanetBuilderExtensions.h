@@ -4,6 +4,19 @@
 class SWidget;
 struct FCLPlanetBuilderOverlaySegment { FVector A,B; FLinearColor Color=FLinearColor::White; float WidthPixels=1.25f; };
 struct FCLPlanetBuilderOverlayLabel { FVector BodyMeters; FString Text; FLinearColor Color=FLinearColor::White; };
+/** One closed spherical path. Signed presentation speed never advances a domain clock. */
+struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlayFlow
+{
+    uint64 Key=0;
+    TArray<FVector> BodyMeters;
+    TArray<double> ArcMeters;
+    double SpeedMetersPerSecond=0;
+    int32 ArrowCount=0;
+    bool BuildArcLengths();
+    double LengthMeters()const{return ArcMeters.IsEmpty()?0:ArcMeters.Last();}
+    double AdvancePhase(double Phase,double Seconds)const;
+    bool Sample(double DistanceMeters,FVector& Point,FVector& Tangent)const;
+};
 /** Overlay is a presentation radius. Absence means the outer sky boundary. */
 inline double CLPlanetOverlayRadiusMeters(const FCLCompiledPlanetRecipe& Plan)
 {
@@ -24,6 +37,8 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlay
     TArray<int32> MeshIndices;
     TArray<FCLPlanetBuilderOverlaySegment> Segments;
     TArray<FCLPlanetBuilderOverlayLabel> Labels;
+    /** At most 256 closed paths / 16384 edges and 2048 arrowheads in total. */
+    TArray<FCLPlanetBuilderOverlayFlow> Flows;
 };
 /** Explicit toolkit/asset context. Getter returns the last accepted immutable terrain plan. */
 struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderContext

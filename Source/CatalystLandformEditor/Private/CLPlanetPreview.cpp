@@ -305,6 +305,8 @@ public:
         return {};
     }
     TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
+    TMap<uint64,double> FlowPhases;
+    double LastFlowTick=FPlatformTime::Seconds();
     void DrawBuilderOverlay(const FSceneView* View,FPrimitiveDrawInterface* PDI)
     {
         if(!Plan||!BuilderOverlay||!NativePreview||NativePreview->PublishedPlan()!=Plan)return;const double Scale=100000/Plan->RadiusMeters;
@@ -312,6 +314,21 @@ public:
         {
             const auto& L=BuilderOverlay->Segments[I];const FVector A=L.A*Scale,B=L.B*Scale,Mid=(A+B)*.5;
             if(FVector::DotProduct(Mid.GetSafeNormal(),GetViewLocation()-Mid)>0)PDI->DrawLine(A,B,L.Color,SDPG_World,FMath::Clamp(L.WidthPixels,.5f,4.f),0,true);
+        }
+        int32 Heads=0;
+        for(int32 I=0;I<FMath::Min(256,BuilderOverlay->Flows.Num());++I)
+        {
+            const auto& Flow=BuilderOverlay->Flows[I];const double Phase=FlowPhases.FindRef(Flow.Key);
+            for(int32 J=0;J<FMath::Min(128,Flow.ArrowCount)&&Heads<2048;++J,++Heads)
+            {
+                FVector P,Tangent;if(!Flow.Sample((J+Phase)*Flow.LengthMeters()/Flow.ArrowCount,P,Tangent))continue;
+                P*=Scale;const FVector Normal=P.GetSafeNormal();if(FVector::DotProduct(Normal,GetViewLocation()-P)<=0)continue;
+                if(Flow.SpeedMetersPerSecond<0)Tangent*=-1;
+                const double Size=13*FMath::Abs(View->WorldToScreen(P).W)/(View->ViewMatrices.GetProjectionMatrix().M[0][0]*FMath::Max(1,View->UnscaledViewRect.Width()));
+                const FVector Side=FVector::CrossProduct(Normal,Tangent)*Size*.55,Tip=P+Normal*2,Base=Tip-Tangent*Size;
+                PDI->DrawLine(Tip,Base+Side,FLinearColor::White,SDPG_World,1.8,0,true);
+                PDI->DrawLine(Tip,Base-Side,FLinearColor::White,SDPG_World,1.8,0,true);
+            }
         }
         const int32 N=FMath::Min(8192,FMath::Min(BuilderOverlay->BodyMeters.Num(),BuilderOverlay->Colors.Num()));
         for(int32 I=0;I<N;++I)
@@ -430,7 +447,15 @@ public:
     virtual bool InputAxis(const FInputKeyEventArgs&) override {return true;}
     virtual FLinearColor GetBackgroundColor() const override {return FLinearColor(.007,.012,.02);}
     virtual void Tick(float Delta) override
-    {FEditorViewportClient::Tick(Delta);if(Viewport&&Viewport->GetSizeXY()!=NavigationSize)Apply();}
+    {
+        FEditorViewportClient::Tick(Delta);if(Viewport&&Viewport->GetSizeXY()!=NavigationSize)Apply();
+        const double Now=FPlatformTime::Seconds(),Seconds=FMath::Max(0.,Now-LastFlowTick);LastFlowTick=Now;
+        if(BuilderOverlay&&!BuilderOverlay->Flows.IsEmpty())
+        {
+            for(int32 I=0;I<FMath::Min(256,BuilderOverlay->Flows.Num());++I){const auto& Flow=BuilderOverlay->Flows[I];auto& Phase=FlowPhases.FindOrAdd(Flow.Key);Phase=Flow.AdvancePhase(Phase,Seconds);}
+            Invalidate(false,false);
+        }
+    }
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8
     virtual bool InputGesture(FViewport*,FInputDeviceId,EGestureEvent Type, EGesturePhase,const FVector2D& Delta,bool Inverted,uint64) override
 #else
@@ -2008,7 +2033,9 @@ void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverla
         BuilderMesh->SetMesh(MoveTemp(Geometry));if(Client->Plan)BuilderMesh->SetWorldScale3D(FVector(100000/Client->Plan->RadiusMeters));BuilderMesh->SetVisibility(true);
     }
     else if(BuilderMesh)BuilderMesh->SetVisibility(false);
-    Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();
+    TMap<uint64,double> Phases;
+    if(Overlay)for(int32 I=0;I<FMath::Min(256,Overlay->Flows.Num());++I){const auto Key=Overlay->Flows[I].Key;Phases.Add(Key,Client->FlowPhases.FindRef(Key));}
+    Client->FlowPhases=MoveTemp(Phases);Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();
 }
 
 

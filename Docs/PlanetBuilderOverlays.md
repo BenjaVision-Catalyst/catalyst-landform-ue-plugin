@@ -41,3 +41,14 @@ The rejecting compiler and importer are unchanged from `a92069f`; the guide-styl
 change does not alter that guard. The test and documented compatibility contract
 are retained. Legacy algorithm restoration/migration remains an open existing
 gate, outside this editor overlay slice. No legacy profile was silently changed.
+
+## Marching paths
+
+Optional `Flows` contain closed metric spherical paths with precomputed cumulative
+arc lengths, stable keys, signed visual speeds and arrow counts. Up to 256 paths,
+16384 edges and 2048 heads (128 per path) are admitted by the weather provider.
+The viewport retains only current keyed phases and integrates elapsed real time,
+preserving spacing through payload updates. Each arrowhead samples a spherical
+arc and its tangent; screen-sized chevrons have no vector shaft. Far-side culling
+and native depth apply. Hidden/retired payloads clear their phase state. This
+animation never changes a provider's simulation clock or sample values.
