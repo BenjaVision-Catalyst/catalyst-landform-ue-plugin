@@ -2,6 +2,8 @@
 #include "CoreMinimal.h"
 class UCLPlanetRecipeAsset;
 class ACLPlanet;
+class APlayerController;
+class APawn;
 class UMaterialInterface;
 enum class ECLInspectionPreparation : uint8 { Ready, Pending, Failed };
 using FCLInspectionPreparation=TFunction<ECLInspectionPreparation(ACLPlanet&,FString&)>;
@@ -29,6 +31,7 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetInspection
     static void RegisterMaterialSources(FName Owner,TFunction<void(ACLPlanet&,TArray<UMaterialInterface*>&)> Collect);
     static void UnregisterMaterialSources(FName Owner);
     static void CollectMaterials(ACLPlanet&,TArray<UMaterialInterface*>&);
+    static bool PossessPlayer(APlayerController& Player,APawn& Pawn,FString& Error);
     static void Startup();
     static void Shutdown();
 };

@@ -44,6 +44,11 @@ are neither pre-generated nor saved as world products. Missing configured art or
 materials fails explicitly. A recovery world or Python deployment script is not a
 runtime input.
 
+Walking explicitly clears PIE spectator-only mode and checks both possession
+links before admitting the player. Holding Control while starting PIE must not
+turn a player-marker request into an unpossessed character. EndPIE drains queued
+Slate rendering before the floating game viewport loses its game-thread owner.
+
 New native PCG products receive transient projection material copies and share
 the same curved presentation as terrain. Ground appearance receives transient
 texture parameters, allowing Ecosystems to update coverage without rebaking a

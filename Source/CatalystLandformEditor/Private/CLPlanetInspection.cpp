@@ -10,6 +10,7 @@
 #include "EngineUtils.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayInEditorDataTypes.h"
 #include "Settings/LevelEditorPlaySettings.h"
@@ -19,8 +20,19 @@
 #include "UnrealClient.h"
 #include "Widgets/SWindow.h"
 #include "HAL/IConsoleManager.h"
+#include "RenderingThread.h"
 
 FCLLaunchPlanetInspection FCLPlanetInspection::Launch;
+bool FCLPlanetInspection::PossessPlayer(APlayerController& Player,APawn& Pawn,FString& Error)
+{
+    // UE's PIE shortcut may set spectator-only mode when Control is held during
+    // launch. Clicking the walking marker explicitly requests a playable pawn.
+    if(Player.PlayerState)Player.PlayerState->SetIsOnlyASpectator(false);
+    Player.Possess(&Pawn);
+    if(Player.GetPawn()!=&Pawn||Pawn.GetController()!=&Player)
+    {Error=TEXT("The local player could not possess the walking character.");return false;}
+    Error.Reset();return true;
+}
 namespace {TMap<FName,FCLInspectionPreparation> Preparations;}
 namespace {TMap<FName,TFunction<void(ACLPlanet&,TArray<UMaterialInterface*>&)>> MaterialSources;}
 void FCLPlanetInspection::RegisterMaterialSources(FName N,TFunction<void(ACLPlanet&,TArray<UMaterialInterface*>&)> F){MaterialSources.Add(N,MoveTemp(F));}
@@ -230,7 +242,8 @@ public:
         auto* Pawn=World->SpawnActor<ACLPlanetWalker>(ACLPlanetWalker::StaticClass(),FTransform::Identity,Spawn);
         if(!Pawn||!Pawn->BeginInspection(Target,Request->Direction,Request->SurfacePointMeters.IsSet(),Request->SurfacePointMeters.Get(FVector::ZeroVector),Error))
         {Fail(Error.IsEmpty()?TEXT("Could not create the walking player."):Error);return;}
-        Walker=Pawn;APawn* Previous=Player->GetPawn();Player->Possess(Pawn);
+        Walker=Pawn;APawn* Previous=Player->GetPawn();
+        if(!FCLPlanetInspection::PossessPlayer(*Player,*Pawn,Error)){Fail(Error);return;}
         if(Previous&&Previous!=Pawn)Previous->Destroy();
         Player->bShowMouseCursor=false;Player->SetInputMode(FInputModeGameOnly());
         Result=TEXT("Returned from walking inspection.");
@@ -244,6 +257,10 @@ public:
     void Return()
     {
         if(!Request)return;
+        // EndPIE runs before the floating window/SceneViewport is released.
+        // Drain queued Slate draws while its game-thread owner still exists;
+        // otherwise the last viewport reference can retire on the render thread.
+        FlushRenderingCommands();
         RestoreNativePCGBudget();
         FTSTicker::RemoveTicker(SizingHandle);SizingHandle.Reset();
         FTSTicker::RemoveTicker(PreparationHandle);PreparationHandle.Reset();

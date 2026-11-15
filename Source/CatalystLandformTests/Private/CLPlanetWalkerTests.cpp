@@ -5,6 +5,10 @@
 #include "Components/InputComponent.h"
 #include "CLPlanet.h"
 #include "Misc/ScopeExit.h"
+#include "GameFramework/PlayerState.h"
+#include "GameFramework/PlayerController.h"
+#include "Engine/World.h"
+#include "Engine/Engine.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWalkPreparationTest,"Catalyst.Landform.Inspection.ProviderPreparationFence",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FCLWalkPreparationTest::RunTest(const FString&)
@@ -17,6 +21,20 @@ bool FCLWalkPreparationTest::RunTest(const FString&)
     TestEqual(TEXT("Preparation explains its progress"),Status,FString(TEXT("Preparing scenery")));
     TestTrue(TEXT("Failed content cannot become an empty ready scene"),FCLPlanetInspection::Prepare(*Planet,Status)==ECLInspectionPreparation::Failed);
     TestEqual(TEXT("Provider is polled rather than bypassed"),Calls,2);return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWalkSpectatorTest,"Catalyst.Landform.Inspection.SpectatorLaunchPossession",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLWalkSpectatorTest::RunTest(const FString&)
+{
+    const auto Values=UWorld::InitializationValues().AllowAudioPlayback(false).CreatePhysicsScene(false).CreateNavigation(false).CreateAISystem(false);
+    auto* W=UWorld::CreateWorld(EWorldType::Game,false,TEXT("CLSpectatorLaunchTest"),nullptr,true,ERHIFeatureLevel::Num,&Values);
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(W);
+    auto* Player=W->SpawnActor<APlayerController>();auto* Pawn=W->SpawnActor<APawn>();Player->PlayerState=W->SpawnActor<APlayerState>();
+    Player->PlayerState->SetIsOnlyASpectator(true);Player->Possess(Pawn);
+    TestNull(TEXT("Native spectator-only mode refuses ordinary possession"),Pawn->GetController());FString Error;
+    TestTrue(TEXT("An explicit walking launch exits spectator-only mode"),FCLPlanetInspection::PossessPlayer(*Player,*Pawn,Error));
+    TestTrue(TEXT("Both native possession links agree"),Player->GetPawn()==Pawn&&Pawn->GetController()==Player);
+    W->DestroyWorld(false);GEngine->DestroyWorldContext(W);return !HasAnyErrors();
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPluginWalkHostTest,"Catalyst.Landform.Inspection.PluginWalkingHost",
