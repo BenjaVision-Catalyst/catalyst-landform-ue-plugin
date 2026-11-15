@@ -7,6 +7,9 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlay
 {
     TArray<FVector> BodyMeters;
     TArray<FLinearColor> Colors;
+    /** Optional metric vectors at matching sample indices. At most 512 arrows are drawn. */
+    TArray<FVector> BodyVectorsMeters;
+    float PointSizePixels = 7;
 };
 /** Explicit toolkit/asset context. Getter returns the last accepted immutable terrain plan. */
 struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderContext

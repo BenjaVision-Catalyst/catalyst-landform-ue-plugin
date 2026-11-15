@@ -311,7 +311,16 @@ public:
         {
             const FVector P=BuilderOverlay->BodyMeters[I]*Scale;
             if(FVector::DotProduct(P.GetSafeNormal(),GetViewLocation()-P)<=0)continue;
-            PDI->DrawPoint(P+P.GetSafeNormal()*100,BuilderOverlay->Colors[I],7,SDPG_World);
+            PDI->DrawPoint(P+P.GetSafeNormal()*100,BuilderOverlay->Colors[I],FMath::Clamp(BuilderOverlay->PointSizePixels,1.f,24.f),SDPG_World);
+            if(I<BuilderOverlay->BodyVectorsMeters.Num()&&I%FMath::Max(1,(N+511)/512)==0)
+            {
+                const FVector V=BuilderOverlay->BodyVectorsMeters[I]*Scale;
+                if(V.IsNearlyZero())continue;
+                const FVector A=P+P.GetSafeNormal()*250,B=A+V,Side=FVector::CrossProduct(P.GetSafeNormal(),V.GetSafeNormal())*V.Length()*.2;
+                PDI->DrawLine(A,B,FLinearColor::White,SDPG_Foreground,1.5,0,true);
+                PDI->DrawLine(B,B-V*.3+Side,FLinearColor::White,SDPG_Foreground,1.5,0,true);
+                PDI->DrawLine(B,B-V*.3-Side,FLinearColor::White,SDPG_Foreground,1.5,0,true);
+            }
         }
     }
     bool bWatershedOverlay=false;
