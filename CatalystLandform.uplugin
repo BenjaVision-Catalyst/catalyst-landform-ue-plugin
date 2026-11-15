@@ -11,6 +11,10 @@
   "Installed": false,
   "Plugins": [
     {
+      "Name": "HairStrands",
+      "Enabled": true
+    },
+    {
       "Name": "CatalystFoundation",
       "Enabled": true
     },

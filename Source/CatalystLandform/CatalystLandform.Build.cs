@@ -10,7 +10,7 @@ public class CatalystLandform : ModuleRules
         bUseUnity = false;
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "VoxelCore", "VoxelGraph", "Voxel", "CatalystFoundation", "DeveloperSettings", "PCG" });
-        PrivateDependencyModuleNames.AddRange(new[] { "GeometryCore", "Json", "JsonUtilities", "InputCore", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });
+        PrivateDependencyModuleNames.AddRange(new[] { "HairStrandsCore", "GeometryCore", "Json", "JsonUtilities", "InputCore", "PCG", "CatalystLandformRender", "GeoReferencing", "PROJ", "SQLiteCore" });
         PrivateDependencyModuleNames.AddRange(new[] { "Renderer", "RenderCore", "RHI" });
         PrivateIncludePaths.Add(Path.Combine(EngineDirectory,"Source/Runtime/Renderer/Private"));
         PrivateIncludePaths.Add(Path.Combine(EngineDirectory,"Source/Runtime/Renderer/Internal"));
