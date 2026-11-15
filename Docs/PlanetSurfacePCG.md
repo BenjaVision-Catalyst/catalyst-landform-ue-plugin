@@ -57,6 +57,21 @@ recipe updates preserve opaque client links and active material composition;
 the presenter rebinds to the new accepted terrain rather than retaining a frozen
 sampling snapshot.
 
+## Walking Nanite capacity
+
+Dense native canopy exceeded the engine's default 2,097,152 hierarchy traversal
+nodes, with 3,308,649 observed. Walking reserves at least 4,194,304 nodes through
+`r.Nanite.MaxNodes`. This is independent of the existing tessellation candidate
+patch capacity. The extra node-buffer allocation is 40–56 MiB on the qualified
+UE 5.8 path, depending on native assembly support.
+
+The budget does not reduce canopy coverage or change native PCG generation.
+A larger host value is retained. The scoped render-settings owner restores its
+prior value on return, unless another owner changed it during walking. The
+presentation report includes the actual `naniteNodeCapacity`. Qualify native
+feedback while walking/turning; absence of one screenshot warning is not a
+universal workload-capacity guarantee.
+
 ## Authoring assignment queries
 
 `FCLGroundSurfaceSampler` and `ACLPlanet::SampleGroundSurface` remain available for

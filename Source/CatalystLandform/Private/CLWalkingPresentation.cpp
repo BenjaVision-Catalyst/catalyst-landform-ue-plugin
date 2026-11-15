@@ -87,6 +87,12 @@ public:
         // Keep the distant Nanite canopy, using a four-pixel geometric error budget.
         // Shadow clipmaps stop at 327.68 m instead of covering tens of kilometres.
         RenderSetting(TEXT("r.Nanite.MaxPixelsPerEdge"),TEXT("4"));
+        // Dense native canopy exceeded the default 2M hierarchy traversal nodes
+        // (3.31M observed). This queue is independent of tessellation patches.
+        // 4M adds 40-56 MiB depending on native assembly support. Keep any larger
+        // host budget, and restore our scoped setting on return like the others.
+        if(auto* Nodes=IConsoleManager::Get().FindConsoleVariable(TEXT("r.Nanite.MaxNodes")))
+            RenderSetting(TEXT("r.Nanite.MaxNodes"),*FString::FromInt(FMath::Max(Nodes->GetInt(),4*1024*1024)));
         // Close, downward-looking projected terrain can exhaust Nanite's 2M
         // split queue and discard child patches. Keep native tessellation/detail
         // and reserve 8M candidates for this walk (128 MiB, 96 MiB above default).
@@ -187,6 +193,8 @@ public:
         Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
         Json->SetStringField(TEXT("directionalLighting"),TEXT("Stable at landing; does not rotate with each walking step"));
         Json->SetNumberField(TEXT("nanitePixelError"),4);
+        if(auto* Nodes=IConsoleManager::Get().FindConsoleVariable(TEXT("r.Nanite.MaxNodes")))
+            Json->SetNumberField(TEXT("naniteNodeCapacity"),Nodes->GetInt());
         if(auto* Candidates=IConsoleManager::Get().FindConsoleVariable(TEXT("r.Nanite.MaxCandidatePatches")))
             Json->SetNumberField(TEXT("naniteCandidatePatchCapacity"),Candidates->GetInt());
         Json->SetNumberField(TEXT("maximumShadowClipmapRadiusMeters"),327.68);
