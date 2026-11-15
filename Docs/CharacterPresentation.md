@@ -9,12 +9,19 @@ time filter that could carry curvature beyond either boundary. Missing/invalid
 boundaries fail rather than manufacturing an altitude range.
 
 The host publishes one `FCLPlanetProjection` for terrain, camera and characters.
+ThatGame anchors it at the local character, whose rigid transform is invariant
+under that chart. The local MetaHuman remains its original visible assembly,
+including native facial/body animation, post-processing, LOD sync and grooms.
+Only remote characters need render-only followers.
 The chart reference follows the physical ground chosen at entry, independently
 of the guides that control blending. Using SurfaceMax as that reference would
 magnify low-lying terrain and change near-camera scale.
 `FCLRigidActorPresentation` creates a transient, nonreplicated actor containing
-render-only copies of the source actor's visible skeletal meshes, static meshes,
-grooms and attached equipment. Skeletal copies follow their original mesh's
+fresh render-only components for the source actor's visible skeletal meshes,
+static meshes, grooms and attached equipment. It copies authored scalar/asset
+configuration, not live components or native physics/tick structs. Main and
+post-process animation are disabled before registration, so no second facial rig
+is initialized. Final morph values are sampled from the canonical meshes. Skeletal copies follow their original mesh's
 leader pose; they do not run a second animation graph. Groom copies attach to the
 corresponding copied skeletal component. One projected position/orientation for
 the entire actor preserves rigid body/clothing/hair/equipment relationships.
@@ -22,7 +29,7 @@ Character size and animation stay unchanged; this is a local rigid approximation
 rather than per-vertex curvature of a character.
 
 Original animation, component/socket transforms, collision and actor replication
-remain canonical. The binding suppresses original main/depth passes and shadows,
+remain canonical. For remote followers, the binding suppresses original main/depth passes and shadows,
 while keeping source skeletal animation refreshed. It samples moving source
 transforms on each camera update. Attached equipment is discovered at most every
 250 ms, with a 256-component limit per actor. Destroyed sources retire their
@@ -49,3 +56,9 @@ two PIE network clients. The space/ground case retains different curvatures in
 each world; the distant player follows native relevancy and is presented again
 when replicated back into range. This is a bounded functional profile, not a
 production load or dedicated-server performance qualification.
+
+The initial root-only game qualification missed a MetaHuman head regression.
+The local-native/clean-follower correction is recorded by the consuming game's
+`conformance/metahuman-head-mac-arm64.json`, including neck/head/facial-root
+checks during ACF movement, turning and looking. Its local invariant assertion
+and animation-free follower assertions are required regressions.

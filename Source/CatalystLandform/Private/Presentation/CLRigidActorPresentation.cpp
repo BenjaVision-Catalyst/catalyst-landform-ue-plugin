@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "GroomComponent.h"
+#include "UObject/UnrealType.h"
 
 struct FCLRigidActorPresentation::FImpl
 {
@@ -43,11 +44,34 @@ struct FCLRigidActorPresentation::FImpl
                 // Hidden animation/equipment drivers remain canonical and never acquire a visible copy.
                 if(!C->IsVisible()||C->bHiddenInGame)continue;
                 if(Visuals.Num()>=256){Error=TEXT("Rigid actor presentation exceeds 256 visual components");return false;}
-                auto* Copy=DuplicateObject<UMeshComponent>(C,Owner,MakeUniqueObjectName(Owner,C->GetClass(),C->GetFName()));
-                // Rebuild the copied follower map before any transform/bounds evaluation.
+                // Never duplicate a live component: transient animation/deformer/groom
+                // instances belong to the canonical mesh and must not enter another actor.
+                auto* Copy=NewObject<UMeshComponent>(Owner,C->GetClass(),MakeUniqueObjectName(Owner,C->GetClass(),C->GetFName()),RF_Transient);
+                for(TFieldIterator<FProperty> It(C->GetClass());It;++It)
+                {
+                    auto* P=*It;
+                    if(!P->HasAnyPropertyFlags(CPF_Edit)||P->HasAnyPropertyFlags(CPF_Transient|CPF_InstancedReference|CPF_ContainsInstancedReference))continue;
+                    // Do not copy native structs such as BodyInstance or tick functions:
+                    // their unreflected members can contain live physics/tick ownership.
+                    const auto Value=[](const FProperty* V){return V->IsA<FNumericProperty>()||V->IsA<FBoolProperty>()||V->IsA<FEnumProperty>()||V->IsA<FNameProperty>()||V->IsA<FStrProperty>()||V->IsA<FObjectPropertyBase>();};
+                    const auto* Array=CastField<FArrayProperty>(P);
+                    if(Value(P)||(Array&&Value(Array->Inner)))P->CopyCompleteValue_InContainer(Copy,C);
+                }
+                if(auto* Groom=Cast<UGroomComponent>(Copy))
+                {
+                    const auto* Original=CastChecked<UGroomComponent>(C);
+                    Groom->GroomGroupsDesc=Original->GroomGroupsDesc;
+                    Groom->SimulationSettings=Original->SimulationSettings;
+                }
+                const auto& Data=C->GetCustomPrimitiveData().Data;
+                if(!Data.IsEmpty())Copy->SetCustomPrimitiveDataFloatArray(0,Data);
+                // A follower consumes the source's final pose, including facial processing.
+                // It never evaluates a second main or post-process animation graph.
                 if(auto* Skin=Cast<USkeletalMeshComponent>(Copy))
                 {
-                    Skin->SetAnimInstanceClass(nullptr);Skin->SetLeaderPoseComponent(CastChecked<USkeletalMeshComponent>(C),true,false);
+                    Skin->SetEnableAnimation(false);Skin->SetDisablePostProcessBlueprint(true);Skin->SetAnimInstanceClass(nullptr);
+                    Skin->MorphTargetWeights=CastChecked<USkeletalMeshComponent>(C)->MorphTargetWeights;
+                    Skin->VisibilityBasedAnimTickOption=EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
                     Skin->SetComponentTickEnabled(false);
                 }
                 Copy->ClearFlags(RF_Transactional);Copy->SetFlags(RF_Transient);Copy->SetIsReplicated(false);
@@ -69,7 +93,11 @@ struct FCLRigidActorPresentation::FImpl
             auto* Original=V.Source.Get();auto* Parent=Original?Original->GetAttachParent():nullptr;
             if(auto* Link=Visuals.FindByPredicate([&](const FVisual& P){return P.Source.Get()==Parent;}))
                 C->SetupAttachment(Link->Copy.Get(),Original->GetAttachSocketName());
+            // Disabled-animation meshes must allocate their own reference buffers
+            // during registration before becoming followers (UE 5.8 ResetToRefPose).
             C->RegisterComponent();
+            if(auto* Skin=Cast<USkeletalMeshComponent>(C))
+                Skin->SetLeaderPoseComponent(CastChecked<USkeletalMeshComponent>(Original),true,false);
         }
         Error.Reset();return true;
     }
@@ -110,6 +138,14 @@ bool FCLRigidActorPresentation::Update(const FCLPlanetProjection& Projection,FSt
         if(!Inside)continue;
         // One rigid frame for the whole assembly preserves body/clothing/hair/equipment relationships.
         Copy->SetWorldTransform(C->GetComponentTransform().GetRelativeTransform(Canonical)*Presented,false,nullptr,ETeleportType::TeleportPhysics);
+        if(auto* Skin=Cast<USkeletalMeshComponent>(Copy))
+        {
+            const auto* Original=CastChecked<USkeletalMeshComponent>(C);
+            // Snapshot final morph values; no animation instance exists on the copy.
+            Skin->MorphTargetWeights=Original->MorphTargetWeights;
+            Skin->ActiveMorphTargets=Original->ActiveMorphTargets;
+            Skin->UpdateLODStatus();Skin->MarkRenderDynamicDataDirty();
+        }
         Copy->SetCastShadow(V.Shadow);Copy->SetRenderInMainPass(V.MainPass);Copy->SetRenderInDepthPass(V.DepthPass);
     }
     if(!Source->GetActorTransform().Equals(Canonical,0)){Error=TEXT("Presentation changed canonical actor pose");return false;}
