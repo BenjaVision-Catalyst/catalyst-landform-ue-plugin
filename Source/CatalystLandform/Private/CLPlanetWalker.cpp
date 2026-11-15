@@ -1,4 +1,6 @@
 #include "CLPlanetWalker.h"
+#include "RuntimeGen/GenSources/PCGGenSourceComponent.h"
+#include "PCG/CLPlanetSurfacePCG.h"
 #include "CLPlanet.h"
 #include "CLRadialGravityMovement.h"
 #include "CLSurfaceInspection.h"
@@ -18,6 +20,7 @@
 ACLPlanetWalker::ACLPlanetWalker(const FObjectInitializer& Initializer)
     : Super(Initializer.SetDefaultSubobjectClass<UCLRadialGravityMovement>(ACharacter::CharacterMovementComponentName))
 {
+    CreateDefaultSubobject<UPCGGenSourceComponent>(TEXT("PCGGenerationSource"));
     PrimaryActorTick.bCanEverTick=true;
     GetCapsuleComponent()->InitCapsuleSize(34,88);
     bUseControllerRotationPitch=bUseControllerRotationYaw=bUseControllerRotationRoll=false;
@@ -87,7 +90,9 @@ void ACLPlanetWalker::Tick(float DeltaSeconds)
     {
         if(!GetActorLocation().Equals(HoldPosition,.01)){Fail(TEXT("Character moved before collision was ready."));return;}
         if(Now-Started>120){Fail(TEXT("Terrain collision did not become ready. Press Esc and choose another point."));return;}
-        if(!Planet->IsVoxelWorldReady()||Planet->IsProcessingNewState())return;
+        // Distant native PCG queries can keep VPP's newest state busy. The
+        // trace and current composed-field residual below qualify local footing.
+        if(!Planet->IsVoxelWorldReady())return;
         const FVector Up=(HoldPosition-Planet->BodyCenterWorld()).GetSafeNormal();
         FCollisionQueryParams Params(SCENE_QUERY_STAT(LandformInspectionLanding),false);Params.AddIgnoredActor(this);
         FHitResult Hit;
@@ -110,10 +115,12 @@ void ACLPlanetWalker::Tick(float DeltaSeconds)
     }
     if(!bReady)
     {
-        if(Now-Released>8){Fail(TEXT("Could not establish native ground contact. Press Esc to return."));return;}
-        if(!Movement->IsMovingOnGround()||!IsPlanetFloor(Movement->CurrentFloor.HitResult)){Grounded=0;return;}
+        if(!Movement->IsMovingOnGround()||!IsPlanetFloor(Movement->CurrentFloor.HitResult))
+        {if(Now-Released>8){Fail(TEXT("Could not establish native ground contact. Press Esc to return."));return;}Grounded=0;return;}
         if(!Grounded)Grounded=Now;
         if(Now-Grounded<.25)return;
+        FString SceneryStatus;if(!FCLSceneryReadiness::IsReady(*Planet,GetActorLocation(),SceneryStatus))
+        {Status=SceneryStatus;if(Now-Grounded>120)Fail(TEXT("Local live scenery did not become ready."));return;}
         bReady=true;Status=TEXT("WASD · Mouse look · Space jump · Esc return");
         UE_LOG(LogTemp,Display,TEXT("LANDFORM_WALK_READY: %s | adjustment %.2f m | floor error %.2f cm"),*Planet->GetPathName(),LandingAdjustmentMeters,InitialFloorErrorCm);
     }

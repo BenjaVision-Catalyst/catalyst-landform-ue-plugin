@@ -756,6 +756,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<FStructOnScope> TectonicDraft;
     FGuid WalkRequestId;
     FString WalkStatus=TEXT("Click the player marker to walk.");
+    bool bWalkStatusVisible=false;
     TSharedPtr<SCLHeightAnnotations> Annotations;
     TSharedPtr<FCLRadialGuideSession> RadialGuidesSession;
     TSharedPtr<FCLSelectionInput> SelectionInput;
@@ -785,6 +786,16 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     static const FName SectionTab;
     static const FName PlanetTab;
 public:
+    #if WITH_DEV_AUTOMATION_TESTS
+    static bool VerifyPlayerMarker(FVector Direction,FString& Error)
+    {
+        auto E=ActivePlanet.Pin();if(!E||!E->Globe||E->EvaluationUpdating()||E->bPreviewInvalid){Error=TEXT("Waiting for the native Planet editor.");return false;}
+        E->Globe->SetPlayerLocationVisible(true);E->Globe->SetWalkLocation(Direction);
+        E->Globe->GetSceneViewport()->Draw(false);FlushRenderingCommands();
+        if(!E->Globe->VerifyPlayerMarkerClick()){Error=TEXT("Native player marker did not own the click.");return false;}
+        Error=E->WalkStatus;return true;
+    }
+    #endif
     virtual ~FCLRecipeToolkit()
     {
         FTSTicker::GetCoreTicker().RemoveTicker(EvaluationTicker);Evaluation.Cancel();
@@ -1271,6 +1282,9 @@ public:
         const auto Content=SNew(SOverlay)
                 + SOverlay::Slot()[SAssignNew(Preview, SCLSectionViewport).Visibility_Lambda([this]{return UsesGlobePreview()?EVisibility::Collapsed:EVisibility::Visible;})]
                 + SOverlay::Slot()[GlobeWidget]
+                + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(12)
+                    [SNew(SBorder).Padding(10).Visibility_Lambda([this]{return bWalkStatusVisible?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+                        [SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return FText::FromString(WalkStatus);})]]
                 + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(12)
                     [SNew(SBorder).BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder")).Padding(8).Visibility_Lambda([this]{return AuthoringUpdating()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
                         [SNew(SVerticalBox)+SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(this,&FCLRecipeToolkit::EvaluationCaption)]
@@ -1292,15 +1306,18 @@ public:
         if(!RecipeAsset()->ExportJsonString(Request.RecipeJson,Error)){WalkStatus=Error;InspectorError=Error;return;}
         Request.Direction=Globe->WalkLocation();Request.SurfacePointMeters=Globe->WalkPoint();WalkRequestId=Request.Id;
         const TWeakPtr<FCLRecipeToolkit> Weak=StaticCastSharedRef<FCLRecipeToolkit>(AsShared());
+        Request.OnProgress=[Weak](FGuid Id,const FString& Message)
+        {if(auto Editor=Weak.Pin();Editor&&Editor->WalkRequestId==Id)Editor->WalkStatus=Message;};
         Request.OnReturned=[Weak](FGuid Id,FVector Direction,FString Result)
         {
             if(auto Editor=Weak.Pin();Editor&&Editor->WalkRequestId==Id)
             {
+                Editor->bWalkStatusVisible=!Result.StartsWith(TEXT("Returned from walking"));
                 Editor->WalkStatus=MoveTemp(Result);if(Editor->Globe&&!Direction.IsNearlyZero())Editor->Globe->SetWalkLocation(Direction);
             }
         };
         Request.OnPositionReturned=[Weak](FGuid Id,FVector P){if(auto E=Weak.Pin();E&&E->WalkRequestId==Id&&E->Globe)E->Globe->SetWalkPoint(P);};
-        InspectorError.Reset();WalkStatus=TEXT("Opening walking preview…");
+        InspectorError.Reset();WalkStatus=TEXT("Preparing walking preview…");bWalkStatusVisible=true;
         if(!FCLPlanetInspection::Launch.Execute(MoveTemp(Request),Error)){WalkStatus=Error;InspectorError=Error;}
     }
     static TSharedRef<STextBlock> InspectorLabel(const FText& Text)
@@ -1794,6 +1811,7 @@ EAssetCommandResult UCLRecipeAssetDefinition::OpenAssets(const FAssetOpenArgs& A
 IMPLEMENT_MODULE(FCLDesignerModule, CatalystLandformEditor)
 
 #if WITH_DEV_AUTOMATION_TESTS
+bool CLVerifyPlanetPlayerMarker(FVector Direction,FString& Error){return FCLRecipeToolkit::VerifyPlayerMarker(Direction,Error);}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLDistanceInputUnitsTest, "Catalyst.Landform.Designer.DistanceInputUnits",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FCLDistanceInputUnitsTest::RunTest(const FString&)

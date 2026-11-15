@@ -39,9 +39,17 @@ bool FCLRuntimeRecipeApplyTest::RunTest(const FString&)
         auto Invalid=Input->Recipe;Invalid.SurfaceStack.DefaultSurfaceId=TEXT("UnavailableSurface");FString Bad;FJsonObjectConverter::UStructToJsonObjectString(Invalid,Bad);
         TestFalse(TEXT("Missing client content rejects replacement"),Planet->ApplyRecipeJson(Bad,Error));TestTrue(TEXT("Rejection has an actionable reason"),Error.Contains(TEXT("surface")));
         TestTrue(TEXT("Rejected input leaves the exact accepted runtime, recipe and material intact"),Before==Planet->GetSamplingRuntime()&&Input==Planet->RecipeAsset.Get()&&Material==Planet->MegaMaterial&&OldHeight==Planet->GetSamplingRuntime()->RecipePlan->SampleHeightMeters(Direction));
+        Planet->RecipeAsset->AuthoringExtensions.Add(TEXT("OpaqueClient"),FSoftObjectPath(TEXT("/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial")));
+        Planet->RecipeAsset->WalkingVoxelSize=75;Planet->RecipeAsset->WalkingFrame=FTransform(FVector(500,300,100));
+        Planet->RecipeAsset->WalkingMaterial=FSoftObjectPath(Material);Planet->LivePresentationMaterial=Material;
+        const auto ClientLinks=Planet->RecipeAsset->AuthoringExtensions;
         auto Changed=Input->Recipe;++Changed.Seed;FJsonObjectConverter::UStructToJsonObjectString(Changed,Bad);
         TestTrue(TEXT("A second server-shaped recipe applies without editor assets"),Planet->ApplyRecipeJson(Bad,Error));
         TestTrue(TEXT("Accepted replacement retires the previous actor snapshot"),Before!=Planet->GetSamplingRuntime()&&Planet->RecipeAsset.Get()!=Input&&Planet->RecipeAsset->Recipe.Seed==Changed.Seed);
+        TestTrue(TEXT("Accepted runtime edit retains opaque client links"),Planet->RecipeAsset->AuthoringExtensions.OrderIndependentCompareEqual(ClientLinks));
+        TestTrue(TEXT("Accepted runtime edit retains active material composition"),Planet->MegaMaterial==Material);
+        TestEqual(TEXT("Accepted runtime edit retains walking voxel size"),Planet->RecipeAsset->WalkingVoxelSize,75.);
+        TestTrue(TEXT("Accepted runtime edit retains canonical walking frame"),Planet->RecipeAsset->WalkingFrame.Equals(FTransform(FVector(500,300,100))));
         TestTrue(TEXT("Recipe edit changes the generated field"),FMath::Abs(OldHeight-Planet->GetSamplingRuntime()->RecipePlan->SampleHeightMeters(Direction))>.0001);
     }
     Planet->DestroyRuntime();Planet->Destroy();World->DestroyWorld(false);GEngine->DestroyWorldContext(World);return true;

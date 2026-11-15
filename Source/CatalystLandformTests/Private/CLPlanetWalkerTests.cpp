@@ -3,6 +3,21 @@
 #include "CLPlanetWalker.h"
 #include "CLRadialGravityMovement.h"
 #include "Components/InputComponent.h"
+#include "CLPlanet.h"
+#include "Misc/ScopeExit.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLWalkPreparationTest,"Catalyst.Landform.Inspection.ProviderPreparationFence",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLWalkPreparationTest::RunTest(const FString&)
+{
+    auto* Planet=GetMutableDefault<ACLPlanet>();FString Status;int32 Calls=0;
+    FCLPlanetInspection::RegisterPreparation(TEXT("Qualification"),[&](ACLPlanet& P,FString& S)
+    {TestTrue(TEXT("Provider receives the explicit target"),&P==Planet);S=TEXT("Preparing scenery");++Calls;return Calls==1?ECLInspectionPreparation::Pending:ECLInspectionPreparation::Failed;});
+    ON_SCOPE_EXIT{FCLPlanetInspection::UnregisterPreparation(TEXT("Qualification"));};
+    TestTrue(TEXT("Pending content fences the launch"),FCLPlanetInspection::Prepare(*Planet,Status)==ECLInspectionPreparation::Pending);
+    TestEqual(TEXT("Preparation explains its progress"),Status,FString(TEXT("Preparing scenery")));
+    TestTrue(TEXT("Failed content cannot become an empty ready scene"),FCLPlanetInspection::Prepare(*Planet,Status)==ECLInspectionPreparation::Failed);
+    TestEqual(TEXT("Provider is polled rather than bypassed"),Calls,2);return true;
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLPluginWalkHostTest,"Catalyst.Landform.Inspection.PluginWalkingHost",
     EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -91,4 +106,33 @@ static FAutoConsoleCommand CLVerifyLateSlateNotification(
             UE_LOG(LogTemp,Display,TEXT("LANDFORM_LATE_NOTIFICATION_QUEUED"));
         });
     }));
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "VoxelStampActor.h"
+#include "VoxelLayer.h"
+#include "Shape/VoxelShapeStamp.h"
+#include "Shape/VoxelSphereShape.h"
+#include "EngineUtils.h"
+// A temporary native VPP edit proves dependency-driven PCG regeneration without
+// changing the authored recipe, calling Generate, or inventing gameplay UI.
+static FAutoConsoleCommand CLVerifyLocalVoxelEdit(
+    TEXT("landform.VerifyLocalVoxelEdit"),TEXT("Place a temporary native 8 m VPP subtraction 10 m ahead of the walking player"),
+    FConsoleCommandDelegate::CreateLambda([]
+    {
+        auto* W=GEditor?GEditor->PlayWorld.Get():nullptr;auto* PC=W?W->GetFirstPlayerController():nullptr;
+        auto* Walker=PC?Cast<ACLPlanetWalker>(PC->GetPawn()):nullptr;if(!Walker||!Walker->bReady)return;
+        const FVector Up=(Walker->GetActorLocation()-Walker->Planet->BodyCenterWorld()).GetSafeNormal();
+        const FVector Point=Walker->GetActorLocation()-Up*100+Walker->GetActorForwardVector()*1000;
+        FVoxelShapeStamp Stamp;TVoxelInstancedStruct<FVoxelSphereShape> Shape(FVoxelSphereShape::StaticStruct());Shape->Radius=800;Stamp.Shape=Shape;
+        Stamp.Layer=Walker->Planet->TerrainLayer?Walker->Planet->TerrainLayer.Get():UVoxelVolumeLayer::Default();
+        Stamp.BlendMode=EVoxelVolumeBlendMode::Subtractive;Stamp.Behavior=EVoxelStampBehavior::AffectShape;Stamp.Smoothness=0;Stamp.Priority=1000000;
+        FActorSpawnParameters Params;Params.ObjectFlags|=RF_Transient;auto* Actor=W->SpawnActor<AVoxelStampActor>(AVoxelStampActor::StaticClass(),FTransform(Point),Params);
+        if(Actor){Actor->Tags.Add(TEXT("CLQualificationLocalEdit"));Actor->SetStamp(Stamp);UE_LOG(LogTemp,Display,TEXT("LANDFORM_NATIVE_LOCAL_EDIT: %s | %s | no PCG trigger"),*Actor->GetPathName(),*Point.ToString());}
+    }));
+static FAutoConsoleCommand CLVerifyRemoveVoxelEdit(TEXT("landform.VerifyRemoveVoxelEdit"),TEXT("Remove the temporary native VPP qualification edit"),FConsoleCommandDelegate::CreateLambda([]
+{
+    auto* W=GEditor?GEditor->PlayWorld.Get():nullptr;if(!W)return;
+    for(TActorIterator<AVoxelStampActor> It(W);It;++It)if(It->Tags.Contains(TEXT("CLQualificationLocalEdit")))It->Destroy();
+}));
 #endif

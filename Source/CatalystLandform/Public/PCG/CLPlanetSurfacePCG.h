@@ -1,60 +1,50 @@
 #pragma once
 #include "PCGSettings.h"
 #include "Components/ActorComponent.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "CLPlanetSurfacePCG.generated.h"
 class ACLPlanet;
 class UTransformProviderData;
+class UPrimitiveComponent;
+class UWorld;
+DECLARE_MULTICAST_DELEGATE_TwoParams(FCLPlanetSceneryEvent,ACLPlanet*,AActor*);
+CATALYSTLANDFORM_API FCLPlanetSceneryEvent& CLPlanetSceneryReady();
+CATALYSTLANDFORM_API FCLPlanetSceneryEvent& CLPlanetSceneryRetiring();
+/** Optional world-scoped presentation adapter; geometry generation stays independent. */
+struct CATALYSTLANDFORM_API FCLSceneryMaterials
+{
+    static void Register(UWorld*,TFunction<bool(UPrimitiveComponent&,FString&)>);
+    static void Unregister(UWorld*);
+    static bool Prepare(UPrimitiveComponent&,FString&);
+};
+struct CATALYSTLANDFORM_API FCLSceneryReadiness
+{
+    static void Register(FName,TFunction<bool(const ACLPlanet&,FVector,FString&)>);
+    static void Unregister(FName);
+    static bool IsReady(const ACLPlanet&,FVector,FString&);
+};
 
-/** A disjoint cube-sphere generation domain, expressed in the canonical planet frame. */
+/** Explicit Planet context on an original native PCG execution source.
+ * Native partition components resolve this through GetOriginalComponent(). */
 UCLASS(BlueprintType, ClassGroup=(Landform), meta=(BlueprintSpawnableComponent))
 class CATALYSTLANDFORM_API UCLPlanetSurfaceRegion : public UActorComponent
 {
     GENERATED_BODY()
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface") TObjectPtr<ACLPlanet> Planet;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface") int32 Face=0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface") int32 TileX=0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface") int32 TileY=0;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface", meta=(ClampMin="1",ClampMax="64")) int32 TilesPerFace=4;
-    /** Derived scenery is valid only for this accepted surface. Serialized with the region. */
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Surface") FString GeneratedSurfaceKey;
-    /** Preserve the region's authored native animation provider across PCG regeneration. */
     UPROPERTY() TObjectPtr<UTransformProviderData> TransformProvider;
 };
-
-/** One bounded, editor-only queue shared by all configured regions. */
-CATALYSTLANDFORM_API void CLStartPlanetSurfaceRefresh();
-CATALYSTLANDFORM_API void CLStopPlanetSurfaceRefresh();
-CATALYSTLANDFORM_API bool CLPlanetSurfaceRegionsReady(const ACLPlanet* Planet,FString& Status);
-/** Invalidate derived scenery after a consumer's classification/content changes.
- * Uses the same fenced queue as terrain edits; no consumer-specific state enters Landform.
- */
-CATALYSTLANDFORM_API void CLInvalidatePlanetSurfaceRegion(UCLPlanetSurfaceRegion* Region);
-
-/** Samples the accepted Landform outer surface, rather than a rectangular world-Z patch.
- * Each region has a disjoint portion of one shared seeded, area-corrected lattice.
- * Outputs at most 65536 points per data set. All heights/normals use the accepted plan.
- */
-UCLASS(BlueprintType, ClassGroup=(Procedural))
-class CATALYSTLANDFORM_API UCLPlanetSurfacePCGSettings : public UPCGSettings
+UCLASS()
+class CATALYSTLANDFORM_API UCLPlanetPCGLibrary : public UBlueprintFunctionLibrary
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Surface", meta=(PCG_Overridable,ClampMin="0.000001")) double PointsPerSquaredMeter=.02;
-    UFUNCTION(BlueprintCallable, Category="Landform|PCG")
-    static UCLPlanetSurfaceRegion* ConfigureRegion(AActor* Owner,ACLPlanet* Planet,int32 Face,int32 TileX,int32 TileY,int32 TilesPerFace);
-    static FVector FaceDirection(int32 Face,double U,double V);
-#if WITH_EDITOR
-    virtual FName GetDefaultNodeName() const override {return TEXT("LandformPlanetSurface");}
-    virtual FText GetDefaultNodeTitle() const override {return NSLOCTEXT("CL","PlanetSurfacePCG","Landform Planet Surface");}
-    virtual EPCGSettingsType GetType() const override {return EPCGSettingsType::Sampler;}
-#endif
-    virtual bool UseSeed() const override {return true;}
-protected:
-    virtual TArray<FPCGPinProperties> InputPinProperties() const override {return {};}
-    virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-    virtual FPCGElementPtr CreateElement() const override;
+    UFUNCTION(BlueprintCallable,Category="Landform|PCG")
+    static UCLPlanetSurfaceRegion* BindSource(AActor* Owner,ACLPlanet* Planet);
 };
+/** Observe native PCG lifecycle for presentation only; never schedules generation. */
+CATALYSTLANDFORM_API void CLStartPlanetSceneryObservation();
+CATALYSTLANDFORM_API void CLStopPlanetSceneryObservation();
 
 /** Align classified surface points to planetary up, preserving metadata and position. */
 UCLASS(BlueprintType, ClassGroup=(Procedural))

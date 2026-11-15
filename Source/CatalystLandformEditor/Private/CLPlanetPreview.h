@@ -75,6 +75,9 @@ public:
     FGuid GeneratedSelection() const;
     void SetPlayerLocationVisible(bool Visible);
     bool IsPlayerLocationVisible() const;
+#if WITH_DEV_AUTOMATION_TESTS
+    bool VerifyPlayerMarkerClick();
+#endif
     void SetWalkLocation(FVector Direction);
     FVector WalkLocation() const;
     void SetWalkPoint(FVector BodyMeters);

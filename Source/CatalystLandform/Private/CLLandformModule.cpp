@@ -8,11 +8,11 @@ DEFINE_LOG_CATEGORY_STATIC(LogCatalystLandform, Log, All);
 class FCLLandformModule final : public IModuleInterface
 {
 public:
-    void ShutdownModule() override { CLStopPlanetSurfaceRefresh(); CLStopVPPMaterialSelection(); }
+    void ShutdownModule() override { CLStopPlanetSceneryObservation(); CLStopVPPMaterialSelection(); }
     virtual void StartupModule() override
     {
         CLStartVPPMaterialSelection();
-        CLStartPlanetSurfaceRefresh();
+        CLStartPlanetSceneryObservation();
         UE_LOG(LogCatalystLandform, Display, TEXT("Catalyst Landform runtime loaded"));
     }
 };

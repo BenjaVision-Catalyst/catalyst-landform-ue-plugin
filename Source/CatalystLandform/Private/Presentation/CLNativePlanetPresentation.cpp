@@ -56,6 +56,7 @@ struct FCLNativePlanetPresentation::FImpl
     {
         TWeakObjectPtr<UPrimitiveComponent> Component;
         FBox Box{ForceInit}, SkinnedBounds{ForceInit};
+        TArray<FBox> InstanceDomains;double InstanceMinRadius=0;
         FTransform Transform;
         TArray<float> Data;
         float BoundsScale=1;
@@ -430,17 +431,43 @@ struct FCLNativePlanetPresentation::FImpl
                 const FVector D=Corner-Center;
                 Inside &= D.Length()<=MaxRadiusRatio*Radius && FVector::DotProduct(D.GetSafeNormal(),CurrentAnchor)>=FMath::Cos(MaxArcRadians)+5.e-6;
             }
-            C->SetHiddenInGame(P.Hidden||!Inside);
-            if(!Inside) continue;
-            const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,MinRadius))*FMath::Max(CurrentRatio,PreviousRatio)+2.e-6);
+            bool Mixed=false;
+            if(!Inside&&!P.InstanceDomains.IsEmpty())
+            {
+                // A native coarse PCG component can straddle the chart boundary
+                // or have a box through the body centre although every root is
+                // on the surface. Admit its intersecting instance domains and
+                // leave final per-instance rejection to Nanite's native tests.
+                for(const auto& B:P.InstanceDomains)
+                {
+                    const FVector D=B.GetCenter()-Center;const double R=D.Length(),E=B.GetExtent().Length();
+                    if(R+E<MinRadiusRatio*Radius||R-E>MaxRadiusRatio*Radius)continue;
+                    if(FVector::DotProduct(D.GetSafeNormal(),CurrentAnchor)+E/FMath::Max(1.,R)>=FMath::Cos(MaxArcRadians))
+                    {Mixed=true;break;}
+                }
+            }
+            C->SetHiddenInGame(P.Hidden||(!Inside&&!Mixed));
+            if(!Inside&&!Mixed)continue;
+            const double DomainRadius=Mixed?P.InstanceMinRadius:MinRadius;
+            const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,DomainRadius))*FMath::Max(CurrentRatio,PreviousRatio)+2.e-6);
             // Slot 29 delegates canonical scenery chunks to projected instance tests.
             const float Data[32]={float(CurrentAnchor.X),float(CurrentAnchor.Y),float(CurrentAnchor.Z),float(CurrentCurvature),
                 float(PreviousAnchor.X),float(PreviousAnchor.Y),float(PreviousAnchor.Z),float(PreviousCurvature),
-                float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0,float(CVarCLVoxelProjection.GetValueOnGameThread()!=0),1,0,0};
+                float(Radius),L,float(Mode),9150,H.X,H.Y,H.Z,0,Lo.X,Lo.Y,Lo.Z,0,OH.X,OH.Y,OH.Z,0,OLo.X,OLo.Y,OLo.Z,0,float(CVarCLVoxelProjection.GetValueOnGameThread()!=0),1,float(FMath::Cos(MaxArcRadians)),float(MinRadiusRatio)};
             C->SetCustomPrimitiveDataFloatArray(0,MakeArrayView(Data));
             FBox Bounds,OldBounds;
-            if(!FCLSceneryRenderPolicy::ProjectBounds(P.Box,Projection,L,Bounds)){Error=TEXT("Scenery bounds left their admitted chart");return false;}
-            if(FCLSceneryRenderPolicy::ProjectBounds(P.Box,PreviousProjection,L,OldBounds))Bounds+=OldBounds;
+            if(Mixed)
+            {
+                // Conservative render envelope of the admitted hemisphere;
+                // canonical transforms/instances stay entirely native.
+                Bounds=FBox(Origin-FVector(Radius*4),Origin+FVector(Radius*4));
+                Bounds+=FBox(OldOrigin-FVector(Radius*4),OldOrigin+FVector(Radius*4));
+            }
+            else
+            {
+                if(!FCLSceneryRenderPolicy::ProjectBounds(P.Box,Projection,L,Bounds)){Error=TEXT("Scenery bounds left their admitted chart");return false;}
+                if(FCLSceneryRenderPolicy::ProjectBounds(P.Box,PreviousProjection,L,OldBounds))Bounds+=OldBounds;
+            }
             if(!P.RenderBounds.IsValid||!P.RenderBounds.IsInside(Bounds)||(C->IsA<UInstancedSkinnedMeshComponent>()&&P.RenderBounds.GetVolume()>Bounds.GetVolume()*2))
             {
                 const FBox Envelope=Bounds.ExpandBy(200.);
@@ -688,6 +715,28 @@ bool FCLNativePlanetPresentation::AddPrimitive(UPrimitiveComponent& C,FString& E
     if(const auto* Static=Cast<UStaticMeshComponent>(&C);Static&&Static->GetStaticMesh())Size=Static->GetStaticMesh()->GetBounds().BoxExtent.GetMax()*2;
     if(const auto* Skin=Cast<USkinnedMeshComponent>(&C);Skin&&Skin->GetSkinnedAsset())Size=Skin->GetSkinnedAsset()->GetBounds().BoxExtent.GetMax()*2;
     P.Budget=FCLSceneryRenderPolicy::ForSize(Size*C.GetComponentScale().GetAbsMax());
+    P.InstanceMinRadius=I.Radius;
+    if(P.Box.GetExtent().GetMax()>6400)
+    {
+        TMap<FIntVector,FBox> Domains;FBox MeshBounds(ForceInit);
+        if(auto* Skin=Cast<UInstancedSkinnedMeshComponent>(&C);Skin&&Skin->GetSkinnedAsset())
+        {
+            MeshBounds=Skin->GetSkinnedAsset()->GetBounds().GetBox();
+            for(int32 N=0;N<Skin->GetInstanceCount();++N)
+            {FTransform T;if(!Skin->GetInstanceTransform(Skin->GetInstanceId(N),T,true))continue;const auto V=T.GetLocation()/6400.;const FIntVector Key(FMath::FloorToInt(V.X),FMath::FloorToInt(V.Y),FMath::FloorToInt(V.Z));
+                const FBox B=MeshBounds.TransformBy(T).ExpandBy(200);auto* Existing=Domains.Find(Key);if(Existing)*Existing+=B;else Domains.Add(Key,B);}
+        }
+        else if(auto* Static=Cast<UInstancedStaticMeshComponent>(&C);Static&&Static->GetStaticMesh())
+        {
+            MeshBounds=Static->GetStaticMesh()->GetBounds().GetBox();
+            for(int32 N=0;N<Static->GetInstanceCount();++N)
+            {FTransform T;if(!Static->GetInstanceTransform(N,T,true))continue;const auto V=T.GetLocation()/6400.;const FIntVector Key(FMath::FloorToInt(V.X),FMath::FloorToInt(V.Y),FMath::FloorToInt(V.Z));
+                const FBox B=MeshBounds.TransformBy(T).ExpandBy(200);auto* Existing=Domains.Find(Key);if(Existing)*Existing+=B;else Domains.Add(Key,B);}
+        }
+        for(const auto& Pair:Domains)
+        {P.InstanceDomains.Add(Pair.Value);P.InstanceMinRadius=FMath::Min(P.InstanceMinRadius,FVector::Distance(Pair.Value.GetClosestPointTo(I.Planet->BodyCenterWorld()),I.Planet->BodyCenterWorld()));}
+        P.InstanceMinRadius=FMath::Max(P.InstanceMinRadius,I.MinRadiusRatio*I.Radius);
+    }
     if(auto* Static=Cast<UStaticMeshComponent>(&C)) {P.EvaluateWpo=Static->bEvaluateWorldPositionOffset;P.WpoDistance=Static->WorldPositionOffsetDisableDistance;Static->SetEvaluateWorldPositionOffset(true);Static->SetWorldPositionOffsetDisableDistance(I.bGameplay?P.Budget.WpoEndCm:P.WpoDistance);}
     if(auto* Skin=Cast<USkinnedMeshComponent>(&C)) {P.EvaluateWpo=Skin->bEvaluateWorldPositionOffset;P.WpoDistance=Skin->WorldPositionOffsetDisableDistance;Skin->SetEvaluateWorldPositionOffset(true);Skin->SetWorldPositionOffsetDisableDistance(I.bGameplay?P.Budget.WpoEndCm:P.WpoDistance);}
     if(auto* Skinned=Cast<UInstancedSkinnedMeshComponent>(&C))
@@ -703,6 +752,13 @@ bool FCLNativePlanetPresentation::AddPrimitive(UPrimitiveComponent& C,FString& E
     if(auto* Static=Cast<UInstancedStaticMeshComponent>(&C))
     {P.CullStart=Static->InstanceStartCullDistance;P.CullEnd=Static->InstanceEndCullDistance;if(I.bGameplay)Static->SetCullDistances(P.Budget.FadeStartCm,P.Budget.DrawEndCm);}
     Error.Reset(); return true;
+}
+bool FCLNativePlanetPresentation::IsCurrentState() const
+{const auto& I=*Impl;auto* P=I.Planet.Get();return P&&P->GetRuntime().Get()==I.Runtime&&P->GetSamplingRuntime().Get()==I.Sampling;}
+void FCLNativePlanetPresentation::RemoveActorScenery(AActor& Actor)
+{
+    auto& P=Impl->Primitives;for(int32 I=P.Num()-1;I>=0;--I)if(auto* C=P[I].Component.Get();!C||C->GetOwner()==&Actor)
+    {FImpl::RestorePrimitive(P[I]);P.RemoveAtSwap(I);}
 }
 bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, bool bMeasure, FString &Error)
 {
@@ -722,6 +778,9 @@ bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, 
         Error = I.LifecycleError;
         return false;
     }
+    for(int32 Index=I.Primitives.Num()-1;Index>=0;--Index)
+        if(auto* C=I.Primitives[Index].Component.Get();!C||!C->IsRegistered())
+        {FImpl::RestorePrimitive(I.Primitives[Index]);I.Primitives.RemoveAtSwap(Index);}
     const FVector Anchor = InAnchor.GetSafeNormal();
     double C = I.bSweep ? .5 + .5 * FMath::Cos(2 * UE_PI * Elapsed / 12)
                         : (I.bConsoleCurvature ? double(CVarCLCurvature.GetValueOnGameThread())

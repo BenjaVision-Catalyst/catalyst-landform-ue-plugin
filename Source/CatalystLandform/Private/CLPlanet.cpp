@@ -67,6 +67,11 @@ bool ACLPlanet::ApplyRecipeJson(const FString& Json, FString& Error)
     auto Candidate=TStrongObjectPtr<UCLPlanetRecipeAsset>(NewObject<UCLPlanetRecipeAsset>(this,NAME_None,RF_Transient));
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
     if(!Candidate->ImportRecipeJsonPrepared(Json,Error,Plan))return false;
+    if(RecipeAsset)
+    {
+        Candidate->AuthoringExtensions=RecipeAsset->AuthoringExtensions;
+        Candidate->WalkingMaterial=RecipeAsset->WalkingMaterial;Candidate->WalkingFrame=RecipeAsset->WalkingFrame;Candidate->WalkingVoxelSize=RecipeAsset->WalkingVoxelSize;
+    }
     if(SamplingWindow.bEnabled)
     {
         if(!Plan||!FCLScene::FromPlanet(Plan,Error))return false;
@@ -81,7 +86,7 @@ bool ACLPlanet::ApplyRecipeJson(const FString& Json, FString& Error)
         Material=Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial()?Plan->MeasuredTerrain->GetMaterial():GetDefault<UCLSurfaceSettings>()->PlanetMaterial.LoadSynchronous();
         if(!Material){Error=TEXT("Configured client planet material is missing or was not cooked");return false;}
     }
-    RecipeAsset=Candidate.Get();MegaMaterial=Material;bRuntimeRecipeApplied=true;
+    RecipeAsset=Candidate.Get();MegaMaterial=LivePresentationMaterial?LivePresentationMaterial.Get():Material;bRuntimeRecipeApplied=true;
     TGuardValue<TSharedPtr<const FCLCompiledPlanetRecipe>> Applying(ApplyingRecipePlan,Plan);RebuildTerrain();return true;
 }
 
@@ -106,7 +111,8 @@ void ACLPlanet::RebuildTerrain()
         const auto Plan=SameInput?ApplyingRecipePlan:FCLPlanetCompiler::Compile(RecipeAsset->Recipe,RecipeStatus);
         if (!Plan) { RecipeStatus = TEXT("Keeping last valid terrain: ") + RecipeStatus; return; }
         RadiusMeters = Plan->RadiusMeters;
-        if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
+        if(LivePresentationMaterial)MegaMaterial=LivePresentationMaterial;
+        else if(Plan->MeasuredTerrain&&Plan->MeasuredTerrain->GetMaterial())MegaMaterial=Plan->MeasuredTerrain->GetMaterial();
         Stamp.bUseRecipe = true;
         Stamp.Recipe = RecipeAsset->Recipe;
         Stamp.CompiledRecipe = Plan;

@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
 #include "Engine/GameViewportClient.h"
+#include "Engine/TextureCube.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/InstancedSkinnedMeshComponent.h"
 #include "Components/DirectionalLightComponent.h"
@@ -17,9 +18,10 @@
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 #include "HAL/IConsoleManager.h"
+#include "PCG/CLPlanetSurfacePCG.h"
 
 static TAutoConsoleVariable<float> CVarCLWalkingCurvature(
-    TEXT("landform.WalkingCurvature"), .05f, TEXT("Walking visual curvature: .05 gives 20x physical radius; 1 natural, 0 diagnostic flat"));
+    TEXT("landform.WalkingCurvature"), .15f, TEXT("Walking visual curvature: .15 gives 6.67x physical radius; 1 natural, 0 diagnostic flat"));
 
 class FCLWalkingPresentation
 {
@@ -36,12 +38,18 @@ public:
     bool OldAtmosphere=true,OldCloud=true;
     double MaxCameraInverseError=0;
     int32 CameraFrames=0;
+    int32 LiveSurfaceRevisions=0;
+    FString SurfaceKey,SceneryError;
+    TWeakObjectPtr<ACLPlanet> Target;
+    FDelegateHandle ReadyHandle,RetiringHandle;
+    TArray<TWeakObjectPtr<AActor>> NewScenery;
     struct FCVar {IConsoleVariable* Variable;FString Before,Applied;};
     TArray<FCVar> RenderCVars;
     void RenderSetting(const TCHAR* Name,const TCHAR* Value)
     {if(auto* V=IConsoleManager::Get().FindConsoleVariable(Name)){const FString Before=V->GetString();V->Set(Value,ECVF_SetByCode);RenderCVars.Add({V,Before,V->GetString()});}}
     ~FCLWalkingPresentation()
     {
+        CLPlanetSceneryReady().Remove(ReadyHandle);CLPlanetSceneryRetiring().Remove(RetiringHandle);
         Terrain.Reset();
         for(auto& C:RenderCVars)if(C.Variable->GetString()==C.Applied)C.Variable->Set(*C.Before,ECVF_SetByCode);
         for(auto& Sun:Suns)if(auto* C=Sun.Component.Get())C->SetWorldRotation(Sun.Rotation);
@@ -55,6 +63,9 @@ public:
     bool Start(ACLPlanetWalker& Walker,FString& Error)
     {
         auto& Planet=*Walker.Planet; PlanetPose=Planet.GetActorTransform();
+        Target=&Planet;
+        ReadyHandle=CLPlanetSceneryReady().AddLambda([this](ACLPlanet* P,AActor* A){if(P==Target.Get())NewScenery.AddUnique(A);});
+        RetiringHandle=CLPlanetSceneryRetiring().AddLambda([this](ACLPlanet* P,AActor* A){if(P==Target.Get()&&Terrain&&A)Terrain->RemoveActorScenery(*A);});
         auto* V=Walker.GetWorld()->GetGameViewport();
         if(!V){Error=TEXT("Walking inspection requires its game viewport");return false;}
         Viewport=V;OldAtmosphere=V->EngineShowFlags.Atmosphere;OldCloud=V->EngineShowFlags.Cloud;
@@ -72,6 +83,7 @@ public:
         Options.MinRadiusRatio=.1;Options.MaxRadiusRatio=2;
         Terrain=FCLNativePlanetPresentation::TryCreate(Planet,*Planet.GetSamplingRuntime()->RecipePlan,*Material,Options,Error);
         if(!Terrain) return false;
+        SurfaceKey=Planet.GetSurfaceGenerationKey();
         // Keep the distant Nanite canopy, using a four-pixel geometric error budget.
         // Shadow clipmaps stop at 327.68 m instead of covering tens of kilometres.
         RenderSetting(TEXT("r.Nanite.MaxPixelsPerEdge"),TEXT("4"));
@@ -90,8 +102,21 @@ public:
             {
                 if(auto* P=Cast<UPrimitiveComponent>(Component);P &&
                     (P->IsA<UInstancedStaticMeshComponent>()||P->IsA<UInstancedSkinnedMeshComponent>()))
-                    if(!Terrain->AddPrimitive(*P,Error)) return false;
-                if(auto* SkyLight=Cast<USkyLightComponent>(Component)) SkyLights.Add(SkyLight);
+                    if(!FCLSceneryMaterials::Prepare(*P,Error)||!Terrain->AddPrimitive(*P,Error)) return false;
+                if(auto* SkyLight=Cast<USkyLightComponent>(Component))
+                {
+                    // The inspection has no sky backdrop. Illuminate the existing
+                    // PIE light with native daylight instead of capturing black.
+                    // This changes no source world actor or atmosphere setting.
+                    if(auto* Ambient=LoadObject<UTextureCube>(nullptr,TEXT("/Engine/MapTemplates/Sky/DaylightAmbientCubemap.DaylightAmbientCubemap")))
+                    {
+                        SkyLight->SourceType=SLS_SpecifiedCubemap;
+                        SkyLight->SetRealTimeCaptureEnabled(false);
+                        SkyLight->SetCubemap(Ambient);
+                        SkyLight->RecaptureSky();
+                    }
+                    SkyLights.Add(SkyLight);
+                }
                 if(auto* Sun=Cast<UDirectionalLightComponent>(Component)) Suns.Add({Sun,Sun->GetComponentQuat()});
                 if(auto* Sky=Cast<USkyAtmosphereComponent>(Component))
                 {Sky->TransformMode=ESkyAtmosphereTransformMode::PlanetTopAtComponentTransform;
@@ -112,6 +137,22 @@ public:
         auto& Planet=*Walker.Planet;
         if(!Planet.GetActorTransform().Equals(PlanetPose,0))
         {Error=TEXT("Walking presentation changed its canonical Planet pose");return false;}
+        if(SurfaceKey!=Planet.GetSurfaceGenerationKey()||!Terrain->IsCurrentState())
+        {
+            Terrain.Reset();auto* Material=LoadObject<UMaterialInterface>(nullptr,TEXT("/CatalystLandform/Surfaces/M_Surface.M_Surface"));
+            FCLNanitePresentationOptions O;O.bWorldAnchored=true;O.bNativeMaterials=true;O.bConsoleCurvature=false;O.bGameplay=true;
+            O.InitialCurvature=CVarCLWalkingCurvature.GetValueOnGameThread();O.MaxArcRadians=FMath::DegreesToRadians(89.);O.ReferenceRadiusCm=Walker.PresentationRadiusCm;O.MinRadiusRatio=.1;O.MaxRadiusRatio=2;
+            Terrain=FCLNativePlanetPresentation::TryCreate(Planet,*Planet.GetSamplingRuntime()->RecipePlan,*Material,O,Error);if(!Terrain)return false;
+            SurfaceKey=Planet.GetSurfaceGenerationKey();++LiveSurfaceRevisions;
+            for(TActorIterator<AActor> It(Walker.GetWorld());It;++It)NewScenery.AddUnique(*It);
+        }
+        for(auto& Weak:NewScenery)if(auto* A=Weak.Get())
+        {
+            TInlineComponentArray<UPrimitiveComponent*> Components;A->GetComponents(Components);
+            for(auto* C:Components)if(C->IsRegistered()&&(C->IsA<UInstancedStaticMeshComponent>()||C->IsA<UInstancedSkinnedMeshComponent>()))
+                if(!FCLSceneryMaterials::Prepare(*C,Error)||!Terrain->AddPrimitive(*C,Error))return false;
+        }
+        NewScenery.Reset();
         if(!Terrain->SetCurvature(CVarCLWalkingCurvature.GetValueOnGameThread()))
         {Error=TEXT("Walking curvature must be finite and between zero and one");return false;}
         const FVector Up=(View.Location-Planet.BodyCenterWorld()).GetSafeNormal();
@@ -142,6 +183,7 @@ public:
         FCLPlanetProjection Projection;
         if(Terrain && Terrain->GetCurrentProjection(Projection)) Json->SetNumberField(TEXT("curvature"),Projection.GetSettings().Curvature);
         Json->SetNumberField(TEXT("outdoorExposureBiasEV"),-.75);
+        Json->SetNumberField(TEXT("liveSurfaceRevisions"),LiveSurfaceRevisions);
         Json->SetNumberField(TEXT("localSkyCaptures"),SkyLights.Num());
         Json->SetStringField(TEXT("directionalLighting"),TEXT("Stable at landing; does not rotate with each walking step"));
         Json->SetNumberField(TEXT("nanitePixelError"),4);

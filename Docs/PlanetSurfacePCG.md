@@ -1,123 +1,70 @@
-# Planetary surface PCG
+# Planetary PCG integration
 
-`Landform Planet Surface` samples supported ground after accepted cave/volume
-composition in canonical planet coordinates. It does not sample a world-Z rectangle or change the planet.
-`UCLPlanetSurfaceRegion` binds a PCG owner to one disjoint cube-sphere tile and
-its explicit `ACLPlanet`. `ConfigureRegion` installs that component on an owner.
-The same seeded lattice survives changes in tile count without omissions or
-repeat candidates. Cube-face area correction keeps reference-area density
-consistent around the body. Outside conservative cave/cut/addition supports, the unchanged radial exterior
-retains its seeded height/normal sampling. Inside affected supports, contact
-positions and normals come from the same composed `FCLScene` used by VPP.
-The optional classifier receives those resolved positions/normals, so slope and
-altitude selection follow the actual support rather than the removed surface.
+Voxel Plugin supplies the terrain sampler and dependency tracking. Unreal PCG's
+Runtime Generation system owns generation sources, hierarchical partition cells,
+priorities, cancellation, pooling and cleanup. Landform does not implement a
+second terrain sampler, spherical tile generator or generation queue.
 
-Feed these points into an optional classifier before asset selection/spawning.
-For trees and upright shrubs, put `Landform Radial Orientation` after slope
-classification and before local yaw/scale variation. Ground scatter can keep
-its surface-normal orientation. Landform has no Ecosystem dependency.
+Configure native PCG graphs with hierarchical generation and a 3D grid. In-world
+components use Generate at Runtime and Is Partitioned. Register a native PCG
+Generation Source on the player. A PCGWorldActor must exist in the running world;
+Ecosystems supplies that native service when activating its configured content.
+Use VPP's Voxel Sampler on the Planet's volume layer with Track Layer Changes
+on. It samples the actual composed VPP field, including cuts and cave surfaces,
+and VPP requests native PCG regeneration when queried terrain dependencies change.
 
-Surface work yields after 64 candidates and publishes data sets of at most
-65,536 points. A region refuses more than two million lattice candidates rather
-than silently reducing density. The current grid has at most 200,000 cells per
-face axis and up to 64 tiles per axis. These are explicit generation limits,
-not a production streaming implementation. Regions are native components and
-serialize/remap their Planet references with the owning world, including PIE.
+`UCLPlanetPCGLibrary::BindSource` attaches `UCLPlanetSurfaceRegion` to an explicit
+original PCG execution source. This component contains the Planet reference and
+optional native wind transform provider, not generation bounds or a tile index.
+Partition components resolve it through PCG's `GetOriginalComponent()`. There is
+no first-Planet lookup and no Ecosystem dependency in Landform.
 
-The walking presenter accepts up to 32,768 scenery components. Each tile retains
-its own canonical component bounds; a single planet-enclosing scenery component
-would fail the presenter's finite-chart bounds contract. The chart itself,
-terrain coverage limits and native VPP remain unchanged.
+`Landform Radial Orientation` preserves native point positions, seeds and
+metadata while aligning upright trees to the bound Planet centre. Ground scatter
+can retain VPP's sampled surface normal. An optional classifier supplies biome
+rules, current planetary context and support-slope filtering.
 
-Qualification: `conformance/planet-surface-pcg-mac-arm64.json`. The host proof in
-VPPTest58 exercises the existing Biome Core LocalBiomeCore generators/spawners in
-96 disjoint regions. Forest classification, asset weighting and floor coverage
-are owned by Ecosystem/the host fixture, not this geometry adapter. Automatic world deployment, profile-driven regeneration and packaged streaming
-remain separate integration work. Accepted terrain/frame edits now regenerate
-configured regions automatically as described below.
+Landform observes native PCG completion and cleanup to attach/retire curved
+rendering and restore native animation providers. The observer never calls
+Generate, Cleanup or Cancel. Native PCG settings determine task concurrency and
+generation distances; distant Nanite trees do not require a separate scheduler.
 
+## Walking and reopening
 
-## Accepted-surface refresh
+The Planet asset stores `WalkingMaterial`, `WalkingFrame` and `WalkingVoxelSize`
+outside its portable recipe. The exact bound Planet actor is reused when present.
+Otherwise, the host creates a fully configured transient native Planet in the
+existing world. It validates optional content references and compiles presentation
+materials without generating a forest in the editor.
 
-Landform fingerprints each accepted terrain input and canonical actor frame.
-Configured regions store the fingerprint of their generated scenery. In an editor
-world, a shared native queue hides stale instanced products immediately, coalesces
-successive edits for one second, cleans the old products and regenerates one PCG
-component at a time. Completed products retain the region's native animation
-provider. The queue never rewrites the recipe, recreates the world, saves assets
-or generates a second forest in PIE. Invalid recipe edits retain the last valid
-terrain and its products. Native walking refuses stale or still-generating
-regions; wait for the scenery update before clicking the player marker again.
+The running world starts its own native runtime PCG. Existing editor-generated
+scenery is excluded from PIE duplication. Walking waits for collision and local
+native PCG readiness, not a complete planet. Regions outside the player's support
+are neither pre-generated nor saved as world products. Missing configured art or
+materials fails explicitly. A recovery world or Python deployment script is not a
+runtime input.
 
-`GetSurfaceGenerationKey` exposes the accepted identity for qualification. Region
-identities serialize with the world, avoiding regeneration of an unchanged
-recovered/saved snapshot. Geometry, frame and guide changes captured by the
-accepted terrain input invalidate its regions. This is bounded editor preview
-generation, not production runtime streaming. Existing regions are required;
-Landform does not invent a biome deployment or depend on Ecosystem. Editing an
-external classifier profile alone and rebaking a host-authored forest-floor mask
-remain separate from the shape-change queue.
+New native PCG products receive transient projection material copies and share
+the same curved presentation as terrain. Ground appearance receives transient
+texture parameters, allowing Ecosystems to update coverage without rebaking a
+planet texture. Source materials and licensed meshes remain untouched. Accepted
+recipe updates preserve opaque client links and active material composition;
+the presenter rebinds to the new accepted terrain rather than retaining a frozen
+sampling snapshot.
 
-Each surface data batch carries typed, default-valued metadata:
+## Authoring assignment queries
 
-| Attribute | Type | Meaning |
-| --- | --- | --- |
-| `Planet_ToWorld` | Transform | Canonical body frame in world centimetres |
-| `Planet_ReferenceRadiusMeters` | double | Accepted reference surface radius |
-| `Planet_Seed` | int32 | Accepted recipe seed |
-| `Planet_SeaLevelMeters` | double | OceanHeight relative to reference radius |
+`FCLGroundSurfaceSampler` and `ACLPlanet::SampleGroundSurface` remain available for
+bounded, immutable authored-recipe queries such as the ecosystem overview map.
+They resolve cave-aware ground in the compiled recipe. They are not the runtime
+PCG surface source and do not replace VPP's tracking of live volume edits.
 
-An optional classifier can consume this contract without linking to Landform.
-These values supersede stale graph-authoring snapshots; they do not modify
-classifier assets or geological ownership. Native tests exercise disjoint
-sampling, stable/change-sensitive identity, a live accepted radius edit followed
-by automatic PCG regeneration, and optional classifier context consumption.
+Native source-context and recipe-resource tests cover explicit binding, radial
+orientation, preserved native roots/seeds and atomic live replacement. Rendered
+qualification must additionally exercise a fresh project open, the actual Planet
+marker, movement into new native cells and a live VPP terrain change. Counts alone
+are not rendered acceptance. Historical custom-tile reports describe the removed
+implementation and do not qualify the native runtime path.
 
-
-## Cave-aware support contract
-
-`FCLGroundSurfaceSampler` owns the shared immutable query. It starts outside the
-affected ground, probes radially in fixed 0.125 m increments, brackets the first
-air-to-solid contact with at least 0.5 m of radial solid support, and bisects the
-contact ten times. Thin, sub-voxel roof slivers cannot anchor foliage above the
-visible cave floor; a closed cave with substantial cover retains its exterior
-roof. Added volume bounds extend the search above the old height surface.
-Normals use six composed-field probes at a 5 cm baseline. The field is signed
-implicit, not a conservative distance estimate: no sphere-tracing step is taken
-from a field magnitude. The search is resolution-qualified and capped at 2,048
-spatial steps (256 m per affected ray). Missing support, exhausted rays and
-non-outward/degenerate contacts emit no vegetation point. Sub-resolution contacts
-and deeper supports are not claimed as resolved.
-
-The PCG node runs pure query batches on the native worker pool, retaining the
-immutable plan until completion and publishing point UObjects on the main PCG
-lane. Cancellation can discard a batch without publishing stale products.
-`ACLPlanet::SampleGroundSurface` exposes the same positions/normals/support flags
-for classifier/floor bakes and qualification. This is the accepted recipe's
-whole-body composed scene; live sculpt edits and arbitrary external stamp stacks
-are not qualified by this adapter. The sampler profile participates in accepted
-scenery identity, so older height-only generated regions invalidate automatically.
-
-Ground-contact acceptance must include independent native VPP collision at an
-open cave. Agreement with `SampleRadialHeights` alone is a height-envelope check,
-not final-ground qualification. Analytic regressions cover an open cavity floor,
-a closed roof, a sub-voxel roof, a higher added ledge, a sloped cut and unresolved
-deep air. The existing rendered CurrentRift and walking regressions remain part
-of qualification. No cave morphology, VPP code, engine files, world or recipe
-is changed by this placement correction.
-
-Consumers with classification or content state beyond terrain can call
-`CLInvalidatePlanetSurfaceRegion` on the game thread. It clears the derived
-surface validity and resets that region's queue attempt so the existing single
-queue hides/cancels old products and regenerates after its normal debounce.
-Landform stores no consumer model and starts no second queue. Ecosystems uses
-this hook for biome assignment changes; a live property edit invalidates all 96
-configured review regions immediately. Terrain changes continue to use the
-accepted surface key and the same completion fences.
-
-A native generation that ends without publishing is retried once for the current
-accepted key, through the same cleanup/debounce queue. A second failure stays
-invalid and is reported; no empty result is marked successful. New terrain or an
-explicit consumer invalidation starts a new bounded attempt. The native regression
-cancels the first generation, observes the retry, edits terrain and invalidates
-a consumer without changing physical identity.
+References: [VPP PCG setup](https://docs.voxelplugin.com/knowledgebase/foliage/configuring-pcg),
+[Epic runtime generation](https://dev.epicgames.com/documentation/unreal-engine/using-pcg-generation-modes-in-unreal-engine).

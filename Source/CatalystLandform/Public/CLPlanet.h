@@ -11,6 +11,7 @@ class UVoxelStampComponent;
 class UVoxelVolumeLayer;
 class UArrowComponent;
 class UTexture2D;
+class UTexture;
 class USplineComponent;
 
 UCLASS()
@@ -33,6 +34,10 @@ class CATALYSTLANDFORM_API ACLPlanet : public AVoxelWorld
     GENERATED_BODY()
 public:
     ACLPlanet();
+    /** Derived live appearance inputs; never serialized into the planet recipe. */
+    UPROPERTY(Transient,BlueprintReadOnly,Category="Presentation") TMap<FName,TObjectPtr<UTexture>> PresentationTextures;
+    /** Client render composition survives accepted live terrain updates. */
+    UPROPERTY(Transient) TObjectPtr<UVoxelMegaMaterial> LivePresentationMaterial;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Planet", meta=(DisplayName="Radius", Units="m", ClampMin="10"))
     double RadiusMeters = 100;
 

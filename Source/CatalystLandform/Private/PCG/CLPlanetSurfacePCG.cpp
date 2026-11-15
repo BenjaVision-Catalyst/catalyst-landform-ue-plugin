@@ -6,8 +6,6 @@
 #include "PCGContext.h"
 #include "Data/PCGPointData.h"
 #include "GameFramework/Actor.h"
-#include "Scene/CLGroundSurface.h"
-#include "Async/Async.h"
 #include "Metadata/PCGMetadata.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 
@@ -17,103 +15,9 @@ namespace
 UCLPlanetSurfaceRegion* Region(FPCGContext* C)
 {
     const auto* Component=Cast<UPCGComponent>(C->ExecutionSource.GetObject());
-    return Component&&Component->GetOwner()?Component->GetOwner()->FindComponentByClass<UCLPlanetSurfaceRegion>():nullptr;
+    const auto* Original=Component?Component->GetOriginalComponent():nullptr;
+    return Original&&Original->GetOwner()?Original->GetOwner()->FindComponentByClass<UCLPlanetSurfaceRegion>():nullptr;
 }
-struct FCLGroundBatch {TArray<FCLGroundSurfaceSample> Samples;FString Error;bool bSuccess=false;};
-struct FCLSurfaceContext : FPCGContext
-{
-    bool Initialized=false;
-    int32 Grid=0,X0=0,X1=0,Y0=0,Y1=0,X=0,Y=0;
-    int32 Face=0,SampleSeed=0;
-    double Reference=0;
-    FTransform Pose;
-    int32 PlanetSeed=0;
-    double SeaLevel=0;
-    TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
-    TSharedPtr<const FCLGroundSurfaceSampler> Ground;
-    TFuture<FCLGroundBatch> Pending;
-    TArray<int32> PendingSeeds;
-};
-class FCLSurfaceElement : public IPCGElementWithCustomContext<FCLSurfaceContext>
-{
-public:
-    virtual bool CanExecuteOnlyOnMainThread(FPCGContext*) const override {return true;}
-    virtual bool IsCacheable(const UPCGSettings*) const override {return false;}
-protected:
-    virtual bool ExecuteInternal(FPCGContext* Base) const override
-    {
-        auto* C=static_cast<FCLSurfaceContext*>(Base);
-        const auto* S=C->GetInputSettings<UCLPlanetSurfacePCGSettings>();
-        if(!C->Initialized)
-        {
-            C->Initialized=true;auto* R=Region(C);
-            if(!S||!R||!IsValid(R->Planet)||R->Face<0||R->Face>=6||R->TilesPerFace<1||R->TilesPerFace>64||
-                R->TileX<0||R->TileX>=R->TilesPerFace||R->TileY<0||R->TileY>=R->TilesPerFace||
-                !FMath::IsFinite(S->PointsPerSquaredMeter)||S->PointsPerSquaredMeter<=0)
-            {UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface requires a valid configured region and positive density."));return true;}
-            const auto Runtime=R->Planet->GetSamplingRuntime();C->Plan=Runtime?Runtime->RecipePlan:nullptr;
-            if(!C->Plan){UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface has no accepted terrain plan."));return true;}
-            FString Error;C->Ground=FCLGroundSurfaceSampler::Make(C->Plan,Error);if(!C->Ground){UE_LOG(LogCLSurfacePCG,Error,TEXT("%s"),*Error);return true;}
-            C->Reference=C->Plan->RadiusMeters+C->Plan->BaseHeightMeters;C->Pose=R->Planet->GetActorTransform();
-            if(const auto& Recipe=C->Plan->SourceRecipe)
-            {
-                C->PlanetSeed=Recipe->Seed;
-                for(const auto& G:Recipe->RadialGuides.Guides)if(G.Name==TEXT("OceanHeight"))C->SeaLevel=G.NormalizedHeight*Recipe->RadiusMeters-C->Reference;
-            }
-            if(C->Reference<=0||!C->Pose.GetScale3D().Equals(FVector::OneVector,1.e-6))return true;
-            const double Cells=FMath::CeilToDouble(2*C->Reference*FMath::Sqrt(S->PointsPerSquaredMeter));
-            if(Cells<1||Cells>200000){UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface density exceeds lattice budget."));return true;}
-            C->Grid=int32(Cells);C->Face=R->Face;C->SampleSeed=S->Seed;
-            C->X0=int64(R->TileX)*C->Grid/R->TilesPerFace;C->X1=int64(R->TileX+1)*C->Grid/R->TilesPerFace;
-            C->Y0=int64(R->TileY)*C->Grid/R->TilesPerFace;C->Y1=int64(R->TileY+1)*C->Grid/R->TilesPerFace;
-            if(int64(C->X1-C->X0)*(C->Y1-C->Y0)>2000000){UE_LOG(LogCLSurfacePCG,Error,TEXT("Planet surface region exceeds two million candidates; increase tile count."));return true;}
-            C->X=C->X0;C->Y=C->Y0;
-        }
-        if(!C->Plan||C->X0>=C->X1||C->Y0>=C->Y1)return true;
-        if(!C->Pending.IsValid())
-        {
-            TArray<FVector> Directions;C->PendingSeeds.Reset();
-            // Pure immutable scene queries run off-thread; publish point UObjects
-            // on the PCG game-thread lane only after the bounded batch completes.
-            for(int32 Count=0;C->X<C->X1&&Count<64;++Count)
-            {
-                const int32 X=C->X,Y=C->Y;if(++C->Y>=C->Y1){C->Y=C->Y0;++C->X;}
-                FRandomStream Random(HashCombineFast(uint32(C->SampleSeed),HashCombineFast(uint32(C->Face),HashCombineFast(uint32(X),uint32(Y)))));
-                const double U=-1+2*(X+Random.FRand())/C->Grid,V=-1+2*(Y+Random.FRand())/C->Grid;
-                if(Random.FRand()>1/FMath::Pow(1+U*U+V*V,1.5))continue;
-                Directions.Add(UCLPlanetSurfacePCGSettings::FaceDirection(C->Face,U,V));C->PendingSeeds.Add(Random.GetCurrentSeed());
-            }
-            if(Directions.IsEmpty())return C->X>=C->X1;
-            C->Pending=Async(EAsyncExecution::ThreadPool,[Ground=C->Ground,Directions=MoveTemp(Directions)]
-            {FCLGroundBatch B;B.bSuccess=Ground->Sample(Directions,B.Samples,B.Error);return B;});
-            return false;
-        }
-        if(!C->Pending.IsReady())return false;
-        auto Batch=C->Pending.Get();C->Pending=TFuture<FCLGroundBatch>();
-        if(!Batch.bSuccess){UE_LOG(LogCLSurfacePCG,Error,TEXT("Ground query failed: %s"),*Batch.Error);C->OutputData.TaggedData.Reset();return true;}
-        UPCGPointData* Data=nullptr;
-        for(int32 I=0;I<Batch.Samples.Num();++I)
-        {
-            const auto& Ground=Batch.Samples[I];if(!Ground.bSupported)continue;
-            if(!Data||Data->GetPoints().Num()>=65536)
-            {
-                // Reuse the last incomplete data set. Output remains owned by the PCG context across yields.
-                if(!C->OutputData.TaggedData.IsEmpty())Data=const_cast<UPCGPointData*>(Cast<UPCGPointData>(C->OutputData.TaggedData.Last().Data));
-                if(!Data||Data->GetPoints().Num()>=65536)
-                {Data=NewObject<UPCGPointData>();
-                    Data->Metadata->CreateAttribute<FTransform>(TEXT("Planet_ToWorld"),C->Pose,false,true);
-                    Data->Metadata->CreateAttribute<double>(TEXT("Planet_ReferenceRadiusMeters"),C->Reference,false,true);
-                    Data->Metadata->CreateAttribute<int32>(TEXT("Planet_Seed"),C->PlanetSeed,false,true);
-                    Data->Metadata->CreateAttribute<double>(TEXT("Planet_SeaLevelMeters"),C->SeaLevel,false,true);
-                    auto& O=C->OutputData.TaggedData.AddDefaulted_GetRef();O.Data=Data;O.Pin=PCGPinConstants::DefaultOutputLabel;}
-            }
-            auto& Point=Data->GetMutablePoints().AddDefaulted_GetRef();
-            Point.Transform=FTransform(FRotationMatrix::MakeFromZ(C->Pose.TransformVectorNoScale(Ground.Normal)).ToQuat(),C->Pose.TransformPosition(Ground.PositionMeters*100));
-            Point.Seed=C->PendingSeeds[I];Point.Density=1;Point.SetLocalBounds(FBox(FVector(-50),FVector(50)));
-        }
-        return C->X>=C->X1;
-    }
-};
 class FCLRadialElement : public IPCGElement
 {
 public:
@@ -135,21 +39,13 @@ protected:
     }
 };
 }
-FVector UCLPlanetSurfacePCGSettings::FaceDirection(int32 Face,double U,double V)
+UCLPlanetSurfaceRegion* UCLPlanetPCGLibrary::BindSource(AActor* Owner,ACLPlanet* Planet)
 {
-    FVector D;
-    switch(Face){case 0:D=FVector(1,U,V);break;case 1:D=FVector(-1,U,V);break;case 2:D=FVector(U,1,V);break;case 3:D=FVector(U,-1,V);break;case 4:D=FVector(U,V,1);break;default:D=FVector(U,V,-1);break;}
-    return D.GetSafeNormal();
-}
-UCLPlanetSurfaceRegion* UCLPlanetSurfacePCGSettings::ConfigureRegion(AActor* Owner,ACLPlanet* Planet,int32 Face,int32 X,int32 Y,int32 N)
-{
-    if(!IsValid(Owner)||!IsValid(Planet)||Owner->GetWorld()!=Planet->GetWorld()||Face<0||Face>=6||N<1||N>64||X<0||X>=N||Y<0||Y>=N)return nullptr;
+    if(!IsValid(Owner)||!IsValid(Planet)||Owner->GetWorld()!=Planet->GetWorld())return nullptr;
     auto* R=Owner->FindComponentByClass<UCLPlanetSurfaceRegion>();
     if(!R){R=NewObject<UCLPlanetSurfaceRegion>(Owner);Owner->AddInstanceComponent(R);R->RegisterComponent();}
-    R->Planet=Planet;R->Face=Face;R->TileX=X;R->TileY=Y;R->TilesPerFace=N;return R;
+    R->Planet=Planet;return R;
 }
-TArray<FPCGPinProperties> UCLPlanetSurfacePCGSettings::OutputPinProperties() const{return {FPCGPinProperties(PCGPinConstants::DefaultOutputLabel,EPCGDataType::Point)};}
-FPCGElementPtr UCLPlanetSurfacePCGSettings::CreateElement() const{return MakeShared<FCLSurfaceElement>();}
 TArray<FPCGPinProperties> UCLPlanetRadialOrientationPCGSettings::InputPinProperties() const{return {FPCGPinProperties(PCGPinConstants::DefaultInputLabel,EPCGDataType::Point)};}
 TArray<FPCGPinProperties> UCLPlanetRadialOrientationPCGSettings::OutputPinProperties() const{return {FPCGPinProperties(PCGPinConstants::DefaultOutputLabel,EPCGDataType::Point)};}
 FPCGElementPtr UCLPlanetRadialOrientationPCGSettings::CreateElement() const{return MakeShared<FCLRadialElement>();}

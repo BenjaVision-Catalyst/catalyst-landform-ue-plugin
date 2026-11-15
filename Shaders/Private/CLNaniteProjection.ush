@@ -52,6 +52,14 @@ void CLNaniteProjectBox(FPrimitiveSceneData P, FInstanceSceneData I, inout float
         const float3 Origin=P.CustomPrimitiveData[3].xyz+P.CustomPrimitiveData[4].xyz;
         const float3 OldOrigin=P.CustomPrimitiveData[5].xyz+P.CustomPrimitiveData[6].xyz;
         const float3 World=mul(float4(Center,1),L2W).xyz;
+        if(P.CustomPrimitiveData[7].y==1.0f)
+        {
+            const float3 Anchor=normalize(P.CustomPrimitiveData[0].xyz);
+            const float3 Body=World-Origin+Anchor*Packet.x;
+            const float R=length(Body);
+            if(R<Packet.x*P.CustomPrimitiveData[7].w || dot(Body/max(R,1.e-6f),Anchor)<P.CustomPrimitiveData[7].z)
+            {Center=float3(1.e15f,1.e15f,1.e15f);Extent=0;return;}
+        }
         // A nonlinear rotation can move any source axis into any target axis.
         const float3 E=(length(mul(Extent,abs((float3x3)L2W)))*Packet.y+Packet.x*2.e-6f).xxx;
         const float3 C0=CLAnchoredPosition(Packet.x,normalize(P.CustomPrimitiveData[0].xyz),P.CustomPrimitiveData[0].w,World-Origin)+Origin;

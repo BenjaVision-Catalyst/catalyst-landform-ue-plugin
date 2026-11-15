@@ -370,6 +370,10 @@ public:
     UCLPlanetRecipeAsset();
     /** Optional plugin-owned authoring assets. Soft paths survive an absent provider. */
     UPROPERTY(VisibleAnywhere, Category="Landform|Extensions") TMap<FName,FSoftObjectPath> AuthoringExtensions;
+    /** Client-side walking presentation, outside the portable terrain payload. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Walking", meta=(AllowedClasses="/Script/Voxel.VoxelMegaMaterial")) FSoftObjectPath WalkingMaterial;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Walking") FTransform WalkingFrame;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Walking", meta=(ClampMin="1",Units="cm")) double WalkingVoxelSize=50;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Landform|Recipe") FCLPlanetRecipe Recipe;
     /** Authoring reference. Null means an imported/legacy self-contained recipe. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Landform|Radial Guides") TObjectPtr<UCLRadialGuideLibraryAsset> RadialGuideLibrary;

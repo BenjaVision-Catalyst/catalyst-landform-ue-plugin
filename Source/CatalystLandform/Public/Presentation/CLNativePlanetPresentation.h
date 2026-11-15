@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 class ACLPlanet;
+class AActor;
 class FJsonObject;
 class UMaterialInterface;
 class UPrimitiveComponent;
@@ -33,6 +34,8 @@ public:
                                                              FString &Error);
     ~FCLNativePlanetPresentation();
     bool AddPrimitive(UPrimitiveComponent& Component, FString& Error);
+    void RemoveActorScenery(AActor& Actor);
+    bool IsCurrentState() const;
     bool Tick(const FVector &Anchor, double Elapsed, bool bMeasure, FString &Error);
     bool SetCurvature(double Value);
     bool GetCurrentProjection(FCLPlanetProjection &Out) const;

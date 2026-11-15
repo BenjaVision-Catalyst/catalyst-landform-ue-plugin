@@ -23,6 +23,7 @@
 #include "PreviewScene.h"
 #include "CLNativePreview.h"
 #include "EditorViewportClient.h"
+#include "Editor.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -613,7 +614,13 @@ void SCLPlanetPreview::Pump()
     if(NativePreview&&NativePreview->Poll(true)){++AppliedBuilds;bLastPublishedDraft=NativePreview->IsDraft();Client->Invalidate();}
     UpdateWatershedDebug();UpdateCaveVolume();
 }
-void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D){SEditorViewport::Tick(G,T,D);Pump();Scene->UpdateCaptureContents();}
+void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D)
+{
+    SEditorViewport::Tick(G,T,D);Pump();
+    // The globe is covered during walking; do not recapture its lighting every
+    // frame alongside the active game viewport. Resume normal preview on return.
+    if(!GEditor||!GEditor->PlayWorld)Scene->UpdateCaptureContents();
+}
 FVector2D SCLPlanetPreview::PointerPosition(const FGeometry& G,const FPointerEvent& E) const
 {return G.AbsoluteToLocal(E.GetScreenSpacePosition())/FVector2D(FMath::Max(1.,G.GetLocalSize().X),FMath::Max(1.,G.GetLocalSize().Y));}
 void SCLPlanetPreview::SetAuthoringRecipe(const FCLPlanetRecipe& R)
@@ -642,6 +649,19 @@ FString SCLPlanetPreview::PlacementHint() const
 }
 void SCLPlanetPreview::SetPlayerLocationVisible(bool Visible){CancelPlayerDrag();Client->bPlayerLocationVisible=Visible;Client->Invalidate();}
 bool SCLPlanetPreview::IsPlayerLocationVisible() const{return Client->bPlayerLocationVisible;}
+#if WITH_DEV_AUTOMATION_TESTS
+bool SCLPlanetPreview::VerifyPlayerMarkerClick()
+{
+    FVector2D Pixel;if(!Client->PlayerMarkerPosition(Pixel))return false;
+    auto& App=FSlateApplication::Get();FWidgetPath Actual;App.GeneratePathToWidgetUnchecked(ViewportWidget.ToSharedRef(),Actual,EVisibility::All);
+    if(!Actual.IsValid())return false;const auto G=Actual.Widgets.Last().Geometry;
+    const FVector2D Local=(Pixel-FVector2D(Client->ViewRect.Min))/FVector2D(Client->ViewRect.Size())*G.GetLocalSize();const auto P=G.LocalToAbsolute(Local);
+    TArray<FWidgetAndPointer> Arranged;for(const auto& A:Actual.Widgets.GetInternalArray())Arranged.Emplace(A,TOptional<FVirtualPointerPosition>());const FWidgetPath Path(MakeArrayView(Arranged));
+    App.RoutePointerDownEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{EKeys::LeftMouseButton},EKeys::LeftMouseButton,0,FModifierKeysState()));
+    const bool Press=bPlayerPress;
+    App.RoutePointerUpEvent(Path,FPointerEvent(FSlateApplication::CursorPointerIndex,P,P,TSet<FKey>{},EKeys::LeftMouseButton,0,FModifierKeysState()));return Press;
+}
+#endif
 void SCLPlanetPreview::SetWalkLocation(FVector D){if(D.ContainsNaN()||D.IsNearlyZero())return;WalkSurfacePoint.Reset();Client->WalkDirection=D.GetSafeNormal();Client->Invalidate();}
 bool SCLPlanetPreview::HitPlayerMarker(const FGeometry& G,const FPointerEvent& E)const
 {

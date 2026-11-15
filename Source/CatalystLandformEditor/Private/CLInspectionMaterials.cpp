@@ -6,6 +6,7 @@
 #include "Components/InstancedSkinnedMeshComponent.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialFunction.h"
 #include "Materials/MaterialExpressionBreakMaterialAttributes.h"
 #include "Materials/MaterialExpressionSetMaterialAttributes.h"
@@ -114,7 +115,7 @@ UMaterialInterface* FCLInspectionMaterials::ProjectMaterial(UMaterialInterface* 
     if(!Errors.IsEmpty()){Error=Source->GetPathName()+TEXT(": ")+FString::Join(Errors,TEXT("; "));return nullptr;}
     return M;
 }
-bool FCLInspectionMaterials::Prepare(UWorld& World,UVoxelMegaMaterial& Source,FString& Error)
+bool FCLInspectionMaterials::Prepare(UWorld& World,UVoxelMegaMaterial& Source,FString& Error,TConstArrayView<UMaterialInterface*> Sources)
 {
     auto* Projection=LoadObject<UMaterialFunction>(nullptr,TEXT("/CatalystLandform/Surfaces/MF_PlanetPresentation.MF_PlanetPresentation"));
     if(!Projection){Error=TEXT("Missing Landform presentation material function");return false;}
@@ -149,6 +150,7 @@ bool FCLInspectionMaterials::Prepare(UWorld& World,UVoxelMegaMaterial& Source,FS
         for(auto* C:Components) if(Scenery(C)) for(auto* M:C->GetMaterials())
             if(M && !ProjectMaterial(M,Error)) return false;
     }
+    for(auto* M:Sources)if(M&&!ProjectMaterial(M,Error))return false;
     if(GShaderCompilingManager) GShaderCompilingManager->FinishAllCompilation();
     TArray<UMaterialInterface*> Validate;
     for(const auto& Pair:Materials) Validate.Add(Pair.Value.Get());
@@ -166,15 +168,36 @@ bool FCLInspectionMaterials::Apply(UWorld& World,FString& Error)
     for(TActorIterator<AActor> It(&World);It;++It)
     {
         TInlineComponentArray<UMeshComponent*> Components;It->GetComponents(Components);
-        for(auto* C:Components) if(Scenery(C)) for(int32 Slot=0;Slot<C->GetNumMaterials();++Slot)
-        {
-            auto* Source=C->GetMaterial(Slot); if(!Source) continue;
-            auto* Replacement=Materials.Find(Source);
-            if(!Replacement){Error=TEXT("Scenery material changed after walking preparation");return false;}
-            C->SetMaterial(Slot,Replacement->Get());
-        }
+        for(auto* C:Components)if(Scenery(C)&&!ApplyPrimitive(*C,Error))return false;
     }
     Error.Reset();return true;
+}
+bool FCLInspectionMaterials::ApplyPrimitive(UPrimitiveComponent& Primitive,FString& Error)
+{
+    auto* C=Cast<UMeshComponent>(&Primitive);if(!C||!Scenery(C))return true;
+    for(int32 Slot=0;Slot<C->GetNumMaterials();++Slot)
+    {
+        auto* Source=C->GetMaterial(Slot);if(!Source)continue;
+        bool Presented=false;for(const auto& P:Materials)if(P.Value.Get()==Source){Presented=true;break;}if(Presented)continue;
+        auto* Copy=Materials.Find(Source);UMaterialInterface* Replacement=Copy?Copy->Get():ProjectMaterial(Source,Error);
+        if(!Replacement)return false;C->SetMaterial(Slot,Replacement);
+    }
+    Error.Reset();return true;
+}
+void FCLInspectionMaterials::ApplyTextures(ACLPlanet& Planet)
+{
+    // VPP owns its live per-surface and target MIDs. Updating GeneratedData after
+    // proxy creation misses those instances; bind appearance on the actual actor.
+    TInlineComponentArray<UMeshComponent*> Components(&Planet);TSet<UMaterialInstanceDynamic*> Seen;
+    for(auto* C:Components)for(auto* Material:C->GetMaterials())if(auto* M=Cast<UMaterialInstanceDynamic>(Material);M&&!Seen.Contains(M))
+    {
+        Seen.Add(M);auto& Applied=AppliedTextures.FindOrAdd(M);
+        for(auto It=Applied.CreateIterator();It;++It)if(!Planet.PresentationTextures.Contains(It.Key()))
+        {UTexture* Default=nullptr;if(M->Parent&&M->Parent->GetTextureParameterValue(FMaterialParameterInfo(It.Key()),Default))M->SetTextureParameterValue(It.Key(),Default);It.RemoveCurrent();}
+        for(const auto& Param:Planet.PresentationTextures)if(Applied.FindRef(Param.Key).Get()!=Param.Value)
+        {M->SetTextureParameterValue(Param.Key,Param.Value);Applied.Add(Param.Key,Param.Value);}
+    }
+    for(auto It=AppliedTextures.CreateIterator();It;++It)if(!It.Key().IsValid())It.RemoveCurrent();
 }
 
 #if WITH_DEV_AUTOMATION_TESTS
