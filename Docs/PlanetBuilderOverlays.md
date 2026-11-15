@@ -12,7 +12,7 @@ meshes, line segments and labels allow continuous spherical maps. Limits are
 generic renderer boundary. Providers can impose tighter bounds. Invalid indices
 are refused while uploading. A retained native Dynamic Mesh uploads only when
 the payload changes; per-frame mesh construction is avoided. The material is
-transient, unlit and translucent; no copied artwork or persistent material asset
+transient, unlit and translucent at 18% opacity; no copied artwork or persistent material asset
 is needed. Lines and labels cull the far hemisphere; the heatmap uses back-face
 culling and native depth. Labels below the sampled terrain are hidden.
 

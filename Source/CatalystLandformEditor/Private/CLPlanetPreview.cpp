@@ -1991,7 +1991,7 @@ void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverla
             BuilderMesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));BuilderMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);BuilderMesh->SetCastShadow(false);BuilderMesh->bSelectable=false;
             BuilderMaterial.Reset(NewObject<UMaterial>(BuilderMesh.Get()));BuilderMaterial->BlendMode=BLEND_Translucent;BuilderMaterial->SetShadingModel(MSM_Unlit);BuilderMaterial->TwoSided=false;
             auto* Color=NewObject<UMaterialExpressionVertexColor>(BuilderMaterial.Get());BuilderMaterial->GetExpressionCollection().AddExpression(Color);
-            BuilderMaterial->GetEditorOnlyData()->EmissiveColor.Connect(0,Color);BuilderMaterial->GetEditorOnlyData()->EmissiveColor.UseConstant=false;BuilderMaterial->GetEditorOnlyData()->Opacity.UseConstant=true;BuilderMaterial->GetEditorOnlyData()->Opacity.Constant=.36;BuilderMaterial->PostEditChange();
+            BuilderMaterial->GetEditorOnlyData()->EmissiveColor.Connect(0,Color);BuilderMaterial->GetEditorOnlyData()->EmissiveColor.UseConstant=false;BuilderMaterial->GetEditorOnlyData()->Opacity.UseConstant=true;BuilderMaterial->GetEditorOnlyData()->Opacity.Constant=.18;BuilderMaterial->PostEditChange();
             BuilderMesh->SetMaterial(0,BuilderMaterial.Get());BuilderMesh->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);Scene->AddComponent(BuilderMesh.Get(),FTransform::Identity);
         }
         using namespace UE::Geometry;FDynamicMesh3 Geometry;Geometry.EnableAttributes();auto* Attributes=Geometry.Attributes();Attributes->EnablePrimaryColors();
