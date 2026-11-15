@@ -18,6 +18,7 @@ DECLARE_DELEGATE_OneParam(FOnCLGlobeSelectionChanged,FCLGlobeSelection);
 class FCLGlobeClient;
 class FPreviewScene;
 class UStaticMeshComponent;
+class UMaterial;
 class FCLNativePreview;
 // Independent reference tessellation exists only in automation fixtures.
 #if WITH_DEV_AUTOMATION_TESTS
@@ -149,7 +150,8 @@ private:
     void UpdateWatershedDebug();
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;
     TSharedPtr<const FCLWatershedDebugGeometry> PendingWatershedDebug;
-    TStrongObjectPtr<UDynamicMeshComponent> DebugWater;
+    TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh;
+    TStrongObjectPtr<UMaterial> BuilderMaterial;
     bool bOceanVisible=false;
     TStrongObjectPtr<UStaticMeshComponent> Ocean;
     void CancelPlacementDrag();

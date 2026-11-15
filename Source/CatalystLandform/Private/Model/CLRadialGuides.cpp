@@ -45,6 +45,7 @@ TArray<FCLRadialGuideSet> FCLRadialGuidePresets::Defaults()
         Guide(TEXT("SurfaceMin"), Low, FLinearColor(.8, .65, .3));
         Guide(TEXT("SurfaceMax"), High, FLinearColor(.4, .9, .45));
         if (Atmosphere) Guide(TEXT("AtmosphereMax"), *Atmosphere, FLinearColor(.5, .7, 1));
+        Guide(TEXT("Overlay"), Atmosphere.Get(1.), FLinearColor(.85,.35,1));
         Sets.Add(MoveTemp(S));
     };
     Add(TEXT("Temperate"), 1, .30, .60, .40, .90);

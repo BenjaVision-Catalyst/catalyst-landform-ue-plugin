@@ -33,6 +33,8 @@
 #include "InputKeyEventArgs.h"
 #include "CLPlanetNavigation.h"
 #include "SceneManagement.h"
+#include "Materials/MaterialExpressionVertexColor.h"
+#include "UObject/StrongObjectPtr.h"
 #include "UnrealWidget.h"
 #include "EdMode.h"
 #include "EditorModeRegistry.h"
@@ -303,23 +305,28 @@ public:
         return {};
     }
     TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
-    void DrawBuilderOverlay(FPrimitiveDrawInterface* PDI)
+    void DrawBuilderOverlay(const FSceneView* View,FPrimitiveDrawInterface* PDI)
     {
         if(!Plan||!BuilderOverlay||!NativePreview||NativePreview->PublishedPlan()!=Plan)return;const double Scale=100000/Plan->RadiusMeters;
+        for(int32 I=0;I<FMath::Min(16384,BuilderOverlay->Segments.Num());++I)
+        {
+            const auto& L=BuilderOverlay->Segments[I];const FVector A=L.A*Scale,B=L.B*Scale,Mid=(A+B)*.5;
+            if(FVector::DotProduct(Mid.GetSafeNormal(),GetViewLocation()-Mid)>0)PDI->DrawLine(A,B,L.Color,SDPG_World,FMath::Clamp(L.WidthPixels,.5f,4.f),0,true);
+        }
         const int32 N=FMath::Min(8192,FMath::Min(BuilderOverlay->BodyMeters.Num(),BuilderOverlay->Colors.Num()));
         for(int32 I=0;I<N;++I)
         {
             const FVector P=BuilderOverlay->BodyMeters[I]*Scale;
             if(FVector::DotProduct(P.GetSafeNormal(),GetViewLocation()-P)<=0)continue;
-            PDI->DrawPoint(P+P.GetSafeNormal()*100,BuilderOverlay->Colors[I],FMath::Clamp(BuilderOverlay->PointSizePixels,1.f,24.f),SDPG_World);
+            if(BuilderOverlay->PointSizePixels>0)PDI->DrawPoint(P+P.GetSafeNormal()*100,BuilderOverlay->Colors[I],FMath::Clamp(BuilderOverlay->PointSizePixels,1.f,24.f),SDPG_World);
             if(I<BuilderOverlay->BodyVectorsMeters.Num()&&I%FMath::Max(1,(N+511)/512)==0)
             {
                 const FVector V=BuilderOverlay->BodyVectorsMeters[I]*Scale;
                 if(V.IsNearlyZero())continue;
                 const FVector A=P+P.GetSafeNormal()*250,B=A+V,Side=FVector::CrossProduct(P.GetSafeNormal(),V.GetSafeNormal())*V.Length()*.2;
-                PDI->DrawLine(A,B,FLinearColor::White,SDPG_Foreground,1.5,0,true);
-                PDI->DrawLine(B,B-V*.3+Side,FLinearColor::White,SDPG_Foreground,1.5,0,true);
-                PDI->DrawLine(B,B-V*.3-Side,FLinearColor::White,SDPG_Foreground,1.5,0,true);
+                PDI->DrawLine(A,B,FLinearColor::White,SDPG_World,1.5,0,true);
+                PDI->DrawLine(B,B-V*.3+Side,FLinearColor::White,SDPG_World,1.5,0,true);
+                PDI->DrawLine(B,B-V*.3-Side,FLinearColor::White,SDPG_World,1.5,0,true);
             }
         }
     }
@@ -459,7 +466,7 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(PDI);
+    {FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(View,PDI);
         if(NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&DrawnSurfacePlan!=Plan){DrawnSurfacePlan=Plan;SurfaceDrawFrame=GFrameCounter;Invalidate();}
     }
     bool PlayerMarkerPosition(FVector2D& Pixel,bool* Back=nullptr)const
@@ -479,6 +486,17 @@ public:
         FEditorViewportClient::Draw(V,Canvas);
         if(bGlobeGrid&&Plan&&!bCaveOverlay&&!GeographicLines.IsEmpty())
             for(const auto& P:{NorthPole,SouthPole}){FVector2D Pixel;if(Project(P+P.GetSafeNormal()*2400,Pixel)){FCanvasTextItem Label(Pixel/Canvas->GetDPIScale()+FVector2D(8,-20),FText::FromString(P.Z>0?TEXT("N"):TEXT("S")),GEngine->GetMediumFont(),P.Z>0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1));Label.Scale=FVector2D(1.2);Label.EnableShadow(FLinearColor::Black);Canvas->DrawItem(Label);}}
+        if(BuilderOverlay&&Plan&&NativePreview&&NativePreview->PublishedPlan()==Plan)
+        {
+            TArray<FVector2D> Used;
+            for(int32 I=0;I<FMath::Min(32,BuilderOverlay->Labels.Num());++I)
+            {
+                const auto& Item=BuilderOverlay->Labels[I];const FVector D=Item.BodyMeters.GetSafeNormal(),P=Item.BodyMeters*(100000/Plan->RadiusMeters);FVector2D At;
+                if(FVector::DotProduct(D,GetViewLocation()-P)<=0||Item.BodyMeters.Length()<Plan->RadiusMeters+Plan->SampleHeightMeters(D)||!Project(P,At))continue;
+                At/=Canvas->GetDPIScale();bool Crowded=false;for(const auto& Other:Used)if((Other-At).SizeSquared()<1600){Crowded=true;break;}if(Crowded)continue;Used.Add(At);
+                FCanvasTextItem Label(At,FText::FromString(Item.Text),GEngine->GetMediumFont(),Item.Color);Label.bCentreX=true;Label.bCentreY=true;Label.EnableShadow(FLinearColor::Black);Canvas->DrawItem(Label);
+            }
+        }
         PlayerMarkerDpiScale=Canvas->GetDPIScale();FVector2D Pixel;bool Back=false;if(!PlayerMarkerPosition(Pixel,&Back))return;
         const FVector2D Centre=Pixel/Canvas->GetDPIScale();
         const FLinearColor Ink=Back?FLinearColor(.50,.70,.76):FLinearColor(.10,.85,1);
@@ -518,6 +536,7 @@ SCLPlanetPreview::~SCLPlanetPreview()
     if(Mesh&&Scene)Scene->RemoveComponent(Mesh.Get());
 #endif
     if(DebugWater&&Scene)Scene->RemoveComponent(DebugWater.Get());
+    if(BuilderMesh&&Scene)Scene->RemoveComponent(BuilderMesh.Get());
     if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());
 }
 #if WITH_DEV_AUTOMATION_TESTS
@@ -626,6 +645,7 @@ void SCLPlanetPreview::Pump()
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D)
 {
     SEditorViewport::Tick(G,T,D);Pump();
+    if(BuilderMesh)BuilderMesh->SetVisibility(Client&&Client->BuilderOverlay&&!Client->BuilderOverlay->MeshIndices.IsEmpty()&&NativePreview&&NativePreview->PublishedPlan()==Client->Plan);
     // The globe is covered during walking; do not recapture its lighting every
     // frame alongside the active game viewport. Resume normal preview on return.
     if(!GEditor||!GEditor->PlayWorld)Scene->UpdateCaptureContents();
@@ -1961,7 +1981,36 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
 
 #endif
 
-void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverlay> Overlay){if(Client){Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();}}
+void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverlay> Overlay)
+{
+    if(!Client)return;
+    if(Overlay&&!Overlay->MeshBodyMeters.IsEmpty()&&!Overlay->MeshIndices.IsEmpty()&&Overlay->MeshBodyMeters.Num()<=8192&&Overlay->MeshColors.Num()==Overlay->MeshBodyMeters.Num()&&Overlay->MeshIndices.Num()<=49152)
+    {
+        if(!BuilderMesh)
+        {
+            BuilderMesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));BuilderMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);BuilderMesh->SetCastShadow(false);BuilderMesh->bSelectable=false;
+            BuilderMaterial.Reset(NewObject<UMaterial>(BuilderMesh.Get()));BuilderMaterial->BlendMode=BLEND_Translucent;BuilderMaterial->SetShadingModel(MSM_Unlit);BuilderMaterial->TwoSided=false;
+            auto* Color=NewObject<UMaterialExpressionVertexColor>(BuilderMaterial.Get());BuilderMaterial->GetExpressionCollection().AddExpression(Color);
+            BuilderMaterial->GetEditorOnlyData()->EmissiveColor.Connect(0,Color);BuilderMaterial->GetEditorOnlyData()->EmissiveColor.UseConstant=false;BuilderMaterial->GetEditorOnlyData()->Opacity.UseConstant=true;BuilderMaterial->GetEditorOnlyData()->Opacity.Constant=.36;BuilderMaterial->PostEditChange();
+            BuilderMesh->SetMaterial(0,BuilderMaterial.Get());BuilderMesh->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);Scene->AddComponent(BuilderMesh.Get(),FTransform::Identity);
+        }
+        using namespace UE::Geometry;FDynamicMesh3 Geometry;Geometry.EnableAttributes();auto* Attributes=Geometry.Attributes();Attributes->EnablePrimaryColors();
+        for(int32 I=0;I<Overlay->MeshBodyMeters.Num();++I)
+        {
+            const auto& P=Overlay->MeshBodyMeters[I];const auto& C=Overlay->MeshColors[I];Geometry.AppendVertex(P);Attributes->PrimaryNormals()->AppendElement(FVector3f(P.GetSafeNormal()));Attributes->PrimaryColors()->AppendElement(FVector4f(C.R,C.G,C.B,C.A));
+        }
+        for(int32 I=0;I+2<Overlay->MeshIndices.Num();I+=3)
+        {
+            const int32 A=Overlay->MeshIndices[I],B=Overlay->MeshIndices[I+1],C=Overlay->MeshIndices[I+2];if(!Overlay->MeshBodyMeters.IsValidIndex(A)||!Overlay->MeshBodyMeters.IsValidIndex(B)||!Overlay->MeshBodyMeters.IsValidIndex(C))continue;
+            // Payloads use outward mathematical winding; Unreal's visible front face is clockwise.
+            const FIndex3i Triangle(A,C,B);const int32 Id=Geometry.AppendTriangle(Triangle);if(Id>=0){Attributes->PrimaryNormals()->SetTriangle(Id,Triangle);Attributes->PrimaryColors()->SetTriangle(Id,Triangle);}
+        }
+        BuilderMesh->SetMesh(MoveTemp(Geometry));if(Client->Plan)BuilderMesh->SetWorldScale3D(FVector(100000/Client->Plan->RadiusMeters));BuilderMesh->SetVisibility(true);
+    }
+    else if(BuilderMesh)BuilderMesh->SetVisibility(false);
+    Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();
+}
+
 
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCLPlacedFitRenderedTest,"Catalyst.Landform.PlanetBuilder.TerrainRelativeBlendRendered",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
