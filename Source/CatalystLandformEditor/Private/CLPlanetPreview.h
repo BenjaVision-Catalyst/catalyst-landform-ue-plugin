@@ -138,6 +138,7 @@ private:
     friend class FCLGlobePointerTest;
     friend class FCLGlobePlacementPointerTest;
     friend class FCLGlobeLightingTest;
+    friend class FCLGlobeLineAntialiasTest;
     friend class FCLGlobeGeneratedInspectionTest;
     friend class FCLSurfaceGlobeTest;
     friend class FCLPreviewPrecisionTest;
