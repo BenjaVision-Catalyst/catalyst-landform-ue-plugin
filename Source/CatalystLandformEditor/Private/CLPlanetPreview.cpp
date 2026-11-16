@@ -183,7 +183,7 @@ public:
         const FRotationMatrix Axes(GetViewRotation());const FVector Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
         const FVector Along=Right*D.X-Up*D.Y,Side=-Right*D.Y-Up*D.X;
         const double PixelA=2*CA.W/(LineView->ViewMatrices.GetProjectionMatrix().M[0][0]*Size.X),PixelB=2*CB.W/(LineView->ViewMatrices.GetProjectionMatrix().M[0][0]*Size.X);
-        const float Half=FMath::Clamp(Width,.5f,4.f)*.5f;const double Pad=Half+.5;
+        const float Half=FMath::Clamp(Width,.5f,4.f)*FMath::Max(.5f,GetDPIScale())*.5f;const double Pad=Half+.5;
         const int32 Layer=Group==SDPG_Foreground?1:0;if(!LineMeshes[Layer])LineMeshes[Layer]=MakeUnique<FDynamicMeshBuilder>(GetScene()->GetFeatureLevel(),2,0,false);
         auto& Mesh=*LineMeshes[Layer];const FColor Ink=Color.ToFColor(false);
         const FVector P[]={A+(-Along-Side)*PixelA*Pad,A+(-Along+Side)*PixelA*Pad,B+(Along-Side)*PixelB*Pad,B+(Along+Side)*PixelB*Pad};
@@ -371,7 +371,7 @@ public:
                 FVector P,Tangent;if(!Flow.Sample((J+Phase)*Flow.LengthMeters()/Flow.ArrowCount,P,Tangent))continue;
                 P*=Scale;const FVector Normal=P.GetSafeNormal();if(FVector::DotProduct(Normal,GetViewLocation()-P)<=0)continue;
                 if(Flow.SpeedMetersPerSecond<0)Tangent*=-1;
-                const double Size=13*FMath::Abs(View->WorldToScreen(P).W)/(View->ViewMatrices.GetProjectionMatrix().M[0][0]*FMath::Max(1,View->UnscaledViewRect.Width()));
+                const double Size=13*GetDPIScale()*FMath::Abs(View->WorldToScreen(P).W)/(View->ViewMatrices.GetProjectionMatrix().M[0][0]*FMath::Max(1,View->UnscaledViewRect.Width()));
                 const FVector Side=FVector::CrossProduct(Normal,Tangent)*Size*.55,Tip=P+Normal*2,Base=Tip-Tangent*Size;
                 DrawSmoothLine(PDI,Tip,Base+Side,FLinearColor::White,SDPG_World,1.8,0,true);
                 DrawSmoothLine(PDI,Tip,Base-Side,FLinearColor::White,SDPG_World,1.8,0,true);

@@ -56,7 +56,8 @@ and the existing hemisphere culling are preserved.
 
 The preview requests 100% primary resolution and high-DPI rendering locally;
 it does not rewrite global editor or game rendering preferences. Geometry uses
-screen-pixel widths at each endpoint's depth, keeping coverage stable through
+logical-pixel widths converted by the viewport DPI scale at each endpoint's
+depth, keeping coverage stable through
 orbit and zoom. Domain sample coordinates and timelines are unchanged.
 
 Radial-guide rings, ticks and leaders already use Slate's antialiased line path.
@@ -68,7 +69,7 @@ presentation only; guide heights, provider samples and terrain are unchanged.
 Qualification on UE 5.8.4 / macOS arm64 / Metal (16 November 2026): ten focused
 native checks pass, zero warnings/failures/not-run cases. A frame-aware readback
 of the same isolated diagonal finds 0 fractional blue edge pixels with direct
-primitive lines and 344 with analytic coverage (contrast peaks 122/156). The
+primitive lines and 435 with analytic coverage (contrast peaks 122/157). The
 comparison disables temporal AA and excludes terrain, text and the heatmap.
 Guide projection retains exact diagonal anchors with adaptive tessellation; the
 36-orientation lighting sweep and all seven Weather/editor checks pass, including
@@ -78,7 +79,7 @@ No portable weather program or GT source was changed.
 Evidence in ThatGame58: `Saved/PlanetLinesQualification/`, matching log under
 `Saved/Logs/`, and `Saved/Verification/planet-lines-{aliased,antialiased}.png`.
 Workspace native lease evidence is retained under
-`recovery/planet-lines-20261116/native-6/`: released gate, restored original
+`recovery/planet-lines-20261116/native-7/`: released gate, restored original
 registries, independent Runtime owner joined through cleanup. The live GT image
 remains open. Pixel counts qualify this fixture; they are not a GPU-time claim.
 
