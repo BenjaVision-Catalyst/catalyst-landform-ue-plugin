@@ -160,6 +160,8 @@ class FCLGlobeClient : public FEditorViewportClient
 public:
     TStrongObjectPtr<UMaterial> LineMaterial,ForegroundLineMaterial;
     TUniquePtr<FDynamicMeshBuilder> LineMeshes[2];
+    struct FOutlinedStroke{FVector A,B;FLinearColor Color;uint8 Group;float Width,Outline;};
+    TArray<FOutlinedStroke> OutlinedStrokes;
     const FSceneView* LineView=nullptr;
 #if WITH_DEV_AUTOMATION_TESTS
     bool bSmoothLines=true;
@@ -176,18 +178,12 @@ public:
         auto* Params=NewObject<UMaterialExpressionTextureCoordinate>(M);Params->CoordinateIndex=1;
         auto* Style=NewObject<UMaterialExpressionTextureCoordinate>(M);Style->CoordinateIndex=2;
         auto* Coverage=NewObject<UMaterialExpressionCustom>(M);Coverage->OutputType=CMOT_Float1;Coverage->Inputs.Reset();
-        Coverage->Code=TEXT("float2 q=float2(UV.x-clamp(UV.x,0.0,Line.x),UV.y); return Style.y>0.5?1.0:saturate(Line.y+Style.x+0.5-length(q));");
+        Coverage->Code=TEXT("float2 q=float2(UV.x-clamp(UV.x,0.0,Line.x),UV.y); return Style.y>0.5?1.0:saturate(Line.y+0.5-length(q));");
         FCustomInput A;A.InputName=TEXT("UV");A.Input.Connect(0,UV);Coverage->Inputs.Add(A);
         FCustomInput B;B.InputName=TEXT("Line");B.Input.Connect(0,Params);Coverage->Inputs.Add(B);
         FCustomInput S;S.InputName=TEXT("Style");S.Input.Connect(0,Style);Coverage->Inputs.Add(S);
-        // One analytic pass composites the coloured core and a black rim. Their
-        // coverage shares the same fade, so neither a halo nor a dark double pass appears.
-        auto* Stroke=NewObject<UMaterialExpressionCustom>(M);Stroke->OutputType=CMOT_Float3;Stroke->Inputs={A,B,S};
-        FCustomInput C;C.InputName=TEXT("C");C.Input.Connect(0,Color);Stroke->Inputs.Add(C);
-        Stroke->Code=TEXT("if(Style.y>0.5)return C.rgb; float2 q=float2(UV.x-clamp(UV.x,0.0,Line.x),UV.y); float d=length(q); return C.rgb*saturate(Line.y+0.5-d)/max(saturate(Line.y+Style.x+0.5-d),0.000001);");
-        Ink->LightValueInput.Connect(0,Stroke);
         auto* Opacity=NewObject<UMaterialExpressionMultiply>(M);Opacity->A.Connect(0,Coverage);Opacity->B.Connect(4,Color);
-        const TArray<UMaterialExpression*> Expressions={Color,Ink,UV,Params,Style,Coverage,Stroke,Opacity};for(auto* E:Expressions)M->GetExpressionCollection().AddExpression(E);
+        const TArray<UMaterialExpression*> Expressions={Color,Ink,UV,Params,Style,Coverage,Opacity};for(auto* E:Expressions)M->GetExpressionCollection().AddExpression(E);
         M->GetEditorOnlyData()->EmissiveColor.Connect(0,Ink);M->GetEditorOnlyData()->Opacity.Connect(0,Opacity);M->PostEditChange();
         auto* Foreground=DuplicateObject<UMaterial>(M,GetTransientPackage());ForegroundLineMaterial.Reset(Foreground);
         Foreground->bDisableDepthTest=true;Foreground->PostEditChange();
@@ -199,19 +195,36 @@ public:
 #endif
         const auto* Material=Group==SDPG_Foreground?ForegroundLineMaterial.Get():LineMaterial.Get();
         if(!LineView||!Material||Material->IsCompiling())return;
+        if(OutlinePixels>0)
+        {
+            if(OutlinedStrokes.Num()<20480)OutlinedStrokes.Add({A,B,Color,Group,Width,OutlinePixels});
+            return;
+        }
         const auto CA=LineView->WorldToScreen(A),CB=LineView->WorldToScreen(B);if(CA.W<=0||CB.W<=0)return;
         const FVector2D Size(LineView->UnscaledViewRect.Size());const FVector2D Delta((CB.X/CB.W-CA.X/CA.W)*Size.X*.5,-(CB.Y/CB.W-CA.Y/CA.W)*Size.Y*.5);
         const double Length=Delta.Length();if(Length<1.e-5)return;const FVector2D D=Delta/Length;
         const FRotationMatrix Axes(GetViewRotation());const FVector Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
         const FVector Along=Right*D.X-Up*D.Y,Side=-Right*D.Y-Up*D.X;
         const double PixelA=2*CA.W/(LineView->ViewMatrices.GetProjectionMatrix().M[0][0]*Size.X),PixelB=2*CB.W/(LineView->ViewMatrices.GetProjectionMatrix().M[0][0]*Size.X);
-        const float Half=FMath::Clamp(Width,.5f,4.f)*FMath::Max(.5f,GetDPIScale())*.5f;const float Outline=FMath::Clamp(OutlinePixels,0.f,1.f)*FMath::Max(.5f,GetDPIScale());const double Pad=Half+Outline+.5;
+        const float Half=FMath::Clamp(Width,.5f,4.f)*FMath::Max(.5f,GetDPIScale())*.5f;const double Pad=Half+.5;
         const int32 Layer=Group==SDPG_Foreground?1:0;if(!LineMeshes[Layer])LineMeshes[Layer]=MakeUnique<FDynamicMeshBuilder>(GetScene()->GetFeatureLevel(),3,0,false);
         auto& Mesh=*LineMeshes[Layer];const FColor Ink=Color.ToFColor(false);
         const FVector P[]={A+(-Along-Side)*PixelA*Pad,A+(-Along+Side)*PixelA*Pad,B+(Along-Side)*PixelB*Pad,B+(Along+Side)*PixelB*Pad};
         const FVector2f UV[]={FVector2f(-Pad,-Pad),FVector2f(-Pad,Pad),FVector2f(Length+Pad,-Pad),FVector2f(Length+Pad,Pad)};int32 Id[4];
-        for(int32 I=0;I<4;++I){FDynamicMeshVertex V(FVector3f(P[I]),UV[I],Ink);V.TextureCoordinate[1]=FVector2f(Length,Half);V.TextureCoordinate[2]=FVector2f(Outline,0);Id[I]=Mesh.AddVertex(V);}
+        for(int32 I=0;I<4;++I){FDynamicMeshVertex V(FVector3f(P[I]),UV[I],Ink);V.TextureCoordinate[1]=FVector2f(Length,Half);V.TextureCoordinate[2]=FVector2f::ZeroVector;Id[I]=Mesh.AddVertex(V);}
         Mesh.AddTriangle(Id[0],Id[1],Id[2]);Mesh.AddTriangle(Id[2],Id[1],Id[3]);
+    }
+    void FlushOutlinedStrokes(FPrimitiveDrawInterface* PDI)
+    {
+        // Paint the complete backing first, then the complete coloured network.
+        // A later segment or arrow can no longer cut a black rim into an earlier core.
+        for(const auto& L:OutlinedStrokes)
+        {
+            FLinearColor Black=FLinearColor::Black;Black.A=L.Color.A;
+            DrawSmoothLine(PDI,L.A,L.B,Black,L.Group,L.Width+2*FMath::Clamp(L.Outline,0.f,1.f));
+        }
+        for(const auto& L:OutlinedStrokes)DrawSmoothLine(PDI,L.A,L.B,L.Color,L.Group,L.Width);
+        OutlinedStrokes.Reset();
     }
     FVector WalkDirection=FVector::ZAxisVector;
     bool bPlayerLocationVisible=true;
@@ -404,6 +417,7 @@ public:
                 DrawSmoothLine(PDI,Tip,Base-Side,Ink,SDPG_Foreground,2.7,0,true,.25f);
             }
         }
+        FlushOutlinedStrokes(PDI);
         // Weather ink is a depth-independent scene layer above opaque unlit
         // swatches, including when the user moves the Overlay guide.
         if(ForegroundLineMaterial.IsValid()&&!ForegroundLineMaterial->IsCompiling()&&BuilderOverlay->MeshBodyMeters.Num()<=16384&&BuilderOverlay->MeshColors.Num()==BuilderOverlay->MeshBodyMeters.Num()&&BuilderOverlay->MeshIndices.Num()<=98304)
@@ -599,7 +613,7 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {LineView=View;FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(View,PDI);
+    {LineView=View;FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(View,PDI);FlushOutlinedStrokes(PDI);
         for(int32 I=0;I<2;++I)if(LineMeshes[I]){LineMeshes[I]->Draw(PDI,FMatrix::Identity,(I?ForegroundLineMaterial.Get():LineMaterial.Get())->GetRenderProxy(),SDPG_World,true,false);LineMeshes[I].Reset();}LineView=nullptr;
         if(NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&DrawnSurfacePlan!=Plan){DrawnSurfacePlan=Plan;SurfaceDrawFrame=GFrameCounter;Invalidate();}
     }
@@ -1188,7 +1202,7 @@ bool FCLGlobeLineAntialiasTest::RunTest(const FString&)
         TestTrue(TEXT("Analytic lines have fractional edge coverage"),Peak[1]>30&&Mixed[1]>Mixed[0]+20);
         AddInfo(FString::Printf(TEXT("Fractional blue edge pixels: direct %d, antialiased %d; peaks %d/%d"),Mixed[0],Mixed[1],Peak[0],Peak[1]));
         auto O=MakeShared<FCLPlanetBuilderOverlay>();O->PointSizePixels=24;O->BodyMeters.Add(FVector(W->Client->Plan->RadiusMeters,0,0));O->Colors.Add(FLinearColor::White);
-        auto Layers=MakeShared<TArray<TArray<FColor>>>();Layers->SetNum(3);
+        auto Layers=MakeShared<TArray<TArray<FColor>>>();Layers->SetNum(5);
         // First use of each scene component can request its vertex-factory
         // shaders. Yield engine frames after warming it, as the real toolkit does.
         ADD_LATENT_AUTOMATION_COMMAND(FFunctionLatentCommand([this,W,V,Window,O,Layers,Pass=0,Prepared=false,Ready=0.,Deadline=FPlatformTime::Seconds()+30]()mutable
@@ -1199,14 +1213,21 @@ bool FCLGlobeLineAntialiasTest::RunTest(const FString&)
             if(!Prepared)
             {
                 if(Pass==1)O->Segments.Add({FVector(R*1.2,-R*.2,0),FVector(R*1.2,R*.2,0),FLinearColor(.92,.96,1),1.875f,.25f});
-                if(Pass==2){O->Segments.Reset();O->MeshBodyMeters={FVector(R*1.2,-R*.08,-R*.08),FVector(R*1.2,0,R*.08),FVector(R*1.2,R*.08,-R*.08)};O->MeshColors.Init(FLinearColor(.48,.012,.02),3);O->MeshIndices={0,2,1};O->ForegroundTriangleCount=1;O->bUseMeshOpacity=true;}
+                if(Pass==2)
+                {
+                    O->Colors[0]=FLinearColor(.04,.15,.8);O->Segments.Reset();
+                    O->Segments.Add({FVector(R*1.2,-R*.2,0),FVector(R*1.2,R*.2,0),FLinearColor(.92,.96,1),1.875f,.25f});
+                    for(double Side:{-1.,1.})O->Segments.Add({FVector(R*1.2,0,0),FVector(R*1.2,-R*.035,R*.018*Side),FLinearColor::White,2.7f,.25f});
+                }
+                if(Pass==3)for(auto& L:O->Segments)L.OutlinePixels=0;
+                if(Pass==4){O->Colors[0]=FLinearColor::White;O->Segments.Reset();O->MeshBodyMeters={FVector(R*1.2,-R*.08,-R*.08),FVector(R*1.2,0,R*.08),FVector(R*1.2,R*.08,-R*.08)};O->MeshColors.Init(FLinearColor(.48,.012,.02),3);O->MeshIndices={0,2,1};O->ForegroundTriangleCount=1;O->bUseMeshOpacity=true;}
                 W->SetBuilderOverlay(O);W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();Prepared=true;Ready=Now+.4;return false;
             }
             if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){Ready=Now+.4;return false;}if(Now<Ready)return false;
             for(int32 F=0;F<3;++F){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();W->Scene->UpdateCaptureContents();V->Invalidate();V->Draw(false);FlushRenderingCommands();}
             auto& Pixels=(*Layers)[Pass];TestTrue(TEXT("Layered overlay Metal readback"),V->ReadPixels(Pixels));const auto Size=V->GetSizeXY();
             if(Pixels.Num()!=Size.X*Size.Y){AddError(TEXT("Layer capture has an unexpected size"));return Close();}
-            const TCHAR* Names[]={TEXT("ground"),TEXT("outlined-isobar"),TEXT("filled-front")};TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification")/(FString(TEXT("weather-layer-"))+Names[Pass]+TEXT(".png"))));
+            const TCHAR* Names[]={TEXT("ground"),TEXT("outlined-isobar"),TEXT("joined-outline"),TEXT("joined-control"),TEXT("filled-front")};TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification")/(FString(TEXT("weather-layer-"))+Names[Pass]+TEXT(".png"))));
             const int32 X=Size.X/2,Y=Size.Y/2;const auto C=Pixels[Y*Size.X+X];
             AddInfo(FString::Printf(TEXT("Weather layer %s centre: %s"),Names[Pass],*C.ToString()));
             if(Pass==0)TestTrue(TEXT("Bright ground swatch is visible behind pressure"),C.R>=210);
@@ -1216,7 +1237,20 @@ bool FCLGlobeLineAntialiasTest::RunTest(const FString&)
                 for(int32 J=Y-8;J<=Y+8;++J)for(int32 I=X-8;I<=X+8;++I)Rim+=(*Layers)[0][J*Size.X+I].R>=210&&Pixels[J*Size.X+I].R+12<(*Layers)[0][J*Size.X+I].R&&FMath::Abs(int32(Pixels[J*Size.X+I].R)-Pixels[J*Size.X+I].B)<=1;
                 TestTrue(TEXT("Fine black isobar rim renders above a bright ground swatch"),Rim>8);AddInfo(FString::Printf(TEXT("Outlined pressure pixels above bright ground: %d"),Rim));
             }
-            if(Pass==2){TestTrue(TEXT("Filled front covers the ground swatch"),C.R>C.G+50&&C.G<120);return Close();}
+            if(Pass==3)
+            {
+                int32 CorePixels=0,DarkestSeam=0;
+                for(int32 J=Y-8;J<=Y+8;++J)for(int32 I=X-8;I<=X+8;++I)
+                {
+                    const auto Control=Pixels[J*Size.X+I],Outlined=(*Layers)[2][J*Size.X+I];
+                    if(Control.R<216||Control.G<216||Control.B<216)continue;
+                    ++CorePixels;DarkestSeam=FMath::Max(DarkestSeam,FMath::Max3(int32(Control.R)-Outlined.R,int32(Control.G)-Outlined.G,int32(Control.B)-Outlined.B));
+                }
+                TestTrue(TEXT("Joined isobar and arrow have visible white cores"),CorePixels>8);
+                TestTrue(TEXT("Combined outline never draws black seams inside the white network"),DarkestSeam<=4);
+                AddInfo(FString::Printf(TEXT("Combined isobar/arrow: %d white core pixels, maximum internal darkening %d/255"),CorePixels,DarkestSeam));
+            }
+            if(Pass==4){TestTrue(TEXT("Filled front covers the ground swatch"),C.R>C.G+50&&C.G<120);return Close();}
             ++Pass;Prepared=false;return false;
         }));
         return true;
