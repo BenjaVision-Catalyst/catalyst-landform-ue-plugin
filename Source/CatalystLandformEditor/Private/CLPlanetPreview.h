@@ -151,8 +151,12 @@ private:
     void UpdateWatershedDebug();
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;
     TSharedPtr<const FCLWatershedDebugGeometry> PendingWatershedDebug;
-    TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh;
-    TStrongObjectPtr<UMaterial> BuilderMaterial;
+    TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh,BuilderPoints;
+    TStrongObjectPtr<UMaterial> BuilderMaterial,BuilderPointMaterial;
+    void UpdateBuilderPoints(bool Force=false);
+    FVector BuilderPointEye=FVector::ZeroVector;
+    FRotator BuilderPointRotation=FRotator::ZeroRotator;
+    FIntPoint BuilderPointSize=FIntPoint::ZeroValue;
     bool bOceanVisible=false;
     TStrongObjectPtr<UStaticMeshComponent> Ocean;
     void CancelPlacementDrag();

@@ -2,7 +2,7 @@
 #include "CoreMinimal.h"
 #include "Model/CLPlanetRecipe.h"
 class SWidget;
-struct FCLPlanetBuilderOverlaySegment { FVector A,B; FLinearColor Color=FLinearColor::White; float WidthPixels=1.25f; };
+struct FCLPlanetBuilderOverlaySegment { FVector A,B; FLinearColor Color=FLinearColor::White; float WidthPixels=1.25f; float OutlinePixels=0; };
 struct FCLPlanetBuilderOverlayLabel { FVector BodyMeters; FString Text; FLinearColor Color=FLinearColor::White; };
 /** One closed spherical path. Signed presentation speed never advances a domain clock. */
 struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlayFlow
@@ -51,6 +51,8 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlay
     TArray<FVector> MeshBodyMeters;
     TArray<FLinearColor> MeshColors;
     TArray<int32> MeshIndices;
+    /** Unlit symbols drawn above ground swatches; remaining triangles stay in the scene. */
+    int32 ForegroundTriangleStart=0,ForegroundTriangleCount=0;
     TArray<FCLPlanetBuilderOverlaySegment> Segments;
     TArray<FCLPlanetBuilderOverlayLabel> Labels;
     /** At most 256 closed paths / 16384 edges and 2048 arrowheads in total. */
