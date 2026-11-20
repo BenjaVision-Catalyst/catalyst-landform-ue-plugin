@@ -25,6 +25,7 @@
 #include "EditorViewportClient.h"
 #include "Editor.h"
 #include "Components/DirectionalLightComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Surface/VoxelSurfaceTypeAsset.h"
@@ -155,11 +156,30 @@ public:
         Aim(DirectionalLight,Back*.8-Right*.7+Up*.7);Aim(Fill,Back*.5+Right+Up*.25);Aim(Rim,-Back*.8+Up*.9);
     }
 };
+// The scene guide and view ink share identical analytic line vertices/shading.
+struct FCLGeographicMeshBuilder
+{
+    UE::Geometry::FDynamicMesh3 Mesh;
+    FCLGeographicMeshBuilder(){Mesh.EnableAttributes();Mesh.Attributes()->EnablePrimaryColors();Mesh.Attributes()->SetNumUVLayers(3);}
+    int32 AddVertex(const FDynamicMeshVertex& V)
+    {
+        const int32 Id=Mesh.AppendVertex(FVector(V.Position));auto* A=Mesh.Attributes();A->PrimaryNormals()->AppendElement(FVector3f::ZAxisVector);
+        A->PrimaryColors()->AppendElement(FVector4f(V.Color.R/255.f,V.Color.G/255.f,V.Color.B/255.f,V.Color.A/255.f));
+        for(int32 I=0;I<3;++I)A->GetUVLayer(I)->AppendElement(V.TextureCoordinate[I]);return Id;
+    }
+    void AddTriangle(int32 A,int32 B,int32 C)
+    {
+        const UE::Geometry::FIndex3i T(A,B,C);const int32 Id=Mesh.AppendTriangle(T);if(Id<0)return;
+        auto* Attributes=Mesh.Attributes();Attributes->PrimaryNormals()->SetTriangle(Id,T);Attributes->PrimaryColors()->SetTriangle(Id,T);
+        for(int32 I=0;I<3;++I)Attributes->GetUVLayer(I)->SetTriangle(Id,T);
+    }
+};
 class FCLGlobeClient : public FEditorViewportClient
 {
 public:
     TStrongObjectPtr<UMaterial> LineMaterial,ForegroundLineMaterial;
     TUniquePtr<FDynamicMeshBuilder> LineMeshes[2];
+    FCLGeographicMeshBuilder* GeographicSink=nullptr;
     struct FOutlinedStroke{FVector A,B;FLinearColor Color;uint8 Group;float Width,Outline;};
     TArray<FOutlinedStroke> OutlinedStrokes;
     const FSceneView* LineView=nullptr;
@@ -191,7 +211,7 @@ public:
     void DrawSmoothLine(FPrimitiveDrawInterface* PDI,FVector A,FVector B,FLinearColor Color,uint8 Group,float Width=1,float=0,bool=true,float OutlinePixels=0)
     {
 #if WITH_DEV_AUTOMATION_TESTS
-        if(!bSmoothLines){PDI->DrawLine(A,B,Color,Group,Width,0,true);return;}
+        if(!bSmoothLines&&!GeographicSink){PDI->DrawLine(A,B,Color,Group,Width,0,true);return;}
 #endif
         const auto* Material=Group==SDPG_Foreground?ForegroundLineMaterial.Get():LineMaterial.Get();
         if(!LineView||!Material||Material->IsCompiling())return;
@@ -207,12 +227,16 @@ public:
         const FVector Along=Right*D.X-Up*D.Y,Side=-Right*D.Y-Up*D.X;
         const double PixelA=2*CA.W/(LineView->ViewMatrices.GetProjectionMatrix().M[0][0]*Size.X),PixelB=2*CB.W/(LineView->ViewMatrices.GetProjectionMatrix().M[0][0]*Size.X);
         const float Half=FMath::Clamp(Width,.5f,4.f)*FMath::Max(.5f,GetDPIScale())*.5f;const double Pad=Half+.5;
-        const int32 Layer=Group==SDPG_Foreground?1:0;if(!LineMeshes[Layer])LineMeshes[Layer]=MakeUnique<FDynamicMeshBuilder>(GetScene()->GetFeatureLevel(),3,0,false);
-        auto& Mesh=*LineMeshes[Layer];const FColor Ink=Color.ToFColor(false);
+        const int32 Layer=Group==SDPG_Foreground?1:0;if(!GeographicSink&&!LineMeshes[Layer])LineMeshes[Layer]=MakeUnique<FDynamicMeshBuilder>(GetScene()->GetFeatureLevel(),3,0,false);
+        const FColor Ink=Color.ToFColor(false);
         const FVector P[]={A+(-Along-Side)*PixelA*Pad,A+(-Along+Side)*PixelA*Pad,B+(Along-Side)*PixelB*Pad,B+(Along+Side)*PixelB*Pad};
         const FVector2f UV[]={FVector2f(-Pad,-Pad),FVector2f(-Pad,Pad),FVector2f(Length+Pad,-Pad),FVector2f(Length+Pad,Pad)};int32 Id[4];
-        for(int32 I=0;I<4;++I){FDynamicMeshVertex V(FVector3f(P[I]),UV[I],Ink);V.TextureCoordinate[1]=FVector2f(Length,Half);V.TextureCoordinate[2]=FVector2f::ZeroVector;Id[I]=Mesh.AddVertex(V);}
-        Mesh.AddTriangle(Id[0],Id[1],Id[2]);Mesh.AddTriangle(Id[2],Id[1],Id[3]);
+        auto Append=[&](auto& Mesh)
+        {
+            for(int32 I=0;I<4;++I){FDynamicMeshVertex V(FVector3f(P[I]),UV[I],Ink);V.TextureCoordinate[1]=FVector2f(Length,Half);V.TextureCoordinate[2]=FVector2f::ZeroVector;Id[I]=Mesh.AddVertex(V);}
+            Mesh.AddTriangle(Id[0],Id[1],Id[2]);Mesh.AddTriangle(Id[2],Id[1],Id[3]);
+        };
+        if(GeographicSink)Append(*GeographicSink);else Append(*LineMeshes[Layer]);
     }
     void FlushOutlinedStrokes(FPrimitiveDrawInterface* PDI)
     {
@@ -263,7 +287,21 @@ public:
         if(!bGlobeGrid||!Plan||bCaveOverlay||GeographicLines.IsEmpty())return;
         for(const auto& L:GeographicLines)for(int32 I=1;I<L.Points.Num();++I)
             DrawSmoothLine(PDI,L.Points[I-1],L.Points[I],L.Major?FLinearColor(.95,.5,.07):FLinearColor(.04,.38,.65),SDPG_World,L.Major?2:1.2,0,true);
-        for(const auto& P:{NorthPole,SouthPole}){const auto C=P.Z>0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1);PDI->DrawPoint(P,C,10,SDPG_World);DrawSmoothLine(PDI,P,P+P.GetSafeNormal()*2200,C,SDPG_World,2.5);}
+        for(const auto& P:{NorthPole,SouthPole})
+        {
+            if(P.IsNearlyZero())continue;const auto C=P.Z>0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1);
+            if(GeographicSink&&LineView)
+            {
+                const auto Clip=LineView->WorldToScreen(P);const double Half=10*Clip.W/FMath::Max(1,LineView->UnscaledViewRect.Width());
+                if(Clip.W>0)
+                {
+                    const FRotationMatrix Axes(GetViewRotation());const FVector X=Axes.GetUnitAxis(EAxis::Y)*Half,Y=Axes.GetUnitAxis(EAxis::Z)*Half;int32 Id[4];int32 I=0;
+                    for(const auto& Corner:{P-X-Y,P+X-Y,P+X+Y,P-X+Y}){FDynamicMeshVertex V(FVector3f(Corner),FVector2f::ZeroVector,C.ToFColor(false));V.TextureCoordinate[1]=FVector2f::ZeroVector;V.TextureCoordinate[2]=FVector2f(0,1);Id[I++]=GeographicSink->AddVertex(V);}
+                    GeographicSink->AddTriangle(Id[0],Id[1],Id[2]);GeographicSink->AddTriangle(Id[0],Id[2],Id[3]);
+                }
+            }
+            DrawSmoothLine(PDI,P,P+P.GetSafeNormal()*2200,C,SDPG_World,2.5);
+        }
     }
     FGuid SelectedRegion;
     TSet<FGuid> HighlightedLandforms;
@@ -413,8 +451,8 @@ public:
                 if(Flow.SpeedMetersPerSecond<0)Tangent*=-1;
                 const double Size=13*GetDPIScale()*FMath::Abs(View->WorldToScreen(P).W)/(View->ViewMatrices.GetProjectionMatrix().M[0][0]*FMath::Max(1,View->UnscaledViewRect.Width()));
                 const FVector Side=FVector::CrossProduct(Normal,Tangent)*Size*.55,Tip=P+Normal*2,Base=Tip-Tangent*Size;
-                DrawSmoothLine(PDI,Tip,Base+Side,Ink,SDPG_Foreground,2.7,0,true,.25f);
-                DrawSmoothLine(PDI,Tip,Base-Side,Ink,SDPG_Foreground,2.7,0,true,.25f);
+                DrawSmoothLine(PDI,Tip,Base+Side,Ink,SDPG_Foreground,2.7,0,true,.5f);
+                DrawSmoothLine(PDI,Tip,Base-Side,Ink,SDPG_Foreground,2.7,0,true,.5f);
             }
         }
         FlushOutlinedStrokes(PDI);
@@ -613,7 +651,11 @@ public:
         Indicators.Sort([](const auto& A,const auto& B){return A.Position.Y<B.Position.Y;});
     }
     virtual void Draw(const FSceneView* View,FPrimitiveDrawInterface* PDI) override
-    {LineView=View;FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();DrawGlobeGrid(PDI);DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(View,PDI);FlushOutlinedStrokes(PDI);
+    {LineView=View;FEditorViewportClient::Draw(View,PDI);ViewProjection=View->ViewMatrices.GetViewProjectionMatrix();ViewRect=View->UnscaledViewRect;bHasProjection=true;UpdateIndicators();
+#if WITH_DEV_AUTOMATION_TESTS
+        if(!bSmoothLines)DrawGlobeGrid(PDI); // Direct-line aliasing oracle only.
+#endif
+        DrawPlacements(PDI);DrawGeneratedRegions(PDI);DrawWatersheds(PDI);DrawBuilderOverlay(View,PDI);FlushOutlinedStrokes(PDI);
         for(int32 I=0;I<2;++I)if(LineMeshes[I]){LineMeshes[I]->Draw(PDI,FMatrix::Identity,(I?ForegroundLineMaterial.Get():LineMaterial.Get())->GetRenderProxy(),SDPG_World,true,false);LineMeshes[I].Reset();}LineView=nullptr;
         if(NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&DrawnSurfacePlan!=Plan){DrawnSurfacePlan=Plan;SurfaceDrawFrame=GFrameCounter;Invalidate();}
     }
@@ -632,8 +674,6 @@ public:
     virtual void Draw(FViewport* V,FCanvas* Canvas)override
     {
         FEditorViewportClient::Draw(V,Canvas);
-        if(bGlobeGrid&&Plan&&!bCaveOverlay&&!GeographicLines.IsEmpty())
-            for(const auto& P:{NorthPole,SouthPole}){FVector2D Pixel;if(Project(P+P.GetSafeNormal()*2400,Pixel)){FCanvasTextItem Label(Pixel/Canvas->GetDPIScale()+FVector2D(8,-20),FText::FromString(P.Z>0?TEXT("N"):TEXT("S")),GEngine->GetMediumFont(),P.Z>0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1));Label.Scale=FVector2D(1.2);Label.EnableShadow(FLinearColor::Black);Canvas->DrawItem(Label);}}
         if(BuilderOverlay&&Plan&&NativePreview&&NativePreview->PublishedPlan()==Plan)
         {
             TArray<FVector2D> Used;
@@ -664,10 +704,10 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
     OnPlacementCommitted=Args._OnPlacementCommitted;OnRegionSelected=Args._OnRegionSelected;OnSelectionChanged=Args._OnSelectionChanged;OnDeleteSelection=Args._OnDeleteSelection;OnWalkRequested=Args._OnWalkRequested;OnEditorKeyDown=Args._OnEditorKeyDown;
     Scene=MakeUnique<FCLGlobeScene>();
     BuilderPoints.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));BuilderPoints->SetCollisionEnabled(ECollisionEnabled::NoCollision);BuilderPoints->SetCastShadow(false);BuilderPoints->bSelectable=false;BuilderPoints->SetVisibility(false);
-    BuilderPointMaterial.Reset(NewObject<UMaterial>(BuilderPoints.Get()));auto* Points=BuilderPointMaterial.Get();Points->SetShadingModel(MSM_Unlit);Points->TwoSided=true;
+    BuilderPointMaterial.Reset(NewObject<UMaterial>(BuilderPoints.Get()));auto* Points=BuilderPointMaterial.Get();Points->SetShadingModel(MSM_Unlit);Points->TwoSided=true;Points->BlendMode=BLEND_Translucent;Points->TranslucencyPass=MTP_BeforeDOF;Points->bEnableResponsiveAA=true;Points->GetEditorOnlyData()->Opacity.UseConstant=true;Points->GetEditorOnlyData()->Opacity.Constant=1;
     auto* PointColor=NewObject<UMaterialExpressionVertexColor>(Points);auto* PointInk=NewObject<UMaterialExpressionEyeAdaptationInverse>(Points);PointInk->LightValueInput.Connect(0,PointColor);
     Points->GetExpressionCollection().AddExpression(PointColor);Points->GetExpressionCollection().AddExpression(PointInk);Points->GetEditorOnlyData()->EmissiveColor.Connect(0,PointInk);Points->PostEditChange();
-    BuilderPoints->SetMaterial(0,Points);BuilderPoints->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);Scene->AddComponent(BuilderPoints.Get(),FTransform::Identity);
+    BuilderPoints->SetTranslucentSortPriority(-20);BuilderPoints->SetMaterial(0,Points);BuilderPoints->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);Scene->AddComponent(BuilderPoints.Get(),FTransform::Identity);
     Ocean.Reset(NewObject<UStaticMeshComponent>(GetTransientPackage()));
     Ocean->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Sphere.Sphere")));
     Ocean->SetCollisionEnabled(ECollisionEnabled::NoCollision);Ocean->SetCastShadow(false);Ocean->SetVisibility(false);Ocean->bSelectable=false;
@@ -681,6 +721,12 @@ void SCLPlanetPreview::Construct(const FArguments& Args)
     Inputs->Specular.UseConstant=true;Inputs->Specular.Constant=.35;
     Glass->PostEditChange();Ocean->SetMaterial(0,Glass);Scene->AddComponent(Ocean.Get(),FTransform::Identity);
     SEditorViewport::Construct(SEditorViewport::FArguments());
+    GeographicMesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));GeographicMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);GeographicMesh->SetCastShadow(false);GeographicMesh->bSelectable=false;GeographicMesh->SetVisibility(false);
+    GeographicMesh->SetMaterial(0,Client->LineMaterial.Get());GeographicMesh->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);GeographicMesh->SetTranslucentSortPriority(-30);Scene->AddComponent(GeographicMesh.Get(),FTransform::Identity);
+    auto* TextSource=LoadObject<UMaterial>(nullptr,TEXT("/Engine/EngineMaterials/DefaultTextMaterialTranslucent.DefaultTextMaterialTranslucent"));
+    check(TextSource);auto* Text=DuplicateObject<UMaterial>(TextSource,GetTransientPackage());GeographicTextMaterial.Reset(Text);Text->SetShadingModel(MSM_Unlit);Text->TranslucencyPass=MTP_BeforeDOF;Text->bEnableResponsiveAA=true;
+    auto* TextColor=NewObject<UMaterialExpressionVertexColor>(Text);auto* TextInk=NewObject<UMaterialExpressionEyeAdaptationInverse>(Text);TextInk->LightValueInput.Connect(0,TextColor);Text->GetExpressionCollection().AddExpression(TextColor);Text->GetExpressionCollection().AddExpression(TextInk);Text->GetEditorOnlyData()->EmissiveColor.Connect(0,TextInk);Text->PostEditChange();
+    for(int32 I=0;I<2;++I){PoleLabels[I].Reset(NewObject<UTextRenderComponent>(GetTransientPackage()));auto* Label=PoleLabels[I].Get();Label->SetCollisionEnabled(ECollisionEnabled::NoCollision);Label->SetCastShadow(false);Label->bSelectable=false;Label->SetVisibility(false);Label->SetText(FText::FromString(I==0?TEXT("N"):TEXT("S")));Label->SetTextRenderColor((I==0?FLinearColor(1,.58,.08):FLinearColor(.08,.65,1)).ToFColor(false));Label->SetHorizontalAlignment(EHTA_Left);Label->SetVerticalAlignment(EVRTA_TextTop);Label->SetTextMaterial(Text);Label->SetTranslucentSortPriority(-30);Scene->AddComponent(Label,FTransform::Identity);}
 }
 SCLPlanetPreview::~SCLPlanetPreview()
 {
@@ -691,6 +737,8 @@ SCLPlanetPreview::~SCLPlanetPreview()
     if(DebugWater&&Scene)Scene->RemoveComponent(DebugWater.Get());
     if(BuilderMesh&&Scene)Scene->RemoveComponent(BuilderMesh.Get());
     if(BuilderPoints&&Scene)Scene->RemoveComponent(BuilderPoints.Get());
+    if(GeographicMesh&&Scene)Scene->RemoveComponent(GeographicMesh.Get());
+    for(auto& Label:PoleLabels)if(Label&&Scene)Scene->RemoveComponent(Label.Get());
     if(Ocean&&Scene)Scene->RemoveComponent(Ocean.Get());
 }
 #if WITH_DEV_AUTOMATION_TESTS
@@ -758,7 +806,7 @@ TOptional<float> SCLPlanetPreview::InputProgress()const{if(Client&&Client->bCave
 FString SCLPlanetPreview::InputProgressText()const{if(Client&&Client->bCaveOverlay&&CavePreview&&CavePreview->IsApplyingInput()&&NativePreview&&!NativePreview->IsApplyingInput())return CavePreview->InputProgressText();return NativePreview?NativePreview->InputProgressText():TEXT("Preparing preview…");}
 void SCLPlanetPreview::SetEvaluationPending(bool Pending){bEvaluationPending=Pending;if(Pending)CancelPlacementDrag();}
 void SCLPlanetPreview::SetAuthoringValid(bool Valid){bAuthoringInvalid=!Valid;if(!Valid)CancelPlacementDrag();}
-void SCLPlanetPreview::SetGlobeGrid(bool Visible){Client->bGlobeGrid=Visible;Client->Invalidate();}
+void SCLPlanetPreview::SetGlobeGrid(bool Visible){Client->bGlobeGrid=Visible;UpdateGeographicOverlay(true);Client->Invalidate();}
 bool SCLPlanetPreview::IsGlobeGridVisible()const{return Client->bGlobeGrid;}
 void SCLPlanetPreview::SetHighlightedLandforms(const TSet<FGuid>& Ids)
 {Client->HighlightedLandforms=Ids;Client->Invalidate();}
@@ -798,7 +846,7 @@ void SCLPlanetPreview::Pump()
 }
 void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D)
 {
-    SEditorViewport::Tick(G,T,D);Pump();UpdateBuilderPoints();
+    SEditorViewport::Tick(G,T,D);Pump();UpdateBuilderPoints();UpdateGeographicOverlay();
     if(BuilderMesh)BuilderMesh->SetVisibility(Client&&Client->BuilderOverlay&&!Client->BuilderOverlay->MeshIndices.IsEmpty()&&NativePreview&&NativePreview->PublishedPlan()==Client->Plan);
     // The globe is covered during walking; do not recapture its lighting every
     // frame alongside the active game viewport. Resume normal preview on return.
@@ -1175,14 +1223,16 @@ bool FCLGlobeLineAntialiasTest::RunTest(const FString&)
     // textures, temporal AA, the weather clock and the heatmap's transparency.
     W->Client->SetViewLocation(FVector(220000,0,0));W->Client->SetViewRotation(FRotator(0,180,0));W->Client->EngineShowFlags.SetAntiAliasing(false);
     FCLGlobeClient::FGeographicLine L;L.Points={FVector(120000,44000,30000),FVector(120000,15000,36000)};W->Client->GeographicLines={L};
+    W->UpdateGeographicOverlay(true);W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Draw(false);FlushRenderingCommands();
     auto Images=MakeShared<TArray<TArray<FColor>>>();Images->SetNum(2);
     ADD_LATENT_AUTOMATION_COMMAND(FFunctionLatentCommand([this,W,V,Window,Images,Pass=0,Next=FPlatformTime::Seconds()+.25,Deadline=FPlatformTime::Seconds()+30]()mutable
     {
         const double Now=FPlatformTime::Seconds();
         if(Now>Deadline){AddError(TEXT("Line material did not become ready"));FSlateApplication::Get().RequestDestroyWindow(Window);return true;}
+        if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){Next=Now+.25;return false;}
         if(Now<Next||W->Client->LineMaterial->IsCompiling()||W->Client->ForegroundLineMaterial->IsCompiling()||W->BuilderPointMaterial->IsCompiling())return false;
-        W->Client->SetViewLocation(FVector(220000,0,0));W->Client->SetViewRotation(FRotator(0,180,0));W->Client->bSmoothLines=Pass==1;
-        for(int32 Frame=0;Frame<2;++Frame){V->Invalidate();V->Draw(false);FlushRenderingCommands();}
+        W->Client->SetViewLocation(FVector(220000,0,0));W->Client->SetViewRotation(FRotator(0,180,0));W->Client->bSmoothLines=Pass==1;W->UpdateGeographicOverlay(true);
+        for(int32 Frame=0;Frame<2;++Frame){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();}
         if(!TestTrue(TEXT("Native Metal line coverage readback"),V->ReadPixels((*Images)[Pass]))){FSlateApplication::Get().RequestDestroyWindow(Window);return true;}
         TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(V->GetSizeXY().X,V->GetSizeXY().Y,(*Images)[Pass],PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/FString::Printf(TEXT("Verification/planet-lines-%s.png"),Pass?TEXT("antialiased"):TEXT("aliased"))));
         if(Pass++==0){Next=Now+.25;return false;}
@@ -1202,7 +1252,7 @@ bool FCLGlobeLineAntialiasTest::RunTest(const FString&)
         TestTrue(TEXT("Analytic lines have fractional edge coverage"),Peak[1]>30&&Mixed[1]>Mixed[0]+20);
         AddInfo(FString::Printf(TEXT("Fractional blue edge pixels: direct %d, antialiased %d; peaks %d/%d"),Mixed[0],Mixed[1],Peak[0],Peak[1]));
         auto O=MakeShared<FCLPlanetBuilderOverlay>();O->PointSizePixels=24;O->BodyMeters.Add(FVector(W->Client->Plan->RadiusMeters,0,0));O->Colors.Add(FLinearColor::White);
-        auto Layers=MakeShared<TArray<TArray<FColor>>>();Layers->SetNum(5);
+        auto Layers=MakeShared<TArray<TArray<FColor>>>();Layers->SetNum(6);
         // First use of each scene component can request its vertex-factory
         // shaders. Yield engine frames after warming it, as the real toolkit does.
         ADD_LATENT_AUTOMATION_COMMAND(FFunctionLatentCommand([this,W,V,Window,O,Layers,Pass=0,Prepared=false,Ready=0.,Deadline=FPlatformTime::Seconds()+30]()mutable
@@ -1212,37 +1262,58 @@ bool FCLGlobeLineAntialiasTest::RunTest(const FString&)
             const double R=W->Client->Plan->RadiusMeters;
             if(!Prepared)
             {
-                if(Pass==1)O->Segments.Add({FVector(R*1.2,-R*.2,0),FVector(R*1.2,R*.2,0),FLinearColor(.92,.96,1),1.875f,.25f});
-                if(Pass==2)
+                if(Pass==0)
+                {
+                    O->BodyMeters.Reset();O->Colors.Reset();FCLGlobeClient::FGeographicLine L;L.Points={FVector(120000,-20000,0),FVector(120000,20000,0)};W->Client->GeographicLines={L};W->Client->NorthPole=FVector(110000,20000,5000);W->UpdateGeographicOverlay(true);
+                    TestTrue(TEXT("Geography and pole labels share the background sort layer"),W->GeographicMesh->TranslucencySortPriority<W->BuilderPoints->TranslucencySortPriority&&W->PoleLabels[0]->TranslucencySortPriority<W->BuilderPoints->TranslucencySortPriority&&W->PoleLabels[1]->TranslucencySortPriority<W->BuilderPoints->TranslucencySortPriority);
+                }
+                if(Pass==1)
+                {
+                    O->BodyMeters={FVector(R,0,0)};O->Colors={FLinearColor::White};
+                    const FVector Eye=W->Client->GetViewLocation(),Centre=W->PoleLabels[0]->Bounds.Origin,P=Eye+(Centre-Eye)*1.2;
+                    O->BodyMeters.Add((P-P.GetSafeNormal()*100)*(R/100000));O->Colors.Add(FLinearColor::White);
+                }
+                if(Pass==2)O->Segments.Add({FVector(R*1.2,-R*.2,0),FVector(R*1.2,R*.2,0),FLinearColor(.92,.96,1),1.875f,.5f});
+                if(Pass==3)
                 {
                     O->Colors[0]=FLinearColor(.04,.15,.8);O->Segments.Reset();
-                    O->Segments.Add({FVector(R*1.2,-R*.2,0),FVector(R*1.2,R*.2,0),FLinearColor(.92,.96,1),1.875f,.25f});
-                    for(double Side:{-1.,1.})O->Segments.Add({FVector(R*1.2,0,0),FVector(R*1.2,-R*.035,R*.018*Side),FLinearColor::White,2.7f,.25f});
+                    O->Segments.Add({FVector(R*1.2,-R*.2,0),FVector(R*1.2,R*.2,0),FLinearColor(.92,.96,1),1.875f,.5f});
+                    for(double Side:{-1.,1.})O->Segments.Add({FVector(R*1.2,0,0),FVector(R*1.2,-R*.035,R*.018*Side),FLinearColor::White,2.7f,.5f});
                 }
-                if(Pass==3)for(auto& L:O->Segments)L.OutlinePixels=0;
-                if(Pass==4){O->Colors[0]=FLinearColor::White;O->Segments.Reset();O->MeshBodyMeters={FVector(R*1.2,-R*.08,-R*.08),FVector(R*1.2,0,R*.08),FVector(R*1.2,R*.08,-R*.08)};O->MeshColors.Init(FLinearColor(.48,.012,.02),3);O->MeshIndices={0,2,1};O->ForegroundTriangleCount=1;O->bUseMeshOpacity=true;}
+                if(Pass==4)for(auto& L:O->Segments)L.OutlinePixels=0;
+                if(Pass==5){O->Colors[0]=FLinearColor::White;O->Segments.Reset();O->MeshBodyMeters={FVector(R*1.2,-R*.08,-R*.08),FVector(R*1.2,0,R*.08),FVector(R*1.2,R*.08,-R*.08)};O->MeshColors.Init(FLinearColor(.48,.012,.02),3);O->MeshIndices={0,2,1};O->ForegroundTriangleCount=1;O->bUseMeshOpacity=true;}
                 W->SetBuilderOverlay(O);W->Scene->GetWorld()->SendAllEndOfFrameUpdates();V->Invalidate();V->Draw(false);FlushRenderingCommands();Prepared=true;Ready=Now+.4;return false;
             }
             if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){Ready=Now+.4;return false;}if(Now<Ready)return false;
             for(int32 F=0;F<3;++F){W->Scene->GetWorld()->SendAllEndOfFrameUpdates();W->Scene->UpdateCaptureContents();V->Invalidate();V->Draw(false);FlushRenderingCommands();}
             auto& Pixels=(*Layers)[Pass];TestTrue(TEXT("Layered overlay Metal readback"),V->ReadPixels(Pixels));const auto Size=V->GetSizeXY();
             if(Pixels.Num()!=Size.X*Size.Y){AddError(TEXT("Layer capture has an unexpected size"));return Close();}
-            const TCHAR* Names[]={TEXT("ground"),TEXT("outlined-isobar"),TEXT("joined-outline"),TEXT("joined-control"),TEXT("filled-front")};TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification")/(FString(TEXT("weather-layer-"))+Names[Pass]+TEXT(".png"))));
+            const TCHAR* Names[]={TEXT("geography"),TEXT("ground"),TEXT("outlined-isobar"),TEXT("joined-outline"),TEXT("joined-control"),TEXT("filled-front")};TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification")/(FString(TEXT("weather-layer-"))+Names[Pass]+TEXT(".png"))));
             const int32 X=Size.X/2,Y=Size.Y/2;const auto C=Pixels[Y*Size.X+X];
             AddInfo(FString::Printf(TEXT("Weather layer %s centre: %s"),Names[Pass],*C.ToString()));
-            if(Pass==0)TestTrue(TEXT("Bright ground swatch is visible behind pressure"),C.R>=210);
-            if(Pass==1)
+            if(Pass==0||Pass==1)
+            {
+                FVector2D LabelPixel;TestTrue(TEXT("Scene pole label projects into the viewport"),W->Client->Project(W->PoleLabels[0]->Bounds.Origin,LabelPixel));
+                const int32 LX=FMath::RoundToInt(LabelPixel.X),LY=FMath::RoundToInt(LabelPixel.Y);int32 Gold=0,White=0;
+                for(int32 J=LY-8;J<=LY+8;++J)for(int32 I=LX-8;I<=LX+8;++I)if(I>=0&&J>=0&&I<Size.X&&J<Size.Y)
+                {const auto P=Pixels[J*Size.X+I];Gold+=P.R>150&&P.G>60&&P.B<100;White+=P.R>=210&&FMath::Abs(int32(P.R)-P.B)<=2;}
+                if(Pass==0){TestTrue(TEXT("Background geography actually renders before it is covered"),C.B>C.R+60);TestTrue(TEXT("North label keeps its geographic gold tint"),Gold>5);}
+                else TestTrue(TEXT("Temperature swatch covers the physically closer pole label"),White>200&&Gold==0);
+                AddInfo(FString::Printf(TEXT("Pole label pass %d: gold pixels %d, white swatch pixels %d"),Pass,Gold,White));
+            }
+            if(Pass==1)TestTrue(TEXT("Bright ground swatch is visible behind pressure"),C.R>=210);
+            if(Pass==2)
             {
                 TestTrue(TEXT("Isobar keeps its bright core"),C.R>180);int32 Rim=0;
-                for(int32 J=Y-8;J<=Y+8;++J)for(int32 I=X-8;I<=X+8;++I)Rim+=(*Layers)[0][J*Size.X+I].R>=210&&Pixels[J*Size.X+I].R+12<(*Layers)[0][J*Size.X+I].R&&FMath::Abs(int32(Pixels[J*Size.X+I].R)-Pixels[J*Size.X+I].B)<=1;
+                for(int32 J=Y-8;J<=Y+8;++J)for(int32 I=X-8;I<=X+8;++I)Rim+=(*Layers)[1][J*Size.X+I].R>=210&&Pixels[J*Size.X+I].R+12<(*Layers)[1][J*Size.X+I].R&&FMath::Abs(int32(Pixels[J*Size.X+I].R)-Pixels[J*Size.X+I].B)<=1;
                 TestTrue(TEXT("Fine black isobar rim renders above a bright ground swatch"),Rim>8);AddInfo(FString::Printf(TEXT("Outlined pressure pixels above bright ground: %d"),Rim));
             }
-            if(Pass==3)
+            if(Pass==4)
             {
                 int32 CorePixels=0,DarkestSeam=0;
                 for(int32 J=Y-8;J<=Y+8;++J)for(int32 I=X-8;I<=X+8;++I)
                 {
-                    const auto Control=Pixels[J*Size.X+I],Outlined=(*Layers)[2][J*Size.X+I];
+                    const auto Control=Pixels[J*Size.X+I],Outlined=(*Layers)[3][J*Size.X+I];
                     if(Control.R<216||Control.G<216||Control.B<216)continue;
                     ++CorePixels;DarkestSeam=FMath::Max(DarkestSeam,FMath::Max3(int32(Control.R)-Outlined.R,int32(Control.G)-Outlined.G,int32(Control.B)-Outlined.B));
                 }
@@ -1250,7 +1321,7 @@ bool FCLGlobeLineAntialiasTest::RunTest(const FString&)
                 TestTrue(TEXT("Combined outline never draws black seams inside the white network"),DarkestSeam<=4);
                 AddInfo(FString::Printf(TEXT("Combined isobar/arrow: %d white core pixels, maximum internal darkening %d/255"),CorePixels,DarkestSeam));
             }
-            if(Pass==4){TestTrue(TEXT("Filled front covers the ground swatch"),C.R>C.G+50&&C.G<120);return Close();}
+            if(Pass==5){TestTrue(TEXT("Filled front covers the ground swatch"),C.R>C.G+50&&C.G<120);return Close();}
             ++Pass;Prepared=false;return false;
         }));
         return true;
@@ -2264,6 +2335,34 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
 }
 
 #endif
+
+void SCLPlanetPreview::UpdateGeographicOverlay(bool Force)
+{
+    if(!Client||!GeographicMesh)return;auto* V=Client->Viewport;
+    bool Visible=V&&Client->bGlobeGrid&&Client->Plan&&!Client->bCaveOverlay&&!Client->GeographicLines.IsEmpty();
+#if WITH_DEV_AUTOMATION_TESTS
+    Visible&=Client->bSmoothLines;
+#endif
+    const bool ChangedVisibility=GeographicMesh->IsVisible()!=Visible;GeographicMesh->SetVisibility(Visible);
+    if(!Visible){for(auto& Label:PoleLabels)if(Label)Label->SetVisibility(false);return;}
+    if(Client->LineMaterial->IsCompiling())return;
+    const FVector Eye=Client->GetViewLocation();const FRotator Rotation=Client->GetViewRotation();const FIntPoint Size=V->GetSizeXY();
+    if(!Force&&!ChangedVisibility&&GeographicRecipe==Client->GridRecipe&&Eye==GeographicEye&&Rotation==GeographicRotation&&Size==GeographicSize)return;
+    FSceneViewFamilyContext Family(FSceneViewFamily::ConstructionValues(V,Client->GetScene(),Client->EngineShowFlags).SetRealtimeUpdate(false));
+    const auto* View=Client->CalcSceneView(&Family);if(!View)return;
+    GeographicRecipe=Client->GridRecipe;GeographicEye=Eye;GeographicRotation=Rotation;GeographicSize=Size;
+    FCLGeographicMeshBuilder Builder;
+    {TGuardValue<const FSceneView*> ViewGuard(Client->LineView,View);TGuardValue<FCLGeographicMeshBuilder*> SinkGuard(Client->GeographicSink,&Builder);Client->DrawGlobeGrid(nullptr);}
+    GeographicMesh->SetMesh(MoveTemp(Builder.Mesh));
+    const FRotationMatrix Axes(Rotation);const FVector Forward=Axes.GetUnitAxis(EAxis::X),Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);const double Dpi=Client->GetDPIScale();
+    for(int32 I=0;I<2;++I)
+    {
+        const FVector Pole=I==0?Client->NorthPole:Client->SouthPole,P=Pole+Pole.GetSafeNormal()*2400;const double Depth=FVector::DotProduct(P-Eye,Forward);const bool Show=!Pole.IsNearlyZero()&&Depth>0&&FVector::DotProduct(Pole,Eye-P)>0;
+        auto* Label=PoleLabels[I].Get();Label->SetVisibility(Show);if(!Show)continue;
+        const double Pixel=2*Depth/(View->ViewMatrices.GetProjectionMatrix().M[0][0]*FMath::Max(1,Size.X));
+        Label->SetWorldLocation(P+Right*(8*Dpi*Pixel)+Up*(20*Dpi*Pixel));Label->SetWorldRotation(FRotationMatrix::MakeFromXZ(-Forward,Up).Rotator());Label->SetWorldSize(18*Dpi*Pixel);
+    }
+}
 
 void SCLPlanetPreview::UpdateBuilderPoints(bool Force)
 {

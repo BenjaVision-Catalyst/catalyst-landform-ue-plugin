@@ -16,6 +16,7 @@ DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementT
 DECLARE_DELEGATE_OneParam(FOnCLGlobeRegionSelected,FGuid);
 DECLARE_DELEGATE_OneParam(FOnCLGlobeSelectionChanged,FCLGlobeSelection);
 class FCLGlobeClient;
+#include "Components/TextRenderComponent.h"
 class FPreviewScene;
 class UStaticMeshComponent;
 class UMaterial;
@@ -151,8 +152,14 @@ private:
     void UpdateWatershedDebug();
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;
     TSharedPtr<const FCLWatershedDebugGeometry> PendingWatershedDebug;
-    TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh,BuilderPoints;
-    TStrongObjectPtr<UMaterial> BuilderMaterial,BuilderPointMaterial;
+    TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh,BuilderPoints,GeographicMesh;
+    TStrongObjectPtr<UMaterial> BuilderMaterial,BuilderPointMaterial,GeographicTextMaterial;
+    TStrongObjectPtr<UTextRenderComponent> PoleLabels[2];
+    void UpdateGeographicOverlay(bool Force=false);
+    TSharedPtr<const FCLPlanetRecipe> GeographicRecipe;
+    FVector GeographicEye=FVector::ZeroVector;
+    FRotator GeographicRotation=FRotator::ZeroRotator;
+    FIntPoint GeographicSize=FIntPoint::ZeroValue;
     void UpdateBuilderPoints(bool Force=false);
     FVector BuilderPointEye=FVector::ZeroVector;
     FRotator BuilderPointRotation=FRotator::ZeroRotator;
