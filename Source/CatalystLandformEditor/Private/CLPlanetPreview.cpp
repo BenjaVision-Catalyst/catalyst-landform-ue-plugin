@@ -147,10 +147,12 @@ public:
         if(SunDirection.IsSet())
         {
             const FVector Sun=SunDirection->GetSafeNormal();DirectionalLight->SetWorldRotation((-Sun).Rotation());
+            // A data projection must not receive fine-relief shadow holes from geometry it approximates.
+            DirectionalLight->SetCastShadows(false);
             DirectionalLight->SetIntensity(3.2);Fill->SetWorldRotation(Sun.Rotation());Fill->SetIntensity(1.15);
             Rim->SetIntensity(0);SetSkyBrightness(.45);return;
         }
-        SetCaveInspection(false);
+        DirectionalLight->SetCastShadows(true);SetCaveInspection(false);
         const FRotationMatrix Axes(Rotation);const FVector Back=-Axes.GetUnitAxis(EAxis::X),Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
         auto Aim=[](UDirectionalLightComponent* L,FVector ToSource){L->SetWorldRotation((-ToSource).Rotation());};
         Aim(DirectionalLight,Back*.8-Right*.7+Up*.7);Aim(Fill,Back*.5+Right+Up*.25);Aim(Rim,-Back*.8+Up*.9);
