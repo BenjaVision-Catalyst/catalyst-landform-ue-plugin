@@ -3,7 +3,31 @@
 #include "Model/CLCaves.h"
 #include "Model/CLSurfaceRange.h"
 #include "Containers/Ticker.h"
+#include "Model/CLSphericalPatches.h"
 #include "UObject/UObjectGlobals.h"
+double CLMeasureGroundArea(const FCLCompiledPlanetRecipe& Plan,const FCLCompileProgress* Control)
+{
+    constexpr int32 N=64,Row=N+1;TArray<FVector> D;D.Reserve(6*Row*Row);
+    for(int32 F=0;F<6;++F)for(int32 Y=0;Y<=N;++Y)for(int32 X=0;X<=N;++X)
+        D.Add(FCLSphericalPatches::Direction(F,FVector2D(2.*X/N-1,2.*Y/N-1)));
+    TArray<FVector> P;P.SetNum(D.Num());
+    for(int32 Start=0;Start<D.Num();Start+=512)
+    {
+        if(Control&&Control->Cancelled.load())return 0;
+        const int32 Count=FMath::Min(512,D.Num()-Start);TArray<double> H;Plan.SampleHeightsMeters(MakeArrayView(D.GetData()+Start,Count),H);
+        for(int32 I=0;I<Count;++I)P[Start+I]=D[Start+I]*FMath::Max(0.,Plan.RadiusMeters+H[I]);
+    }
+    double Area=0;
+    auto Triangle=[&](int32 A,int32 B,int32 C)
+    {
+        const double Flat=FVector::CrossProduct(D[B]-D[A],D[C]-D[A]).Length()*.5;
+        const double Solid=2*FMath::Atan2(FMath::Abs(FVector::DotProduct(D[A],FVector::CrossProduct(D[B],D[C]))),1+FVector::DotProduct(D[A],D[B])+FVector::DotProduct(D[B],D[C])+FVector::DotProduct(D[C],D[A]));
+        Area+=FVector::CrossProduct(P[B]-P[A],P[C]-P[A]).Length()*.5*Solid/Flat;
+    };
+    for(int32 F=0;F<6;++F)for(int32 Y=0;Y<N;++Y)for(int32 X=0;X<N;++X)
+    {const int32 A=F*Row*Row+Y*Row+X;Triangle(A,A+Row,A+1);Triangle(A+1,A+Row,A+Row+1);}
+    return Area;
+}
 namespace
 {
 struct FLiveEvaluation{UE::Tasks::TTask<TSharedPtr<FCLRecipeEvaluationResult>> Task;TSharedRef<FCLCompileProgress> Control;};
@@ -15,6 +39,7 @@ void RetireCompleted(){check(IsInGameThread());LiveEvaluations.RemoveAll([](cons
 
 void Measure(FCLRecipeEvaluationResult& R,const TSharedRef<FCLCompileProgress>& Control)
 {
+    R.GroundAreaSquareMeters=CLMeasureGroundArea(*R.Plan,&Control.Get());
     const auto P=R.Plan;R.ElevationReadout=TEXT("Enable distribution to measure area fractions");
     if(P->SurfaceRange&&R.Recipe.SchemaVersion>=21)
     {
@@ -155,5 +180,20 @@ bool FCLSurfaceCheckpointTest::RunTest(const FString&)
     E.Request(LatestRecipe,LatestInput,true);Surface=Wait();if(!Surface){AddError(TEXT("Replacement checkpoint timed out"));return false;}
     TestEqual(TEXT("Replacement fences the previous checkpoint"),Surface->Recipe.Caves.Seed,LatestRecipe.Caves.Seed);
     E.ResumeAfterSurface(Surface->Serial);E.Cancel();Wait();TestFalse(TEXT("Cancel in cave job drains without publication"),E.IsBusy());return !HasAnyErrors();
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLGroundAreaRotationTest,"Catalyst.Landform.PlanetBuilder.GroundAreaAndRotation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FCLGroundAreaRotationTest::RunTest(const FString&)
+{
+    auto R=FCLPlanetCompiler::BasePlanet();R.RadiusMeters=1000;R.BaseSurfaceNormalized=.5;R.Rock.bEnabled=false;R.Continents.bEnabled=false;R.Tectonics.bEnabled=false;R.RegionGeneration=FCLRegionGenerationSettings();R.Watershed.bEnabled=false;R.ElevationDistribution.bEnabled=false;R.NoiseLayers.Reset();R.BaseStructure.Reset();R.TerrainRegions.Reset();
+    FString Error;auto P=FCLPlanetCompiler::Compile(R,Error);if(!TestTrue(TEXT("Ground measurement fixture compiles"),P.IsValid())){AddError(Error);return false;}
+    const double Area=CLMeasureGroundArea(*P);TestTrue(TEXT("Surface area uses composed ground, not sky"),FMath::IsNearlyEqual(Area,4*UE_DOUBLE_PI*500*500,1.e-4));
+    auto Relief=R;FCLNoiseLayer N;N.Name=TEXT("Ground relief");N.Minimum.OffsetMeters=-460;N.Maximum.OffsetMeters=-420;N.WavelengthMeters=200;Relief.NoiseLayers.Add(N);P=FCLPlanetCompiler::Compile(Relief,Error);
+    if(TestTrue(TEXT("Relief compiles"),P.IsValid()))TestTrue(TEXT("Actual sampled relief changes the measured area"),CLMeasureGroundArea(*P)>Area*1.1);
+    R.SetRotationSpeedDegreesPerSecond(.01);TestEqual(TEXT("Speed sets one-turn time"),R.RotationPeriodSeconds,36000.);R.RotationPeriodSeconds=7200;TestEqual(TEXT("Time updates displayed speed"),R.RotationSpeedDegreesPerSecond(),.05);
+    auto* A=NewObject<UCLPlanetRecipeAsset>();A->Recipe=R;FString Json;A->ExportJsonString(Json,Error);auto* C=NewObject<UCLPlanetRecipeAsset>();TestTrue(TEXT("Rotation survives JSON import/export"),C->ImportRecipeJson(Json,Error)&&C->Recipe.RotationPeriodSeconds==7200);
+    R.RotationPeriodSeconds=0;TestFalse(TEXT("Invalid rotation is rejected"),FCLPlanetCompiler::Compile(R,Error).IsValid());return true;
 }
 #endif

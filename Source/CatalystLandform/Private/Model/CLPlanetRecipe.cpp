@@ -824,6 +824,8 @@ TSharedPtr<const FCLCompiledPlanetRecipe> CompileUnmappedBody(const FCLPlanetRec
     auto Plan = MakeShared<FCLCompiledPlanetRecipe>();
     Plan->NativePerlin=FCLNativeNoiseKernel::Create(Error);if(!Plan->NativePerlin)return nullptr;
     Plan->bDeferRadialBounds=Recipe.SchemaVersion>=17;
+    if(!FMath::IsFinite(Recipe.RotationPeriodSeconds)||Recipe.RotationPeriodSeconds<60||Recipe.RotationPeriodSeconds>315576000)
+        return Fail(TEXT("Rotation period must be between 60 and 315576000 simulation seconds"));
     Plan->RadiusMeters = Recipe.RadiusMeters;
     if (!FMath::IsFinite(Recipe.BaseSurfaceNormalized) || Recipe.BaseSurfaceNormalized <= 0 || Recipe.BaseSurfaceNormalized > 1)
         return Fail(TEXT("BaseSurfaceNormalized must be in (0, 1]"));

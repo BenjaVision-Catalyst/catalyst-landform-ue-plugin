@@ -689,6 +689,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TArray<TSharedPtr<IPropertyHandle>> ElevationAdvancedProperties;
     TSharedPtr<SSlider> ElevationSlider;
     TSharedPtr<IPropertyHandle> RegionProperties;
+    double GroundAreaSquareMeters=0;
     TSharedPtr<const FCLCompiledPlanetRecipe> AcceptedSurfacePlan;
     TSharedPtr<const FCLWatershedDebugGeometry> AcceptedWatershedDebug;
     FCLRecipeEvaluation Evaluation;
@@ -1218,7 +1219,7 @@ public:
             if(!R->Plan){bPreviewInvalid=true;InspectorError=Status=R->Error;return;}
             const bool PreserveWalk=PublishedEvaluation==R->Serial;
             bPreviewInvalid=false;InspectorError.Reset();PublishedEvaluation=R->Serial;AcceptedSurfacePlan=R->Plan;AcceptedWatershedDebug=R->WatershedDebug;
-            if(!R->SurfaceOnly){MeasuredElevation=MoveTemp(R->Elevation);ElevationReadout=MoveTemp(R->ElevationReadout);MeasuredRockBeds=R->Beds;TargetRockBeds=MoveTemp(R->TargetBeds);}
+            if(!R->SurfaceOnly){GroundAreaSquareMeters=R->GroundAreaSquareMeters;MeasuredElevation=MoveTemp(R->Elevation);ElevationReadout=MoveTemp(R->ElevationReadout);MeasuredRockBeds=R->Beds;TargetRockBeds=MoveTemp(R->TargetBeds);}
             PublishPlan(R->Plan,PreserveWalk);
         }
     }
@@ -1552,7 +1553,16 @@ public:
         {
             auto& C=B.EditCategory(TEXT("Body"),FText::FromString(TEXT("Planet")));C.SetSortOrder(0);
             Add(C,TEXT("Name"));Add(C,TEXT("RadiusMeters"));
-            InspectorRow(C,TEXT("Reference area"),SNew(STextBlock).Text_Lambda([this]{const auto& R=RecipeAsset()->Recipe;return FText::FromString(FString::Printf(TEXT("%.2f km²"),4*UE_DOUBLE_PI*FMath::Square(R.RadiusMeters*R.BaseSurfaceNormalized)/1.e6));}));
+            InspectorRow(C,TEXT("Surface area"),SNew(STextBlock).ToolTipText(FText::FromString(TEXT("Composed exterior ground including relief, estimated on a 64 × 64 grid per cube face. Includes ground beneath oceans; excludes cave interiors.")))
+                .Text_Lambda([this]{return GroundAreaSquareMeters>0?FText::FromString(FString::Printf(TEXT("%.3f km²%s"),GroundAreaSquareMeters/1.e6,Evaluation.IsBusy()?TEXT(" (updating…)"):TEXT(""))):FText::FromString(TEXT("Measuring…"));}));
+            auto SetPeriod=[this](double Seconds){if(!FMath::IsFinite(Seconds))return;auto R=RecipeAsset()->Recipe;R.RotationPeriodSeconds=FMath::Clamp(Seconds,60.,315576000.);const FScopedTransaction Tx(FText::FromString(TEXT("Change planet rotation")));CommitSurfaceRecipe(MoveTemp(R));};
+            InspectorRow(C,TEXT("Rotation Speed (°/s)"),SNew(SNumericEntryBox<double>).MinValue(360./315576000.).MaxValue(6.).AllowSpin(false).MinFractionalDigits(4).MaxFractionalDigits(8)
+                .Value_Lambda([this]{return TOptional<double>(RecipeAsset()->Recipe.RotationSpeedDegreesPerSecond());})
+                .OnValueCommitted_Lambda([SetPeriod](double V,ETextCommit::Type T){if(T!=ETextCommit::OnCleared&&V>0)SetPeriod(360./V);}));
+            InspectorRow(C,TEXT("Revolution time (hours)"),SNew(SNumericEntryBox<double>).MinValue(1./60.).MaxValue(87660.).AllowSpin(false).MaxFractionalDigits(4)
+                .ToolTipText(FText::FromString(TEXT("Time for one full axial rotation, in simulation hours; controls day/night.")))
+                .Value_Lambda([this]{return TOptional<double>(RecipeAsset()->Recipe.RotationPeriodSeconds/3600.);})
+                .OnValueCommitted_Lambda([SetPeriod](double V,ETextCommit::Type T){if(T!=ETextCommit::OnCleared)SetPeriod(V*3600.);}));
             InspectorRow(C,TEXT("Radial Guides"),SNew(SComboButton).OnGetMenuContent(this,&FCLRecipeToolkit::RadialGuidesMenu)
                 .ButtonContent()[SNew(STextBlock).Font(FAppStyle::GetFontStyle("PropertyWindow.NormalFont")).Text_Lambda([this]{return FText::FromString(RecipeAsset()->Recipe.RadialGuides.Name);})]);
             Add(C,TEXT("BaseSurfaceNormalized"),true);Add(C,TEXT("Seed"),true);

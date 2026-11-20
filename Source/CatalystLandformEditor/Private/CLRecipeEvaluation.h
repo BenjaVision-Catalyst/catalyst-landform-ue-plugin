@@ -17,6 +17,7 @@ struct FCLRecipeEvaluationResult
     TArray<double> TargetBeds;
     bool WorkerThread=false;
     bool SurfaceOnly=false;
+    double GroundAreaSquareMeters=0;
     double Seconds=0;
 };
 /** One UE task plus one latest pending input. Owns no editor, asset or widget. */
@@ -54,3 +55,6 @@ private:
     TSharedPtr<FCLRecipeEvaluationResult> WaitingSurface;
     UE::Tasks::TTask<TSharedPtr<FCLRecipeEvaluationResult>> Task;
 };
+
+/** Bounded quadrature of the composed exterior ground, including relief; excludes cave interiors. */
+double CLMeasureGroundArea(const FCLCompiledPlanetRecipe&,const FCLCompileProgress* Control=nullptr);

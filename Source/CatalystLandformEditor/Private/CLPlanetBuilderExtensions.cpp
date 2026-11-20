@@ -34,3 +34,56 @@ bool FCLPlanetBuilderOverlayFlow::Sample(double Distance,FVector& Point,FVector&
     const FVector D=(A*FMath::Sin((1-F)*Angle)+B*FMath::Sin(F*Angle))/FMath::Sin(Angle);
     Point=D.GetSafeNormal()*Radius;Tangent=FVector::CrossProduct(FVector::CrossProduct(A,B).GetSafeNormal(1.e-30),Point).GetSafeNormal();return !Tangent.IsNearlyZero();
 }
+
+namespace
+{
+double WrapArc(double V,double Length){V=FMath::Fmod(V,Length);return V<0?V+Length:V;}
+// Closest point on each minor great-circle arc. Preserves physical marker sites
+// even when contour extraction changes its first node or traversal direction.
+double ClosestArc(const FCLPlanetBuilderOverlayFlow& F,FVector P)
+{
+    P.Normalize();double Best=-2,Distance=0;
+    for(int32 I=1;I<F.BodyMeters.Num();++I)
+    {
+        const FVector A=F.BodyMeters[I-1].GetSafeNormal(),B=F.BodyMeters[I].GetSafeNormal(),N=FVector::CrossProduct(A,B).GetSafeNormal();
+        const double Span=(F.ArcMeters[I]-F.ArcMeters[I-1])/F.BodyMeters[0].Length();
+        const FVector Q=FVector::VectorPlaneProject(P,N).GetSafeNormal();
+        double Angle=FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(A,Q),N),FVector::DotProduct(A,Q));
+        if(Angle<0||Angle>Span)Angle=FVector::DotProduct(P,A)>FVector::DotProduct(P,B)?0:Span;
+        const FVector Site=A*FMath::Cos(Angle)+FVector::CrossProduct(N,A)*FMath::Sin(Angle);const double Dot=FVector::DotProduct(P,Site);
+        if(Dot>Best){Best=Dot;Distance=F.ArcMeters[I-1]+Angle*F.BodyMeters[0].Length();}
+    }
+    return WrapArc(Distance,F.LengthMeters());
+}
+}
+void FCLPlanetBuilderFlowAnimation::SetFlow(const FCLPlanetBuilderOverlayFlow& Next)
+{
+    if(Next.LengthMeters()<=0)return;
+    if(Flow.LengthMeters()>0&&Flow.BodyMeters!=Next.BodyMeters)for(auto& H:Heads){FVector P,T;if(Flow.Sample(H.DistanceMeters,P,T))H.DistanceMeters=ClosestArc(Next,P);}
+    Flow=Next;
+    const int32 Target=FMath::Clamp(Next.ArrowCount,0,128);
+    int32 Count=0;for(const auto& H:Heads)Count+=!H.Retiring;
+    if(Heads.IsEmpty()&&Target>0){for(int32 I=0;I<Target;++I)Heads.Add({NextId++,I*Flow.LengthMeters()/Target,0,false});return;}
+    while(Count>Target)
+    {
+        int32 Retire=INDEX_NONE;double Gap=1.e100;
+        for(int32 I=0;I<Heads.Num();++I)if(!Heads[I].Retiring)for(int32 J=I+1;J<Heads.Num();++J)if(!Heads[J].Retiring)
+        {const double D=FMath::Abs(Heads[I].DistanceMeters-Heads[J].DistanceMeters),G=FMath::Min(D,Flow.LengthMeters()-D);if(G<Gap){Gap=G;Retire=Heads[I].Id>Heads[J].Id?I:J;}}
+        if(Retire==INDEX_NONE)for(int32 I=Heads.Num()-1;I>=0;--I)if(!Heads[I].Retiring){Retire=I;break;}
+        Heads[Retire].Retiring=true;--Count;
+    }
+    for(auto& H:Heads)if(Count<Target&&H.Retiring){H.Retiring=false;++Count;}
+    while(Count<Target&&Heads.Num()<256)
+    {
+        TArray<double> Sites;for(const auto& H:Heads)if(!H.Retiring)Sites.Add(H.DistanceMeters);Sites.Sort();
+        double Distance=0,Gap=-1;
+        for(int32 I=0;I<Sites.Num();++I){const double End=I+1<Sites.Num()?Sites[I+1]:Sites[0]+Flow.LengthMeters(),G=End-Sites[I];if(G>Gap){Gap=G;Distance=WrapArc(Sites[I]+G*.5,Flow.LengthMeters());}}
+        Heads.Add({NextId++,Distance,0,false});++Count;
+    }
+}
+void FCLPlanetBuilderFlowAnimation::Tick(double Seconds)
+{
+    if(!FMath::IsFinite(Seconds)||Seconds<0||Flow.LengthMeters()<=0)return;
+    for(auto& H:Heads){H.DistanceMeters=WrapArc(H.DistanceMeters+Flow.SpeedMetersPerSecond*Seconds,Flow.LengthMeters());H.Opacity=FMath::Clamp(H.Opacity+float(Seconds/.6)*(H.Retiring?-1:1),0.f,1.f);}
+    Heads.RemoveAll([](const auto& H){return H.Retiring&&H.Opacity<=0;});
+}

@@ -152,7 +152,7 @@ private:
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;
     TSharedPtr<const FCLWatershedDebugGeometry> PendingWatershedDebug;
     TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh;
-    TStrongObjectPtr<UMaterial> BuilderMaterial;
+    TStrongObjectPtr<UMaterial> BuilderMaterial,BuilderGroundMaterial;
     bool bOceanVisible=false;
     TStrongObjectPtr<UStaticMeshComponent> Ocean;
     void CancelPlacementDrag();

@@ -8,6 +8,8 @@ struct FCLPlanetBuilderOverlayLabel { FVector BodyMeters; FString Text; FLinearC
 struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlayFlow
 {
     uint64 Key=0;
+    /** Identity of the scalar contour level, independent of loop enumeration. */
+    uint64 Family=0;
     TArray<FVector> BodyMeters;
     TArray<double> ArcMeters;
     double SpeedMetersPerSecond=0;
@@ -16,6 +18,16 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlayFlow
     double LengthMeters()const{return ArcMeters.IsEmpty()?0:ArcMeters.Last();}
     double AdvancePhase(double Phase,double Seconds)const;
     bool Sample(double DistanceMeters,FVector& Point,FVector& Tangent)const;
+};
+/** View-owned moving sites. Count changes never redistribute existing sites. */
+struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderFlowAnimation
+{
+    struct FHead{uint64 Id=0;double DistanceMeters=0;float Opacity=0;bool Retiring=false;};
+    FCLPlanetBuilderOverlayFlow Flow;
+    TArray<FHead> Heads;
+    uint64 NextId=1;
+    void SetFlow(const FCLPlanetBuilderOverlayFlow& Next);
+    void Tick(double Seconds);
 };
 /** Overlay is a presentation radius. Absence means the outer sky boundary. */
 inline double CLPlanetOverlayRadiusMeters(const FCLCompiledPlanetRecipe& Plan)
@@ -28,10 +40,16 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlay
 {
     TArray<FVector> BodyMeters;
     TArray<FLinearColor> Colors;
+    /** Optional sun direction in canonical body coordinates. No value restores the studio rig. */
+    TOptional<FVector> SunDirection;
+    /** Otherwise legacy heatmap opacity remains 0.18. */
+    bool bUseMeshOpacity=false;
+    /** Optional contiguous triangle range shaded by standard scene lights. Other triangles remain unlit. */
+    int32 LitTriangleStart=0,LitTriangleCount=0;
     /** Optional metric vectors at matching sample indices. At most 512 arrows are drawn. */
     TArray<FVector> BodyVectorsMeters;
     float PointSizePixels = 7;
-    /** Outward mathematical triangle winding; at most 8192 vertices / 49152 indices. */
+    /** Outward mathematical triangle winding; at most 16384 vertices / 98304 indices. */
     TArray<FVector> MeshBodyMeters;
     TArray<FLinearColor> MeshColors;
     TArray<int32> MeshIndices;

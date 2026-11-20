@@ -207,6 +207,10 @@ struct CATALYSTLANDFORM_API FCLPlanetRecipe
     /** Initial solid sphere before ordered operations; fraction of outer radius. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0.001", ClampMax="1")) double BaseSurfaceNormalized = 1;
     UPROPERTY() double ReferenceRadiusMeters_DEPRECATED = 100;
+    /** One axial turn, in simulation seconds. Shared by weather and solar presentation. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(Units="s", ClampMin="60", ClampMax="315576000")) double RotationPeriodSeconds = 86400;
+    double RotationSpeedDegreesPerSecond()const{return 360. / RotationPeriodSeconds;}
+    void SetRotationSpeedDegreesPerSecond(double Speed){if(FMath::IsFinite(Speed)&&Speed>0)RotationPeriodSeconds=FMath::Clamp(360./Speed,60.,315576000.);}
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Seed = 1729;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) ECLTerrainCoordinates Coordinates = ECLTerrainCoordinates::Sphere;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="Coordinates == ECLTerrainCoordinates::LocalPatch", EditConditionHides)) FCLTerrainPatch TerrainPatch;

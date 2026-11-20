@@ -45,6 +45,7 @@
 #include "Engine/Engine.h"
 #include "DynamicMeshBuilder.h"
 #include "Materials/MaterialExpressionCustom.h"
+#include "Materials/MaterialExpressionMultiply.h"
 #include "Materials/MaterialExpressionTextureCoordinate.h"
 #include "Materials/MaterialExpressionEyeAdaptationInverse.h"
 
@@ -138,8 +139,16 @@ public:
     }
     void SetCaveInspection(bool Enabled)
     {const float K=Enabled?.025f:1.f;DirectionalLight->SetIntensity(2.2f*K);Fill->SetIntensity(.7f*K);Rim->SetIntensity(1.1f*K);SetSkyBrightness(.25f*K);}
+    TOptional<FVector> SunDirection;
     void AimLights(const FRotator& Rotation)
     {
+        if(SunDirection.IsSet())
+        {
+            const FVector Sun=SunDirection->GetSafeNormal();DirectionalLight->SetWorldRotation((-Sun).Rotation());
+            DirectionalLight->SetIntensity(3.2);Fill->SetWorldRotation(Sun.Rotation());Fill->SetIntensity(1.15);
+            Rim->SetIntensity(0);SetSkyBrightness(.45);return;
+        }
+        SetCaveInspection(false);
         const FRotationMatrix Axes(Rotation);const FVector Back=-Axes.GetUnitAxis(EAxis::X),Right=Axes.GetUnitAxis(EAxis::Y),Up=Axes.GetUnitAxis(EAxis::Z);
         auto Aim=[](UDirectionalLightComponent* L,FVector ToSource){L->SetWorldRotation((-ToSource).Rotation());};
         Aim(DirectionalLight,Back*.8-Right*.7+Up*.7);Aim(Fill,Back*.5+Right+Up*.25);Aim(Rim,-Back*.8+Up*.9);
@@ -168,8 +177,9 @@ public:
         Coverage->Code=TEXT("float2 q = float2(UV.x - clamp(UV.x, 0.0, Line.x), UV.y); return saturate(Line.y + 0.5 - length(q));");
         FCustomInput A;A.InputName=TEXT("UV");A.Input.Connect(0,UV);Coverage->Inputs.Add(A);
         FCustomInput B;B.InputName=TEXT("Line");B.Input.Connect(0,Params);Coverage->Inputs.Add(B);
-        const TArray<UMaterialExpression*> Expressions={Color,Ink,UV,Params,Coverage};for(auto* E:Expressions)M->GetExpressionCollection().AddExpression(E);
-        M->GetEditorOnlyData()->EmissiveColor.Connect(0,Ink);M->GetEditorOnlyData()->Opacity.Connect(0,Coverage);M->PostEditChange();
+        auto* Opacity=NewObject<UMaterialExpressionMultiply>(M);Opacity->A.Connect(0,Coverage);Opacity->B.Connect(4,Color);
+        const TArray<UMaterialExpression*> Expressions={Color,Ink,UV,Params,Coverage,Opacity};for(auto* E:Expressions)M->GetExpressionCollection().AddExpression(E);
+        M->GetEditorOnlyData()->EmissiveColor.Connect(0,Ink);M->GetEditorOnlyData()->Opacity.Connect(0,Opacity);M->PostEditChange();
     }
     void DrawSmoothLine(FPrimitiveDrawInterface* PDI,FVector A,FVector B,FLinearColor Color,uint8 Group,float Width=1,float=0,bool=true)
     {
@@ -352,7 +362,7 @@ public:
         return {};
     }
     TSharedPtr<const FCLPlanetBuilderOverlay> BuilderOverlay;
-    TMap<uint64,double> FlowPhases;
+    TArray<FCLPlanetBuilderFlowAnimation> FlowAnimations;
     double LastFlowTick=FPlatformTime::Seconds();
     void DrawBuilderOverlay(const FSceneView* View,FPrimitiveDrawInterface* PDI)
     {
@@ -363,18 +373,19 @@ public:
             if(FVector::DotProduct(Mid.GetSafeNormal(),GetViewLocation()-Mid)>0)DrawSmoothLine(PDI,A,B,L.Color,SDPG_World,FMath::Clamp(L.WidthPixels,.5f,4.f),0,true);
         }
         int32 Heads=0;
-        for(int32 I=0;I<FMath::Min(256,BuilderOverlay->Flows.Num());++I)
+        for(const auto& Animation:FlowAnimations)
         {
-            const auto& Flow=BuilderOverlay->Flows[I];const double Phase=FlowPhases.FindRef(Flow.Key);
-            for(int32 J=0;J<FMath::Min(128,Flow.ArrowCount)&&Heads<2048;++J,++Heads)
+            const auto& Flow=Animation.Flow;
+            for(const auto& Head:Animation.Heads)
             {
-                FVector P,Tangent;if(!Flow.Sample((J+Phase)*Flow.LengthMeters()/Flow.ArrowCount,P,Tangent))continue;
+                if(++Heads>2048)break;FLinearColor Ink=FLinearColor::White;Ink.A=Head.Opacity;
+                FVector P,Tangent;if(!Flow.Sample(Head.DistanceMeters,P,Tangent))continue;
                 P*=Scale;const FVector Normal=P.GetSafeNormal();if(FVector::DotProduct(Normal,GetViewLocation()-P)<=0)continue;
                 if(Flow.SpeedMetersPerSecond<0)Tangent*=-1;
                 const double Size=13*GetDPIScale()*FMath::Abs(View->WorldToScreen(P).W)/(View->ViewMatrices.GetProjectionMatrix().M[0][0]*FMath::Max(1,View->UnscaledViewRect.Width()));
                 const FVector Side=FVector::CrossProduct(Normal,Tangent)*Size*.55,Tip=P+Normal*2,Base=Tip-Tangent*Size;
-                DrawSmoothLine(PDI,Tip,Base+Side,FLinearColor::White,SDPG_World,1.8,0,true);
-                DrawSmoothLine(PDI,Tip,Base-Side,FLinearColor::White,SDPG_World,1.8,0,true);
+                DrawSmoothLine(PDI,Tip,Base+Side,Ink,SDPG_World,1.8,0,true);
+                DrawSmoothLine(PDI,Tip,Base-Side,Ink,SDPG_World,1.8,0,true);
             }
         }
         const int32 N=FMath::Min(8192,FMath::Min(BuilderOverlay->BodyMeters.Num(),BuilderOverlay->Colors.Num()));
@@ -502,9 +513,9 @@ public:
     {
         FEditorViewportClient::Tick(Delta);if(Viewport&&Viewport->GetSizeXY()!=NavigationSize)Apply();
         const double Now=FPlatformTime::Seconds(),Seconds=FMath::Max(0.,Now-LastFlowTick);LastFlowTick=Now;
-        if(BuilderOverlay&&!BuilderOverlay->Flows.IsEmpty())
+        if(BuilderOverlay&&!FlowAnimations.IsEmpty())
         {
-            for(int32 I=0;I<FMath::Min(256,BuilderOverlay->Flows.Num());++I){const auto& Flow=BuilderOverlay->Flows[I];auto& Phase=FlowPhases.FindOrAdd(Flow.Key);Phase=Flow.AdvancePhase(Phase,Seconds);}
+            for(auto& Animation:FlowAnimations)Animation.Tick(Seconds);FlowAnimations.RemoveAll([](const auto& A){return A.Heads.IsEmpty();});
             Invalidate(false,false);
         }
     }
@@ -1154,6 +1165,21 @@ bool FCLGlobeLightingTest::RunTest(const FString&)
     }
     TestEqual(TEXT("Full rendered orbit sweep completes"),Frames,36);TestTrue(TEXT("Background remains dark at every orientation"),WorstBackground<100);TestTrue(TEXT("Terrain is never broadly clipped white"),MostClipped<640*480/100);TestTrue(TEXT("Lit terrain is actually rendered at every angle"),LeastTerrain>1000);TestTrue(TEXT("Visible terrain remains legible at fixed exposure"),DarkestCentre>=55);
     AddInfo(FString::Printf(TEXT("Rendered exposure sweep: %d orientations, background blue max %d/255, clipped-white pixels max %d, lit terrain min %d, centre luminance min %d/255"),Frames,WorstBackground,MostClipped,LeastTerrain,DarkestCentre));
+    // Weather uses ordinary world-fixed sunlight with a weaker opposed fill.
+    W->Client->SetViewLocation(FVector(220000,0,0));W->Client->SetViewRotation(FRotator(0,180,0));int32 Luminance[2]={0,0};
+    for(int32 I=0;I<2;++I)
+    {
+        auto O=MakeShared<FCLPlanetBuilderOverlay>();O->SunDirection=I==0?FVector::XAxisVector:-FVector::XAxisVector;W->SetBuilderOverlay(O);W->Scene->UpdateCaptureContents();V->Draw(false);FlushRenderingCommands();TArray<FColor> Pixels;
+        if(TestTrue(TEXT("Rendered solar hemisphere can be read"),V->ReadPixels(Pixels))&&!Pixels.IsEmpty())
+        {
+            const auto C=Pixels[240*640+320];Luminance[I]=int32(.2126*C.R+.7152*C.G+.0722*C.B);
+            TArray<uint8> PNG;FImageUtils::CompressImageArray(640,480,Pixels,PNG);FFileHelper::SaveArrayToFile(PNG,*(FPaths::ProjectSavedDir()/TEXT("Verification")/(I==0?TEXT("weather-day.png"):TEXT("weather-night.png"))));
+        }
+    }
+    TestTrue(TEXT("Sunlit hemisphere is distinctly brighter than night"),Luminance[0]>Luminance[1]+15);TestTrue(TEXT("Night fill keeps shadowed terrain readable"),Luminance[1]>=40);
+    const auto SolarDirection=W->Client->StudioScene->SunDirection;W->Client->StudioScene->AimLights(FRotator(40,90,0));TestTrue(TEXT("Camera orbit never moves the weather sun"),W->Client->StudioScene->SunDirection==SolarDirection);
+    W->SetBuilderOverlay(nullptr);TestFalse(TEXT("Leaving weather restores studio lighting"),W->Client->StudioScene->SunDirection.IsSet());
+    AddInfo(FString::Printf(TEXT("Solar day/night centre luminance: %d / %d"),Luminance[0],Luminance[1]));
     App.RequestDestroyWindow(Window);return true;
 }
 #endif
@@ -2106,33 +2132,62 @@ bool FCLSpatialFamilyEditorTest::RunTest(const FString&)
 void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverlay> Overlay)
 {
     if(!Client)return;
-    if(Overlay&&!Overlay->MeshBodyMeters.IsEmpty()&&!Overlay->MeshIndices.IsEmpty()&&Overlay->MeshBodyMeters.Num()<=8192&&Overlay->MeshColors.Num()==Overlay->MeshBodyMeters.Num()&&Overlay->MeshIndices.Num()<=49152)
+    if(Overlay&&!Overlay->MeshBodyMeters.IsEmpty()&&!Overlay->MeshIndices.IsEmpty()&&Overlay->MeshBodyMeters.Num()<=16384&&Overlay->MeshColors.Num()==Overlay->MeshBodyMeters.Num()&&Overlay->MeshIndices.Num()<=98304)
     {
         if(!BuilderMesh)
         {
             BuilderMesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));BuilderMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);BuilderMesh->SetCastShadow(false);BuilderMesh->bSelectable=false;
             BuilderMaterial.Reset(NewObject<UMaterial>(BuilderMesh.Get()));BuilderMaterial->BlendMode=BLEND_Translucent;BuilderMaterial->SetShadingModel(MSM_Unlit);BuilderMaterial->TwoSided=false;
             auto* Color=NewObject<UMaterialExpressionVertexColor>(BuilderMaterial.Get());BuilderMaterial->GetExpressionCollection().AddExpression(Color);
-            BuilderMaterial->GetEditorOnlyData()->EmissiveColor.Connect(0,Color);BuilderMaterial->GetEditorOnlyData()->EmissiveColor.UseConstant=false;BuilderMaterial->GetEditorOnlyData()->Opacity.UseConstant=true;BuilderMaterial->GetEditorOnlyData()->Opacity.Constant=.18;BuilderMaterial->PostEditChange();
+            auto* Ink=NewObject<UMaterialExpressionEyeAdaptationInverse>(BuilderMaterial.Get());Ink->LightValueInput.Connect(0,Color);BuilderMaterial->GetExpressionCollection().AddExpression(Ink);
+            BuilderMaterial->TranslucencyPass=MTP_BeforeDOF;BuilderMaterial->bEnableResponsiveAA=true;
+            BuilderMaterial->GetEditorOnlyData()->EmissiveColor.Connect(0,Ink);BuilderMaterial->GetEditorOnlyData()->Opacity.Connect(4,Color);BuilderMaterial->PostEditChange();
+            BuilderGroundMaterial.Reset(NewObject<UMaterial>(BuilderMesh.Get()));auto* Ground=BuilderGroundMaterial.Get();
+            Ground->BlendMode=BLEND_Translucent;Ground->SetShadingModel(MSM_DefaultLit);Ground->TranslucencyLightingMode=TLM_SurfacePerPixelLighting;
+            Ground->TranslucencyPass=MTP_BeforeDOF;Ground->bEnableResponsiveAA=true;
+            auto* GroundColor=NewObject<UMaterialExpressionVertexColor>(Ground);Ground->GetExpressionCollection().AddExpression(GroundColor);
+            Ground->GetEditorOnlyData()->BaseColor.Connect(0,GroundColor);Ground->GetEditorOnlyData()->Opacity.Connect(4,GroundColor);
+            Ground->GetEditorOnlyData()->Roughness.UseConstant=true;Ground->GetEditorOnlyData()->Roughness.Constant=.85;
+            Ground->GetEditorOnlyData()->Specular.UseConstant=true;Ground->GetEditorOnlyData()->Specular.Constant=.05;Ground->PostEditChange();BuilderMesh->SetMaterial(1,Ground);
             BuilderMesh->SetMaterial(0,BuilderMaterial.Get());BuilderMesh->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);Scene->AddComponent(BuilderMesh.Get(),FTransform::Identity);
         }
-        using namespace UE::Geometry;FDynamicMesh3 Geometry;Geometry.EnableAttributes();auto* Attributes=Geometry.Attributes();Attributes->EnablePrimaryColors();
+        using namespace UE::Geometry;FDynamicMesh3 Geometry;Geometry.EnableAttributes();auto* Attributes=Geometry.Attributes();Attributes->EnablePrimaryColors();Attributes->EnableMaterialID();
         for(int32 I=0;I<Overlay->MeshBodyMeters.Num();++I)
         {
-            const auto& P=Overlay->MeshBodyMeters[I];const auto& C=Overlay->MeshColors[I];Geometry.AppendVertex(P);Attributes->PrimaryNormals()->AppendElement(FVector3f(P.GetSafeNormal()));Attributes->PrimaryColors()->AppendElement(FVector4f(C.R,C.G,C.B,C.A));
+            const auto& P=Overlay->MeshBodyMeters[I];const auto& C=Overlay->MeshColors[I];Geometry.AppendVertex(P);Attributes->PrimaryNormals()->AppendElement(FVector3f(P.GetSafeNormal()));Attributes->PrimaryColors()->AppendElement(FVector4f(C.R,C.G,C.B,Overlay->bUseMeshOpacity?C.A:.18f));
         }
         for(int32 I=0;I+2<Overlay->MeshIndices.Num();I+=3)
         {
             const int32 A=Overlay->MeshIndices[I],B=Overlay->MeshIndices[I+1],C=Overlay->MeshIndices[I+2];if(!Overlay->MeshBodyMeters.IsValidIndex(A)||!Overlay->MeshBodyMeters.IsValidIndex(B)||!Overlay->MeshBodyMeters.IsValidIndex(C))continue;
             // Payloads use outward mathematical winding; Unreal's visible front face is clockwise.
-            const FIndex3i Triangle(A,C,B);const int32 Id=Geometry.AppendTriangle(Triangle);if(Id>=0){Attributes->PrimaryNormals()->SetTriangle(Id,Triangle);Attributes->PrimaryColors()->SetTriangle(Id,Triangle);}
+            const FIndex3i Triangle(A,C,B);const int32 Id=Geometry.AppendTriangle(Triangle);if(Id>=0){Attributes->PrimaryNormals()->SetTriangle(Id,Triangle);Attributes->PrimaryColors()->SetTriangle(Id,Triangle);Attributes->GetMaterialID()->SetValue(Id,I/3>=Overlay->LitTriangleStart&&I/3<Overlay->LitTriangleStart+Overlay->LitTriangleCount?1:0);}
         }
         BuilderMesh->SetMesh(MoveTemp(Geometry));if(Client->Plan)BuilderMesh->SetWorldScale3D(FVector(100000/Client->Plan->RadiusMeters));BuilderMesh->SetVisibility(true);
     }
     else if(BuilderMesh)BuilderMesh->SetVisibility(false);
-    TMap<uint64,double> Phases;
-    if(Overlay)for(int32 I=0;I<FMath::Min(256,Overlay->Flows.Num());++I){const auto Key=Overlay->Flows[I].Key;Phases.Add(Key,Client->FlowPhases.FindRef(Key));}
-    Client->FlowPhases=MoveTemp(Phases);Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();
+    Client->StudioScene->SunDirection=Overlay?Overlay->SunDirection:TOptional<FVector>();Client->StudioScene->AimLights(Client->GetViewRotation());
+    TArray<FCLPlanetBuilderFlowAnimation> Animations;
+    if(Overlay)
+    {
+        TSet<int32> Used;
+        for(const auto& Flow:Overlay->Flows)
+        {
+            if(Animations.Num()>=256)break;
+            int32 Best=INDEX_NONE;double Score=1.e100;
+            // Match same-pressure loops spatially, not by their extraction order.
+            for(int32 I=0;I<Client->FlowAnimations.Num();++I)
+            {
+                const auto& Old=Client->FlowAnimations[I].Flow;if(Used.Contains(I)||Old.Family!=Flow.Family||Old.BodyMeters.IsEmpty())continue;
+                double D=1.e100;for(const auto& P:Old.BodyMeters)D=FMath::Min(D,(P.GetSafeNormal()-Flow.BodyMeters[0].GetSafeNormal()).SizeSquared());
+                if(D<Score&&D<.25){Best=I;Score=D;}
+            }
+            FCLPlanetBuilderFlowAnimation Animation;if(Best!=INDEX_NONE){Used.Add(Best);Animation=MoveTemp(Client->FlowAnimations[Best]);}
+            Animation.SetFlow(Flow);Animations.Add(MoveTemp(Animation));
+        }
+        for(int32 I=0;I<Client->FlowAnimations.Num()&&Animations.Num()<256;++I)if(!Used.Contains(I))
+        {auto Animation=MoveTemp(Client->FlowAnimations[I]);for(auto& H:Animation.Heads)H.Retiring=true;if(!Animation.Heads.IsEmpty())Animations.Add(MoveTemp(Animation));}
+    }
+    Client->FlowAnimations=MoveTemp(Animations);Client->BuilderOverlay=MoveTemp(Overlay);Client->Invalidate();
 }
 
 

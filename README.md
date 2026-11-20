@@ -104,3 +104,14 @@ The test host and logs are generated outside the plugin. Runtime, editor and
 explicitly loaded automation modules are separate.
 
 Planetary foliage geometry: [tiled surface PCG](Docs/PlanetSurfacePCG.md).
+
+### Planet rotation and ground area
+
+Planet displays Surface area from bounded quadrature of the accepted composed
+exterior ground (64 × 64 cells on each cube face), including relief and underwater
+ground. It excludes cave interiors and is an estimate at that resolution, not a
+sky-boundary sphere area. Measurement runs in the existing cancellable evaluation
+worker and only publishes with its accepted result. Rotation Speed (°/s) and
+Revolution time (hours per full axial turn) edit one persisted
+`RotationPeriodSeconds`, defaulting to 86,400 simulation seconds. Ecosystem's
+Weather preview consumes this clock for its solar lighting and daily temperature.
