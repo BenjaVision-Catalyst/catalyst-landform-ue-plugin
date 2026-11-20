@@ -44,7 +44,7 @@ struct CATALYSTLANDFORMEDITOR_API FCLPlanetBuilderOverlay
     TOptional<FVector> SunDirection;
     /** Otherwise legacy heatmap opacity remains 0.18. */
     bool bUseMeshOpacity=false;
-    /** Optional contiguous triangle range shaded by standard scene lights. Other triangles remain unlit. */
+    /** Optional draped surface-map range, shaded by standard lights and projected over fine terrain. Other triangles remain unlit. */
     int32 LitTriangleStart=0,LitTriangleCount=0;
     /** Optional metric vectors at matching sample indices. At most 512 arrows are drawn. */
     TArray<FVector> BodyVectorsMeters;

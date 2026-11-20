@@ -46,6 +46,8 @@
 #include "DynamicMeshBuilder.h"
 #include "Materials/MaterialExpressionCustom.h"
 #include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionWorldPosition.h"
+#include "Materials/MaterialExpressionCameraPositionWS.h"
 #include "Materials/MaterialExpressionTextureCoordinate.h"
 #include "Materials/MaterialExpressionEyeAdaptationInverse.h"
 
@@ -739,6 +741,7 @@ void SCLPlanetPreview::Tick(const FGeometry& G,double T,float D)
 {
     SEditorViewport::Tick(G,T,D);Pump();
     if(BuilderMesh)BuilderMesh->SetVisibility(Client&&Client->BuilderOverlay&&!Client->BuilderOverlay->MeshIndices.IsEmpty()&&NativePreview&&NativePreview->PublishedPlan()==Client->Plan);
+    if(BuilderGroundMesh)BuilderGroundMesh->SetVisibility(Client&&Client->BuilderOverlay&&Client->BuilderOverlay->LitTriangleCount>0&&NativePreview&&NativePreview->PublishedPlan()==Client->Plan);
     // The globe is covered during walking; do not recapture its lighting every
     // frame alongside the active game viewport. Resume normal preview on return.
     if(!GEditor||!GEditor->PlayWorld)Scene->UpdateCaptureContents();
@@ -2145,26 +2148,60 @@ void SCLPlanetPreview::SetBuilderOverlay(TSharedPtr<const FCLPlanetBuilderOverla
             BuilderGroundMaterial.Reset(NewObject<UMaterial>(BuilderMesh.Get()));auto* Ground=BuilderGroundMaterial.Get();
             Ground->BlendMode=BLEND_Translucent;Ground->SetShadingModel(MSM_DefaultLit);Ground->TranslucencyLightingMode=TLM_SurfacePerPixelLighting;
             Ground->TranslucencyPass=MTP_BeforeDOF;Ground->bEnableResponsiveAA=true;
+            // A sampled surface map is a projection: fine native relief must not punch
+            // holes through its coarser mesh. Outward faces retain hemisphere culling.
+            Ground->bDisableDepthTest=true;
             auto* GroundColor=NewObject<UMaterialExpressionVertexColor>(Ground);Ground->GetExpressionCollection().AddExpression(GroundColor);
-            Ground->GetEditorOnlyData()->BaseColor.Connect(0,GroundColor);Ground->GetEditorOnlyData()->Opacity.Connect(4,GroundColor);
+            auto* GroundInk=NewObject<UMaterialExpressionEyeAdaptationInverse>(Ground);GroundInk->LightValueInput.Connect(0,GroundColor);Ground->GetExpressionCollection().AddExpression(GroundInk);
+            Ground->GetEditorOnlyData()->BaseColor.Connect(0,GroundInk);
+            auto* Position=NewObject<UMaterialExpressionWorldPosition>(Ground);auto* Eye=NewObject<UMaterialExpressionCameraPositionWS>(Ground);
+            auto* Facing=NewObject<UMaterialExpressionCustom>(Ground);Facing->OutputType=CMOT_Float1;Facing->Inputs.Reset();
+            Facing->Code=TEXT("float f=dot(normalize(P),normalize(Eye-P)); return saturate(0.5+f/max(fwidth(f),0.000001));");
+            FCustomInput PInput;PInput.InputName=TEXT("P");PInput.Input.Connect(0,Position);Facing->Inputs.Add(PInput);
+            FCustomInput EInput;EInput.InputName=TEXT("Eye");EInput.Input.Connect(0,Eye);Facing->Inputs.Add(EInput);
+            auto* GroundOpacity=NewObject<UMaterialExpressionMultiply>(Ground);GroundOpacity->A.Connect(4,GroundColor);GroundOpacity->B.Connect(0,Facing);
+            for(auto* Expression:TArray<UMaterialExpression*>{Position,Eye,Facing,GroundOpacity})Ground->GetExpressionCollection().AddExpression(Expression);
+            Ground->GetEditorOnlyData()->Opacity.Connect(0,GroundOpacity);
             Ground->GetEditorOnlyData()->Roughness.UseConstant=true;Ground->GetEditorOnlyData()->Roughness.Constant=.85;
-            Ground->GetEditorOnlyData()->Specular.UseConstant=true;Ground->GetEditorOnlyData()->Specular.Constant=.05;Ground->PostEditChange();BuilderMesh->SetMaterial(1,Ground);
+            Ground->GetEditorOnlyData()->Specular.UseConstant=true;Ground->GetEditorOnlyData()->Specular.Constant=.05;Ground->PostEditChange();
+            BuilderGroundMesh.Reset(NewObject<UDynamicMeshComponent>(GetTransientPackage()));BuilderGroundMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);BuilderGroundMesh->SetCastShadow(false);BuilderGroundMesh->bSelectable=false;
+            BuilderGroundMesh->SetMaterial(0,Ground);BuilderGroundMesh->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);BuilderGroundMesh->SetTranslucentSortPriority(-1);Scene->AddComponent(BuilderGroundMesh.Get(),FTransform::Identity);
             BuilderMesh->SetMaterial(0,BuilderMaterial.Get());BuilderMesh->SetVertexColorSpaceTransformMode(EDynamicMeshVertexColorTransformMode::NoTransform);Scene->AddComponent(BuilderMesh.Get(),FTransform::Identity);
         }
-        using namespace UE::Geometry;FDynamicMesh3 Geometry;Geometry.EnableAttributes();auto* Attributes=Geometry.Attributes();Attributes->EnablePrimaryColors();Attributes->EnableMaterialID();
-        for(int32 I=0;I<Overlay->MeshBodyMeters.Num();++I)
+        using namespace UE::Geometry;
+        TArray<FVector> SurfaceNormals;SurfaceNormals.SetNumZeroed(Overlay->MeshBodyMeters.Num());
+        const int32 Begin=FMath::Clamp(Overlay->LitTriangleStart,0,Overlay->MeshIndices.Num()/3),End=FMath::Clamp(Begin+Overlay->LitTriangleCount,Begin,Overlay->MeshIndices.Num()/3);
+        for(int32 T=Begin;T<End;++T)
         {
-            const auto& P=Overlay->MeshBodyMeters[I];const auto& C=Overlay->MeshColors[I];Geometry.AppendVertex(P);Attributes->PrimaryNormals()->AppendElement(FVector3f(P.GetSafeNormal()));Attributes->PrimaryColors()->AppendElement(FVector4f(C.R,C.G,C.B,Overlay->bUseMeshOpacity?C.A:.18f));
+            const int32 A=Overlay->MeshIndices[T*3],B=Overlay->MeshIndices[T*3+1],C=Overlay->MeshIndices[T*3+2];
+            if(!SurfaceNormals.IsValidIndex(A)||!SurfaceNormals.IsValidIndex(B)||!SurfaceNormals.IsValidIndex(C))continue;
+            const auto N=FVector::CrossProduct(Overlay->MeshBodyMeters[B]-Overlay->MeshBodyMeters[A],Overlay->MeshBodyMeters[C]-Overlay->MeshBodyMeters[A]);SurfaceNormals[A]+=N;SurfaceNormals[B]+=N;SurfaceNormals[C]+=N;
         }
-        for(int32 I=0;I+2<Overlay->MeshIndices.Num();I+=3)
+        auto Build=[&](bool Lit,UDynamicMeshComponent& Component)
         {
-            const int32 A=Overlay->MeshIndices[I],B=Overlay->MeshIndices[I+1],C=Overlay->MeshIndices[I+2];if(!Overlay->MeshBodyMeters.IsValidIndex(A)||!Overlay->MeshBodyMeters.IsValidIndex(B)||!Overlay->MeshBodyMeters.IsValidIndex(C))continue;
-            // Payloads use outward mathematical winding; Unreal's visible front face is clockwise.
-            const FIndex3i Triangle(A,C,B);const int32 Id=Geometry.AppendTriangle(Triangle);if(Id>=0){Attributes->PrimaryNormals()->SetTriangle(Id,Triangle);Attributes->PrimaryColors()->SetTriangle(Id,Triangle);Attributes->GetMaterialID()->SetValue(Id,I/3>=Overlay->LitTriangleStart&&I/3<Overlay->LitTriangleStart+Overlay->LitTriangleCount?1:0);}
-        }
-        BuilderMesh->SetMesh(MoveTemp(Geometry));if(Client->Plan)BuilderMesh->SetWorldScale3D(FVector(100000/Client->Plan->RadiusMeters));BuilderMesh->SetVisibility(true);
+            FDynamicMesh3 Geometry;Geometry.EnableAttributes();auto* Attributes=Geometry.Attributes();Attributes->EnablePrimaryColors();
+            TArray<int32> Remap;Remap.Init(INDEX_NONE,Overlay->MeshBodyMeters.Num());
+            auto Vertex=[&](int32 I)
+            {
+                if(Remap[I]!=INDEX_NONE)return Remap[I];const auto& P=Overlay->MeshBodyMeters[I];const auto& C=Overlay->MeshColors[I];
+                const int32 Id=Geometry.AppendVertex(P);Remap[I]=Id;
+                Attributes->PrimaryNormals()->AppendElement(FVector3f(Lit&&!SurfaceNormals[I].IsNearlyZero()?SurfaceNormals[I].GetSafeNormal():P.GetSafeNormal()));
+                Attributes->PrimaryColors()->AppendElement(FVector4f(C.R,C.G,C.B,Overlay->bUseMeshOpacity?C.A:.18f));return Id;
+            };
+            for(int32 T=0;T<Overlay->MeshIndices.Num()/3;++T)
+            {
+                if((T>=Begin&&T<End)!=Lit)continue;
+                const int32 A=Overlay->MeshIndices[T*3],B=Overlay->MeshIndices[T*3+1],C=Overlay->MeshIndices[T*3+2];
+                if(!Remap.IsValidIndex(A)||!Remap.IsValidIndex(B)||!Remap.IsValidIndex(C))continue;
+                // Payload winding is mathematical; Unreal front faces are clockwise.
+                const FIndex3i Triangle(Vertex(A),Vertex(C),Vertex(B));const int32 Id=Geometry.AppendTriangle(Triangle);
+                if(Id>=0){Attributes->PrimaryNormals()->SetTriangle(Id,Triangle);Attributes->PrimaryColors()->SetTriangle(Id,Triangle);}
+            }
+            const bool Visible=Geometry.TriangleCount()>0;Component.SetMesh(MoveTemp(Geometry));if(Client->Plan)Component.SetWorldScale3D(FVector(100000/Client->Plan->RadiusMeters));Component.SetVisibility(Visible);
+        };
+        Build(false,*BuilderMesh.Get());Build(true,*BuilderGroundMesh.Get());
     }
-    else if(BuilderMesh)BuilderMesh->SetVisibility(false);
+    else{if(BuilderMesh)BuilderMesh->SetVisibility(false);if(BuilderGroundMesh)BuilderGroundMesh->SetVisibility(false);}
     Client->StudioScene->SunDirection=Overlay?Overlay->SunDirection:TOptional<FVector>();Client->StudioScene->AimLights(Client->GetViewRotation());
     TArray<FCLPlanetBuilderFlowAnimation> Animations;
     if(Overlay)

@@ -151,7 +151,7 @@ private:
     void UpdateWatershedDebug();
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;
     TSharedPtr<const FCLWatershedDebugGeometry> PendingWatershedDebug;
-    TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh;
+    TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh,BuilderGroundMesh;
     TStrongObjectPtr<UMaterial> BuilderMaterial,BuilderGroundMaterial;
     bool bOceanVisible=false;
     TStrongObjectPtr<UStaticMeshComponent> Ocean;
