@@ -46,6 +46,7 @@ struct FCLNativePlanetPresentation::FImpl
         uint64 BornFrame = 0;
         float BoundsScale = 1;
         FBox LocalBox{ForceInit};
+        FBox WorldBox{ForceInit};
     };
     struct FCVar
     {
@@ -68,8 +69,14 @@ struct FCLNativePlanetPresentation::FImpl
         int32 CullStart=0,CullEnd=0;
         float AnimationScreenSize=0;
         bool CastShadow=true,TickEnabled=false,TickSuppressed=false;
+        TArray<FVector> InstanceRoots;
+        uint64 TerrainCoverageRevision=MAX_uint64;
+        bool bTerrainCovered=false,bInsideChart=false;
     };
     TArray<FPrimitive> Primitives;
+    TArray<FBox> VisibleTerrain, TerrainScratch;
+    uint64 TerrainCoverageRevision=0;
+    bool bRequireTerrainForScenery=false;
     TWeakObjectPtr<ACLPlanet> Planet;
     TStrongObjectPtr<UMaterialInterface> Material;
     TArray<FMesh> Meshes;
@@ -354,6 +361,7 @@ struct FCLNativePlanetPresentation::FImpl
         }
         M.LocalBox = C.GetStaticMesh()->GetBoundingBox();
         const auto Box = M.LocalBox.TransformBy(M.Transform);
+        M.WorldBox = Box;
         M.BoundsScale = C.BoundsScale;
         const double MinExtent = C.GetStaticMesh()->GetBoundingBox().GetExtent().GetMin() * Scale.GetMin();
         // Public UE bounds scale supplies the coarse scene-culling envelope. The
@@ -407,6 +415,43 @@ struct FCLNativePlanetPresentation::FImpl
             if(!P.Data.IsEmpty()) C->SetCustomPrimitiveDataFloatArray(0,P.Data);
         }
     }
+    void UpdateTerrainCoverage()
+    {
+        if(!bRequireTerrainForScenery) return;
+        // Surface samples and the tessellated native mesh vary slightly at LOD seams.
+        constexpr double PlacementToleranceCm=300.;
+        TerrainScratch.Reset();
+        for(const auto& M:Meshes)
+            if(const auto* C=M.Component.Get(); M.bWasShown && C && C->ShouldRender())
+                TerrainScratch.Add(M.WorldBox.ExpandBy(PlacementToleranceCm));
+        if(TerrainScratch!=VisibleTerrain)
+        {
+            Swap(TerrainScratch,VisibleTerrain);
+            ++TerrainCoverageRevision;
+        }
+    }
+    void ApplySceneryVisibility(FPrimitive& P,UPrimitiveComponent& C)
+    {
+        if(bRequireTerrainForScenery && P.bInsideChart && P.TerrainCoverageRevision!=TerrainCoverageRevision)
+        {
+            // The producer owns the instance batch. Keep it hidden if any root
+            // lacks a submitted terrain tile, so a partial tile cannot expose trees.
+            const FBox* LastTile=nullptr;
+            P.bTerrainCovered=!P.InstanceRoots.IsEmpty();
+            for(const auto& Root:P.InstanceRoots)
+            {
+                if(LastTile && LastTile->IsInsideOrOn(Root)) continue;
+                LastTile=VisibleTerrain.FindByPredicate([&Root](const FBox& Tile){return Tile.IsInsideOrOn(Root);});
+                if(!LastTile)
+                {
+                    P.bTerrainCovered=false;
+                    break;
+                }
+            }
+            P.TerrainCoverageRevision=TerrainCoverageRevision;
+        }
+        C.SetHiddenInGame(P.Hidden || !P.bInsideChart || (bRequireTerrainForScenery && !P.bTerrainCovered));
+    }
     bool PresentPrimitives(FString& Error)
     {
         const FVector Center=Planet->BodyCenterWorld();
@@ -446,7 +491,8 @@ struct FCLNativePlanetPresentation::FImpl
                     {Mixed=true;break;}
                 }
             }
-            C->SetHiddenInGame(P.Hidden||(!Inside&&!Mixed));
+            P.bInsideChart=Inside||Mixed;
+            ApplySceneryVisibility(P,*C);
             if(!Inside&&!Mixed)continue;
             const double DomainRadius=Mixed?P.InstanceMinRadius:MinRadius;
             const float L=float(FMath::Max(1.,Radius/FMath::Max(1.,DomainRadius))*FMath::Max(CurrentRatio,PreviousRatio)+2.e-6);
@@ -588,6 +634,7 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
     I.MaxRadiusRatio=I.bFramed?1.5:Options.MaxRadiusRatio;
     I.Window = Planet.SamplingWindow;
     I.bGameplay = Options.bGameplay;
+    I.bRequireTerrainForScenery = Options.bRequireTerrainForScenery;
     I.bNativeMaterials = Options.bNativeMaterials;
     I.bNativeControl = Options.bNativeControl;
     I.Planet = &Planet;
@@ -634,7 +681,7 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
         if (C->IsRegistered() && C->GetStaticMesh())
             if (!I.Bind(*C, Error))
                 return nullptr;
-    if (I.Meshes.IsEmpty())
+    if (I.Meshes.IsEmpty() && !I.bRequireTerrainForScenery)
     {
         Error = TEXT("No native Nanite meshes are ready");
         return nullptr;
@@ -646,7 +693,17 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
             {
                 FString Why;
                 if (!State->Synchronize(Why)) { State->bContractValid = false; State->LifecycleError = Why; }
-                else for (auto& Mesh : State->Meshes) State->Present(Mesh);
+                else
+                {
+                    for (auto& Mesh : State->Meshes) State->Present(Mesh);
+                    if(State->bRequireTerrainForScenery)
+                    {
+                        State->UpdateTerrainCoverage();
+                        for(auto& Primitive:State->Primitives)
+                            if(auto* Component=Primitive.Component.Get())
+                                State->ApplySceneryVisibility(Primitive,*Component);
+                    }
+                }
             }
         });
     TWeakPtr<FImpl> OriginWeak = Result->Impl;
@@ -669,9 +726,21 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
                     return;
                 }
                 Mesh.Transform = Expected;
+                Mesh.WorldBox = Mesh.LocalBox.TransformBy(Expected);
                 Component->MarkRenderTransformDirty();
                 ++State->OriginTransformPublications;
             }
+            if(State->bRequireTerrainForScenery)
+                for(auto& Primitive:State->Primitives)
+                {
+                    Primitive.Transform.AddToTranslation(Offset);
+                    Primitive.Box=Primitive.Box.ShiftBy(Offset);
+                    for(auto& Domain:Primitive.InstanceDomains)
+                        Domain=Domain.ShiftBy(Offset);
+                    for(auto& Root:Primitive.InstanceRoots)
+                        Root+=Offset;
+                    Primitive.RenderBounds.Init();
+                }
             ++State->OriginOffsetEvents;
         });
     I.SetProfile(TEXT("r.Lumen.DiffuseIndirect.Allow"), TEXT("0"));
@@ -711,6 +780,29 @@ bool FCLNativePlanetPresentation::AddPrimitive(UPrimitiveComponent& C,FString& E
     P.Data=C.GetCustomPrimitiveData().Data; P.BoundsScale=C.BoundsScale;
     P.Hidden=C.bHiddenInGame; P.ShadowBehavior=C.ShadowCacheInvalidationBehavior;
     P.CastShadow=C.CastShadow;
+    if(I.bRequireTerrainForScenery)
+    {
+        C.SetHiddenInGame(true);
+        if(const auto* Skin=Cast<UInstancedSkinnedMeshComponent>(&C))
+        {
+            // PCG may discard the ID map after optimizing its skinned instances.
+            for(const auto& Instance:Skin->GetInstanceData())
+                P.InstanceRoots.Add(P.Transform.TransformPosition(FVector(Instance.Transform.GetTranslation())));
+        }
+        else if(const auto* Static=Cast<UInstancedStaticMeshComponent>(&C))
+        {
+            for(int32 Index=0;Index<Static->GetInstanceCount();++Index)
+            {
+                FTransform Instance;
+                if(!Static->GetInstanceTransform(Index,Instance,true))
+                {
+                    P.InstanceRoots.Reset();
+                    break;
+                }
+                P.InstanceRoots.Add(Instance.GetLocation());
+            }
+        }
+    }
     double Size=0;
     if(const auto* Static=Cast<UStaticMeshComponent>(&C);Static&&Static->GetStaticMesh())Size=Static->GetStaticMesh()->GetBounds().BoxExtent.GetMax()*2;
     if(const auto* Skin=Cast<USkinnedMeshComponent>(&C);Skin&&Skin->GetSkinnedAsset())Size=Skin->GetSkinnedAsset()->GetBounds().BoxExtent.GetMax()*2;
@@ -722,8 +814,8 @@ bool FCLNativePlanetPresentation::AddPrimitive(UPrimitiveComponent& C,FString& E
         if(auto* Skin=Cast<UInstancedSkinnedMeshComponent>(&C);Skin&&Skin->GetSkinnedAsset())
         {
             MeshBounds=Skin->GetSkinnedAsset()->GetBounds().GetBox();
-            for(int32 N=0;N<Skin->GetInstanceCount();++N)
-            {FTransform T;if(!Skin->GetInstanceTransform(Skin->GetInstanceId(N),T,true))continue;const auto V=T.GetLocation()/6400.;const FIntVector Key(FMath::FloorToInt(V.X),FMath::FloorToInt(V.Y),FMath::FloorToInt(V.Z));
+            for(const auto& Instance:Skin->GetInstanceData())
+            {const FTransform T=FTransform(Instance.Transform)*P.Transform;const auto V=T.GetLocation()/6400.;const FIntVector Key(FMath::FloorToInt(V.X),FMath::FloorToInt(V.Y),FMath::FloorToInt(V.Z));
                 const FBox B=MeshBounds.TransformBy(T).ExpandBy(200);auto* Existing=Domains.Find(Key);if(Existing)*Existing+=B;else Domains.Add(Key,B);}
         }
         else if(auto* Static=Cast<UInstancedStaticMeshComponent>(&C);Static&&Static->GetStaticMesh())
@@ -898,6 +990,7 @@ bool FCLNativePlanetPresentation::Tick(const FVector &InAnchor, double Elapsed, 
         Error = TEXT("Stationary render sweep changed active canonical collider identities");
         return false;
     }
+    I.UpdateTerrainCoverage();
     if(!I.PresentPrimitives(Error)) return false;
     I.MinCurvature = FMath::Min(I.MinCurvature, C);
     I.MaxCurvature = FMath::Max(I.MaxCurvature, C);
@@ -932,6 +1025,14 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
     O->SetNumberField(TEXT("sceneryProjectionPackets"),SceneryPackets);
     O->SetNumberField(TEXT("visibleTerrainProjectionPackets"),TerrainPackets);
     O->SetNumberField(TEXT("sceneryComponents"),I.Primitives.Num());
+    if(I.bRequireTerrainForScenery)
+    {
+        int32 TerrainHidden=0;
+        for(const auto& P:I.Primitives)
+            TerrainHidden+=P.bInsideChart && !P.Hidden && !P.bTerrainCovered;
+        O->SetNumberField(TEXT("terrainCoverageTiles"),I.VisibleTerrain.Num());
+        O->SetNumberField(TEXT("sceneryHiddenByTerrain"),TerrainHidden);
+    }
     O->SetBoolField(TEXT("voxelProjectionEnabled"),CVarCLVoxelProjection.GetValueOnGameThread()!=0);
     O->SetBoolField(TEXT("stockVPP"),true);
     O->SetBoolField(TEXT("worldAnchored"), I.bWorldAnchored);

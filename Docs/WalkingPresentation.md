@@ -92,6 +92,13 @@ Unprojected chunks and VPP terrain retain native coarse admission; terrain uses
 the same world-anchor tag but deliberately leaves slot 29 zero. All packet data
 is restored on retirement. There is no global culling bypass or diagnostic toggle.
 
+Render consumers that enable `bRequireTerrainForScenery` bind the camera chart
+while terrain is still streaming. An instanced scenery component is held until
+the native terrain tiles submitted for that frame cover all of its placement
+roots. Coverage is checked again after end-of-frame terrain synchronization.
+It uses canonical tile bounds with a small placement tolerance. Native Nanite
+still resolves view frustum and depth occlusion within the admitted scene.
+
 At a fixed 2K walking pose, repeated uncorrected canopy captures changed more
 than 10 RGB8 levels in 3.8–4.3% of crop pixels per adjacent frame. Corrected
 captures measured about 0.1%; the large group dropout returned when the old chunk

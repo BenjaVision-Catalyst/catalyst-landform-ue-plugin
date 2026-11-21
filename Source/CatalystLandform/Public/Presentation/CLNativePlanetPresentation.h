@@ -12,6 +12,7 @@ struct FCLNanitePresentationOptions
 {
     bool bWorldAnchored = false, bConsoleCurvature = true;
     bool bGameplay = false, bNativeMaterials = false, bNativeControl = false, bSweep = false, bFixed = false;
+    bool bRequireTerrainForScenery = false;
     double InitialCurvature = 1;
     double MaxArcRadians = UE_PI / 3;
     double MinRadiusRatio = .6, MaxRadiusRatio = 1.3;
