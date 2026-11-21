@@ -14,16 +14,17 @@ TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeome
     return BuildAnalyzed(Plan, Plan.Watershed, Control, bIncludeDrainagePaths);
 }
 
-TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::BuildMeasuredSurface(
+TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::BuildUnconditionedSurface(
     const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control)
 {
-    if (!Plan.MeasuredTerrain || !Plan.SourceRecipe || (Control && Control->Cancelled.load()))
+    if (!Plan.SourceRecipe || (Control && Control->Cancelled.load()) ||
+        (Plan.Coordinates!=ECLTerrainCoordinates::Sphere && Plan.Coordinates!=ECLTerrainCoordinates::SphericalSurface))
         return nullptr;
     FString Error;
     auto Analysis=FCLCompiledWatershed::Compile(Plan.SourceRecipe->Watershed,Plan,Error,false);
     if (!Analysis)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Measured watershed analysis failed: %s"), *Error);
+        UE_LOG(LogTemp, Warning, TEXT("Unconditioned watershed analysis failed: %s"), *Error);
         return nullptr;
     }
     return BuildAnalyzed(Plan, Analysis, Control, false);
