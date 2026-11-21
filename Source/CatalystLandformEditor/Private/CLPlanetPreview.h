@@ -9,7 +9,7 @@
 #include "Model/CLRegionGeneration.h"
 #include "UnrealWidgetFwd.h"
 struct FCLPlanetBuilderOverlay;
-struct FCLWatershedDebugGeometry;
+struct FCLWatershedPresentationGeometry;
 void CLRegisterGlobePlacementMode();
 void CLUnregisterGlobePlacementMode();
 DECLARE_DELEGATE_TwoParams(FOnCLGlobePlacementCommitted,const FCLGlobePlacementTarget&,bool);
@@ -48,7 +48,7 @@ public:
     SLATE_BEGIN_ARGS(SCLPlanetPreview){} SLATE_EVENT(FOnCLGlobePlacementCommitted,OnPlacementCommitted) SLATE_EVENT(FOnCLGlobeRegionSelected,OnRegionSelected) SLATE_EVENT(FOnCLGlobeSelectionChanged,OnSelectionChanged) SLATE_EVENT(FSimpleDelegate,OnWalkRequested) SLATE_EVENT(FSimpleDelegate,OnDeleteSelection) SLATE_EVENT(FOnKeyDown,OnEditorKeyDown) SLATE_END_ARGS()
     void Construct(const FArguments&);
     virtual ~SCLPlanetPreview();
-    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug=nullptr,bool PreserveWalk=false);
+    void Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedPresentationGeometry> Debug=nullptr,bool PreserveWalk=false);
     bool IsSurfaceReady(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)const;
     void SetGlobeGrid(bool Visible);
     bool IsGlobeGridVisible()const;
@@ -151,7 +151,7 @@ private:
     void UpdateOcean();
     void UpdateWatershedDebug();
     TSharedPtr<const FCLCompiledPlanetRecipe> PendingDebugPlan,DisplayedDebugPlan;
-    TSharedPtr<const FCLWatershedDebugGeometry> PendingWatershedDebug;
+    TSharedPtr<const FCLWatershedPresentationGeometry> PendingWatershedDebug;
     TStrongObjectPtr<UDynamicMeshComponent> DebugWater,BuilderMesh,BuilderPoints,GeographicMesh;
     TStrongObjectPtr<UMaterial> BuilderMaterial,BuilderPointMaterial,GeographicTextMaterial;
     TStrongObjectPtr<UTextRenderComponent> PoleLabels[2];

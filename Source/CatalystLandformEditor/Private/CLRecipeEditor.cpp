@@ -691,7 +691,7 @@ class FCLRecipeToolkit : public FCFModelEditorToolkit
     TSharedPtr<IPropertyHandle> RegionProperties;
     double GroundAreaSquareMeters=0;
     TSharedPtr<const FCLCompiledPlanetRecipe> AcceptedSurfacePlan;
-    TSharedPtr<const FCLWatershedDebugGeometry> AcceptedWatershedDebug;
+    TSharedPtr<const FCLWatershedPresentationGeometry> AcceptedWatershedDebug;
     FCLRecipeEvaluation Evaluation;
     TSharedPtr<const FCLPreparedPlanetCompile> PreparedEdit;
     TOptional<FCLPlanetRecipe> PreparedEditRecipe,RequestedRecipe;
@@ -2849,7 +2849,7 @@ bool FCLWatershedRenderedTest::RunTest(const FString&)
             }
             if(++Index==6)return Close();FString J,E;FFileHelper::LoadFileToString(J,*(IPluginManager::Get().FindPlugin(TEXT("CatalystLandform"))->GetBaseDir()/(Index>=4?TEXT("Examples/WatershedContinental.json"):TEXT("Examples/Watershed.json"))));
             TStrongObjectPtr<UCLPlanetRecipeAsset> A(NewObject<UCLPlanetRecipeAsset>());if(!A->ImportRecipeJson(J,E)){Test->AddError(E);return Close();}auto R=A->Recipe;R.Watershed.bEnabled=Index!=0;R.Watershed.ApplyProgression(Index==1?0:Index==3||Index==5?1:.5);const auto P=FCLPlanetCompiler::Compile(R,E);if(!P){Test->AddError(E);return Close();}
-            Globe->Rebuild(P,FCLWatershedDebugGeometry::Build(*P));Globe->Frame();Globe->SetWatershedOverlay(Index==1||Index==2||Index==4);if(Index>=2&&Index!=4)Test->TestTrue(TEXT("A generated graded reach can be focused for inspection/walking"),Globe->FocusWatershed());Section->Rebuild(P);Started=Now;Stable=0;return false;
+            Globe->Rebuild(P,FCLWatershedPresentationGeometry::Build(*P));Globe->Frame();Globe->SetWatershedOverlay(Index==1||Index==2||Index==4);if(Index>=2&&Index!=4)Test->TestTrue(TEXT("A generated graded reach can be focused for inspection/walking"),Globe->FocusWatershed());Section->Rebuild(P);Started=Now;Stable=0;return false;
         }
     };
     FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FReview>(this,Globe,Section,Window,Content));return true;

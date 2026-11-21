@@ -22,7 +22,14 @@ bool FCLWatershedDebugGeometryTest::RunTest(const FString&)
 {
     FString Error;auto R=CLWatershedDebugRecipe(Error);if(!Error.IsEmpty()){AddError(Error);return false;}
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
-    const auto D=FCLWatershedDebugGeometry::Build(*P);if(!TestTrue(TEXT("Accepted drainage produces debug geometry"),D.IsValid()))return false;
+    const auto D=FCLWatershedPresentationGeometry::Build(*P);if(!TestTrue(TEXT("Accepted drainage produces debug geometry"),D.IsValid()))return false;
+    const auto Play=FCLWatershedPresentationGeometry::Build(*P,nullptr,false);
+    if(!TestTrue(TEXT("Gameplay uses the same accepted geometry"),Play.IsValid()))return false;
+    TestEqual(TEXT("Gameplay gets the same surface triangles"),Play->Water.TriangleCount(),D->Water.TriangleCount());
+    TestEqual(TEXT("Gameplay gets the same refined shores"),Play->Shores.Num(),D->Shores.Num());
+    TestTrue(TEXT("Gameplay skips editor drainage lines"),Play->Paths.IsEmpty());
+    for(const auto& WaterBody:Play->Bodies)if(WaterBody.Triangles>0)
+        TestTrue(TEXT("A rendered water body has a wet interior sample"),WaterBody.MaximumDepthMeters>0&&WaterBody.InteriorDirection.IsNormalized());
     TestTrue(TEXT("Native mesh is topologically valid"),D->Water.CheckValidity({},UE::Geometry::EValidityCheckFailMode::ReturnOnly));
     TestTrue(TEXT("Ocean and lakes have filled surfaces and shore boundaries"),D->Bodies.Num()>=3&&D->Bodies[0].Triangles>0&&D->Shores.Num()>0);
     TSet<int64> Levels;int32 LakeTriangles=0;for(int32 I=1;I<D->Bodies.Num();++I)if(D->Bodies[I].Triangles){Levels.Add(FMath::RoundToInt64(D->Bodies[I].HeightMeters*1000));LakeTriangles+=D->Bodies[I].Triangles;}
@@ -47,12 +54,12 @@ bool FCLWatershedDebugGeometryTest::RunTest(const FString&)
         P->SampleHeightsMeters(Directions,Heights);for(int32 I=0;I<Heights.Num();++I)DrapeError=FMath::Max(DrapeError,FMath::Abs(Path.Curve.Points[I].OutVal.Size()-P->RadiusMeters-Heights[I]-.05));
     }
     TestEqual(TEXT("Spline chains cover every selected drainage edge exactly once"),Count,D->RoutingEdges);TestTrue(TEXT("River paths sample the native surface"),DrapeError<1.e-7);
-    FCLCompileProgress Cancel;Cancel.Cancelled=true;TestFalse(TEXT("Superseded debug work cancels"),FCLWatershedDebugGeometry::Build(*P,&Cancel).IsValid());
-    auto Dry=R;Dry.Watershed.bEnabled=false;const auto Off=FCLPlanetCompiler::Compile(Dry,Error);TestTrue(TEXT("Disabled Watershed creates no debug water"),Off&&!FCLWatershedDebugGeometry::Build(*Off));
+    FCLCompileProgress Cancel;Cancel.Cancelled=true;TestFalse(TEXT("Superseded debug work cancels"),FCLWatershedPresentationGeometry::Build(*P,&Cancel).IsValid());
+    auto Dry=R;Dry.Watershed.bEnabled=false;const auto Off=FCLPlanetCompiler::Compile(Dry,Error);TestTrue(TEXT("Disabled Watershed creates no debug water"),Off&&!FCLWatershedPresentationGeometry::Build(*Off));
     auto Constant=R;Constant.BaseStructure.Reset();Constant.BaseSurfaceNormalized=.5;
-    const auto Ocean=FCLPlanetCompiler::Compile(Constant,Error);const auto OceanDebug=Ocean?FCLWatershedDebugGeometry::Build(*Ocean):nullptr;
+    const auto Ocean=FCLPlanetCompiler::Compile(Constant,Error);const auto OceanDebug=Ocean?FCLWatershedPresentationGeometry::Build(*Ocean):nullptr;
     TestTrue(TEXT("All-ocean debug is closed and contains no invented shores or rivers"),OceanDebug&&OceanDebug->Bodies[0].Triangles>0&&OceanDebug->Shores.IsEmpty()&&OceanDebug->Paths.IsEmpty()&&OceanDebug->Water.CheckValidity({},UE::Geometry::EValidityCheckFailMode::ReturnOnly));
-    Constant.BaseSurfaceNormalized=.99;const auto Land=FCLPlanetCompiler::Compile(Constant,Error);const auto LandDebug=Land?FCLWatershedDebugGeometry::Build(*Land):nullptr;
+    Constant.BaseSurfaceNormalized=.99;const auto Land=FCLPlanetCompiler::Compile(Constant,Error);const auto LandDebug=Land?FCLWatershedPresentationGeometry::Build(*Land):nullptr;
     TestTrue(TEXT("All-land closed-terminal profiles invent no water surface"),LandDebug&&LandDebug->Water.TriangleCount()==0&&LandDebug->Shores.IsEmpty());
     AddInfo(FString::Printf(TEXT("%d water triangles; %d bodies; %d shore segments; %d paths / %d edges; shore error %.6f m; %.3f s"),D->Water.TriangleCount(),D->Bodies.Num(),D->Shores.Num(),D->Paths.Num(),Count,ShoreError,D->Seconds));return true;
 }

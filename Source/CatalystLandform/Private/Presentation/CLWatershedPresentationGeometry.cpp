@@ -1,4 +1,4 @@
-#include "CLWatershedDebug.h"
+#include "Presentation/CLWatershedPresentationGeometry.h"
 #include "DynamicMesh/DynamicMeshAttributeSet.h"
 #include "DynamicMeshEditor.h"
 #include "Model/CLWatershed.h"
@@ -9,10 +9,10 @@ uint64 Edge(int32 A,int32 B){return uint64(FMath::Min(A,B))<<32|uint32(FMath::Ma
 struct FClip {FVector D;double Depth;int32 Vertex;};
 struct FCrossing {int32 Vertex,Body;FVector Wet,Dry;};
 }
-TSharedPtr<const FCLWatershedDebugGeometry> FCLWatershedDebugGeometry::Build(const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control)
+TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::Build(const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control, bool bIncludeDrainagePaths)
 {
     if(!Plan.Watershed)return nullptr;
-    const double Start=FPlatformTime::Seconds();auto Out=MakeShared<FCLWatershedDebugGeometry>();Out->Source=Plan.Watershed;
+    const double Start=FPlatformTime::Seconds();auto Out=MakeShared<FCLWatershedPresentationGeometry>();Out->Source=Plan.Watershed;
     const auto& W=*Plan.Watershed;const auto& Cells=W.GetCells();const auto& Faces=W.GetTriangles();
     const auto* Sea=Plan.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("OceanHeight");});if(!Sea)return nullptr;
     auto Cancelled=[&]{return Control&&Control->Cancelled.load();};
@@ -26,6 +26,17 @@ TSharedPtr<const FCLWatershedDebugGeometry> FCLWatershedDebugGeometry::Build(con
         for(int32 K=0;K<Queue.Num();++K)for(int32 J:Cells[Queue[K]].Neighbours)
             if(Body[J]<0&&Cells[J].bLake&&FMath::Abs(Cells[J].SpillMeters-Level)<1.e-6){Body[J]=Id;Queue.Add(J);}
         Out->Bodies.Add({Level,false,Queue.Num(),0});
+    }
+    for (int32 I=0; I<Cells.Num(); ++I)
+    {
+        if (Body[I]==INDEX_NONE) continue;
+        auto& WaterBody=Out->Bodies[Body[I]];
+        const double Depth=WaterBody.HeightMeters-Cells[I].HeightMeters;
+        if (Depth>WaterBody.MaximumDepthMeters)
+        {
+            WaterBody.MaximumDepthMeters=Depth;
+            WaterBody.InteriorDirection=Cells[I].Direction;
+        }
     }
     Out->Water.EnableAttributes();Out->Water.Attributes()->SetNumNormalLayers(1);
     struct FMaps {TMap<int32,int32> Vertices;TMap<uint64,int32> Edges;};
@@ -86,42 +97,45 @@ TSharedPtr<const FCLWatershedDebugGeometry> FCLWatershedDebugGeometry::Build(con
     for(const auto& C:Crossings){const FVector D=(C.Wet+C.Dry).GetSafeNormal();Out->Water.SetVertex(C.Vertex,D*(Plan.RadiusMeters+Out->Bodies[C.Body].HeightMeters));Out->Water.Attributes()->PrimaryNormals()->SetElement(C.Vertex,FVector3f(D));}
     for(const auto& S:ShoreIndices)Out->Shores.Add({Out->Water.GetVertex(S.X),Out->Water.GetVertex(S.Y),S.Z});
 
-    TSet<uint64> Channels;for(const auto& E:W.GetChannels())Channels.Add(Edge(E.From,E.To));
-    TArray<int32> Next,Incoming;Next.Init(INDEX_NONE,Cells.Num());Incoming.Init(0,Cells.Num());
-    for(int32 I=0;I<Cells.Num();++I)if(!Cells[I].bOcean&&!Cells[I].bLake&&Cells[I].Receiver>=0&&Cells[I].AccumulatedAreaSquareMeters>=Plan.SourceRecipe->Watershed.ChannelAreaSquareMeters)
-    {Next[I]=Cells[I].Receiver;++Incoming[Next[I]];++Out->RoutingEdges;}
-    TBitArray<> Seen(false,Cells.Num());
-    auto Trace=[&](int32 First)
+    if (bIncludeDrainagePaths)
     {
-        FPath P;P.Channel=Channels.Contains(Edge(First,Next[First]));P.Cells.Add(First);int32 I=First;
-        while(Next[I]>=0&&!Seen[I]){Seen[I]=true;const int32 J=Next[I];P.Cells.Add(J);if(Next[J]<0||Incoming[J]!=1||Channels.Contains(Edge(J,Next[J]))!=P.Channel)break;I=J;}
-        Out->Paths.Add(MoveTemp(P));
-    };
-    for(int32 I=0;I<Cells.Num();++I)if(Next[I]>=0&&!Seen[I]&&Incoming[I]!=1)Trace(I);
-    for(int32 I=0;I<Cells.Num();++I)if(Next[I]>=0&&!Seen[I])Trace(I);
-    TArray<FVector> D;TArray<int32> Starts;
-    for(const auto& P:Out->Paths)
-    {
-        Starts.Add(D.Num());D.Add(Cells[P.Cells[0]].Direction);
-        for(int32 K=1;K<P.Cells.Num();++K)
+        TSet<uint64> Channels;for(const auto& E:W.GetChannels())Channels.Add(Edge(E.From,E.To));
+        TArray<int32> Next,Incoming;Next.Init(INDEX_NONE,Cells.Num());Incoming.Init(0,Cells.Num());
+        for(int32 I=0;I<Cells.Num();++I)if(!Cells[I].bOcean&&!Cells[I].bLake&&Cells[I].Receiver>=0&&Cells[I].AccumulatedAreaSquareMeters>=Plan.SourceRecipe->Watershed.ChannelAreaSquareMeters)
+        {Next[I]=Cells[I].Receiver;++Incoming[Next[I]];++Out->RoutingEdges;}
+        TBitArray<> Seen(false,Cells.Num());
+        auto Trace=[&](int32 First)
         {
-            const int32 A=P.Cells[K-1],B=P.Cells[K];FVector End=Cells[B].Direction;
-            if(Body[B]>=0)if(const auto* V=Maps[Body[B]].Edges.Find(Edge(A,B)))End=Out->Water.GetVertex(*V).GetSafeNormal();
-            for(int32 S=1;S<=4;++S)D.Add(FMath::Lerp(Cells[A].Direction,End,S/4.).GetSafeNormal());
+            FPath P;P.Channel=Channels.Contains(Edge(First,Next[First]));P.Cells.Add(First);int32 I=First;
+            while(Next[I]>=0&&!Seen[I]){Seen[I]=true;const int32 J=Next[I];P.Cells.Add(J);if(Next[J]<0||Incoming[J]!=1||Channels.Contains(Edge(J,Next[J]))!=P.Channel)break;I=J;}
+            Out->Paths.Add(MoveTemp(P));
+        };
+        for(int32 I=0;I<Cells.Num();++I)if(Next[I]>=0&&!Seen[I]&&Incoming[I]!=1)Trace(I);
+        for(int32 I=0;I<Cells.Num();++I)if(Next[I]>=0&&!Seen[I])Trace(I);
+        TArray<FVector> D;TArray<int32> Starts;
+        for(const auto& P:Out->Paths)
+        {
+            Starts.Add(D.Num());D.Add(Cells[P.Cells[0]].Direction);
+            for(int32 K=1;K<P.Cells.Num();++K)
+            {
+                const int32 A=P.Cells[K-1],B=P.Cells[K];FVector End=Cells[B].Direction;
+                if(Body[B]>=0)if(const auto* V=Maps[Body[B]].Edges.Find(Edge(A,B)))End=Out->Water.GetVertex(*V).GetSafeNormal();
+                for(int32 S=1;S<=4;++S)D.Add(FMath::Lerp(Cells[A].Direction,End,S/4.).GetSafeNormal());
+            }
         }
-    }
-    TArray<double> H;H.SetNumUninitialized(D.Num());
-    for(int32 I=0;I<D.Num();I+=512)
-    {
-        if(Cancelled())return nullptr;Progress(I,D.Num());const int32 N=FMath::Min(512,D.Num()-I);TArray<double> Heights;
-        Plan.SampleHeightsMeters(MakeArrayView(D.GetData()+I,N),Heights);for(int32 K=0;K<N;++K)H[I+K]=Heights[K];
-    }
-    Starts.Add(D.Num());
-    for(int32 I=0;I<Out->Paths.Num();++I)for(int32 K=Starts[I];K<Starts[I+1];++K)
-    {
-        const int32 Key=Out->Paths[I].Curve.AddPoint(float(K-Starts[I]),D[K]*(Plan.RadiusMeters+H[K]+.05));
-        // Native linear spline interpolation preserves the draped route; unconstrained cubic curves can cross ridges.
-        Out->Paths[I].Curve.Points[Key].InterpMode=CIM_Linear;
+        TArray<double> H;H.SetNumUninitialized(D.Num());
+        for(int32 I=0;I<D.Num();I+=512)
+        {
+            if(Cancelled())return nullptr;Progress(I,D.Num());const int32 N=FMath::Min(512,D.Num()-I);TArray<double> Heights;
+            Plan.SampleHeightsMeters(MakeArrayView(D.GetData()+I,N),Heights);for(int32 K=0;K<N;++K)H[I+K]=Heights[K];
+        }
+        Starts.Add(D.Num());
+        for(int32 I=0;I<Out->Paths.Num();++I)for(int32 K=Starts[I];K<Starts[I+1];++K)
+        {
+            const int32 Key=Out->Paths[I].Curve.AddPoint(float(K-Starts[I]),D[K]*(Plan.RadiusMeters+H[K]+.05));
+            // Native linear spline interpolation preserves the draped route; unconstrained cubic curves can cross ridges.
+            Out->Paths[I].Curve.Points[Key].InterpMode=CIM_Linear;
+        }
     }
     // Clipped wet regions can touch only at a saddle vertex. Use UE's native
     // fan split to retain their positions while making every water patch manifold.

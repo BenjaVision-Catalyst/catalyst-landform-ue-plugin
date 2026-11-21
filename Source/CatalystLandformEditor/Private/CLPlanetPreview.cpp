@@ -499,7 +499,7 @@ public:
         }
     }
     bool bWatershedOverlay=false;
-    TSharedPtr<const FCLWatershedDebugGeometry> WatershedDebug;
+    TSharedPtr<const FCLWatershedPresentationGeometry> WatershedDebug;
     TSharedPtr<const FCLCompiledPlanetRecipe> DebugPlan;
     int32 LastWatershedSegments=0;
     bool CanDrawWatershed()const
@@ -752,7 +752,7 @@ void SCLPlanetPreview::CreateReferenceMeshForTesting()
 TSharedRef<FEditorViewportClient> SCLPlanetPreview::MakeEditorViewportClient(){Client=MakeShared<FCLGlobeClient>(Scene.Get(),SharedThis(this));return Client.ToSharedRef();}
 bool SCLPlanetPreview::IsSurfaceReady(const TSharedPtr<const FCLCompiledPlanetRecipe>& Plan)const
 {return NativePreview&&NativePreview->PublishedPlan()==Plan&&!NativePreview->IsUpdating()&&Client->DrawnSurfacePlan==Plan&&GFrameCounter>Client->SurfaceDrawFrame+1;}
-void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedDebugGeometry> Debug,bool PreserveWalk)
+void SCLPlanetPreview::Rebuild(TSharedPtr<const FCLCompiledPlanetRecipe> Plan,TSharedPtr<const FCLWatershedPresentationGeometry> Debug,bool PreserveWalk)
 {
     if(!Plan){Cancel();return;}
     CancelPlayerDrag();if(!PreserveWalk)WalkSurfacePoint.Reset();Client->Plan=Plan;Client->UpdateGlobeGrid();PendingDebugPlan=Plan;PendingWatershedDebug=MoveTemp(Debug);
@@ -1956,7 +1956,7 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
     FSlateApplication::Get().AddWindow(Window,true);Window->SlatePrepass();
     struct FState
     {
-        FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;TSharedPtr<const FCLWatershedDebugGeometry> Debug;
+        FCLRecipeEvaluation Evaluation;TSharedPtr<const FCLCompiledPlanetRecipe> Plan;TSharedPtr<const FCLWatershedPresentationGeometry> Debug;
         int32 Phase=0,Frame=0,Busy=0;uint32 World=0;const void* Runtime=nullptr;FCLNativePreview::FMetrics Metrics;
         double Start=FPlatformTime::Seconds(),Stable=0,Last=0,MaxInputMs=0;TArray<double> Frames;TArray<FColor> Off;
     };
@@ -2001,7 +2001,7 @@ bool FCLWatershedDebugRenderedTest::RunTest(const FString&)
         {
             TArray<FColor> On;Capture(TEXT("ocean"),&On);double Difference=0;for(int32 I=0;I<FMath::Min(On.Num(),S.Off.Num());++I)Difference+=FMath::Abs(int32(On[I].B)-S.Off[I].B)+FMath::Abs(int32(On[I].R)-S.Off[I].R)+FMath::Abs(int32(On[I].G)-S.Off[I].G);
             Difference/=FMath::Max(1,On.Num()*3);TestTrue(TEXT("Transparent water and debug lines visibly change the same-camera native frame"),Difference>.3);
-            const auto PathsOnly=MakeShared<FCLWatershedDebugGeometry>(*S.Debug);PathsOnly->Shores.Reset();W->Client->WatershedDebug=PathsOnly;W->DebugWater->SetVisibility(false);
+            const auto PathsOnly=MakeShared<FCLWatershedPresentationGeometry>(*S.Debug);PathsOnly->Shores.Reset();W->Client->WatershedDebug=PathsOnly;W->DebugWater->SetVisibility(false);
             TArray<FColor> PathPixels;Capture(TEXT("paths-only"),&PathPixels);
             auto Cyan=[](const TArray<FColor>& Pixels){int32 Count=0;for(const auto& P:Pixels)Count+=P.R<180&&P.G>180&&P.B>180;return Count;};
             TestTrue(TEXT("Native spline paths themselves render with legible pixel widths"),Cyan(PathPixels)>Cyan(S.Off)+50);

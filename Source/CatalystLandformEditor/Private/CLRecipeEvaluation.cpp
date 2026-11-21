@@ -104,7 +104,7 @@ void FCLRecipeEvaluation::Launch(TSharedPtr<FCLRecipeEvaluationResult> Surface)
             else R->Error=TEXT("Native input preparation failed");
             if(R->Plan&&!R->SurfaceOnly&&!Control->Cancelled.load())Measure(*R,Control);
             if(R->Plan&&!R->SurfaceOnly&&R->Plan->Watershed&&!Control->Cancelled.load())
-            {Control->Stage=ECLCompileStage::Presentation;Control->Work=0;R->WatershedDebug=FCLWatershedDebugGeometry::Build(*R->Plan,&Control.Get());}
+            {Control->Stage=ECLCompileStage::Presentation;Control->Work=0;R->WatershedDebug=FCLWatershedPresentationGeometry::Build(*R->Plan,&Control.Get());}
             R->Seconds=FPlatformTime::Seconds()-Start;return R;
         },UE::Tasks::ETaskPriority::BackgroundNormal);
         LiveEvaluations.Add({Task,Control});

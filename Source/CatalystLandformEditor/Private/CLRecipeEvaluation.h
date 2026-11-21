@@ -3,13 +3,13 @@
 #include "Model/CLPlanetRecipe.h"
 #include "Model/CLCompileProgress.h"
 #include "Tasks/Task.h"
-struct FCLWatershedDebugGeometry;
+struct FCLWatershedPresentationGeometry;
 struct FCLRecipeEvaluationResult
 {
     uint64 Serial=0;
     FCLPlanetRecipe Recipe;
     TSharedPtr<const FCLCompiledPlanetRecipe> Plan;
-    TSharedPtr<const FCLWatershedDebugGeometry> WatershedDebug;
+    TSharedPtr<const FCLWatershedPresentationGeometry> WatershedDebug;
     FString Error;
     TArray<FVector2D> Elevation;
     FString ElevationReadout;
