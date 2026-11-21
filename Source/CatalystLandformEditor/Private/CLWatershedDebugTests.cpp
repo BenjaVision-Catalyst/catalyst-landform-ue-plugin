@@ -23,6 +23,10 @@ bool FCLWatershedDebugGeometryTest::RunTest(const FString&)
     FString Error;auto R=CLWatershedDebugRecipe(Error);if(!Error.IsEmpty()){AddError(Error);return false;}
     const auto P=FCLPlanetCompiler::Compile(R,Error);if(!P){AddError(Error);return false;}
     const auto D=FCLWatershedPresentationGeometry::Build(*P);if(!TestTrue(TEXT("Accepted drainage produces debug geometry"),D.IsValid()))return false;
+    const auto ReadOnly=FCLCompiledWatershed::Compile(R.Watershed,*P,Error,false);
+    if(!TestTrue(TEXT("Read-only watershed analysis resolves wet cells"),ReadOnly.IsValid()&&ReadOnly->OceanCells>0))return false;
+    TestEqual(TEXT("Read-only analysis conditions no terrain"),ReadOnly->ConditionedReaches,0);
+    TestEqual(TEXT("Read-only sampling preserves source height"),ReadOnly->MapHeight(FVector::ZAxisVector,-25.),-25.);
     const auto Play=FCLWatershedPresentationGeometry::Build(*P,nullptr,false);
     if(!TestTrue(TEXT("Gameplay uses the same accepted geometry"),Play.IsValid()))return false;
     TestEqual(TEXT("Gameplay gets the same surface triangles"),Play->Water.TriangleCount(),D->Water.TriangleCount());

@@ -11,9 +11,31 @@ struct FCrossing {int32 Vertex,Body;FVector Wet,Dry;};
 }
 TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::Build(const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control, bool bIncludeDrainagePaths)
 {
-    if(!Plan.Watershed)return nullptr;
-    const double Start=FPlatformTime::Seconds();auto Out=MakeShared<FCLWatershedPresentationGeometry>();Out->Source=Plan.Watershed;
-    const auto& W=*Plan.Watershed;const auto& Cells=W.GetCells();const auto& Faces=W.GetTriangles();
+    return BuildAnalyzed(Plan, Plan.Watershed, Control, bIncludeDrainagePaths);
+}
+
+TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::BuildMeasuredSurface(
+    const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control)
+{
+    if (!Plan.MeasuredTerrain || !Plan.SourceRecipe || (Control && Control->Cancelled.load()))
+        return nullptr;
+    FString Error;
+    auto Analysis=FCLCompiledWatershed::Compile(Plan.SourceRecipe->Watershed,Plan,Error,false);
+    if (!Analysis)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Measured watershed analysis failed: %s"), *Error);
+        return nullptr;
+    }
+    return BuildAnalyzed(Plan, Analysis, Control, false);
+}
+
+TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::BuildAnalyzed(
+    const FCLCompiledPlanetRecipe& Plan,const TSharedPtr<const FCLCompiledWatershed>& Analysis,
+    FCLCompileProgress* Control,bool bIncludeDrainagePaths)
+{
+    if(!Analysis||(Control&&Control->Cancelled.load()))return nullptr;
+    const double Start=FPlatformTime::Seconds();auto Out=MakeShared<FCLWatershedPresentationGeometry>();Out->Source=Analysis;
+    const auto& W=*Analysis;const auto& Cells=W.GetCells();const auto& Faces=W.GetTriangles();
     const auto* Sea=Plan.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("OceanHeight");});if(!Sea)return nullptr;
     auto Cancelled=[&]{return Control&&Control->Cancelled.load();};
     auto Progress=[&](uint32 Done,uint32 Total){if(Control)Control->Work=(uint64(Total)<<32)|Done;};

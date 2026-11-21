@@ -37,7 +37,9 @@ struct CATALYSTLANDFORM_API FCLWatershedChannel {int32 From=0,To=0;};
 class CATALYSTLANDFORM_API FCLCompiledWatershed final
 {
 public:
-    static TSharedPtr<const FCLCompiledWatershed> Compile(const FCLWatershedSettings&,const FCLCompiledPlanetRecipe&,FString& Error);
+    /** Read-only analysis leaves source elevations intact when conditioning is disabled. */
+    static TSharedPtr<const FCLCompiledWatershed> Compile(const FCLWatershedSettings&,
+        const FCLCompiledPlanetRecipe&,FString& Error,bool bConditionTerrain=true);
     double MapHeight(const FVector& Direction,double NativeHeight) const;
     /** Coherent native query packets reuse exact watertight triangle tests;
      * strict interior hits only, with the original tree deciding all seams. */

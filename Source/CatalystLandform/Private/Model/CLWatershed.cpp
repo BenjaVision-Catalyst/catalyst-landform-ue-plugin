@@ -35,7 +35,7 @@ struct FQueue {double Value=0;int32 Id=0;};
 struct FQueueLess {bool operator()(const FQueue& A,const FQueue& B)const{return A.Value==B.Value?A.Id<B.Id:A.Value<B.Value;}};
 double Arc(const FVector& A,const FVector& B){return FMath::Acos(FMath::Clamp(FVector::DotProduct(A,B),-1.,1.));}
 }
-TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWatershedSettings& S,const FCLCompiledPlanetRecipe& Base,FString& Error)
+TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWatershedSettings& S,const FCLCompiledPlanetRecipe& Base,FString& Error,bool bConditionTerrain)
 {
     Error.Reset();if(!S.Validate(Error))return nullptr;
     const auto* Sea=Base.Guides.FindByPredicate([](const auto& G){return G.Name==TEXT("OceanHeight");});
@@ -90,6 +90,15 @@ TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWa
     for(auto& C:O->Cells){C.Neighbours.Sort();O->TotalAreaSquareMeters+=C.AreaSquareMeters;for(int32 J:C.Neighbours)O->MaximumEdgeMeters=FMath::Max(O->MaximumEdgeMeters,O->ReferenceRadiusMeters*Arc(C.Direction,O->Cells[J].Direction));}
     if(S.ValleyWidthMeters<O->MaximumEdgeMeters){Error=TEXT("Watershed valley width is below analysis resolution; increase resolution or width");return nullptr;}
     if(!O->Route(Sea->HeightMeters,Closed,Error))return nullptr;
+    const auto RecordDrainageLinks=[&]
+    {
+        for(int32 I=0;I<O->Cells.Num();++I){const auto& C=O->Cells[I];if(C.Receiver>=0&&!C.bLake&&!O->Cells[C.Receiver].bLake&&C.AccumulatedAreaSquareMeters>=S.ChannelAreaSquareMeters)O->DrainageLinks.Add({I,C.Receiver});}
+    };
+    if(!bConditionTerrain)
+    {
+        RecordDrainageLinks();
+        return O;
+    }
     TArray<FQueue> Queue;
     for(auto& C:O->Cells){C.bShore=C.bOcean||C.bLake;for(int32 J:C.Neighbours)C.bShore|=O->Cells[J].bLake;}
     for(int32 I:O->FloodOrder)
@@ -128,7 +137,7 @@ TSharedPtr<const FCLCompiledWatershed> FCLCompiledWatershed::Compile(const FCLWa
     O->ShapeCells=O->Cells;O->ConditionedReaches=O->Channels.Num();
     for(auto& C:O->Cells){C.HeightMeters=O->MapHeight(C.Direction,C.HeightMeters);C.BedMeters=C.HeightMeters;}
     if(!O->Route(Sea->HeightMeters,Closed,Error))return nullptr;
-    for(int32 I=0;I<O->Cells.Num();++I){const auto& C=O->Cells[I];if(C.Receiver>=0&&!C.bLake&&!O->Cells[C.Receiver].bLake&&C.AccumulatedAreaSquareMeters>=S.ChannelAreaSquareMeters)O->DrainageLinks.Add({I,C.Receiver});}
+    RecordDrainageLinks();
     O->Channels.RemoveAll([&](const auto& C){return O->Cells[C.From].Receiver!=C.To||O->Cells[C.From].bLake||O->Cells[C.To].bLake;});
     return O;
 }

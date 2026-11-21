@@ -28,4 +28,12 @@ struct CATALYSTLANDFORM_API FCLWatershedPresentationGeometry
     /** Uses the accepted analysis plus native height samples, inside the existing evaluation task. */
     static TSharedPtr<const FCLWatershedPresentationGeometry> Build(const FCLCompiledPlanetRecipe&,
         FCLCompileProgress* Control=nullptr, bool bIncludeDrainagePaths=true);
+    /** Use pinned terrain elevations to find real water basins without carving a new terrain. */
+    static TSharedPtr<const FCLWatershedPresentationGeometry> BuildMeasuredSurface(
+        const FCLCompiledPlanetRecipe&, FCLCompileProgress* Control);
+
+private:
+    static TSharedPtr<const FCLWatershedPresentationGeometry> BuildAnalyzed(
+        const FCLCompiledPlanetRecipe&, const TSharedPtr<const FCLCompiledWatershed>&,
+        FCLCompileProgress*, bool bIncludeDrainagePaths);
 };
