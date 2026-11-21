@@ -27,13 +27,13 @@ struct CATALYSTLANDFORM_API FCLWatershedPresentationGeometry
     double Seconds=0;
     /** Uses the accepted analysis plus native height samples, inside the existing evaluation task. */
     static TSharedPtr<const FCLWatershedPresentationGeometry> Build(const FCLCompiledPlanetRecipe&,
-        FCLCompileProgress* Control=nullptr, bool bIncludeDrainagePaths=true);
+        FCLCompileProgress* Control=nullptr, bool bIncludeDrainagePaths=true, bool bOverlapRenderedShore=false);
     /** Find water basins on an accepted spherical source without conditioning its terrain. */
     static TSharedPtr<const FCLWatershedPresentationGeometry> BuildUnconditionedSurface(
-        const FCLCompiledPlanetRecipe&, FCLCompileProgress* Control);
+        const FCLCompiledPlanetRecipe&, FCLCompileProgress* Control, bool bOverlapRenderedShore=false);
 
 private:
     static TSharedPtr<const FCLWatershedPresentationGeometry> BuildAnalyzed(
         const FCLCompiledPlanetRecipe&, const TSharedPtr<const FCLCompiledWatershed>&,
-        FCLCompileProgress*, bool bIncludeDrainagePaths);
+        FCLCompileProgress*, bool bIncludeDrainagePaths, bool bOverlapRenderedShore);
 };

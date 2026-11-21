@@ -9,13 +9,13 @@ uint64 Edge(int32 A,int32 B){return uint64(FMath::Min(A,B))<<32|uint32(FMath::Ma
 struct FClip {FVector D;double Depth;int32 Vertex;};
 struct FCrossing {int32 Vertex,Body;FVector Wet,Dry;};
 }
-TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::Build(const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control, bool bIncludeDrainagePaths)
+TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::Build(const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control, bool bIncludeDrainagePaths, bool bOverlapRenderedShore)
 {
-    return BuildAnalyzed(Plan, Plan.Watershed, Control, bIncludeDrainagePaths);
+    return BuildAnalyzed(Plan, Plan.Watershed, Control, bIncludeDrainagePaths, bOverlapRenderedShore);
 }
 
 TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::BuildUnconditionedSurface(
-    const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control)
+    const FCLCompiledPlanetRecipe& Plan,FCLCompileProgress* Control,bool bOverlapRenderedShore)
 {
     if (!Plan.SourceRecipe || (Control && Control->Cancelled.load()) ||
         (Plan.Coordinates!=ECLTerrainCoordinates::Sphere && Plan.Coordinates!=ECLTerrainCoordinates::SphericalSurface))
@@ -27,12 +27,12 @@ TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeome
         UE_LOG(LogTemp, Warning, TEXT("Unconditioned watershed analysis failed: %s"), *Error);
         return nullptr;
     }
-    return BuildAnalyzed(Plan, Analysis, Control, false);
+    return BuildAnalyzed(Plan, Analysis, Control, false, bOverlapRenderedShore);
 }
 
 TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeometry::BuildAnalyzed(
     const FCLCompiledPlanetRecipe& Plan,const TSharedPtr<const FCLCompiledWatershed>& Analysis,
-    FCLCompileProgress* Control,bool bIncludeDrainagePaths)
+    FCLCompileProgress* Control,bool bIncludeDrainagePaths,bool bOverlapRenderedShore)
 {
     if(!Analysis||(Control&&Control->Cancelled.load()))return nullptr;
     const double Start=FPlatformTime::Seconds();auto Out=MakeShared<FCLWatershedPresentationGeometry>();Out->Source=Analysis;
@@ -73,11 +73,19 @@ TSharedPtr<const FCLWatershedPresentationGeometry> FCLWatershedPresentationGeome
         for(int32 Id:Candidates)
         {
             const double Level=Out->Bodies[Id].HeightMeters;auto& Map=Maps[Id];TArray<FClip,TInlineAllocator<4>> Polygon;TArray<int32,TInlineAllocator<2>> Shore;
+            // Cover the complete shoreline face where only one body owns it.
+            // Leave the surface at its actual level and let rendered ground
+            // occlude the overlap, including when Voxel changes terrain LOD.
+            const bool bCoverBank = bOverlapRenderedShore && Candidates.Num()==1 &&
+                ((Body[Face.X]==Id && Cells[Face.X].HeightMeters < Level) ||
+                 (Body[Face.Y]==Id && Cells[Face.Y].HeightMeters < Level) ||
+                 (Body[Face.Z]==Id && Cells[Face.Z].HeightMeters < Level));
             FClip C[3];
             for(int32 K=0;K<3;++K)
             {
                 const int32 I=Face[K];double Depth=Level-Cells[I].HeightMeters;if(FMath::Abs(Depth)<1.e-7)Depth=0;
                 if(Body[I]>=0&&Body[I]!=Id)Depth=-FMath::Max(.002,FMath::Abs(Depth));
+                if(bCoverBank)Depth=FMath::Max(.002,Depth);
                 int32 V=INDEX_NONE;if(Depth>0){auto* Found=Map.Vertices.Find(I);if(Found)V=*Found;else {V=Vertex(Cells[I].Direction,Id);Map.Vertices.Add(I,V);}}
                 C[K]={Cells[I].Direction,Depth,V};
             }

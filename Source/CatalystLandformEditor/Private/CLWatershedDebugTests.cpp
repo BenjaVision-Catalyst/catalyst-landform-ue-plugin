@@ -32,6 +32,29 @@ bool FCLWatershedDebugGeometryTest::RunTest(const FString&)
     TestEqual(TEXT("Gameplay gets the same surface triangles"),Play->Water.TriangleCount(),D->Water.TriangleCount());
     TestEqual(TEXT("Gameplay gets the same refined shores"),Play->Shores.Num(),D->Shores.Num());
     TestTrue(TEXT("Gameplay skips editor drainage lines"),Play->Paths.IsEmpty());
+    const auto Covered=FCLWatershedPresentationGeometry::Build(*P,nullptr,false,true);
+    if(!TestTrue(TEXT("Render coverage retains the accepted watershed"),Covered.IsValid()&&Covered->Source==D->Source))return false;
+    const auto Area=[](const UE::Geometry::FDynamicMesh3& Mesh)
+    {
+        double Sum=0.;
+        for(int32 Triangle:Mesh.TriangleIndicesItr())
+        {
+            const auto Face=Mesh.GetTriangle(Triangle);
+            const auto A=Mesh.GetVertex(Face.A);
+            Sum+=FVector::CrossProduct(Mesh.GetVertex(Face.B)-A,Mesh.GetVertex(Face.C)-A).Length()*.5;
+        }
+        return Sum;
+    };
+    TestTrue(TEXT("Render coverage extends past the traced shoreline"),Area(Covered->Water)>Area(D->Water));
+    TestEqual(TEXT("Render coverage preserves the number of water bodies"),Covered->Bodies.Num(),D->Bodies.Num());
+    for(int32 I=0;I<Covered->Bodies.Num();++I)
+        TestEqual(TEXT("Render coverage preserves basin water levels"),Covered->Bodies[I].HeightMeters,D->Bodies[I].HeightMeters);
+    for(int32 Vertex:Covered->Water.VertexIndicesItr())
+    {
+        const double Height=Covered->Water.GetVertex(Vertex).Length()-P->RadiusMeters;
+        if(!TestTrue(TEXT("Covered vertex remains at a basin waterline"),
+            Covered->Bodies.ContainsByPredicate([Height](const auto& Body){return FMath::IsNearlyEqual(Height,Body.HeightMeters,1.e-6);})))return false;
+    }
     for(const auto& WaterBody:Play->Bodies)if(WaterBody.Triangles>0)
         TestTrue(TEXT("A rendered water body has a wet interior sample"),WaterBody.MaximumDepthMeters>0&&WaterBody.InteriorDirection.IsNormalized());
     TestTrue(TEXT("Native mesh is topologically valid"),D->Water.CheckValidity({},UE::Geometry::EValidityCheckFailMode::ReturnOnly));
