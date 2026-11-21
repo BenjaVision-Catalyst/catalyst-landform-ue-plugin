@@ -2,6 +2,7 @@
 #include "CLPlanet.h"
 #include "CLNaniteProjection.h"
 #include "Presentation/CLPlanetProjection.h"
+#include "Presentation/CLProjectionChunk.h"
 #include "Presentation/CLSceneryRenderPolicy.h"
 #include "Model/CLPlanetRecipe.h"
 #include "Nanite/VoxelNaniteComponent.h"
@@ -47,6 +48,9 @@ struct FCLNativePlanetPresentation::FImpl
         float BoundsScale = 1;
         FBox LocalBox{ForceInit};
         FBox WorldBox{ForceInit};
+        FBox BodyBox{ForceInit};
+        double MinRadius=0.,MaxRadius=0.;
+        bool bAtChartEdge=false;
     };
     struct FCVar
     {
@@ -77,6 +81,7 @@ struct FCLNativePlanetPresentation::FImpl
     TArray<FBox> VisibleTerrain, TerrainScratch;
     uint64 TerrainCoverageRevision=0;
     bool bRequireTerrainForScenery=false;
+    bool bKeepTerrainAtChartEdge=false;
     TWeakObjectPtr<ACLPlanet> Planet;
     TStrongObjectPtr<UMaterialInterface> Material;
     TArray<FMesh> Meshes;
@@ -157,6 +162,16 @@ struct FCLNativePlanetPresentation::FImpl
             if (const auto *Moved = Meshes[K].Component.Get())
                 Index.FindChecked(Moved->GetUniqueID()) = K;
     }
+    static double TerrainArcRatio(double Curvature,double Arc)
+    {
+        if(Curvature==1. || Arc<1.e-6) return 1.;
+        return (Curvature==0. ? Arc : FMath::Sin(Curvature*Arc)/Curvature)/FMath::Sin(Arc);
+    }
+    bool TerrainOverlapsChart(const FMesh& M,const FVector& Anchor,double& MaxArc) const
+    {
+        return bKeepTerrainAtChartEdge && FCLProjectionChunk::TryGetTerrainArc(
+            M.BodyBox,Anchor,M.MinRadius,M.MaxRadius,FMath::Cos(MaxArcRadians),MaxArc);
+    }
     void Present(FMesh &M)
     {
         auto *C = M.Component.Get();
@@ -168,7 +183,9 @@ struct FCLNativePlanetPresentation::FImpl
             for (const auto &U : M.Corners)
                 bInside &= FVector::DotProduct(U, CurrentAnchor) >= FMath::Cos(MaxArcRadians)+5.e-6;
         }
-        const bool bShown = bInside && !M.bHidden;
+        double TileArc=MaxArcRadians;
+        M.bAtChartEdge=!bInside && M.bHeightValid && TerrainOverlapsChart(M,CurrentAnchor,TileArc);
+        const bool bShown = (bInside || M.bAtChartEdge) && !M.bHidden;
         if (C->bHiddenInGame == bShown)
             C->SetHiddenInGame(!bShown);
         if (bShown)
@@ -176,11 +193,15 @@ struct FCLNativePlanetPresentation::FImpl
             const bool bHistory = M.bWasShown && M.BornFrame < GFrameCounter;
             const auto Previous = bHistory ? PreviousAnchor : CurrentAnchor;
             const double OldC = bHistory ? PreviousCurvature : CurrentCurvature;
+            double PreviousTileArc=MaxArcRadians;
+            if(bHistory && bKeepTerrainAtChartEdge)
+                TerrainOverlapsChart(M,Previous,PreviousTileArc);
+            const double Ratio= M.bAtChartEdge ? TerrainArcRatio(CurrentCurvature,TileArc) : CurrentRatio;
+            const double OldRatio=bHistory ? FMath::Max(PreviousRatio,TerrainArcRatio(OldC,PreviousTileArc)) : Ratio;
             const double L =
                 FMath::Max(
-                    1., FMath::Max((CurrentCurvature + (1 - CurrentCurvature) * M.RadiusRatio) * CurrentRatio,
-                                   (OldC + (1 - OldC) * M.RadiusRatio) *
-                                       (bHistory ? PreviousRatio : CurrentRatio))) +
+                    1., FMath::Max((CurrentCurvature + (1 - CurrentCurvature) * M.RadiusRatio) * Ratio,
+                                   (OldC + (1 - OldC) * M.RadiusRatio) * OldRatio)) +
                 2.e-6;
             if (bWorldAnchored)
             {
@@ -380,6 +401,9 @@ struct FCLNativePlanetPresentation::FImpl
         }
         M.bHeightValid =
             MinRadius >= Radius * MinRadiusRatio && MaxRadius <= Radius * MaxRadiusRatio;
+        M.BodyBox = Box.ShiftBy(-Center);
+        M.MinRadius = MinRadius;
+        M.MaxRadius = MaxRadius;
         M.RadiusRatio = M.bHeightValid ? Radius / MinRadius : 1;
         C.ShadowCacheInvalidationBehavior = EShadowCacheInvalidationBehavior::Always;
         C.SetWorldPositionOffsetDisableDistance(0);
@@ -635,6 +659,7 @@ TUniquePtr<FCLNativePlanetPresentation> FCLNativePlanetPresentation::TryCreate(
     I.Window = Planet.SamplingWindow;
     I.bGameplay = Options.bGameplay;
     I.bRequireTerrainForScenery = Options.bRequireTerrainForScenery;
+    I.bKeepTerrainAtChartEdge = Options.bWorldAnchored && Options.bKeepTerrainAtChartEdge;
     I.bNativeMaterials = Options.bNativeMaterials;
     I.bNativeControl = Options.bNativeControl;
     I.Planet = &Planet;
@@ -1011,7 +1036,7 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
                                                   "lighting and sky ambient")
                                            : TEXT("Experimental direct-light diagnostic material; Lumen and "
                                                   "distance-field lighting disabled"));
-    int32 SceneryPackets=0,TerrainPackets=0;
+    int32 SceneryPackets=0,TerrainPackets=0,EdgeTiles=0;
     for(const auto& P:I.Primitives) if(const auto* C=P.Component.Get())
     {
         const auto& D=C->GetCustomPrimitiveData().Data;
@@ -1021,9 +1046,11 @@ void FCLNativePlanetPresentation::WriteReport(FJsonObject &Report) const
     {
         const auto& D=C->GetCustomPrimitiveData().Data;
         TerrainPackets+=D.Num()>=28 && D[3]==I.CurrentCurvature && D[11]==9150;
+        EdgeTiles+=M.bAtChartEdge;
     }
     O->SetNumberField(TEXT("sceneryProjectionPackets"),SceneryPackets);
     O->SetNumberField(TEXT("visibleTerrainProjectionPackets"),TerrainPackets);
+    O->SetNumberField(TEXT("visibleTerrainEdgeTiles"),EdgeTiles);
     O->SetNumberField(TEXT("sceneryComponents"),I.Primitives.Num());
     if(I.bRequireTerrainForScenery)
     {

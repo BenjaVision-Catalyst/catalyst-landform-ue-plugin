@@ -99,6 +99,12 @@ roots. Coverage is checked again after end-of-frame terrain synchronization.
 It uses canonical tile bounds with a small placement tolerance. Native Nanite
 still resolves view frustum and depth occlusion within the admitted scene.
 
+With `bKeepTerrainAtChartEdge`, world-anchored presentation retains a native
+terrain tile whose bounds can intersect the chart. It draws the entire tile with
+a stretch bound for its full angular span, including the part beyond the chart
+edge. Native culling still applies to the projected terrain. This keeps a
+mountain visible while a coarse tile crosses the boundary.
+
 At a fixed 2K walking pose, repeated uncorrected canopy captures changed more
 than 10 RGB8 levels in 3.8–4.3% of crop pixels per adjacent frame. Corrected
 captures measured about 0.1%; the large group dropout returned when the old chunk

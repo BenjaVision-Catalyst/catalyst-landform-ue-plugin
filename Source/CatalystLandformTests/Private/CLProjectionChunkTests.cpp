@@ -66,4 +66,29 @@ bool FCLProjectionChunkTest::RunTest(const FString&)
     AddInfo(FString::Printf(TEXT("%d chunk samples; max residual/bound %.9g; max observed stretch/bound %.9g"), Samples, MaxResidualFraction, MaxObservedStretchFraction));
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCLTerrainChartEdgeTest, "Catalyst.Landform.Presentation.TerrainChartEdge",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FCLTerrainChartEdgeTest::RunTest(const FString&)
+{
+    const FVector Anchor(-.1297272588, .1969538445, .9717921699);
+    const FBox MountainTile(FVector(102448, 160, 701), FVector(135528, 100272, 71544));
+    const double ChartCosine=FMath::Cos(FMath::DegreesToRadians(89.));
+    const double MinRadius=MountainTile.GetClosestPointTo(FVector::ZeroVector).Length();
+    const double MaxRadius=MountainTile.Max.Length();
+    double Arc=0.;
+    if(!TestTrue(TEXT("FirstPlanet mountain tile intersects the chart"),FCLProjectionChunk::TryGetTerrainArc(
+        MountainTile,Anchor,MinRadius,MaxRadius,ChartCosine,Arc))) return false;
+    TestTrue(TEXT("Terrain extends outside the ordinary chart"),Arc>FMath::DegreesToRadians(89.));
+    for(int32 X=0;X<=5;++X)
+        for(int32 Y=0;Y<=5;++Y)
+            for(int32 Z=0;Z<=5;++Z)
+            {
+                const FVector P=MountainTile.Min+MountainTile.GetSize()*FVector(X/5.,Y/5.,Z/5.);
+                TestTrue(TEXT("Full tile lies inside the angular bound"),FVector::DotProduct(Anchor,P.GetSafeNormal())>=FMath::Cos(Arc)-1.e-8);
+            }
+    TestFalse(TEXT("Far-side tile outside the chart is rejected"),FCLProjectionChunk::TryGetTerrainArc(
+        MountainTile,-FVector::XAxisVector,MinRadius,MaxRadius,ChartCosine,Arc));
+    return true;
+}
 #endif

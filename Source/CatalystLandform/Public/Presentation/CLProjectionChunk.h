@@ -10,6 +10,10 @@ class CATALYSTLANDFORM_API FCLProjectionChunk
 {
 public:
     static bool TryCreate(const FCLPlanetProjection& Projection, const FBox& CanonicalBounds, FCLProjectionChunk& Out);
+    /** Conservative chart intersection for a body-relative tile, with the angular
+     * bound needed to draw the entire tile across the chart edge. */
+    static bool TryGetTerrainArc(const FBox& BodyBounds, const FVector& Anchor, double MinRadius,
+        double MaxRadius, double ChartCosine, double& OutMaxArc);
     FVector ProjectRigidPosition(const FVector& Canonical) const;
     FTransform ProjectRigidTransform(const FTransform& Canonical) const;
     const FQuat& GetRotation() const { return Rotation; }

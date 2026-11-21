@@ -8,6 +8,37 @@ double Sinc(double X)
     return FMath::Sin(X) / X;
 }
 }
+bool FCLProjectionChunk::TryGetTerrainArc(const FBox& BodyBounds, const FVector& Anchor, double MinRadius,
+    double MaxRadius, double ChartCosine, double& OutMaxArc)
+{
+    const FVector Center = BodyBounds.GetCenter();
+    const FVector Extent = BodyBounds.GetExtent();
+    const double Depth = FVector::DotProduct(Anchor, Center);
+    const double HalfDepth = FVector::DotProduct(Anchor.GetAbs(), Extent);
+    if (MinRadius <= 0. || Depth + HalfDepth < MinRadius * ChartCosine)
+        return false;
+
+    // Signed extrema use different radii to lower-bound the directional dot product.
+    const double MinDepth = Depth - HalfDepth;
+    double MinCosine = MinDepth / (MinDepth < 0. ? MinRadius : MaxRadius);
+    // The box's circumscribed sphere provides a second conservative bound on the
+    // angle, especially when the lowest depth and closest radius are far apart.
+    const double CenterRadius = Center.Length();
+    const double BoxRadius = Extent.Length();
+    if (BoxRadius < CenterRadius)
+    {
+        const double CenterArc = FMath::Acos(FMath::Clamp(Depth / CenterRadius, -1., 1.));
+        const double EnclosingArc = CenterArc + FMath::Asin(BoxRadius / CenterRadius);
+        if (EnclosingArc < UE_PI)
+            MinCosine = FMath::Max(MinCosine, FMath::Cos(EnclosingArc));
+    }
+    // A tile with no separation from the chart's antipodal singularity cannot
+    // provide a finite stretch bound.
+    if (MinCosine <= -1. + 1.e-6)
+        return false;
+    OutMaxArc = FMath::Acos(FMath::Clamp(MinCosine, -1., 1.));
+    return true;
+}
 bool FCLProjectionChunk::TryCreate(const FCLPlanetProjection& Projection, const FBox& Box, FCLProjectionChunk& Out)
 {
     if (!Box.IsValid || Box.Min.ContainsNaN() || Box.Max.ContainsNaN() ||
